@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load tz %}
+{% load comments %}
+{% block content %}
+<style>
+  #id_honeypot {
+    display: none;
+  }
+</style>
+<div class="desc">
+<h4><a href="{% url 'profile' slug=object.submitter %}">{{ object.submitter }}</a>: {{ object.description }}</h4>
+</div>
+
+{% if object.submitter == user %}
+  <a href="{% url 'link_update' pk=object.pk %}">Edit</a> | 
+  <a href="{% url 'link_delete' pk=object.pk %}">Delete</a>
+{% endif %}
+
+<div class="linkdetails">
+<a href="{{ object.link }}">{{ object.url }}</a>
+
+<div class="comments">
+  <h3>Comments</h3>
+
+  <div class="comment_form">
+{% if user.is_authenticated %}
+  {% get_comment_form for object as form %}
+  <form action="{% comment_form_target %}" method="POST">
+    {% csrf_token %}
+    {{ form.comment }}
+    {{ form.honeypot }}
+    {{ form.content_type }}
+    {{ form.object_pk }}
+    {{ form.timestamp }}
+    {{ form.security_hash }}
+    <input type="hidden" name="name" value="{{ user }}" />
+    <input type="hidden" name="email" value="{{ user.email|default:'d@ummy.com' }}" />
+    <input type="hidden" name="url" value="" />
+    <input type="hidden" name="next" 
+     value="{% url 'link_detail' pk=object.id %}" />
+    <input type="submit" value="Write comment" id="id_submit" />
+  </form>
+{% else %}
+  <p><i>Comment karney ke liye <a href="{% url 'login' %}">log in</a> karien.</i></p>
+{% endif %}
+  </div>
+  </div>
+
+{% get_comment_list for object as comment_list %}
+  {% for comment in comment_list reversed %}
+  <p>
+  <div class="comment">
+  <a href="{% url 'profile' slug=comment.user_name %}">{{ comment.user_name }}</a>
+    {{ ':' }}
+    {{ comment.comment }}
+    </div>
+   <div class="date">
+   {{ comment.submit_date }}
+   </div>
+   </p>
+  {% endfor %}
+
+</div>
+{% endblock %}

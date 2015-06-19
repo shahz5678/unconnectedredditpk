@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="margin">
+<h2>{{ user.username }} ki profile</h2>
+
+<form method="post" action="">
+  {% csrf_token %}
+  {{ form.bio.errors }}<p>
+  {{ form.bio.label_tag }}{{ form.bio }}<p>
+  {{ form.mobilenumber.errors }}<p>	
+  {{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<p>	
+  {{ form.age.errors }}<p>	
+  {{ form.age.label_tag }}{{ form.age }}<p>
+  {{ form.gender.errors }}<p>
+  {{ form.gender.label_tag }}{{ form.gender }}<p>
+  {{ form.shadi_shuda.errors }}<p>
+  {{ form.shadi_shuda.label_tag }}{{ form.shadi_shuda }}<p> 
+  <input class="button" style="background-color:#F6F6F6" type="submit" value="Save">
+</form>
+</div>
+
+{% endblock %}

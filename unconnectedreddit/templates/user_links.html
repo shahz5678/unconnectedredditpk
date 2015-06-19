@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ user.username }}'s Profile</h2>
+{% if user.userprofile.bio %}
+	<div>
+	<b>Bio:</b>
+	{{ user.userprofile.bio }}
+	</div>
+	{% endif %}
+
+
+<p>
+	{% for link in object_list reversed %}
+		{% if user == link.submitter %}
+			<p>
+			{% if link.votes %}
+				{% if link.votes == 1 %}
+					[{{ "1 vote" }}]
+				{% else %}
+					[{{ link.votes }}{{ " votes" }}]
+				{% endif %}
+			{% else %}
+				[{{ "0 votes" }}]
+			{% endif %}	
+			<a href="{% url 'link_detail' pk=link.pk %}"> {{ link.description }}</a></p>
+		{% endif %}
+	{% endfor %}
+</p>
+
+
+
+{% if object.username == user.username %}
+<p><a href='{% url "edit_profile" %}'>Edit my profile</a></p>
+{% endif %}
+{% endblock %}

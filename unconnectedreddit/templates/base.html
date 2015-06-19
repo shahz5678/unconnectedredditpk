@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Damadam</title>
+    
+    {% if not request.mobile or request.tablet %} <!-- i.e. if its a computer-type browser -->
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
+    {% else %}
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
+    {% endif %}    
+    
+
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+       <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+</head>
+<body>
+
+{% if not request.mobile or request.tablet %}
+<h1>Damadam</h1>
+{{ window.screen.width }}
+{% else %}
+<h1>Damadam</h1>
+{% endif %}
+
+<h5>Bindas gupshup aur Internet links!</h5>
+<div class="navbar">
+<p>
+    <!--<a href="{% url 'home' %}">Home</a> |-->
+    <a href="/">Home</a> |
+{% if user.is_authenticated %}
+    <a class="sharing" href="{% url 'link_create' %}">KUCH LIKHAIN</a> |
+    <!--<a href="{% url 'logout' %}">Logout</a> |-->
+    <a href="{% url 'profile' slug=user.username %}">{{ user.username }}</a> 
+{% else %}
+    <a href="{% url 'registration_register' %}">KUCH LIKHAIN</a> |
+    <a href="{% url 'registration_register' %}">Register</a> |
+    <a href="{% url 'login' %}">Login</a> 
+{% endif %}</p>
+</div>
+<div class="container">
+{% block content %}
+{% endblock %}
+</div>
+<div class="foot">
+
+<div id="bolded">
+<ul>
+    <li>
+        {% block pagination %}
+        {% endblock %}
+    </li>
+</ul>
+</div>
+{% if user.is_authenticated %}
+| <a class="foot2" href="{% url 'link_create' %}">KUCH LIKHAIN</a> |
+{% else %}
+| <a class="foot2" href="{% url 'registration_register' %}">KUCH LIKHAIN</a> |  
+{% endif %}
+</div>
+</body>
+</html>

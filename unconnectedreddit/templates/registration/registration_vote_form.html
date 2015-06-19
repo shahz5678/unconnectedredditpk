@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="margin">
+<h2>Register karien</h2>
+<p>Register karne se aap likh, vote aur comment kar saktey hain! Ager pehlay register kiya hua hai tou <a href="{% url 'login' %}">login</a> karien.</p>
+{% if form.errors %}
+{% endif %}
+<form method="post" action="">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input class="button" type="submit" value="Register">
+</form>
+</div>
+{% endblock %}

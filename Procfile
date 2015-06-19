@@ -1,0 +1,1 @@
+web: gunicorn unconnectedreddit.wsgi --log-file -

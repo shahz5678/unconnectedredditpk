@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+{{ block.super }}
+<div class=margin>
+<h2>{{ object.username }} ki profile</h2>
+	<div>
+	<b class="profile">About:</b>
+	{% if object.userprofile.bio %}
+	<a class="info">{{ object.userprofile.bio }}</a>
+	</div>
+	{% endif %}
+	<div>
+	<b class="profile">Gender:</b>
+	{% if object.userprofile.gender %}
+		<a class="info">{{ "Aurat" }}</a>
+	{% else %}
+		<a class="info">{{ "Mard" }}</a>	
+	</div>
+	{% endif %}
+	<div>
+	<b class="profile">Mobile Number:</b>
+	{% if object.userprofile.mobilenumber %}
+	<a class="info">{{ object.userprofile.mobilenumber }}</a>
+	</div>
+	{% endif %}
+	<div>
+	<b class="profile">Age:</b>
+	{% if object.userprofile.age %}
+	<a class="info">{{ object.userprofile.age }}</a>
+	</div>
+	{% endif %}
+	<div>
+	<b class="profile">Shaadi shuda:</b>
+	{% if object.userprofile.shadi_shuda %}
+		<a class="info">{{ "Yes" }}</a>
+	{% else %}
+		<a class="info">{{ "No" }}</a>
+	</div>
+	{% endif %}
+
+{% if object.username == user.username %}
+<p><a href='{% url "edit_profile" %}'>Change my profile</a></p>
+{% endif %}
+</div>
+{% endblock %}

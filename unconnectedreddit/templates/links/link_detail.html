@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load tz %}
+{% load comments %}
+{% block content %}
+<style>
+  #id_honeypot {
+    display: none;
+  }
+</style>
+<div class="margin">
+{% if object.submitter == user %}
+  <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}">Edit <b style="color:black">|</b></a> 
+  <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}"> Delete</a>
+{% endif %}
+<div class="desc">
+<p><a href="{% url 'profile' slug=object.submitter %}"><b>{{ object.submitter }}</b></a>: <a class="info">{{ object.description }}</a></p>
+{% if object.url %}
+  Link: <a href="{{ object.url }}" target="_blank" class:"wrapping">{{ object.url }}</a>
+{% endif %}
+
+<div class="comments">
+<p style="color:gray"><hr /></p>
+  <h3>Comments:</h3>
+
+  <div class="comment_form">
+{% if user.is_authenticated %}
+  {% get_comment_form for object as form %}
+  <form action="{% comment_form_target %}" method="POST">
+    {% csrf_token %}
+    {{ form.comment }}
+    {{ form.honeypot }}
+    {{ form.content_type }}
+    {{ form.object_pk }}
+    {{ form.timestamp }}
+    {{ form.security_hash }}
+    <input type="hidden" name="name" value="{{ user }}">
+    <input type="hidden" name="email" value="{{ user.email|default:'d@ummy.com' }}">
+    <input type="hidden" name="url" value="">
+    <input type="hidden" name="next" 
+     value="{% url 'link_detail' pk=object.id %}">
+   <h3> <input class="button"  style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add comment" id="id_submit"></h3>
+  </form>
+{% else %}
+  <p><i>Comment karney ke liye <a href="{% url 'registration_register' %}">register</a> karien.</i></p>
+{% endif %}
+  </div>
+  </div>
+
+{% get_comment_list for object as comment_list %}
+  {% for comment in comment_list reversed %}
+  <p>
+  <div class="comment">
+  <a href="{% url 'profile' slug=comment.user_name %}">{{ comment.user_name }}</a>
+    {{ ':' }}
+    <a class="info">{{ comment.comment }}</a>
+    </div>
+   <div class="date">
+   {{ comment.submit_date }}
+   </div>
+   </p>
+  {% endfor %}
+
+</div>
+</div>
+{% endblock %}

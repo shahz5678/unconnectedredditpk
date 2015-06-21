@@ -10,12 +10,13 @@
   {{ form.bio.label_tag }}{{ form.bio }}<p>
   {{ form.mobilenumber.errors }}<p>	
   {{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<p>	
-  {{ form.age.errors }}<p>	
-  {{ form.age.label_tag }}{{ form.age }}<p>
-  {{ form.gender.errors }}<p>
-  {{ form.gender.label_tag }}{{ form.gender }}<p>
-  {{ form.shadi_shuda.errors }}<p>
-  {{ form.shadi_shuda.label_tag }}{{ form.shadi_shuda }}<p> 
+  {{ form.age.errors }}<p>  
+  {{ form.age.label_tag }}{{ form.age }}<br><br>
+ 
+  {{ form.gender.errors }}
+  {{ form.gender.label_tag }}<br>{% for radio in form.gender %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
+  {{ form.shadi_shuda.errors }}
+  {{ form.shadi_shuda.label_tag }}<br><br>{% for radio in form.shadi_shuda %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br><br>
   <input class="button" style="background-color:#F6F6F6" type="submit" value="Save">
 </form>
 </div>

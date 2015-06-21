@@ -5,7 +5,7 @@
     
     {% if not request.mobile or request.tablet %} <!-- i.e. if its a computer-type browser -->
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
-    {% else %}
+    {% else %}<!-- i.e. if its a mobile-type browser -->
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
     {% endif %}    
     

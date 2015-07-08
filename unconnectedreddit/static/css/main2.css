@@ -305,6 +305,17 @@ h2 {
 
 }
 
+.sms {
+    background-color:#000000;
+    width: 2.7em;
+    border-color: blue;
+    border-style: solid;
+    color:blue;
+    font-size:100%;
+
+
+}
+
 .wrapping{
 
     word-wrap: break-word;

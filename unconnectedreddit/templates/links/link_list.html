@@ -41,6 +41,7 @@
 	{% else %}
 		<button style="background-color:#F6F6F6">unvote</button>
 	{% endif %}
+	<input class="sms" type="submit" name="sms" style="color:blue;background-color:#F6F6F6" value="sms">
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
 		<a href="{% url 'link_detail' pk=link.pk %}">

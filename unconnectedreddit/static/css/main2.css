@@ -307,11 +307,12 @@ h2 {
 
 .smsbutton {
     background-color:#000000;
-    width: 30px;
+    width: 32px;
     border-color: blue;
     border-style: solid;
     color:blue;
     font-size:100%;
+    text-align: center;
 
 }
 
@@ -411,7 +412,7 @@ a{
     padding-right:1px;
     margin-right:5px;
     border-radius: 6px;
-    text-align: right;
+    
 
 }
 

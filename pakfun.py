@@ -15,7 +15,7 @@ public_tweet = api.user_timeline(id='pak_fun', count=1, include_rts=False)
 #public_tweet2 = api.user_timeline(id='baigi', count=1, include_rts=False)
 for tweet in public_tweet:
     retort = tweet.text
-    user = User(id=1) #can set to any user via their ID
+    user = User(id=3) #can set to any user via their ID
     if retort == user.userprofile.previous_retort:
         pass
     else:

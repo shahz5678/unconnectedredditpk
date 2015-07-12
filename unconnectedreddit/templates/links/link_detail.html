@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load tz %}
 {% load comments %}
+{% load humanize %}
+{% load urlize_target_blank %}
 {% block content %}
 <style>
   #id_honeypot {
@@ -13,9 +15,9 @@
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}"> Delete</a>
 {% endif %}
 <div class="desc">
-<p><a href="{% url 'profile' slug=object.submitter %}"><b>{{ object.submitter }}</b></a>: <a class="info">{{ object.description }}</a></p>
+<p><a href="{% url 'profile' slug=object.submitter %}"><b>{{ object.submitter }}</b></a>: <a class="info">{{ object.description|urlize_target_blank:25 }}</a></p>
 {% if object.url %}
-  Link: <a href="{{ object.url }}" target="_blank" class:"wrapping">{{ object.url }}</a>
+  Link: <a href="{{ object.url }}" target="_blank" class:"wrapping">{{ object.url|urlize_target_blank:25 }}</a>
 {% endif %}
 
 <div class="comments">
@@ -55,7 +57,7 @@
     <a class="info">{{ comment.comment }}</a>
     </div>
    <div class="date">
-   {{ comment.submit_date }}
+   {{ comment.submit_date|naturaltime }}
    </div>
    </p>
   {% endfor %}

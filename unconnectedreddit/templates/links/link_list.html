@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load comments %}
 {% load bootstrap_pagination %}
-
+{% load urlize_target_blank %}
 {% block content %}
 {% if is_paginated %}
 <ol start="{{ page_obj.start_index }}">
@@ -17,17 +17,17 @@
 	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">		
 	<!--{{ link.rank_score }}-->
 	<a href="{% url 'profile' slug=link.submitter %}" class="bigger">{{ link.submitter }}:</a>
-		<a class="biggerblack">{{ link.description }}</a>
+		<span style="color:black; font-size:121%;">{{ link.description|urlize_target_blank:25 }}</span>
 		 
 	{% if link.url %}
-		<b><a href="{{ link.url }}" target="_blank" class="link">{{ "(link)"}}</a></b>
+		<b><span style="font-size:121%; font-weight:100;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
 	{% endif %} 
 	<p style="margin-top:0.25em">
 	<a class="countofvotes">{% if link.votes %}
 			{% if link.votes == 1 %}
 				{{ "1 vote" }}
 			{% else %}
-				{{ link.votes }}{{ " votes" }}
+				{{ link.votes }}{{ "votes" }}
 		{% endif %}
 	{% else %}
 		{{ "0 votes" }}

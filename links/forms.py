@@ -16,7 +16,7 @@ class UserProfileForm(forms.ModelForm):
     shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
     class Meta:
         model = UserProfile
-        exclude = ("user") #so user doesn't show, but the extended attributes of bio and mobile number do show    
+        exclude = ('user','previous_retort') #so user and previous_retort doesn't show, but the extended attributes of bio and mobile number do show    
         fields=('bio', 'mobilenumber', 'age', 'gender', 'shadi_shuda')
 
 class LinkForm(forms.ModelForm):

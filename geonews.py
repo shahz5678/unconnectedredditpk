@@ -15,9 +15,9 @@ public_tweet = api.user_timeline(id='geonews_urdu', count=1, include_rts=False)
 #public_tweet2 = api.user_timeline(id='baigi', count=1, include_rts=False)
 for tweet in public_tweet:
     retort = tweet.text
-    user = User(id=1) #can set to any user via their ID
+    user = User(id=2) #can set to any user via their ID
     if retort == user.userprofile.previous_retort:
-        print 'NOTHING NEW'
+        pass
     else:
     	LinkAutoCreate(user=user, content=retort)
 	'''

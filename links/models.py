@@ -24,11 +24,11 @@ class LinkVoteCountManager(models.Manager): #this class is derived from model ma
              #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):
-    description = models.CharField("Kuch likhain", max_length=500)
+    description = models.TextField("Kuch likhain")#, max_length=500)
     submitter = models.ForeignKey(User) # link.submitter is a user!
     submitted_on = models.DateTimeField(auto_now_add=True)
     rank_score = models.FloatField(default=0.0)
-    url = models.URLField("Link (if any)", max_length=250, blank=True)
+    url = models.URLField("Link (agr hai)", max_length=250, blank=True)
     cagtegory = models.CharField(choices=CATEGS, default=1, max_length=25)
     
     with_votes = LinkVoteCountManager() #change this to set_rank()
@@ -72,6 +72,7 @@ class UserProfile(models.Model):
     gender = models.BooleanField("Aurat ho ya mard?", default=True)
     age = models.PositiveIntegerField("Kitni umr hai?", null=True)
     shadi_shuda = models.BooleanField("Shaadi kar li hai?", default=False)
+    previous_retort = models.CharField(blank=True, max_length=500)
 
     def __unicode__(self):
         return "%s's profile" % self.user

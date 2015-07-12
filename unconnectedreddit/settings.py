@@ -150,6 +150,8 @@ INSTALLED_APPS = (
     'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
     'bootstrap_pagination',
     'djcelery',
+    'tweepy',
+    'django.contrib.humanize',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

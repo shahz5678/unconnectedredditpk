@@ -1,4 +1,5 @@
 # Create your views here.
+import re
 from .models import Link, Vote, UserProfile
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -83,8 +84,10 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
             btn = self.request.POST.get("val")
         if btn == u"\u2191":
             val = 1
-        else:
+        elif btn == u"\u2193":
             val = -1
+        else:
+            val = 0
         prev_votes = Vote.objects.filter(voter=user, link=link) #has the user already voted? If so, we'll find out via this
         has_voted = (prev_votes.count() > 0)
         if not has_voted: #this only works if the user has NOT voted before
@@ -98,3 +101,22 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
     def form_invalid(self, form): #this function is also always to be defined for views created for forms
         return redirect("home")
 	
+def LinkAutoCreate(user, content):   
+    link = Link()
+    link.description = content
+    #urls = re.findall(r'(https?://\S+)', content)
+     #r = re.compile(r'(https?://[^ ]+)')
+    #r = re.findall("#(\w+)",content)
+    #if urls:
+    #    link.url = urls[0] 
+     #link.description = r.sub(r'<a href="\1">\1</a>', content)
+    #link.description = content
+    #for link in urls:
+    #    link.sub()
+    link.submitter = user
+    link.rank_score = 0.0
+    link.with_votes = 0
+    link.category = '1'
+    link.save()
+    user.userprofile.previous_retort = content
+    user.userprofile.save()

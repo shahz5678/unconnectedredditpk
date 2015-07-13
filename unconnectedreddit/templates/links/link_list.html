@@ -43,9 +43,7 @@
 	{% endif %}
 	<!--<input class="smsbutton" type="submit" name="sms" style="color:blue;background-color:#F6F6F6" value="sms">-->
 	<!--<button>sms</button>-->
-	{% if request.mobile %}
-		<a href="sms:+923333333331?body={{ link.description }}" style="color:blue;background-color:#FFA500">SMS</a>
-	{% endif %}
+	<a href="sms:+923333333331?body={{ link.description }}" style="color:blue;background-color:#FFA500">SMS</a>
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
 		<a href="{% url 'link_detail' pk=link.pk %}">

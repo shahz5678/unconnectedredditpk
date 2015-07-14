@@ -103,6 +103,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 	
 def LinkAutoCreate(user, content):   
     link = Link()
+    content = content.replace('#',' ') 
     link.description = content
     #urls = re.findall(r'(https?://\S+)', content)
      #r = re.compile(r'(https?://[^ ]+)')

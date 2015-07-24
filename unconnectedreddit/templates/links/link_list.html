@@ -43,7 +43,7 @@
 	{% endif %}
 	<!--<input class="smsbutton" type="submit" name="sms" style="color:blue;background-color:#F6F6F6" value="sms">-->
 	<!--<button>sms</button>-->
-	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" style="color:blue;background-color:#FFA500">SMS</a>
+	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" style="color:blue;background-color:#FFBC79">SMS</a>
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
 		<a href="{% url 'link_detail' pk=link.pk %}">

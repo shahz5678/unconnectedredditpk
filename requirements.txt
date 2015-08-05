@@ -8,7 +8,7 @@ dj-static==0.0.6
 Django==1.5.1
 django-bootstrap-pagination==1.5.1
 django-celery==3.1.16
-django-registration==0.8
+git+git://github.com/mhb11/django-registration-1.5.git
 django-toolbelt==0.0.1
 gunicorn==19.3.0
 kombu==3.0.26

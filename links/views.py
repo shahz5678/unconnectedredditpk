@@ -80,8 +80,10 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
     def form_valid(self, form): #this function is always to be defined in views created for forms
         link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
         user = self.request.user
+        section = 0
         if self.request.method == 'POST':
             btn = self.request.POST.get("val")
+            section = self.request.POST.get("section_number")
         if btn == u"\u2191":
             val = 1
         elif btn == u"\u2193":
@@ -96,7 +98,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
         else:
             # delete vote
             prev_votes[0].delete() #if user has previously voted, simply delete previous vote
-        return redirect(self.request.META.get('HTTP_REFERER'))
+        return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
 
     def form_invalid(self, form): #this function is also always to be defined for views created for forms
         return redirect("home")

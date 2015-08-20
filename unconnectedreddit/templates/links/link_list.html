@@ -19,7 +19,7 @@
 	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	<!--{{ link.rank_score }}-->
 	<a href="{% url 'profile' slug=link.submitter %}" class="bigger">{{ link.submitter }}:</a>
-		<span style="color:black; font-size:121%;">{{ link.description|urlize_target_blank:25 }}</span>
+		<span style="color:black; font-size:125%;">{{ link.description|urlize_target_blank:25 }}</span>
 		<a name="section{{ forloop.counter }}"></a>
 		 
 	{% if link.url %}

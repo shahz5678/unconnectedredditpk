@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="margin">
-<p><a class="info"><b>Kiya isko mita doon:</b> {{ object.description }}</a></p>
+<p><a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;"><b>Kiya isko mita doon: </b> {{ object.description }}</a></p>
 
 <form method="post" action="{% url 'link_delete' pk=object.pk %}">
   {% csrf_token %}

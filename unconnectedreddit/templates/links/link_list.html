@@ -21,7 +21,11 @@
     {% if not page_obj.number|add:"-1" %}
     	{{ forloop.counter }}.
     {% else %}
-    	{{ page_obj.number}}{{ forloop.counter }}.
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
     {% endif %}
     </span>
     <a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;">{{ link.submitter }}:</a>

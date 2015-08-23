@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Passion+One);
+/*@import url(http://fonts.googleapis.com/css?family=Passion+One);*/
 
 html{
     width:100%;
@@ -50,9 +50,26 @@ body{
 
 }
 
+ tr:nth-child(even) {
+  background-color: rgba(0,0,0,0.1);
+}
 
 
+ tr:nth-child(odd) {
+  background-color: white;
+}
 
+.indices {
+    padding-left:15px;
+    width: 101%;
+}
+
+.numbers {
+
+    font-size: 80%;
+    padding-right: 10px;
+    color:gray;
+}
 
 a {
  
@@ -271,6 +288,7 @@ header {
 
 .navbar {
     background-color:#FFB469;
+    
     text-align: center;
     width:100%;
     margin-top:-35px;
@@ -278,7 +296,7 @@ header {
     font-size: 100%;
    
     line-height:100%;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .navbar a{

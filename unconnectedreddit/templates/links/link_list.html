@@ -35,11 +35,12 @@
 		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
 	{% endif %} 
 	<p style="margin-top:.6em">
-	<a class="countofvotes">{% if link.votes %}
-			{% if link.votes == 1 %}
-				{{ "1 vote" }}
-			{% else %}
-				{{ link.votes }}{{ " votes" }}
+	<a class="countofvotes">
+	{% if link.votes %}
+		{% if link.votes == 1 %}
+			{{ "1 vote" }}
+		{% else %}
+			{{ link.votes }}{{ " votes" }}
 		{% endif %}
 	{% else %}
 		{{ "0 votes" }}

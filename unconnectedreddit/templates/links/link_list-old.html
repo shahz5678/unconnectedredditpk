@@ -1,50 +1,70 @@
 {% extends "base.html" %}
 {% load comments %}
 {% load bootstrap_pagination %}
-
+{% load urlize_target_blank %}
 {% block content %}
+
 {% if is_paginated %}
 <ol start="{{ page_obj.start_index }}">
 {% else %}
-<ol>
 {% endif %}
 {% for link in object_list %}
-<form method="POST" action="{% url 'vote' %}" class="vote_form">
-	<li> [{{ link.rank_score }}{{ " rank" }}]
+<li class="zebra">
+<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+	{% csrf_token %}
+	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
+	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
+	<!--{{ link.rank_score }}-->
+    <a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;">{{ link.submitter }}:</a>
+    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;">{{ link.description|urlize_target_blank:25 }}</span>
+	<a name="section{{ forloop.counter }}"></a>  
+	{% if link.url %}
+		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
+	{% endif %} 
+	<p style="margin-top:.5em">
+	<a class="countofvotes">
 	{% if link.votes %}
 		{% if link.votes == 1 %}
-			[{{ "1 vote" }}]
+			{{ "1 vote" }}
 		{% else %}
-			[{{ link.votes }}{{ " votes" }}]
+			{{ link.votes }}{{ " votes" }}
 		{% endif %}
 	{% else %}
-		[{{ "0 votes" }}]
-	{% endif %}	
-	{% csrf_token %} 
-	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}" />
-	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}" />
-	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1" />
+		{{ "0 votes" }}
+	{% endif %}	 
+	</a>
 	{% if not user.is_authenticated %}
-	<button disabled title="LOGIN karien takey vote kar sakien">vote</button>
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="background-color:#F6F6F6">vote</a>
 	{% elif link.pk not in voted %}	
-	<input type="submit" id="id_valup" name="val" value="↑" />
-	<input type="submit" id="id_valdown" name="val" value="↓" />
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:green;background-color:#F6F6F6;font-weight:bold" value="↑">
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:red;background-color:#F6F6F6;font-weight:bold" value="↓">
 	{% else %}
-	<button>unvote</button>
+		<button style="background-color:#F6F6F6">unvote</button>
 	{% endif %}
-		<a href="{% url 'link_detail' pk=link.pk %}"> 
-		<b>{{ link.description }}</b>
-		{% get_comment_count for link as comment_count %}
-		{{ comment_count }} comment{{ comment_count|pluralize}}
+	<!--<input class="smsbutton" type="submit" name="sms" style="color:blue;background-color:#F6F6F6" value="sms">-->
+	<!--<button>sms</button>-->
+	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" style="color:blue;background-color:#FFBC79">SMS</a>
+	{% get_comment_count for link as comment_count %}
+	{% if comment_count %}
+		<a href="{% url 'link_detail' pk=link.pk %}">
+		{{ comment_count }} comment{{ comment_count|pluralize}}</a>
 		</a>
-	</li>
+	{% else %}
+		<a href="{% url 'link_detail' pk=link.pk %}">comment karo</a>
+	{% endif %}
+	</p>
 </form>
+</li>
 {% endfor %}
 </ol>
+
 {% endblock %}
 
 {% block pagination %}
 
  {% bootstrap_paginate page_obj range=10 show_prev_next="false" show_first_last="true" %}
-
 {% endblock %}
+
+

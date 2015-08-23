@@ -60,7 +60,7 @@ body{
 }
 
 .indices {
-    -webkit-padding-left:30px;
+    -webkit-padding-after:25px;
     padding-left:15px;
     width: 101%;
 }

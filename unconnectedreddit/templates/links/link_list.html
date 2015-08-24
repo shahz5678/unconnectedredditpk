@@ -22,6 +22,7 @@
 	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	<!--{{ link.rank_score }}-->
     <span class="numbers">
+    <b>
     {% if not page_obj.number|add:"-1" %}
     	{{ forloop.counter }}.
     {% else %}
@@ -31,6 +32,7 @@
     		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
     	{% endif %}
     {% endif %}
+    </b>
     </span>
     <a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;">{{ link.submitter }}:</a>
     <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;">{{ link.description|urlize_target_blank:25 }}</span>

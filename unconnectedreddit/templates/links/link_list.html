@@ -9,7 +9,7 @@
 <table class="indices">
 {% for link in object_list %}
   <tr>
-    <td>
+    <td style="min-width:100px;">
     <form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">

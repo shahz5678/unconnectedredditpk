@@ -5,11 +5,15 @@
 {% block content %}
 
 
+{% if is_paginated %}
+<ul start="{{ page_obj.start_index }}" class="zebra">
+{% else %}
+<ul class="zebra">
+{% endif %}
 
-<table class="indices">
+
 {% for link in object_list %}
-  <tr style = "min-width=100px;">
-    <td style="min-width=100px;">
+<li class="zebra">
     <form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
@@ -65,10 +69,9 @@
 	{% endif %}
 	</p> 
 	</form>
-    </td>  
-  </tr>
+	</li>
 {% endfor %}
-</table>
+</ul>
 
 
 {% endblock %}

@@ -7,6 +7,7 @@
 {% if is_paginated %}
 <ol start="{{ page_obj.start_index }}">
 {% else %}
+<ol>
 {% endif %}
 {% for link in object_list %}
 <li class="zebra">
@@ -68,3 +69,86 @@
 {% endblock %}
 
 
+<!--
+{% extends "base.html" %}
+{% load comments %}
+{% load bootstrap_pagination %}
+{% load urlize_target_blank %}
+{% block content %}
+
+
+
+<table class="indices">
+{% for link in object_list %}
+  <tr style = "min-width=100px;">
+    <td style="min-width=100px;">
+    <form  method="POST" action="{% url 'vote' %}" class="vote_form">
+	{% csrf_token %}
+	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
+	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
+
+    <span class="numbers">
+    {% if not page_obj.number|add:"-1" %}
+    	{{ forloop.counter }}.
+    {% else %}
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
+    {% endif %}
+    </span>
+    <a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;">{{ link.submitter }}:</a>
+    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;">{{ link.description|urlize_target_blank:25 }}</span>
+	<a name="section{{ forloop.counter }}"></a> 
+	{% if link.url %}
+		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
+	{% endif %} 
+	<p style="margin-top:.6em">
+	<a class="countofvotes">
+	{% if link.votes %}
+		{% if link.votes == 1 %}
+			{{ "1 vote" }}
+		{% else %}
+			{{ link.votes }}{{ " votes" }}
+		{% endif %}
+	{% else %}
+		{{ "0 votes" }}
+	{% endif %}	 
+	</a>
+	{% if not user.is_authenticated %}
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="background-color:#F6F6F6">vote</a>
+	{% elif link.pk not in voted %}	
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:green;background-color:#F6F6F6;font-weight:bold" value="↑">
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:red;background-color:#F6F6F6;font-weight:bold" value="↓">
+	{% else %}
+		<button style="background-color:#F6F6F6">unvote</button>
+	{% endif %}
+	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" style="color:blue;background-color:#FFBC79">SMS</a>
+	{% get_comment_count for link as comment_count %}
+	{% if comment_count %}
+		<a href="{% url 'link_detail' pk=link.pk %}">
+		{{ comment_count }} comment{{ comment_count|pluralize}}</a>
+		</a>
+	{% else %}
+		<a href="{% url 'link_detail' pk=link.pk %}">comment karo</a>
+	{% endif %}
+	</p> 
+	</form>
+    </td>  
+  </tr>
+{% endfor %}
+</table>
+
+
+{% endblock %}
+
+{% block pagination %}
+
+ {% bootstrap_paginate page_obj range=10 show_prev_next="false" show_first_last="true" %}
+{% endblock %}
+
+
+-->

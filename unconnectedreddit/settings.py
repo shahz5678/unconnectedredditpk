@@ -101,8 +101,8 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -120,8 +120,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     "django.core.context_processors.static",
-    #"django.contrib.messages.context_processors.messages",
+    "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "django.core.context_processors.tz",
     )
 
 ROOT_URLCONF = 'unconnectedreddit.urls'

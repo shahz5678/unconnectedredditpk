@@ -1,18 +1,26 @@
 # Create your views here.
 import re
-from .models import Link, Vote, UserProfile
+from .models import Link, Vote, UserProfile, UserSettings
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest
+from math import log
+from datetime import datetime, timedelta
+from django.utils import timezone
+#from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
 #class MyRegistrationView(RegistrationView):
 #    def get_success_url(self, request, user):
 #        return '/'
+class ScoreHelpView(FormView):
+    form_class = ScoreHelpForm
+    template_name = "score_help.html"
 
 class LinkDetailView(DetailView):
     model = Link
@@ -50,6 +58,16 @@ class UserProfileDetailView(DetailView):
         UserProfile.objects.get_or_create(user=user)
         return user
 
+class UserSettingDetailView(DetailView):
+    model = get_user_model()
+    slug_field = "username"
+    template_name = "user_detail.html"
+
+    def get_object(self, queryset=None):
+        user = super(UserSettingDetailView, self).get_object(queryset)
+        UserSettings.objects.get_or_create(user=user)
+        return user
+
 class UserProfileEditView(UpdateView):
     model = UserProfile
     form_class = UserProfileForm
@@ -61,23 +79,49 @@ class UserProfileEditView(UpdateView):
     def get_success_url(self):
         return reverse("profile", kwargs={'slug': self.request.user})
 
+class UserSettingsEditView(UpdateView):
+    model = UserSettings
+    form_class = UserSettingsForm
+    template_name = "edit_settings.html"
+
+    def get_object(self, queryset=None): #loading the current state of settings
+        return UserSettings.objects.get_or_create(user=self.request.user)[0]
+
+    def get_success_url(self): #which URL to go back once settings are saved?
+        return reverse("profile", kwargs={'slug': self.request.user})
+
 class LinkCreateView(CreateView):
     model = Link
     form_class = LinkForm
 
     def form_valid(self, form): #this processes the form before it gets saved to the database
-        f = form.save(commit=False)
-        f.rank_score = 0.0
-        f.submitter = self.request.user
+        f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+        #Setting rank score
+        #f.rank_score=0
+        epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+        unaware_submission = datetime.now().replace(tzinfo=None)
+        td = unaware_submission - epoch 
+        epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+        secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+        f.rank_score = round(0 * 0 + secs / 45000, 8)
+        if self.request.user.is_authenticated():
+            f.submitter = self.request.user
+            f.submitter.userprofile.score = f.submitter.userprofile.score + 5 #adding 5 points every time a user submits new content
+        else:
+            f.submitter = User(id=9) # set this ID to unregistered_bhoot
+            f.submitter.userprofile.score = f.submitter.userprofile.score + 0
         f.with_votes = 0
         f.category = '1'
+        # add vote object with value=0
+        #Vote.objects.create(voter=f.submitter, link=f, value=0)
         f.save()
+        f.submitter.userprofile.save()
         return super(CreateView, self).form_valid(form)
 
 class VoteFormView(FormView): #corresponding view for the form for Vote we created in forms.py
     form_class = VoteForm
 
-    def form_valid(self, form): #this function is always to be defined in views created for forms
+     def form_valid(self, form): #this function is always to be defined in views created for forms
         link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
         user = self.request.user
         section = 0
@@ -86,8 +130,14 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
             section = self.request.POST.get("section_number")
         if btn == u"\u2191":
             val = 1
+            if not link.submitter.username == 'unregistered_bhoot':
+                link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
+                link.submitter.userprofile.save() #this is a server call 
         elif btn == u"\u2193":
             val = -1
+            if not link.submitter.username == 'unregistered_bhoot':
+                link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote
+                link.submitter.userprofile.save()
         else:
             val = 0
         prev_votes = Vote.objects.filter(voter=user, link=link) #has the user already voted? If so, we'll find out via this
@@ -96,13 +146,24 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
             # add vote
             Vote.objects.create(voter=user, link=link, value=val) #if user hasn't voted, add the up or down vote in the DB.
         else:
+            if prev_votes[0].value > 0:
+                if not link.submitter.username == 'unregistered_bhoot':
+                    link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtract previously added score because of the upvote
+                    link.submitter.userprofile.save()
+            else:
+                if not link.submitter.username == 'unregistered_bhoot':
+                    link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #add previously subtracted score because of the downvote
+                    link.submitter.userprofile.save()
             # delete vote
             prev_votes[0].delete() #if user has previously voted, simply delete previous vote
+        #if page==1:
         return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
 
     def form_invalid(self, form): #this function is also always to be defined for views created for forms
         return redirect("home")
 	
+
+    
 def LinkAutoCreate(user, content):   
     link = Link()
     #content = content.replace('#',' ') 
@@ -117,6 +178,7 @@ def LinkAutoCreate(user, content):
     #for link in urls:
     #    link.sub()
     link.submitter = user
+    user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
     link.rank_score = 0.0
     link.with_votes = 0
     link.category = '1'

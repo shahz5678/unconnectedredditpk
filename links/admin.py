@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Link, Vote, UserProfile
+from .models import Link, Vote, UserProfile, UserSettings
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 #these will appear in the admin panel
@@ -13,8 +13,15 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
 
-class UserProfileAdmin(UserAdmin):
-    inlines=(UserProfileInline, )
+class UserSettingsInline(admin.StackedInline):
+	model = UserSettings
+	can_delete = False
+
+class UserProfileSettingsAdmin(UserAdmin):
+    inlines=[
+    UserProfileInline,
+    UserSettingsInline, 
+    ]
 
 admin.site.unregister(get_user_model())
-admin.site.register(get_user_model(), UserProfileAdmin)
+admin.site.register(get_user_model(), UserProfileSettingsAdmin)

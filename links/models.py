@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 from math import log
 
 CATEGS = (
-('1','Funny'),
+('1','Gupshup'),
 ('2','Songs'),
-('3','Gupshup'),
+('3','Funny'),
 ('4','Videos'),
 ('5','Cricket'),
 ('6','Photos'),
@@ -28,8 +28,8 @@ class Link(models.Model):
     submitter = models.ForeignKey(User) # link.submitter is a user!
     submitted_on = models.DateTimeField(auto_now_add=True)
     rank_score = models.FloatField(default=0.0)
-    url = models.URLField("Link (agr hai)", max_length=250, blank=True)
-    cagtegory = models.CharField(choices=CATEGS, default=1, max_length=25)
+    url = models.URLField("Link (agar hai)", max_length=250, blank=True)
+    cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
     
     with_votes = LinkVoteCountManager() #change this to set_rank()
     objects = models.Manager() #default, in-built manager
@@ -43,7 +43,7 @@ class Link(models.Model):
 
     def set_rank(self): # it seems this is run ONLY when validating models is called (pressing ctrl S after changin code)
         # Based on reddit ranking algo at http://amix.dk/blog/post/19588
-        epoch = datetime(1970, 1, 1)
+        epoch = datetime(1970, 1, 1).replace(tzinfo=None)
         netvotes = self.votes # 'NONE' votes are messing up netvotes amount.
         if netvotes == None:
             netvotes = 0
@@ -60,19 +60,21 @@ class Link(models.Model):
 class Vote(models.Model):
     voter = models.ForeignKey(User) #what user.id voted
     link = models.ForeignKey(Link) #which link did the user vote on
-    value = models.IntegerField(default=0)
+    value = models.IntegerField(null=True, blank=True, default=0)
 
     def __unicode__(self):
-        return "%s upvoted %s" % (self.voter.username, self.link.description)
+        return "%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, unique=True)
     bio = models.TextField("Apney baarey mein koi khaas baat batao", default='Ao gupshup lagain...', null=True)
-    mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
     gender = models.BooleanField("Aurat ho ya mard?", default=True)
     age = models.PositiveIntegerField("Kitni umr hai?", null=True)
     shadi_shuda = models.BooleanField("Shaadi kar li hai?", default=False)
     previous_retort = models.CharField(blank=True, max_length=500)
+    attractiveness = models.CharField(_("Shakal soorat"), max_length=50, default=1)
+    mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
+    score = models.IntegerField(_("Score"), default=0)
 
     def __unicode__(self):
         return "%s's profile" % self.user
@@ -80,6 +82,17 @@ class UserProfile(models.Model):
 def create_profile(sender, instance, created, **kwargs):
     if created:
         profile, created = UserProfile.objects.get_or_create(user=instance)
+
+class UserSettings(models.Model):
+    user = models.OneToOneField(User, unique=True)
+    score_setting = models.CharField(_("Sab ka score dikhao"), max_length=20, default=0)
+    setting2 = models.CharField(_("Setting2"), max_length=20, default=0)
+    setting3 = models.CharField(_("Setting3"), max_length=20, default=0)
+    setting4 = models.CharField(_("Setting4"), max_length=20, default=0)
+    setting5 = models.CharField(_("Setting5"), max_length=20, default=0)
+
+    def __unicode__(self):
+        return "%s's settings" % self.user
 
 # Signal, while saving user
 from django.db.models.signals import post_save

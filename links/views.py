@@ -97,7 +97,6 @@ class LinkCreateView(CreateView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		#Setting rank score
-		#f.rank_score=0
 		epoch = datetime(1970, 1, 1).replace(tzinfo=None)
 		unaware_submission = datetime.now().replace(tzinfo=None)
 		td = unaware_submission - epoch 
@@ -108,10 +107,14 @@ class LinkCreateView(CreateView):
 			f.submitter = self.request.user
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 5 #adding 5 points every time a user submits new content
 		else:
-			f.submitter = User(id=9) # set this ID to unregistered_bhoot
+			f.submitter = User(id=2) # set this ID to unregistered_bhoot
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 0
 		f.with_votes = 0
 		f.category = '1'
+		if f.description==f.submitter.userprofile.previous_retort:
+			print "Copy"
+			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
+		f.submitter.userprofile.previous_retort = f.description
 		# add vote object with value=0
 		#Vote.objects.create(voter=f.submitter, link=f, value=0)
 		f.save()

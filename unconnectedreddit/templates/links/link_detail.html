@@ -20,7 +20,9 @@
 <b>unregistered_bhoot</b>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% else %}
 <a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
-{% endif %}</p>
+{% endif %}
+<span style="font-family:arial; color: gray; line-height:1.2;text-shadow:0 0 0.1px gray;font-size:70%;">{{ link.submitted_on|naturaltime }}</span>
+</p>
 {% if object.url %}
   Link: <a href="{{ object.url }}" target="_blank" class:"wrapping" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.url|urlize_target_blank:25 }}</a>
 {% endif %}

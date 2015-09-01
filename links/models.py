@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from datetime import datetime, timedelta
 from math import log
+from django.core.validators import MaxLengthValidator
 
 CATEGS = (
 ('1','Gupshup'),
@@ -24,11 +25,11 @@ class LinkVoteCountManager(models.Manager): #this class is derived from model ma
              #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):
-    description = models.TextField("Kuch likho", max_length=500)
+    description = models.TextField("Kuch likho:", validators=[MaxLengthValidator(500)])
     submitter = models.ForeignKey(User) # link.submitter is a user!
     submitted_on = models.DateTimeField(auto_now_add=True)
     rank_score = models.FloatField(default=0.0)
-    url = models.URLField("Link (agar hai)", max_length=250, blank=True)
+    url = models.URLField("Link (agar hai):", max_length=250, blank=True)
     cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
     
     with_votes = LinkVoteCountManager() #change this to set_rank()

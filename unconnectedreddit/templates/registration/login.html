@@ -5,15 +5,15 @@
 <h2>Nickname aur password wohi honay chahiye jin se pehlay register kiya tha!</h2>
 
 {% if form.errors %}
-<p>Bhool gaye hain tou dubara <a href="{% url 'registration_register' %}">register</a> karien.</p>
+<p>Bhool gaye ho toh doobara <a href="{% url 'registration_register' %}">register</a> karo.</p>
 {% endif %}
 
 <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
   {% csrf_token %}
-  <p> {{ 'Nickname:' }}
+   <p>Nickname:
       {{ form.username }}</p>
     
-      <p>{{ 'Password:' }}
+      <p>Password:
       {{ form.password }}</p>
   
   <input class="button" style="background-color:#F6F6F6" type="submit" value="Login">

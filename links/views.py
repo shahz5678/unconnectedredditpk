@@ -107,10 +107,11 @@ class LinkCreateView(CreateView):
 			f.submitter = self.request.user
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 5 #adding 5 points every time a user submits new content
 		else:
-			f.submitter = User(id=2) # set this ID to unregistered_bhoot
+			f.submitter = User(id=8) # set this ID to unregistered_bhoot
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 0
 		f.with_votes = 0
 		f.category = '1'
+		# can we throw in an "are you human" test?
 		if f.description==f.submitter.userprofile.previous_retort:
 			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
 		f.submitter.userprofile.previous_retort = f.description

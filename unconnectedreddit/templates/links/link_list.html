@@ -50,13 +50,13 @@
 		    {% endif %}
 	    {% endif %}<b>:</b>
     {% endif %}
-    <bdi><span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
 	<a name="section{{ forloop.counter }}"></a> 
 
 	{% if link.url %}
 		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
-	{% endif %} </bdi>
-	<span style="font-size:90%;font-family:'arial';">{{ link.submitted_on|naturaltime }}</span>
+	{% endif %}
+	<span style="font-size:90%;font-family:'arial';"><bdi>{{ link.submitted_on|naturaltime }}<bdi></span>
 	<p style="margin-top:.8em">
 	<a class="countofvotes">
 	{% if link.votes %}

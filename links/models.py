@@ -72,9 +72,9 @@ class UserProfile(models.Model):
     age = models.PositiveIntegerField("Kitni umr hai?", null=True)
     shadi_shuda = models.BooleanField("Shaadi kar li hai?", default=False)
     previous_retort = models.CharField(blank=True, max_length=500)
-    attractiveness = models.CharField(_("Shakal soorat"), max_length=50, default=1)
+    attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
     mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
-    score = models.IntegerField(_("Score"), default=0)
+    score = models.IntegerField("Score", default=0)
 
     def __unicode__(self):
         return "%s's profile" % self.user
@@ -85,11 +85,11 @@ def create_profile(sender, instance, created, **kwargs):
 
 class UserSettings(models.Model):
     user = models.OneToOneField(User, unique=True)
-    score_setting = models.CharField(_("Sab ka score dikhao"), max_length=20, default=0)
-    setting2 = models.CharField(_("Setting2"), max_length=20, default=0)
-    setting3 = models.CharField(_("Setting3"), max_length=20, default=0)
-    setting4 = models.CharField(_("Setting4"), max_length=20, default=0)
-    setting5 = models.CharField(_("Setting5"), max_length=20, default=0)
+    score_setting = models.CharField("Sab ka score dikhao", max_length=20, default=0)
+    setting2 = models.CharField("Setting2", max_length=20, default=0)
+    setting3 = models.CharField("Setting3", max_length=20, default=0)
+    setting4 = models.CharField("Setting4", max_length=20, default=0)
+    setting5 = models.CharField("Setting5", max_length=20, default=0)
 
     def __unicode__(self):
         return "%s's settings" % self.user

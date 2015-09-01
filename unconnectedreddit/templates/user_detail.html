@@ -1,26 +1,27 @@
 {% extends "base.html" %}
+
 {% block content %}
 {{ block.super }}
 <div class=margin style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 <h2>{{ object.username }} ki profile</h2>
 	<div>
+	<b class="profile">{% trans "Score:" %}</b>
+	<a class="info">
+	{% if object.userprofile.score %}
+		{% if object.userprofile.score < 0 %}
+			<b style="color:red;">{{ object.userprofile.score }}</b>
+		{% else %}
+			<b style="color:green;">{{ object.userprofile.score }}</b>
+		{% endif %}
+	{% else %}
+		<b>{{ object.userprofile.score }}</b>
+	{% endif %}
+	</a>&nbsp;(<a href="{% url 'score_help' %}">?</a>)<br>
+	</div>
+	<div>
 	<b class="profile">About:</b>
 	{% if object.userprofile.bio %}
 	<a class="info">{{ object.userprofile.bio }}</a>
-	</div>
-	{% endif %}
-	<div>
-	<b class="profile">Gender:</b>
-	{% if object.userprofile.gender %}
-		<a class="info">{{ "Aurat" }}</a>
-	{% else %}
-		<a class="info">{{ "Mard" }}</a>	
-	</div>
-	{% endif %}
-	<div>
-	<b class="profile">Mobile Number:</b>
-	{% if object.userprofile.mobilenumber %}
-	<a class="info">{{ object.userprofile.mobilenumber }}</a>
 	</div>
 	{% endif %}
 	<div>
@@ -30,16 +31,45 @@
 	</div>
 	{% endif %}
 	<div>
-	<b class="profile">Shaadi shuda:</b>
-	{% if object.userprofile.shadi_shuda %}
-		<a class="info">{{ "Yes" }}</a>
+	<b class="profile">Gender:</b>
+	{% if object.userprofile.gender == '1' %}
+		<a class="info">{{ "Aurat" }}</a>
 	{% else %}
-		<a class="info">{{ "No" }}</a>
+		<a class="info">{{ "Mard" }}</a>	
 	</div>
 	{% endif %}
-
+	<div>
+	<b class="profile">Shaadi shuda:</b>
+	{% if object.userprofile.shadi_shuda == '1' %}
+		<a class="info">Yes</a>
+	{% else %}
+		<a class="info">No</a>
+	</div>
+	{% endif %}
+	<div>
+	<b class="profile">{% trans "Shakal soorat:" %}</b>
+	{% if object.userprofile.attractiveness == '0' %}
+		<a class="info">{% trans "Ekdum kadak yaar" %}</a>
+	{% else %}
+		{% if object.userprofile.attractiveness == '1' %}
+			<a class="info">{% trans "Itni burri bhi nahi" %}</a>
+		{% else %}
+			<a class="info">{% trans "Shakal pe mat ja" %}</a>
+		{% endif %}
+	{% endif %}
+	</div>
 {% if object.username == user.username %}
-<p><a href='{% url "edit_profile" %}'>Change my profile</a></p>
+<p><a href='{% url "edit_profile" %}' class="button" style="color:white;background-color:#1947D1; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Profile badlo</a></p>
+<h2>{{ object.username }} ke ikhtiyar</h2>
+	<div>
+	<b class="profile">Sab ka score dikhao:</b>
+	{% if not object.usersettings.score_setting == '1' %}
+		<a class="info">No</a>
+	{% else %}
+		<a class="info">Yes</a>
+	</div>
+	{% endif %}
+<p><a href='{% url "edit_settings" %}' class="button" style="color:white;background-color:#1947D1; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Ikhtiyar badlo</a></p>
 {% endif %}
 </div>
 {% endblock %}

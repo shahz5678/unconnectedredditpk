@@ -5,7 +5,7 @@
 <div class=margin style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 <h2>{{ object.username }} ki profile</h2>
 	<div>
-	<b class="profile">{% trans "Score:" %}</b>
+	<b class="profile">Score:</b>
 	<a class="info">
 	{% if object.userprofile.score %}
 		{% if object.userprofile.score < 0 %}
@@ -33,9 +33,9 @@
 	<div>
 	<b class="profile">Gender:</b>
 	{% if object.userprofile.gender == '1' %}
-		<a class="info">{{ "Aurat" }}</a>
+		<a class="info">Aurat</a>
 	{% else %}
-		<a class="info">{{ "Mard" }}</a>	
+		<a class="info">Mard</a>	
 	</div>
 	{% endif %}
 	<div>
@@ -47,14 +47,14 @@
 	</div>
 	{% endif %}
 	<div>
-	<b class="profile">{% trans "Shakal soorat:" %}</b>
+	<b class="profile">Shakal soorat:</b>
 	{% if object.userprofile.attractiveness == '0' %}
-		<a class="info">{% trans "Ekdum kadak yaar" %}</a>
+		<a class="info">Ekdum kadak yaar</a>
 	{% else %}
 		{% if object.userprofile.attractiveness == '1' %}
-			<a class="info">{% trans "Itni burri bhi nahi" %}</a>
+			<a class="info">Itni burri bhi nahi</a>
 		{% else %}
-			<a class="info">{% trans "Shakal pe mat ja" %}</a>
+			<a class="info">Shakal pe mat ja</a>
 		{% endif %}
 	{% endif %}
 	</div>

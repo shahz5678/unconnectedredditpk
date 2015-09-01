@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+                               
+{% block content %}
+<div class="margin">
+<h2>{{ user.username }} ke ikhtiyar</h2>
+<form method="post" action="">
+  {% csrf_token %}
+{{ form.score_setting.errors }}
+  <span style="font-size:90%;">Sab ka score dikhao</span><br>
+  {% for radio in form.score_setting %}
+  	<table>
+  		<tr>
+  			<label for="{{ radio.id_for_label }}">
+  			<td>
+  				<span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span>
+  				<span style="margin:auto;">{{ radio.tag }}</span>
+			</td>
+  			</label>
+ 		</tr>
+  	</table>
+  {% endfor %}
+  <br>
+  <input class="button" style="color:white;background-color:#1947D1; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;" type="submit" value="Save">
+</form>
+</div>
+{% endblock %}

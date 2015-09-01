@@ -13,9 +13,9 @@ class UserProfileForm(forms.ModelForm):
     	('0','No'),
     	)
     RATING = (
-        ('0',_('Ekdum kadak yaar')),
-        ('1',_('Itni burri bhi nahi')),
-        ('2',_('Shakal pe mat ja')),
+        ('0','Ekdum kadak yaar'),
+        ('1','Itni burri bhi nahi'),
+        ('2','Shakal pe mat ja'),
     )
     gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
     shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
@@ -27,8 +27,8 @@ class UserProfileForm(forms.ModelForm):
 
 class UserSettingsForm(forms.ModelForm):
     ScoreVisible = (
-        ('0',_('No')),
-        ('1',_('Yes')),
+        ('0','No'),
+        ('1','Yes'),
         )
     score_setting = forms.TypedChoiceField(choices=ScoreVisible, widget=forms.RadioSelect, coerce=int)
     class Meta:

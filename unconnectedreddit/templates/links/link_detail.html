@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% load tz %}
 {% load comments %}
 {% load humanize %}
@@ -14,8 +15,12 @@
   <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}">Edit <b style="color:black">|</b></a> 
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}"> Delete</a>
 {% endif %}
-<div class="desc">
-<p><a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a></p>
+<div class="desc"><p>
+{% if object.submitter.username == 'unregistered_bhoot' %}
+<b>unregistered_bhoot</b>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
+{% else %}
+<a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
+{% endif %}</p>
 {% if object.url %}
   Link: <a href="{{ object.url }}" target="_blank" class:"wrapping" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.url|urlize_target_blank:25 }}</a>
 {% endif %}
@@ -43,7 +48,7 @@
    <h3> <input class="button"  style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add comment" id="id_submit"></h3>
   </form>
 {% else %}
-  <p><i>Comment karney ke liye <a href="{% url 'registration_register' %}">register</a> karien.</i></p>
+  <p><i>Comment karney ke liye <a href="{% url 'registration_register' %}">register</a> karo.</i></p>
 {% endif %}
   </div>
   </div>
@@ -52,11 +57,10 @@
   {% for comment in comment_list reversed %}
   <p>
   <div class="comment">
-  <a href="{% url 'profile' slug=comment.user_name %}">{{ comment.user_name }}</a>
-    {{ ':' }}
-    <a class="info">{{ comment.comment }}</a>
+  <a href="{% url 'profile' slug=comment.user_name %}" style="font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.2;text-shadow:0 0 0.1px #8080FF;">{{ comment.user_name }}</a>:
+    <a class="info" style="font-family:'Noto Nastaliq Urdu Draft', arial;line-height:1.2;text-shadow:0 0 0.1px #808080;">{{ comment.comment }}</a>
     </div>
-   <div class="date">
+   <div class="date" style="font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.2;text-shadow:0 0 0.1px #B4B4B4;">
    {{ comment.submit_date|naturaltime }}
    </div>
    </p>

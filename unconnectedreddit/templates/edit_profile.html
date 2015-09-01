@@ -16,10 +16,10 @@
   {{ form.gender.errors }}
 <span style="font-size:90%;">{{ form.gender.label_tag }}</span><br>{% for radio in form.gender %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto;">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
   {{ form.shadi_shuda.errors }}
-  <span style="font-size:90%;">{% trans "Shaadi shuda" %}</span><br>{% for radio in form.shadi_shuda %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
+  <span style="font-size:90%;">Shaadi shuda</span><br>{% for radio in form.shadi_shuda %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
   {{ form.attractiveness.errors }}
-  <span style="font-size:90%;">{% trans "Shakal soorat" %}</span><br>{% for radio in form.attractiveness %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  <input class="button" style="color:white;background-color:#1947D1; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;" type="submit" value="{% trans "Save" %}">
+  <span style="font-size:90%;">Shakal soorat</span><br>{% for radio in form.attractiveness %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
+  <input class="button" style="color:white;background-color:#1947D1; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;" type="submit" value="Save">
 </form>
 </div>
 {% endblock %}

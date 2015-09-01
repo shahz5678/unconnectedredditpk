@@ -24,7 +24,7 @@ class LinkVoteCountManager(models.Manager): #this class is derived from model ma
              #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):
-    description = models.TextField("Kuch likho")#, max_length=500)
+    description = models.TextField("Kuch likho", max_length=500)
     submitter = models.ForeignKey(User) # link.submitter is a user!
     submitted_on = models.DateTimeField(auto_now_add=True)
     rank_score = models.FloatField(default=0.0)
@@ -68,9 +68,9 @@ class Vote(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, unique=True)
     bio = models.TextField("Apney baarey mein koi khaas baat batao", default='Ao gupshup lagain...', null=True)
-    gender = models.BooleanField("Aurat ho ya mard?", default=True)
+    gender = models.CharField("Aurat ho ya mard?", max_length=10, default=1)
     age = models.PositiveIntegerField("Kitni umr hai?", null=True)
-    shadi_shuda = models.BooleanField("Shaadi kar li hai?", default=False)
+    shadi_shuda = models.CharField("Shaadi kar li hai?", max_length=10, default=0)
     previous_retort = models.CharField(blank=True, max_length=500)
     attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
     mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__

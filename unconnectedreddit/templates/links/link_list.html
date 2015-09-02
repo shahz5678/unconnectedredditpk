@@ -59,23 +59,28 @@
 	<span style="font-size:90%;font-family:'arial';"><bdi>{{ link.submitted_on|naturaltime }}<bdi></span>
 	<p style="margin-top:.8em">
 	<a class="countofvotes">
-	{% if link.votes %}
-		{% if link.votes == 1 %}
-			{{ "1 vote" }}
+		{% if not link.votes %}	
+			<span style="color:green;font-size:90%;">0</span>
 		{% else %}
-			{{ link.votes }}{{ " votes" }}
-		{% endif %}
-	{% else %}
-		{{ "0 votes" }}
-	{% endif %}	 
+			{% if link.votes > -1 %}
+				{% if link.votes == 0 %}
+					<span style="color:green;font-size:90%;">{{ link.votes }}</span>
+				{% else %}
+					<span style="color:green;font-size:90%;">+{{ link.votes }}</span>
+				{% endif %}
+			{% else %}
+				<span style="color:red;font-size:90%;">{{ link.votes }}</span>
+			{% endif %}
+		{% endif %}	 
 	</a>
 	{% if not user.is_authenticated %}
-		<a href="{% url 'registration_register' %}" class="fakebutton" style="background-color:#335CD6">vote</a>
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;">▲</a>
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;">▼</a>
 	{% elif link.pk not in voted %}	
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;font-weight:bolder;border:none;text-shadow:0 0 0.3px white;" value="↑">
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;font-weight:bolder;border:none;text-shadow:0 0 0.3px white;" value="↓">
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;" value="▲">
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;" value="▼">
 	{% else %}
-		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;">unvote</button>
+		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;">wapis lo</button>
 	{% endif %}
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	{% get_comment_count for link as comment_count %}

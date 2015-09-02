@@ -115,15 +115,10 @@ h2 a {
     margin-right:5px;
     padding-bottom: 1px;
     border-radius: 3px;
-    border: solid 1px #20538D;
-    border-color: transparent;
-    border:none;
-    border-style: none;
     color:white;
-    font-weight:bold;
-    text-shadow:0 0 0.2px white;
-    box-shadow: 0 0 0.3px #335CD6;  
     font-size:100%;
+    text-shadow:0 0 0.2px white;        
+    box-shadow: 0 0 0.3px #335CD6;
 
 }
 
@@ -338,13 +333,14 @@ h2 {
 
 .voting {
     cursor: pointer;
-
-    border-color: transparent;
-    border:none;
-    border-style: none;
     width: 25px;
     font-size:100%;
-
+    padding-top: 0.5px;     
+    padding-left:4px;
+    padding-right:4px;
+    padding-bottom: 0.5px;
+    border-radius: 3px;
+    box-shadow: 0 0 0.3px #335CD6;
 
 }
 
@@ -470,17 +466,17 @@ a{
 
 .countofvotes {
 
-    color: white;
+  
     font-size: 95%;
-    background-color:#8d8d8d;
+    background-color:white;
     padding-left:5px;
     padding-right:1px;
     margin-right:5px;
-    border-radius: 3px;
+    border-radius: 4px;
     padding-bottom: 1px;
     padding-top:1px;
-    text-align: right;
-    box-shadow: 0px 0px 0.5px #000;
+    text-align: center;
+    box-shadow: 0px 0px 0.5px #8D8D8D;
 
 }
 

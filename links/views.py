@@ -131,12 +131,12 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
-		if btn == u"\u2191":
+		if btn == u"\u25B2":
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
-		elif btn == u"\u2193":
+		elif btn == u"\u25BC":
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote

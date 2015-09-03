@@ -182,7 +182,12 @@ def LinkAutoCreate(user, content):
 	#    link.sub()
 	link.submitter = user
 	user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
-	link.rank_score = 0.0
+	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+	unaware_submission = datetime.now().replace(tzinfo=None)
+	td = unaware_submission - epoch 
+	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+	link.rank_score = round(0 * 0 + secs / 45000, 8)
 	link.with_votes = 0
 	link.category = '1'
 	link.save()

@@ -5,7 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "unconnectedreddit.settings")
 from links.models import Link
 
 def rank_all():
-    for link in Link.with_votes.all()[:50]:
+    for link in Link.with_votes.all().reverse()[:50]:
         link.set_rank()
 
 if __name__=="__main__":

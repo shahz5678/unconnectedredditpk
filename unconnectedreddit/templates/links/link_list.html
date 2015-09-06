@@ -39,7 +39,7 @@
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
-					{% if link.submitter.userprofile.score < 0%}
+					{% if link.submitter.userprofile.score < 0 %}
 			    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
 			    	{% else %}
 			    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>

@@ -1,6 +1,8 @@
 amqp==1.4.6
 anyjson==0.3.3
+beautifulsoup4==4.4.0
 billiard==3.3.0.20
+boto==2.38.0
 celery==3.1.18
 celery-with-redis==3.0
 dj-database-url==0.3.0
@@ -9,11 +11,15 @@ Django==1.5.1
 django-bootstrap-pagination==1.5.1
 django-celery==3.1.16
 git+git://github.com/mhb11/django-registration-1.5.git
+django-storages==1.1.8
 django-toolbelt==0.0.1
 gunicorn==19.3.0
+httplib2==0.9.1
 kombu==3.0.26
+lxml==3.4.4
 oauthlib==0.7.2
 pam==0.1.4
+Pillow==2.9.0
 psycopg2==2.6
 pygeoip==0.3.2
 pytz==2015.4

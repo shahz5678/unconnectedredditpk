@@ -253,6 +253,9 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
+[s3]
+calling_format = boto.s3.connection.OrdinaryCallingFormat
+
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_S3_FORCE_HTTP_URL = True
 AWS_QUERYSTRING_AUTH = False

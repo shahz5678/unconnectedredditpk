@@ -17,9 +17,17 @@
 {% endif %}
 <div class="desc"><p>
 {% if object.submitter.username == 'unregistered_bhoot' %}
-<b>unregistered_bhoot</b>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
+<b>unregistered_bhoot</b>: 
+{% if object.image_file %}
+      <img src="{{ object.image_file.url }}"></img>
+  {% endif %}
+<a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% else %}
-<a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
+<a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: 
+{% if object.image_file %}
+      <img src="{{ object.image_file.url }}"></img>
+  {% endif %}
+<a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% endif %}
 <span style="font-family:arial; color: gray; line-height:1.2;text-shadow:0 0 0.1px gray;font-size:70%;"><bdi>{{ link.submitted_on|naturaltime }}</bdi></span>
 </p>

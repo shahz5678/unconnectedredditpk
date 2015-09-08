@@ -253,13 +253,10 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
-[s3]
-calling_format = boto.s3.connection.OrdinaryCallingFormat
-
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_S3_FORCE_HTTP_URL = True
 AWS_QUERYSTRING_AUTH = False
 AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
 AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
-
+AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
 AWS_STORAGE_BUCKET_NAME = 'damadam.pk'

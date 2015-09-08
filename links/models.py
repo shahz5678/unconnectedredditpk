@@ -6,6 +6,20 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from math import log
 from django.core.validators import MaxLengthValidator
+import os
+import uuid
+
+def upload_to_location(instance, filename):
+    try:
+        blocks = filename.split('.') 
+        ext = blocks[-1]
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        instance.title = blocks[0]
+        return os.path.join('uploads/', filename)
+    except Exception as e:
+        print '%s (%s)' % (e.message, type(e))
+        return 0
+
 
 CATEGS = (
 ('1','Gupshup'),
@@ -31,6 +45,7 @@ class Link(models.Model):
     rank_score = models.FloatField(default=0.0)
     url = models.URLField("Link (agar hai):", max_length=250, blank=True)
     cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
+    image_file = models.ImageField(upload_to=upload_to_location, null=True, blank=True )
     
     with_votes = LinkVoteCountManager() #change this to set_rank()
     objects = models.Manager() #default, in-built manager

@@ -50,6 +50,9 @@
 		    {% endif %}
 	    {% endif %}<b>:</b>
     {% endif %}
+    {% if link.image_file %}
+    	<img src="{{ link.image_file.url }}"></img>
+	{% endif %}
     <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
 	<a name="section{{ forloop.counter }}"></a> 
 

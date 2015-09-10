@@ -49,6 +49,8 @@ def parse_url(url):
 		#url = urllib2.urlopen(url).geturl()
 		req = urllib2.Request(url, None, headers=hdr)
 		webpage = urllib2.urlopen(req) #urllib2 is an http library
+		webpage = webpage.geturl()
+		webpage = urllib2.urlopen(webpage)
 		content_type = webpage.headers.get('content-type')
 		bytes_read = bytes_read + sys.getsizeof(webpage)
 		if 'image' in content_type:
@@ -99,12 +101,14 @@ def return_largest_image(url):
 				my_dimensions, my_clean_src = image_sizing(img, normal_url)
 				print my_clean_src
 				try:
+					if my_dimensions.height * my_dimensions.width < 5001:#ignore small images
+						continue
 					if my_dimensions.height/my_dimensions.width>1.5:#ignore banner like images
 						continue
 					if my_dimensions.width/my_dimensions.height>1.5:#ignore banner like images
 						continue
-					if my_dimensions.height * my_dimensions.width < 5001:#ignore small images
-						continue
+					return my_clean_src
+					'''
 					area = my_dimensions.height * my_dimensions.width
 					if area > max_area:
 						max_area = area
@@ -112,14 +116,15 @@ def return_largest_image(url):
 						previous_max_src = max_clean_src #assigning previously biggest image to previous_max_src
 						max_dimensions = my_dimensions
 						max_clean_src = my_clean_src
+					'''
 				except Exception as e:
 					print '%s (%s)' % (e.message, type(e))
 					continue	
 		else:
-			max_clean_src = normal_url #if soup = 0, the url is an image url
+			max_clean_src = normal_url #if soup = 0, the url is an image url itself
 	#if max_clean_src: print max_clean_src
 	#if max_dimensions: print max_dimensions
-	return (max_clean_src, previous_max_src)
+	return max_clean_src#, previous_max_src)
 	
 def image_entropy(img):
 	"""calculate the entropy of an image"""
@@ -164,7 +169,7 @@ def str_to_image(s):
 	return image
 
 def read_image(url):
-	src, second = return_largest_image(url)
+	src= return_largest_image(url)
 	#print src
 	#print second
 	global bytes_read
@@ -180,19 +185,6 @@ def read_image(url):
 			image = prep_image(image)
 			return (name,image)
 		except:
-			try:
-				name = urlparse(second).path.split('/')[-1]
-				open_req = urlopen(second)#if first image return a 403 error
-				bytes_read = bytes_read + sys.getsizeof(open_req)
-				content = open_req.read()
-				bytes_read = bytes_read + sys.getsizeof(content)
-				print bytes_read
-				image = str_to_image(content)
-				image = prep_image(image)
-				return (name,image)
-			except Exception as e:
-				print '%s (%s)' % (e.message, type(e))
-				return (None, None)
 			print '%s (%s)' % (e.message, type(e))
 			return (None, None)
 	else:

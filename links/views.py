@@ -122,20 +122,35 @@ class LinkCreateView(CreateView):
 		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
 		urls2 = re.findall(urlmarker.URL_REGEX,f.url)
 		try:
-			if urls1:
+			if len(urls1)==0:
+				if len(urls2)==1:
+					name, image = read_image(urls2[0])
+					if image:
+						image_io = StringIO.StringIO()
+						image.save(image_io, format='JPEG')
+						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+						f.image_file = thumbnail
+			elif len(urls1)==1:
 				name, image = read_image(urls1[0])
 				if image:
 					image_io = StringIO.StringIO()
 					image.save(image_io, format='JPEG')
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
-			elif urls2:
-				name, image = read_image(urls2[0])
+			elif len(urls1)>=2:
+				name, image = read_image(urls1[0])
 				if image:
 					image_io = StringIO.StringIO()
 					image.save(image_io, format='JPEG')
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
+				else:
+					name, image = read_image(urls1[1])
+					if image:
+						image_io = StringIO.StringIO()
+						image.save(image_io, format='JPEG')
+						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+						f.image_file = thumbnail
 			else:
 				pass
 		except Exception as e:

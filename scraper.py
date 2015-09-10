@@ -16,9 +16,12 @@ thumbnail_size = 70, 70
 hdr= {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'}
 
 def final_url(url):
+	global bytes_read
 	h = httplib2.Http(".cache_httplib")
+	bytes_read = bytes_read + sys.getsizeof(h)
 	h.follow_all_redirects = True
 	resp = h.request(url, "GET")[0]
+	bytes_read = bytes_read + sys.getsizeof(resp)
 	contentLocation = resp['content-location']
 	return contentLocation
 '''
@@ -43,20 +46,33 @@ def parse_url(url):
 	if not parse_object.scheme:
 		url = "http://"+url
 	#url = urlnorm.norm(url)
-	#url = final_url(url)
+	finalurl = final_url(url)
 	#print url
 	try:
 		#url = urllib2.urlopen(url).geturl()
 		req = urllib2.Request(url, None, headers=hdr)
+		bytes_read = bytes_read + sys.getsizeof(req)
 		webpage = urllib2.urlopen(req) #urllib2 is an http library
-		webpage = webpage.geturl()
-		webpage = urllib2.urlopen(webpage)
-		content_type = webpage.headers.get('content-type')
 		bytes_read = bytes_read + sys.getsizeof(webpage)
-		if 'image' in content_type:
-			return (url, 0)
-		soup = BeautifulSoup(webpage, "lxml")
-		return (url, soup)
+		#url2 = webpage.url # is huge, need to go a head request instead. 
+		if url==finalurl:
+			print url
+			content_type = webpage.headers.get('content-type')
+			if 'image' in content_type:
+				return (url, 0)
+			soup = BeautifulSoup(webpage, "lxml")
+			return (url, soup)
+		else:
+			print finalurl
+			req2 = urllib2.Request(finalurl, None, headers=hdr)
+			bytes_read = bytes_read + sys.getsizeof(req2)
+			webpage2 = urllib2.urlopen(req2)
+			bytes_read = bytes_read + sys.getsizeof(webpage2)
+			content_type = webpage2.headers.get('content-type')
+			if 'image' in content_type:
+				return (finalurl, 0)
+			soup = BeautifulSoup(webpage2, "lxml")
+			return (finalurl, soup)
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return (0, 0)

@@ -56,14 +56,14 @@ def parse_url(url):
 		bytes_read = bytes_read + sys.getsizeof(webpage)
 		#url2 = webpage.url # is huge, need to go a head request instead. 
 		if url==finalurl:
-			print url
+			#print url
 			content_type = webpage.headers.get('content-type')
 			if 'image' in content_type:
 				return (url, 0)
 			soup = BeautifulSoup(webpage, "lxml")
 			return (url, soup)
 		else:
-			print finalurl
+			#print finalurl
 			req2 = urllib2.Request(finalurl, None, headers=hdr)
 			bytes_read = bytes_read + sys.getsizeof(req2)
 			webpage2 = urllib2.urlopen(req2)
@@ -115,7 +115,7 @@ def return_largest_image(url):
 		if soup:
 			for img in soup.findAll('img', src=True)[:40]:
 				my_dimensions, my_clean_src = image_sizing(img, normal_url)
-				print my_clean_src
+				#print my_clean_src
 				try:
 					if my_dimensions.height * my_dimensions.width < 5001:#ignore small images
 						continue
@@ -171,7 +171,7 @@ def prep_image(image):
 	global thumbnail_size
 	try:
 		image.thumbnail(thumbnail_size)#, Image.ANTIALIAS)
-		print 'successfully thumbnailed'
+		#print 'successfully thumbnailed'
 		return image
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))

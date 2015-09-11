@@ -210,15 +210,7 @@ def LinkAutoCreate(user, content):
 	link = Link()
 	#content = content.replace('#',' ') 
 	link.description = content
-	#urls = re.findall(r'(https?://\S+)', content)
-	 #r = re.compile(r'(https?://[^ ]+)')
-	#r = re.findall("#(\w+)",content)
-	#if urls:
-	#    link.url = urls[0] 
-	 #link.description = r.sub(r'<a href="\1">\1</a>', content)
-	#link.description = content
-	#for link in urls:
-	#    link.sub()
+	urls1 = re.findall(urlmarker.URL_REGEX,link.description)
 	link.submitter = user
 	user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -229,10 +221,35 @@ def LinkAutoCreate(user, content):
 	link.rank_score = round(0 * 0 + secs / 45000, 8)
 	link.with_votes = 0
 	link.category = '1'
+	try:
+		if len(urls1)==0:
+			pass
+		elif len(urls1)==1:
+			name, image = read_image(urls1[0])
+			if image:
+				image_io = StringIO.StringIO()
+				image.save(image_io, format='JPEG')
+				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+				link.image_file = thumbnail
+		elif len(urls1)>=2:
+			name, image = read_image(urls1[0])
+			if image:
+				image_io = StringIO.StringIO()
+				image.save(image_io, format='JPEG')
+				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+				link.image_file = thumbnail
+			else:
+				name, image = read_image(urls1[1])
+				if image:
+					image_io = StringIO.StringIO()
+					image.save(image_io, format='JPEG')
+					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+					link.image_file = thumbnail
+		else:
+			pass
+	except Exception as e:
+		print '%s (%s)' % (e.message, type(e))	
+		pass			
 	link.save()
 	user.userprofile.previous_retort = content
 	user.userprofile.save()
-
-#def fetch_image():
-#	fi = read_image(url)
-#	return HttpResponse(fi ,content_type="image/jpeg")

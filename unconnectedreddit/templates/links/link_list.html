@@ -32,10 +32,22 @@
     {% endif %}
     </b>
     </span>
-    {% if link.submitter.username == 'unregistered_bhoot' %}
-    	<span class="bigger" style="color:#666666;">unregistered_bhoot:</span>
+    <!--                    -->
+    {% if link.image_file %}
+    	<img src="{{ link.image_file.url }}"></img>
+	{% endif %}
+    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+	<a name="section{{ forloop.counter }}"></a> 
+
+	{% if link.url %}
+		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
+	{% endif %}
+	{% if link.submitter.username == 'unregistered_bhoot' %}
+    	<br>
+    	<span class="bigger" style="color:#666666;">...bheja unregistered_bhoot ne,</span>
 	{% else %}
-		<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;text-shadow:0 0 0.1px #8080FF;">{{ link.submitter }}</a>
+	<br>
+		...likha&nbsp;<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;text-shadow:0 0 0.1px #8080FF;">{{ link.submitter }}</a>
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
@@ -48,17 +60,10 @@
 		    	{% endif %}
 		    {% else %}
 		    {% endif %}
-	    {% endif %}<b>:</b>
+	    {% endif %}
+	    ne,
     {% endif %}
-    {% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img>
-	{% endif %}
-    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
-	<a name="section{{ forloop.counter }}"></a> 
-
-	{% if link.url %}
-		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
-	{% endif %}
+	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';"><bdi>{{ link.submitted_on|naturaltime }}<bdi></span>
 	<p style="margin-top:.8em">
 	<a class="countofvotes">
@@ -77,11 +82,11 @@
 		{% endif %}	 
 	</a>
 	{% if not user.is_authenticated %}
-		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;">▲</a>
-		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;">▼</a>
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;">✔</a>
+		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;">✗</a>
 	{% elif link.pk not in voted %}	
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;" value="▲">
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;" value="▼">
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0.5px white;font-size:100%;font-weight:bold;" value="✔">
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0.5px white;font-size:100%;font-weight:bold;" value="✗">
 	{% else %}
 		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
 	{% endif %}
@@ -107,11 +112,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><b  style="color:red;text-shadow:0 0 0.1px red;">&leftarrow;</b>pichla safa</a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><b  style="color:red;text-shadow:0 0 0.1px red;">&leftarrow;</b><bdi>گزشتہ صفحہ</bdi></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0">agla safa<b style="color:green;text-shadow:0 0 0.1px green;">&rightarrow;</b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><bdi>اگلا صفحہ</bdi><b style="color:green;text-shadow:0 0 0.1px green;">&rightarrow;</b></a>
     {% endif %}
 </div>
 {% endif %}

@@ -109,7 +109,7 @@ class LinkCreateView(CreateView):
 			f.submitter = self.request.user
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 5 #adding 5 points every time a user submits new content
 		else:
-			f.submitter = User(id=8) # set this ID to unregistered_bhoot
+			f.submitter = User(id=8) # ALWAYS set this ID to unregistered_bhoot
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 0
 		f.with_votes = 0
 		f.category = '1'
@@ -170,12 +170,12 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
-		if btn == u"\u25B2":
+		if btn == u"\u2714":
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
-		elif btn == u"\u25BC":
+		elif btn == u"\u2717":
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote

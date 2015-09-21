@@ -18,14 +18,18 @@
 <div class="desc"><p>
 {% if object.submitter.username == 'unregistered_bhoot' %}
 <b>unregistered_bhoot</b>: 
-{% if object.image_file %}
-      <img src="{{ object.image_file.url }}"></img>
+  {% if link.image_file %}
+      <img src="{{ link.image_file.url }}"></img>
+  {% else %}
+    <img src="{{ STATIC_URL }}img/default-thumbnail.png"></img>
   {% endif %}
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% else %}
 <a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: 
-{% if object.image_file %}
-      <img src="{{ object.image_file.url }}"></img>
+ {% if link.image_file %}
+      <img src="{{ link.image_file.url }}"></img>
+  {% else %}
+    <img src="{{ STATIC_URL }}img/default-thumbnail.png"></img>
   {% endif %}
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% endif %}

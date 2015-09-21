@@ -20,6 +20,17 @@ def upload_to_location(instance, filename):
         print '%s (%s)' % (e.message, type(e))
         return 0
 
+def upload_avatar_to_location(instance, filename):
+    try:
+        blocks = filename.split('.') 
+        ext = blocks[-1]
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        instance.title = blocks[0]
+        return os.path.join('uploads/', filename)
+    except Exception as e:
+        print '%s (%s)' % (e.message, type(e))
+        return 0
+
 
 CATEGS = (
 ('1','Gupshup'),
@@ -91,6 +102,7 @@ class UserProfile(models.Model):
     attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
     mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
     score = models.IntegerField("Score", default=0)
+    avatar = models.ImageField(upload_to=upload_avatar_to_location, null=True, blank=True )
 
     def __unicode__(self):
         return "%s's profile" % self.user

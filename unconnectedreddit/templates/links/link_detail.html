@@ -21,7 +21,7 @@
   {% if link.image_file %}
       <img src="{{ link.image_file.url }}"></img>
   {% else %}
-    <img src="{{ STATIC_URL }}img/default-thumbnail.png"></img>
+    <img src="{{ STATIC_URL }}img/default-thumbnail.jpg"></img>
   {% endif %}
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% else %}

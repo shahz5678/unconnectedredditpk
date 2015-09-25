@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="margin">
-<h2>Logoon ko batao Internet par mazedar kiya hai!</h2>
-<p>Jokes, stories, mazedar Internet links, dil ki baat, kuch bhi likh do!</p>  
+<h2>Aisa kuch likho jo logoon ko pasand aye!</h2>
+<p>Chat patti pictures aur videos ke links, jokes, stories, shayari, jo dil chahey likh do!</p>  
 <form method="post" action="">
   {% csrf_token %}
   {{ form.description.errors }}
@@ -13,6 +13,6 @@
   <!--<td>{{ form.as_p }}</td>-->
   <input class="button" style="color:white;background-color:#1947D1" type="submit" value="Add">
 </form>
-<br><span style="color:gray;font-size:85%">Aap jo likho gey, usko 'Home' pe aaney mien shayed 2-3 min lag jain. Fikar na karo </span>
+<br><span style="color:gray;font-size:85%">Jo likho gey, usko jitney logg pasand karien ge, woh utna mashoor ho kar list mien uper aata jaye ga!</span>
 </div>
 {% endblock %}

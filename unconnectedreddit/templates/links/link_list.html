@@ -68,11 +68,6 @@
 	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';"><bdi>{{ link.submitted_on|naturaltime }}<bdi></span>
 	<p style="margin-top:.8em">
-	{% if link.url %}
-		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;">dost ko bhejo >></a>
-	{% else %}
-		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;">dost ko bhejo >></a>
-	{% endif %}
 	</p>
 	
 	<a class="countofvotes">
@@ -90,9 +85,8 @@
 			{% endif %}
 		{% endif %}	 
 	</a>
-	<p style="margin-top:.8em;">
 	{% if not user.is_authenticated %}
-	<span style="font-size:90%;">Pasand aya?</span>
+	<span style="font-size:90%;margin-left:0.5em;">...pasand aya?</span>
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
@@ -101,7 +95,7 @@
 	<button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
 
 	{% elif link.pk not in voted %}	
-	<span style="font-size:90%;">Pasand aya?</span>
+	<span style="font-size:90%;margin-left:0.5em;">...pasand aya?</span>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;font-weight:bold;" value="yes">
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;font-weight:bold;" value="no">
 	{% else %}
@@ -109,6 +103,7 @@
 		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
 	-->
 	{% endif %}
+	<p style="margin-top:.8em;">
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
@@ -121,7 +116,13 @@
 	{% else %}
 		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">comment karo</a>
 	{% endif %}
+
 	</span>
+	{% if link.url %}
+		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;margin-left:0.6em;">dost ko bhejo >></a>
+	{% else %}
+		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;margin-left:0.6em;">dost ko bhejo >></a>
+	{% endif %}
 	</p></p> </p>
 	</form>
 	</li>

@@ -74,25 +74,23 @@
 		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;">dost ko bhejo >></a>
 	{% endif %}
 	</p>
-	<p style="margin-top:.8em">
 	
-	{% if link.pk in voted %}
-		<a class="countofvotes">
-			{% if not link.votes %}	
-				<span style="color:green;font-size:90%;">0 yes</span>
-			{% else %}
-				{% if link.votes > -1 %}
-					{% if link.votes == 0 %}
-						<span style="color:green;font-size:90%;">{{ link.votes }} yes</span>
-					{% else %}
-						<span style="color:green;font-size:90%;">+{{ link.votes }} yes</span>
-					{% endif %}
+	<a class="countofvotes">
+		{% if not link.votes %}	
+			<span style="color:green;font-size:90%;">0 vote</span>
+		{% else %}
+			{% if link.votes > -1 %}
+				{% if link.votes == 0 %}
+					<span style="color:green;font-size:90%;">{{ link.votes }} vote</span>
 				{% else %}
-					<span style="color:red;font-size:90%;">{{ link.votes }} no</span>
+					<span style="color:green;font-size:90%;">+{{ link.votes }} votes</span>
 				{% endif %}
-			{% endif %}	 
-		</a>
-	{% endif %}
+			{% else %}
+				<span style="color:red;font-size:90%;">{{ link.votes }} votes</span>
+			{% endif %}
+		{% endif %}	 
+	</a>
+	<p style="margin-top:.8em;">
 	{% if not user.is_authenticated %}
 	<span style="font-size:90%;">Pasand aya?</span>
 	<!--
@@ -124,7 +122,7 @@
 		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">comment karo</a>
 	{% endif %}
 	</span>
-	</p></p> 
+	</p></p> </p>
 	</form>
 	</li>
 {% endfor %}

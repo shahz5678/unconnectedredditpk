@@ -484,6 +484,20 @@ a{
 
 }
 
+.countofcomments {
+
+    font-size: 95%;
+    background-color:white;
+    padding-left:5px;
+    padding-right:5px;
+    padding-bottom: 2px;
+    padding-top:1px;
+    border-radius: 4px;
+    text-align: center;
+    box-shadow: 0px 0px 1px #8d8d8d; #F7AE1A
+
+}
+
 .editgendermarital {
 
     list-style-type: none;

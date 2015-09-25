@@ -117,13 +117,12 @@ class LinkCreateView(CreateView):
 		if f.description==f.submitter.userprofile.previous_retort:
 			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
 		f.submitter.userprofile.previous_retort = f.description
-		# add vote object with value=0
-		#Vote.objects.create(voter=f.submitter, link=f, value=0)
 		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
 		urls2 = re.findall(urlmarker.URL_REGEX,f.url)
 		try:
 			if len(urls1)==0:
 				if len(urls2)==1:
+					#eliminate that urls2[0] is a media site URL
 					name, image = read_image(urls2[0])
 					if image:
 						image_io = StringIO.StringIO()
@@ -131,6 +130,7 @@ class LinkCreateView(CreateView):
 						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 						f.image_file = thumbnail
 			elif len(urls1)==1:
+				#eliminate that urls1[0] is a media site URL
 				name, image = read_image(urls1[0])
 				if image:
 					image_io = StringIO.StringIO()
@@ -138,6 +138,7 @@ class LinkCreateView(CreateView):
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
 			elif len(urls1)>=2:
+				#eliminate that urls1[0] is a media site URL
 				name, image = read_image(urls1[0])
 				if image:
 					image_io = StringIO.StringIO()
@@ -145,6 +146,7 @@ class LinkCreateView(CreateView):
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
 				else:
+					#eliminate that urls1[1] is a media site URL
 					name, image = read_image(urls1[1])
 					if image:
 						image_io = StringIO.StringIO()
@@ -170,12 +172,14 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
-		if btn == u"\u2714":
+		#if btn == u"\u2714":
+		if btn == 'yes':
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
-		elif btn == u"\u2717":
+		#elif btn == u"\u2717":
+		elif btn == 'no':
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote

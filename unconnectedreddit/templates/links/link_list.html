@@ -117,7 +117,7 @@
 	{% if comment_count %}
 		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">
 		{{ comment_count }} comment{{ comment_count|pluralize}}</a>
-		</a>
+		
 	{% else %}
 		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">comment karo</a>
 	{% endif %}
@@ -129,9 +129,9 @@
 		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
 	{% endif %}
 
-	</p></p></p></p></p>
+	</p></p>
 	</form>
-	</li>
+</li>
 {% endfor %}
 </ul>
 

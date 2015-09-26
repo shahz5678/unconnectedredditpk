@@ -1,0 +1,60 @@
+<!--	<html>
+	<head>
+<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Sophie">
+		<title>Damadam Help</title>
+		
+
+</head>
+-->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+		h9 {
+	font-family: Arial;
+	font-size:12px;
+
+}
+
+h8 {
+	font-family: Arial;
+	font-size:16px;
+	color: red;
+	font-style:bold;
+
+}
+
+</style>
+	<body>
+	<div style="margin-left:20px;">
+    <h8> Damadam kia hai?</h8>
+	<span style="font-size:12px;">Ye hai mazedaar batain, tasveerain, lateefay, shair-o-shairi, videos aur apnay dil ki batain batanay ki jaga!</span>
+	</div>
+
+    <div style="margin-left:20px;">
+    <p><h8> Ye sab button kia kartay hain?</h8></p>
+
+	<h9> <img src="{{ STATIC_URL }}img/kuchlikho.JPG">KUCH LIKHO ka button daba ke ap apnay mun pasand ki baat likh saktay hain, ja koi bhi mazedaar cheez dosron ko bata saktay hain </h9>
+	<hr width="100%">
+
+	<h9><img src="{{ STATIC_URL }}img/kuchlikho2.JPG">Jab ap KUCH LIKHO pay jain gay wahan aisi jaga main apnay jo bhi likhna ho ap likh saktay hain</h9>
+	<hr width="100%">
+	<h9><img src="{{ STATIC_URL }}img/link.JPG">Agar ap ko internet pay koi mazedaar cheez milay, maslan tasveerain, videos ya koi bhi cheez ap us ka link (pata) yahan daal saktay hain. Maslan www.urdupoint.com, www.bollywoodnews.com waghaira</h9>
+	<hr width="100%">
+	<h9><img src="{{ STATIC_URL }}img/yesno.JPG"> Doosron ki likhi howi baat agar ap ko pasand aye to <img src="{{ STATIC_URL }}img/yes.JPG"> duba dain warna <img src="{{ STATIC_URL }}img/no.JPG"></h9>
+	<hr width="100%">
+	<h9><img src="{{ STATIC_URL }}img/comment.JPG"><img src="{{ STATIC_URL }}img/comment2.JPG">In buttons say ap dosron ki baat par comment kar saktay hain aur apni rai day saktay hain</h9>
+	<hr width="100%">
+	<h9><img src="{{ STATIC_URL }}img/votes.JPG"> Jitnay logon nay koi baat pasand ki hoti hai, us ka number aisay nazar aa jata hai</h9>
+	<hr width="100%">
+	<h9><img src="{{ STATIC_URL }}img/sms.JPG">Yahan jo cheez ap ko pasand aye wo ap apnay doston ko bhej saktay hain is button ko duba kar!</h9>
+	<hr width="100%">
+
+	<h8>Bus sab samajh gaye na jeee?</h8><br>
+	</div>div>
+	</body>
+{% endblock %}

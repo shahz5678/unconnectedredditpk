@@ -185,9 +185,8 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
 		token = self.request.POST.get("token")
 		voter = self.request.POST.get("voter")
-		referer = self.request.META.get('HTTP_REFERER')
 		try:
-			if (token in referer) and (voter == '1'):
+			if (token in elf.request.META.get('HTTP_REFERER')) and (voter == '1'):
 				user = User(id=8) #setting user to unregistered_bhoot if a token carrying user, parading as mhb11, got to this point
 			else:
 				user = self.request.user
@@ -231,7 +230,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 			# delete vote
 			prev_votes[0].delete() #if user has previously voted, simply delete previous vote
 		#if page==1:
-		if '?' in self.request.META.get('HTTP_REFERER'):
+		if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):
 			url = self.request.META.get('HTTP_REFERER')
 			blocks = url.split('?')
 			return redirect(blocks[0]+"#section"+section)

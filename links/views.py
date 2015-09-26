@@ -185,12 +185,14 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
 		token = self.request.POST.get("token")
 		voter = self.request.POST.get("voter")
-		print voter
-		if (token in self.request.META.get('HTTP_REFERER')) and (voter == '1'):
-			user = User(id=8) #setting user to unregistered_bhoot if a token carrying user, parading as mhb11, got to this point
-		else:
+		referer = self.request.META.get('HTTP_REFERER')
+		try:
+			if (token in referer) and (voter == '1'):
+				user = User(id=8) #setting user to unregistered_bhoot if a token carrying user, parading as mhb11, got to this point
+			else:
+				user = self.request.user
+		except:
 			user = self.request.user
-			print 'I am here'
 		section = 0
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")

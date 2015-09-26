@@ -13,9 +13,19 @@
 <form  method="POST" action="{% url 'vote' %}" class="vote_form">
   {% csrf_token %}
   <input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
-  <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
-  <input type="hidden" id="id_value" name="value" class="hidden_id" value="1">  
-  <input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">  
+  
+  {% if not user.is_authenticated %}
+    {% if token in request.get_full_path  %}
+      <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="1">
+    {% else %}
+      <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+    {% endif %}
+  {% else %}
+    <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+  {% endif %}
+  
+  <input type="hidden" id="id_token" name="token" class="hidden_id" value="{{ token }}">  
+  <input type="hidden" id="id_page" name="section_number" value="0">  
 <div class="margin"style="margin-left:5px;">
 
 {% if object.submitter == user %}
@@ -62,18 +72,20 @@
   {% endif %}  
 </a>
 {% if not user.is_authenticated %}
-  {% if '/test' in request.get_full_path  %}
-    <span style="font-size:80%;white-space:nowrap;color:#666666;">...maza aya?</span>
+  {% if token in request.get_full_path  %}
+    <span style="font-size:80%;white-space:nowrap;color:#666666;">..pasand aya?</span>
+    <span = style="white-space:nowrap;">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
+    </span>
+  {%else %}
+  <!--
+    <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
     <span = style="white-space:nowrap;">
     <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
     <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
     </span>
-  {%else %}
-  <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
-  <span = style="white-space:nowrap;">
-  <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
-  <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
-  </span>
+    -->
   {% endif %}
   
 {% elif link.pk not in voted %}
@@ -89,9 +101,9 @@
   {% endif %}
   {% if object.submitter == user %}
     {% if link.url %}
-      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }} Yar mien ne yahan kuch likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
+      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }}/{{ token }}#section0 Yar mien ne yahan kuch likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
     {% else %}
-      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }} Yar mien ne yahan kuch likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
+      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }}/{{ token }}#section0 Yar mien ne yahan kuch likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
     {% endif %}
   {% else %}
     {% if link.url %}

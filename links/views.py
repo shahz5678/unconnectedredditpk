@@ -33,6 +33,8 @@ class LinkDetailView(DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkDetailView, self).get_context_data(**kwargs)
+		token = '?'+self.object.description[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
+		context["token"] = token
 		if self.request.user.is_authenticated():
 			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
 			link_in_page = self.object.id #the link.id of the link shown on the detailview
@@ -181,7 +183,14 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 
 	def form_valid(self, form): #this function is always to be defined in views created for forms
 		link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
-		user = self.request.user
+		token = self.request.POST.get("token")
+		voter = self.request.POST.get("voter")
+		print voter
+		if (token in self.request.META.get('HTTP_REFERER')) and (voter == '1'):
+			user = User(id=8) #setting user to unregistered_bhoot if a token carrying user, parading as mhb11, got to this point
+		else:
+			user = self.request.user
+			print 'I am here'
 		section = 0
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
@@ -200,8 +209,11 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 				link.submitter.userprofile.save()
 		else:
 			val = 0
-		prev_votes = Vote.objects.filter(voter=user, link=link) #has the user already voted? If so, we'll find out via this
-		has_voted = (prev_votes.count() > 0)
+		has_voted = 0 #adding default value for has_voted in case its unregistered_bhoot (i.e. user.id = 8)
+		if not user.id == 8: #only checking previous votes for users other than unregistered_bhoot. Bhoot gets a free pass every time.
+			print 'user id is %s' % user.id
+			prev_votes = Vote.objects.filter(voter=user, link=link) #has the user already voted? If so, we'll find out via this
+			has_voted = (prev_votes.count() > 0)
 		if not has_voted: #this only works if the user has NOT voted before
 			# add vote
 			Vote.objects.create(voter=user, link=link, value=val) #if user hasn't voted, add the up or down vote in the DB.
@@ -217,9 +229,16 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 			# delete vote
 			prev_votes[0].delete() #if user has previously voted, simply delete previous vote
 		#if page==1:
-		return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
+		if '?' in self.request.META.get('HTTP_REFERER'):
+			url = self.request.META.get('HTTP_REFERER')
+			blocks = url.split('?')
+			return redirect(blocks[0]+"#section"+section)
+		else:
+			return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
 
 	def form_invalid(self, form): #this function is also always to be defined for views created for forms
+		voter = get_object_or_404(Link, pk=form.data["voter"])
+		print 'form invalid, voter_id = %s' % voter.id
 		return redirect("home")
 	
 

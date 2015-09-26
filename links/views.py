@@ -7,7 +7,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -23,6 +23,10 @@ from django.utils import timezone
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
+
+class HelpView(FormView):
+	form_class = HelpForm
+	template_name = "help.html"
 
 class LinkDetailView(DetailView):
 	model = Link

@@ -50,4 +50,7 @@ class ScoreHelpForm(forms.Form):
     class Meta:
         pass
 
+class HelpForm(forms.Form):
+    class Meta:
+        pass
 #####################################################################################################

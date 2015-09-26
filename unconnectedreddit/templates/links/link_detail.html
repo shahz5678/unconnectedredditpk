@@ -117,7 +117,8 @@
 </p>
 <div class="comments">
 <p style="color:gray"><hr size=1></p>
-  <h3>Jawab:</h3>
+{% get_comment_count for link as comment_count %}
+  <h3>{{ comment_count }} Jawab:</h3>
 
   <div class="comment_form">
 {% if user.is_authenticated %}

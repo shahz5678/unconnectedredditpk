@@ -10,11 +10,20 @@
     display: none;
   }
 </style>
-<div class="margin">
+<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+  {% csrf_token %}
+  <input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+  <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+  <input type="hidden" id="id_value" name="value" class="hidden_id" value="1">  
+  <input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">  
+<div class="margin"style="margin-left:5px;">
+
 {% if object.submitter == user %}
   <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}">Edit <b style="color:black">|</b></a> 
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}"> Delete</a>
+  <br><span style="color:gray;font-size:80%"><i>jitney votes milein gey, apki post list mien utni uper jaye gi!</i></span>
 {% endif %}
+
 <div class="desc"><p>
 {% if object.submitter.username == 'unregistered_bhoot' %}
 <b>unregistered_bhoot</b>: 
@@ -34,11 +43,57 @@
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% endif %}
 <span style="font-family:arial; color: gray; line-height:1.2;text-shadow:0 0 0.1px gray;font-size:70%;"><bdi>{{ link.submitted_on|naturaltime }}</bdi></span>
-</p>
 {% if object.url %}
   Link: <a href="{{ object.url }}" target="_blank" class:"wrapping" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.url|urlize_target_blank:25 }}</a>
 {% endif %}
-
+<a class="countofvotes">
+  {% if not link.votes %} 
+    <span style="color:green;font-size:80%;">0 vote</span>
+  {% else %}
+    {% if link.votes > -1 %}
+      {% if link.votes == 0 %}
+        <span style="color:green;font-size:80%;">{{ link.votes }} vote</span>
+      {% else %}
+        <span style="color:green;font-size:80%;">+{{ link.votes }} votes</span>
+      {% endif %}
+    {% else %}
+      <span style="color:red;font-size:80%;">{{ link.votes }} votes</span>
+    {% endif %}
+  {% endif %}  
+</a>
+{% if not user.is_authenticated %}
+  <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
+  <span = style="white-space:nowrap;">
+  <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
+  <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
+  </span>
+  {% elif link.pk not in voted %}
+  <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
+  <span = style="white-space:nowrap;">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
+    </span>
+  {% else %}
+  <!--
+    <button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
+  -->
+  {% endif %}
+  {% if object.submitter == user %}
+    {% if link.url %}
+      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }} Yar mien ne yahan likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
+    {% else %}
+      <a href="sms:+92345?body=http://damadam.pk/link/{{ link.id }} Yar mien ne yahan likha hai, pasand aye tou YES wala sabz button dabao" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">vote maango >></a>
+    {% endif %}
+  {% else %}
+    {% if link.url %}
+      <a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">dost ko bhejo >></a>
+    {% else %}
+      <a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">dost ko bhejo >></a>
+    {% endif %}
+  {% endif %}
+</form>
+  <!-- -->
+</p>
 <div class="comments">
 <p style="color:gray"><hr size=1></p>
   <h3>Comments:</h3>

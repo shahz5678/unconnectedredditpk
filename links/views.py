@@ -27,6 +27,16 @@ class ScoreHelpView(FormView):
 class LinkDetailView(DetailView):
 	model = Link
 
+	def get_context_data(self, **kwargs):
+		context = super(LinkDetailView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
+			link_in_page = self.object.id #the link.id of the link shown on the detailview
+			voted = voted.filter(link_id=link_in_page) #is the current link in that list of objects?
+			voted = voted.values_list('link_id', flat=True) #strips aways everything other than the id of the link
+			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
+		return context
+
 class LinkListView(ListView):
 	model = Link
 	queryset = Link.with_votes.all() #by default, query_set was equal to: Link.objects.all(). We're overriding that to call "with_votes defined in models.py"

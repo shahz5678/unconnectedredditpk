@@ -62,18 +62,27 @@
   {% endif %}  
 </a>
 {% if not user.is_authenticated %}
+  {% if '/test' in request.get_full_path  %}
+    <span style="font-size:80%;white-space:nowrap;color:#666666;">...maza aya?</span>
+    <span = style="white-space:nowrap;">
+    <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
+    <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
+    </span>
+  {%else %}
   <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
   <span = style="white-space:nowrap;">
   <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
   <button onclick="location.href='{% url 'registration_register' %}'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
   </span>
-  {% elif link.pk not in voted %}
+  {% endif %}
+  
+{% elif link.pk not in voted %}
   <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
   <span = style="white-space:nowrap;">
     <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
     <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
     </span>
-  {% else %}
+{% else %}
   <!--
     <button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
   -->

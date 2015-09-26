@@ -33,7 +33,7 @@ class LinkDetailView(DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkDetailView, self).get_context_data(**kwargs)
-		token = '?'+self.object.description[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
+		token = '?'+self.object.description.replace(" ", "")[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
 		context["token"] = token
 		if self.request.user.is_authenticated():
 			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on

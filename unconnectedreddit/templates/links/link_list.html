@@ -115,11 +115,13 @@
 	<span class="countofcomments" style="font-family:'Noto Sans', arial;margin-right:0.5em;">
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
-		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">
-		{{ comment_count }} comment{{ comment_count|pluralize}}</a>
+		<!--<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">
+		{{ comment_count }} comment{{ comment_count|pluralize}}</a>-->
+		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">
+		{{ comment_count }} jawab</a>
 		
 	{% else %}
-		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">comment karo</a>
+		<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">jawab dou</a>
 	{% endif %}
 	</span>
 	

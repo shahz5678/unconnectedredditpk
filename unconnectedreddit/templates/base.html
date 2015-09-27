@@ -54,24 +54,24 @@
     <!--<a href="{% url 'home' %}">Home</a> |-->
     <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a><span style="color:white;">|</span>
 {% if user.is_authenticated %}
-    <a class="sharing" href="{% url 'link_create' %}" style="text-shadow:0 0 0.1px #886081;">KUCH LIKHO</a> <span style="color:white;">|</span>
+    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">KUCH LIKHO</a> <span style="color:white;">|</span>
     <!--<a href="{% url 'logout' %}">Logout</a> |-->
     {% if user.userprofile.score %}
-        <a href="{% url 'profile' slug=user.username %}" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
+        <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
             {% if user.userprofile.score > 0 %}
                 <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
             {% else %}
                 <span style="color:red;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
             {% endif %}
         {% else %}
-            <a href="{% url 'profile' slug=user.username %}" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
+            <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
     {% endif %} 
-    <span style="color:white;">|</span><a href="{% url 'help' %}" style="text-shadow:0 0 0.1px #886081;">Help</a>
+    <span style="color:white;">|</span><a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
 {% else %}
-    <a href="{% url 'link_create' %}" style="text-shadow:0 0 0.1px #886081;">KUCH LIKHO</a> <span style="color:white;">|</span>
-    <a href="{% url 'registration_register' %}" style="text-shadow:0 0 0.1px #886081;">Register</a> <span style="color:white;">|</span>
-    <a href="{% url 'login' %}" style="text-shadow:0 0 0.1px #886081;">Login</a> <span style="color:white;">|</span>
-    <a href="{% url 'help' %}" style="text-shadow:0 0 0.1px #886081;">Help</a>
+    <a href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">KUCH LIKHO</a> <span style="color:white;">|</span>
+    <a href="{% url 'registration_register' %}#section0" style="text-shadow:0 0 0.1px #886081;">Register</a> <span style="color:white;">|</span>
+    <a href="{% url 'login' %}#section0" style="text-shadow:0 0 0.1px #886081;">Login</a> <span style="color:white;">|</span>
+    <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
 {% endif %}</p>
 </div>
 <div class="container">
@@ -89,9 +89,9 @@
 </ul>
 </div>
 {% if user.is_authenticated %}
-| <a class="foot2" href="{% url 'link_create' %}" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO</a> |
+| <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO</a> |
 {% else %}
-| <a class="foot2" href="{% url 'link_create' %}" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO</a> |  
+| <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO</a> |  
 {% endif %}
 </div>
 </body>

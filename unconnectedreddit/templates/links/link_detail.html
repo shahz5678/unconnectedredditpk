@@ -29,8 +29,8 @@
 <div class="margin"style="margin-left:5px;">
 
 {% if object.submitter == user %}
-  <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}">Edit <b style="color:black">|</b></a> 
-  <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}"> Delete</a>
+  <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}#section0">Edit <b style="color:black">|</b></a> 
+  <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}#section0"> Delete</a>
   <br><span style="color:gray;font-size:80%"><i>jitney votes milein gey, apki post list mien utni uper jaye gi!</i></span>
 {% endif %}
 
@@ -44,7 +44,7 @@
   {% endif %}
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% else %}
-<a href="{% url 'profile' slug=object.submitter %}"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: 
+<a href="{% url 'profile' slug=object.submitter %}#section0"><b style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.submitter }}</b></a>: 
  {% if link.image_file %}
       <img src="{{ link.image_file.url }}"></img>
   {% else %}
@@ -118,6 +118,7 @@
 <div class="comments">
 <p style="color:gray"><hr size=1></p>
 {% get_comment_count for link as comment_count %}
+<a name="sectionJ"></a> 
   <h3>{{ comment_count }} Jawab:</h3>
 
   <div class="comment_form">
@@ -135,11 +136,11 @@
     <input type="hidden" name="email" value="{{ user.email|default:'d@ummy.com' }}">
     <input type="hidden" name="url" value="">
     <input type="hidden" name="next" 
-     value="{% url 'link_detail' pk=object.id %}">
+     value="{% url 'link_detail' pk=object.id %}#sectionJ">
    <h3> <input class="button"  style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add comment" id="id_submit"></h3>
   </form>
 {% else %}
-  <p><i>Jawab denay ke liye <a href="{% url 'registration_register' %}">register</a> karo.</i></p>
+  <p><i>Jawab denay ke liye <a href="{% url 'registration_register' %}#section0">register</a> karo.</i></p>
 {% endif %}
   </div>
   </div>

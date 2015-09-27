@@ -16,7 +16,7 @@
 	{% else %}
 		<b>{{ object.userprofile.score }}</b>
 	{% endif %}
-	</a>&nbsp;(<a href="{% url 'score_help' %}">?</a>)<br>
+	</a>&nbsp;(<a href="{% url 'score_help' %}#section0">?</a>)<br>
 	</div>
 	<div>
 	<b class="profile">About:</b>
@@ -59,7 +59,7 @@
 	{% endif %}
 	</div>
 {% if object.username == user.username %}
-<p><a href='{% url "edit_profile" %}' class="button" style="color:white;background-color:#1947D1; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Profile badlo</a></p>
+<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Profile badlo</a></p>
 <h2>{{ object.username }} ke ikhtiyar</h2>
 	<div>
 	<b class="profile">Sab ka score dikhao:</b>
@@ -69,7 +69,7 @@
 		<a class="info">Yes</a>
 	</div>
 	{% endif %}
-<p><a href='{% url "edit_settings" %}' class="button" style="color:white;background-color:#1947D1; font-family:arial; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Ikhtiyar badlo</a></p>
+<p><a href='{% url "edit_settings" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Ikhtiyar badlo</a></p>
 {% endif %}
 </div>
 {% endblock %}

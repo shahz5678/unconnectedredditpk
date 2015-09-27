@@ -62,7 +62,7 @@ padding:0px;
 }
 
  li:nth-child(even).zebra {
-  background-color: rgba(0,0,0,0.1);
+  background-color: #F5F5DC;
   padding-top: 0.3em;
   list-style-type: none;
   padding-bottom: 1px;

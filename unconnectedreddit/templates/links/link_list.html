@@ -121,7 +121,7 @@
 		{{ comment_count }} jawab</a>
 		
 	{% else %}
-		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:#0033CC; text-shadow:0 0 0.1px #8099E6; cursor: pointer; white-space:nowrap;">{{ user.username|truncatechars:10 }} ko jawab do</a>
+		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:#0033CC; text-shadow:0 0 0.1px #8099E6; cursor: pointer; white-space:nowrap;">{{ link.submitter.username|truncatechars:10 }} ko jawab do</a>
 	{% endif %}
 	</span>
 	

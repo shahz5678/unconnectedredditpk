@@ -3,7 +3,12 @@
 {% block content %}
 {{ block.super }}
 <div class=margin style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
+
+{% if object.username == user.username %}
+<h2>Welcome apni profile pe</h2>
+{% else %}
 <h2>{{ object.username }} ki profile</h2>
+{% endif %}
 	<div>
 	<b class="profile">Score:</b>
 	<a class="info">

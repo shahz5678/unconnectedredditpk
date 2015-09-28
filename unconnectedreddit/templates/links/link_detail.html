@@ -136,7 +136,8 @@
     <input type="hidden" name="email" value="{{ user.email|default:'d@ummy.com' }}">
     <input type="hidden" name="url" value="">
     <input type="hidden" name="next" 
-     value="{% url 'link_detail' pk=object.id %}#sectionJ">
+     value="{% url 'link_detail' pk=object.id %}#sectionJ2">
+   <a name="sectionJ2"></a> 
    <h3> <input class="button"  style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add jawab" id="id_submit"></h3>
   </form>
 {% else %}

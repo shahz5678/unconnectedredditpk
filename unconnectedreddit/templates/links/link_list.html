@@ -10,7 +10,8 @@
 <ul class="zebra">
 {% endif %}
 {% for link in object_list %}
-<li class="zebra">
+<!--<li class="zebra">-->
+<li>
 <form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
@@ -87,6 +88,7 @@
 	</td>
 	<td>
 	-->
+	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
 	<span style="font-size:90%;white-space:nowrap;">...pasand aya?</span>
 	<!--
@@ -104,9 +106,9 @@
 	<!--
 		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
 	-->
-	{% endif %}
+	{% endif %}</p>
 	<!--</td></tr></table>-->
-	<p style="margin-top:.8em;">
+	<p style="margin-top:.5em;">
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
@@ -122,17 +124,20 @@
 	{% else %}
 		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:white;text-shadow:0 0 0.1px #8099E6; cursor: pointer; white-space:nowrap;">{{ link.submitter.username|truncatechars:10 }} ko jawab do</a>
 	{% endif %}
-	</span>
-	
+	</span></p>
+	<p style="margin-top:.5em;">
 	{% if link.url %}
 		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
 	{% else %}
 		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
 	{% endif %}
 
-	</p></p>
+	</p>
 	</form>
+
 </li>
+<p style="color:gray"><hr size=1></p>
+
 {% endfor %}
 </ul>
 

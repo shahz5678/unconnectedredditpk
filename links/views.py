@@ -97,6 +97,7 @@ class UserProfileEditView(UpdateView):
 	def get_success_url(self):
 		return reverse("profile", kwargs={'slug': self.request.user})
 
+
 class UserSettingsEditView(UpdateView):
 	model = UserSettings
 	form_class = UserSettingsForm
@@ -141,7 +142,7 @@ class LinkCreateView(CreateView):
 					#eliminate that urls2[0] is a media site URL
 					name, image = read_image(urls2[0])
 					if image:
-						image_io = StringIO.StringIO()
+						image_io = StringIO.StringIO()#creating a file-like object
 						image.save(image_io, format='JPEG')
 						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 						f.image_file = thumbnail
@@ -149,7 +150,7 @@ class LinkCreateView(CreateView):
 				#eliminate that urls1[0] is a media site URL
 				name, image = read_image(urls1[0])
 				if image:
-					image_io = StringIO.StringIO()
+					image_io = StringIO.StringIO()#creating a file-like object
 					image.save(image_io, format='JPEG')
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
@@ -157,7 +158,7 @@ class LinkCreateView(CreateView):
 				#eliminate that urls1[0] is a media site URL
 				name, image = read_image(urls1[0])
 				if image:
-					image_io = StringIO.StringIO()
+					image_io = StringIO.StringIO()#creating a file-like object
 					image.save(image_io, format='JPEG')
 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 					f.image_file = thumbnail
@@ -165,7 +166,7 @@ class LinkCreateView(CreateView):
 					#eliminate that urls1[1] is a media site URL
 					name, image = read_image(urls1[1])
 					if image:
-						image_io = StringIO.StringIO()
+						image_io = StringIO.StringIO()#creating a file-like object
 						image.save(image_io, format='JPEG')
 						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
 						f.image_file = thumbnail

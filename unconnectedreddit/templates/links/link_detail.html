@@ -74,7 +74,7 @@
 {% if not user.is_authenticated %}
   {% if token in request.get_full_path  %}
     <span style="font-size:80%;white-space:nowrap;color:#666666;">..pasand aya?</span>
-    <span = style="white-space:nowrap;">
+    <span style="white-space:nowrap;">
     <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
     <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
     </span>

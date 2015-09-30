@@ -10,6 +10,12 @@
 <h2>{{ object.username }} ki profile</h2>
 {% endif %}
 	<div>
+	<b class="profile">Photo:</b>
+	{% if object.userprofile.avatar %}
+	<img src="{{ object.userprofile.avatar.url }}" alt="no photo"  class ="info"></img>
+	</div>
+	{% endif %}
+	<div>
 	<b class="profile">Score:</b>
 	<a class="info">
 	{% if object.userprofile.score %}
@@ -64,7 +70,7 @@
 	{% endif %}
 	</div>
 {% if object.username == user.username %}
-<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Profile badlo</a></p>
+<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;white-space:nowrap;">Profile badlo</a></p>
 <h2>{{ object.username }} ke ikhtiyar</h2>
 	<div>
 	<b class="profile">Sab ka score dikhao:</b>

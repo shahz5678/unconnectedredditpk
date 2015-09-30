@@ -26,7 +26,7 @@ def upload_avatar_to_location(instance, filename):
         ext = blocks[-1]
         filename = "%s.%s" % (uuid.uuid4(), ext)
         instance.title = blocks[0]
-        return os.path.join('uploads/', filename)
+        return os.path.join('users/', filename)
     except Exception as e:
         print '%s (%s)' % (e.message, type(e))
         return 0

@@ -260,3 +260,4 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
 AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
 AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
 AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
+#AWS_MAX_SIZE = 10

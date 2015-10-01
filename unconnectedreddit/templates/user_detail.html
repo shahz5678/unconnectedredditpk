@@ -13,6 +13,8 @@
 	<b class="profile">Photo:</b>
 	{% if object.userprofile.avatar %}
 	<img src="{{ object.userprofile.avatar.url }}" alt="no photo"  class ="info"></img>
+	{% else %}
+	<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
 	</div>
 	{% endif %}
 	<div>

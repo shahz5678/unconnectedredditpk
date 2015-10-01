@@ -112,12 +112,10 @@
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
-
+<!--
 	<span class="countofcomments" style="font-family:'Noto Sans', arial;margin-right:0.5em;">
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
-		<!--<a href="{% url 'link_detail' pk=link.pk %}" style="color:#0033CC;text-shadow:0 0 0.1px #8099E6;cursor: pointer;">
-		{{ comment_count }} comment{{ comment_count|pluralize}}</a>-->
 		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:white;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">
 		{{ comment_count }} jawab</a>
 		
@@ -126,6 +124,7 @@
 	{% endif %}
 	</span></p>
 	<p style="margin-top:.5em;">
+-->	
 	{% if link.url %}
 		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
 	{% else %}

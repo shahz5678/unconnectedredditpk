@@ -90,7 +90,7 @@
 	-->
 	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
-	<span style="font-size:90%;white-space:nowrap;">...pasand aya?</span>
+	<span style="font-size:90%;white-space:nowrap;">...mazedar hai?</span>
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
@@ -99,7 +99,7 @@
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
 
 	{% elif link.pk not in voted %}	
-	<span style="font-size:90%;white-space:nowrap;">...pasand aya?</span>
+	<span style="font-size:90%;white-space:nowrap;">...mazedar hai?</span>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;" value="yes">
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="no">
 	{% else %}

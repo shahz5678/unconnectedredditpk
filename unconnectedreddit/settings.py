@@ -58,6 +58,11 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
+GOOGLE_ANALYTICS = {
+    'google_analytics_id': 'UA-68289796-1',
+}
+
+
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = ''
@@ -153,6 +158,7 @@ INSTALLED_APPS = (
     'djcelery',
     'tweepy',
     'django.contrib.humanize',
+    'google_analytics',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

@@ -107,7 +107,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'google_analytics.middleware.GoogleAnalyticsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -236,7 +236,7 @@ djcelery.setup_loader()
 BROKER_URL = 'redis://localhost:6379/0'
 
 # List of modules to import when celery starts, in myapp.tasks form. 
-CELERY_IMPORTS = ('links.tasks', )  
+CELERY_IMPORTS = ('links.tasks', 'google_analytics.tasks')  
 
 CELERY_ALWAYS_EAGER = False
 

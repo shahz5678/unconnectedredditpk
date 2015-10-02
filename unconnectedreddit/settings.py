@@ -17,7 +17,7 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 #git push origin master
 
 if ON_HEROKU == '1':
-    DEBUG=True
+    DEBUG=False
 else:
     DEBUG=True
 
@@ -58,10 +58,9 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-GOOGLE_ANALYTICS = {
-    'google_analytics_id': 'UA-68289796-1',
-}
+GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-68289796-1'
 
+GOOGLE_ANALYTICS_SITE_SPEED = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
@@ -107,7 +106,6 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -159,7 +157,7 @@ INSTALLED_APPS = (
     'djcelery',
     'tweepy',
     'django.contrib.humanize',
-    'google_analytics',
+    'analytical',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

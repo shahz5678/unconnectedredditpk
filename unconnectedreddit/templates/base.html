@@ -1,3 +1,4 @@
+{% load google_analytics %}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -38,12 +39,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
+        {% google_analytics %}
 </head>
 <body>
-{% load google_analytics_tags %}
-<div style="display:none">
-    <img src="{% google_analytics %}" width="0" height="0" />
-</div>
 {% if not request.mobile or request.tablet %}
 <h1 style="text-shadow:0 0 0.7px white;"></h1>
 {% else %}

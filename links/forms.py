@@ -46,6 +46,8 @@ def MakeThumbnail(file):
     img = square_image(img)
     img.thumbnail((120, 120))
     thumbnailString = StringIO.StringIO()
+    if img.mode != 'RGB':
+        img = img.convert("RGB")
     img.save(thumbnailString, 'JPEG')
     newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
     return newFile

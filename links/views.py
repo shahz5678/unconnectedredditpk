@@ -179,6 +179,9 @@ class LinkCreateView(CreateView):
 		f.submitter.userprofile.save()
 		return super(CreateView, self).form_valid(form)
 
+	def get_success_url(self): #which URL to go back once settings are saved?
+		return reverse("home")
+
 class VoteFormView(FormView): #corresponding view for the form for Vote we created in forms.py
 	form_class = VoteForm
 
@@ -200,13 +203,13 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
 		#if btn == u"\u2714":
-		if btn == 'yes':
+		if btn == 'shabaash do':
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
 		#elif btn == u"\u2717":
-		elif btn == 'no':
+		elif btn == 'chupair maro':
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote

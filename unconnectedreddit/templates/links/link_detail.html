@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load mathfilters %}
 {% load tz %}
 {% load comments %}
 {% load humanize %}
@@ -31,7 +31,7 @@
 {% if object.submitter == user %}
   <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}#section0">Edit <b style="color:black">|</b></a> 
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}#section0"> Delete</a>
-  <br><span style="color:gray;font-size:80%"><i>jitney votes milein gey, apki post utni mashoor ho gi!</i></span>
+  <br><span style="color:gray;font-size:80%"><i>jitni shabaash milay gey, apki post utni mashoor ho gi!</i></span>
 {% endif %}
 
 <div class="desc"><p>
@@ -56,31 +56,35 @@
 -->
 <a class="info" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.description|urlize_target_blank:25 }}</a>
 {% endif %}
-<span style="font-family:arial; color: gray; line-height:1.2;text-shadow:0 0 0.1px gray;font-size:70%;"><bdi>{{ link.submitted_on|naturaltime }}</bdi></span>
+<span style="font-family:arial; color: gray; line-height:1.2;text-shadow:0 0 0.1px gray;font-size:70%;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 {% if object.url %}
   Link: <a href="{{ object.url }}" target="_blank" class:"wrapping" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">{{ object.url|urlize_target_blank:25 }}</a>
 {% endif %}
 <a class="countofvotes">
-  {% if not link.votes %} 
-    <span style="color:green;font-size:80%;">0 vote</span>
-  {% else %}
-    {% if link.votes > -1 %}
-      {% if link.votes == 0 %}
-        <span style="color:green;font-size:80%;">{{ link.votes }} vote</span>
-      {% else %}
-        <span style="color:green;font-size:80%;">+{{ link.votes }} votes</span>
-      {% endif %}
-    {% else %}
-      <span style="color:red;font-size:80%;">{{ link.votes }} votes</span>
+    {% if not link.votes %}
+      <span style="color:green;font-size:90%;">0 shabaash</span>
     {% endif %}
-  {% endif %}  
-</a>
+    {% if link.votes %} 
+      {% if link.votes > -1 %}
+        {% if link.votes == 0 %}
+          <span style="color:green;font-size:90%;">0 shabaash</span>
+        {% else %}
+          <span style="color:green;font-size:90%;">{{ link.votes }} shabaash</span>
+        {% endif %}
+      {% else %}
+        {% if link.votes == -1 %}
+          <span style="color:red;font-size:90%;">1 chupair</span>
+        {% else %}
+          <span style="color:red;font-size:90%;">{{ link.votes|abs }} chupairein</span>
+        {% endif %}
+      {% endif %}
+    {% endif %}  
+  </a>
 {% if not user.is_authenticated %}
   {% if token in request.get_full_path  %}
-    <span style="font-size:80%;white-space:nowrap;color:#666666;">..pasand aya?</span>
     <span style="white-space:nowrap;">
-    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
-    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="shabaash do">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair maro">
     </span>
   {%else %}
   <!--
@@ -93,10 +97,9 @@
   {% endif %}
   
 {% elif link.pk not in voted %}
-  <span style="font-size:80%;white-space:nowrap;color:#666666;">...pasand aya?</span>
   <span = style="white-space:nowrap;">
-    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="yes">
-    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="no">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="shabaash do">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair maro">
     </span>
 {% else %}
   <!--
@@ -111,9 +114,9 @@
     {% endif %}
   {% else %}
     {% if link.url %}
-      <a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">dost ko bhejo >></a>
+      <a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
     {% else %}
-      <a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:80%;white-space:nowrap;">dost ko bhejo >></a>
+      <a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
     {% endif %}
   {% endif %}
 </form>

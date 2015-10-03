@@ -2,17 +2,20 @@
 
 {% block content %}
 <div class="margin">
-<h2>Kuch aisa likho jo logoon ko shughali lagay!</h2>
-<p>Chat patti pictures aur video links, jokes, news, shayari, jo dil chahey likh do!</p>  
+<!--<h2>Kuch aisa likho jo logoon ko shughali lagay!</h2>
+<p>Jokes, news, questions, shayari, jo dil chahey likh do!</p>  -->
+<h2>Jokes, news, questions, shayari, jo dil chahey likh do!</h2>  
 <form method="post" action="">
   {% csrf_token %}
   {{ form.description.errors }}
   <span style="font-size:92%;">{{ form.description.label_tag }}</span>{{ form.description }}<br>
-  {{ form.url.errors }}<span style="font-size:80%;color:grey;">misaal: abhi abhi ki khabar hai, Rangers ne Karachi mien 600 shooter pakar liye!</span><br><br>
-  <span style="font-size:91%;">{{ form.url.label_tag }}</span>{{ form.url }}<br><br><span style="font-size:80%;color:grey;">misaal: http://www.express.pk/story/394710/</span><br>
+  {{ form.url.errors }}
+<!-- 
+  <span style="font-size:91%;">{{ form.url.label_tag }}</span>{{ form.url }}<br><br>-->
   <!--<td>{{ form.as_p }}</td>-->
-  <input class="button" style="color:white;background-color:#1947D1" type="submit" value="Add">
+  <input class="button" style="color:white;background-color:#1947D1" type="submit" value="Submit">
 </form>
-<br><span style="color:gray;font-size:85%">Jo likho gey, usko jitney logg pasand karien ge, woh utna mashoor ho kar list mien uper aata jaye ga!</span>
+<br>
+<!--<span style="color:gray;font-size:85%">Jo likho gey, usko jitney logg pasand karien ge, woh utna mashoor ho kar list mien uper aata jaye ga!</span>-->
 </div>
 {% endblock %}

@@ -34,22 +34,21 @@
     </b>
     </span>
     -->
-    {% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-thumbnail.jpg"></img>
-	{% endif %}
-    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
-	{% if link.url %}
-		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
-	{% endif %}
-	<a name="section{{ forloop.counter }}"></a> 
-	{% if link.submitter.username == 'unregistered_bhoot' %}
+    {% if link.submitter.username == 'unregistered_bhoot' %}
     	<!--<p style="margin-top:.8em">-->
-    	<span class="bigger" style="color:#666666;">..unregistered_bhoot&nbsp;</span>ne likha,
+    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span><!--ne likha-->
     	
 	{% else %}
-	...{% if link.submitter.userprofile.avatar %}<a href="{% url 'profile' slug=link.submitter %}#section0"><img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img></a>{% endif %}&nbsp;<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;text-shadow:0 0 0.1px #8080FF;">{{ link.submitter }}</a>
+	{% if link.submitter.userprofile.avatar %}
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
+		</a>
+	{% endif %}
+	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;text-shadow:0 0 0.1px #8080FF;">{{ link.submitter }}:</a>
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
@@ -63,10 +62,23 @@
 			{% else %}
 			{% endif %}
 		    {% endif %}
-		    ne likha,
+		    <!--ne likha,-->
     {% endif %}
+<!--
+    {% if link.image_file %}
+    	<img src="{{ link.image_file.url }}"></img>
+	{% else %}
+		<img src="{{ STATIC_URL }}img/default-thumbnail.jpg"></img>
+	{% endif %}
+-->
+    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+	{% if link.url %}
+		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
+	{% endif %}
+	<a name="section{{ forloop.counter }}"></a> 
+
 	<!--                                           -->
-	<span style="font-size:90%;font-family:'arial';"><bdi>{{ link.submitted_on|naturaltime }}</bdi></span><p>
+	<span style="font-size:90%;font-family:'arial';"><bdi>,{{ link.submitted_on|naturaltime }}</bdi></span><p>
 	
 	<!--<table><tr><td>-->
 	<a class="countofvotes">
@@ -112,7 +124,7 @@
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
-<!--
+
 	<span class="countofcomments" style="font-family:'Noto Sans', arial;margin-right:0.5em;">
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
@@ -124,7 +136,7 @@
 	{% endif %}
 	</span></p>
 	<p style="margin-top:.5em;">
--->	
+
 	{% if link.url %}
 		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
 	{% else %}
@@ -147,11 +159,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><b  style="color:red;text-shadow:0 0 0.1px red;">&leftarrow;</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><b  style="color:red;text-shadow:0 0 0.1px red;"><</b><bdi>wapis</bdi></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0.1px green;">&rightarrow;</b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0.1px green;">></b></a>
     {% endif %}
 </div>
 {% endif %}

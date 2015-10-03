@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load comments %}
+{% load mathfilters %}
 <!--{% load bootstrap_pagination %}-->
 {% load urlize_target_blank %}
 {% block content %}
@@ -19,7 +20,7 @@
 	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
 	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	<!--{{ link.rank_score|floatformat:10 }}-->
-    <!--
+    
     <span class="numbers">
     <b>
     {% if not page_obj.number|add:"-1" %}
@@ -33,7 +34,7 @@
     {% endif %}
     </b>
     </span>
-    -->
+    
     {% if link.submitter.username == 'unregistered_bhoot' %}
     	<!--<p style="margin-top:.8em">-->
     <span class="bigger" style="color:#666666;">unregistered_bhoot:</span><!--ne likha-->
@@ -78,21 +79,26 @@
 	<a name="section{{ forloop.counter }}"></a> 
 
 	<!--                                           -->
-	<span style="font-size:90%;font-family:'arial';"><bdi>,{{ link.submitted_on|naturaltime }}</bdi></span><p>
+	<span style="font-size:90%;font-family:'arial';"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
 	
 	<!--<table><tr><td>-->
 	<a class="countofvotes">
-		{% if not link.votes %}	
-			<span style="color:green;font-size:90%;">0 vote</span>
-		{% else %}
+		{% if not link.votes %}
+			<span style="color:green;font-size:90%;">0 shabaash</span>
+		{% endif %}
+		{% if link.votes %}	
 			{% if link.votes > -1 %}
 				{% if link.votes == 0 %}
-					<span style="color:green;font-size:90%;">{{ link.votes }} vote</span>
+					<span style="color:green;font-size:90%;">0 shabaash</span>
 				{% else %}
-					<span style="color:green;font-size:90%;">+{{ link.votes }} votes</span>
+					<span style="color:green;font-size:90%;">{{ link.votes }} shabaash</span>
 				{% endif %}
 			{% else %}
-				<span style="color:red;font-size:90%;">{{ link.votes }} votes</span>
+				{% if link.votes == -1 %}
+					<span style="color:red;font-size:90%;">1 chupair</span>
+				{% else %}
+					<span style="color:red;font-size:90%;">{{ link.votes|abs }} chupairein</span>
+				{% endif %}
 			{% endif %}
 		{% endif %}	 
 	</a>
@@ -102,18 +108,18 @@
 	-->
 	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
-	<span style="font-size:90%;white-space:nowrap;">...mazedar hai?</span>
+	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">shabash do</button><br>
+	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair maro</button>
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
 	-->
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
+<!--	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
-
+-->
 	{% elif link.pk not in voted %}	
-	<span style="font-size:90%;white-space:nowrap;">...mazedar hai?</span>
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;" value="yes">
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="no">
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="shabaash do"><br>
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair maro">
 	{% else %}
 	<!--
 		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
@@ -138,9 +144,9 @@
 	<p style="margin-top:.5em;">
 
 	{% if link.url %}
-		<a href="sms:+92345?body={{ link.url|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
+		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
 	{% else %}
-		<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bhejo >></a>
+		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
 	{% endif %}
 
 	</p>

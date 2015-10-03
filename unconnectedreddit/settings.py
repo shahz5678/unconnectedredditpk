@@ -158,6 +158,7 @@ INSTALLED_APPS = (
     'tweepy',
     'django.contrib.humanize',
     'analytical',
+    'mathfilters',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

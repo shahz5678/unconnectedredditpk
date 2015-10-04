@@ -1,1 +1,1 @@
-web: gunicorn unconnectedreddit.wsgi --log-file -
+web: newrelic-admin run-program gunicorn unconnectedreddit.wsgi --log-file -

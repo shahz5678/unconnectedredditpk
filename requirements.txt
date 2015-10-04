@@ -19,6 +19,7 @@ gunicorn==19.3.0
 httplib2==0.9.1
 kombu==3.0.26
 lxml==3.4.4
+newrelic==2.56.0.42
 oauthlib==0.7.2
 pam==0.1.4
 Pillow==2.9.0

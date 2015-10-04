@@ -69,7 +69,11 @@
         {% if link.votes == 0 %}
           <span style="color:green;font-size:90%;">0 jhappee</span>
         {% else %}
-          <span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
+          {% if link.votes == 1 %}
+            <span style="color:green;font-size:90%;">1 jhappee</span>
+          {% else %}
+            <span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
+          {% endif %}
         {% endif %}
       {% else %}
         {% if link.votes == -1 %}

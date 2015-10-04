@@ -84,14 +84,18 @@
 	<!--<table><tr><td>-->
 	<a class="countofvotes">
 		{% if not link.votes %}
-			<span style="color:green;font-size:90%;">0 shabaash</span>
+			<span style="color:green;font-size:90%;">0 jhappee</span>
 		{% endif %}
 		{% if link.votes %}	
 			{% if link.votes > -1 %}
 				{% if link.votes == 0 %}
-					<span style="color:green;font-size:90%;">0 shabaash</span>
+					<span style="color:green;font-size:90%;">0 jhappee</span>
 				{% else %}
-					<span style="color:green;font-size:90%;">{{ link.votes }} shabaash</span>
+					{% if link.votes == 1 %}
+						<span style="color:green;font-size:90%;">1 jhappee</span>
+					{% else %}
+						<span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
+					{% endif %}
 				{% endif %}
 			{% else %}
 				{% if link.votes == -1 %}
@@ -108,7 +112,7 @@
 	-->
 	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">shabash do</button><br>
+	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee maro</button><br>
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair maro</button>
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
@@ -118,7 +122,7 @@
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
 -->
 	{% elif link.pk not in voted %}	
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="shabaash do"><br>
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee maro"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair maro">
 	{% else %}
 	<!--

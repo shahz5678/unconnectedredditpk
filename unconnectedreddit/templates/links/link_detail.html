@@ -31,7 +31,7 @@
 {% if object.submitter == user %}
   <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}#section0">Edit <b style="color:black">|</b></a> 
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}#section0"> Delete</a>
-  <br><span style="color:gray;font-size:80%"><i>jitni shabaash milay gey, apki post utni mashoor ho gi!</i></span>
+  <br><span style="color:gray;font-size:80%"><i>jitni jhappiyan milay gi, apki post utni mashoor ho gi!</i></span>
 {% endif %}
 
 <div class="desc"><p>
@@ -62,14 +62,14 @@
 {% endif %}
 <a class="countofvotes">
     {% if not link.votes %}
-      <span style="color:green;font-size:90%;">0 shabaash</span>
+      <span style="color:green;font-size:90%;">0 jhappee</span>
     {% endif %}
     {% if link.votes %} 
       {% if link.votes > -1 %}
         {% if link.votes == 0 %}
-          <span style="color:green;font-size:90%;">0 shabaash</span>
+          <span style="color:green;font-size:90%;">0 jhappee</span>
         {% else %}
-          <span style="color:green;font-size:90%;">{{ link.votes }} shabaash</span>
+          <span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
         {% endif %}
       {% else %}
         {% if link.votes == -1 %}
@@ -83,7 +83,7 @@
 {% if not user.is_authenticated %}
   {% if token in request.get_full_path  %}
     <span style="white-space:nowrap;">
-    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="shabaash do">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="jhappee maro">
     <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair maro">
     </span>
   {%else %}

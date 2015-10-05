@@ -109,7 +109,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    #'django_whoshere.middleware.TrackMiddleware',
+    #'django.contrib.messages.middleware.MessageMiddleware',
     'mobi.middleware.MobileDetectionMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -159,6 +161,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'analytical',
     'mathfilters',
+    #'django_whoshere',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

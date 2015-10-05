@@ -57,7 +57,7 @@ class LinkListView(ListView):
 			voted = voted.values_list('link_id', flat=True)
 			context["voted"] = voted
 			####################
-			vote_cluster = Vote.objects.all()#.reverse()[:100] # latest 100 objects
+			vote_cluster = Vote.objects.all().reverse()[:100] # latest 100 objects
 			context["vote_cluster"] = vote_cluster
 			#votes_in_page = [vote.link for link in links_in_page] 
 			#votes_in_page = [vote.id for link.voted in context["object_list"]] #all vote objects in the page

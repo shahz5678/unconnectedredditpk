@@ -51,11 +51,22 @@ class LinkListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
-			links_in_page = [link.id for link in context["object_list"]]
-			voted = voted.filter(link_id__in=links_in_page)
+			voted = Vote.objects.filter(voter=self.request.user) #all links the user voted on
+			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
+			voted = voted.filter(link_id__in=links_in_page)#only
 			voted = voted.values_list('link_id', flat=True)
 			context["voted"] = voted
+			####################
+			vote_cluster = Vote.objects.all()[:50] # first 50 objects
+			context["vote_cluster"] = vote_cluster
+			#votes_in_page = [vote.link for link in links_in_page] 
+			#votes_in_page = [vote.id for link.voted in context["object_list"]] #all vote objects in the page
+			#context["votes_in_page"] = votes_in_page
+			#all users who voted on a link
+			'''
+			voters = Link.objects.filter(with_votes!=0) #get all links that have vote objects
+
+			'''
 		return context
 
 class LinkUpdateView(UpdateView):

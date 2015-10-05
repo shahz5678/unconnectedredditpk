@@ -134,7 +134,7 @@
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
-
+<!--
 	<span class="countofcomments" style="font-family:'Noto Sans', arial;margin-right:0.5em;">
 	{% get_comment_count for link as comment_count %}
 	{% if comment_count %}
@@ -146,13 +146,26 @@
 	{% endif %}
 	</span></p>
 	<p style="margin-top:.5em;">
-
+-->
+<!--
 	{% if link.url %}
 		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
 	{% else %}
 		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
 	{% endif %}
-
+-->
+		{% if link.votes != 'None' %}
+			{% for vote in vote_cluster %}
+				{% if link.id == vote.link.id %}
+					{% if vote.value == -1 %}
+						<span style="color:red;"><b>{{ vote.voter.username }}</b> ne {{ link.submitter.username }} ko chupair mari<br></span>
+					{% endif %}
+					{% if vote.value == 1 %}
+						<span style="color:green;"><b>{{ vote.voter.username }}</b> ne {{ link.submitter.username }} ko jhappi mari<br></span>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
 	</p>
 	</form>
 

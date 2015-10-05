@@ -158,10 +158,18 @@
 			{% for vote in vote_cluster %}
 				{% if link.id == vote.link.id %}
 					{% if vote.value == -1 %}
-						<span style="color:red;"><b>{{ vote.voter.username }}</b> ne {{ link.submitter.username }} ko chupair mari<br></span>
+						{% if vote.voter == link.submitter %}
+							<span style="color:red;"><b>{{ vote.voter.username }}</b> ne apney aap ko chupair mari. Kheriyat hai?<br></span>
+						{% else %}
+							<span style="color:red;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+						{% endif %}
 					{% endif %}
 					{% if vote.value == 1 %}
-						<span style="color:green;"><b>{{ vote.voter.username }}</b> ne {{ link.submitter.username }} ko jhappi mari<br></span>
+						{% if vote.voter == link.submitter %}
+							<span style="color:green;"><b>{{ vote.voter.username }}</b> ne chalaaki se apney aap ko jhappi mari<br></span>
+						{% else %}
+							<span style="color:green;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+						{% endif %}
 					{% endif %}
 				{% endif %}
 			{% endfor %}

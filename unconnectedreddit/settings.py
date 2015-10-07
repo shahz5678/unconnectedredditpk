@@ -161,6 +161,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'analytical',
     'mathfilters',
+    #'analytical',
     #'django_whoshere',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

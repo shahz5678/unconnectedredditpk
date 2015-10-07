@@ -2,12 +2,13 @@
 
 {% block content %}
 {{ block.super }}
-<div class=margin style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
-
+<div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 {% if object.username == user.username %}
 <h2>Welcome apni profile pe</h2>
+<a href="{% url 'user_activity' slug=user.username %}#section0" style="font-family:arial;text-shadow:0 0 0.1px #886081;">Apni posts dekho</a>
 {% else %}
 <h2>{{ object.username }} ki profile</h2>
+<a href="{% url 'user_activity' slug=object.username %}#section0" style="font-family:arial;text-shadow:0 0 0.1px #886081;">{{ object.username }} ki posts dekho</a>
 {% endif %}
 	<div>
 	<b class="profile">Photo:</b>

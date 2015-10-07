@@ -11,8 +11,9 @@
 <ul>
 {% endif %}
 {% if not object_list %}
-<i><a href="{% url 'link_create' %}#section0">Kuch likho</a> gey tou yahan aye ga, warna khamosh tamashaii baney raho gey!</i>
-{% endif %}
+<i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kiss cheez ka hai?!</i>
+{% else %}
+<h2>history:</h2>
 {% for link in object_list %}
 	<span class="numbers">
     <b>
@@ -100,6 +101,7 @@
 	</form>
 <p style="color:gray"><hr size=1></p>
 {% endfor %}
+{% endif %}
 </ul>
 </div>
 {% endblock %}

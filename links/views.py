@@ -17,9 +17,7 @@ from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-#class MyRegistrationView(RegistrationView):
-#    def get_success_url(self, request, user):
-#        return '/'
+
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
@@ -57,23 +55,20 @@ class LinkListView(ListView):
 			voted = voted.values_list('link_id', flat=True)
 			context["voted"] = voted
 			####################
-			vote_cluster = Vote.objects.all()#.order_by('link.submitted_on')[:100] # all votes
-			#latest_links = Link.objects.all().reverse()[:100] # latest 100 links
-			vote_cluster = vote_cluster.filter(link_id__in=links_in_page)
+			vote_cluster = Vote.objects.all() # all votes
+			vote_cluster = vote_cluster.filter(link_id__in=links_in_page) # votes in page
 			context["vote_cluster"] = vote_cluster
 			#votes_in_page = [vote.link for link in links_in_page] 
 			#votes_in_page = [vote.id for link.voted in context["object_list"]] #all vote objects in the page
 			#context["votes_in_page"] = votes_in_page
 			#all users who voted on a link
-			'''
-			voters = Link.objects.filter(with_votes!=0) #get all links that have vote objects
-
-			'''
 		return context
 
 class LinkUpdateView(UpdateView):
 	model = Link
 	form_class = LinkForm
+	paginate_by = 10
+
 
 class LinkDeleteView(DeleteView):
 	model = Link
@@ -88,6 +83,30 @@ class UserProfileDetailView(DetailView):
 		user = super(UserProfileDetailView, self).get_object(queryset)
 		UserProfile.objects.get_or_create(user=user)
 		return user
+
+class UserActivityView(ListView):
+	model = Link
+	slug_field = "username"
+	template_name = "user_activity.html"
+	#queryset = Link.with_votes.filter(submitter=request.user)
+	paginate_by = 10
+	#user = request.user.get_profile()
+
+	def get_queryset(self):
+		#user = super(UserActivityView, self).get_queryset()
+		username = self.kwargs['slug']
+		user = User.objects.filter(username=username).values_list('id', flat=True)
+		return Link.with_votes.filter(submitter=user)#self.request.user)
+
+	def get_context_data(self, **kwargs):
+		context = super(UserActivityView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
+			vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
+			context["vote_cluster"] = vote_cluster
+			voted = vote_cluster.filter(voter=self.request.user)
+			context["voted"] = voted.values_list('link_id', flat=True)
+		return context
 
 class UserSettingDetailView(DetailView):
 	model = get_user_model()
@@ -147,6 +166,7 @@ class LinkCreateView(CreateView):
 		if f.description==f.submitter.userprofile.previous_retort:
 			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
 		f.submitter.userprofile.previous_retort = f.description
+		''' removing representative image code
 		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
 		urls2 = re.findall(urlmarker.URL_REGEX,f.url)
 		try:
@@ -188,6 +208,7 @@ class LinkCreateView(CreateView):
 		except Exception as e:
 			print '%s (%s)' % (e.message, type(e))	
 			pass			
+		'''
 		f.save()
 		f.submitter.userprofile.save()
 		return super(CreateView, self).form_valid(form)
@@ -277,7 +298,7 @@ def LinkAutoCreate(user, content):
 	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
 	link.rank_score = round(0 * 0 + secs / 45000, 8)
 	link.with_votes = 0
-	link.category = '1'
+	link.category = '1' '''
 	try:
 		if len(urls1)==0:
 			pass
@@ -306,7 +327,7 @@ def LinkAutoCreate(user, content):
 			pass
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))	
-		pass			
+		pass			'''
 	link.save()
 	user.userprofile.previous_retort = content
 	user.userprofile.save()

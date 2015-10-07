@@ -10,7 +10,9 @@
 {% else %}
 <ul>
 {% endif %}
-
+{% if not object_list %}
+<i><a href="{% url 'link_create' %}#section0">Kuch likho</a> gey tou yahan aye ga, warna khamosh tamashaii baney raho gey!</i>
+{% endif %}
 {% for link in object_list %}
 	<span class="numbers">
     <b>

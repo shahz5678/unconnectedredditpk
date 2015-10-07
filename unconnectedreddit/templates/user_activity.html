@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% block content %}
+{{ block.super }}
+
+<div style="margin-left:-1.3em;font-family:arial;line-height:1.8;">
+{% if is_paginated %}
+<ul start="{{ page_obj.start_index }}">
+{% else %}
+<ul>
+{% endif %}
+
+{% for link in object_list %}
+	<span class="numbers">
+    <b>
+    {% if not page_obj.number|add:"-1" %}
+    	{{ forloop.counter }}.
+    {% else %}
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
+    {% endif %}
+    </b>
+    </span>
+    {% if link.submitter.userprofile.avatar %}
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
+		</a>
+	{% endif %}
+	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
+	<a class="countofvotes">
+		{% if not link.votes %}
+			<span style="color:green;font-size:90%;">0 jhappee</span>
+		{% endif %}
+		{% if link.votes %}	
+			{% if link.votes > -1 %}
+				{% if link.votes == 0 %}
+					<span style="color:green;font-size:90%;">0 jhappee</span>
+				{% else %}
+					{% if link.votes == 1 %}
+						<span style="color:green;font-size:90%;">1 jhappee</span>
+					{% else %}
+						<span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
+					{% endif %}
+				{% endif %}
+			{% else %}
+				{% if link.votes == -1 %}
+					<span style="color:red;font-size:90%;">1 chupair</span>
+				{% else %}
+					<span style="color:red;font-size:90%;">{{ link.votes|abs }} chupairein</span>
+				{% endif %}
+			{% endif %}
+		{% endif %}	 
+	</a><br>
+	{% for vote in vote_cluster %}
+		{% if link.id == vote.link.id %}
+			{% if vote.value == -1 %}
+			{% if vote.voter == link.submitter %}
+				<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne apney aap ko chupair mari. Kheriyat hai?<br></span>
+			{% else %}
+				<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+			{% endif %}
+		{% endif %}
+		{% if vote.value == 1 %}
+			{% if vote.voter == link.submitter %}
+				<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne chalaaki se apney aap ko jhappi mari<br></span>
+			{% else %}
+				<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+			{% endif %}
+		{% endif %}
+		{% endif %}
+	{% endfor %}
+	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
+	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">
+	{% csrf_token %}
+	<p style="margin-top:.5em;">
+	{% if not user.is_authenticated %}
+		<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee maro</button><br>
+		<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair maro</button>
+	{% elif link.pk not in voted %}	
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee maro"><br>
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair maro">
+	{% else %}
+	<!--
+		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
+	-->
+	{% endif %}</p>
+	</form>
+<p style="color:gray"><hr size=1></p>
+{% endfor %}
+</ul>
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><b  style="color:red;text-shadow:0 0 0.1px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0.1px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

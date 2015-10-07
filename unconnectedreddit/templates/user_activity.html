@@ -68,14 +68,14 @@
 			{% if vote.voter == link.submitter %}
 				<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne apney aap ko chupair mari. Kheriyat hai?<br></span>
 			{% else %}
-				<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
 			{% endif %}
 		{% endif %}
 		{% if vote.value == 1 %}
 			{% if vote.voter == link.submitter %}
 				<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne chalaaki se apney aap ko jhappi mari<br></span>
 			{% else %}
-				<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
 			{% endif %}
 		{% endif %}
 		{% endif %}

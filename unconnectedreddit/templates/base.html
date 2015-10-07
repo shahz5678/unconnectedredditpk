@@ -1,9 +1,8 @@
-{% load analytical %}
-{% load google_analytics %}
+<!--{% load analytical %}-->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-{% analytical_head_top %}
+<!--{% analytical_head_top %}-->
     <!-- ****** faviconit.com favicons ****** -->
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
     <link rel="icon" sizes="16x16 32x32 64x64" href="{{ STATIC_URL }}img/favicon.ico">
@@ -41,11 +40,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
-        {% google_analytics %}
-        {% analytical_head_bottom %}
+        <!--{% analytical_head_bottom %}-->
 </head>
 <body>
-{%  analytical_body_top %}
+<!--{%  analytical_body_top %}-->
 {% if not request.mobile or request.tablet %}
 <h1 style="text-shadow:0 0 0.7px white;"></h1>
 {% else %}
@@ -98,7 +96,7 @@
 | <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO</a> |  
 {% endif %}
 </div>
-{% analytical_body_bottom %}
-<img src="http://nojsstats.appspot.com/UA-68289796/shielded-peak-4420.herokuapp.com" style="border-style:none;" width="1px" height="1px"></img>
+<!--{% analytical_body_bottom %}-->
+<!--<img src="http://nojsstats.appspot.com/UA-68289796/shielded-peak-4420.herokuapp.com" style="border-style:none;" width="1px" height="1px"></img>-->
 </body>
 </html>

@@ -14,7 +14,7 @@
 	{% if active_user.username == 'unregistered_bhoot' %}
     	<span style="font-color:grey;">{{ active_user.username }}</span><br>
 	{% else %}
-		<a href="{% url 'profile' slug=user.username %}#section0">{{ active_user.username }}</a><br>
+		<a href="{% url 'profile' slug=active_user.username %}#section0">{{ active_user.username }}</a><br>
 	{% endif %}
 {% endfor %}
 </ul>

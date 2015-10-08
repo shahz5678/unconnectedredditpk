@@ -1,5 +1,6 @@
 # Create your views here.
 import re, urlmarker, StringIO
+#from request.models import Request
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from .models import Link, Vote, UserProfile, UserSettings
@@ -7,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -69,6 +70,12 @@ class LinkUpdateView(UpdateView):
 	form_class = LinkForm
 	paginate_by = 10
 
+class WhoseOnlineView(FormView):
+	#model = Request
+	form_class = WhoseOnlineForm
+	template_name = "whose_online.html"
+	#paginate_by = 10 # date_based generic views don't support pagination, because by the time you go to the next page, the set would have changed
+	#queryset = Request.objects.active_users(minutes=5) #users online in the last 5 mins
 
 class LinkDeleteView(DeleteView):
 	model = Link
@@ -81,7 +88,7 @@ class UserProfileDetailView(DetailView):
 
 	def get_object(self, queryset=None):
 		user = super(UserProfileDetailView, self).get_object(queryset)
-		UserProfile.objects.get_or_create(user=user)
+		#UserProfile.objects.get_or_create(user=user)
 		return user
 
 class UserActivityView(ListView):
@@ -95,7 +102,7 @@ class UserActivityView(ListView):
 	def get_queryset(self):
 		#user = super(UserActivityView, self).get_queryset()
 		username = self.kwargs['slug']
-		user = User.objects.filter(username=username).values_list('id', flat=True)
+		user = User.objects.filter(username=username)
 		return Link.with_votes.filter(submitter=user)#self.request.user)
 
 	def get_context_data(self, **kwargs):

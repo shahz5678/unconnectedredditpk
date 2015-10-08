@@ -44,10 +44,12 @@ def square_image(img):
 def MakeThumbnail(file):
     img = file
     img = square_image(img)
-    img.thumbnail((120, 120))
-    thumbnailString = StringIO.StringIO()
     if img.mode != 'RGB':
         img = img.convert("RGB")
+    img.thumbnail((120, 120))
+    thumbnailString = StringIO.StringIO()
+    #if img.mode != 'RGB':
+    #    img = img.convert("RGB")
     img.save(thumbnailString, 'JPEG')
     newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
     return newFile
@@ -98,17 +100,32 @@ class UserSettingsForm(forms.ModelForm):
         exclude = ('user', 'setting2', 'setting3', 'setting4', 'setting5')
         fields = ('score_setting',)
 
-class LinkForm(forms.ModelForm):
+class LinkForm(forms.ModelForm):#this controls the userprofile edit form
     class Meta:
         model = Link
         exclude = ("submitter", "rank_score", "category")
-        fields = ("description", "url")
+        fields = ("description", "image_file")
+
+        def clean_image_file(self): # where self is the Link form
+            image=self.cleaned_data.get("image_file")
+            if image:
+                if image.size > 1000000:
+                    raise ValidationError("File buhut barri hai, doosri try karo")
+                image = Image.open(image)
+                image = MakeThumbnail(image)
+                return image
+            else:
+                raise ValidationError("File kharab hai, doosri try karo")       
 
 class VoteForm(forms.ModelForm): #creates a form for Vote
     class Meta:
         model = Vote
 
 class ScoreHelpForm(forms.Form):
+    class Meta:
+        pass
+
+class WhoseOnlineForm(forms.Form):
     class Meta:
         pass
 

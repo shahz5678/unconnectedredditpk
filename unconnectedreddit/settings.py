@@ -1,6 +1,7 @@
 # Django settings for unconnectedreddit project.
 import os
 
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -110,8 +111,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    #'django_whoshere.middleware.TrackMiddleware',
-    #'django.contrib.messages.middleware.MessageMiddleware',
+    'request.middleware.RequestMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'mobi.middleware.MobileDetectionMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -161,6 +162,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'analytical',
     'mathfilters',
+    'request',
     #'analytical',
     #'django_whoshere',
     # Uncomment the next line to enable admin documentation:
@@ -271,3 +273,13 @@ AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
 AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
 AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 #AWS_MAX_SIZE = 10
+
+REQUEST_TRAFFIC_MODULES = (
+'request.traffic.UniqueVisitor',
+#'request.traffic.UniqueVisit',
+'request.traffic.Hit',
+'request.traffic.Error',
+'request.traffic.UniqueUser',
+)
+
+REQUEST_LOG_USER = True

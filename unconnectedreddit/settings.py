@@ -278,7 +278,7 @@ REQUEST_TRAFFIC_MODULES = (
 'request.traffic.UniqueVisitor',
 #'request.traffic.UniqueVisit',
 'request.traffic.Hit',
-'request.traffic.Error',
+#'request.traffic.Error',
 'request.traffic.UniqueUser',
 )
 

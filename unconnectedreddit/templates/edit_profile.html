@@ -7,8 +7,8 @@
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.mobilenumber.errors }}
-  <span style="color:grey;font-size:90%;">{{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<br>
-  <i style="font-size:82%">Aap ka mobile number kisi aur ko nahi dikhaya jaye ga</i></span>
+  <span style="font-size:90%;">{{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<br>
+  <i style="color:grey;font-size:82%">Aap ka mobile number kisi aur ko nahi dikhaya jaye ga</i></span>
   {{ form.bio.errors }}<p style="font-size:90%;">
   {{ form.bio.label_tag }}{{ form.bio }}</p><p>
   {{ form.avatar.errors }}<p style="font-size:90%;">

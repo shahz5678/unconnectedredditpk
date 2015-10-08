@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+{% load request_tag %}
+<div class="margin">
+{% if is_paginated %}
+<ul start="{{ page_obj.start_index }}">
+{% else %}
+<ul>
+{% endif %}
+<span style="font-size:85%;">Pichley <b>5 min</b> mien ye damadamers nazar aye:</span><br>
+{% active_users in 5 minutes as user_list %}
+{% for active_user in user_list %}
+<span style="font-size:80%;color:grey;">{{ forloop.counter }}.</span>
+	{% if active_user.username == 'unregistered_bhoot' %}
+    	<span style="font-color:grey;">{{ active_user.username }}</span><br>
+	{% else %}
+		<a href="{% url 'profile' slug=user.username %}#section0">{{ active_user.username }}</a><br>
+	{% endif %}
+{% endfor %}
+</ul>
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b  style="color:red;text-shadow:0 0 0.1px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0.1px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

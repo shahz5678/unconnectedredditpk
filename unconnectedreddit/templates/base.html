@@ -59,6 +59,7 @@
     <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a><span style="color:white;">|</span>
 {% if user.is_authenticated %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">KUCH LIKHO</a> <span style="color:white;">|</span>
+    <a class="sharing" href="{% url 'online_kone' %}#section0" style="text-shadow:0 0 0.1px #886081;">Online Kone</a> <span style="color:white;">|</span>
     <!--<a href="{% url 'logout' %}">Logout</a> |-->
     {% if user.userprofile.score %}
         <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>

@@ -2,14 +2,14 @@
 
 {% block content %}
 <div class="margin">
-<h2>Register karo</h2>
-<p>Iss se aap vote aur likh saktey ho. Agar pehlay register kiya hua hai toh <a href="{% url 'login' %}#section0">login</a> karo.</p>
+<h2>Register karo (khaata kholo)</h2>
+<p>Agar ye mushkil lagey toh 0333-555-3136 pe SMS ya missed call maro. Agar pehlay register kiya hua hai toh <a href="{% url 'login' %}#section0">login</a> karo.</p>
 {% if form.errors %}
 {% endif %}
 <form method="post" action="">
   {% csrf_token %}
   {{ form.as_p }}<br>
-  <input class="button" style="background-color:#F6F6F6" type="submit" value="Register">
+  <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="Register">
   <br><i><span style="color:gray;font-size:85%;">nick mien space nahi daalni, acha?</span></i>
 </form>
 </div>

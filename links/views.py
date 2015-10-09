@@ -166,7 +166,7 @@ class LinkCreateView(CreateView):
 		f.rank_score = round(0 * 0 + secs / 45000, 8)
 		if self.request.user.is_authenticated():
 			f.submitter = self.request.user
-		#	f.submitter.userprofile.score = f.submitter.userprofile.score + 0 #adding 5 points every time a user submits new content
+			f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 5 points every time a user submits new content
 		else:
 			f.submitter = User(id=8) # ALWAYS set this ID to unregistered_bhoot
 		#	f.submitter.userprofile.score = f.submitter.userprofile.score + 0

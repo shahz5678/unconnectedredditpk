@@ -7,14 +7,23 @@
 {% else %}
 <ul>
 {% endif %}
-<span style="font-size:85%;">Pichley <b>5 min</b> mien ye damadamers nazar aye:</span><br>
+<span style="font-size:85%;">Pichley <b>5 min</b> mien ye logg damamdam par nazar aye:</span><br>
 {% active_users in 5 minutes as user_list %}
 {% for active_user in user_list %}
 <span style="font-size:80%;color:grey;">{{ forloop.counter }}.</span>
 	{% if active_user.username == 'unregistered_bhoot' %}
     	<span style="font-color:grey;">{{ active_user.username }}</span><br>
 	{% else %}
-		<a href="{% url 'profile' slug=active_user.username %}#section0">{{ active_user.username }}</a><br>
+		{% if active_user.userprofile.avatar %}
+            <a href="{% url 'profile' slug=active_user.username %}#section0">
+            <img src="{{ active_user.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
+            </a>
+        {% else %}
+            <a href="{% url 'profile' slug=active_user.username %}#section0">
+            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
+            </a>
+        {% endif %}
+    <a href="{% url 'user_activity' slug=active_user.username %}#section0">{{ active_user.username }}</a><br>
 	{% endif %}
 {% endfor %}
 </ul>

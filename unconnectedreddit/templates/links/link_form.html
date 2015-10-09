@@ -4,17 +4,22 @@
 <div class="margin">
 <!--<h2>Kuch aisa likho jo logoon ko shughali lagay!</h2>
 <p>Jokes, news, questions, shayari, jo dil chahey likh do!</p>  -->
-<h2>Gupshup, jokes, news, questions, shayari, jo dil chahey likh do!</h2>  
-<form method="post" action="">
+
+<h2>Gupshup, jokes, news, questions, shayari, jo dil chahey daal do!</h2>  
+<form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
+  {% if user.username == 'mhb11' %}
+   {{ form.image_file.errors }}
+  <span style="font-size:92%;">{{ form.image_file.label_tag }}</span>{{ form.image_file }}<br>
+  {% endif %}
   {{ form.description.errors }}
   <span style="font-size:92%;">{{ form.description.label_tag }}</span>{{ form.description }}<br>
-  {{ form.url.errors }}
-<!-- 
+<!-- {{ form.url.errors }}
   <span style="font-size:91%;">{{ form.url.label_tag }}</span>{{ form.url }}<br><br>-->
   <!--<td>{{ form.as_p }}</td>-->
-  <input class="button" style="color:white;background-color:#1947D1" type="submit" value="Submit">
+  <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="Submit">
 </form>
+
 <br>
 <!--<span style="color:gray;font-size:85%">Jo likho gey, usko jitney logg pasand karien ge, woh utna mashoor ho kar list mien uper aata jaye ga!</span>-->
 </div>

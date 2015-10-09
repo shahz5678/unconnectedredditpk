@@ -8,16 +8,16 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, clean_image_file
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
 from math import log
+from PIL import Image, ImageFile
 from datetime import datetime, timedelta
 from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
-
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -152,6 +152,9 @@ class LinkCreateView(CreateView):
 	model = Link
 	form_class = LinkForm
 
+	#def get_object(self, queryset=None):
+		#return Link.objects.get_or_create(user=self.request.user)[0]
+
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		#Setting rank score
@@ -163,16 +166,18 @@ class LinkCreateView(CreateView):
 		f.rank_score = round(0 * 0 + secs / 45000, 8)
 		if self.request.user.is_authenticated():
 			f.submitter = self.request.user
-			f.submitter.userprofile.score = f.submitter.userprofile.score + 5 #adding 5 points every time a user submits new content
+		#	f.submitter.userprofile.score = f.submitter.userprofile.score + 0 #adding 5 points every time a user submits new content
 		else:
 			f.submitter = User(id=8) # ALWAYS set this ID to unregistered_bhoot
-			f.submitter.userprofile.score = f.submitter.userprofile.score + 0
+		#	f.submitter.userprofile.score = f.submitter.userprofile.score + 0
 		f.with_votes = 0
 		f.category = '1'
 		# can we throw in an "are you human" test?
 		if f.description==f.submitter.userprofile.previous_retort:
 			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
 		f.submitter.userprofile.previous_retort = f.description
+		if f.image_file:
+			f.image_file = clean_image_file(f.image_file)
 		''' removing representative image code
 		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
 		urls2 = re.findall(urlmarker.URL_REGEX,f.url)
@@ -295,9 +300,8 @@ def LinkAutoCreate(user, content):
 	link = Link()
 	#content = content.replace('#',' ') 
 	link.description = content
-	urls1 = re.findall(urlmarker.URL_REGEX,link.description)
 	link.submitter = user
-	user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
+	#user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
 	unaware_submission = datetime.now().replace(tzinfo=None)
 	td = unaware_submission - epoch 
@@ -307,6 +311,7 @@ def LinkAutoCreate(user, content):
 	link.with_votes = 0
 	link.category = '1' '''
 	try:
+		urls1 = re.findall(urlmarker.URL_REGEX,link.description)
 		if len(urls1)==0:
 			pass
 		elif len(urls1)==1:

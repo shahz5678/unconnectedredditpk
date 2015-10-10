@@ -19,7 +19,7 @@ from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-FEMALES = ['rekha','gori']
+FEMALES = ['Rimiii']
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm

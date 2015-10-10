@@ -15,6 +15,9 @@
 {% else %}
 <h2>history:</h2>
 {% for link in object_list %}
+	{% if link.image_file %}
+    	<img src="{{ link.image_file.url }}"></img><br>
+	{% endif %}
 	<span class="numbers">
     <b>
     {% if not page_obj.number|add:"-1" %}
@@ -30,14 +33,19 @@
     </span>
     {% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
+		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
 		</a>
 	{% else %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
 		</a>
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
+	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>
+	{% for girl in verified %}
+    {% if girl == link.submitter.username %}
+    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
+    {% endif %}{% endfor %}
+	: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
 	<a class="countofvotes">
 		{% if not link.votes %}
 			<span style="color:green;font-size:90%;">0 jhappee</span>

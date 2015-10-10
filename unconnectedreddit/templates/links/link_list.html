@@ -5,7 +5,7 @@
 <!--{% load bootstrap_pagination %}-->
 {% load urlize_target_blank %}
 {% block content %}
-<!--<span class="margin" style="font-size:80%;color:grey;background:yellow;"><i>mhb11: Dosto, thori dair mien damadam 5 mins ke liye off ho gi. Mien ne kuch test karna hai</i></span>-->
+<!--<span class="margin" style="font-size:80%;color:grey;background:yellow;"><i>mhb11: Dosto, jis key nick ke aagey pink star nazar aye, woh fake female nahi hai! Hum fake accounts khatam karne ke liye verify kar rehay hain.</i></span>-->
 {% if is_paginated %}
 <span start="{{ page_obj.start_index }}">
 {% else %}
@@ -52,7 +52,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
 		</a>
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}:</a>
+	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
@@ -68,6 +68,10 @@
 		    {% endif %}
 		    <!--ne likha,-->
     {% endif %}
+    {% for girl in verified %}
+    {% if girl == link.submitter.username %}
+    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
+    {% endif %}{% endfor %}:
 <!--
     {% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img>
@@ -115,8 +119,8 @@
 	-->
 	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee maro</button><br>
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair maro</button>
+	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee</button><br>
+	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair</button>
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
@@ -125,8 +129,8 @@
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
 -->
 	{% elif link.pk not in voted %}	
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee maro"><br>
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair maro">
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
+		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 	{% else %}
 	<!--
 		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
@@ -193,7 +197,7 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b  style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}

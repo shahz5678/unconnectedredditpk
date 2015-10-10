@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2> Register karney ka tareeqa:</h2>
+<b>NICKNAME:</b><br>
+<span style="font-size:80%;color:grey;">1)</span> Nickname koi bhi naam ho sakta hai, zaroori nahi email ID ya Facebook ID hi ho. Jo dil chahey, rakho!<br>
+<span style="font-size:80%;color:grey;">2)</span> Nickname mien space nah dalo. Maslan, 'salman hero' nahi chaley ga, lekin 'salman_hero' chal jaye ga.<br>
+<span style="font-size:80%;color:grey;">3)</span> Nickname mien sirf _ wali dash dalo. Maslan, 'rasheed-sweetu' nahi chaley ga, lekin 'rasheed_sweetu' chal jaye ga.<br>
+<span style="font-size:80%;color:grey;">4)</span> Nickname mien . ya @ jaisey lafz nah dalo. Maslan, 'amin@_khan' nahi chaley ga, lekin 'amina_khan' chal jaye ga.<br>
+<span style="font-size:80%;color:grey;">5)</span> Nickname mien beshak number daal do. Maslan 'dabang420' ya 'munda_1987' bilkul theek hain!<br><br>
+<b>PASSWORD:</b><br>
+<span style="font-size:80%;color:grey;">1)</span> Password aik khufiya code hota hai, jo sirf tumhe yaad ho.<br>
+<span style="font-size:80%;color:grey;">2)</span> Isko 2 dafa dalna hota hai register karne ke liye. Bhool na jana!<br>
+<span style="font-size:80%;color:grey;">3)</span> Apna password kahien likh lo, takey kabhi bhool na jao.<br>
+<span style="font-size:80%;color:grey;">4)</span> Agar password bhool gaye ho, toh ya dobara <a href="{% url 'registration_register' %}#section0">register karo</a>, ya 0333-555-3136 pe SMS kar ke neya hasil karo.<br><br>
+
+<b>Abb ao <a href="{% url 'registration_register' %}#section0">register karo</a>!</b>
+
+{% endblock %}

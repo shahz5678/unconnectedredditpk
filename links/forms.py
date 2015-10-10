@@ -136,4 +136,8 @@ class WhoseOnlineForm(forms.Form):
 class HelpForm(forms.Form):
 	class Meta:
 		pass
+
+class RegisterHelpForm(forms.Form):
+	class Meta:
+		pass		
 #####################################################################################################

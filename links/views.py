@@ -19,6 +19,8 @@ from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
+FEMALES = ['rekha','gori']
+
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
@@ -49,6 +51,7 @@ class LinkListView(ListView):
 	
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
+		context["verified"] = FEMALES
 		if self.request.user.is_authenticated():
 			voted = Vote.objects.filter(voter=self.request.user) #all links the user voted on
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
@@ -91,6 +94,11 @@ class UserProfileDetailView(DetailView):
 		#UserProfile.objects.get_or_create(user=user)
 		return user
 
+	def get_context_data(self, **kwargs):
+		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
+		context["verified"] = FEMALES
+		return context
+
 class UserActivityView(ListView):
 	model = Link
 	slug_field = "username"
@@ -107,6 +115,7 @@ class UserActivityView(ListView):
 
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
+		context["verified"] = FEMALES
 		if self.request.user.is_authenticated():
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
 			vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
@@ -249,13 +258,13 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
 		#if btn == u"\u2714":
-		if btn == 'jhappee maro':
+		if btn == 'jhappee':
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
 		#elif btn == u"\u2717":
-		elif btn == 'chupair maro':
+		elif btn == 'chupair':
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
 				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote

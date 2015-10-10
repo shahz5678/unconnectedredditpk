@@ -4,11 +4,11 @@
 {{ block.super }}
 <div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 {% if object.username == user.username %}
-<h2>Welcome apni profile pe</h2>
-<a href="{% url 'user_activity' slug=user.username %}#section0" style="font-family:arial;text-shadow:0 0 0.1px #886081;">Apni history dekho</a>
+<h2><u>Welcome apni profile pe</u></h2>
+<a href="{% url 'user_activity' slug=user.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Apni history dekho</a>
 {% else %}
-<h2>{{ object.username }} ki profile</h2>
-<a href="{% url 'user_activity' slug=object.username %}#section0" style="font-family:arial;text-shadow:0 0 0.1px #886081;">{{ object.username }} ki history dekho</a>
+<h2><u>{{ object.username }} ki profile</u></h2>
+<a href="{% url 'user_activity' slug=object.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">{{ object.username }} ki history dekho</a>
 {% endif %}
 	<div>
 	<b class="profile">Photo:</b>
@@ -78,8 +78,8 @@
 	{% endif %}
 	</div>
 {% if object.username == user.username %}
-<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;white-space:nowrap;">Profile badlo</a></p>
-<h2>{{ object.username }} ke ikhtiyar</h2>
+<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">Profile badlo</a></p>
+<h2><u>{{ object.username }} ke ikhtiyar</u></h2>
 	<div>
 	<b class="profile">Sab ka score dikhao:</b>
 	{% if not object.usersettings.score_setting == '1' %}
@@ -88,7 +88,7 @@
 		<a class="info">Yes</a>
 	</div>
 	{% endif %}
-<p><a href='{% url "edit_settings" %}#section0' class="button" style="color:white;background-color:#1947D1; font-family:arial; border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:#1947D1;">Ikhtiyar badlo</a></p>
+<p><a href='{% url "edit_settings" %}#section0' class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">Ikhtiyar badlo</a></p>
 {% endif %}
 </div>
 {% endblock %}

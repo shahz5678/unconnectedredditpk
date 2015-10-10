@@ -7,13 +7,13 @@
 {% block content %}
 <!--<span class="margin" style="font-size:80%;color:grey;background:yellow;"><i>mhb11: Dosto, thori dair mien damadam 5 mins ke liye off ho gi. Mien ne kuch test karna hai</i></span>-->
 {% if is_paginated %}
-<ul start="{{ page_obj.start_index }}" class="zebra">
+<span start="{{ page_obj.start_index }}">
 {% else %}
-<ul class="zebra">
+<span>
 {% endif %}
 {% for link in object_list %}
 <!--<li class="zebra">-->
-<li>
+
 <form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
@@ -52,7 +52,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
 		</a>
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8; display:inline;text-shadow:0 0 0.1px #8080FF;">{{ link.submitter }}:</a>
+	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}:</a>
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
@@ -75,14 +75,14 @@
 		<img src="{{ STATIC_URL }}img/default-thumbnail.jpg"></img>
 	{% endif %}
 -->
-    <span style="color:black; font-size:125%; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+    <span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
 	{% if link.url %}
-		<b><span style="font-size:121%; font-weight:100; font-family:'Noto Nastaliq Urdu Draft', arial; line-height:1.8;text-shadow:0 0 0.1px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
+		<b><span style="font-size:121%; font-weight:100; font-family:arial; line-height:1.8;text-shadow:0 0 0px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
 	{% endif %}
 	<a name="section{{ forloop.counter }}"></a> 
 
 	<!--                                           -->
-	<span style="font-size:90%;font-family:'arial';"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
+	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
 	
 	<!--<table><tr><td>-->
 	<a class="countofvotes">
@@ -180,11 +180,11 @@
 	</p>
 	</form>
 
-</li>
+
 <p style="color:gray"><hr size=1></p>
 
 {% endfor %}
-</ul>
+</span>
 
 
 {% endblock %}
@@ -193,11 +193,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><b  style="color:red;text-shadow:0 0 0.1px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b  style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:'Noto Nastaliq Urdu Draft', arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0.1px green;">></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
     {% endif %}
 </div>
 {% endif %}

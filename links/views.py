@@ -8,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, clean_image_file
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, clean_image_file
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -19,7 +19,7 @@ from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-FEMALES = ['Rimiii']
+FEMALES = ['Rimiii',]
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -28,6 +28,10 @@ class ScoreHelpView(FormView):
 class HelpView(FormView):
 	form_class = HelpForm
 	template_name = "help.html"
+
+class RegisterHelpView(FormView):
+	form_class = RegisterHelpForm
+	template_name = "register_help.html"
 
 class LinkDetailView(DetailView):
 	model = Link
@@ -91,7 +95,7 @@ class UserProfileDetailView(DetailView):
 
 	def get_object(self, queryset=None):
 		user = super(UserProfileDetailView, self).get_object(queryset)
-		#UserProfile.objects.get_or_create(user=user)
+		UserProfile.objects.get_or_create(user=user)
 		return user
 
 	def get_context_data(self, **kwargs):

@@ -9,7 +9,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, clean_image_file
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, clean_image_file
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -27,6 +27,10 @@ class ScoreHelpView(FormView):
 class HelpView(FormView):
 	form_class = HelpForm
 	template_name = "help.html"
+
+class VerifyHelpView(FormView):
+	form_class = VerifyHelpForm
+	template_name = "verify_help.html"	
 
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm

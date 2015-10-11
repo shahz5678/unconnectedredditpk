@@ -68,8 +68,8 @@
 		    {% endif %}
 		    <!--ne likha,-->
     {% endif %}
-    {% for girl in verified %}
-    {% if girl == link.submitter.username %}
+    {% for person in checked %}
+    {% if person == link.submitter.username %}
     	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
     {% endif %}{% endfor %}:
 <!--

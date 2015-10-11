@@ -3,6 +3,7 @@ import re, urlmarker, StringIO
 #from request.models import Request
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
+from verified import FEMALES
 from .models import Link, Vote, UserProfile, UserSettings
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -18,8 +19,6 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
-
-FEMALES = ['Rimiii',]
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -83,6 +82,11 @@ class WhoseOnlineView(FormView):
 	template_name = "whose_online.html"
 	#paginate_by = 10 # date_based generic views don't support pagination, because by the time you go to the next page, the set would have changed
 	#queryset = Request.objects.active_users(minutes=5) #users online in the last 5 mins
+
+	def get_context_data(self, **kwargs):
+		context = super(WhoseOnlineView, self).get_context_data(**kwargs)
+		context["legit"] = FEMALES
+		return context
 
 class LinkDeleteView(DeleteView):
 	model = Link

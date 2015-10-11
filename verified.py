@@ -1,0 +1,1 @@
+FEMALES = ['rekha','gori',]

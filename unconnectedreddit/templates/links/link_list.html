@@ -5,12 +5,13 @@
 <!--{% load bootstrap_pagination %}-->
 {% load urlize_target_blank %}
 {% block content %}
-<!--<span class="margin" style="font-size:80%;color:grey;background:yellow;"><i>mhb11: Dosto, jis key nick ke aagey pink star nazar aye, woh fake female nahi hai! Hum fake accounts khatam karne ke liye verify kar rehay hain.</i></span>-->
+<span class="margin" style="font-size:80%;color:purple;"><i>Announcement: Abb females apna account <b><a href="{% url 'verify_help' %}#section0">verify</a></b> karwa sakti hain!</i></span><p>
 {% if is_paginated %}
 <span start="{{ page_obj.start_index }}">
 {% else %}
 <span>
 {% endif %}
+</p>
 {% for link in object_list %}
 <!--<li class="zebra">-->
 

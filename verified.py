@@ -1,1 +1,1 @@
-FEMALES = ['rekha','gori','Rimiii',]
+FEMALES = ['Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii',]

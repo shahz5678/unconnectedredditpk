@@ -45,8 +45,9 @@ CATEGS = (
 	)
 
 class LinkVoteCountManager(models.Manager): #this class is derived from model manager
-	def get_query_set(self): #all we're doing here is over-riding get_query_set. 
-		return super(LinkVoteCountManager, self).get_query_set().annotate(votes=Sum('vote__value')).order_by('-rank_score', '-votes')
+	pass
+	'''def get_query_set(self): #all we're doing here is over-riding get_query_set. 
+		return super(LinkVoteCountManager, self).get_query_set().annotate(votes=Sum('vote__value')).order_by('-rank_score', '-votes')'''
 			 #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):
@@ -70,7 +71,8 @@ class Link(models.Model):
 
 	def set_rank(self): # it seems this is run ONLY when validating models is called (pressing ctrl S after changin code)
 		# Based on reddit ranking algo at http://amix.dk/blog/post/19588
-		epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+		pass
+		'''epoch = datetime(1970, 1, 1).replace(tzinfo=None)
 		netvotes = self.votes # 'NONE' votes are messing up netvotes amount.
 		if netvotes == None:
 			netvotes = 0
@@ -81,7 +83,7 @@ class Link(models.Model):
 		epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
 		secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
 		self.rank_score = round(sign * order + secs / 45000, 8)
-		self.save() # this persists the rank_score in the database
+		self.save() # this persists the rank_score in the database'''
 		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 
 
 class Vote(models.Model):

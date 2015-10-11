@@ -53,7 +53,7 @@ class LinkDetailView(DetailView):
 
 class LinkListView(ListView):
 	model = Link
-	queryset = Link.with_votes.all() #by default, query_set was equal to: Link.objects.all(). We're overriding that to call "with_votes defined in models.py"
+	queryset = Link.objects.order_by('-submitted_on')[:200] #instead of Link.with_votes.all()
 	paginate_by = 10
 	
 	def get_context_data(self, **kwargs):
@@ -123,7 +123,7 @@ class UserActivityView(ListView):
 		#user = super(UserActivityView, self).get_queryset()
 		username = self.kwargs['slug']
 		user = User.objects.filter(username=username)
-		return Link.with_votes.filter(submitter=user)#self.request.user)
+		return Link.objects.filter(submitter=user).order_by('-submitted_on')# instead of Link.with_votes.filter
 
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)

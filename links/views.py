@@ -54,7 +54,7 @@ class LinkListView(ListView):
 	
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
-		context["verified"] = FEMALES
+		context["checked"] = FEMALES
 		if self.request.user.is_authenticated():
 			voted = Vote.objects.filter(voter=self.request.user) #all links the user voted on
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
@@ -104,7 +104,7 @@ class UserProfileDetailView(DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
-		context["verified"] = FEMALES
+		context["ratified"] = FEMALES
 		return context
 
 class UserActivityView(ListView):
@@ -123,13 +123,13 @@ class UserActivityView(ListView):
 
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
-		context["verified"] = FEMALES
 		if self.request.user.is_authenticated():
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
 			vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
 			context["vote_cluster"] = vote_cluster
 			voted = vote_cluster.filter(voter=self.request.user)
 			context["voted"] = voted.values_list('link_id', flat=True)
+			context["verified"] = FEMALES
 		return context
 
 class UserSettingDetailView(DetailView):

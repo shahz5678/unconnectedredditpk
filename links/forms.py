@@ -139,5 +139,9 @@ class HelpForm(forms.Form):
 
 class RegisterHelpForm(forms.Form):
 	class Meta:
+		pass	
+
+class VerifyHelpForm(forms.Form):
+	class Meta:
 		pass		
 #####################################################################################################

@@ -2,12 +2,8 @@
 {% block content %}
 {% load request_tag %}
 <div class="margin">
-{% if is_paginated %}
-<ul start="{{ page_obj.start_index }}">
-{% else %}
-<ul>
-{% endif %}
-<span style="font-size:85%;">Pichley <b>5 min</b> mien ye logg damamdam par nazar aye:</span><br>
+
+<span style="font-size:85%;">Pichley <b>5 min</b> mien ye logg damamdam par nazar aye:</span><br><br>
 {% active_users in 5 minutes as user_list %}
 {% for active_user in user_list %}
 <span style="font-size:80%;color:grey;">{{ forloop.counter }}.</span>
@@ -31,7 +27,7 @@
     <br>
 	{% endif %}
 {% endfor %}
-</ul>
+
 </div>
 {% endblock %}
 

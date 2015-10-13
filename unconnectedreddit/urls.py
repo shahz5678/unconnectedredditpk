@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.models import UserProfile, Vote
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UserActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView #MyRegistrationView
+from links.views import LinkListView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UserActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, ReportView #MyRegistrationView
 
 
 admin.autodiscover()
@@ -33,5 +33,8 @@ urlpatterns = patterns('',
 	url(r'^link/delete/(?P<pk>\d+)/$', auth(LinkDeleteView.as_view()), name='link_delete'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote/$', VoteFormView.as_view(), name="vote"),
+	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name="reply"),
+	url(r'^report/(?P<pk>\d+)/$', auth(ReportreplyView.as_view()), name="reportreply"),
+	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 
 )

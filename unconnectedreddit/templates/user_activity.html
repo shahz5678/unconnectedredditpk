@@ -41,11 +41,26 @@
 		</a>
 	{% endif %}
 	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>
+	{% if user.is_authenticated %}
+			{% if user.usersettings.score_setting == '1' %}
+				{% if link.submitter.userprofile.score %}
+					{% if link.submitter.userprofile.score < 0 %}
+				    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
+				    {% else %}
+				    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
+					{% endif %}
+			    {% else %}
+			    {% endif %}
+			{% else %}
+			{% endif %}
+	{% endif %}
 	{% for girl in verified %}
     {% if girl == link.submitter.username %}
-    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
+    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
     {% endif %}{% endfor %}
 	: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
+	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+<!--
 	<a class="countofvotes">
 		{% if not link.votes %}
 			<span style="color:green;font-size:90%;">0 jhappee</span>
@@ -69,7 +84,9 @@
 				{% endif %}
 			{% endif %}
 		{% endif %}	 
-	</a><br>
+	</a>
+-->
+	<br>
 	{% for vote in vote_cluster %}
 		{% if link.id == vote.link.id %}
 			{% if vote.value == -1 %}

@@ -88,7 +88,12 @@
 
 	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
-	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a><br>
+	{% if link.publicreply_set.count %}
+	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
+	{% else %}
+	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	{% endif %}
+	<br>
 	<!--<table><tr><td>-->
 <!--	
 	<a class="countofvotes">

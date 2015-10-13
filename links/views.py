@@ -4,12 +4,13 @@ import re, urlmarker, StringIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from verified import FEMALES
-from .models import Link, Vote, UserProfile, UserSettings
+from .models import Link, Vote, UserProfile, UserSettings, Publicreply
+from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, clean_image_file
+from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, clean_image_file
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -35,6 +36,16 @@ class VerifyHelpView(FormView):
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm
 	template_name = "register_help.html"
+
+class ReportreplyView(FormView):
+	form_class = ReportreplyForm
+	template_name = "report_reply.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ReportreplyView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["reply"] = self.kwargs["pk"]
+		return context
 
 class LinkDetailView(DetailView):
 	model = Link
@@ -65,14 +76,11 @@ class LinkListView(ListView):
 			voted = voted.filter(link_id__in=links_in_page)#only
 			voted = voted.values_list('link_id', flat=True)
 			context["voted"] = voted
-			####################
 			vote_cluster = Vote.objects.all() # all votes
 			vote_cluster = vote_cluster.filter(link_id__in=links_in_page) # votes in page
 			context["vote_cluster"] = vote_cluster
-			#votes_in_page = [vote.link for link in links_in_page] 
-			#votes_in_page = [vote.id for link.voted in context["object_list"]] #all vote objects in the page
-			#context["votes_in_page"] = votes_in_page
-			#all users who voted on a link
+			replies = Publicreply.objects.filter(answer_to_id__in=links_in_page)
+			context["replies"] = replies
 		return context
 
 class LinkUpdateView(UpdateView):
@@ -110,6 +118,36 @@ class UserProfileDetailView(DetailView):
 		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
 		context["ratified"] = FEMALES
 		return context
+
+class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
+	model = Publicreply
+	form_class = PublicreplyForm
+	template_name = "reply.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PublicreplyView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			link = Link.objects.get(id=self.kwargs["pk"])
+			context["parent"] = link
+			replies = Publicreply.objects.filter(answer_to=link).order_by('-submitted_on')[:50]
+			context["replies"] = replies
+			context["ensured"] = FEMALES
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+		description = self.request.POST.get("description")
+		if description == self.request.user.userprofile.previous_retort:
+			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+		else:
+			self.request.user.userprofile.previous_retort = description
+			self.request.user.userprofile.save()
+			answer_to = Link.objects.get(id=self.request.POST.get("object_id"))
+			Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1')
+			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+
+	def get_success_url(self): #which URL to go back once settings are saved?
+		return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
 
 class UserActivityView(ListView):
 	model = Link
@@ -249,6 +287,23 @@ class LinkCreateView(CreateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse("home")
 
+class ReportView(FormView):
+	form_class = ReportForm
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			report = self.request.POST.get("report")
+			if report == 'Haan ye ghair ikhlaaqi hai':
+				report = self.request.POST.get("reply")
+				reply = get_object_or_404(Publicreply, pk=report)
+				reply.abuse = True
+				reply.save()
+				return redirect("reply", pk=reply.answer_to.id)
+			else:
+				report = self.request.POST.get("reply")
+				reply = get_object_or_404(Publicreply, pk=report)
+				return redirect("reply", pk= reply.answer_to.id)
+
 class VoteFormView(FormView): #corresponding view for the form for Vote we created in forms.py
 	form_class = VoteForm
 
@@ -273,13 +328,13 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if btn == 'jhappee':
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
-				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
+				link.submitter.userprofile.score = link.submitter.userprofile.score + 8 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
 		#elif btn == u"\u2717":
 		elif btn == 'chupair':
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
-				link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtracting 10 points every time a user's content gets a downvote
+				link.submitter.userprofile.score = link.submitter.userprofile.score - 8 #subtracting 10 points every time a user's content gets a downvote
 				link.submitter.userprofile.save()
 		else:
 			val = 0
@@ -294,11 +349,11 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		else:
 			if prev_votes[0].value > 0:
 				if not link.submitter.username == 'unregistered_bhoot':
-					link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtract previously added score because of the upvote
+					link.submitter.userprofile.score = link.submitter.userprofile.score - 8 #subtract previously added score because of the upvote
 					link.submitter.userprofile.save()
 			else:
 				if not link.submitter.username == 'unregistered_bhoot':
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #add previously subtracted score because of the downvote
+					link.submitter.userprofile.score = link.submitter.userprofile.score + 8 #add previously subtracted score because of the downvote
 					link.submitter.userprofile.save()
 			# delete vote
 			prev_votes[0].delete() #if user has previously voted, simply delete previous vote

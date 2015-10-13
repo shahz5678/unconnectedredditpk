@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Kiya app iss jawab ko report karna chahtey ho?</h2>
+<form action="{% url 'report' %}" method="POST">
+{% csrf_token %}
+<input type="hidden" name="reply" class="hidden_id" value="{{ reply }}">
+<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan ye ghair ikhlaaqi hai"><br>
+<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi rehnay do khair hai"><br>
+</form>
+{% endblock %}

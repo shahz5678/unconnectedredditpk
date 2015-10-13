@@ -165,7 +165,7 @@ h5 {
 }
 
 textarea{
-    height:40px;
+    height:30px;
 }
 
 textarea, input{
@@ -381,7 +381,7 @@ a{
 }
 
 .margin{
-    margin-left:5px;
+    margin-left:3px;
     margin-right:10px;
     padding: 10px;
     border-radius:6px;

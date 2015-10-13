@@ -1,5 +1,5 @@
 from django import forms
-from .models import UserProfile, Link, Vote, UserSettings
+from .models import UserProfile, Link, Vote, UserSettings, Publicreply
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile
@@ -121,9 +121,25 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		exclude = ("submitter", "rank_score", "category")
 		fields = ("image_file", "description",)
 
+
+class PublicreplyForm(forms.ModelForm):
+	#description = forms.CharField("Kuch likho:")
+	class Meta:
+		model = Publicreply
+		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
+		fields = ("description",)
+	
 class VoteForm(forms.ModelForm): #creates a form for Vote
 	class Meta:
 		model = Vote
+
+class ReportreplyForm(forms.Form):
+	class Meta:
+		pass
+
+class ReportForm(forms.Form):
+	class Meta:
+		model = Publicreply
 
 class ScoreHelpForm(forms.Form):
 	class Meta:

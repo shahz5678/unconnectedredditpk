@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+<a href="{% url 'profile' slug=parent.submitter %}">{{ parent.submitter }}</a>
+{% if user.is_authenticated %}
+            {% if parent.submitter.usersettings.score_setting == '1' %}
+                {% if parent.submitter.userprofile.score %}
+                    {% if parent.submitter.userprofile.score < 0 %}
+                        <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
+                    {% else %}
+                        <span style="color:#18A018;">({{ parent.submitter.userprofile.score }})</span>
+                    {% endif %}
+                {% else %}
+                {% endif %}
+            {% else %}
+            {% endif %}
+    {% endif %}
+{% for person in ensured %}
+    {% if person == parent.submitter.username %}
+        <img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
+    {% endif %}
+{% endfor %}
+:&nbsp;{{ parent.description }}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
+<a name="sectionJ"></a> 
+<form action="{% url 'reply' pk=parent.pk %}" method="POST">
+	{% csrf_token %}
+	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
+    Jawab:{{ form.description }}
+    <br>
+<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+</form>
+
+<p style="color:gray"><hr size=1></p>
+<b>{{ replies|length }} Jawab:</b><br>
+<table>
+{% for reply in replies %}
+<tr><td>
+<span class="numbers" style="font-size:70%;"><b>{% if not page_obj.number|add:"-1" %}
+    	{{ forloop.counter }}.
+    {% else %}
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
+    {% endif %}</b></span>
+    {% if reply.abuse %}
+    <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a> ne ghalat baat ki, isko report kar diya gaya</span>
+    {% else %}
+	<a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>
+    <span style="font-size:80%;">
+    {% if user.is_authenticated %}
+            {% if reply.submitted_by.usersettings.score_setting == '1' %}
+                {% if reply.submitted_by.userprofile.score %}
+                    {% if reply.submitted_by.userprofile.score < 0 %}
+                        <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
+                    {% else %}
+                        <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
+                    {% endif %}
+                {% else %}
+                {% endif %}
+            {% else %}
+            {% endif %}
+    {% endif %}
+    </span>
+    	{% for person in ensured %}
+        {% if person == reply.submitted_by.username %}
+        	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="13" width="13"></img>
+        {% endif %}
+        {% endfor %}:&nbsp;{{ reply.description }}
+    <span style="color:grey;font-size:80%">,{{ reply.submitted_on|naturaltime }}</span>
+    {% if user == parent.submitter %}
+    <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
+    {% endif %}
+    {% endif %}
+	<br>
+    </td></tr>
+{% endfor %}
+</table>
+</div>
+{% endblock %}

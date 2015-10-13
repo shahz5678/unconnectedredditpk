@@ -5,7 +5,7 @@
 <h2>Nickname aur password wohi honay chahiye jin se pehlay register kiya tha!</h2>
 
 {% if form.errors %}
-<p>Bhool gaye ho toh doobara <a href="{% url 'registration_register' %}#section0">register</a> karo.</p>
+<p>Bhool gaye ho toh doobara <a href="{% url 'registration_register' %}#section0">register</a> kar lo, kuch naho hota.</p>
 {% endif %}
 
 <form method="post" action="{% url 'django.contrib.auth.views.login' %}">

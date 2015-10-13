@@ -31,7 +31,6 @@ def upload_avatar_to_location(instance, filename):
 		print '%s (%s)' % (e.message, type(e))
 		return 0
 
-
 CATEGS = (
 ('1','Gupshup'),
 ('2','Songs'),
@@ -43,6 +42,25 @@ CATEGS = (
 ('8','Dosti'),
 ('9', 'Khareedna Baichna')
 	)
+
+STATUS = (
+('1','Strangers'),
+('2','Friends'),
+('3','Blocked')
+	)
+
+'''
+class Privatemsg(models.Model):
+	to_user = models.ForeignKey(User)
+	link = models.ForeignKey(Link)
+	seen = models.BooleanField(default=False)
+
+class Relationship(models.Model):
+	status = models.CharField("Status", choices=STATUS, default=1, max_length=25)
+	userone = models.ForeignKey(User, related_name='relationship_userone')
+	usertwo = models.ForeignKey(User, related_name='relationship_usertwo')
+	initiator = models.ForeignKey(User) #in case follow relationship has to be built
+'''
 
 class LinkVoteCountManager(models.Manager): #this class is derived from model manager
 	pass
@@ -108,6 +126,18 @@ class UserProfile(models.Model):
 
 	def __unicode__(self):
 		return "%s's profile" % self.user
+
+class Publicreply(models.Model):
+	submitted_by = models.ForeignKey(User)
+	answer_to = models.ForeignKey(Link)
+	submitted_on = models.DateTimeField(auto_now_add=True)
+	description = models.TextField("Jawab:", validators=[MaxLengthValidator(250)])
+	category = models.CharField("Category", choices=CATEGS, default=1, max_length=20)
+	seen = models.BooleanField(default=False)
+	abuse = models.BooleanField(default=False)
+
+	def __unicode__(self):
+		return "%s replied %s to %s" % (self.submitted_by, self.description, self.answer_to)
 
 def create_profile(sender, instance, created, **kwargs):
 	if created:

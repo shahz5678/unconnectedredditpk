@@ -54,6 +54,7 @@
 		</a>
 	{% endif %}
 	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
+	<span style="font-size:85%;">
 		{% if user.is_authenticated %}
 			{% if user.usersettings.score_setting == '1' %}
 				{% if link.submitter.userprofile.score %}
@@ -68,11 +69,13 @@
 			{% endif %}
 		    {% endif %}
 		    <!--ne likha,-->
+	</span>
     {% endif %}
+    {% if user.is_authenticated %}
     {% for person in checked %}
     {% if person == link.submitter.username %}
-    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
-    {% endif %}{% endfor %}:
+    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
+    {% endif %}{% endfor %}{% endif %}:
 <!--
     {% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img>
@@ -81,15 +84,13 @@
 	{% endif %}
 -->
     <span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
-	{% if link.url %}
-		<b><span style="font-size:121%; font-weight:100; font-family:arial; line-height:1.8;text-shadow:0 0 0px #8080FF;"><a href="{{ link.url }}" target="_blank">{{ link.url|urlize_target_blank:25 }}</a></span></b>
-	{% endif %}
 	<a name="section{{ forloop.counter }}"></a> 
 
 	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
-	
+	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">jawab</a><br>
 	<!--<table><tr><td>-->
+<!--	
 	<a class="countofvotes">
 		{% if not link.votes %}
 			<span style="color:green;font-size:90%;">0 jhappee</span>
@@ -114,14 +115,17 @@
 			{% endif %}
 		{% endif %}	 
 	</a>
+-->
 	<!--
 	</td>
 	<td>
 	-->
 	<p style="margin-top:.5em;">
 	{% if not user.is_authenticated %}
+	<!--
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee</button><br>
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair</button>
+	-->
 	<!--
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
 		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
@@ -138,7 +142,9 @@
 	-->
 	{% endif %}</p>
 	<!--</td></tr></table>-->
+	{% if user.is_authenticated %}
 	<p style="margin-top:.5em;">
+	{% endif %}
 	<!--
 	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
 	-->
@@ -149,9 +155,15 @@
 		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:white;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">
 		{{ comment_count }} jawab</a>
 		
-	{% else %}
-		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:white;text-shadow:0 0 0.1px #8099E6; cursor: pointer; white-space:nowrap;">{{ link.submitter.username|truncatechars:10 }} ko jawab do</a>
-	{% endif %}
+	{% else %}-->
+<!--
+		{% for reply in replies reversed %}
+		{% if reply.answer_to == link %}
+			<b>{{ reply.submitted_by }}:</b>{{ reply.description }}<br>
+		{% endif %}
+		{% endfor %}
+-->
+	<!--{% endif %}
 	</span></p>
 	<p style="margin-top:.5em;">
 -->
@@ -161,7 +173,7 @@
 	{% else %}
 		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
 	{% endif %}
--->
+-->	{% if user.is_authenticated %}
 		{% if link.votes != 'None' %}
 			{% for vote in vote_cluster %}
 				{% if link.id == vote.link.id %}
@@ -182,6 +194,7 @@
 				{% endif %}
 			{% endfor %}
 		{% endif %}
+	{% endif %}
 	</p>
 	</form>
 
@@ -206,7 +219,7 @@
     {% endif %}
 </div>
 {% endif %}
- <!--{% bootstrap_paginate page_obj range=10 show_prev_next="false" show_first_last="true" %}-->
+ 
 {% endblock %}
 
 

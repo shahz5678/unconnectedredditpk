@@ -64,8 +64,8 @@ class LinkDetailView(DetailView):
 
 class LinkListView(ListView):
 	model = Link
-	queryset = Link.objects.order_by('-submitted_on')[:200] #instead of Link.with_votes.all()
-	paginate_by = 10
+	queryset = Link.objects.order_by('-submitted_on')[:180] #instead of Link.with_votes.all()
+	paginate_by = 15
 	
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
@@ -79,7 +79,7 @@ class LinkListView(ListView):
 			vote_cluster = Vote.objects.all() # all votes
 			vote_cluster = vote_cluster.filter(link_id__in=links_in_page) # votes in page
 			context["vote_cluster"] = vote_cluster
-			replies = Publicreply.objects.filter(answer_to_id__in=links_in_page)
+			replies = Publicreply.objects.filter(answer_to_id__in=links_in_page) #all replies in a page
 			context["replies"] = replies
 		return context
 
@@ -154,7 +154,7 @@ class UserActivityView(ListView):
 	slug_field = "username"
 	template_name = "user_activity.html"
 	#queryset = Link.with_votes.filter(submitter=request.user)
-	paginate_by = 10
+	paginate_by = 15
 	#user = request.user.get_profile()
 
 	def get_queryset(self):

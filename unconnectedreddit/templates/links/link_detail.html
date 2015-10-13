@@ -31,7 +31,7 @@
 {% if object.submitter == user %}
   <a style="font-size:10px" href="{% url 'link_update' pk=object.pk %}#section0">Edit <b style="color:black">|</b></a> 
   <a style="font-size:10px" href="{% url 'link_delete' pk=object.pk %}#section0"> Delete</a>
-  <br><span style="color:gray;font-size:80%"><i>jitni jhappiyan milay gi, apki post utni mashoor ho gi!</i></span>
+  <br>
 {% endif %}
 
 <div class="desc"><p>
@@ -87,8 +87,8 @@
 {% if not user.is_authenticated %}
   {% if token in request.get_full_path  %}
     <span style="white-space:nowrap;">
-    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="jhappee maro">
-    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair maro">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="jhappee">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair">
     </span>
   {%else %}
   <!--
@@ -102,8 +102,8 @@
   
 {% elif link.pk not in voted %}
   <span = style="white-space:nowrap;">
-    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="shabaash do">
-    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair maro">
+    <input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:80%;" value="jhappi">
+    <input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:80%;margin-right:0.3em;" value="chupair">
     </span>
 {% else %}
   <!--
@@ -124,32 +124,23 @@
     {% endif %}
   {% endif %}
 </form>
-  <!-- -->
+  <!-- 
 </p>
 <div class="comments">
 <p style="color:gray"><hr size=1></p>
-{% get_comment_count for link as comment_count %}
 <a name="sectionJ"></a> 
-  <h3>{{ comment_count }} Jawab:</h3>
+  <h3>Jawab:</h3>
 
   <div class="comment_form">
 {% if user.is_authenticated %}
-  {% get_comment_form for object as form %}
-  <form action="{% comment_form_target %}" method="POST">
+  <form action="{% url 'reply' %}" method="POST">
     {% csrf_token %}
-    {{ form.comment }}
+    {{ form.description }}
     {{ form.honeypot }}
-    {{ form.content_type }}
-    {{ form.object_pk }}
-    {{ form.timestamp }}
-    {{ form.security_hash }}
-    <input type="hidden" name="name" value="{{ user }}">
-    <input type="hidden" name="email" value="{{ user.email|default:'d@ummy.com' }}">
-    <input type="hidden" name="url" value="">
-    <input type="hidden" name="next" 
-     value="{% url 'link_detail' pk=object.id %}#sectionJ2">
+    <input type="hidden" name="object_id" value="{{ parent.id }}">
+    
    <a name="sectionJ2"></a> 
-   <h3> <input class="button"  style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add jawab" id="id_submit"></h3>
+   <h3> <input class="button" style="width:115px;background-color:#F6F6F6;text-align:center" type="submit" value="Add jawab" id="id_submit"></h3>
   </form>
 {% else %}
   <p><i>Jawab denay ke liye <a href="{% url 'registration_register' %}#section0">register</a> karo.</i></p>
@@ -171,5 +162,5 @@
   {% endfor %}
 
 </div>
-</div>
+</div>-->
 {% endblock %}

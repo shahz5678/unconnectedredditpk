@@ -22,7 +22,8 @@
     <a href="{% url 'user_activity' slug=active_user.username %}#section0">{{ active_user.username }}</a>
     {% for person in legit %}
     {% if person == active_user.username %}
-        <img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>
+        <!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="18" width="18"></img>-->
+        <span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
     <br>
 	{% endif %}

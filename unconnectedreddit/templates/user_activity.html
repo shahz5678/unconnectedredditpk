@@ -13,7 +13,7 @@
 {% if not object_list %}
 <i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kiss cheez ka hai?!</i>
 {% else %}
-<h2>history:</h2>
+<b>history:</b><br>
 {% for link in object_list %}
 	{% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img><br>
@@ -56,7 +56,8 @@
 	{% endif %}
 	{% for girl in verified %}
     {% if girl == link.submitter.username %}
-    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
+    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
 	: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
 	{% if link.publicreply_set.count %}
@@ -91,7 +92,7 @@
 	</a>
 -->
 	<br>
-	{% for vote in vote_cluster %}
+	{% for vote in vote_cluster reversed %}
 		{% if link.id == vote.link.id %}
 			{% if vote.value == -1 %}
 			{% if vote.voter == link.submitter %}

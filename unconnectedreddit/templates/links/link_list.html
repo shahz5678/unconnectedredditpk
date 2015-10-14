@@ -14,13 +14,6 @@
 </p>
 {% for link in object_list %}
 <!--<li class="zebra">-->
-
-<form  method="POST" action="{% url 'vote' %}" class="vote_form">
-	{% csrf_token %}
-	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
-	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
-	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
-	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	<!--{{ link.rank_score|floatformat:10 }}-->
     
     <span class="numbers">
@@ -74,7 +67,8 @@
     {% if user.is_authenticated %}
     {% for person in checked %}
     {% if person == link.submitter.username %}
-    	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
+    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}{% endif %}:
 <!--
     {% if link.image_file %}
@@ -88,11 +82,20 @@
 
 	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
+	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
+	{% csrf_token %}
 	{% if link.publicreply_set.count %}
+	<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
+<!--
 	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
+-->
 	{% else %}
+	<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="isko jawab do">
+<!--
 	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+-->
 	{% endif %}
+	</form>
 	<br>
 	<!--<table><tr><td>-->
 <!--	
@@ -126,6 +129,12 @@
 	<td>
 	-->
 	<p style="margin-top:.5em;">
+	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+	{% csrf_token %}
+	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
+	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	{% if not user.is_authenticated %}
 	<!--
 	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee</button><br>
@@ -180,7 +189,7 @@
 	{% endif %}
 -->	{% if user.is_authenticated %}
 		{% if link.votes != 'None' %}
-			{% for vote in vote_cluster %}
+			{% for vote in vote_cluster reversed %}
 				{% if link.id == vote.link.id %}
 					{% if vote.value == -1 %}
 						{% if vote.voter == link.submitter %}

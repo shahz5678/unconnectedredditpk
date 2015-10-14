@@ -68,8 +68,8 @@
             {% else %}
                 <span style="color:red;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
             {% endif %}
-        {% else %}
-            <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
+    {% else %}
+        <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
     {% endif %} 
     <span style="color:white;">|</span><a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
 {% else %}

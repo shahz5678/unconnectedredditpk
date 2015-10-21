@@ -369,10 +369,9 @@ class UnseenActivityView(ListView):
 						eachlink[index].append(latest_reply.submitted_on)#timestamp
 						eachlink[index].append(link) #unseen
 				else:# i.e. there is no reply, so this is 'seen' too
-					pass
-					#eachlink[index].append(link)#seen
-					#eachlink[index].append(None)#timestamp
-					#eachlink[index].append(None)#unseen
+					eachlink[index].append(link)#seen
+					eachlink[index].append(None)#timestamp
+					eachlink[index].append(None)#unseen
 			eachlink.default_factory=None
 			context["eachlink"] = dict(eachlink)
 			context["verify"] = FEMALES

@@ -31,7 +31,7 @@ def GetLinksWithUserReplies(user):
 	links_with_user_replies=[]
 	#print "links with user's replies (initially): %s" % links_with_user_replies
 	if Publicreply.objects.filter(submitted_by=user).exists(): #check if the user has ever given a reply
-		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on')[:75] #up to last 75 replies given by user
+		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on')#[:75] #up to last 75 replies given by user
 		#print "replies given by user are: %s" % reply_list
 		if reply_list:
 			links_with_user_replies = list(set([reply.answer_to for reply in reply_list])) #a list of unique link.ids user has replied under (own or others)
@@ -42,7 +42,7 @@ def GetLinksByUser(user):
 	links_user_created_qset = []
 	#print "links user created (initially): %s" % links_user_created_qset
 	if Link.objects.filter(submitter=user).exists():# if user has ever submitted a link
-		links_user_created_qset = list(set(Link.objects.filter(submitter=user).order_by('-submitted_on')[:75])) #up to last 75 links created by user
+		links_user_created_qset = list(set(Link.objects.filter(submitter=user).order_by('-submitted_on'))) #up to last 75 links created by user
 		#print "links user created (post processing): %s" % links_user_created_qset
 	return links_user_created_qset #works correctly
 

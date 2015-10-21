@@ -143,6 +143,22 @@ def create_profile(sender, instance, created, **kwargs):
 	if created:
 		profile, created = UserProfile.objects.get_or_create(user=instance)
 
+class Seen(models.Model):
+	seen_status = models.BooleanField(default=False)
+	seen_user = models.ForeignKey(User)
+	seen_at = models.DateTimeField(auto_now_add=True)
+	which_reply = models.ForeignKey(Publicreply, null=True, blank=True, related_name="publicreply_seen_related")
+
+def __unicode__(self):
+		return "new replies to '%s' were seen by '%s' on '%s'" % (self.which_link, self.seen_by, self.seen_at)
+
+class Unseennotification(models.Model):
+	recipient = models.OneToOneField(User)
+	timestamp = models.DateTimeField()
+
+def __unicode__(self):
+		return "'%s' recieved a replynotification" % self.recipient
+
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)
 	score_setting = models.CharField("Sab ka score dikhao", max_length=20, default=0)

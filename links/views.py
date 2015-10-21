@@ -324,27 +324,31 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 
 class UnseenActivityView(ListView):
 	model = Link
-	form_class = UnseenActivityForm
+	#form_class = UnseenActivityForm
 	slug_field = "username"
 	template_name = "user_unseen_activity.html"
 	paginate_by = 10
 
 	def get_queryset(self):
-		#queryset to return all relevant links (own and others), bonus: sorted by UNseen links
+		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
 		username = self.kwargs['slug']
 		user = User.objects.get(username=username)
-		reply_list = list(Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on')[:75]) #last 100 replies given by user
-		#print "reply_list is %s" % reply_list
-		links_with_user_replies = list(set([reply.answer_to.id for reply in reply_list])) #a list of unique link.ids user has replied to (own or others)
-		links_with_user_replies_qset = Link.objects.filter(id__in=links_with_user_replies)
-		links_user_created_list = list(Link.objects.filter(submitter=user).order_by('-submitted_on')[:75]) #last 100 links created by user
-		#print "links_user_created_list is %s" % links_user_created_list
-		links_user_created = list(set([link.id for link in links_user_created_list]))
-		user_links_qset = Link.objects.filter(id__in=links_user_created)
-		all_relevant_links_qset = (user_links_qset|links_with_user_replies_qset).distinct()
-		all_relevant_links_qset = all_relevant_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
-		#above gives None values to links without replies, and orders by latest reply, whether new or not
-		return all_relevant_links_qset
+		links_user_created = GetLinksByUser(user) #returns a list
+		links_with_user_replies = GetLinksWithUserReplies(user) #returns a list
+		if links_with_user_replies and links_user_created:
+			all_links = list(set(chain(links_with_user_replies,links_user_created)))
+			#print "all replies are: %s" % all_links			
+		elif links_with_user_replies:
+			all_links = chain.from_iterable(links_with_user_replies)
+		elif links_user_created:
+			all_links = chain.from_iterable(links_user_created)
+		else:
+			all_links = []
+		if all_links:
+			all_link_ids = [link.id for link in all_links]
+			all_links_qset = Link.objects.filter(id__in=all_link_ids)
+			all_links_qset = all_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
+		return all_links_qset
 
 	def get_context_data(self, **kwargs):
 		#context data to to tell which links have unseen data

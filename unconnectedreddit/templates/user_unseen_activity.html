@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% block content %}
+<div class="margin">
+{% if not object_list %}
+<i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kiss cheez ka hai?!</i>
+{% else %}
+<span style="color:green;font-size:80%;">Jis jis chat ya jawab mien taang arai, woh yahan hain yar:</span><p></p>
+{% for key, value in eachlink.items %} 
+{% if value.0.image_file %}
+    	<img src="{{ value.0.image_file.url }}"></img><br>
+	{% endif %}
+	<span class="numbers">
+    <b>
+    {% if not page_obj.number|add:"-1" %}
+    	{{ forloop.counter }}.
+    {% else %}
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
+    {% endif %}
+    </b>
+    </span>
+{% if value.1 %} <!-- if seen post -->
+	{% if value.0 %} 
+	{% if value.0.submitter.userprofile.avatar %}
+		<a href="{% url 'profile' slug=value.0.submitter %}#section0">
+		<img src="{{ value.0.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=value.0.submitter %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% endif %}
+	<a href="{% url 'profile' slug=value.0.submitter %}#section0">{{ value.0.submitter }}</a>
+	{% if user.is_authenticated %}
+			{% if user.usersettings.score_setting == '1' %}
+				{% if value.0.submitter.userprofile.score %}
+					{% if value.0.submitter.userprofile.score < 0 %}
+				    	<span style="color:red;">({{ value.0.submitter.userprofile.score }})</span>
+				    {% else %}
+				    	<span style="color:#18A018;">({{ value.0.submitter.userprofile.score }})</span>
+					{% endif %}
+			    {% else %}
+			    {% endif %}
+			{% else %}
+			{% endif %}
+	{% endif %}
+	{% for girl in verify %}
+    {% if girl == value.0.submitter.username %}
+    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
+    {% endif %}{% endfor %}
+	: {{ value.0.description }}
+	<span style="color:gray;font-size:75%;">, jawab aya {{ value.1|naturaltime }}</span>
+	<a name="section{{ forloop.counter }}"></a>
+	<p style="margin-top:.5em;"></p>
+	{% if value.0.publicreply_set.count %}
+	{% if value.0.publicreply_set.count < 26 %}
+		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.publicreply_set.count }} jawab</a>
+		{% else %}
+		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		{% endif %}
+	{% else %}
+	<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	{% endif %}
+	<br>
+	{% else %}
+	<!-- unseen post -->
+	{% if value.2.submitter.userprofile.avatar %}
+		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
+		<img src="{{ value.2.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% endif %}
+	<a href="{% url 'profile' slug=value.2.submitter %}#section0">{{ value.2.submitter }}</a>
+	{% if user.is_authenticated %}
+			{% if user.usersettings.score_setting == '1' %}
+				{% if value.2.submitter.userprofile.score %}
+					{% if value.2.submitter.userprofile.score < 0 %}
+				    	<span style="color:red;">({{ value.2.submitter.userprofile.score }})</span>
+				    {% else %}
+				    	<span style="color:#18A018;">({{ value.2.submitter.userprofile.score }})</span>
+					{% endif %}
+			    {% else %}
+			    {% endif %}
+			{% else %}
+			{% endif %}
+	{% endif %}
+	{% for girl in verify %}
+    {% if girl == value.2.submitter.username %}
+    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
+    {% endif %}{% endfor %}
+	: {{ value.2.description }}
+	<a href="{% url 'reply' pk=value.2.pk %}" style="color:blue;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
+	<a name="section{{ forloop.counter }}"></a>
+	<p style="margin-top:.5em;"></p>
+	{% if value.2.publicreply_set.count %}
+	{% if value.2.publicreply_set.count < 26 %}
+		<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.publicreply_set.count }} jawab</a>
+		{% else %}
+		<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		{% endif %}
+	{% else %}
+	<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	{% endif %}
+	<br>
+{% endif %}
+{% else %}
+	{% if value.0.submitter.userprofile.avatar %}
+		<a href="{% url 'profile' slug=value.0.submitter %}#section0">
+		<img src="{{ value.0.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=value.0.submitter %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% endif %}
+<a href="{% url 'profile' slug=value.0.submitter %}#section0">{{ value.0.submitter }}</a>
+{% if user.is_authenticated %}
+			{% if user.usersettings.score_setting == '1' %}
+				{% if value.0.submitter.userprofile.score %}
+					{% if value.0.submitter.userprofile.score < 0 %}
+				    	<span style="color:red;">({{ value.0.submitter.userprofile.score }})</span>
+				    {% else %}
+				    	<span style="color:#18A018;">({{ value.0.submitter.userprofile.score }})</span>
+					{% endif %}
+			    {% else %}
+			    {% endif %}
+			{% else %}
+			{% endif %}
+	{% endif %}
+	{% for girl in verify %}
+    {% if girl == value.0.submitter.username %}
+    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
+    {% endif %}{% endfor %}
+: {{ value.0.description }}
+<span style="color:gray;font-size:75%;">, koi jawab nahi aya</span>
+<a name="section{{ forloop.counter }}"></a>
+	<p style="margin-top:.5em;"></p>
+	{% if value.0.publicreply_set.count %}
+	{% if value.0.publicreply_set.count < 26 %}
+		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.publicreply_set.count }} jawab</a>
+		{% else %}
+		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		{% endif %}
+	{% else %}
+	<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	{% endif %}
+	<br>
+{% endif %}
+<p style="color:gray"><hr size=1></p>
+{% endfor %}
+{% endif %}
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -4,7 +4,7 @@
 <div class="margin">
 <a href="{% url 'profile' slug=parent.submitter %}">{{ parent.submitter }}</a>
 {% if user.is_authenticated %}
-            {% if parent.submitter.usersettings.score_setting == '1' %}
+            {% if user.usersettings.score_setting == '1' %}
                 {% if parent.submitter.userprofile.score %}
                     {% if parent.submitter.userprofile.score < 0 %}
                         <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
@@ -18,7 +18,8 @@
     {% endif %}
 {% for person in ensured %}
     {% if person == parent.submitter.username %}
-        <img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>
+        <!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+        <span style="font-size:140%;color:deeppink;"><b>*</b></span>
     {% endif %}
 {% endfor %}
 :&nbsp;{{ parent.description }}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
@@ -32,11 +33,19 @@
 </form>
 
 <p style="color:gray"><hr size=1></p>
-<b>{{ replies|length }} Jawab:</b><br>
+<a href="/" style="font-size:65%;"><b>home</b></a>&nbsp;<span style="font-size:70%;">|</span>
+<a href="{% url 'unseen_activity' slug=user.username %}#section0" style="font-size:65%;"><b>dusray jawab</b></a>&nbsp;<span style="font-size:70%;">|</span>
+<a href="{{ request.path }}" style="font-size:65%;"><b>taaza karo</b></a>
+<p style="margin-top:.3em;"></p>
+{% if replies|length < 25 %}
+    <b>{{ replies|length }} Jawab:</b><br>
+{% else %}
+    <b>Pichley 25 Jawab:</b><br>
+{% endif %}
 <table>
 {% for reply in replies %}
 <tr><td>
-<span class="numbers" style="font-size:70%;"><b>{% if not page_obj.number|add:"-1" %}
+<span class="numbers" style="font-size:50%;">{% if not page_obj.number|add:"-1" %}
     	{{ forloop.counter }}.
     {% else %}
     	{% if forloop.counter == 10 %}
@@ -44,30 +53,60 @@
     	{% else %}	
     		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
     	{% endif %}
-    {% endif %}</b></span>
-    {% if reply.abuse %}
-    <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a> ne ghalat baat ki, isko report kar diya gaya</span>
+    {% endif %}</span>
+    {% if reply.submitted_by.userprofile.avatar %}
+        <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
+        <img src="{{ reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+        </a>
     {% else %}
-	<a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>
-    <span style="font-size:80%;">
-    {% if user.is_authenticated %}
-            {% if reply.submitted_by.usersettings.score_setting == '1' %}
-                {% if reply.submitted_by.userprofile.score %}
-                    {% if reply.submitted_by.userprofile.score < 0 %}
-                        <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
-                    {% else %}
-                        <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
-                    {% endif %}
-                {% else %}
-                {% endif %}
-            {% else %}
-            {% endif %}
+        <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
+        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+        </a>
     {% endif %}
-    </span>
-    	{% for person in ensured %}
-        {% if person == reply.submitted_by.username %}
-        	<img src="{{ STATIC_URL }}img/female.png" alt="*" height="13" width="13"></img>
+    {% if reply.abuse %}
+        {% if reply not in seenreplies %}
+            <b style="color:orange;font-size:80%"><i>(new)</i></b>
         {% endif %}
+        <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a></span>
+         {% if user.is_authenticated %}
+                    {% if user.usersettings.score_setting == '1' %}
+                        {% if reply.submitted_by.userprofile.score %}
+                            {% if reply.submitted_by.userprofile.score < 0 %}
+                                <span style="color:red;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                            {% else %}
+                                <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                    {% else %}
+                    {% endif %}
+            {% endif %}
+         <span style="color:grey;font-size:90%;">ne ghalat baat ki, isko report kar diya gaya</span>
+    {% else %}
+    {% if reply not in seenreplies %}
+            <b style="color:orange;font-size:80%"><i>(new)</i></b>
+        {% endif %}
+	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>
+        <span style="font-size:80%;">
+            {% if user.is_authenticated %}
+                    {% if user.usersettings.score_setting == '1' %}
+                        {% if reply.submitted_by.userprofile.score %}
+                            {% if reply.submitted_by.userprofile.score < 0 %}
+                                <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
+                            {% else %}
+                                <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                    {% else %}
+                    {% endif %}
+            {% endif %}
+        </span>
+    	{% for person in ensured %}
+            {% if person == reply.submitted_by.username %}
+            	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="13" width="13"></img>-->
+                <span style="font-size:140%;color:deeppink;"><b>*</b></span>
+            {% endif %}
         {% endfor %}:&nbsp;{{ reply.description }}
     <span style="color:grey;font-size:80%">,{{ reply.submitted_on|naturaltime }}</span>
     {% if user == parent.submitter %}

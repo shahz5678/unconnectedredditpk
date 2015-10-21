@@ -351,7 +351,7 @@ class UnseenActivityView(ListView):
 		return all_links_qset
 
 	def get_context_data(self, **kwargs):
-		#context data to to tell which links have unseen data
+		#context data to tell which links have unseen data
 		context = super(UnseenActivityView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			user = User.objects.filter(username=self.kwargs['slug'])
@@ -369,9 +369,10 @@ class UnseenActivityView(ListView):
 						eachlink[index].append(latest_reply.submitted_on)#timestamp
 						eachlink[index].append(link) #unseen
 				else:# i.e. there is no reply, so this is 'seen' too
-					eachlink[index].append(link)#seen
-					eachlink[index].append(None)#timestamp
-					eachlink[index].append(None)#unseen
+					pass
+					#eachlink[index].append(link)#seen
+					#eachlink[index].append(None)#timestamp
+					#eachlink[index].append(None)#unseen
 			eachlink.default_factory=None
 			context["eachlink"] = dict(eachlink)
 			context["verify"] = FEMALES

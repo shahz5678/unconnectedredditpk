@@ -345,6 +345,9 @@ class UnseenActivityView(ListView):
 		else:
 			all_links = []
 		if all_links:
+			for link in all_links[:]:#remove this for loop statement when wanting to revert to 10/22/2015 views.py state
+				if not link.publicreply_set.exists():
+					all_links.remove(link)
 			all_link_ids = [link.id for link in all_links]
 			all_links_qset = Link.objects.filter(id__in=all_link_ids)
 			all_links_qset = all_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
@@ -356,7 +359,7 @@ class UnseenActivityView(ListView):
 		if self.request.user.is_authenticated():
 			user = User.objects.filter(username=self.kwargs['slug'])
 			eachlink = defaultdict(list)
-			for index, link in enumerate(context["object_list"]):
+			'''for index, link in enumerate(context["object_list"]):
 				if link.publicreply_set.exists(): #i.e. for only links that have replies, check if latest reply has seen object
 					latest_reply = link.publicreply_set.latest('submitted_on')
 					if latest_reply in link.publicreply_set.filter(publicreply_seen_related__seen_user = user \
@@ -371,8 +374,28 @@ class UnseenActivityView(ListView):
 				else:# i.e. there is no reply, so this is 'seen' too
 					eachlink[index].append(link)#seen
 					eachlink[index].append(None)#timestamp
-					eachlink[index].append(None)#unseen
+					eachlink[index].append(None)'''#unseen
+			index = 0
+			for link in context["object_list"]:
+				if link.publicreply_set.exists(): #i.e. for only links that have replies, check if latest reply has seen object
+					latest_reply = link.publicreply_set.latest('submitted_on')
+					if latest_reply in link.publicreply_set.filter(publicreply_seen_related__seen_user = user \
+						,publicreply_seen_related__which_reply = latest_reply):
+						eachlink[index].append(link) #seen
+						eachlink[index].append(latest_reply.submitted_on)#timestamp
+						eachlink[index].append(None)#unseen
+						index += 1
+						#print index
+					else:
+						eachlink[index].append(None)#seen
+						eachlink[index].append(latest_reply.submitted_on)#timestamp
+						eachlink[index].append(link) #unseen
+						index += 1
+						#print index
+				else:# i.e. there is no reply, so this is 'seen' too
+					pass
 			eachlink.default_factory=None
+			#print eachlink
 			context["eachlink"] = dict(eachlink)
 			context["verify"] = FEMALES
 			if Unseennotification.objects.filter(recipient=self.request.user).exists():

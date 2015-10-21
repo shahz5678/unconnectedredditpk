@@ -5,7 +5,12 @@
 <!--{% load bootstrap_pagination %}-->
 {% load urlize_target_blank %}
 {% block content %}
-<span class="margin" style="font-size:80%;color:purple;"><i>Announcement: Abb females apna account <b><a href="{% url 'verify_help' %}#section0">verify</a></b> karwa sakti hain!</i></span><p>
+{% if notification %}
+<span class="margin" style="color:red;">Apnay new jawab <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>check kar le</u></a> yar!</span>
+{% else %}
+<span class="margin" style="font-size:80%;color:green;">Agar <b>larki</b> ho toh account forun <b><a href="{% url 'verify_help' %}#section0"><u>verify</u></a></b> karwao!</span>
+{% endif %}
+<p>
 {% if is_paginated %}
 <span start="{{ page_obj.start_index }}">
 {% else %}
@@ -85,7 +90,11 @@
 	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
 	{% csrf_token %}
 	{% if link.publicreply_set.count %}
-	<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
+		{% if link.publicreply_set.count < 26 %}
+		<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
+		{% else %}
+		<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="25+ jawab">
+		{% endif %}
 <!--
 	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
 -->

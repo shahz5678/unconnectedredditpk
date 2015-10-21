@@ -5,17 +5,21 @@
 <div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 {% if object.username == user.username %}
 <h2><u>Welcome apni profile pe</u></h2>
-<a href="{% url 'user_activity' slug=user.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Apni history dekho</a>
+<a href="{% url 'unseen_activity' slug=user.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Tumhari latest gupshup</a>
 {% else %}
 <h2><u>{{ object.username }} ki profile</u></h2>
-<a href="{% url 'user_activity' slug=object.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">{{ object.username }} ki history dekho</a>
+<a href="{% url 'user_activity' slug=object.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">{{ object.username }} ki history</a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% endif %}
 	<div>
 	<b class="profile">Photo:</b>
 	{% if object.userprofile.avatar %}
 	<img src="{{ object.userprofile.avatar.url }}" alt="no photo"  class ="info"></img>
 	{% else %}
+	{% if object.username == user.username %}
+	<img src="{{ STATIC_URL }}img/default-avatar2.jpg" alt="no photo"  class ="info"></img>
+	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
+	{% endif %}
 	</div>
 	{% endif %}
 	<div>

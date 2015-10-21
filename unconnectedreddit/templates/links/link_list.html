@@ -87,6 +87,7 @@
 
 	<!--                                           -->
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
+	{% if link.submitter.username != 'unregistered_bhoot' %}
 	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
 	{% csrf_token %}
 	{% if link.publicreply_set.count %}
@@ -105,6 +106,7 @@
 -->
 	{% endif %}
 	</form>
+	{% endif %}
 	<br>
 	<!--<table><tr><td>-->
 <!--	

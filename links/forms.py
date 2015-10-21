@@ -133,6 +133,10 @@ class VoteForm(forms.ModelForm): #creates a form for Vote
 	class Meta:
 		model = Vote
 
+class UnseenActivityForm(forms.ModelForm): #creates a form for Link
+	class Meta:
+		model = Link
+
 class ReportreplyForm(forms.Form):
 	class Meta:
 		pass
@@ -142,6 +146,10 @@ class ReportForm(forms.Form):
 		model = Publicreply
 
 class ScoreHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class HistoryHelpForm(forms.Form):
 	class Meta:
 		pass
 

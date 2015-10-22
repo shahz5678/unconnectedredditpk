@@ -348,6 +348,7 @@ class UnseenActivityView(ListView):
 			#print all_links
 		else:
 			all_links = []
+		all_links_qset = []
 		if all_links:
 			for link in all_links[:]:#remove this for loop statement when wanting to revert to 10/22/2015 views.py state
 				if not link.publicreply_set.exists():

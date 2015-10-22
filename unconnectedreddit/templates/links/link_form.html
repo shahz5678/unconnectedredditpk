@@ -8,7 +8,7 @@
 <h2>Gupshup, lateefey, taaza khabar, sawaal, shayari, jo dil chahey daal do!</h2>  
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
-  {% if user.username == 'pholi' %}
+  {% if user.username == 'pholi' or user.username == 'NaeemRana' %}
    {{ form.image_file.errors }}
   <span style="font-size:92%;">{{ form.image_file.label_tag }}</span>{{ form.image_file }}<br>
   {% endif %}

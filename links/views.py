@@ -65,8 +65,10 @@ def GetLatestUserInvolvement(user):
 		all_replies = list(set(user_replies_list+user_link_replies_list))# merging lists and removing duplicates
 	elif user_replies_list:
 		all_replies = user_replies_list
+		#print all_replies
 	elif user_link_replies_list:
 		all_replies = user_link_replies_list
+		#print all_replies
 	else:
 		all_replies = []
 		#print "no unseen replies were found!"
@@ -339,9 +341,11 @@ class UnseenActivityView(ListView):
 			all_links = list(set(chain(links_with_user_replies,links_user_created)))
 			#print "all replies are: %s" % all_links			
 		elif links_with_user_replies:
-			all_links = chain.from_iterable(links_with_user_replies)
+			all_links = list(chain(links_with_user_replies))
+			#print all_links
 		elif links_user_created:
-			all_links = chain.from_iterable(links_user_created)
+			all_links = list(chain(links_user_created))
+			#print all_links
 		else:
 			all_links = []
 		if all_links:
@@ -490,8 +494,11 @@ class LinkCreateView(CreateView):
 		f.with_votes = 0
 		f.category = '1'
 		# can we throw in an "are you human" test?
-		if f.description==f.submitter.userprofile.previous_retort:
-			return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
+		try:
+			if f.description==f.submitter.userprofile.previous_retort:
+				return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
+		except:
+			pass
 		f.submitter.userprofile.previous_retort = f.description
 		if f.image_file:
 			f.image_file = clean_image_file(f.image_file)

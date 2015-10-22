@@ -166,9 +166,21 @@ h5 {
 
 textarea{
     height:30px;
+    width: 100%;
+    max-width: 200px;
+    min-width: 2px;
+     -webkit-appearance: textarea;
+      -webkit-rtl-ordering: logical;
+    -webkit-user-select: text;
+    flex-direction: column;
+    resize: auto;
+    cursor: auto;
+    padding: 2px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-textarea, input{
+ input{
     width: 100%;
     max-width: 200px;
     min-width: 2px;

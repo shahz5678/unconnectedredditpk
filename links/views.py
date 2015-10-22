@@ -52,38 +52,33 @@ def GetLatestUserInvolvement(user):
 	latest_timestamp = []
 	user_replies_list = []
 	user_link_replies_list = []
-	qset_replies = GetLinksWithUserReplies(user) #works correctly
-	#print "all links having replies are (post processing): %s" % qset_replies
-	qset_links = GetLinksByUser(user) #works correctly
-	#print "all links user created are (post processing): %s" % qset_links 
-	if qset_replies:
-		user_replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in qset_replies)) #chain flattens list to detect duplicates later
-	if qset_links:
-		user_link_replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in qset_links)) #chain flattens list
-		#print user_link_replies_list
-	if user_replies_list and user_link_replies_list:
-		all_replies = list(set(user_replies_list+user_link_replies_list))# merging lists and removing duplicates
-	elif user_replies_list:
-		all_replies = user_replies_list
-		#print all_replies
-	elif user_link_replies_list:
-		all_replies = user_link_replies_list
-		#print all_replies
+	qset_replies = GetLinksWithUserReplies(user) #links that contain user replies in list format
+	qset_links = GetLinksByUser(user) # links created by the user in list format
+	if qset_replies and qset_links:
+		every_link = list(set(chain(qset_replies,qset_links))) #uniquely relevant links, no duplicates
+	elif qset_replies:
+		every_link = list(chain(qset_replies))
+	elif qset_links:
+		every_link = list(chain(qset_links))
 	else:
-		all_replies = []
-		#print "no unseen replies were found!"
-		return all_replies
-	#print "all replies are: %s" % all_replies
-	for reply in all_replies[:]:#adding [:] ensures a copy of all_replies is made, so that the for loop doesn't get cannibalized as the list dwindles
+		every_link = []
+	replies_list = []
+	if every_link:
+		replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in every_link)) #chain flattens list to detect duplicates later
+		#print replies_list
+	if not replies_list:
+		return replies_list
+	#print "all replies are: %s" % replies_list
+	for reply in replies_list[:]:#adding [:] ensures a copy of all_replies is made, so that the for loop doesn't get cannibalized as the list dwindles
 		if reply.publicreply_seen_related.filter(seen_user=user).exists():
-			all_replies.remove(reply)
+			replies_list.remove(reply)
 	#print "all replies made in related links, unseen by the user, are %s" % all_replies
 	#if all_replies:
 	#	all_replies = filter(None, all_replies)
 	#print "cleaned list is %s" % cleaned_list
-	if all_replies:
+	if replies_list:
 		try:
-			dates_in_all_unseen_replies = (reply.submitted_on for reply in all_replies)#[reply.values_list('submitted_on',flat=True) for reply in cleaned_list]
+			dates_in_all_unseen_replies = (reply.submitted_on for reply in replies_list)#[reply.values_list('submitted_on',flat=True) for reply in cleaned_list]
 		except:
 			dates_in_all_unseen_replies = 0
 		#print "dates of all unseen replies are %s" % dates_in_all_unseen_replies

@@ -6,7 +6,7 @@ from operator import attrgetter
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from collections import defaultdict
-from django.db.models import Max, Count
+from django.db.models import Max, Count, Q
 from verified import FEMALES
 from .models import Link, Vote, UserProfile, UserSettings, Publicreply, Seen, Unseennotification
 from django.core.paginator import Paginator
@@ -27,55 +27,30 @@ from django.utils.timezone import utc
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-def GetLinksWithUserReplies(user):
+def GetLinks(user):
 	links_with_user_replies=[]
-	#print "links with user's replies (initially): %s" % links_with_user_replies
+	reply_list = []
+	relevant_links = []
 	if Publicreply.objects.filter(submitted_by=user).exists(): #check if the user has ever given a reply
-		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on')[:75] #up to last 75 replies given by user
-		#print "replies given by user are: %s" % reply_list
+		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on').values_list('answer_to',flat=True)[:75]
 		if reply_list:
-			links_with_user_replies = list(set([reply.answer_to for reply in reply_list])) #a list of unique link.ids user has replied under (own or others)
-			#print "links with user's replies (post processing): %s" % links_with_user_replies
-	return links_with_user_replies
-
-def GetLinksByUser(user):
-	links_user_created_qset = []
-	#print "links user created (initially): %s" % links_user_created_qset
-	if Link.objects.filter(submitter=user).exists():# if user has ever submitted a link
-		links_user_created_qset = list(set(Link.objects.filter(submitter=user).order_by('-submitted_on')[:75])) #up to last 75 links created by user
-		#print "links user created (post processing): %s" % links_user_created_qset
-	return links_user_created_qset #works correctly
+			relevant_links = list(set(Link.objects.filter(Q(submitter=user)|Q(id__in=reply_list)).order_by('-submitted_on')[:150]))
+	return relevant_links#list of links
 
 def GetLatestUserInvolvement(user):
-	qset_replies = []
-	qset_links = []
 	latest_timestamp = []
-	user_replies_list = []
-	user_link_replies_list = []
-	qset_replies = GetLinksWithUserReplies(user) #links that contain user replies in list format
-	qset_links = GetLinksByUser(user) # links created by the user in list format
-	if qset_replies and qset_links:
-		every_link = list(set(chain(qset_replies,qset_links))) #uniquely relevant links, no duplicates
-	elif qset_replies:
-		every_link = list(chain(qset_replies))
-	elif qset_links:
-		every_link = list(chain(qset_links))
-	else:
-		every_link = []
+	relevant_links = []
 	replies_list = []
-	if every_link:
-		replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in every_link)) #chain flattens list to detect duplicates later
-		#print replies_list
-	if not replies_list:
-		return replies_list
-	#print "all replies are: %s" % replies_list
+	relevant_links = GetLinks(user) #links that contain user replies in list format
+	if relevant_links:
+		replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in relevant_links)) #chain flattens list to detect duplicates later
+		if not replies_list:
+			return replies_list
+	else:
+		return relevant_links
 	for reply in replies_list[:]:#adding [:] ensures a copy of all_replies is made, so that the for loop doesn't get cannibalized as the list dwindles
 		if reply.publicreply_seen_related.filter(seen_user=user).exists():
 			replies_list.remove(reply)
-	#print "all replies made in related links, unseen by the user, are %s" % all_replies
-	#if all_replies:
-	#	all_replies = filter(None, all_replies)
-	#print "cleaned list is %s" % cleaned_list
 	if replies_list:
 		try:
 			dates_in_all_unseen_replies = (reply.submitted_on for reply in replies_list)#[reply.values_list('submitted_on',flat=True) for reply in cleaned_list]
@@ -88,7 +63,6 @@ def GetLatestUserInvolvement(user):
 				#print "max date of unseen reply is: %s" % latest_timestamp
 				return latest_timestamp
 			except:
-				#latest_timestamp = []
 				#print "latest timestamp allotted was []"
 				return latest_timestamp
 		else:
@@ -97,17 +71,6 @@ def GetLatestUserInvolvement(user):
 	else:
 		return latest_timestamp
 
-
-'''
-	def get_queryset(self):
-		#queryset to return all relevant links (own and others), bonus: sorted by UNseen links
-		username = self.kwargs['slug']
-		user = User.objects.get(username=username)
-		all_relevant_links_qset = GetLatestUserInvolvement(user)
-		all_relevant_links_qset = all_relevant_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
-		#above gives None values to links without replies, and orders by latest reply, whether new or not
-		return all_relevant_links_qset
-'''
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
@@ -263,6 +226,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["ensured"] = FEMALES
 			replies = list(Publicreply.objects.filter(answer_to=link).order_by('-submitted_on')[:25])
 			context["replies"] = replies
+			##################################################
 			own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
 			if link.submitter == self.request.user and own_reply==False: #user only wrote parent link
 				seenreplies=[]
@@ -337,20 +301,9 @@ class UnseenActivityView(ListView):
 		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
 		username = self.kwargs['slug']
 		user = User.objects.get(username=username)
-		links_user_created = GetLinksByUser(user) #returns a list
-		links_with_user_replies = GetLinksWithUserReplies(user) #returns a list
-		if links_with_user_replies and links_user_created:
-			all_links = list(set(chain(links_with_user_replies,links_user_created)))
-			#print "all replies are: %s" % all_links			
-		elif links_with_user_replies:
-			all_links = list(chain(links_with_user_replies))
-			#print all_links
-		elif links_user_created:
-			all_links = list(chain(links_user_created))
-			#print all_links
-		else:
-			all_links = []
+		all_links = []
 		all_links_qset = []
+		all_links = GetLinks(user) #returns a list
 		if all_links:
 			for link in all_links[:]:#remove this for loop statement when wanting to revert to 10/22/2015 views.py state
 				if not link.publicreply_set.exists():
@@ -641,7 +594,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 			else:
 				return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
 		except:
-			redirect("home")
+			return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
 
 	def form_invalid(self, form): #this function is also always to be defined for views created for forms
 		voter = get_object_or_404(Link, pk=form.data["voter"])

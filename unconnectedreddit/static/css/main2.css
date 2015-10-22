@@ -165,8 +165,7 @@ h5 {
 }
 
 textarea{
-    height:30px;
-    width: 100%;
+    max-height: 30px;
     max-width: 200px;
     min-width: 2px;
      -webkit-appearance: textarea;

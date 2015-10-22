@@ -625,13 +625,15 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 					link.submitter.userprofile.save()
 			# delete vote
 			prev_votes[0].delete() #if user has previously voted, simply delete previous vote
-		#if page==1:
-		if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
-			url = self.request.META.get('HTTP_REFERER')
-			blocks = url.split('?')
-			return redirect(blocks[0]+"#section"+section)
-		else:
-			return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
+		try:
+			if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
+				url = self.request.META.get('HTTP_REFERER')
+				blocks = url.split('?')
+				return redirect(blocks[0]+"#section"+section)
+			else:
+				return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
+		except:
+			redirect("home")
 
 	def form_invalid(self, form): #this function is also always to be defined for views created for forms
 		voter = get_object_or_404(Link, pk=form.data["voter"])

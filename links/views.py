@@ -476,8 +476,11 @@ class LinkCreateView(CreateView):
 	model = Link
 	form_class = LinkForm
 
-	#def get_object(self, queryset=None):
-		#return Link.objects.get_or_create(user=self.request.user)[0]
+	def get_context_data(self, **kwargs):
+		context = super(LinkCreateView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["official"] = FEMALES
+		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
@@ -504,7 +507,10 @@ class LinkCreateView(CreateView):
 			pass
 		f.submitter.userprofile.previous_retort = f.description
 		if f.image_file:
-			f.image_file = clean_image_file(f.image_file)
+			image_file = clean_image_file(f.image_file)
+			if image_file:
+				f.image_file = image_file
+			else: f.image_file = None
 		''' removing representative image code
 		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
 		urls2 = re.findall(urlmarker.URL_REGEX,f.url)

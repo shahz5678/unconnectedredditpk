@@ -319,10 +319,17 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			answer_to = Link.objects.get(id=self.request.POST.get("object_id"))
 			reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1')
 			Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
-			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+			try:
+				return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+			except:
+				#print "redirecting"
+				return redirect("reply", pk= reply.answer_to.id)
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+		try: 
+			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+		except:
+			return redirect("home")#, pk= reply.answer_to.id)
 
 class UnseenActivityView(ListView):
 	model = Link

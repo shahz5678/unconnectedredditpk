@@ -133,8 +133,8 @@ class LinkListView(ListView):
 			vote_cluster = Vote.objects.all() # all votes
 			vote_cluster = vote_cluster.filter(link_id__in=links_in_page) # votes in page
 			context["vote_cluster"] = vote_cluster
-			replies = Publicreply.objects.filter(answer_to_id__in=links_in_page) #all replies in a page
-			context["replies"] = replies
+			#replies = Publicreply.objects.filter(answer_to_id__in=links_in_page) #all replies in a page
+			#context["replies"] = replies
 			############
 			timestamp = GetLatestUserInvolvement(self.request.user)
 			if Unseennotification.objects.filter(recipient=self.request.user).exists():
@@ -270,7 +270,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		description = self.request.POST.get("description")
 		if description == self.request.user.userprofile.previous_retort:
-			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+			try: 
+				return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+			except: 
+				return redirect("reply", pk= reply.answer_to.id)
 		else:
 			self.request.user.userprofile.previous_retort = description
 			self.request.user.userprofile.score = self.request.user.userprofile.score + 4

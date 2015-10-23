@@ -8,6 +8,7 @@ from scraper import read_image
 from collections import defaultdict
 from django.db.models import Max, Count, Q
 from verified import FEMALES
+from allowed import ALLOWED
 from .models import Link, Vote, UserProfile, UserSettings, Publicreply, Seen, Unseennotification
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
@@ -436,6 +437,7 @@ class LinkCreateView(CreateView):
 		context = super(LinkCreateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["official"] = FEMALES
+			context["allowed"] = ALLOWED
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database

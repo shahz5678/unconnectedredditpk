@@ -4,7 +4,7 @@
 <div class="margin">
 <!--<h2>Kuch aisa likho jo logoon ko shughali lagay!</h2>
 <p>Jokes, news, questions, shayari, jo dil chahey likh do!</p>  -->
-{% if user.username in official %}
+{% if user.username in official or user.username in allowed %}
 <h2><span style="color:green;">Funny pics ya selfies, lateefey, gupshup, sawaal, shayari, jo dil chahey daal do!</span></h2>  
 {% else %}
 <h2>Gupshup, lateefey, taaza khabar, sawaal, shayari, jo dil chahey daal do!</h2> 
@@ -12,7 +12,7 @@
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {% if user.is_authenticated %}
-  {% if user.username in official %}
+  {% if user.username in official or user.username in allowed %}
    {{ form.image_file.errors }}
   <span style="font-size:92%;">{{ form.image_file.label_tag }}</span>{{ form.image_file }}<br>
   <span style="color:grey;font-size:80%;"><i><b>hoshyar</b>: 1mb se barri pic nahi lag sakey gi</i></span><br><br>

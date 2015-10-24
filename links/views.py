@@ -28,49 +28,45 @@ from django.utils.timezone import utc
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-def GetLinks(user):
+def GetNonReplyLinks(user):
 	links_with_user_replies=[]
 	reply_list = []
 	relevant_links = []
 	if Publicreply.objects.filter(submitted_by=user).exists(): #check if the user has ever given a reply
 		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on').values_list('answer_to',flat=True)[:75]
 		if reply_list:
-			relevant_links = list(set(Link.objects.filter(Q(submitter=user)|Q(id__in=reply_list)).order_by('-submitted_on')[:150]))
+			#Link.objects.filter(submitter=user,Link.pubreply_set.exists())
+			relevant_links = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(id__in=reply_list)).order_by('-submitted_on')[:150]))
 	return relevant_links#list of links
 
+def GetLinks(user):
+	links_with_user_replies=[]
+	reply_list = []
+	relevant_links_ids = []
+	if Publicreply.objects.filter(submitted_by=user).exists(): #check if the user has ever given a reply
+		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on').values_list('answer_to',flat=True)[:75]
+		if reply_list:
+			relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user)|Q(id__in=reply_list))\
+				.order_by('-submitted_on').values_list('id', flat=True)[:150]))
+	return relevant_links_ids#list of relevant link ids
+
 def GetLatestUserInvolvement(user):
-	latest_timestamp = []
-	relevant_links = []
+	empty_timestamp = []
+	relevant_link_ids = []
 	replies_list = []
-	relevant_links = GetLinks(user) #links that contain user replies in list format
-	if relevant_links:
-		replies_list = list(chain.from_iterable(link.publicreply_set.order_by('-submitted_on')[:1] for link in relevant_links)) #chain flattens list to detect duplicates later
-		if not replies_list:
-			return replies_list
-	else:
-		return relevant_links
-	for reply in replies_list[:]:#adding [:] ensures a copy of all_replies is made, so that the for loop doesn't get cannibalized as the list dwindles
-		if reply.publicreply_seen_related.filter(seen_user=user).exists():
-			replies_list.remove(reply)
-	if replies_list:
+	max_unseen_reply = []
+	relevant_link_ids = GetLinks(user) #link ids (containing user replies) in list format
+	if relevant_link_ids:
 		try:
-			dates_in_all_unseen_replies = (reply.submitted_on for reply in replies_list)#[reply.values_list('submitted_on',flat=True) for reply in cleaned_list]
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids)\
+			.exclude(publicreply_seen_related__seen_user=user).latest('submitted_on') #got latest reply's timestamp posted in these links (and wasn't seen by the user)
+			#print "max date of unseen reply is: %s" % max_unseen_replys_timestamp
+			return max_unseen_reply
 		except:
-			dates_in_all_unseen_replies = 0
-		#print "dates of all unseen replies are %s" % dates_in_all_unseen_replies
-		if dates_in_all_unseen_replies:
-			try:
-				latest_timestamp = max(dates_in_all_unseen_replies)
-				#print "max date of unseen reply is: %s" % latest_timestamp
-				return latest_timestamp
-			except:
-				#print "latest timestamp allotted was []"
-				return latest_timestamp
-		else:
-			#print "latest timestamp is %s:" % latest_timestamp
-			return latest_timestamp
-	else:
-		return latest_timestamp
+			#print "max date of unseen reply: %s" % empty_timestamp
+			return empty_timestamp
+	#print "max date of unseen reply is: %s" % empty_timestamp
+	return empty_timestamp
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -137,27 +133,30 @@ class LinkListView(ListView):
 			#replies = Publicreply.objects.filter(answer_to_id__in=links_in_page) #all replies in a page
 			#context["replies"] = replies
 			############
-			timestamp = GetLatestUserInvolvement(self.request.user)
-			if Unseennotification.objects.filter(recipient=self.request.user).exists():
+			freshest_reply = GetLatestUserInvolvement(self.request.user)
+			try:
+				timestamp = freshest_reply.submitted_on
+				sender = freshest_reply.submitted_by
+			except:
+				timestamp = []
+				sender = 0
+			try:
 				user_object = Unseennotification.objects.get(recipient=self.request.user)
-				try: #timestamp[0] exists
+			except:
+				user_object = 0
+			if user_object:
+				try: 
 					if user_object.timestamp < timestamp:
 						context["notification"] = 1
+						context["sender"] = sender.username
 					else:
 						context["notification"] = 0
-				except:#timestamp is empty
+						context["sender"] = 0
+				except:
 					context["notification"] = 0
-				#try:
-					#print "time of UNSEEN post: %s" % timestamp
-					#print "last notification time: %s" % user_object.timestamp
-					#print "////////////////////////////////////////////////////////////////////////////////"
-				#except:
-					#print "there is no unseen post"
-					#print "last notification time: %s" % user_object.timestamp
-					#print "////////////////////////////////////////////////////////////////////////////////"
-			else: #i.e. Unseennotification object doesn't exist for the user
+					context["sender"] = 0
+			else: 
 				try:
-					#print "TAKING THE CLOCK BACK BY 15 MINS"
 					user_object = Unseennotification.objects.create(recipient=self.request.user,\
 						timestamp=(timestamp- datetime.timedelta(0, 900)))
 				except:
@@ -166,18 +165,13 @@ class LinkListView(ListView):
 				try: #timestamp[0] exists
 					if user_object.timestamp < timestamp:
 						context["notification"] = 1
+						context["sender"] = sender.username
 					else:
 						context["notification"] = 0
+						context["sender"] = 0
 				except:#timestamp is empty
 					context["notification"] = 0
-				#try:
-					#print "time of unseen post: %s" % timestamp
-					#print "last notification time: %s" % user_object.timestamp
-					#print "////////////////////////////////////////////////////////////////////////////////"
-				#except:
-					#print "time of latest unseen post: N/A (there is no unseen post)"
-					#print "last notification time: %s" % user_object.timestamp
-					#print "////////////////////////////////////////////////////////////////////////////////"
+					context["sender"] = 0
 		return context
 
 class LinkUpdateView(UpdateView):
@@ -225,42 +219,43 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			link = Link.objects.get(id=self.kwargs["pk"])
 			context["parent"] = link
 			context["ensured"] = FEMALES
-			replies = list(Publicreply.objects.filter(answer_to=link).order_by('-submitted_on')[:25])
+			replies = Publicreply.objects.filter(answer_to=link).order_by('-submitted_on')[:25]
 			context["replies"] = replies
-			##################################################
 			own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
 			if link.submitter == self.request.user and own_reply==False: #user only wrote parent link
-				seenreplies=[]
-				for reply in replies: #replies that have seen objects 
-					if Seen.objects.filter(which_reply=reply,seen_user=self.request.user).exists():
-						seenreplies.append(reply)
-				context["seenreplies"] = seenreplies
+				seen_replies = []
+				reply_ids = [reply.id for reply in replies]
+				seen_replies = Publicreply.objects.filter(id__in=reply_ids,publicreply_seen_related__seen_user=self.request.user)
+				context["seenreplies"] = seen_replies
 				for response in replies:
-					if response not in seenreplies:
+					if response not in seen_replies:
 						#creating seen objects for every unseen reply, for that particular user
 						Seen.objects.create(seen_user= self.request.user,which_reply=response,seen_status=True)
 				#handling exception where own reply makes all earlier replies become "new" (happens when jumping into a new convo):
 			elif own_reply: #user wrote a reply too (whether or not they wrote a parent link)
-				seenreplies=[]
+				seen_replies=[]
 				latest_own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).latest('submitted_on')
-				if latest_own_reply in replies:
+				if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
 					less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-					#print "less_than_replies:%s" % less_than_replies
+					less_than_replies_ids = [reply.id for reply in less_than_replies]
 					more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-					#print "more_than_replies:%s" % more_than_replies
+					more_than_replies_ids = [reply.id for reply in more_than_replies]
+					#all seen objects of less than replies and more than replies
+					less_than_seen_replies = Publicreply.objects.filter(id__in=less_than_replies_ids,publicreply_seen_related__seen_user=self.request.user)
+					more_than_seen_replies = Publicreply.objects.filter(id__in=more_than_replies_ids,publicreply_seen_related__seen_user=self.request.user)
 					for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-						if not Seen.objects.filter(which_reply=reply,seen_user=self.request.user).exists():
+						if reply not in less_than_seen_replies:
 							Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)
-							seenreplies.append(reply)
+							seen_replies.append(reply)
 						else:
-							seenreplies.append(reply)
+							seen_replies.append(reply)
 					for reply in more_than_replies:
-						if Seen.objects.filter(which_reply=reply,seen_user=self.request.user).exists():
-							seenreplies.append(reply)
-							#####################################################
-				context["seenreplies"] = seenreplies
+						#####################################################
+						if reply in more_than_seen_replies:
+							seen_replies.append(reply)
+				context["seenreplies"] = seen_replies
 				for response in replies:
-					if response not in seenreplies:
+					if response not in seen_replies:
 						#creating seen objects for every unseen reply, for that particular user
 						Seen.objects.create(seen_user= self.request.user,which_reply=response,seen_status=True)
 			else: #user didn't write parent link, nor ever replied
@@ -307,11 +302,8 @@ class UnseenActivityView(ListView):
 		user = User.objects.get(username=username)
 		all_links = []
 		all_links_qset = []
-		all_links = GetLinks(user) #returns a list
+		all_links = GetNonReplyLinks(user) #returns a list, upto 150 links, some of which have zero replies.
 		if all_links:
-			for link in all_links[:]:#remove this for loop statement when wanting to revert to 10/22/2015 views.py state
-				if not link.publicreply_set.exists():
-					all_links.remove(link)
 			all_link_ids = [link.id for link in all_links]
 			all_links_qset = Link.objects.filter(id__in=all_link_ids)
 			all_links_qset = all_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
@@ -340,34 +332,36 @@ class UnseenActivityView(ListView):
 					eachlink[index].append(None)#timestamp
 					eachlink[index].append(None)'''#unseen
 			index = 0
+			seen_replies = []
+			link_ids = [link.id for link in context["object_list"]]
+			#latest_replies = [link.publicreply_set.latest('submitted_on') for link in context["object_list"]]
+			seen_replies = Publicreply.objects.filter(answer_to_id__in=link_ids,publicreply_seen_related__seen_user = user)#all seen replies to all links in object_list
+			#need to get all latest replies for each link in object_list
 			for link in context["object_list"]:
-				if link.publicreply_set.exists(): #i.e. for only links that have replies, check if latest reply has seen object
+				try: #i.e. for only links that have replies, check if latest reply has seen object
 					latest_reply = link.publicreply_set.latest('submitted_on')
-					if latest_reply in link.publicreply_set.filter(publicreply_seen_related__seen_user = user \
-						,publicreply_seen_related__which_reply = latest_reply):
+					if latest_reply in seen_replies:
+						#link is seen:
 						eachlink[index].append(link) #seen
 						eachlink[index].append(latest_reply.submitted_on)#timestamp
 						eachlink[index].append(None)#unseen
 						index += 1
-						#print index
 					else:
+						#link is unseen:
 						eachlink[index].append(None)#seen
 						eachlink[index].append(latest_reply.submitted_on)#timestamp
 						eachlink[index].append(link) #unseen
 						index += 1
-						#print index
-				else:# i.e. there is no reply, so this is 'seen' too
+				except:# i.e. there is no reply, this is ignored
 					pass
 			eachlink.default_factory=None
-			#print eachlink
 			context["eachlink"] = dict(eachlink)
 			context["verify"] = FEMALES
-			if Unseennotification.objects.filter(recipient=self.request.user).exists():
+			try:
 				user_object = Unseennotification.objects.get(recipient=self.request.user)
-				#print datetime.utcnow().replace(tzinfo=utc)
 				user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
 				user_object.save()
-			else:
+			except:
 				Unseennotification.objects.create(recipient=self.request.user,timestamp=datetime.utcnow().replace(tzinfo=utc))
 			#print eachlink
 		return context

@@ -11,6 +11,12 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
 
+#DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
+#DEBUG_TOOLBAR_CONFIG = {
+#    'SHOW_TOOLBAR_CALLBACK': 'unconnectedreddit.settings.show_toolbar',
+#}
+
 #git init
 #git remote add origin https://github.com/mhb11/unconnectedredditpk.git
 #git pull origin master
@@ -106,6 +112,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+ #   'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -163,7 +170,7 @@ INSTALLED_APPS = (
     'analytical',
     'mathfilters',
     'request',
-    'debug_toolbar',
+#    'debug_toolbar',
     #'analytical',
     #'django_whoshere',
     # Uncomment the next line to enable admin documentation:

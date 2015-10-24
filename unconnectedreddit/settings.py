@@ -18,7 +18,7 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 #git push origin master
 
 if ON_HEROKU == '1':
-    DEBUG=True
+    DEBUG=False
 else:
     DEBUG=True
 

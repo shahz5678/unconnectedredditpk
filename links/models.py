@@ -149,7 +149,7 @@ class Seen(models.Model):
 	seen_at = models.DateTimeField(auto_now_add=True)
 	which_reply = models.ForeignKey(Publicreply, null=True, blank=True, related_name="publicreply_seen_related")
 
-def __unicode__(self):
+	def __unicode__(self):
 		return "new replies to '%s' were seen by '%s' on '%s'" % (self.which_link, self.seen_by, self.seen_at)
 
 class Unseennotification(models.Model):

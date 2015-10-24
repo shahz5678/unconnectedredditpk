@@ -69,32 +69,7 @@
 	{% else %}
 	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 	{% endif %}
-<!--
-	<a class="countofvotes">
-		{% if not link.votes %}
-			<span style="color:green;font-size:90%;">0 jhappee</span>
-		{% endif %}
-		{% if link.votes %}	
-			{% if link.votes > -1 %}
-				{% if link.votes == 0 %}
-					<span style="color:green;font-size:90%;">0 jhappee</span>
-				{% else %}
-					{% if link.votes == 1 %}
-						<span style="color:green;font-size:90%;">1 jhappee</span>
-					{% else %}
-						<span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
-					{% endif %}
-				{% endif %}
-			{% else %}
-				{% if link.votes == -1 %}
-					<span style="color:red;font-size:90%;">1 chupair</span>
-				{% else %}
-					<span style="color:red;font-size:90%;">{{ link.votes|abs }} chupairein</span>
-				{% endif %}
-			{% endif %}
-		{% endif %}	 
-	</a>
--->
+
 	<br>
 	{% for vote in vote_cluster reversed %}
 		{% if link.id == vote.link.id %}
@@ -128,9 +103,7 @@
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 	{% else %}
-	<!--
-		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
-	-->
+
 	{% endif %}</p>
 	</form>
 <p style="color:gray"><hr size=1></p>

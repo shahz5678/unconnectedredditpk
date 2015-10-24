@@ -163,7 +163,7 @@ INSTALLED_APPS = (
     'analytical',
     'mathfilters',
     'request',
-    #'debug_toolbar',
+    'debug_toolbar',
     #'analytical',
     #'django_whoshere',
     # Uncomment the next line to enable admin documentation:

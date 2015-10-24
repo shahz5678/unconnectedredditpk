@@ -150,14 +150,14 @@ class Seen(models.Model):
 	which_reply = models.ForeignKey(Publicreply, null=True, blank=True, related_name="publicreply_seen_related")
 
 	def __unicode__(self):
-		return "new replies to '%s' were seen by '%s' on '%s'" % (self.which_reply, self.seen_user, self.seen_at)
+		return u"new replies to %s were seen by %s on %s" % (self.which_reply, self.seen_user, self.seen_at)
 
 class Unseennotification(models.Model):
 	recipient = models.OneToOneField(User)
 	timestamp = models.DateTimeField()
 
 	def __unicode__(self):
-		return "'%s' recieved a replynotification" % self.recipient
+		return u"%s recieved a replynotification" % self.recipient
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

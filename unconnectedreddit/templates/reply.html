@@ -18,7 +18,7 @@
     {% endif %}
 {% for person in ensured %}
     {% if person == parent.submitter.username %}
-        <!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
+        
         <span style="font-size:140%;color:deeppink;"><b>*</b></span>
     {% endif %}
 {% endfor %}
@@ -104,7 +104,7 @@
         </span>
     	{% for person in ensured %}
             {% if person == reply.submitted_by.username %}
-            	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="13" width="13"></img>-->
+            	
                 <span style="font-size:140%;color:deeppink;"><b>*</b></span>
             {% endif %}
         {% endfor %}:&nbsp;{{ reply.description }}

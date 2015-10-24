@@ -2,11 +2,10 @@
 {% load humanize %}
 {% load comments %}
 {% load mathfilters %}
-<!--{% load bootstrap_pagination %}-->
 {% load urlize_target_blank %}
 {% block content %}
 {% if notification %}
-<span class="margin" style="color:red;">Apnay new jawab <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>check kar le</u></a> yar!</span>
+<span class="margin" style="color:red;"><b>Latest:</b> <a href="{% url 'profile' slug=sender %}#section0">{{ sender }}</a> ki taraf se <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
 {% else %}
 <span class="margin" style="font-size:80%;color:green;">Jo <b>female</b> account <b><a href="{% url 'verify_help' %}#section0"><u>verify</u></a></b> karwai gi, usko pics ka option miley ga!</span>
 {% endif %}
@@ -18,8 +17,7 @@
 {% endif %}
 </p>
 {% for link in object_list %}
-<!--<li class="zebra">-->
-	<!--{{ link.rank_score|floatformat:10 }}-->
+
     
     <span class="numbers">
     <b>
@@ -38,8 +36,8 @@
     </b>
     </span>
     {% if link.submitter.username == 'unregistered_bhoot' %}
-    	<!--<p style="margin-top:.8em">-->
-    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span><!--ne likha-->
+    	
+    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span>
     	
 	{% else %}
 	{% if link.submitter.userprofile.avatar %}
@@ -66,26 +64,19 @@
 			{% else %}
 			{% endif %}
 		    {% endif %}
-		    <!--ne likha,-->
+		    
 	</span>
     {% endif %}
     {% if user.is_authenticated %}
     {% for person in checked %}
     {% if person == link.submitter.username %}
-    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}{% endif %}:
-<!--
-    {% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-thumbnail.jpg"></img>
-	{% endif %}
--->
+
     <span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
 	<a name="section{{ forloop.counter }}"></a> 
 
-	<!--                                           -->
+	
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
 	{% if link.submitter.username != 'unregistered_bhoot' %}
 	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
@@ -96,49 +87,15 @@
 		{% else %}
 		<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="25+ jawab">
 		{% endif %}
-<!--
-	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
--->
+
 	{% else %}
 	<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="isko jawab do">
-<!--
-	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
--->
+
 	{% endif %}
 	</form>
 	{% endif %}
 	<br>
-	<!--<table><tr><td>-->
-<!--	
-	<a class="countofvotes">
-		{% if not link.votes %}
-			<span style="color:green;font-size:90%;">0 jhappee</span>
-		{% endif %}
-		{% if link.votes %}	
-			{% if link.votes > -1 %}
-				{% if link.votes == 0 %}
-					<span style="color:green;font-size:90%;">0 jhappee</span>
-				{% else %}
-					{% if link.votes == 1 %}
-						<span style="color:green;font-size:90%;">1 jhappee</span>
-					{% else %}
-						<span style="color:green;font-size:90%;">{{ link.votes }} jhappiyan</span>
-					{% endif %}
-				{% endif %}
-			{% else %}
-				{% if link.votes == -1 %}
-					<span style="color:red;font-size:90%;">1 chupair</span>
-				{% else %}
-					<span style="color:red;font-size:90%;">{{ link.votes|abs }} chupairein</span>
-				{% endif %}
-			{% endif %}
-		{% endif %}	 
-	</a>
--->
-	<!--
-	</td>
-	<td>
-	-->
+
 	<p style="margin-top:.5em;">
 	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
@@ -147,58 +104,20 @@
 	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
 	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 	{% if not user.is_authenticated %}
-	<!--
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin-bottom: 0.2em;">jhappee</button><br>
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">chupair</button>
-	-->
-	<!--
-		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;">yes</a>
-		<a href="{% url 'registration_register' %}" class="fakebutton" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;">no</a>
-	-->
-<!--	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valup" type="button" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">yes</button>
-	<button onclick="location.href='{% url 'registration_register' %}#section0'" class="voting" id="id_valdown" type="button" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:90%;margin: auto;">no</button>
--->
+
 	{% elif link.pk not in voted %}	
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 	{% else %}
-	<!--
-		<button style="background-color:white;color:#1947D1;box-shadow: 0 0 0.2px #335CD6;border-radius:3px;font-size:90%;font-family:arial;">wapis lo</button>
-	-->
+
 	{% endif %}</p>
-	<!--</td></tr></table>-->
+
 	{% if user.is_authenticated %}
 	<p style="margin-top:.5em;">
 	{% endif %}
-	<!--
-	<a href="sms:+92345?body={{ link.description|add:". Aur dekho MUFT main http://damadam.pk par"|urlencode }}" class="sms">SMS</a>
-	-->
-<!--
-	<span class="countofcomments" style="font-family:'Noto Sans', arial;margin-right:0.5em;">
-	{% get_comment_count for link as comment_count %}
-	{% if comment_count %}
-		<a href="{% url 'link_detail' pk=link.pk %}#sectionJ" style="color:white;text-shadow:0 0 0.1px #8099E6;cursor: pointer;white-space:nowrap;">
-		{{ comment_count }} jawab</a>
-		
-	{% else %}-->
-<!--
-		{% for reply in replies reversed %}
-		{% if reply.answer_to == link %}
-			<b>{{ reply.submitted_by }}:</b>{{ reply.description }}<br>
-		{% endif %}
-		{% endfor %}
--->
-	<!--{% endif %}
-	</span></p>
-	<p style="margin-top:.5em;">
--->
-<!--
-	{% if link.url %}
-		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
-	{% else %}
-		<a href="sms:+92345?body=Yar ajao muft main chat karo hamarey saath http://damadam.pk par" class="sms" style="font-family:arial;font-size:95%;font-weight:bold;white-space:nowrap;">dost ko bulao >></a>
-	{% endif %}
--->	{% if user.is_authenticated %}
+
+
+	{% if user.is_authenticated %}
 		{% if link.votes != 'None' %}
 			{% for vote in vote_cluster reversed %}
 				{% if link.id == vote.link.id %}

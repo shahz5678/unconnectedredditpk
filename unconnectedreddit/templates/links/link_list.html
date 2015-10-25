@@ -5,9 +5,9 @@
 {% load urlize_target_blank %}
 {% block content %}
 {% if notification %}
-<span class="margin" style="color:red;"><b>Latest:</b> <a href="{% url 'profile' slug=sender %}#section0">{{ sender }}</a> ki taraf se <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
+<span class="margin" style="color:red;"><b>Latest:</b> <a href="{% url 'profile' slug=sender %}#section0">{{ sender }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
 {% else %}
-<span class="margin" style="font-size:80%;color:green;">Jo <b>female</b> account <b><a href="{% url 'verify_help' %}#section0"><u>verify</u></a></b> karwai gi, usko pics ka option miley ga!</span>
+<span class="margin" style="font-size:80%;color:green;">Abb <b>pics</b> aur <b>logout</b> dono, <b><a href="{% url 'verify_help' %}#section0"><u>verified females</u></a></b> ke liye</span>
 {% endif %}
 <p>
 {% if is_paginated %}

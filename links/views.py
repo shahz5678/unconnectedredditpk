@@ -269,7 +269,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			try: 
 				return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
 			except: 
-				return redirect("reply", pk= reply.answer_to.id)
+				return redirect("home")#, pk= reply.answer_to.id)
 		else:
 			self.request.user.userprofile.previous_retort = description
 			self.request.user.userprofile.score = self.request.user.userprofile.score + 4
@@ -315,22 +315,6 @@ class UnseenActivityView(ListView):
 		if self.request.user.is_authenticated():
 			user = User.objects.filter(username=self.kwargs['slug'])
 			eachlink = defaultdict(list)
-			'''for index, link in enumerate(context["object_list"]):
-				if link.publicreply_set.exists(): #i.e. for only links that have replies, check if latest reply has seen object
-					latest_reply = link.publicreply_set.latest('submitted_on')
-					if latest_reply in link.publicreply_set.filter(publicreply_seen_related__seen_user = user \
-						,publicreply_seen_related__which_reply = latest_reply):
-						eachlink[index].append(link) #seen
-						eachlink[index].append(latest_reply.submitted_on)#timestamp
-						eachlink[index].append(None)#unseen
-					else:
-						eachlink[index].append(None)#seen
-						eachlink[index].append(latest_reply.submitted_on)#timestamp
-						eachlink[index].append(link) #unseen
-				else:# i.e. there is no reply, so this is 'seen' too
-					eachlink[index].append(link)#seen
-					eachlink[index].append(None)#timestamp
-					eachlink[index].append(None)'''#unseen
 			index = 0
 			seen_replies = []
 			link_ids = [link.id for link in context["object_list"]]

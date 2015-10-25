@@ -4,14 +4,11 @@ from django.contrib.auth.models import User
 
 register = template.Library()
 
-FEMALES = ['Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
+FEMALES = ['Anfaal', 'Bisma.Azam', 'zahra', 'Anjilina', 'Aamina','Manhi','rabiaali', 'Sana', 'Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
 
-@register.simple_tag
-def verified(user):
-	#print "user is %s" % user.username
-	if user in FEMALES:
-		return True
-	else:
-		return False
-
-register.simple_tag(verified)
+@register.assignment_tag(takes_context=True)
+def check_user_is_verified(context):
+	user = context['request'].user
+	#print "user is %s" % user
+	#print "user in females is %s" % (user.username in VIP)
+	return user and user.username in FEMALES

@@ -130,6 +130,7 @@ class LinkListView(ListView):
 			vote_cluster = Vote.objects.all() # all votes
 			vote_cluster = vote_cluster.filter(link_id__in=links_in_page) # votes in page
 			context["vote_cluster"] = vote_cluster
+			context["fresh_users"] = User.objects.order_by('-date_joined')[:3]
 			#replies = Publicreply.objects.filter(answer_to_id__in=links_in_page) #all replies in a page
 			#context["replies"] = replies
 			############

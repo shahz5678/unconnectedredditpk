@@ -110,7 +110,7 @@ class Vote(models.Model):
 	value = models.IntegerField(null=True, blank=True, default=0)
 
 	def __unicode__(self):
-		return "%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
+		return u"%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
 
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, unique=True)
@@ -125,7 +125,7 @@ class UserProfile(models.Model):
 	avatar = models.ImageField(upload_to=upload_avatar_to_location, null=True, blank=True )
 
 	def __unicode__(self):
-		return "%s's profile" % self.user
+		return u"%s's profile" % self.user
 
 class Publicreply(models.Model):
 	submitted_by = models.ForeignKey(User)
@@ -137,7 +137,7 @@ class Publicreply(models.Model):
 	abuse = models.BooleanField(default=False)
 
 	def __unicode__(self):
-		return "%s replied %s to %s" % (self.submitted_by, self.description, self.answer_to)
+		return u"%s replied %s to %s" % (self.submitted_by, self.description, self.answer_to)
 
 def create_profile(sender, instance, created, **kwargs):
 	if created:
@@ -168,7 +168,7 @@ class UserSettings(models.Model):
 	setting5 = models.CharField("Setting5", max_length=20, default=0)
 
 	def __unicode__(self):
-		return "%s's settings" % self.user
+		return u"%s's settings" % self.user
 
 # Signal, while saving user
 from django.db.models.signals import post_save

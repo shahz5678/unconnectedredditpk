@@ -123,7 +123,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 
 class PublicreplyForm(forms.ModelForm):
-	description = forms.CharField("Kuch likho:")
+	#description = forms.CharField("Kuch likho:")
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")

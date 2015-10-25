@@ -72,11 +72,13 @@
         <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
     {% endif %} 
     <!--<a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>-->
-    <!--
-    {% verified user.username %}
+    {% load verified %}
+    {% check_user_is_verified as is_verified %}
+    {% if is_verified %}
     <span style="color:white;">|</span>
     <a href="{% url 'logout' %}">Logout</a>
-    -->
+    {% endif %}
+
     
 {% else %}
     <a href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">CHAT KARO</a> <span style="color:white;">|</span>

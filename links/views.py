@@ -149,7 +149,7 @@ class LinkListView(ListView):
 				try: 
 					if user_object.timestamp < timestamp:
 						context["notification"] = 1
-						context["sender"] = sender.username
+						context["sender"] = sender
 					else:
 						context["notification"] = 0
 						context["sender"] = 0

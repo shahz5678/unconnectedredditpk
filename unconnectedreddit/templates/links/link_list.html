@@ -5,7 +5,17 @@
 {% load urlize_target_blank %}
 {% block content %}
 {% if notification %}
-<span class="margin" style="color:red;"><b>Latest:</b> <a href="{% url 'profile' slug=sender %}#section0">{{ sender }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
+<span class="margin" style="color:red;"><b>Latest:</b> 
+{% if sender.userprofile.avatar %}
+		<a href="{% url 'profile' slug=sender.username %}#section0">
+		<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% else %}
+		<a href="{% url 'profile' slug=sender.username %}#section0">
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		</a>
+	{% endif %}
+<a href="{% url 'profile' slug=sender.username %}#section0">{{ sender.username }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
 {% else %}
 {% if user.is_authenticated %}
 <span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=fresh_users.0 %}#section0"><u>{{ fresh_users.0 }}</u></a></b>, <b><a href="{% url 'profile' slug=fresh_users.1 %}#section0"><u>{{ fresh_users.1 }}</u></a></b> aur <b><a href="{% url 'profile' slug=fresh_users.2 %}#section0"><u>{{ fresh_users.2 }}</u></a></b> Damadam par new hain. Welcome!</span>

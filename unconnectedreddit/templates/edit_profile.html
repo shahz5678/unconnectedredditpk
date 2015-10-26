@@ -5,20 +5,20 @@
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
-  {{ form.mobilenumber.errors }}
+  <span style="color:red;">{{ form.mobilenumber.errors }}</span>
   <span style="font-size:90%;">{{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<br>
   <i style="color:grey;font-size:82%">Tumhara mobile number kisi ko nahi dikhaya jaye ga!</i></span>
-  {{ form.bio.errors }}<p style="font-size:90%;">
+  <span style="color:red;">{{ form.bio.errors }}</span><p style="font-size:90%;">
   {{ form.bio.label_tag }}{{ form.bio }}</p><p>
-  {{ form.avatar.errors }}<p style="font-size:90%;">
+  <span style="color:red;">{{ form.avatar.errors }}</span><p style="font-size:90%;">
   {{ form.avatar.label_tag }}{{ form.avatar }}</p><p>
-  {{ form.age.errors }}<p style="font-size:90%;">  
+  <span style="color:red;">{{ form.age.errors }}</span><p style="font-size:90%;">  
   {{ form.age.label_tag }}{{ form.age }}</p>
-  {{ form.gender.errors }}
+  <span style="color:red;">{{ form.gender.errors }}</span>
 <span style="font-size:90%;">{{ form.gender.label_tag }}</span><br>{% for radio in form.gender %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto;">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  {{ form.shadi_shuda.errors }}
+  <span style="color:red;">{{ form.shadi_shuda.errors }}</span>
   <span style="font-size:90%;">Shaadi shuda</span><br>{% for radio in form.shadi_shuda %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  {{ form.attractiveness.errors }}
+  <span style="color:red;">{{ form.attractiveness.errors }}</span>
   <span style="font-size:90%;">Shakal soorat</span><br>{% for radio in form.attractiveness %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
   <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="Save">
 </form>

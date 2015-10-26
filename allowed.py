@@ -1,1 +1,1 @@
-ALLOWED = ['Faizan_Ali', 'NaeemRana','Badal','mhb11','AhmadMeher','Amjad_707','hari420',]
+ALLOWED = ['Sweet_boy', 'Faizan_Ali', 'NaeemRana','Badal','mhb11','AhmadMeher','Amjad_707','hari420',]

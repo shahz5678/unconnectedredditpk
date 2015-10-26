@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 register = template.Library()
 
-FEMALES = ['Alveena_rani476', 'AnfaaL', 'Bisma.Azam', 'zahra', 'Anjilina', 'Aamina','Manhi','rabiaali', 'Sana', 'Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
+FEMALES = ['sandul', 'Annu', 't', 'Alveena_rani476', 'AnfaaL', 'Bisma.Azam', 'zahra', 'Anjilina', 'Aamina','Manhi','rabiaali', 'Sana', 'Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
 
 @register.assignment_tag(takes_context=True)
 def check_user_is_verified(context):

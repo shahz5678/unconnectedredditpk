@@ -46,11 +46,7 @@
     {% endif %}
     </b>
     </span>
-    {% if link.submitter.username == 'unregistered_bhoot' %}
-    	
-    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span>
-    	
-	{% else %}
+
 	{% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
@@ -77,7 +73,7 @@
 		    {% endif %}
 		    
 	</span>
-    {% endif %}
+    
     {% if user.is_authenticated %}
     {% for person in checked %}
     {% if person == link.submitter.username %}
@@ -89,7 +85,7 @@
 
 	
 	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
-	{% if link.submitter.username != 'unregistered_bhoot' %}
+
 	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
 	{% csrf_token %}
 	{% if link.publicreply_set.count %}
@@ -104,10 +100,9 @@
 
 	{% endif %}
 	</form>
-	{% endif %}
-	<br>
 
-	<p style="margin-top:.5em;">
+
+	
 	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
@@ -117,6 +112,7 @@
 	{% if not user.is_authenticated %}
 
 	{% elif link.pk not in voted %}	
+	<br>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 	{% else %}
@@ -153,11 +149,18 @@
 	</p>
 	</form>
 {% else %}
-{% if link.submitter.username == 'unregistered_bhoot' %}
-   	
-    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span>
-    	
-	{% else %}
+<span class="numbers">
+    <b>
+{% if not page_obj.number|add:"-1" %}
+    	{{ forloop.counter }}.
+    {% else %}
+    	{% if forloop.counter == 10 %}
+    		{{ page_obj.number }}0.
+    	{% else %}	
+    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+    	{% endif %}
+    {% endif %}
+    </b></span>
 	{% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
@@ -184,7 +187,7 @@
 		{% endif %}
 		    
 	</span>
-    {% endif %}
+
     {% if user.is_authenticated %}
     {% for person in checked %}
     {% if person == link.submitter.username %}

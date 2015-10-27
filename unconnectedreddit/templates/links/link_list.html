@@ -29,7 +29,7 @@
 {% endif %}
 </p>
 {% for link in object_list %}
-{% if not link.votes or link.votes > -4 %}
+
     
     <span class="numbers">
     <b>
@@ -153,47 +153,8 @@
 	{% endif %}
 	</p>
 	</form>
-{% else %}
 
-{% if link.submitter.username == 'unregistered_bhoot' %}
-    	
-    <span class="bigger" style="color:#666666;">unregistered_bhoot:</span>
-    	
-	{% else %}
-	{% if link.submitter.userprofile.avatar %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
-		</a>
-	{% else %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
-		</a>
-	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
-	<span style="font-size:85%;">
-		{% if user.is_authenticated %}
-			{% if user.usersettings.score_setting == '1' %}
-				{% if link.submitter.userprofile.score %}
-					{% if link.submitter.userprofile.score < 0 %}
-				    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
-				    {% else %}
-				    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
-					{% endif %}
-			    {% else %}
-			    {% endif %}
-			{% else %}
-			{% endif %}
-		{% endif %}
-		    
-	</span>
-    {% endif %}
-    {% if user.is_authenticated %}
-    {% for person in checked %}
-    {% if person == link.submitter.username %}
-    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}{% endfor %}{% endif %}
-    <span style="color:grey;font-size:85%;"><i>ne ghalat baat ki, chupairien maar maar ke iska moo <span style="color:red;">laal</span> karr diya gaya</i></span>
-{% endif %}
+
 <p style="color:gray"><hr size=1></p>
 
 {% endfor %}

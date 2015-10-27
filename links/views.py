@@ -6,7 +6,7 @@ from operator import attrgetter
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from collections import defaultdict
-from django.db.models import Max, Count, Q
+from django.db.models import Max, Count, Q, Sum
 from verified import FEMALES
 from allowed import ALLOWED
 from .models import Link, Vote, UserProfile, UserSettings, Publicreply, Seen, Unseennotification
@@ -115,9 +115,16 @@ class LinkDetailView(DetailView):
 
 class LinkListView(ListView):
 	model = Link
-	queryset = Link.objects.order_by('-submitted_on')[:120] #Link.with_votes.order_by('-submitted_on')[:180] 
+	#queryset = Link.objects.order_by('-submitted_on')[:120] #Link.with_votes.order_by('-submitted_on')[:180] 
 	paginate_by = 10
 	
+	def get_queryset(self):
+		queryset = Link.objects.order_by('-submitted_on')[:120]
+		#all_link_ids = [link.id for link in queryset]
+		#queryset = Link.objects.filter(id__in=all_link_ids)
+		queryset = queryset.annotate(votes=Sum('vote__value'))
+		return queryset
+
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES

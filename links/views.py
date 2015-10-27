@@ -115,7 +115,7 @@ class LinkDetailView(DetailView):
 
 class LinkListView(ListView):
 	model = Link
-	queryset = Link.objects.order_by('-submitted_on')[:180] #instead of Link.with_votes.all()
+	queryset = Link.with_votes.order_by('-submitted_on')[:120] #Link.objects.order_by('-submitted_on')[:180] 
 	paginate_by = 10
 	
 	def get_context_data(self, **kwargs):

@@ -63,9 +63,9 @@ class Relationship(models.Model):
 '''
 
 class LinkVoteCountManager(models.Manager): #this class is derived from model manager
-	#pass
-	def get_query_set(self): #all we're doing here is over-riding get_query_set. 
-		return super(LinkVoteCountManager, self).get_query_set().annotate(votes=Sum('vote__value'))#.order_by('-rank_score', '-votes')
+	pass
+	'''def get_query_set(self): #all we're doing here is over-riding get_query_set. 
+		return super(LinkVoteCountManager, self).get_query_set().annotate(votes=Sum('vote__value'))#.order_by('-rank_score', '-votes')'''
 			 #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):

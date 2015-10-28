@@ -24,6 +24,7 @@
 {% endfor %}
 :&nbsp;{{ parent.description }}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
 <a name="sectionJ"></a> 
+{% if user.userprofile.score > -10 %}
 <form action="{% url 'reply' pk=parent.pk %}" method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
@@ -31,7 +32,9 @@
     <br>
 <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
 </form>
-
+{% else %}
+<i style="color:red;">Tumhara score itna nahi ke tum jawab de sako</i>
+{% endif %}
 <p style="color:gray"><hr size=1></p>
 <a href="/" style="font-size:65%;"><b>home</b></a>&nbsp;<span style="font-size:70%;">|</span>
 <a href="{% url 'unseen_activity' slug=user.username %}#section0" style="font-size:65%;"><b>dusray jawab</b></a>&nbsp;<span style="font-size:70%;">|</span>

@@ -120,8 +120,6 @@ class LinkListView(ListView):
 	
 	def get_queryset(self):
 		queryset = Link.objects.order_by('-submitted_on')[:120]
-		#all_link_ids = [link.id for link in queryset]
-		#queryset = Link.objects.filter(id__in=all_link_ids)
 		queryset = queryset.annotate(votes=Sum('vote__value'))
 		return queryset
 
@@ -429,12 +427,12 @@ class LinkCreateView(CreateView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		#Setting rank score
-		epoch = datetime(1970, 1, 1).replace(tzinfo=None)
-		unaware_submission = datetime.now().replace(tzinfo=None)
-		td = unaware_submission - epoch 
-		epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
-		secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
-		f.rank_score = round(0 * 0 + secs / 45000, 8)
+		#epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+		#unaware_submission = datetime.now().replace(tzinfo=None)
+		#td = unaware_submission - epoch 
+		#epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+		#secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+		f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
 		if self.request.user.is_authenticated():
 			f.submitter = self.request.user
 			f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 5 points every time a user submits new content

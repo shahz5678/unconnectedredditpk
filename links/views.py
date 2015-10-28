@@ -115,13 +115,13 @@ class LinkDetailView(DetailView):
 
 class LinkListView(ListView):
 	model = Link
-	#queryset = Link.objects.order_by('-submitted_on')[:120] #Link.with_votes.order_by('-submitted_on')[:180] 
+	queryset = Link.objects.order_by('-submitted_on')[:120] #Link.with_votes.order_by('-submitted_on')[:180] 
 	paginate_by = 10
 	
-	def get_queryset(self):
+	'''def get_queryset(self):
 		queryset = Link.objects.order_by('-submitted_on')[:120]
 		queryset = queryset.annotate(votes=Sum('vote__value'))
-		return queryset
+		return queryset'''
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
@@ -546,13 +546,13 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if btn == 'jhappee':
 			val = 1
 			if not link.submitter.username == 'unregistered_bhoot':
-				link.submitter.userprofile.score = link.submitter.userprofile.score + 10 #adding 10 points every time a user's content gets an upvote
+				link.submitter.userprofile.score = link.submitter.userprofile.score + 5 #adding 10 points every time a user's content gets an upvote
 				link.submitter.userprofile.save() #this is a server call 
 		#elif btn == u"\u2717":
 		elif btn == 'chupair':
 			val = -1
 			if not link.submitter.username == 'unregistered_bhoot':
-				link.submitter.userprofile.score = link.submitter.userprofile.score - 8 #subtracting 10 points every time a user's content gets a downvote
+				link.submitter.userprofile.score = link.submitter.userprofile.score - 5 #subtracting 10 points every time a user's content gets a downvote
 				link.submitter.userprofile.save()
 		else:
 			val = 0
@@ -567,11 +567,11 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		else:
 			if prev_votes[0].value > 0:
 				if not link.submitter.username == 'unregistered_bhoot':
-					link.submitter.userprofile.score = link.submitter.userprofile.score - 10 #subtract previously added score because of the upvote
+					link.submitter.userprofile.score = link.submitter.userprofile.score - 5 #subtract previously added score because of the upvote
 					link.submitter.userprofile.save()
 			else:
 				if not link.submitter.username == 'unregistered_bhoot':
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 8 #add previously subtracted score because of the downvote
+					link.submitter.userprofile.score = link.submitter.userprofile.score + 5 #add previously subtracted score because of the downvote
 					link.submitter.userprofile.save()
 			# delete vote
 			prev_votes[0].delete() #if user has previously voted, simply delete previous vote

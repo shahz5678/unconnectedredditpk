@@ -29,7 +29,8 @@
 {% endif %}
 </p>
 {% for link in object_list %}
-	{% if not link.votes or link.votes > -3 %}
+	{% if link.submitter.userprofile.score > -10 %} <!-- link.votes reference -->
+    
     <span class="numbers">
     <b>
     {% if link.image_file %}
@@ -112,11 +113,11 @@
 	{% if not user.is_authenticated %}
 
 	{% elif link.pk not in voted %}	
-	{% if user.userprofile.score > -10 %}
+
 	<br>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
-		{% endif %}
+
 	{% else %}
 
 	{% endif %}</p>
@@ -150,7 +151,7 @@
 	{% endif %}
 	</p>
 	</form>
-{% else %}
+{% else %}                                             <!-- links.votes else -->
 <span class="numbers">
     <b>
 {% if not page_obj.number|add:"-1" %}

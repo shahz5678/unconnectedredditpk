@@ -340,7 +340,7 @@ class UnseenActivityView(ListView):
 			index = 0
 			seen_replies = []
 			link_ids = [link.id for link in context["object_list"]]
-			#latest_replies = [link.publicreply_set.latest('submitted_on') for link in context["object_list"]]
+			#latest_replies = Publicreply.objects.filter(answer_to_id__in=link_ids).order_by('answer_to','-submitted_on').distinct('answer_to')
 			seen_replies = Publicreply.objects.filter(answer_to_id__in=link_ids,publicreply_seen_related__seen_user = user)#all seen replies to all links in object_list
 			#need to get all latest replies for each link in object_list
 			for link in context["object_list"]:

@@ -197,7 +197,7 @@ class OnlineKonView(ListView):
 
 	def get_queryset(self):
 		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
-		users = Session.objects.only('user').distinct('user')
+		users = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
 		print users
 		return users
 

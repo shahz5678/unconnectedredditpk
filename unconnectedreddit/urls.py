@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.models import UserProfile, Vote
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView #MyRegistrationView
+from links.views import LinkListView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView #MyRegistrationView
 
 
 admin.autodiscover()
@@ -13,6 +13,7 @@ urlpatterns = patterns('',
 	url(r'^$', LinkListView.as_view(), name='home'),
 	url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
 	url(r'^logout/$', 'django.contrib.auth.views.logout_then_login', name="logout"),
+	url(r'', include('user_sessions.urls', 'user_sessions')),
 	#url(r'^register/$', MyRegistrationView.as_view(), name='registration_register'),
 	#url(r'^register/closed/$', TemplateView.as_view(template_name='registration/registration_closed.html'),
 	#                      name='registration_disallowed'),
@@ -22,6 +23,7 @@ urlpatterns = patterns('',
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
 	url(r'^accounts/', include('registration.backends.simple.urls')),
 	url(r'^online_kone/$', auth(WhoseOnlineView.as_view()), name='online_kone'),
+	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name="user_activity"),
 	url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name="unseen_activity"),
 	url(r'^link/create/$', auth(LinkCreateView.as_view()), name='link_create'),

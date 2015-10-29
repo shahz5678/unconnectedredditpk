@@ -22,8 +22,10 @@ from django.http import HttpRequest, HttpResponse
 from math import log
 from PIL import Image, ImageFile
 from datetime import datetime, timedelta
+from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
+from django.views.decorators.cache import cache_page
 
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
@@ -184,6 +186,20 @@ class LinkUpdateView(UpdateView):
 	model = Link
 	form_class = LinkForm
 	paginate_by = 10
+
+class OnlineKonView(ListView):
+	#model = User
+	template_name = "online_kon.html"
+	paginate_by = 75
+	#Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=500))).only('user').distinct('user')
+	#User.session_set.filter(last_activity__gte=(timezone.now()-timedelta(minutes=500))).only('user').distinct('user')
+	#link.publicreply_set.latest('submitted_on')
+
+	def get_queryset(self):
+		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
+		users = Session.objects.only('user').distinct('user')
+		print users
+		return users
 
 class WhoseOnlineView(FormView):
 	form_class = WhoseOnlineForm
@@ -589,8 +605,6 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		voter = get_object_or_404(Link, pk=form.data["voter"])
 		print 'form invalid, voter_id = %s' % voter.id
 		return redirect("home")
-	
-
 	
 def LinkAutoCreate(user, content):   
 	link = Link()

@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from .forms import UserProfileForm, LinkForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, clean_image_file
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
 from math import log
@@ -187,28 +187,29 @@ class LinkUpdateView(UpdateView):
 	form_class = LinkForm
 	paginate_by = 10
 
+#@cache_page(20)
 class OnlineKonView(ListView):
-	#model = User
 	template_name = "online_kon.html"
 	paginate_by = 75
-	#Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=500))).only('user').distinct('user')
-	#User.session_set.filter(last_activity__gte=(timezone.now()-timedelta(minutes=500))).only('user').distinct('user')
-	#link.publicreply_set.latest('submitted_on')
 
 	def get_queryset(self):
-		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
 		users = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
-		print users
 		return users
+
+	def get_context_data(self, **kwargs):
+		context = super(OnlineKonView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["legit"] = FEMALES
+		return context
 
 class WhoseOnlineView(FormView):
 	form_class = WhoseOnlineForm
 	template_name = "whose_online.html"
-	#paginate_by = 10 # date_based generic views don't support pagination, because by the time you go to the next page, the set would have changed
 
 	def get_context_data(self, **kwargs):
 		context = super(WhoseOnlineView, self).get_context_data(**kwargs)
-		context["legit"] = FEMALES
+		if self.request.user.is_authenticated():
+			context["legit"] = FEMALES
 		return context
 
 class LinkDeleteView(DeleteView):
@@ -415,7 +416,7 @@ class UserProfileEditView(UpdateView):
 		return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
 	def get_success_url(self):
-		return reverse("profile", kwargs={'slug': self.request.user})
+		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
 
 class UserSettingsEditView(UpdateView):
@@ -427,7 +428,7 @@ class UserSettingsEditView(UpdateView):
 		return UserSettings.objects.get_or_create(user=self.request.user)[0]
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse("profile", kwargs={'slug': self.request.user})
+		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
 class LinkCreateView(CreateView):
 	model = Link
@@ -517,7 +518,7 @@ class LinkCreateView(CreateView):
 		return super(CreateView, self).form_valid(form)
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse("home")
+		return reverse_lazy("home")
 
 class ReportView(FormView):
 	form_class = ReportForm

@@ -40,5 +40,4 @@ urlpatterns = patterns('',
 	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name="reply"),
 	url(r'^report/(?P<pk>\d+)/$', auth(ReportreplyView.as_view()), name="reportreply"),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
-
 )

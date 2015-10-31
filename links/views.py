@@ -591,7 +591,10 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 					link.submitter.userprofile.score = link.submitter.userprofile.score + 5 #add previously subtracted score because of the downvote
 					link.submitter.userprofile.save()
 			# delete vote
-			prev_votes[0].delete() #if user has previously voted, simply delete previous vote
+			try:
+				prev_votes[0].delete() #if user has previously voted, simply delete previous vote
+			except:
+				pass
 		try:
 			if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
 				url = self.request.META.get('HTTP_REFERER')

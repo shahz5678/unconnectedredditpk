@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<b>Apni mehfil ka mazedar topic rakho, jo logoon ko pasand aye!</b><br>
+<span style="color:grey;font-size:85%;"><i>maslun: 'funny pics dikhaney ki mehfil', 'hum aur tum', 'PTI vs PML(N) vs PPP'</i></span><br></br>
+<form method="post" action="" method="POST">
+{% csrf_token %}
+
+<span style="color:red;">{{ form.topic.errors }}</span>
+<span style="font-size:92%;">{{ form.topic.label_tag }}</span>{{ form.topic }}<br><br>
+<b>Topic rakh lia? Abb batao ke mehfil private rakhni hai, ya koi bhi iss mien aa sakta hai</b><br><br>
+<span style="color:red;">{{ form.private.errors }}</span>
+  <span style="font-size:90%;">Privacy:</span><br>{% for radio in form.private %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
+<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+</form>
+</div>
+{% endblock %}

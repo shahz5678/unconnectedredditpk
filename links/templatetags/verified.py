@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 register = template.Library()
 
-FEMALES = [u'Š0nîКa_Pārììï', 'sumaira.khan', 'fasiha_93', 'Princess_asi', 'Aysha.khan', 'Seep', 'khazaen', 'noshihaider', 'Phool', 'Kawari-kurri' , 'hayakhan', 'sandul', 'Annu', 't', 'Alveena_rani476', 'AnfaaL', 'Bisma.Azam', 'zahra', 'Anjilina', 'Aamina','Manhi','rabiaali', 'Sana', 'Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','Rimiii','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
+FEMALES = [u'Š0nîКa_Pārììï', 'sumaira.khan', 'fasiha_93', 'Princess_asi', 'Aysha.khan', 'Seep', 'khazaen', 'noshihaider', 'Phool', 'Kawari-kurri' , 'hayakhan', 'sandul', 'Annu', 't', 'Alveena_rani476', 'AnfaaL', 'Bisma.Azam', 'zahra', 'Anjilina', 'Aamina','Manhi','rabiaali', 'Sana', 'Aishmato', 'Jaana', 'ayla', 'Maleenjaslee', 'Hoor', 'Tani_789', 'Sanam_khan', 'Esha-ali-subhani', 'dipika', 'Pomi', 'Hina', 'July', 'Juhikhan', 'gori', 'samreen', 'Farheen', 'pholi', 'AlinaNoor_786', 'rabika', 'mehro', 'Sheeery', 'Maleenjalee','RimiShah','Remsha','sherikhokhar5','Roshni_malik_53','Rahat',]
 
 @register.assignment_tag(takes_context=True)
 def check_user_is_verified(context):

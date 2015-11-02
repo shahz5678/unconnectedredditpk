@@ -4,7 +4,7 @@
 {% load request_tag %}
 {% cache 20 template_fragment1 %}
 <div class="margin">
-<span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damamdam par nazar aye:</span><br><br>
+<span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
 {% active_users in 5 minutes as user_list %}
 {% for active_user in user_list %}
 <span style="font-size:80%;color:grey;">{{ forloop.counter }}.</span>

@@ -1,30 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-{% load cache %}
-{% cache 20 template_fragment2 %}
-<div class="margin">
-<span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
-<ol>
-{% for visitor in object_list %}
-<li>
-<a href="{% url 'profile' slug=visitor.user.username %}#section0">
-{% if visitor.user.userprofile.avatar %}
-            <img src="{{ visitor.user.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
-        {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
-        {% endif %}
-{{ visitor.user.username }}
-</a>
-{% for person in legit %}
-    {% if person == visitor.user.username %}
-        <span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}
-{% endfor %}
-</li>
-{% endfor %}
-</ol>
-</div>
-{% endcache %}
+    {% load cache %}
+    {% cache 30 template_fragment2 %}
+    <div class="margin">
+        <span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
+        <ol>
+            {% for unique_session in object_list %}
+                <li>
+                    <a href="{% url 'profile' slug=unique_session.user.username %}#section0">
+                        {% if unique_session.user.userprofile.avatar %}
+                            <img src="{{ unique_session.user.userprofile.avatar.url }}" alt="no pic" height="20" width="20"></img>
+                        {% else %}
+                            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="20" width="20"></img>
+                        {% endif %}
+                        {{ unique_session.user.username }}
+                    </a>
+                        {% for person in legit %}
+                            {% if person == unique_session.user.username %}
+                                <span style="font-size:200%;color:deeppink;"><b>*</b></span>
+                            {% endif %}
+                        {% endfor %}
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+    {% endcache %}
 {% endblock %}
 
 {% block pagination %}
@@ -39,5 +39,4 @@
     {% endif %}
 </div>
 {% endif %}
- 
 {% endblock %}

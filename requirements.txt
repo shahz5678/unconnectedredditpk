@@ -37,3 +37,4 @@ South==1.0.2
 sqlparse==0.1.16
 static3==0.6.1
 tweepy==3.3.0
+waitress==0.8.10

@@ -119,7 +119,7 @@ MIDDLEWARE_CLASSES = (
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
 	#'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
-	#'request.middleware.RequestMiddleware',
+	'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	#'mobi.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:

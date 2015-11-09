@@ -118,7 +118,8 @@ MIDDLEWARE_CLASSES = (
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-	'request.middleware.RequestMiddleware',
+	#'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
+	#'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	#'mobi.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:
@@ -172,7 +173,7 @@ INSTALLED_APPS = (
 	'django.contrib.humanize',
 	'analytical',
 	'mathfilters',
-	'request',
+	#'request',
     #'debug_toolbar',
 	#'analytical',
 	#'django_whoshere',

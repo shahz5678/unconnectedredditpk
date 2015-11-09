@@ -1,1 +1,1 @@
-web: newrelic-admin run-program waitress-serve --port=$PORT unconnectedreddit.wsgi:application
+web: newrelic-admin run-program gunicorn unconnectedreddit.wsgi --log-file -

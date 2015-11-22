@@ -1,13 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="margin">
-<h2>Login Karo!</h2>
-<p>Agar khaata nahi khola hua toh pehlay <a href="{% url 'registration_register' %}#section0">register</a> karo.</p>
-{% if form.errors %}
-<p>Nickname aur password wohi honay chahiye jin se register kiya tha. Bhool gaye ho toh doobara <a href="{% url 'registration_register' %}">register</a> karo.</p>
-{% endif %}
 
+<div class="margin">
 <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
   {% csrf_token %}
   
@@ -22,4 +16,5 @@
   <input type="hidden" name="next" value="{{ next }}">
 </form>
 </div>
+
 {% endblock %}

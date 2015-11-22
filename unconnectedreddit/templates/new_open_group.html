@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<b style="color:red;">Apni mehfil ka mazedar topic dalo, jo sab ko pasand aye!</b><br>
+<span style="color:grey;font-size:85%;"><i>maslan: 'Funny pics ki duniya', 'Parhaii mien maddad', 'Khareed-o-farokht ka markaz'</i></span><br></br>
+<form method="post" action="" method="POST">
+{% csrf_token %}
+
+	<span style="color:red;">{{ form.topic.errors }}</span>
+	<span style="font-size:92%;">Topic dalo:</span>{{ form.topic }}<br>
+
+	<br><b style="color:red;">Mehfil mien kiya qanoon rakhna chahtey ho?</b><br>
+	<span style="color:grey;font-size:85%;"><i>maslan: 'har jumlay mien funny seflie zaroori hai', 'sirf students parahii ke sawalaat poochien', 'mobile baichney ke liye yahan post karo'</i></span><br></br>  
+	<span style="color:red;">{{ form.rules.errors }}</span>
+	<span style="font-size:92%;">Yahan ka Qanoon:</span>{{ form.rules }}<br>
+
+	<br><b style="color:red;">Mehfil mien pics daalney ki ijazat deni hai?</b><br>
+	<span style="color:grey;font-size:85%;"><i>Soch samajh kar ye ijazat do</i></span><br></br>
+	<span style="color:red;">{{ form.pics_ki_ijazat.errors }}</span>
+	<span style="font-size:92%;">Pics ki ijazat:</span><br>
+	{% for radio in form.pics_ki_ijazat %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
+	
+<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+</form>
+</div>
+{% endblock %}

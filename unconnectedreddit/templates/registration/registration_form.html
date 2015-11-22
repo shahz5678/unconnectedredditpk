@@ -1,18 +1,13 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <div class="margin">
-{% if form.errors %}
-Register karna mushkil lag raha hai toh <a href="{% url 'register_help' %}#section0">ye dekho</a>. Phir bhi nahi ho raha? 0333-555-3136 pe 'registration' likh ke SMS karo. 
-{% else %}
-<h2>Register karo (khaata kholo)</h2>
-<p>Agar nahi ata, toh pehlay <a href="{% url 'register_help' %}#section0">ye dekho</a>! Agar pehlay register kiya hua hai toh <a href="{% url 'login' %}#section0">login</a> karo.</p>
-{% endif %}
 <form method="post" action="">
   {% csrf_token %}
   {{ form.as_p }}<br>
-  <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="Register">
-  <br><i><span style="color:gray;font-size:85%;">nick mien space nahi daalni, acha?</span></i>
+  <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="OK">
+  <br><i><span style="color:gray;font-size:85%;">Khaata nahi khul raha?<br>0333-555-3136 pe <b>register</b> likh ke SMS karo.</span></i>
 </form>
 </div>
+
 {% endblock %}

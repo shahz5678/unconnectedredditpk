@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<span style="color:purple;"><b>Apney dost ka naam aur number daal ke OK dabao:</b></span>
+
+<form action="{% url 'outside_message_create' %}" method="POST">
+{% csrf_token %}
+<table><br>
+<tr>
+<span style="color:red;">{{ form.full_name.errors }}</span>
+<td align="left;"><span style="color:purple;">Dost ka naam:</span></td><td align="right;">{{ form.full_name }}</td>
+</tr>
+<tr>
+<span style="color:red;">{{ form.mobile_number.errors }}</span>
+<td align="left;"><span style="color:purple;">Dost ka mobile number:</span></td><td align="right;">{{ form.mobile_number }}</td>
+</tr>
+</table>
+<input type="submit" class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" name="haan" value="OK"><br>
+</form>
+
+</div>
+{% endblock %}

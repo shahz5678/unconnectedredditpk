@@ -1,10 +1,12 @@
 from django import forms
-from .models import UserProfile, Link, Vote, UserSettings, Publicreply
+from django.forms import Textarea
+from .models import UserProfile, Link, Vote, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile
 import StringIO
 import math
+from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
 #from django.core.files.base import ContentFile
 
@@ -115,37 +117,189 @@ class UserSettingsForm(forms.ModelForm):
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	#image_file = forms.ImageField(label='Tasveer dallo:', help_text='less than 1 mb')
-	#description = forms.TextField("Kuch likho:", validators=[MaxLengthValidator(500)])
+	description = forms.CharField(label='Kuch likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
 		model = Link
 		exclude = ("submitter", "rank_score", "category")
 		fields = ("image_file", "description",)
 
+class PublicGroupReplyForm(forms.ModelForm):
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
+
+class OutsiderGroupForm(forms.ModelForm):
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
+
+class PrivateGroupReplyForm(forms.ModelForm):
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
 
 class PublicreplyForm(forms.ModelForm):
-	#description = forms.CharField("Kuch likho:")
+	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
+
+class OutsideMessageRecreateForm(forms.Form):
+	mobile_number = forms.CharField(max_length=50)
+	class meta:
+		fields = ("mobile_number",)
+
+class OutsideMessageCreateForm(forms.Form):
+	full_name = forms.CharField(max_length=50)
+	mobile_number = forms.CharField(max_length=50)
+	class meta:
+		fields = ("full_name","mobile_number")
+
+class ClosedGroupCreateForm(forms.ModelForm):
+	class Meta:
+		model = Group
+		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
+		fields = ("topic",)
 	
+class OpenGroupCreateForm(forms.ModelForm):
+	PicNoPic = (
+		('1','Haan'),
+		('0','Nahi'),
+		)
+	pics_ki_ijazat = forms.TypedChoiceField(choices=PicNoPic, widget=forms.RadioSelect, coerce=int)
+	class Meta:
+		model = Group
+		exclude = ("owner","created_at", "members", "cagtegory","private")
+		fields = ("topic", "rules", "pics_ki_ijazat")
+
+class ChangeGroupTopicForm(forms.ModelForm):
+	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Group
+		fields = ("topic",)
+
+class ChangeGroupRulesForm(forms.ModelForm):
+	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Group
+		fields = ("rules",)
+
 class VoteForm(forms.ModelForm): #creates a form for Vote
 	class Meta:
 		model = Vote
+
+class DirectMessageForm(forms.Form):
+	class Meta:
+		pass
+
+class DirectMessageCreateForm(forms.Form):
+	class Meta:
+		model = Group
+
+class InviteForm(forms.Form): # doesn't work if one uses Model form
+	class Meta:
+		model = Session
+
+class TopForm(forms.Form):
+	class Meta:
+		model = User
 
 class UnseenActivityForm(forms.ModelForm): #creates a form for Link
 	class Meta:
 		model = Link
 
+class OwnerGroupOnlineKonForm(forms.ModelForm):
+	class Meta:
+		model = GroupTraffic
+
+class GroupOnlineKonForm(forms.ModelForm):
+	class Meta:
+		model = GroupTraffic
+
+class OutsideMessageForm(forms.Form):
+	class Meta:
+		pass
+
+class GroupPageForm(forms.Form):
+	class Meta:
+		model = Reply
+
+class AppointCaptainForm(forms.Form): #doesn't work as forms.ModelForm
+	class Meta:
+		pass
+
+class GroupListForm(forms.Form):
+	class Meta:
+		pass
+		
+class OpenGroupHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class ClosedGroupHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class GroupTypeForm(forms.Form):
+	class Meta:
+		pass
+
 class ReportreplyForm(forms.Form):
 	class Meta:
 		pass
+
+class ReinviteForm(forms.Form):
+	class Meta:
+		pass
+
+class KickForm(forms.Form):
+	class Meta:
+		pass
+
+class GroupReportForm(forms.Form):
+	class Meta:
+		model = Reply
 
 class ReportForm(forms.Form):
 	class Meta:
 		model = Publicreply
 
 class ScoreHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class RegisterLoginForm(forms.Form):
+	class Meta:
+		pass
+
+class RegisterWalkthroughForm(forms.Form):
+	class Meta:
+		pass
+
+class LoginWalkthroughForm(forms.Form):
+	class Meta:
+		pass
+
+class OpenInviteTypeForm(forms.Form):
+	class Meta:
+		pass
+
+class SmsReinviteForm(forms.Form):
+	class Meta:
+		pass
+
+class SmsInviteForm(forms.Form):
+	class Meta:
+		pass
+
+class ClosedInviteTypeForm(forms.Form):
 	class Meta:
 		pass
 

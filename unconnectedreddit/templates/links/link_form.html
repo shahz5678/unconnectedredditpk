@@ -1,36 +1,29 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <div class="margin">
-<!--<h2>Kuch aisa likho jo logoon ko shughali lagay!</h2>
-<p>Jokes, news, questions, shayari, jo dil chahey likh do!</p>  -->
-{% if user.userprofile.score > -10 %}
 {% if user.username in official or user.username in allowed %}
 <h2><span style="color:green;">Funny pics ya selfies, lateefey, gupshup, sawaal, shayari, jo dil chahey daal do!</span></h2>  
 {% else %}
-<h2>Gupshup, lateefey, taaza khabar, sawaal, shayari, jo dil chahey daal do!</h2> 
+<h2>Chat karne ke liye neechay koi paigham likho!</h2> 
 {% endif %}
+
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {% if user.is_authenticated %}
   {% if user.username in official or user.username in allowed %}
-   {{ form.image_file.errors }}
+  <span style="color:red;">{{ form.image_file.errors }}</span>
   <span style="font-size:92%;">{{ form.image_file.label_tag }}</span>{{ form.image_file }}<br>
-  <span style="color:grey;font-size:80%;"><i><b>hoshyar</b>: 1mb se barri pic nahi lag sakey gi</i></span><br><br>
+  <span style="color:grey;font-size:80%;"><i>1mb se barri pic nahi lag sakti</i></span><br><br>
   {% endif %}
   {% endif %}
-  {{ form.description.errors }}
+  <span style="color:red;">{{ form.description.errors }}</span>
   <span style="font-size:92%;">{{ form.description.label_tag }}</span>{{ form.description }}<br>
-<!-- {{ form.url.errors }}
-  <span style="font-size:91%;">{{ form.url.label_tag }}</span>{{ form.url }}<br><br>-->
-  <!--<td>{{ form.as_p }}</td>-->
-  <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="Submit">
+  <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
 </form>
-<span style="font-size:80%;color:grey;"><i>maslan likho: mujhe aap sub ke darmiyan aa kar buhut acha laga</i></span>
+<span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzar raha hai?</i></span>
 <br>
-{% else %}
-<i style="color:red;">Tumhara score itna nahi ke tum kuch likh sako</i>
-{% endif %}
-<!--<span style="color:gray;font-size:85%">Jo likho gey, usko jitney logg pasand karien ge, woh utna mashoor ho kar list mien uper aata jaye ga!</span>-->
 </div>
+
+
 {% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<b style="color:green;">Apni mehfil ka aik dilchusp topic dalo!</b><br>
+<span style="color:grey;font-size:85%;"><i>maslan: 'Hum aur tum', 'Meray best friends', 'Sirf pink stars ke liye'</i></span><br></br>
+
+<form method="post" action="" method="POST">
+{% csrf_token %}
+<span style="color:red;">{{ form.topic.errors }}</span>
+<span style="font-size:92%;">{{ form.topic.label_tag }}</span>{{ form.topic }}<br>
+<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+</form>
+
+</div>
+{% endblock %}

@@ -18,19 +18,7 @@
 	{% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img><br>
 	{% endif %}
-	<span class="numbers">
-    <b>
-    {% if not page_obj.number|add:"-1" %}
-    	{{ forloop.counter }}.
-    {% else %}
-    	{% if forloop.counter == 10 %}
-    		{{ page_obj.number }}0.
-    	{% else %}	
-    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
-    	{% endif %}
-    {% endif %}
-    </b>
-    </span>
+	<span style="color:lightgrey;">&bullet;</span>
     {% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
@@ -56,7 +44,6 @@
 	{% endif %}
 	{% for girl in verified %}
     {% if girl == link.submitter.username %}
-    	<!--<img src="{{ STATIC_URL }}img/female.png" alt="*" height="15" width="15"></img>-->
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
 	: {{ link.description }}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
@@ -69,26 +56,27 @@
 	{% else %}
 	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 	{% endif %}
-
+	{% if can_vote %}
 	<br>
 	{% for vote in vote_cluster reversed %}
 		{% if link.id == vote.link.id %}
 			{% if vote.value == -1 %}
-			{% if vote.voter == link.submitter %}
-				<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne apney aap ko chupair mari. Kheriyat hai?<br></span>
+			{% if vote.voter.username in verified %}
+				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko nani yad kara di (-300)!<br></span>
 			{% else %}
 				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
 			{% endif %}
 		{% endif %}
 		{% if vote.value == 1 %}
-			{% if vote.voter == link.submitter %}
-				<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne chalaaki se apney aap ko jhappi mari<br></span>
+			{% if vote.voter.username in verified %}
+				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko buhuuut barri jhappee mari (+50)!<br></span>
 			{% else %}
 				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
 			{% endif %}
 		{% endif %}
 		{% endif %}
 	{% endfor %}
+	{% endif %}
 	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
 	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
 	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
@@ -96,16 +84,13 @@
 	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">
 	{% csrf_token %}
 	<p style="margin-top:.5em;">
-	{% if not user.is_authenticated %}
-
-	{% elif link.pk not in voted and user.userprofile.score > -10 %}	
+	{% if link.pk not in voted and link.submitter != user and can_vote %}	
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
-	{% else %}
 
 	{% endif %}</p>
 	</form>
-<p style="color:gray"><hr size=1></p>
+<hr size=1>
 {% endfor %}
 {% endif %}
 </ul>

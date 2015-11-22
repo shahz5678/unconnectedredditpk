@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
-<span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
+
+{% if group.private == '1' %}
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group_reply' slug=unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
+{% else %}
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group_reply' slug=unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
+{% endif %}
 
 {% for visitor in visitors %}
-<!-- set which users to show, which to not show -->
 {% if visitor.userprofile.score > 0 and visitor != user %}
 
-	<form action="{% url 'invite' pk=group_id %}" method="POST" >
+	<form action="{% url 'invite' slug=group.unique %}" method="POST" >
 	{% csrf_token %}
 	<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor.pk }}">
 		{% if visitor.userprofile.avatar %}

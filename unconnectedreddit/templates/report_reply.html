@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Kiya app iss jawab ko report karna chahtey ho?</h2>
+<h2>Kiya tum iss jawab ko report karna chahtey ho?</h2>
 <form action="{% url 'report' %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="reply" class="hidden_id" value="{{ reply }}">

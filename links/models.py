@@ -20,6 +20,17 @@ def upload_to_location(instance, filename):
 		print '%s (%s)' % (e.message, type(e))
 		return 0
 
+def upload_pic_to_location(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1]
+		filename = "%s.%s" % (uuid.uuid4(), ext)
+		instance.title = blocks[0]
+		return os.path.join('uploads/', filename)
+	except Exception as e:
+		print '%s (%s)' % (e.message, type(e))
+		return 0
+
 def upload_avatar_to_location(instance, filename):
 	try:
 		blocks = filename.split('.') 
@@ -30,6 +41,18 @@ def upload_avatar_to_location(instance, filename):
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return 0
+
+TYPE = (
+('1','Tamashaee'),
+('2','Gupshup'),
+('3','Sports'),
+('4','News'),
+('5','Poetry'),
+('6','Romance'),
+('7','Songs'),
+('8','Rishtay'),
+('9', 'Lain Dain')
+	)
 
 CATEGS = (
 ('1','Gupshup'),
@@ -47,6 +70,15 @@ STATUS = (
 ('1','Strangers'),
 ('2','Friends'),
 ('3','Blocked')
+	)
+
+REPLIES = (
+('0','Normal'),
+('1','Invite'),
+('2','Kick'),
+('3','Report'),
+('4','Topic_Change'),
+('5','Rules_Change'),
 	)
 
 '''
@@ -103,6 +135,76 @@ class Link(models.Model):
 		self.rank_score = round(sign * order + secs / 45000, 8)
 		self.save() # this persists the rank_score in the database'''
 		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 
+
+class Group(models.Model):
+	topic = models.TextField("Topic dalo:", validators=[MaxLengthValidator(200)], default='Damadam ki aik karari si mehfil...', null=True)
+	rules = models.TextField("Yahan ka Qanoon:", validators=[MaxLengthValidator(500)], default='Ladies ki izzat karo aur galiyan nahi do...', null=True)
+	owner = models.ForeignKey(User)
+	private = models.CharField("Privacy:", max_length=5, default=0)
+	category = models.CharField("Category:", choices=TYPE, default=1, max_length=25)
+	unique = models.CharField(max_length=36, unique=True)#for storing UUIDs
+	created_at = models.DateTimeField(auto_now_add=True)
+	pics_ki_ijazat = models.CharField(max_length=5, default=1)
+	
+	def __unicode__(self): #built-in function
+		return u"%s created %s, where private is %s" % (self.owner, self.topic, self.private)
+
+class GroupCaptain(models.Model):
+	which_user = models.ForeignKey(User)
+	which_group = models.ForeignKey(Group)
+
+	def __unicode__(self):
+		return u"%s was made a captain in %s" % (self.which_user, self.which_group.topic)
+
+class GroupBanList(models.Model):
+	which_user = models.ForeignKey(User)
+	which_group = models.ForeignKey(Group)
+
+	def __unicode__(self): #built-in function
+		return u"%s was banned from %s" % (self.which_user, self.which_group.topic)
+
+class HellBanList(models.Model):
+	condemned = models.ForeignKey(User)
+	when = models.DateTimeField(auto_now_add=True)
+
+	def __unicode__(self):
+		return u"%s was hell-banned at %s" % (self.condemned, self.when)
+
+class GroupTraffic(models.Model):
+	visitor = models.ForeignKey(User)
+	which_group = models.ForeignKey(Group)
+	time = models.DateTimeField(db_index=True, auto_now_add=True)
+
+	def __unicode__(self):
+		return u"%s visited %s" % (self.visitor, self.which_group.topic)
+
+class GroupInvite(models.Model):
+	invitee = models.ForeignKey(User, related_name='invitee')
+	inviter = models.ForeignKey(User, related_name ='inviter')
+	sent_at = models.DateTimeField(db_index=True, auto_now_add=True)
+	which_group = models.ForeignKey(Group)
+
+	def __unicode__(self):
+		return u"%s was invited to %s by %s" % (self.invitee, self.which_group.topic, self.inviter)
+
+class Reply(models.Model):
+	text = models.TextField("Likho:", validators=[MaxLengthValidator(500)])
+	which_group = models.ForeignKey(Group)
+	writer = models.ForeignKey(User) # reply.writer is a user!
+	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
+	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, null=True, blank=True )
+	category = models.CharField(choices=REPLIES, default='0', max_length=15)
+
+	def __unicode__(self):
+		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)
+
+class GroupSeen(models.Model):
+	seen_user = models.ForeignKey(User)
+	seen_at = models.DateTimeField(auto_now_add=True)
+	which_reply = models.ForeignKey(Reply)
+
+	def __unicode__(self):
+		return u"%s saw %s" % (self.seen_user, self.which_reply)
 
 class Vote(models.Model):
 	voter = models.ForeignKey(User) #what user.id voted

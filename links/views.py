@@ -47,28 +47,24 @@ def GetNonReplyLinks(user):
 	'''
 	try:
 		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).distinct().order_by('-submitted_on')[:90]
-		#print relevant_links
 	except:
 		relevant_links = []
-		#print "exception"
-	return relevant_links #list of links
+	return relevant_links
 
 def GetLinks(user):
 	try: 
 		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).values_list('id', flat=True)[:90]))
-		#print relevant_links_ids
 	except:
 		relevant_links_ids = []
-	return relevant_links_ids #list of relevant link ids
+	return relevant_links_ids
 
 def GetLatestUserInvolvement(user):
 	empty_timestamp = []
 	max_unseen_reply = []
-	relevant_link_ids = GetLinks(user) #link ids of all links containing user replies, in list format
+	relevant_link_ids = GetLinks(user)
 	if relevant_link_ids:
 		try:
-			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids)\
-			.exclude(Q(submitted_by=user)|Q(submitted_by_id__in=condemned)).latest('submitted_on') #got latest reply's timestamp posted in these links (and wasn't seen by the user)
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(submitted_by=user).exclude(submitted_by_id__in=condemned).latest('submitted_on')
 			return max_unseen_reply
 		except:
 			return empty_timestamp
@@ -241,6 +237,7 @@ class LinkListView(ListView):
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
 				freshest_reply = GetLatestUserInvolvement(self.request.user)
+				context["latest_reply"] = freshest_reply
 				################################
 				#freshest_link = Link.objects.filter(Q(submitter=self.request.user)|Q(publicreply__submitted_by=self.request.user)).distinct()#.annotate(date=Max('publicreply__submitted_on')).latest('date')#.only('publicreply__submitted_on','publicreply__submitted_by')
 				#print "the latest links are: %s" % freshest_link
@@ -253,6 +250,7 @@ class LinkListView(ListView):
 				except:
 					timestamp = []
 					sender = 0
+				context["timestamp"] = timestamp
 				try:
 					user_object = Unseennotification.objects.get(recipient=self.request.user)
 				except:

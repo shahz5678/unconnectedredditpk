@@ -448,8 +448,12 @@ class OutsideMessageCreateView(FormView):
 		if self.request.user_banned:
 			return redirect("error") #errorbanning
 		else:
-			nickname = self.request.POST.get("full_name")
-			number = self.request.POST.get("mobile_number")
+			try:
+				nickname = self.request.POST.get("full_name")
+				number = self.request.POST.get("mobile_number")
+			except:
+				nickname = "Dost"
+				number = "0345"
 			try:
 				unique = self.kwargs["slug"]
 			except:

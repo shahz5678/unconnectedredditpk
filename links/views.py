@@ -65,10 +65,10 @@ def GetLatestUserInvolvement(user):
 	if relevant_link_ids:
 		try:
 			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(submitted_by=user).exclude(submitted_by_id__in=condemned).latest('id')
-			return max_unseen_reply
+			return max_unseen_reply, relevant_link_ids
 		except:
-			return empty_timestamp
-	return empty_timestamp
+			return empty_timestamp, relevant_link_ids
+	return empty_timestamp, relevant_link_ids
 
 class OutsideMessageView(FormView):
 	form_class = OutsideMessageForm
@@ -236,8 +236,9 @@ class LinkListView(ListView):
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				freshest_reply = GetLatestUserInvolvement(self.request.user)
+				freshest_reply, relevant_ids = GetLatestUserInvolvement(self.request.user)
 				context["latest_reply"] = freshest_reply
+				context["relevant_ids"] = relevant_ids
 				################################
 				#freshest_link = Link.objects.filter(Q(submitter=self.request.user)|Q(publicreply__submitted_by=self.request.user)).distinct()#.annotate(date=Max('publicreply__submitted_on')).latest('date')#.only('publicreply__submitted_on','publicreply__submitted_by')
 				#print "the latest links are: %s" % freshest_link

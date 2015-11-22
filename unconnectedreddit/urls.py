@@ -1,9 +1,10 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
+from django.views.decorators.cache import cache_page
 from links.models import UserProfile, Vote
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView #MyRegistrationView
+from links.views import LinkListView, TopView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView
 
 
 admin.autodiscover()
@@ -19,25 +20,56 @@ urlpatterns = patterns('',
 	#                      name='registration_disallowed'),
 	#(r'', include('registration.auth_urls')),
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='profile'),#r'^[\w.@+-]+$'
-	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name="edit_settings"),
+	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
 	url(r'^accounts/', include('registration.backends.simple.urls')),
-	url(r'^online_kone/$', auth(WhoseOnlineView.as_view()), name='online_kone'),
-	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
-	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name="user_activity"),
-	url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name="unseen_activity"),
+	url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
+	url(r'^closed_group/help/(?P<pk>\d+)/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
+	url(r'^closed_group/create/(?P<pk>\d+)/$', auth(DirectMessageCreateView.as_view()), name='direct_message_create'),
+	url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
+	url(r'^closed_group/create/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
+	url(r'^online_kon/$', cache_page(60)(auth(OnlineKonView.as_view())), name='online_kon'),
+	url(r'^top/$', cache_page(300)(auth(TopView.as_view())), name='top'),
+	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
+	url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^link/create/$', auth(LinkCreateView.as_view()), name='link_create'),
+	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
+	url(r'^closed_group/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),
+	url(r'^open_group/create/$', auth(OpenGroupCreateView.as_view()), name='open_group_create'),
+	url(r'^closed_group/create/$', auth(ClosedGroupCreateView.as_view()), name='closed_group_create'),
+	url(r'^group/invite/(?P<slug>[\w.@+-]+)/$', auth(InviteUsersToGroupView.as_view()), name='invite'),
+	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/(?P<name>[\w.@+-]+)/$', auth(SmsInviteView.as_view()), name='sms_invite'),
+	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
+	url(r'^group/open_invite_type/(?P<slug>[\w.@+-]+)/$', auth(OpenInviteTypeView.as_view()), name='open_invite_type'),
+	url(r'^group/closed_invite_type/(?P<slug>[\w.@+-]+)/$', auth(ClosedInviteTypeView.as_view()), name='closed_invite_type'),
 	url(r'^link/(?P<pk>\d+)/$', LinkDetailView.as_view(), name='link_detail'),
 	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
+	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
+	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
+	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
+	url(r'^register_walkthrough/$', RegisterWalkthroughView.as_view(), name='register_walkthrough'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
 	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
 	url(r'^link/delete/(?P<pk>\d+)/$', auth(LinkDeleteView.as_view()), name='link_delete'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
-	url(r'^vote/$', VoteFormView.as_view(), name="vote"),
-	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name="reply"),
-	url(r'^report/(?P<pk>\d+)/$', auth(ReportreplyView.as_view()), name="reportreply"),
+	url(r'^vote/$', VoteFormView.as_view(), name='vote'),
+	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name='reply'),
+	url(r'^mehfil/(?P<slug>[\w.@+-]+)/public/$', auth(PublicGroupView.as_view()), name='public_group_reply'),
+	url(r'^mehfil/(?P<slug>[\w.@+-]+)/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
+	url(r'^mehfil/(?P<slug>[\w.@+-]+)/outsider/$', OutsiderGroupView.as_view(), name='outsider_group_reply'),####
+	url(r'^group/(?P<slug>[\w.@+-]+)/change_topic/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),
+	url(r'^group/(?P<slug>[\w.@+-]+)/change_rules/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),
+	url(r'^group/(?P<slug>[\w.@+-]+)/online_kon/$', cache_page(60)(auth(GroupOnlineKonView.as_view())), name='group_online_kon'),
+	url(r'^group/(?P<slug>[\w.@+-]+)/owner_online_kon/$', auth(OwnerGroupOnlineKonView.as_view()), name='owner_group_online_kon'),
+	url(r'^group/$', auth(GroupPageView.as_view()), name='group_page'),
+	url(r'^group_list/$', cache_page(60)(auth(GroupListView.as_view())), name='group_list'),
+	url(r'^group_type/$', auth(GroupTypeView.as_view()), name='group_type'),
+	url(r'^report/(?P<pk>\d+)/$', auth(ReportreplyView.as_view()), name='reportreply'),
+	url(r'^appoint/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/(?P<app>\d+)/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
+	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(GroupReportView.as_view()), name="group_report"),
+	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(KickView.as_view()), name='kick'),
 )

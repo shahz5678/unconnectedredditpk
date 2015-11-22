@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<span style="color:purple;"><b>Neechay 'SMS karo' ko daba do</b>
+<br>Ye tumharey dost ko ek code bhejay ga, jis ko istimaal kar ke woh tumhari mehfil mien wapis aa sakta hai:</span><br><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="sms:{{ number }}?body=Yar issey click kar ke meray saath muft pics chat kr: {{ sms_url }}"><b>SMS karo</b></a><br>
+<span style="color:grey;font-size:85%;">SMS karney ke baad dost se pics chat ke liye <b>Mehfil</b> mein jana</span>
+
+</div>
+{% endblock %}

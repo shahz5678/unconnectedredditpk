@@ -64,7 +64,7 @@ def GetLatestUserInvolvement(user):
 	relevant_link_ids = GetLinks(user)
 	if relevant_link_ids:
 		try:
-			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(submitted_by=user).exclude(submitted_by_id__in=condemned).latest('submitted_on')
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(submitted_by=user).exclude(submitted_by_id__in=condemned).latest('id')
 			return max_unseen_reply
 		except:
 			return empty_timestamp

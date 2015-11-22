@@ -4,204 +4,134 @@
 {% load mathfilters %}
 {% load urlize_target_blank %}
 {% block content %}
-{% if notification %}
-<span class="margin" style="color:red;"><b>Latest:</b> 
-{% if sender.userprofile.avatar %}
-		<a href="{% url 'profile' slug=sender.username %}#section0">
-		<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
-		</a>
+	{% if notification %}
+		<span class="margin" style="color:red;"><b>Latest:</b> 
+			{% if sender.userprofile.avatar %}
+				<a href="{% url 'profile' slug=sender.username %}#section0">
+				<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+				</a>
+			{% else %}
+				<a href="{% url 'profile' slug=sender.username %}#section0">
+				<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+				</a>
+			{% endif %}
+		<a href="{% url 'profile' slug=sender.username %}#section0">{{ sender.username }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
 	{% else %}
-		<a href="{% url 'profile' slug=sender.username %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
-		</a>
+			{% if user.is_authenticated %}
+				<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=fresh_users.0 %}#section0"><u>{{ fresh_users.0 }}</u></a></b>, <b><a href="{% url 'profile' slug=fresh_users.1 %}#section0"><u>{{ fresh_users.1 }}</u></a></b> aur <b><a href="{% url 'profile' slug=fresh_users.2 %}#section0"><u>{{ fresh_users.2 }}</u></a></b> Damadam par new hain. Welcome!</span>
+			{% else %}
+				<span class="margin" style="color:purple;"><b>Latest: {{ fresh_users.0 }}</b>, <b>{{ fresh_users.1 }}</b> aur <b>{{ fresh_users.2 }}</b> ne abhi abhi khaata khola. Tum bhi <a href="{% url 'register_login' %}#section0"><u>khaata kholo</u></a>!</span>
+			{% endif %}
 	{% endif %}
-<a href="{% url 'profile' slug=sender.username %}#section0">{{ sender.username }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
-{% else %}
-{% if user.is_authenticated %}
-<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=fresh_users.0 %}#section0"><u>{{ fresh_users.0 }}</u></a></b>, <b><a href="{% url 'profile' slug=fresh_users.1 %}#section0"><u>{{ fresh_users.1 }}</u></a></b> aur <b><a href="{% url 'profile' slug=fresh_users.2 %}#section0"><u>{{ fresh_users.2 }}</u></a></b> Damadam par new hain. Welcome!</span>
-{% endif %}
-{% endif %}
-<p>
-{% if is_paginated %}
-<span start="{{ page_obj.start_index }}">
-{% else %}
-<span>
-{% endif %}
-</p>
-{% for link in object_list %}
-	{% if link.submitter.userprofile.score > -10 %} <!-- link.votes reference -->
-    
-    <span class="numbers">
-    <b>
-    {% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img><br>
-	{% endif %}
-    {% if not page_obj.number|add:"-1" %}
-    	{{ forloop.counter }}.
-    {% else %}
-    	{% if forloop.counter == 10 %}
-    		{{ page_obj.number }}0.
-    	{% else %}	
-    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
-    	{% endif %}
-    {% endif %}
-    </b>
-    </span>
+		<p>
+		{% if is_paginated %}
+		<span start="{{ page_obj.start_index }}">
+		{% else %}
+		<span>
+		{% endif %}
+		</p>
+<div class="margin">
 
-	{% if link.submitter.userprofile.avatar %}
+{% for link in object_list %}
+	    {% if link.image_file %}
+	    <img src="{{ link.image_file.url }}"></img><br>
+		{% endif %}
+			<span class="numbers">
+			<b style="color:lightgrey;">
+			&bullet;
+		    </b>
+		    </span>
+		{% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
 		</a>
-	{% else %}
+		{% else %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
 		</a>
-	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
-	<span style="font-size:85%;">
-		{% if user.is_authenticated %}
-			{% if user.usersettings.score_setting == '1' %}
-				{% if link.submitter.userprofile.score %}
-					{% if link.submitter.userprofile.score < 0 %}
-				    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
-				    {% else %}
-				    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
-					{% endif %}
-			    {% else %}
-			    {% endif %}
-			{% else %}
-			{% endif %}
-	    {% endif %}
-		    
-	</span>
-    
-    {% if user.is_authenticated %}
-    {% for person in checked %}
-    {% if person == link.submitter.username %}
-    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}{% endfor %}{% endif %}:
-
-    <span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
-	<a name="section{{ forloop.counter }}"></a> 
-
-	
-	<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span><p>
-
-	<form  method="POST" action="{% url 'reply' pk=link.pk %}">
-	{% csrf_token %}
-	{% if link.publicreply_set.count %}
-		{% if link.publicreply_set.count < 26 %}
-		<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
-		{% else %}
-		<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="25+ jawab">
 		{% endif %}
+			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
+		<span style="font-size:85%;">
+		{% if user.is_authenticated %}
+				{% if user.usersettings.score_setting == '1' %}
+					{% if link.submitter.userprofile.score %}
+						{% if link.submitter.userprofile.score < 0 %}
+					    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
+					    {% else %}
+					    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
+						{% endif %}
+				    {% else %}
+				    {% endif %}
+				{% else %}
+				{% endif %}
+		{% endif %}
+		</span>
+		    {% for person in checked %}
+		    {% if person == link.submitter.username %}
+		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}:
 
-	{% else %}
-	<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="isko jawab do">
-
-	{% endif %}
-	</form>
-
-
-	
-	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
-	{% csrf_token %}
-	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
-	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
-	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
-	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
-	{% if not user.is_authenticated %}
-
-	{% elif link.pk not in voted %}	
-
-	<br>
+    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+			<a name="section{{ forloop.counter }}"></a> 
+		<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		<p>
+			<form  method="POST" action="{% url 'reply' pk=link.pk %}">
+			{% csrf_token %}
+			{% if link.publicreply_set.count %}
+				{% if link.publicreply_set.count < 26 %}
+				<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
+				{% else %}
+				<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="25+ jawab">
+				{% endif %}
+			{% else %}
+			<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="isko jawab do">
+			{% endif %}
+			</form>
+		<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+		{% csrf_token %}
+		<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
+		<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
+		<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
+		<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
+		
+		{% if link.pk not in voted and link.submitter != user and can_vote %}	
+		<br>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
 		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
-
-	{% else %}
-
-	{% endif %}</p>
-
-	{% if user.is_authenticated %}
-	<p style="margin-top:.5em;">
-	{% endif %}
-
-
-	{% if user.is_authenticated %}
-		{% if link.votes != 'None' %}
-			{% for vote in vote_cluster reversed %}
-				{% if link.id == vote.link.id %}
-					{% if vote.value == -1 %}
-						{% if vote.voter == link.submitter %}
-							<span style="color:red;"><b>{{ vote.voter.username }}</b> ne apney aap ko chupair mari. Kheriyat hai?<br></span>
-						{% else %}
-							<span style="color:red;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
-						{% endif %}
-					{% endif %}
-					{% if vote.value == 1 %}
-						{% if vote.voter == link.submitter %}
-							<span style="color:green;"><b>{{ vote.voter.username }}</b> ne chalaaki se apney aap ko jhappi mari<br></span>
-						{% else %}
-							<span style="color:green;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
-						{% endif %}
-					{% endif %}
-				{% endif %}
-			{% endfor %}
+		
 		{% endif %}
-	{% endif %}
-	</p>
-	</form>
-{% else %}                                             <!-- links.votes else -->
-<span class="numbers">
-    <b>
-{% if not page_obj.number|add:"-1" %}
-    	{{ forloop.counter }}.
-    {% else %}
-    	{% if forloop.counter == 10 %}
-    		{{ page_obj.number }}0.
-    	{% else %}	
-    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
-    	{% endif %}
-    {% endif %}
-    </b></span>
-	{% if link.submitter.userprofile.avatar %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
-		</a>
-	{% else %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
-		</a>
-	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
-	<span style="font-size:85%;">
+		</p>
+		</form>
 		{% if user.is_authenticated %}
-			{% if user.usersettings.score_setting == '1' %}
-				{% if link.submitter.userprofile.score %}
-					{% if link.submitter.userprofile.score < 0 %}
-				    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
-				    {% else %}
-				    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
-					{% endif %}
-			    {% else %}
-			    {% endif %}
-			{% else %}
-			{% endif %}
+		<p style="margin-top:.5em;">
 		{% endif %}
-		    
-	</span>
-
-    {% if user.is_authenticated %}
-    {% for person in checked %}
-    {% if person == link.submitter.username %}
-    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}{% endfor %}{% endif %}
-    <span style="color:grey;font-size:85%;"><i>ne ghalat baat ki, chupairien maar maar ke logoon ne iska moo <span style="color:red;">laal</span> karr diya</i></span>
-{% endif %}
-
+		{% if user.is_authenticated and can_vote %}
+			{% if link.votes != 'None' %}
+				{% for vote in vote_cluster reversed %}
+					{% if link.id == vote.link.id %}
+						{% if vote.value == -1 %}
+							{% if vote.voter.username in checked %}
+								<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}<span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko nani yad kara di (-300)!<br></span>
+							{% else %}
+								<span style="color:red;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+							{% endif %}
+						{% endif %}
+						{% if vote.value == 1 %}
+							{% if vote.voter.username in checked %}
+								<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}<span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko buhuuut barri jhappee mari (+50)!<br></span>
+							{% else %}
+								<span style="color:green;font-size:80%;"><b>{{ vote.voter.username }}</b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+							{% endif %}
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+		</p>
+		{% endif %}
 <p style="color:gray"><hr size=1></p>
-
 {% endfor %}
+</div>
 </span>
 
 
@@ -219,7 +149,6 @@
     {% endif %}
 </div>
 {% endif %}
- 
 {% endblock %}
 
 

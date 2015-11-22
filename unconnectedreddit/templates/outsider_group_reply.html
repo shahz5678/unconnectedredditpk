@@ -1,0 +1,163 @@
+{% extends user.is_authenticated|yesno:"base.html,empty.html" %}
+{% load humanize %}
+{% block content %}
+{% if not user.is_authenticated %}
+<body bgcolor="#EDFFEE">
+<div class="margin">
+
+    <form action="{% url 'outsider_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
+    <input type="hidden" id="id_link" name="unregistered" class="hidden_id" value="unregistered">
+    <span style="color:purple;font-size:90%;font-family:arial;"><b>Tasveer:</b>&nbsp;</span>{{ form.image }}<br>
+    <span style="color:grey;font-size:80%;font-family:arial;"><b>1 mb</b> se barri pic nahi lag sakti</span><br>
+    <span style="color:red;font-size:80%;font-family:arial;">{{ form.errors }}</span>
+    <br><span style="color:purple;font-size:90%;font-family:arial;"><b>Likho:</b></span>{{ form.text }}
+    <br><br>
+    <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    </form>
+
+
+    <hr size=1>
+    <a href="sms:{{ number }}?body=Yar mien tumhara yahan intezar kar raha hoon: {{ sms_url }}" style="font-size:75%;font-family:arial;">{{ host }} ko bulao</a>&nbsp;<span style="font-size:70%;">|</span>
+    <a href="/mehfil/{{ unique }}/outsider" style="font-family:arial;font-size:75%;">taaza karo</a>
+    <br><br>
+    <span style="font-size:85%;font-family:arial;">
+    {% if replies|length < 25 %}
+        <b>{{ replies|length }} Baatien:</b><br>
+    {% else %}
+        <b>Pichli 25 Baatien:</b><br>
+    {% endif %}
+    </span>
+
+    <table>
+        {% for reply in replies %}
+        <tr><td>
+
+                    {% if reply.image %}
+                    <img src="{{ reply.image.url }}"></img><br>
+                    {% endif %}
+                    <span class="numbers" style="font-size:50%;">
+                    {{ forloop.counter }}.
+                    </span>
+
+                    {% if reply.writer.username == 'unregistered_bhoot' %}
+                    <span style="font-size:90%;color:purple;font-family:arial;">mehmaan</span>
+                    {% else %}
+                    {% if reply.writer.userprofile.avatar %}
+                        <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                    {% else %}
+                        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                    {% endif %}
+                   <span style="font-family:arial;font-size:90%;color:purple;">{{ reply.writer }}{% endif %}:</span>
+
+               <span style="font-family:arial;">{{ reply.text }}</span>
+
+
+                
+                <span style="color:grey;font-size:65%;font-family:arial;">,{{ reply.submitted_on|naturaltime }}</span>
+            
+            <br>
+            </td></tr>
+        {% endfor %}
+        </table>
+        <hr size=1>
+        <a style="font-family:arial;font-size:80%;" href="{%url 'register_walkthrough' %}">Khaata kholo</a>
+
+</div>
+</body>
+{% else %}
+
+    <div class="margin">
+        <b style="color:purple;font-size:110%;">{{ group.topic }}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change karo)</a>
+        <br><a href="{% url 'outside_message_recreate' slug=unique %}" style="font-size:70%;">(isko bulao)</a>
+        <a name="sectionJ"></a> 
+        <hr size=1>
+        <form action="{% url 'private_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+        	{% csrf_token %}
+        	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
+            <span style="color:purple;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
+            <span style="color:grey;font-size:80%;"><i><b>1 mb</b> se barri pic nahi lag sakti</i></span><br>
+            <span style="color:red;font-size:80%;">{{ form.errors }}</span>
+            <br><span style="color:purple;font-size:90%;">Likho:</span>{{ form.text }}
+            <br>
+        <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+        </form>
+
+        <p style="color:gray"><hr size=1></p>
+        <a href="{% url 'group_page' %}" style="font-size:65%;"><b>wapis</b></a>&nbsp;<span style="font-size:70%;">|</span>
+        <a href="{% url 'group_list' %}" style="font-size:65%;"><b>mashoor mehfilien</b></a>&nbsp;<span style="font-size:70%;">|</span>
+        <a href="{{ request.path }}" style="font-size:65%;"><b>taaza</b></a>
+        <p style="margin-top:.3em;"></p>
+        <a name="sectionJ"></a> 
+        <span style="font-size:85%;">
+        {% if replies|length < 25 %}
+            <b>{{ replies|length }} Baatien:</b><br>
+        {% else %}
+            <b>Pichli 25 Baatien:</b><br>
+        {% endif %}
+        </span>
+        <table>
+        {% for reply in replies %}
+        <tr><td>
+
+                {% if reply.category == '1' %}
+                    <span class="numbers" style="font-size:50%;">
+                    {{ forloop.counter }}.
+                    </span>
+                    <span style="color:purple;font-size:90%;">
+                    <a href="{% url 'profile' slug=reply.writer.username %}">
+                        {% if reply.writer.userprofile.avatar %}
+                        <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                        {% else %}
+                        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                        {% endif %}
+                    {{ reply.writer }}
+                        {% for person in ensured %}
+                        {% if person == reply.writer.username %}
+                        <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+                        {% endif %}
+                        {% endfor %}
+                    </a>
+                        ne&nbsp;<span style="color:blue;">{{ reply.text }}</span>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
+                    </span>
+                {% elif reply.category == '4' %}
+                    <span class="numbers" style="font-size:50%;">
+                    {{ forloop.counter }}.
+                    </span>
+                    <span style="color:purple;font-size:90%;"><a href="{% url 'profile' slug=reply.writer.username %}#section0">{{ reply.writer }}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
+                {% else %}
+                    {% if reply.image %}
+                    <img src="{{ reply.image.url }}"></img><br>
+                    {% endif %}
+                    <span class="numbers" style="font-size:50%;">
+                    {{ forloop.counter }}.
+                    </span>
+                    {% if reply not in seenreplies %}
+                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% endif %}
+                    {% if reply.writer.username == 'unregistered_bhoot' %}
+                        <span style="font-size:90%;color:purple;">mehmaan</span>
+                    {% else %}
+                        <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                        {% if reply.writer.userprofile.avatar %}
+                            <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                        {% else %}
+                            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                        {% endif %}
+                        </a>
+            	   <a href="{% url 'profile' slug=reply.writer.username %}" style="font-size:90%;">{{ reply.writer }}</a>{% endif %}
+                :&nbsp;{{ reply.text }}
+
+                {% endif %}
+                
+                <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}</span>
+            
+        	<br>
+            </td></tr>
+        {% endfor %}
+        </table>
+        </div>
+    {% endif %}
+{% endblock %}
+

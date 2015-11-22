@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    {% load cache %}
-    {% cache 30 template_fragment2 %}
     <div class="margin">
-        <span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
+        <a href="{% url 'top' %}" style="font-size:85%;">top damadamers</a><br>
+        <br><span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mien ye logg damadam par nazar aye:</span><br><br>
         <ol>
             {% for unique_session in object_list %}
                 <li>
@@ -24,7 +23,6 @@
             {% endfor %}
         </ol>
     </div>
-    {% endcache %}
 {% endblock %}
 
 {% block pagination %}

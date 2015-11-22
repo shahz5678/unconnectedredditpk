@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<span style="color:purple;"><b>Apney dost ka number daal ke OK dabao:</b></span>
+
+<form action="{% url 'outside_message_recreate' slug=unique %}" method="POST">
+
+{% csrf_token %}
+<table><br>
+<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
+<tr>
+<span style="color:red;">{{ form.mobile_number.errors }}</span>
+<td align="left;"><span style="color:purple;">Dost ka mobile number:</span></td><td align="right;">{{ form.mobile_number }}</td>
+</tr>
+</table>
+<input type="submit" class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" name="haan" value="OK"><br>
+
+</form>
+
+</div>
+{% endblock %}

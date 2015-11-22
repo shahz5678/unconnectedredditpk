@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 3600 register_walkthrough_fragment %}
+
+<div class="margin">
+Dost, yahan khaata khol kar chat karna asaan hai. Neechay dekho:<br><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;Ek <b>nickname</b> rakho, phir <b>khufiya code</b> dalo, aur chat shuru!<br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<b>Nickname</b> kuch bhi rakh lo, lekin iss mien <b>space na daalna</b>.<br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;Khufiya code (<b>password</b>) koi bhi lafz ya number ho sakta hai.<br><br>
+<a href="{% url 'registration_register' %}">aagey chalo>></a>
+</div>
+
+{% endcache %}
+{% endblock %}

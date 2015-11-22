@@ -48,27 +48,23 @@
 <table>
 {% for reply in replies %}
 <tr><td>
-<span class="numbers" style="font-size:50%;">{% if not page_obj.number|add:"-1" %}
+<span class="numbers" style="font-size:50%;">
     	{{ forloop.counter }}.
-    {% else %}
-    	{% if forloop.counter == 10 %}
-    		{{ page_obj.number }}0.
-    	{% else %}	
-    		{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
-    	{% endif %}
-    {% endif %}</span>
+    </span>
+    <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
     {% if reply.submitted_by.userprofile.avatar %}
-        <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
+        
         <img src="{{ reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
-        </a>
+        
     {% else %}
-        <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
+        
         <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
-        </a>
+        
     {% endif %}
+    </a>
     {% if reply.abuse %}
         {% if reply not in seenreplies %}
-            <b style="color:orange;font-size:80%"><i>(new)</i></b>
+            <b style="color:orange;font-size:80%">(new)</b>
         {% endif %}
         <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a></span>
          {% if user.is_authenticated %}
@@ -86,7 +82,7 @@
             {% endif %}
          <span style="color:grey;font-size:90%;">ne ghalat baat ki, isko report kar diya gaya</span>
     {% else %}
-    {% if reply not in seenreplies %}
+        {% if reply not in seenreplies %}
             <b style="color:orange;font-size:80%"><i>(new)</i></b>
         {% endif %}
 	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>

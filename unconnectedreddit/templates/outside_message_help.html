@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin">
+
+<span style="color:purple;">Private mehfil mein unn dostoon se bhi <b>pics chat</b> ki ja sakti hai jin ka yahan khaata nahi khula hua (qeemat: muft). <br>Try karna hai?</span><br><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'outside_message_create' %}">Haan</a><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'profile' slug=user.username %}">Nahi</a>
+
+</div>
+
+{% endblock %}

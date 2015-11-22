@@ -4,7 +4,7 @@
 <div class="margin">
 {% if user.userprofile.score > 199 %}
 
-Private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.<br>Tum ye qeemat denay ke liye tyar ho?<br><br>
+Ye private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.<br>Tum ye qeemat denay ke liye tyar ho?<br><br>
 <form action="{% url 'direct_message_create' pk=target.pk %}" method="POST">
 {% csrf_token %}
 <span style="color:lightgrey;">&bullet;</span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
@@ -12,7 +12,7 @@ Private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.<br>Tu
 <span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'profile' slug=target.username %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
 {% else %}
 
-Sorry, private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.Tumharey paas sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Abhi wapis jao aur apna <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
+Sorry, ye private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.Tumharey paas sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Abhi wapis jao aur apna <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
  <a href="{% url 'profile' slug=target.username %}"><b><</b>&nbsp;Wapis jao</a>
 
 {% endif %}

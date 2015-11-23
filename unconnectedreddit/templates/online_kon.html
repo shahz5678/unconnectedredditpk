@@ -17,7 +17,7 @@
                         {{ visitor.username }}
                         </a>
                         {% for person in legit %}
-                            {% if person == unique_session.user.username %}
+                            {% if person == visitor.username %}
                                 <span style="font-size:200%;color:deeppink;"><b>*</b></span>
                             {% endif %}
                         {% endfor %}

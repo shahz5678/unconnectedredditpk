@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-
+{% load cache %}
+{% cache 300 top_fragment %}
     <div class="margin">
     <b>Top 100 users:</b><br><br>
     {% for user in object_list %}
@@ -24,5 +25,5 @@
     
     {% endfor %}
     </div>
-
+{% endcache %}
 {% endblock %}

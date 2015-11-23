@@ -2,11 +2,17 @@
 {% load humanize %}
 {% block content %}
 <div class="margin">
+{% if not object_list %}
+<a href="{% url 'group_type' %}" style="font-size:65%;"><b>naee mehfil banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
+<a href="{% url 'group_list' %}" style="font-size:65%;color:red;"><b>mashoor mehfilein</b></a>
+<br><br>
+	<b>Mehfil</b> aisi jagah hai jahan tum apne pasandeeda damadamers se pics wali chat kar saktey ho. <a href="{% url 'group_type' %}">Naee mehfil banao</a>, aur shuru ho jao.
+{% else %}
+<b>Tumhari mehfilein:</b><br><br>
 <a href="{% url 'group_type' %}" style="font-size:65%;"><b>naee mehfil banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
 <a href="{% url 'group_list' %}" style="font-size:65%;color:red;"><b>mashoor mehfilein</b></a>&nbsp;<span style="font-size:70%;">|</span>
 <a href="{% url 'group_page' %}" style="font-size:65%;"><b>taaza</b></a>&nbsp;
 <br><br>
-<b>Tumhari mehfilein:</b><br><br>
 {% for reply in object_list %}
 
 	{% if reply.0.category == '1' %}
@@ -44,6 +50,7 @@
 
 <p style="color:gray"><hr size=1></p>
 {% endfor %}
+{% endif %}
 </div>
 {% endblock %}
 

@@ -379,10 +379,15 @@ class OnlineKonView(ListView):
 	def get_queryset(self):
 		global condemned
 		unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
+		users = [session.user for session in unique_user_sessions]
+		users = [user for user in users if user is not None]
 		if self.request.user_banned:
-			return unique_user_sessions
+			return users
 		else:
-			return unique_user_sessions.exclude(user_id__in=condemned)
+			user_ids = [user.pk for user in users]
+			users = User.objects.filter(id__in=user_ids).exclude(id__in=condemned)
+			return users
+
 
 	def get_context_data(self, **kwargs):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)

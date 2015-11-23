@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+{% load cache %}
+{% cache 60 online_kon_fragment %}
     <div class="margin">
         <a href="{% url 'top' %}" style="font-size:85%;">top damadamers</a><br>
         <br><span style="font-size:85%;">Jis ke nick ke aagey <span style="font-size:130%;color:deeppink;"><b>*</b></span> hai, woh <b><a href="{% url 'verify_help' %}#section0"><u>verified</u></a></b> lady hai, fake nahi.<br>Pichley <b>5 min</b> mein ye logg online thay:</span><br><br>
-        {% if user.username == 'mhb11' %}
         <ol>
             {% for visitor in object_list %}
                 <li>
@@ -23,22 +24,6 @@
                 </li>
             {% endfor %}
         </ol>
-        {% else %}
-        Is list ki wajah se Damadam slow ho jata hai, isko theek kiya jaa raha hai 
-        {% endif %}
     </div>
-{% endblock %}
-
-{% block pagination %}
-{% if is_paginated %}
-<div class="pagination">
-	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
-    {% endif %}
-</div>
-{% endif %}
+{% endcache %}
 {% endblock %}

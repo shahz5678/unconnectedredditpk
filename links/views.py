@@ -226,8 +226,8 @@ class LinkListView(ListView):
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
-			voted = votes_in_page.filter(voter=self.request.user) #all links in page the user voted on
-			voted = voted.values_list('link_id', flat=True)
+			voted = votes_in_page.filter(voter=self.request.user) #all votes the user cast
+			voted = voted.values_list('link_id', flat=True) #link ids of all votes the user voted on
 			context["voted"] = voted #voted is used to check which links the user has already voted on
 			if self.request.user_banned:
 				context["vote_cluster"] = votes_in_page # all votes in the page
@@ -374,7 +374,7 @@ class GroupOnlineKonView(ListView):
 class OnlineKonView(ListView):
 	model = Session
 	template_name = "online_kon.html"
-	paginate_by = 75
+	#paginate_by = 75
 
 	def get_queryset(self):
 		global condemned
@@ -1436,49 +1436,64 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
-		if btn == 'jhappee':
-			val = 1
-			if self.request.user_banned:
-				pass
-			elif self.request.user.username in FEMALES:
-				link.submitter.userprofile.score = link.submitter.userprofile.score + 50
-				link.submitter.userprofile.save()
+			voted = Vote.objects.filter(voter=self.request.user, link=link).count()
+			if voted == 0:#only if they voted
+				if btn == 'jhappee':
+					val = 1
+					if self.request.user_banned:
+						pass
+					elif self.request.user.username in FEMALES:
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 50
+						link.submitter.userprofile.save()
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 5	
+						link.submitter.userprofile.save() #this is a server call 
+				elif btn == 'chupair':
+					val = -1
+					if self.request.user_banned:
+						pass
+					elif self.request.user.username in FEMALES:
+						link.submitter.userprofile.score = link.submitter.userprofile.score - 300
+						if link.submitter.userprofile.score < -25:
+							if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						link.submitter.userprofile.save()
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score - 5
+						if link.submitter.userprofile.score < -25:
+							if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						link.submitter.userprofile.save()
+				else:
+					val = 0
+				try:
+					Vote.objects.create(voter=self.request.user, link=link, value=val) #add the up or down vote in the DB.
+				except:#if vote object can't be created, just redirect the user, no harm done
+					return redirect("home")
+				try:
+					if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
+						url = self.request.META.get('HTTP_REFERER')
+						blocks = url.split('?')
+						return redirect(blocks[0]+"#section"+section)
+					else:
+						return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
+				except:
+					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
 			else:
-				link.submitter.userprofile.score = link.submitter.userprofile.score + 5	
-				link.submitter.userprofile.save() #this is a server call 
-		elif btn == 'chupair':
-			val = -1
-			if self.request.user_banned:
-				pass
-			elif self.request.user.username in FEMALES:
-				link.submitter.userprofile.score = link.submitter.userprofile.score - 300
-				if link.submitter.userprofile.score < -25:
-					if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
-						HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-						link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-				link.submitter.userprofile.save()
-			else:
-				link.submitter.userprofile.score = link.submitter.userprofile.score - 5
-				if link.submitter.userprofile.score < -25:
-					if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
-						HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-						link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-				link.submitter.userprofile.save()
+				try:
+					if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
+						url = self.request.META.get('HTTP_REFERER')
+						blocks = url.split('?')
+						return redirect(blocks[0]+"#section"+section)
+					else:
+						return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
+				except:
+					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
 		else:
-			val = 0
-		try:
-			Vote.objects.create(voter=self.request.user, link=link, value=val) #add the up or down vote in the DB.
-		except:#if vote object can't be created, just redirect the user, no harm done
-			return redirect("home")
-		try:
-			if ('?' in self.request.META.get('HTTP_REFERER')) and ('page=' not in self.request.META.get('HTTP_REFERER')):#ensure paginated links aren't split
-				url = self.request.META.get('HTTP_REFERER')
-				blocks = url.split('?')
-				return redirect(blocks[0]+"#section"+section)
-			else:
-				return redirect(self.request.META.get('HTTP_REFERER')+"#section"+section)
-		except:
 			return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
+
 
 	def form_invalid(self, form):
 		voter = get_object_or_404(Link, pk=form.data["voter"])

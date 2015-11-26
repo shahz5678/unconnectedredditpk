@@ -21,7 +21,7 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 #git remote add origin https://github.com/mhb11/unconnectedredditpk.git
 #git pull origin master
 #git add <files>
-#git push origin master
+#git push origin master	
 
 if ON_HEROKU == '1':
 	DEBUG=True
@@ -40,7 +40,7 @@ MANAGERS = ADMINS
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']																																														
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -216,12 +216,15 @@ LOGGING = {
 	}
 }
 
+DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
+
 if ON_HEROKU == '1':
 # Parse database configuration from $DATABASE_URL
 	import dj_database_url
 	print "ON_HEROKU!"
 	DATABASES = {
-	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+	#'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+	'default': dj_database_url.config(default=DATABASE_URL)
 	}
 #DATABASES['default'] = dj_database_url.config()
 else:

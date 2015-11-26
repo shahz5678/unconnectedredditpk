@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-{% load cache %}
-{% cache 3600 open_group_help_fragment %}
 
 <div class="margin">
 {% if user.userprofile.score > 2999 %}
@@ -14,5 +12,4 @@ Sorry, open mehfil bananey ki qeemat <b style="color:red;">3000 points</b> hai.T
 {% endif %}
 </div>
 
-{% endcache %}
 {% endblock %}

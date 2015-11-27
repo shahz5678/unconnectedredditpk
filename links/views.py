@@ -1250,15 +1250,23 @@ class UserActivityView(ListView):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
-			if self.request.user.userprofile.score > 9:
-				context["can_vote"] = True
-			links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
-			vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
-			context["vote_cluster"] = vote_cluster
-			voted = vote_cluster.filter(voter=self.request.user)
-			context["voted"] = voted.values_list('link_id', flat=True)
-			context["verified"] = FEMALES
-		return context
+			if self.request.user_banned and (self.request.user.username ==  self.kwargs['slug']):
+					return redirect("error")
+			else:
+				if self.request.user.userprofile.score > 9:
+					context["can_vote"] = True
+				links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
+				if self.request.user_banned:
+					vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
+				else:
+					vote_cluster = Vote.objects.filter(link_id__in=links_in_page).exclude(voter_id__in=condemned) # votes on user's link in page
+				context["vote_cluster"] = vote_cluster
+				voted = vote_cluster.filter(voter=self.request.user)
+				context["voted"] = voted.values_list('link_id', flat=True)
+				context["verified"] = FEMALES
+			return context
+		else:
+			return context
 
 
 class UserSettingDetailView(DetailView):

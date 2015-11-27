@@ -15,7 +15,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file
+from .forms import UserProfileForm, LinkForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -178,6 +178,50 @@ class VerifyHelpView(FormView):
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm
 	template_name = "register_help.html"
+
+class LogoutPenaltyView(FormView):
+	form_class = LogoutPenaltyForm
+	template_name = "logout_penalty.html"
+
+class LogoutHelpView(FormView):
+	form_class = LogoutHelpForm
+	template_name = "logout_help.html"
+
+class LogoutReconfirmView(FormView):
+	form_class = LogoutReconfirmForm
+	template_name = "logout_reconfirm.html"
+
+	def form_valid(self, form):
+		if self.request.user_banned:
+			return redirect("error") #you can come in any time you like, you can never leave!
+		else:
+			if self.request.method == 'POST':
+				decision = self.request.POST.get("decision")
+				if decision == 'Khuda Hafiz':
+					self.request.user.userprofile.score = 10
+					self.request.user.userprofile.save()
+					return redirect("logout")
+				else:
+					return redirect("home")
+			else:
+				return redirect("home")
+
+def form_valid(self, form):
+		if self.request.method == 'POST':
+			report = self.request.POST.get("report")
+			if report == 'Haan ye ghair ikhlaaqi hai':
+				report = self.request.POST.get("reply")
+				reply = get_object_or_404(Publicreply, pk=report)
+				reply.category = '3'
+				reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 10
+				reply.submitted_by.userprofile.save()
+				reply.save()
+				return redirect("reply", pk=reply.answer_to.id)
+			else:
+				report = self.request.POST.get("reply")
+				reply = get_object_or_404(Publicreply, pk=report)
+				return redirect("reply", pk= reply.answer_to.id)
+
 
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm

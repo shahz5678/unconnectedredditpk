@@ -3,7 +3,7 @@
 
 <div class="margin">
 {% if user.userprofile.score > 299 %}
-Bahir niklo ge toh tumhara score <b style="color:green;">{{ user.userprofile.score }}</b> se cut kar sirf <b style="color:red;">10 points</b> reh jaye ga! <a href="{% url 'logout_help' %}" style="font-size:80%;">(kiyun?)</a><br><br>
+Agar tum <a href="{% url 'verify_help' %}">verified lady<span style="font-size:150%;color:deeppink;"><b>*</b></span></a> nahi ho, aur bahir niklna chahtey ho toh tumhara score <b style="color:green;">{{ user.userprofile.score }}</b> se cut kar sirf <b style="color:red;">10 points</b> reh jaye ga! <a href="{% url 'logout_help' %}" style="font-size:80%;">(kiyun?)</a><br><br>
 &bullet;&nbsp;<a href="{% url 'logout_reconfirm' %}">Manzoor Hai</a><br>
 &bullet;&nbsp;<a href="{% url 'home' %}">Rehney Doh</a>
 {% else %}

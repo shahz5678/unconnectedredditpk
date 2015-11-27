@@ -20,7 +20,7 @@
 			{% if user.is_authenticated %}
 				<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=fresh_users.0 %}#section0"><u>{{ fresh_users.0 }}</u></a></b>, <b><a href="{% url 'profile' slug=fresh_users.1 %}#section0"><u>{{ fresh_users.1 }}</u></a></b> aur <b><a href="{% url 'profile' slug=fresh_users.2 %}#section0"><u>{{ fresh_users.2 }}</u></a></b> Damadam par new hain. Welcome!</span>
 			{% else %}
-				<span class="margin" style="color:purple;"><b>Latest: {{ fresh_users.0 }}</b>, <b>{{ fresh_users.1 }}</b> aur <b>{{ fresh_users.2 }}</b> ne abhi abhi khaata khola. Tum bhi <a href="{% url 'register_login' %}#section0"><u>khaata kholo</u></a>!</span>
+				<span class="margin" style="color:purple;"><b>Latest: {{ fresh_users.0 }}</b>, <b>{{ fresh_users.1 }}</b> aur <b>{{ fresh_users.2 }}</b> ne abhi abhi khaata khola. Tum bhi <a href="{% url 'register_login' %}#section0"><u>muft khaata kholo</u></a>!</span>
 			{% endif %}
 	{% endif %}
 		<p>

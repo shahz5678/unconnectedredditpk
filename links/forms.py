@@ -251,7 +251,19 @@ class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
 
+class LogoutHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class ReportreplyForm(forms.Form):
+	class Meta:
+		pass
+
+class LogoutReconfirmForm(forms.Form):
+	class Meta:
+		pass
+
+class LogoutPenaltyForm(forms.Form):
 	class Meta:
 		pass
 

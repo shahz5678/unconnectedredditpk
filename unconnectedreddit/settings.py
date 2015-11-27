@@ -24,7 +24,7 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 #git push origin master	
 
 if ON_HEROKU == '1':
-	DEBUG=True
+	DEBUG=False
 else:
 	DEBUG=True
 
@@ -216,15 +216,15 @@ LOGGING = {
 	}
 }
 
-DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
+#DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
 
 if ON_HEROKU == '1':
 # Parse database configuration from $DATABASE_URL
 	import dj_database_url
 	print "ON_HEROKU!"
 	DATABASES = {
-	#'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-	'default': dj_database_url.config(default=DATABASE_URL)
+	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+	#'default': dj_database_url.config(default=DATABASE_URL)
 	}
 #DATABASES['default'] = dj_database_url.config()
 else:

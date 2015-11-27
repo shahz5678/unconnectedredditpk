@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin">
+Agar kabhi wapis ana ho toh isi nickname aur password ko istimal kar ke wapis ana, Damadam tumhara intezar karey ga. Khuda Hafiz!<br><br>
+
+<form action="{% url 'logout_reconfirm' %}" method="POST">
+{% csrf_token %}
+&bullet;&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Khuda Hafiz"><br>
+&bullet;&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Rehnay Doh"><br>
+</form>
+
+</div>
+
+{% endblock %}

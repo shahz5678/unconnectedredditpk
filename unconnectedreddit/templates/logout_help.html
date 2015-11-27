@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 3600 lgout_help_fragment %}
+
+<div class="margin">
+<h3>Bahir nikalne ke liye score kiyun cut jata hai?</h3>
+&bullet; Taakey kissi ke liye baar baar bahir nikal ke new nicknames bana kar doosron ko tung karna asaan nah ho<br>
+&bullet; Jab tum ne wapis ana ho, tou isi nickname aur password ko istimaal karna, <b>neya bananey ki zaroorat nahi!</b><br>
+&bullet; Kiyun ke kuch ladies ke liye bahir nikalna zaroori hota hai, iss liye ye option diya ja raha hai<br>
+</div>
+</span>
+
+{% endcache %}
+{% endblock %}

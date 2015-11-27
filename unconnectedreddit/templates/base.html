@@ -89,7 +89,8 @@
 </ul>
 </div>
 {% if user.is_authenticated %}
-<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">KUCH LIKHO </a><span style="color:grey;">|</span>
+<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">Kuch Likho </a><span style="color:grey;">|</span>
+<a class="foot2" href="{% url 'logout_penalty' %}#section0" style="text-shadow:0 0 0.1px blue;">Bahir Niklo </a><span style="color:grey;">|</span>
 {% else %}
 <span style="color:grey;">|</span> <a class="foot2" href="{% url 'register_login' %}#section0" style="text-shadow:0 0 0.1px blue;">Khaata Kholo </a><span style="color:grey;">|</span>  
 {% endif %}

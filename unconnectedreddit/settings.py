@@ -5,8 +5,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
 
-print "CHECKING_HEROKU!"
+#print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
+ON_AZURE = os.environ.get('ON_AZURE')
 #ON_HEROKU = '1'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
@@ -216,22 +217,22 @@ LOGGING = {
 	}
 }
 
-#DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
-
+import dj_database_url
 if ON_HEROKU == '1':
 # Parse database configuration from $DATABASE_URL
-	import dj_database_url
 	print "ON_HEROKU!"
 	DATABASES = {
 	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-	#'default': dj_database_url.config(default=DATABASE_URL)
 	}
-#DATABASES['default'] = dj_database_url.config()
+elif ON_AZURE == '1':
+	print "ON_AZURE!"
+	DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
+	DATABASES = {
+	'default': dj_database_url.config(default=DATABASE_URL)
+	}
 else:
 # Parse database configuration from $DATABASE_URL
-	import dj_database_url
-	print "NOT_ON_HEROKU!"
-# DATABASES['default'] = dj_database_url.config()
+	print "NOT_ON_HEROKU_NOR_AZURE!"
 ######################################################
 #	DATABASES = {
 #	'default': {

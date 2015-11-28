@@ -32,7 +32,7 @@ import uuid
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-condemned = HellBanList.objects.values_list('condemned_id', flat=True)
+condemned = HellBanList.objects.values('condemned_id').distinct()
 
 def GetNonReplyLinks(user):
 	#links_with_user_replies=[]
@@ -192,19 +192,16 @@ class LogoutReconfirmView(FormView):
 	template_name = "logout_reconfirm.html"
 
 	def form_valid(self, form):
-		if self.request.user_banned:
-			return redirect("error") #you can come in any time you like, you can never leave!
-		else:
-			if self.request.method == 'POST':
-				decision = self.request.POST.get("decision")
-				if decision == 'Khuda Hafiz':
-					self.request.user.userprofile.score = 10
-					self.request.user.userprofile.save()
-					return redirect("logout")
-				else:
-					return redirect("home")
+		if self.request.method == 'POST':
+			decision = self.request.POST.get("decision")
+			if decision == 'Khuda Hafiz':
+				self.request.user.userprofile.score = 10
+				self.request.user.userprofile.save()
+				return redirect("logout")
 			else:
 				return redirect("home")
+		else:
+			return redirect("home")
 
 def form_valid(self, form):
 		if self.request.method == 'POST':
@@ -257,12 +254,15 @@ class LinkListView(ListView):
 			return Link.objects.order_by('-id')[:120]
 		else:#if user is not hell-banned
 			global condemned
+			#print condemned
+			#print Link.objects.order_by('-id')[:120]
+			#print Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
 			return Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES
-		context["fresh_users"] = User.objects.order_by('-id')[:3] #for unauthenticated users
+		context["newest_user"] = User.objects.latest('id') #for unauthenticated users
 		global condemned
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
@@ -1507,14 +1507,14 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 					elif self.request.user.username in FEMALES:
 						link.submitter.userprofile.score = link.submitter.userprofile.score - 300
 						if link.submitter.userprofile.score < -25:
-							if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+							if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()
 					else:
 						link.submitter.userprofile.score = link.submitter.userprofile.score - 5
 						if link.submitter.userprofile.score < -25:
-							if not HellBanList.objects.filter(id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+							if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()

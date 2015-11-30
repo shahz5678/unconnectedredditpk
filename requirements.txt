@@ -1,4 +1,3 @@
---find-links wheelhouse
 amqp==1.4.6
 anyjson==0.3.3
 beautifulsoup4==4.4.0

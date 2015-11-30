@@ -27,7 +27,7 @@ newrelic==2.56.0.42
 oauthlib==0.7.2
 pam==0.1.4
 Pillow==2.9.0
-psycopg2==2.6
+psycopg2==2.6.1
 pygeoip==0.3.2
 pytz==2015.4
 redis==2.10.3

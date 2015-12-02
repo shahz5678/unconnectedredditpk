@@ -1,1 +1,1 @@
-ALLOWED = ['Dilwale', 'Hafeeez34', 'Main_hoona_77', 'Azad.khanzada', 'Rounaq_ali', 'Janu', 'Tariq_Ali', 'Lover_boy', 'Sweet_boy', 'Faizan_Ali', 'NaeemRana','Badal','mhb11','AhmadMeher','Amjad_707','hari420',]
+ALLOWED = ['Dilwale', 'Hafeeez34', 'Zahid_Awan', 'Main_hoona_77', 'Azad.khanzada', 'Rounaq_ali', 'Janu', 'Tariq_Ali', 'Lover_boy', 'Sweet_boy', 'Faizan_Ali', 'NaeemRana','Badal','mhb11','AhmadMeher','Amjad_707','hari420',]

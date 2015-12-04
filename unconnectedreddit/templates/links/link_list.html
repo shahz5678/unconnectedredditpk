@@ -20,7 +20,7 @@
 			{% if user.is_authenticated %}
 				<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=newest_user.username %}#section0"><u>{{ newest_user.username }}</u></a></b> ne abhi abhi khaata khola. Welcome!</span>
 			{% else %}
-				<span class="margin" style="color:purple;"><b>Latest: {{ newest_user.username }}</b> ne abhi abhi khaata khola. Tum bhi <a href="{% url 'register_login' %}#section0"><u>muft khaata kholo</u></a>!</span>
+				<span class="margin" style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khole</u></a> kar neechay chat karo:</span>
 			{% endif %}
 	{% endif %}
 		<p>
@@ -36,11 +36,6 @@
 	    {% if link.image_file %}
 	    <img src="{{ link.image_file.url }}"></img><br>
 		{% endif %}
-			<span class="numbers">
-			<b style="color:lightgrey;font-size:150%;">
-			.
-		    </b>
-		    </span>
 		{% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>

@@ -9,12 +9,6 @@
 	{% if value.0.image_file %}
     	<img src="{{ value.0.image_file.url }}"></img><br>
 	{% endif %}
-		<span class="numbers">
-			<b style="color:lightgrey;font-size:150;">
-			.
-		    </b>
-		</span>
-
 	{% if value.0 %} <!-- if seen post -->
 	<a href="{% url 'profile' slug=value.0.submitter %}#section0">
 	{% if value.0.submitter.userprofile.avatar %}

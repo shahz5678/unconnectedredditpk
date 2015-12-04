@@ -8,7 +8,7 @@
 <br><br>
 <b>Pichley 60 mins ki mashoor open mehfilein:</b><br><br>
 {% for group in object_list %}
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'public_group_reply' slug=group.unique %}" style="color:red;">{{ group.topic }}</a>
+<span style="color:lightgrey;font-size:150;">.</span>&nbsp;<a href="{% url 'public_group_reply' slug=group.unique %}" style="color:red;">{{ group.topic }}</a>
 <span style="color:grey;font-size:80%;">by</span>&nbsp;<span style="color:blue;font-size:85%;">{{ group.owner }}</span>
 <span style="color:grey;font-size:90%;">({{ group.views }} view{{ group.views|pluralize }})</span>
 <br>

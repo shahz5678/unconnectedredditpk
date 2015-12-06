@@ -226,7 +226,7 @@ if ON_HEROKU == '1':
 	}
 elif ON_AZURE == '1':
 	print "ON_AZURE!"
-	DATABASE_URL = 'postgres://damadamvm.co0nzuu0n2jefpf01nespcr4ug.ax.internal.cloudapp.net:5432/damadam'
+	DATABASE_URL = 'postgres://damadamrg.cloudapp.net:5432/damadam'
 	DATABASES = {
 	'default': dj_database_url.config(default=DATABASE_URL)
 	}

@@ -168,7 +168,7 @@ class HellBanList(models.Model):
 	when = models.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
-		return u"%s was hell-banned at %s" % (self.condemned, self.when)
+		return self.condemned
 
 class GroupTraffic(models.Model):
 	visitor = models.ForeignKey(User)

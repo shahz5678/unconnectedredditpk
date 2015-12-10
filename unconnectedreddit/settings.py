@@ -8,8 +8,8 @@ MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
-user = os.environ.get('USER')
-print "User is %s" % user
+term = os.environ.get('TERM')
+print "Term is %s" % term
 
 #ON_HEROKU = '1'
 #heroku config:set ON_HEROKU=1 

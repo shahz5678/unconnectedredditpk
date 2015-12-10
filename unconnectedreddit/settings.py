@@ -11,7 +11,7 @@ ON_AZURE = os.environ.get('ON_AZURE')
 user = os.environ.get('USER')
 print "Term is %s" % user
 
-#ON_HEROKU = '1'
+ON_AZURE = '1'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
 

@@ -12,6 +12,8 @@ user = os.environ.get('USER')
 print "Term is %s" % user
 
 ON_AZURE = '1'
+awssecretkey='PAxpBD2Xc2Hbd0IiL+KjMYAaZwDXClY9BVSUKvY6'
+awsaccesskeyid='AKIAJEYMTQS5SDDAKKHA'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
 

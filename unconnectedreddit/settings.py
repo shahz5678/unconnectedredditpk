@@ -8,6 +8,9 @@ MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
+test = os.environ.get('TERM')
+print test
+
 #ON_HEROKU = '1'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno

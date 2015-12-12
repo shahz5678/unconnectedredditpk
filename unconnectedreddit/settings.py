@@ -1,6 +1,7 @@
 # Django settings for unconnectedreddit project.
 import os
-
+import django.http
+print django.http.request
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__))

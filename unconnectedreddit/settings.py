@@ -8,12 +8,10 @@ MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
-user = os.environ.get('USER')
-print "Term is %s" % user
 
-ON_AZURE = '1'
-awssecretkey='PAxpBD2Xc2Hbd0IiL+KjMYAaZwDXClY9BVSUKvY6'
-awsaccesskeyid='AKIAJEYMTQS5SDDAKKHA'
+#ON_AZURE = '1'
+#awssecretkey='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'
+#awsaccesskeyid='AKIAJEYMTQS5SDDAKKHA'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
 
@@ -302,10 +300,10 @@ CELERY_TIMEZONE = 'UTC'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_S3_FORCE_HTTP_URL = True
 AWS_QUERYSTRING_AUTH = False
-#AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
-AWS_SECRET_ACCESS_KEY = awssecretkey
-#AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
-AWS_ACCESS_KEY_ID = awsaccesskeyid
+AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
+#AWS_SECRET_ACCESS_KEY = awssecretkey
+AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
+#AWS_ACCESS_KEY_ID = awsaccesskeyid
 AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
 AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 #AWS_MAX_SIZE = 10

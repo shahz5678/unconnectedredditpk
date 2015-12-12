@@ -20,7 +20,7 @@
 			{% if user.is_authenticated %}
 				<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=newest_user.username %}#section0"><u>{{ newest_user.username }}</u></a></b> ne abhi abhi khaata khola. Welcome!</span>
 			{% else %}
-				<span class="margin" style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khole</u></a> kar neechay chat karo:</span>
+				<span class="margin" style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khol</u></a> kar neechay chat karo:</span>
 			{% endif %}
 	{% endif %}
 		<p>
@@ -92,9 +92,15 @@
 		
 		{% if link.pk not in voted and link.submitter != user and can_vote %}	
 		<br>
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
-		
+		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee">
+		{% if user.username in checked %}
+		<a href="{% url 'confirm_upvote' %}" style="font-size:90%;color:green;"><u>+50</u></a>
+		{% endif %}
+		<br>
+		<input class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
+		{% if user.username in checked %}
+		<a href="{% url 'confirm_downvote' %}" style="font-size:90%;color:red;"><u>-300</u></a>	
+		{% endif %}
 		{% endif %}
 		</p>
 		</form>

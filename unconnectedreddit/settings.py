@@ -116,6 +116,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
  #   'debug_toolbar.middleware.DebugToolbarMiddleware',
+	'unconnectedreddit.middleware.XForwardedFor.XForwardedForMiddleware',
 	'user_sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',

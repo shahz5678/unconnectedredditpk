@@ -175,6 +175,7 @@ INSTALLED_APPS = (
 	'django.contrib.humanize',
 	'analytical',
 	'mathfilters',
+	'storages',
 	#'request',
     #'debug_toolbar',
 	#'analytical',

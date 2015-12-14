@@ -297,16 +297,18 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-AWS_S3_FORCE_HTTP_URL = True
-AWS_QUERYSTRING_AUTH = False
-AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
-#AWS_SECRET_ACCESS_KEY = awssecretkey
-AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
-#AWS_ACCESS_KEY_ID = awsaccesskeyid
-AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
-AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
-#AWS_MAX_SIZE = 10
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+#AWS_S3_FORCE_HTTP_URL = True
+#AWS_QUERYSTRING_AUTH = False
+#AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
+#AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
+#AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
+#AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
+AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
+AZURE_CONTAINER = 'damadampkcontainer'
 
 REQUEST_TRAFFIC_MODULES = (
 'request.traffic.UniqueVisitor',

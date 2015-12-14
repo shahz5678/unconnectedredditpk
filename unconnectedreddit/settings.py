@@ -9,8 +9,6 @@ ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
 
 #ON_AZURE = '1'
-#awssecretkey='PAxpBD2Xc2Hbd0IiL+KjMYAaZwDXClY9BVSUKvY6'
-#awsaccesskeyid='AKIAJEYMTQS5SDDAKKHA'
 #heroku config:set ON_HEROKU=1 
 #heroku ps:scale web=1 to put in a dyno
 

@@ -227,15 +227,30 @@ if ON_HEROKU == '1':
 	DATABASES = {
 	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 	}
+	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+	AWS_S3_FORCE_HTTP_URL = True
+	AWS_QUERYSTRING_AUTH = False
+	AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
+	AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
+	AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
+	AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 elif ON_AZURE == '1':
 	print "ON_AZURE!"
 	DATABASE_URL = 'postgres://damadamrg.cloudapp.net:5432/damadam'
 	DATABASES = {
 	'default': dj_database_url.config(default=DATABASE_URL)
 	}
+	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+	AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
+	AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
+	AZURE_CONTAINER = 'damadampkcontainer'
 else:
 # Parse database configuration from $DATABASE_URL
 	print "NOT_ON_HEROKU_NOR_AZURE!"
+	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+	AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
+	AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
+	AZURE_CONTAINER = 'damadampkcontainer'
 ######################################################
 #	DATABASES = {
 #	'default': {
@@ -296,19 +311,6 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
-
-#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-#AWS_S3_FORCE_HTTP_URL = True
-#AWS_QUERYSTRING_AUTH = False
-#AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
-#AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
-#AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
-#AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
-
-DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
-AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
-AZURE_CONTAINER = 'damadampkcontainer'
 
 REQUEST_TRAFFIC_MODULES = (
 'request.traffic.UniqueVisitor',

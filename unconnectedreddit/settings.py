@@ -1,8 +1,8 @@
 # Django settings for unconnectedreddit project.
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MAIN_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /links/ 'app' folder
+MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedreddit/ 'project' folder
 
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')

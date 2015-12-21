@@ -240,16 +240,16 @@ elif ON_AZURE == '1':
 	'default': dj_database_url.config(default=DATABASE_URL)
 	}
 	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
-	AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
-	AZURE_CONTAINER = 'damadampkcontainer'
+	AZURE_ACCOUNT_NAME = 'damadam'
+	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
+	AZURE_CONTAINER = 'pictures'
 else:
 # Parse database configuration from $DATABASE_URL
 	print "NOT_ON_HEROKU_NOR_AZURE!"
 	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadamdatabasestorage'
-	AZURE_ACCOUNT_KEY = 'pl8iUTruE2T1xN3z83wuLH5lpgUp0TcMS6g6pxEbfsS/ZH7wEKF0VED+78+KxOwq+TmKgmjazApyXpWWIsuEFw=='
-	AZURE_CONTAINER = 'damadampkcontainer'
+	AZURE_ACCOUNT_NAME = 'damadam'
+	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
+	AZURE_CONTAINER = 'pictures'
 ######################################################
 #	DATABASES = {
 #	'default': {

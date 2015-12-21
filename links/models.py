@@ -8,6 +8,107 @@ from math import log
 from django.core.validators import MaxLengthValidator
 import os
 import uuid
+from django.conf import settings
+from django.core.files.storage import Storage
+from azure.storage.blob import BlobService
+accountName = 'damadam'
+accountKey = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
+
+class OverwriteStorage(Storage):
+    container = 'pictures'#settings.AZURE_STORAGE.get('CONTAINER')
+    account_name = accountName
+    account_key = accountKey
+    #cdn_host = settings.AZURE_STORAGE.get('CDN_HOST')
+    #use_ssl = settings.AZURE_STORAGE.get('USE_SSL')
+    def __init__(self, account_name=None, account_key=None, container=None):
+
+        if account_name is not None:
+            self.account_name = account_name
+
+        if account_key is not None:
+            self.account_key = account_key
+
+        if container is not None:
+            self.container = container
+    def __getstate__(self):
+        return dict(
+            account_name=self.account_name,
+            account_key=self.account_key,
+            container=self.container
+        )
+    def _save(self,name,content):
+        blob_service = BlobService(account_name=accountName, account_key=accountKey)
+        import mimetypes
+        content.open()
+        content_type = None
+        if hasattr(content.file, 'content_type'):
+            content_type = content.file.content_type
+        else:
+            content_type = mimetypes.guess_type(name)[0]
+        content_str = content.read()
+        blob_service.put_blob(
+            'pictures',
+            name,
+            content_str,
+            x_ms_blob_type='BlockBlob',
+            x_ms_blob_content_type=content_type
+        )
+        #print "content saved"
+        content.close()
+        #print "content closed"
+        #url = self.url(name)
+        #print "URL is: %s" % url
+        #print "exiting _save"
+        return name
+    def get_available_name(self,name):
+        #print "exiting get_available_name"
+        return name
+    def _get_service(self):
+        if not hasattr(self, '_blob_service'):
+            self._blob_service = BlobService(
+                account_name=self.account_name,
+                account_key=self.account_key,
+                protocol='http'
+            )
+        #print "exiting _get_service"    
+        return self._blob_service
+    def _open(self, name, mode='rb'):
+        """
+        Return the AzureStorageFile.
+        """
+        from django.core.files.base import ContentFile
+        contents = self._get_service().get_blob(self.container, name)
+        #print "exiting _open"
+        return ContentFile(contents)
+    def _get_properties(self, name):
+        #print "exiting _get_properties"
+        return self._get_service().get_blob_properties(
+            self.container,
+            name
+        )
+    def _get_container_url(self):
+        if not hasattr(self, '_container_url'):
+            base_url = 'http://{host}/{container}'
+            #if self.cdn_host:
+            #    base_url = self.cdn_host
+            self._container_url = base_url.format({
+                #'protocol': 'http',
+                'host': self._get_service()._get_host(),
+                'container': self.container,
+            })
+        #print "exiting _get_container_url"
+        return self._container_url
+    def url(self, name):
+        """
+        Returns the URL where the contents of the file referenced by name can
+        be accessed.
+        """
+        #url = '%s/%s' % (self._get_container_url(), name)
+        url = '%s/%s/%s' % ('http://damadam.blob.core.windows.net','pictures', name)
+        #print "name is %s" % name
+        #print "url is %s" % url
+        #print "exiting url"
+        return url
 
 def upload_to_location(instance, filename):
 	try:
@@ -15,7 +116,7 @@ def upload_to_location(instance, filename):
 		ext = blocks[-1]
 		filename = "%s.%s" % (uuid.uuid4(), ext)
 		instance.title = blocks[0]
-		return os.path.join('uploads/', filename)
+		return os.path.join('links/', filename)
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -26,7 +127,7 @@ def upload_pic_to_location(instance, filename):
 		ext = blocks[-1]
 		filename = "%s.%s" % (uuid.uuid4(), ext)
 		instance.title = blocks[0]
-		return os.path.join('uploads/', filename)
+		return os.path.join('mehfils/', filename)
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -37,7 +138,7 @@ def upload_avatar_to_location(instance, filename):
 		ext = blocks[-1]
 		filename = "%s.%s" % (uuid.uuid4(), ext)
 		instance.title = blocks[0]
-		return os.path.join('users/', filename)
+		return os.path.join('avatars/', filename)
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -107,7 +208,7 @@ class Link(models.Model):
 	rank_score = models.FloatField(default=0.0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
-	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, null=True, blank=True )
+	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
 	
 	with_votes = LinkVoteCountManager() #change this to set_rank()
 	objects = models.Manager() #default, in-built manager
@@ -168,7 +269,7 @@ class HellBanList(models.Model):
 	when = models.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
-		return self.condemned
+		return self.condemned.username
 
 class GroupTraffic(models.Model):
 	visitor = models.ForeignKey(User)
@@ -192,7 +293,7 @@ class Reply(models.Model):
 	which_group = models.ForeignKey(Group)
 	writer = models.ForeignKey(User) # reply.writer is a user!
 	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
-	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, null=True, blank=True )
+	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, storage=OverwriteStorage(), null=True, blank=True )
 	category = models.CharField(choices=REPLIES, default='0', max_length=15)
 
 	def __unicode__(self):
@@ -214,6 +315,16 @@ class Vote(models.Model):
 	def __unicode__(self):
 		return u"%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
 
+# class SuperDownvote(models.Model):
+# 	caster = models.ForeignKey(User)
+# 	time = models.DateTimeField(auto_now_add=True)
+# 	available = models.PositiveIntegerField(default=0)
+
+# class SuperUpvote(models.Model):
+# 	caster = models.ForeignKey(User)
+# 	time = models.DateTimeField(auto_now_add=True)
+# 	available = models.PositiveIntegerField(default=3)
+
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, unique=True)
 	bio = models.TextField("Apney baarey mein koi khaas baat batao", default='Ao gupshup lagain...', null=True)
@@ -224,7 +335,7 @@ class UserProfile(models.Model):
 	attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
 	mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
 	score = models.IntegerField("Score", default=0)
-	avatar = models.ImageField(upload_to=upload_avatar_to_location, null=True, blank=True )
+	avatar = models.ImageField(upload_to=upload_avatar_to_location, storage=OverwriteStorage(), null=True, blank=True )
 
 	def __unicode__(self):
 		return u"%s's profile" % self.user

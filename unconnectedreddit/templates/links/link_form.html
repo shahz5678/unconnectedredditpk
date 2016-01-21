@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-
+{% load emoticons_tags %}
 <div class="margin">
 {% if user.username in official or user.username in allowed %}
 <h2><span style="color:green;">Funny pics ya selfies, lateefey, gupshup, sawaal, shayari, jo dil chahey daal do!</span></h2>  
 {% else %}
-<h2>Chat karne ke liye neechay koi paigham likho!</h2> 
+<h2>Chat karne ke liye neechay kuch likho!</h2> 
 {% endif %}
 
 <form method="post" action="" enctype="multipart/form-data">
@@ -21,9 +21,12 @@
   <span style="font-size:92%;">{{ form.description.label_tag }}</span>{{ form.description }}<br>
   <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
 </form>
-<span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzar raha hai?</i></span>
-<br>
+<span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzra?</i></span>
+<br><br>
+Shaklein:
+{% emoticons_index as emoticons_list %}
+{% for emoticons in emoticons_list %}
+<p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>
+{% endfor %}
 </div>
-
-
 {% endblock %}

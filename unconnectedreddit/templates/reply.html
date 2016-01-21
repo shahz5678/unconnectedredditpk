@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 <a href="{% url 'profile' slug=parent.submitter %}">{{ parent.submitter }}</a>
@@ -22,7 +23,7 @@
         <span style="font-size:140%;color:deeppink;"><b>*</b></span>
     {% endif %}
 {% endfor %}
-:&nbsp;{{ parent.description }}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
+:&nbsp;{% emoticons %}{{ parent.description }}{% endemoticons %}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
 <a name="sectionJ"></a> 
 {% if user.userprofile.score > -10 %}
 <form action="{% url 'reply' pk=parent.pk %}" method="POST">
@@ -106,7 +107,7 @@
             	
                 <span style="font-size:140%;color:deeppink;"><b>*</b></span>
             {% endif %}
-        {% endfor %}:&nbsp;{{ reply.description }}
+        {% endfor %}:&nbsp;{% emoticons %}{{ reply.description }}{% endemoticons %}
     <span style="color:grey;font-size:80%">,{{ reply.submitted_on|naturaltime }}</span>
     {% if user == parent.submitter %}
     <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>

@@ -3,7 +3,7 @@
 {% load cache %}
 {% cache 300 top_fragment %}
     <div class="margin">
-    <b>Top 100 users:</b><br><br>
+    <b>Top 100 damadamers:</b><br><br>
     {% for user in object_list %}
     <b class="numbers">{{ forloop.counter }}.</b>
     <a href="{% url 'profile' slug=user.username %}#section0">

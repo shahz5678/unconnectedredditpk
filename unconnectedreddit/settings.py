@@ -106,11 +106,19 @@ STATICFILES_FINDERS = (
 SECRET_KEY = 'iapysen!%y-wvpfdmlp^!*@#nkn3hi_y9(%si)5c(tig_r29a6'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-	'django.template.loaders.filesystem.Loader',
-	'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+
+if ON_AZURE == '1':
+	TEMPLATE_LOADERS = (
+	    ('django.template.loaders.cached.Loader', (
+	        'django.template.loaders.filesystem.Loader',
+	        'django.template.loaders.app_directories.Loader',
+	    )),
+	)
+else:
+	TEMPLATE_LOADERS = (
+		'django.template.loaders.filesystem.Loader',
+		'django.template.loaders.app_directories.Loader',
+	)
 
 MIDDLEWARE_CLASSES = (
  #   'debug_toolbar.middleware.DebugToolbarMiddleware',

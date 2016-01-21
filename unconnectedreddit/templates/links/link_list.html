@@ -3,6 +3,7 @@
 {% load comments %}
 {% load mathfilters %}
 {% load urlize_target_blank %}
+{% load emoticons_tags %}
 {% block content %}
 	{% if notification %}
 			<span class="margin" style="color:red;"><b>Latest:</b> 
@@ -66,8 +67,9 @@
 		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}:
-
+		{% emoticons %}
     	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
+    	{% endemoticons %}
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p>
@@ -94,12 +96,12 @@
 		<br>
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee">
 		{% if user.username in checked %}
-		<a href="{% url 'confirm_upvote' %}" style="font-size:90%;color:green;"><u>+50</u></a>
+		<a href="{% url 'home' %}" style="font-size:90%;color:green;"><u>+50</u></a>
 		{% endif %}
 		<br>
 		<input class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 		{% if user.username in checked %}
-		<a href="{% url 'confirm_downvote' %}" style="font-size:90%;color:red;"><u>-300</u></a>	
+		<a href="{% url 'home' %}" style="font-size:90%;color:red;"><u>-300</u></a>	
 		{% endif %}
 		{% endif %}
 		</p>

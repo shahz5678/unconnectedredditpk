@@ -184,6 +184,7 @@ INSTALLED_APPS = (
 	'analytical',
 	'mathfilters',
 	'storages',
+	'emoticons',
 	#'request',
     #'debug_toolbar',
 	#'analytical',

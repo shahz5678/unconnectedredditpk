@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 
@@ -39,7 +40,7 @@
     	
     	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: {{ value.0.description }}
+	: {% emoticons %}{{ value.0.description }}{% endemoticons %}
 	<span style="color:gray;font-size:75%;">, jawab aya {{ value.1|naturaltime }}</span>
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
@@ -83,7 +84,7 @@
     	
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: {{ value.2.description }}
+	: {% emoticons %}{{ value.2.description }}{% endemoticons %}
 	<a href="{% url 'reply' pk=value.2.pk %}" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>

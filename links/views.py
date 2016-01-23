@@ -15,7 +15,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file
+from .forms import UserProfileForm, LinkForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -187,38 +187,65 @@ class LogoutHelpView(FormView):
 	form_class = LogoutHelpForm
 	template_name = "logout_help.html"
 
+# class DownvoteView(FormView):
+# 	form_class = DownvoteForm
+# 	template_name = "downvote.html"
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(UpvoteView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			if self.available:
+# 				context["can_vote"] = 1
+# 			else:
+# 				context["can_vote"] = 0
+# 		return context
+
+# class UpvoteView(FormView):
+# 	form_class = UpvoteForm
+# 	template_name = "upvote.html"
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(UpvoteView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			try:
+# 				upvote = SuperUpvote.objects.get(caster=self.request.user)
+# 				if upvote.available > 0: #i.e. upvotes exist
+# 					context["can_vote"] = 1
+# 					context["time"] = upvote.time
+# 					#upvote.time = datetime.utcnow().replace(tzinfo=utc)
+# 				else:
+# 					context["can_vote"] = 0
+# 					context["time"] = upvote.time
+# 			except:
+# 				upvote = SuperUpvote.objects.create(caster=self.request.user, available=3)#if doesn't have an entry in the DB table, include it
+# 				context["can_vote"] = 1
+# 				context["time"] = upvote.time
+# 		return context
+
+# 	def form_valid(self,form):
+# 		if self.request.user_banned:
+# 			return redirect("error")
+# 		else:
+# 			if self.request.method == 'POST':
+
 class LogoutReconfirmView(FormView):
 	form_class = LogoutReconfirmForm
 	template_name = "logout_reconfirm.html"
 
 	def form_valid(self, form):
-		if self.request.method == 'POST':
-			decision = self.request.POST.get("decision")
-			if decision == 'Khuda Hafiz':
-				self.request.user.userprofile.score = 10
-				self.request.user.userprofile.save()
-				return redirect("logout")
+		if self.request.user_banned:
+			return redirect("error") #you can come in any time you like, you can never leave!
+		else:
+			if self.request.method == 'POST':
+				decision = self.request.POST.get("decision")
+				if decision == 'Khuda Hafiz':
+					self.request.user.userprofile.score = 10
+					self.request.user.userprofile.save()
+					return redirect("logout")
+				else:
+					return redirect("home")
 			else:
 				return redirect("home")
-		else:
-			return redirect("home")
-
-def form_valid(self, form):
-		if self.request.method == 'POST':
-			report = self.request.POST.get("report")
-			if report == 'Haan ye ghair ikhlaaqi hai':
-				report = self.request.POST.get("reply")
-				reply = get_object_or_404(Publicreply, pk=report)
-				reply.category = '3'
-				reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 10
-				reply.submitted_by.userprofile.save()
-				reply.save()
-				return redirect("reply", pk=reply.answer_to.id)
-			else:
-				report = self.request.POST.get("reply")
-				reply = get_object_or_404(Publicreply, pk=report)
-				return redirect("reply", pk= reply.answer_to.id)
-
 
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm
@@ -266,7 +293,7 @@ class LinkListView(ListView):
 		global condemned
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
-			if self.request.user.userprofile.score > 9:
+			if self.request.user.userprofile.score > 10:
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
@@ -1468,8 +1495,8 @@ class ReportView(FormView):
 			if report == 'Haan ye ghair ikhlaaqi hai':
 				report = self.request.POST.get("reply")
 				reply = get_object_or_404(Publicreply, pk=report)
-				reply.category = '3'
-				reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 10
+				reply.abuse = True
+				reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 2
 				reply.submitted_by.userprofile.save()
 				reply.save()
 				return redirect("reply", pk=reply.answer_to.id)

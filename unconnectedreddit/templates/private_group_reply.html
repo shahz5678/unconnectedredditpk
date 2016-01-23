@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 
 
-    <b style="color:green;font-size:110%;">{{ group.topic }}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change karo)</a>
+    <b style="color:green;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change karo)</a>
     <br>
     <span style="font-size:85%;">
     <b>members:</b>
@@ -78,7 +79,7 @@
                 <span class="numbers" style="font-size:50%;">
                 {{ forloop.counter }}.
                 </span>
-                <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=reply.writer.username %}#section0">{% if reply.writer.userprofile.avatar %}<img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>{% endif %}&nbsp;{{ reply.writer }}{% for person in ensured %}{% if person == reply.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
+                <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=reply.writer.username %}#section0">{% if reply.writer.userprofile.avatar %}<img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>{% endif %}&nbsp;{{ reply.writer }}{% for person in ensured %}{% if person == reply.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}{{ reply.text }}{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
                 {% if reply.image %}
                 <img src="{{ reply.image.url }}"></img><br>
@@ -118,7 +119,7 @@
                 {% if person == reply.writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}:&nbsp;{{ reply.text }}
+            {% endfor %}:&nbsp;{% emoticons %}{{ reply.text }}{% endemoticons %}
 
             {% endif %}
             

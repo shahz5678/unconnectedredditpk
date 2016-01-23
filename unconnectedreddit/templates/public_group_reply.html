@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 
 
 {% if group_banned %}
 	
-	<br><span style="color:red;">Tum <b>{{ group.topic }}</b> se bahir ho gaye ho. Wapis aaney mein kuch waqt lagey ga.<br>Abhi kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
+	<br><span style="color:red;">Tum <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho. Wapis aaney mein kuch waqt lagey ga.<br>Abhi kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
 
 {% else %}
     
-		Topic:&nbsp;<span style="color:red;"><b>{{ group.topic }}</b></span>
+		Topic:&nbsp;<span style="color:red;"><b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></span>
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
@@ -48,7 +49,7 @@
     
 
 	    {% if group.rules %}
-	    <span style="font-size:80%;">Qanoon:&nbsp;<span style="color:red;"><b>{{ group.rules }}</b></span></span><br>
+	    <span style="font-size:80%;">Qanoon:&nbsp;<span style="color:red;"><b>{% emoticons %}{{ group.rules }}{% endemoticons %}</b></span></span><br>
 	    {% endif %}
 	    {% if user == group.owner %}
 	    <a href="{% url 'change_rules' slug=unique %}" style="font-size:70%;">(qanoon change karo)</a>
@@ -120,7 +121,7 @@
                 {% if person == reply.writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
+            {% endfor %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}{{ reply.text }}{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
         {% elif reply.category == '5' %}
             <span class="numbers" style="font-size:50%;">
             {{ forloop.counter }}.</span>
@@ -128,7 +129,7 @@
                 {% if person == reply.writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
+            {% endfor %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}{{ reply.text }}{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
             <img src="{{ reply.image.url }}"></img><br>
@@ -163,7 +164,7 @@
                 {% if person == reply.writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}:&nbsp;{{ reply.text }}
+            {% endfor %}:&nbsp;{% emoticons %}{{ reply.text }}{% endemoticons %}
             <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}</span>
             {% if user == group.owner %}
             <a href="{% url 'kick' pk=reply.writer.id slug=unique %}"><span style="font-size:65%;">(kick)</span></a>

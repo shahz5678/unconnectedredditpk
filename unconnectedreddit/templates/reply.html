@@ -29,22 +29,18 @@
 <form action="{% url 'reply' pk=parent.pk %}" method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
-    Jawab:{{ form.description }}
+    <span style="font-size:90%;color:dimgrey;">Jawab:</span>{{ form.description }}
     <br>
 <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
 </form>
 {% else %}
 <i style="color:red;">Tumhara score itna nahi ke tum jawab de sako</i>
 {% endif %}
-<p style="color:gray"><hr size=1></p>
-<a href="/" style="font-size:65%;"><b>home</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'unseen_activity' slug=user.username %}#section0" style="font-size:65%;"><b>dusray jawab</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{{ request.path }}" style="font-size:65%;"><b>taaza karo</b></a>
 <p style="margin-top:.3em;"></p>
 {% if replies|length < 25 %}
-    <b>{{ replies|length }} Jawab:</b><br>
+    <b style="font-size:90%;">{{ replies|length }} Jawab:</b><br>
 {% else %}
-    <b>Pichley 25 Jawab:</b><br>
+    <b style="font-size:90%;">Pichley 25 Jawab:</b><br>
 {% endif %}
 <table>
 {% for reply in replies %}
@@ -112,10 +108,22 @@
     {% if user == parent.submitter %}
     <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
     {% endif %}
+    {% if user != reply.submitted_by %}
+    <a href="{% url 'direct_message_help' pk=reply.submitted_by.pk %}"><span style="font-size:65%;">(mehfil)</span></a>
+    {% endif %}
     {% endif %}
 	<br>
     </td></tr>
 {% endfor %}
 </table>
+<p style="margin-top:0.5em;"></p>
+<hr size=1>
+<p style="margin-top:-0.9em;"></p>
+<hr size=1>
+<span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf type karo, () samait:</b></span>
+{% emoticons_index as emoticons_list %}
+{% for emoticons in emoticons_list %}
+<p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>
+{% endfor %}
 </div>
 {% endblock %}

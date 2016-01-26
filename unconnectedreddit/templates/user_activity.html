@@ -21,11 +21,11 @@
 	{% endif %}
     {% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
 		</a>
 	{% else %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 		</a>
 	{% endif %}
 	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>

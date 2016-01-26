@@ -51,11 +51,11 @@
     <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
     {% if reply.submitted_by.userprofile.avatar %}
         
-        <img src="{{ reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+        <img src="{{ reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
         
     {% else %}
         
-        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
         
     {% endif %}
     </a>
@@ -120,7 +120,7 @@
 <hr size=1>
 <p style="margin-top:-0.9em;"></p>
 <hr size=1>
-<span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf type karo, () samait:</b></span>
+<span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf aur nishaan type karo:</b></span>
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 <p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>

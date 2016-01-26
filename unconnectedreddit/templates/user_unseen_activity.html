@@ -5,7 +5,7 @@
 {% block content %}
 <div class="margin">
 
-<span style="color:green;font-size:80%;">Home ki chats jahan tum ne ye kisi aur ne tum se gup lagaii, pichley 30 mins mein:</span><p></p>
+<span style="color:green;font-size:80%;">Home ki chats jahan tum ne ya kisi aur ne tum se gup lagaii, pichley 30 mins mein:</span><p></p>
 {% for key, value in eachlink.items %} <!-- value.0 is seen link, value.1 is time stamp, value.2 is unseen link-->
 	{% if value.0.image_file %}
     	<img src="{{ value.0.image_file.url }}"></img><br>

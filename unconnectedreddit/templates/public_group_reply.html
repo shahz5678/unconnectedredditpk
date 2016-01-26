@@ -15,9 +15,9 @@
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+            <img src="{{ group.owner.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
         {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
         {% endif %}
         </a>
     	<a href="{% url 'profile' slug=group.owner.username %}">{{ group.owner }}</a>
@@ -93,9 +93,9 @@
                 <span style="color:red;font-size:90%;">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {% if reply.writer.userprofile.avatar %}
-                    <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                    <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
                     {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
                     {% endif %}
                     {{ reply.writer }}
                     {% for person in ensured %}
@@ -140,9 +140,9 @@
 
             <a href="{% url 'profile' slug=reply.writer.username %}#section0">
             {% if reply.writer.userprofile.avatar %}
-                <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
             {% else %}
-                <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
             {% endif %}
             </a>          
   

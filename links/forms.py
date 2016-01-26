@@ -251,6 +251,14 @@ class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
 
+class DownvoteForm(forms.Form):
+	class Meta:
+		pass
+
+class UpvoteForm(forms.Form):
+	class Meta:
+		pass
+
 class LogoutHelpForm(forms.Form):
 	class Meta:
 		pass
@@ -275,9 +283,17 @@ class KickForm(forms.Form):
 	class Meta:
 		pass
 
+class MehfilForm(forms.Form):
+	class Meta:
+		pass
+
 class GroupReportForm(forms.Form):
 	class Meta:
 		model = Reply
+
+class MehfildecisionForm(forms.Form):
+	class Meta:
+		pass
 
 class ReportForm(forms.Form):
 	class Meta:

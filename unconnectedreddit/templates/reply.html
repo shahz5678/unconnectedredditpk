@@ -109,7 +109,7 @@
     <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
     {% endif %}
     {% if user != reply.submitted_by %}
-    <a href="{% url 'direct_message_help' pk=reply.submitted_by.pk %}"><span style="font-size:65%;">(mehfil)</span></a>
+    <a href="{% url 'mehfil_help' pk=reply.submitted_by.pk slug=reply.answer_to.pk %}"><span style="font-size:65%;">(mehfil)</span></a>
     {% endif %}
     {% endif %}
 	<br>

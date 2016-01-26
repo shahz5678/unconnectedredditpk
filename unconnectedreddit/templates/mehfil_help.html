@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<h2>Private mehfil mein logg zaati chat kartey hain</h2>
+Kiya tum <b>{{ target.username }}</b> ke saath private mehfil banana chahtey ho?
+<form action="{% url 'mehfil_help' pk=target.pk slug=link_id %}" method="POST">
+{% csrf_token %}
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"><br>
+</form>
+</div>
+{% endblock %}

@@ -5,23 +5,46 @@
 {% load urlize_target_blank %}
 {% load emoticons_tags %}
 {% block content %}
+<div class="margin">
 	{% if notification %}
-			<span class="margin" style="color:red;"><b>Latest:</b> 
-			{% if sender.userprofile.avatar %}
-				<a href="{% url 'profile' slug=sender.username %}#section0">
-				<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
-				</a>
-			{% else %}
-				<a href="{% url 'profile' slug=sender.username %}#section0">
-				<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
-				</a>
-			{% endif %}
-			<a href="{% url 'profile' slug=sender.username %}#section0">{{ sender.username }}</a> ki taraf se tumhe <a href="{% url 'unseen_activity' slug=user.username %}#section0"><u>neya jawab</u></a> aya!</span>
+			<span>
+			<a href="{% url 'unseen_activity' slug=user.username %}#section0" style="color:darkorange;font-size:75%;">
+			<b>Iss jumlay pe </b><a href="{% url 'profile' slug=sender.username %}#section0" style="font-size:75%;">{{ sender.username }}</a><a href="{% url 'unseen_activity' slug=user.username %}#section0" style="color:darkorange;font-size:75%;"><b> ka neya jawab:</b></a>
+			<p style="margin-top:.5em;"></p>
+				{% if which_link.submitter.userprofile.avatar %}
+					<img src="{{ which_link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+				{% else %}
+					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+				{% endif %}
+			<span style="color:dimgrey;">{{ which_link.submitter.username }}</span>:<span style="color:dimgrey;"> {{ which_link|truncatechars:40 }}</span>
+			<p style="margin-top:.5em;"></p>
+			</a>
+				{% if sender.userprofile.avatar %}
+					<a href="{% url 'profile' slug=sender.username %}#section0">
+					<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+					</a>
+				{% else %}
+					<a href="{% url 'profile' slug=sender.username %}#section0">
+					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+					</a>
+				{% endif %}
+			<a href="{% url 'profile' slug=sender.username %}#section0" style="font-size:110%;">{{ sender.username }}</a>:<span style="font-size:110%;"> {{ text|truncatechars:40 }}</span><span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ timestamp|naturaltime }}</bdi></span>
+				<form method="POST" action="{% url 'reply' pk=which_link.pk %}">
+				{% csrf_token %}
+					<br>
+					<input type="submit" name="home" style="color:#1947d1;font-size:100%;background-color:#ffc680;border:solid;border-width:1px;text-shadow:none;border-color:orange;width:8em;white-space:nowrap;" value="wapis jawab do">
+				</form>
+			<p style="margin-top:.5em;"></p>
+			<hr size=1>
+			<p style="margin-top:-0.9em;"></p>
+			<hr size=1>
+			<span style="color:darkorange;font-size:75%;"><b>baaqi chat:</b></span>
+			</span>
 	{% else %}
 			{% if user.is_authenticated %}
-				<span class="margin" style="color:purple;"><b>Latest: </b><b><a href="{% url 'profile' slug=newest_user.username %}#section0"><u>{{ newest_user.username }}</u></a></b> ne abhi abhi khaata khola. Welcome!</span>
+				<span style="color:purple;"><b>Taza tareen: </b><b><a href="{% url 'profile' slug=newest_user.username %}#section0"><u>{{ newest_user.username }}</u></a></b> ne abhi abhi khaata khola. Welcome!</span>
 			{% else %}
-				<span class="margin" style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khol</u></a> kar neechay chat karo:</span>
+				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khol</u></a> kar neechay chat karo:</span>
 			{% endif %}
 	{% endif %}
 		<p>
@@ -31,7 +54,7 @@
 		<span>
 		{% endif %}
 		</p>
-<div class="margin">
+
 
 {% for link in object_list %}
 	    {% if link.image_file %}

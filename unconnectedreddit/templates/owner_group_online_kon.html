@@ -24,9 +24,9 @@ Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 
 		<a href="{% url 'profile' slug=traffic.visitor.username %}">
 		{% if person.userprofile.avatar %}
-			<img src="{{ traffic.visitor.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+			<img src="{{ traffic.visitor.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
 		{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+			<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 		{% endif %}
 		{{ traffic.visitor.username }}
 		</a>

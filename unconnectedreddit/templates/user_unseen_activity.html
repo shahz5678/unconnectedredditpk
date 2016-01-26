@@ -5,7 +5,7 @@
 {% block content %}
 <div class="margin">
 
-<span style="color:green;font-size:80%;">Jis jis chat mein jawab aya ya diya, woh yeh hein:</span><p></p>
+<span style="color:green;font-size:80%;">Home ki chats jahan tum ne ye kisi aur ne tum se gup lagaii, pichley 30 mins mein:</span><p></p>
 {% for key, value in eachlink.items %} <!-- value.0 is seen link, value.1 is time stamp, value.2 is unseen link-->
 	{% if value.0.image_file %}
     	<img src="{{ value.0.image_file.url }}"></img><br>
@@ -46,12 +46,12 @@
 	<p style="margin-top:.5em;"></p>
 	{% if value.0.publicreply_set.count %}
 	{% if value.0.publicreply_set.count < 26 %}
-		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.publicreply_set.count }} jawab</a>
+		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.publicreply_set.count }} jawab</a>
 		{% else %}
-		<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
 		{% endif %}
 	{% else %}
-	<a href="{% url 'reply' pk=value.0.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 	{% endif %}
 	<br>
 	{% else %}
@@ -85,17 +85,17 @@
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
 	: {% emoticons %}{{ value.2.description }}{% endemoticons %}
-	<a href="{% url 'reply' pk=value.2.pk %}" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
+	<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
 	{% if value.2.publicreply_set.count %}
 	{% if value.2.publicreply_set.count < 26 %}
-		<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.publicreply_set.count }} jawab</a>
+		<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.publicreply_set.count }} jawab</a>
 		{% else %}
-		<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
 		{% endif %}
 	{% else %}
-	<a href="{% url 'reply' pk=value.2.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+	<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 	{% endif %}
 	<br>
 {% endif %}

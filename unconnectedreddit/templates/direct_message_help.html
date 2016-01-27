@@ -2,17 +2,17 @@
 {% block content %}
 
 <div class="margin">
-{% if user.userprofile.score > 199 %}
+{% if user.userprofile.score > 499 %}
 
-Ye private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai.<br>Tum ye qeemat dena chahtey ho?<br><br>
+Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai.<br>Tum ye qeemat dena chahtey ho?<br><br>
 <form action="{% url 'direct_message_create' pk=target.pk %}" method="POST">
 {% csrf_token %}
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
+<span style="color:lightgrey;"><b>.</b></span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
 </form>
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'profile' slug=target.username %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
+<span style="color:lightgrey;"><b>.</b></span>&nbsp;<a href="{% url 'profile' slug=target.username %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
 {% else %}
 
-Ye private mehfil bananey ki qeemat <b style="color:red;">200 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
+Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
  <a href="{% url 'home' %}"><b><</b>&nbsp;Wapis jao</a>
 
 {% endif %}

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
-<b>.</b> History ka matlab hai tareekh. Yaani ke kisi ne maazi mien keya keya likha<br>
-<b>.</b> Damadam mien kisi bhi insaan ki history dekhi jaa sakti hai<br>
-<b>.</b> History uss insaan ke woh jawab nahi dikhati jo uss ne kisi aur ke <b>kuch likho</b> ke neechay daaley hone<br>
-<b>.</b> History sirf har insaan ke 'kuch likho' waaley jumley dikhati hai<br>
-<b>.</b> History aur 'latest gupshup' mien farak hai<br>
+<b>.</b> Ye sirf tab nazar aata hai jab kisi ne aisi chat par jawab diya ho jis ka tum bhi hissa ho<br>
+<b>.</b> Agar tum ne <b>30 min</b> tak jawab nahi diya, toh tumhe yeh nazar aana band ho jaye ga<br>
+<br>
+<a href="{% url 'reply' pk=link_pk %}" style="font-size:80%;">Jawab do </a><span style="color:grey;">|</span>
+<a href="{% url 'home' %}" style="font-size:80%;">Wapis jao</a>
+
 </div>
 {% endblock %}

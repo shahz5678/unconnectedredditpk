@@ -15,7 +15,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, LinkForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -46,14 +46,22 @@ def GetNonReplyLinks(user):
 				order_by('-submitted_on')[:150]))
 	'''
 	try:
-		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).distinct().order_by('-submitted_on')[:90]
+		now = datetime.utcnow().replace(tzinfo=utc)
+		timestamp = now - timedelta(minutes=30)
+		#print timestamp
+		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
 	except:
+		#print "no relevant links"
 		relevant_links = []
 	return relevant_links
 
 def GetLinks(user):
 	try: 
-		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
+		now = datetime.utcnow().replace(tzinfo=utc)
+		timestamp = now - timedelta(minutes=30)
+		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id').values_list('id', flat=True)[:10]))
+		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
+		#print "relevant link ids are: %s" % relevant_links_ids
 	except:
 		relevant_links_ids = []
 	return relevant_links_ids
@@ -64,7 +72,8 @@ def GetLatestUserInvolvement(user):
 	relevant_link_ids = GetLinks(user)
 	if relevant_link_ids:
 		try:
-			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(submitted_by=user).exclude(submitted_by_id__in=condemned).latest('id')
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
+			#print "max unseen reply is %s" % max_unseen_reply
 			return max_unseen_reply 
 		except:
 			return empty_timestamp
@@ -92,6 +101,17 @@ class ReinviteView(FormView):
 class HistoryHelpView(FormView):
 	form_class = HistoryHelpForm
 	template_name = "history_help.html"
+
+class NotifHelpView(FormView):
+	form_class = NotifHelpForm
+	template_name = "notif_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(NotifHelpView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["link_pk"] = self.kwargs.get("pk")
+			#context["unique"] = link_pk
+		return context
 
 class RegisterWalkthroughView(FormView):
 	form_class = RegisterWalkthroughForm
@@ -247,6 +267,37 @@ class LogoutReconfirmView(FormView):
 			else:
 				return redirect("home")
 
+class MehfilView(FormView):
+	form_class = MehfilForm
+	template_name = "mehfil_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(MehfilView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			target_id = self.kwargs["pk"]
+			link_id = self.kwargs["slug"]
+			context["target"] = User.objects.get(id=target_id)
+			context["link_id"] = link_id
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			report = self.request.POST.get("decision")
+			target = self.kwargs["pk"]
+			link_id = self.kwargs["slug"]
+			if report == 'Haan':
+				# report = self.request.POST.get("reply")
+				# reply = get_object_or_404(Publicreply, pk=report)
+				# reply.abuse = True
+				# reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 2
+				# reply.submitted_by.userprofile.save()
+				# reply.save()
+				return redirect("direct_message_help", pk=target)
+			else:
+				# report = self.request.POST.get("reply")
+				# reply = get_object_or_404(Publicreply, pk=report)
+				return redirect("reply", pk=link_id)	
+
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm
 	template_name = "report_reply.html"
@@ -306,54 +357,27 @@ class LinkListView(ListView):
 				context["sender"] = 0 #hell banned users will never see notifications
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
-				context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
+				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
 				freshest_reply = GetLatestUserInvolvement(self.request.user)
-				context["latest_reply"] = freshest_reply
-				################################
-				#freshest_link = Link.objects.filter(Q(submitter=self.request.user)|Q(publicreply__submitted_by=self.request.user)).distinct()#.annotate(date=Max('publicreply__submitted_on')).latest('date')#.only('publicreply__submitted_on','publicreply__submitted_by')
-				#print "the latest links are: %s" % freshest_link
-				#freshest_reply = Publicreply.objects.filter(answer_to=freshest_link).exclude(submitted_by_id__in=condemned).latest('submitted_by')
-				#print "the latest reply is: %s" % freshest_reply
-				#Link.objects.filter(Q(submitter=self.request.user)|Q(publicreply__submitted_by=self.request.user)).exclude()
+				print "freshest_reply is %s" % freshest_reply
 				try:
-					timestamp = freshest_reply.submitted_on
-					sender = freshest_reply.submitted_by
-				except:
-					timestamp = []
-					sender = 0
-				context["timestamp"] = timestamp
-				try:
-					user_object = Unseennotification.objects.get(recipient=self.request.user)
-				except:
-					user_object = 0
-				if user_object:
-					try: 
-						if user_object.timestamp < timestamp:#if most recent unseen notification is outdated
-							context["notification"] = 1
-							context["sender"] = sender
-						else:
-							context["notification"] = 0
-							context["sender"] = 0
-					except:
+					if freshest_reply:
+						context["latest_reply"] = freshest_reply
+						context["notification"] = 1
+						context["parent_link"] = freshest_reply.answer_to
+						context["parent_link_pk"] = freshest_reply.answer_to.pk
+					else:
+						context["latest_reply"] = []
 						context["notification"] = 0
-						context["sender"] = 0
-				else: 
-					try:
-						user_object = Unseennotification.objects.create(recipient=self.request.user,\
-							timestamp=(timestamp- datetime.timedelta(0, 900)))
-					except:
-						user_object = Unseennotification.objects.create(recipient=self.request.user,\
-							timestamp=datetime.utcnow().replace(tzinfo=utc))
-					try: #timestamp[0] exists
-						if user_object.timestamp < timestamp:
-							context["notification"] = 1
-							context["sender"] = sender.username
-						else:
-							context["notification"] = 0
-							context["sender"] = 0
-					except:#timestamp is empty
-						context["notification"] = 0
-						context["sender"] = 0
+						context["parent_link"] = []
+						context["parent_link_pk"] = 0
+						#print "freshest reply didn't exist"
+				except:
+					context["latest_reply"] = []
+					context["notification"] = 0
+					context["parent_link"] = []
+					context["parent_link_pk"] = 0
+					print "freshest reply didn't exist"
 		return context
 
 class LinkUpdateView(UpdateView):
@@ -551,7 +575,7 @@ class DirectMessageCreateView(FormView):
 		if self.request.user_banned:
 			return redirect("history_help") #confusion-banning
 		else:
-			self.request.user.userprofile.score = self.request.user.userprofile.score - 200
+			self.request.user.userprofile.score = self.request.user.userprofile.score - 500
 			pk = self.kwargs["pk"]
 			user = User.objects.get(id=pk)
 			invitee = user.username
@@ -590,7 +614,7 @@ class ClosedGroupCreateView(CreateView):
 		except:
 			pass
 		f.owner.userprofile.previous_retort = f.topic
-		f.owner.userprofile.score = f.owner.userprofile.score - 200
+		f.owner.userprofile.score = f.owner.userprofile.score - 500
 		f.save()
 		reply = Reply.objects.create(text='mein ne new mehfil shuru kar di',which_group=f,writer=self.request.user)
 		GroupSeen.objects.create(seen_user=self.request.user,which_reply=reply)
@@ -1107,7 +1131,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		context = super(PublicreplyView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			link = Link.objects.get(id=self.kwargs["pk"])
-			context["parent"] = link
+			#is_notification = self.kwargs["is_notif"]
+			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			if self.request.user_banned:
 				replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
@@ -1115,17 +1140,24 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				context["seenreplies"] = context["replies"]#i.e. all replies are seen for hell-banned person, none are *new*
 			else:
 				replies = Publicreply.objects.filter(answer_to=link).exclude(submitted_by_id__in=condemned).order_by('-id')[:25]
-				context["replies"] = replies
+				context["replies"] = replies #latest replies, sans condemned
 				own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
+				#from_notification = self.request.POST.get('home', False)
+				#is_notification = self.kwargs["is_notif"]
+				# if is_notification:
+				# 	#print "came from home notification"
+				# 	user_object = Unseennotification.objects.get(recipient=self.request.user)#updating the unseennotification object
+				# 	user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
+				# 	user_object.save()
 				#if it's the right public reply:
 					# user_object = Unseennotification.objects.get(recipient=self.request.user)#updating the unseennotification object
 					# user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
 					# user_object.save()
-				if link.submitter == self.request.user and own_reply==False: #user only wrote parent link
+				if link.submitter == self.request.user and own_reply==False: #user only wrote parent link, and has never replied under it
 					seen_replies = []
-					reply_ids = [reply.id for reply in replies]
+					reply_ids = [reply.id for reply in replies] #the ids of the latest 25 replies
 					seen_replies = Publicreply.objects.filter(id__in=reply_ids,publicreply_seen_related__seen_user=self.request.user)
-					context["seenreplies"] = seen_replies
+					context["seenreplies"] = seen_replies #all replies, from the latest 25, that were seen by the user
 					insert_list=[]
 					for response in replies:
 						if response not in seen_replies:

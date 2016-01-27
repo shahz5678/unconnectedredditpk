@@ -340,6 +340,7 @@ class LinkListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES
+		context["random"] = random.randint(1,3)
 		context["newest_user"] = User.objects.latest('id') #for unauthenticated users
 		global condemned
 		context["can_vote"] = False

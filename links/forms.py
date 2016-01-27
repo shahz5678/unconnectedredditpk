@@ -331,6 +331,10 @@ class ClosedInviteTypeForm(forms.Form):
 	class Meta:
 		pass
 
+class NotifHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class HistoryHelpForm(forms.Form):
 	class Meta:
 		pass

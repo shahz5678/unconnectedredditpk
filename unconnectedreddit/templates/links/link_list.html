@@ -8,37 +8,40 @@
 <div class="margin">
 	{% if notification %}
 			<span>
-			<a href="{% url 'unseen_activity' slug=user.username %}#section0" style="color:darkorange;font-size:75%;">
-			<b>Iss jumlay pe </b><a href="{% url 'profile' slug=sender.username %}#section0" style="font-size:75%;">{{ sender.username }}</a><a href="{% url 'unseen_activity' slug=user.username %}#section0" style="color:darkorange;font-size:75%;"><b> ka neya jawab:</b></a>
-			<p style="margin-top:.5em;"></p>
-				{% if which_link.submitter.userprofile.avatar %}
-					<img src="{{ which_link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+			<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:green;">
+				{% if parent_link.submitter.userprofile.avatar %}
+					<img src="{{ parent_link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22" style="color:dimgrey;"></img>
 				{% else %}
-					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 				{% endif %}
-			<span style="color:dimgrey;">{{ which_link.submitter.username }}</span>:<span style="color:dimgrey;"> {{ which_link|truncatechars:40 }}</span>
+				<span style="color:dimgrey;">{{ parent_link.submitter.username }}</span>:<span style="color:dimgrey;"> {{ parent_link.description|truncatechars:40 }}</span>
+			
 			<p style="margin-top:.5em;"></p>
-			</a>
-				{% if sender.userprofile.avatar %}
-					<a href="{% url 'profile' slug=sender.username %}#section0">
-					<img src="{{ sender.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+			<span style="color:darkorange;font-size:90%;">
+			<b> is par <a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:90%;">{{ latest_reply.submitted_by.username }}</a> ka neya jawab:</b>
+			</span>
+				
+			<p style="margin-top:.5em;"></p>
+			
+				{% if latest_reply.submitted_by.userprofile.avatar %}
+					<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0">
+					<img src="{{ latest_reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
 					</a>
 				{% else %}
-					<a href="{% url 'profile' slug=sender.username %}#section0">
-					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+					<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0">
+					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 					</a>
 				{% endif %}
-			<a href="{% url 'profile' slug=sender.username %}#section0" style="font-size:110%;">{{ sender.username }}</a>:<span style="font-size:110%;"> {{ text|truncatechars:40 }}</span><span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ timestamp|naturaltime }}</bdi></span>
-				<form method="POST" action="{% url 'reply' pk=which_link.pk %}">
-				{% csrf_token %}
-					<br>
-					<input type="submit" name="home" style="color:#1947d1;font-size:100%;background-color:#ffc680;border:solid;border-width:1px;text-shadow:none;border-color:orange;width:8em;white-space:nowrap;" value="wapis jawab do">
-				</form>
+			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;">{{ latest_reply.submitted_by.username }}</a>:<span style="font-size:110%;"> {{ latest_reply.description|truncatechars:40 }}</span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
+				<p style="margin-top:.5em;"></p>
+				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">jawab do</button></a><a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
+			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
 			<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
-			<span style="color:darkorange;font-size:75%;"><b>baaqi chat:</b></span>
+
+			<span style="color:darkorange;font-size:90%;"><b>baaqi logoon ki chat:</b></span>
 			</span>
 	{% else %}
 			{% if user.is_authenticated %}
@@ -47,7 +50,7 @@
 				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khol</u></a> kar neechay chat karo:</span>
 			{% endif %}
 	{% endif %}
-		<p>
+		<p style="margin-top:.5em;">
 		{% if is_paginated %}
 		<span start="{{ page_obj.start_index }}">
 		{% else %}
@@ -55,18 +58,17 @@
 		{% endif %}
 		</p>
 
-
 {% for link in object_list %}
 	    {% if link.image_file %}
 	    <img src="{{ link.image_file.url }}"></img><br>
 		{% endif %}
 		{% if link.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
 		</a>
 		{% else %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 		</a>
 		{% endif %}
 			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
@@ -94,20 +96,17 @@
     	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
     	{% endemoticons %}
 			<a name="section{{ forloop.counter }}"></a> 
-		<span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		<span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p>
-			<form  method="POST" action="{% url 'reply' pk=link.pk %}">
-			{% csrf_token %}
 			{% if link.publicreply_set.count %}
 				{% if link.publicreply_set.count < 26 %}
-				<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="{{ link.publicreply_set.count }} jawab">
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</button></a>
 				{% else %}
-				<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="25+ jawab">
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">25+ jawab</button></a>
 				{% endif %}
 			{% else %}
-			<input type="submit" name="seen" style="color:#1947D1;background-color:white;border:solid;border-width:1px;width:7em;border-color:orange;white-space:nowrap;" value="isko jawab do">
+					<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
 			{% endif %}
-			</form>
 		<form  method="POST" action="{% url 'vote' %}" class="vote_form">
 		{% csrf_token %}
 		<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
@@ -116,7 +115,7 @@
 		<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">	
 		
 		{% if link.pk not in voted and link.submitter != user and can_vote %}	
-		<br>
+
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee">
 		{% if user.username in checked %}
 		<a href="{% url 'home' %}" style="font-size:90%;color:green;"><u>+50</u></a>

@@ -359,7 +359,7 @@ class LinkListView(ListView):
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
 				freshest_reply = GetLatestUserInvolvement(self.request.user)
-				print "freshest_reply is %s" % freshest_reply
+				#print "freshest_reply is %s" % freshest_reply
 				try:
 					if freshest_reply:
 						context["latest_reply"] = freshest_reply
@@ -1284,12 +1284,12 @@ class UnseenActivityView(ListView):
 					pass
 			eachlink.default_factory=None
 			context["eachlink"] = dict(eachlink)
-			try:
-				user_object = Unseennotification.objects.get(recipient=self.request.user)
-				user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
-				user_object.save()
-			except:
-				Unseennotification.objects.create(recipient=self.request.user,timestamp=datetime.utcnow().replace(tzinfo=utc))
+			# try:
+			# 	user_object = Unseennotification.objects.get(recipient=self.request.user)
+			# 	user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
+			# 	user_object.save()
+			# except:
+			# 	Unseennotification.objects.create(recipient=self.request.user,timestamp=datetime.utcnow().replace(tzinfo=utc))
 			#print eachlink
 		return context
 

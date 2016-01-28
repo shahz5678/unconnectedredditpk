@@ -4,19 +4,13 @@
 {% block content %}
 <div class="margin">
 <a href="{% url 'profile' slug=parent.submitter %}">{{ parent.submitter }}</a>
-{% if user.is_authenticated %}
-            {% if user.usersettings.score_setting == '1' %}
-                {% if parent.submitter.userprofile.score %}
-                    {% if parent.submitter.userprofile.score < 0 %}
-                        <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
-                    {% else %}
-                        <span style="color:#18A018;">({{ parent.submitter.userprofile.score }})</span>
-                    {% endif %}
-                {% else %}
-                {% endif %}
-            {% else %}
-            {% endif %}
-    {% endif %}
+{% if user.is_authenticated and user.userprofile.score > 25 %}
+    {% if parent.submitter.userprofile.score < 0 %}
+        <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
+    {% else %}
+        <span style="color:#18A018;">({{ parent.submitter.userprofile.score }})</span>
+{% endif %}
+
 {% for person in ensured %}
     {% if person == parent.submitter.username %}
         
@@ -78,18 +72,12 @@
         {% endif %}
 	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>
         <span style="font-size:80%;">
-            {% if user.is_authenticated %}
-                    {% if user.usersettings.score_setting == '1' %}
-                        {% if reply.submitted_by.userprofile.score %}
-                            {% if reply.submitted_by.userprofile.score < 0 %}
-                                <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
-                            {% else %}
-                                <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
-                            {% endif %}
-                        {% else %}
-                        {% endif %}
-                    {% else %}
-                    {% endif %}
+            {% if user.is_authenticated and user.userprofile.score > 25 %}
+                {% if reply.submitted_by.userprofile.score < 0 %}
+                    <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
+                {% endif %}
             {% endif %}
         </span>
     	{% for person in ensured %}

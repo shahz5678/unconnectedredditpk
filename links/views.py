@@ -47,7 +47,7 @@ def GetNonReplyLinks(user):
 	'''
 	try:
 		now = datetime.utcnow().replace(tzinfo=utc)
-		timestamp = now - timedelta(minutes=30)
+		timestamp = now - timedelta(minutes=60*48)
 		#print timestamp
 		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
 	except:

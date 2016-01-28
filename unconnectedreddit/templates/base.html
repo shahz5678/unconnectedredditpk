@@ -1,7 +1,8 @@
 
 {% load google_analytics %}
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
 
     <!-- ****** faviconit.com favicons ****** -->
@@ -61,7 +62,7 @@
         <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
     {% endif %} 
     <span style="color:white;">|</span>
-    <a href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>
+    <a href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumhari Mehfil</a>
     {% load verified %}
     {% check_user_is_verified as is_verified %}
     {% if is_verified %}

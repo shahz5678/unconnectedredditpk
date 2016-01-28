@@ -5,13 +5,14 @@
 <div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 {% if object.username == user.username %}
 <h2><u>Welcome apni profile pe</u></h2>
-<a href="{% url 'outside_message_help' %}" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Bahir waley ke saath private mehfil</a>
-
+<p><a href='{% url "edit_profile" %}#section0'> <button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Profile badlo</a></button></p>
 {% else %}
 <h2><u>{{ object.username }} ki profile</u></h2>
-<a href="{% url 'direct_message_help' pk=object.id %}" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Iss ke saath private mehfil</a>
-<br><a href="{% url 'user_activity' slug=object.username %}#section0" class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;">Iss ki history</a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
+<a href="{% url 'direct_message_help' pk=object.id %}"> <button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Iss ke saath private mehfil</a></button>
+<br><a href="{% url 'user_activity' slug=object.username %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Iss ki history</a></button> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% endif %}
+
+
 	<div>
 	<b class="profile">Photo:</b>
 	{% if object.userprofile.avatar %}
@@ -84,8 +85,9 @@
 	{% endif %}
 	</div>
 {% if object.username == user.username %}
-<p><a href='{% url "edit_profile" %}#section0' class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">Profile badlo</a></p>
-<h2><u>{{ object.username }} ke ikhtiyar</u></h2>
+<a href="{% url 'outside_message_help' %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Bahir waley ke saath private mehfil</a></button>
+{% endif %}
+<!-- <h2><u>{{ object.username }} ke ikhtiyar</u></h2>
 	<div>
 	<b class="profile">Sab ka score dikhao:</b>
 	{% if not object.usersettings.score_setting == '1' %}
@@ -95,6 +97,6 @@
 	</div>
 	{% endif %}
 <p><a href='{% url "edit_settings" %}#section0' class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">Ikhtiyar badlo</a></p>
-{% endif %}
+ -->
 </div>
 {% endblock %}

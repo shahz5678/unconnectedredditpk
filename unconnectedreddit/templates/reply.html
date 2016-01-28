@@ -64,18 +64,12 @@
             <b style="color:orange;font-size:80%">(new)</b>
         {% endif %}
         <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a></span>
-         {% if user.is_authenticated %}
-                    {% if user.usersettings.score_setting == '1' %}
-                        {% if reply.submitted_by.userprofile.score %}
-                            {% if reply.submitted_by.userprofile.score < 0 %}
-                                <span style="color:red;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
-                            {% else %}
-                                <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
-                            {% endif %}
-                        {% else %}
-                        {% endif %}
-                    {% else %}
-                    {% endif %}
+            {% if user.is_authenticated and user.userprofile.score > 25 %}  
+                {% if reply.submitted_by.userprofile.score < 0 %}
+                    <span style="color:red;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                {% else %}
+                    <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                {% endif %}
             {% endif %}
          <span style="color:grey;font-size:90%;">ne ghalat baat ki, isko report kar diya gaya</span>
     {% else %}

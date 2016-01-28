@@ -23,19 +23,14 @@
 		
 	{% endif %}
 	{{ value.0.submitter }}</a>
-	{% if user.is_authenticated %}
-			{% if user.usersettings.score_setting == '1' %}
-				{% if value.0.submitter.userprofile.score %}
-					{% if value.0.submitter.userprofile.score < 0 %}
-				    	<span style="color:red;">({{ value.0.submitter.userprofile.score }})</span>
-				    {% else %}
-				    	<span style="color:#18A018;">({{ value.0.submitter.userprofile.score }})</span>
-					{% endif %}
-			    {% else %}
-			    {% endif %}
-			{% else %}
-			{% endif %}
+	{% if user.is_authenticated and user.userprofile.score > 25 %}
+		{% if value.0.submitter.userprofile.score < 0 %}
+	    	<span style="color:red;">({{ value.0.submitter.userprofile.score }})</span>
+	    {% else %}
+	    	<span style="color:#18A018;">({{ value.0.submitter.userprofile.score }})</span>
+		{% endif %}
 	{% endif %}
+	
 	{% for girl in verify %}
     {% if girl == value.0.submitter.username %}
     	

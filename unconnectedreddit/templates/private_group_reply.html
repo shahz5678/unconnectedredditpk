@@ -102,17 +102,15 @@
             </a>
             
             <span style="font-size:70%;">
-            {% if user.usersettings.score_setting == '1' %}
+
                 {% if reply.writer.userprofile.score %}
                     {% if reply.writer.userprofile.score < 0 %}
                         <span style="color:red;">({{ reply.writer.userprofile.score }})</span>
                     {% else %}
                         <span style="color:#18A018;">({{ reply.writer.userprofile.score }})</span>
                     {% endif %}
-                {% else %}
                 {% endif %}
-            {% else %}
-            {% endif %}
+
             </span>
 
         	{% for person in ensured %}

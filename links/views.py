@@ -59,7 +59,7 @@ def GetLinks(user):
 	try: 
 		now = datetime.utcnow().replace(tzinfo=utc)
 		timestamp = now - timedelta(minutes=30)
-		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id').values_list('id', flat=True)[:10]))
+		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:10]))
 		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
 		#print "relevant link ids are: %s" % relevant_links_ids
 	except:

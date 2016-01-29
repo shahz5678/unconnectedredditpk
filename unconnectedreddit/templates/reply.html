@@ -9,6 +9,7 @@
         <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
     {% else %}
         <span style="color:#18A018;">({{ parent.submitter.userprofile.score }})</span>
+    {% endif %}
 {% endif %}
 
 {% for person in ensured %}
@@ -93,7 +94,7 @@
     {% if user != reply.submitted_by %}
     <a href="{% url 'mehfil_help' pk=reply.submitted_by.pk slug=reply.answer_to.pk %}"><span style="font-size:65%;">(mehfil)</span></a>
     {% endif %}
-    {% endif %}
+{% endif %}
 	<br>
     </td></tr>
 {% endfor %}

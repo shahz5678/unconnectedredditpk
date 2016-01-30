@@ -2,7 +2,8 @@
 {% block content %}
 <div class="margin">
 <b>.</b> Ye sirf tab nazar aata hai jab kisi ne aisi chat par jawab diya ho jis ka tum bhi hissa ho<br>
-<b>.</b> Agar tum ne <b>30 min</b> tak jawab nahi diya, toh tumhe yeh nazar aana band ho jaye ga<br>
+<b>.</b> Agar tum <b style="color:red;">x</b> dabao tou jawab dekhay beghair khatam ho jata hai<br>
+<b>.</b> Agar tum ne <b>30 min</b> tak jawab nahi diya, toh wo jawab home par nazar nahi aye ga, sirf <a href="{% url 'unseen_activity' slug=user.username %}#section0" style="font-size:100%;">tumharey jawab</a> mein reh jaye ga
 <br>
 <a href="{% url 'reply' pk=link_pk %}" style="font-size:80%;">Jawab do </a><span style="color:grey;">|</span>
 <a href="{% url 'home' %}" style="font-size:80%;">Wapis jao</a>

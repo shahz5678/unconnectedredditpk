@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<b style="font-size:120%;">{{ target_user.username }} ko konsi mithai bhejni hai?</b><br>
+<span style="color:grey;font-size:90%;">is se tumharay score mein <b style="color:green;">+3</b> add ho ga</span><br><br>
+<a href="{% url 'welcome_message' pk=target_user.pk option=1 %}"><b>. luddu</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/laddu.png" alt="no pic" height="22" width="25"><br>
+<a href="{% url 'welcome_message' pk=target_user.pk option=2 %}"><b>. jalebi</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/jalebi.png" alt="no pic" height="22" width="29"><br>
+<a href="{% url 'welcome_message' pk=target_user.pk option=3 %}"><b>. barfi</b></a>&nbsp;&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/barfi.png" alt="no pic" height="22" width="22">
+</div>
+{% endblock %}

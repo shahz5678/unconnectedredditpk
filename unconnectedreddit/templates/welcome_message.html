@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<h2>{{ target_user.username }} ko mithai ke saath koi mazey ka paighaam bhi do:</h2>
+<form action="{% url 'welcome_reply' pk=target_user.pk %}" method="POST">
+{% csrf_token %}
+	<input type="hidden" name="target_pk" value="{{ target_user.pk }}">
+	<input type="hidden" name="option" value="{{ option }}">
+	<span style="color:red;">{{ form.description.errors }}</span>
+	{{ form.description }}<br>
+	<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+</form>
+<span style="font-size:85%;color:grey;">maslan: {{ target_user.username }} aap ko Damadam pe welcome!</span>
+</div>
+{% endblock %}

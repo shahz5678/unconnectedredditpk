@@ -2,15 +2,23 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-<h2>{{ target_user.username }} ko mithai ke saath koi mazey ka paighaam bhi do:</h2>
+<h2>{{ target_user.username }} ko saath mein aik paigham bhi do:</h2>
 <form action="{% url 'welcome_reply' pk=target_user.pk %}" method="POST">
 {% csrf_token %}
-	<input type="hidden" name="target_pk" value="{{ target_user.pk }}">
-	<input type="hidden" name="option" value="{{ option }}">
-	<span style="color:red;">{{ form.description.errors }}</span>
-	{{ form.description }}<br>
-	<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+	<input type="hidden" name="opt" value="{{ option }}">
+	{% if option == '1' %}
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Barfi khao aur mazay karo!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Yeh barri zalim barfi hai!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is barfi se mu meetha karo!">
+	{% elif option == '2' %}
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Aik plate laddu se life set!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Ye saray laddu aap ke liye!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Laddu khao, jaan banao yar!">
+	{% else %}
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi khao aur ayashi karo!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi meri pasandida hai!"><br>
+		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is jalebi se mu metha karo!">	
+	{% endif %}
 </form>
-<span style="font-size:85%;color:grey;">maslan: {{ target_user.username }} aap ko Damadam pe welcome!</span>
 </div>
 {% endblock %}

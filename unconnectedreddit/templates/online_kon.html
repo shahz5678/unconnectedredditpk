@@ -23,9 +23,9 @@
                         {% endfor %}
                         {% if visitor.userprofile.score %}
                             {% if visitor.userprofile.score < 0 %}
-                                <span style="color:red;font-size:65%;">({{ link.submitter.userprofile.score }})</span>
+                                <span style="color:red;font-size:65%;">({{ visitor.userprofile.score }})</span>
                             {% else %}
-                                <span style="color:#18A018;font-size:65%;">({{ link.submitter.userprofile.score }})</span>
+                                <span style="color:#18A018;font-size:65%;">({{ visitor.userprofile.score }})</span>
                             {% endif %}
                         {% endif %}
                 </li>

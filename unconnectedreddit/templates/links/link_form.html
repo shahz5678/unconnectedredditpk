@@ -3,7 +3,7 @@
 {% load emoticons_tags %}
 <div class="margin">
 {% if user.username in official or user.username in allowed %}
-<h2><span style="color:green;">Funny pics ya selfies, lateefey, gupshup, sawaal, shayari, jo dil chahey daal do!</span></h2>  
+<h2><span style="color:green;">Funny selfies, gupshup, deen aur duniya, shayari, jo chahey daal do!</span></h2>  
 {% else %}
 <h2>Chat karne ke liye neechay kuch likho!</h2> 
 {% endif %}
@@ -14,16 +14,16 @@
   {% if user.username in official or user.username in allowed %}
   <span style="color:red;">{{ form.image_file.errors }}</span>
   <span style="font-size:92%;">{{ form.image_file.label_tag }}</span>{{ form.image_file }}<br>
-  <span style="color:grey;font-size:80%;"><i>1mb se barri pic nahi lag sakti</i></span><br><br>
+  <span style="color:grey;font-size:80%;"><i>1mb se barri pic nahi lagti</i></span><br><br>
   {% endif %}
   {% endif %}
   <span style="color:red;">{{ form.description.errors }}</span>
-  <span style="font-size:92%;">{{ form.description.label_tag }}</span>{{ form.description }}<br>
+  {{ form.description }}<br>
   <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
 </form>
 <span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzra?</i></span>
-<br><br>
-<span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf ya nishaan type karo:</b></span>
+<br><br><hr size=1>
+<span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf type karo:</b></span>
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 <p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>

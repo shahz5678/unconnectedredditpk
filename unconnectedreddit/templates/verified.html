@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="margin">
+    <b>Verified females:</b><br><br>
+    {% for user in object_list %}
+    <a href="{% url 'profile' slug=user.username %}#section0">
+	{% if user.userprofile.avatar %}
+		<img src="{{ user.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+	{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+	{% endif %}
+    {{ user }}</a><b style="color:deeppink;font-size:125%;">*</b>
+	{% if user.userprofile.score %}
+		{% if user.userprofile.score < 0 %}
+	    	<span style="color:red;">({{ user.userprofile.score }})</span>
+	    {% else %}
+	    	<span style="color:#18A018;">({{ user.userprofile.score }})</span>
+		{% endif %}
+    {% else %}
+    {% endif %}
+    <br>
+    
+    {% endfor %}
+    </div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

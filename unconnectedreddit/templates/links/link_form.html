@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% load cache %}
 {% load emoticons_tags %}
 <div class="margin">
 {% if user.username in official or user.username in allowed %}
@@ -26,9 +27,10 @@
 {% endif %}
 <hr size=1>
 <span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf type karo:</b></span>
-{% emoticons_index as emoticons_list %}
+{% cache 6000 emoticons_fragment %}{% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 <p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
 {% endfor %}
+{% endcache %}
 </div>
 {% endblock %}

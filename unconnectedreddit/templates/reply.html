@@ -104,9 +104,12 @@
 <p style="margin-top:-0.9em;"></p>
 <hr size=1>
 <span style="font-size:90%;color:dimgrey;"><b>Shakloon ke liye un ke aagey likhay harf aur nishaan type karo:</b></span>
+{% load cache %}
+{% cache 6000 emocions_reply_frament %}
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 <p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>
 {% endfor %}
+{% endcache %}
 </div>
 {% endblock %}

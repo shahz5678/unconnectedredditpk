@@ -7,11 +7,11 @@ Tum apney aap ko mehfil se nikalna chahtey ho?<br>Pagal tou nahi ho gaye?<br><br
 <a href="{% url 'public_group_reply' slug=unique %}">< Wapis jao</a>
 {% else %}
 Kiya <a href="{% url 'profile' slug=culprit.username %}"><b>{{ culprit.username }}</b></a> ko mehfil se hamesha ke liye nikaal diya jaye?<br><br>
-<form action="{% url 'kick' pk=culprit.id slug=unique %}" method="POST">
+<form action="{% url 'kick' pk=culprit.pk slug=unique id=owner.pk %}" method="POST">
 {% csrf_token %}
-	<input type="hidden" name="culprit" class="hidden_id" value="{{ culprit.id }}">
+	<input type="hidden" name="culprit" class="hidden_id" value="{{ culprit.pk }}">
 	<input type="hidden" name="unique" class="hidden_id" value="{{ unique }}">
-	
+	<input type="hidden" name="owner" class="hidden_id" value="{{ owner.pk }}">
 	<span style="color:lightgrey;">&bullet;</span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
 </form>
 <span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'public_group_reply' slug=unique %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>

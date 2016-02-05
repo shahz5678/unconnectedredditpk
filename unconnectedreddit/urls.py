@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile, Vote
+from links.views import cross_notif
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, TopView, LogoutHelpView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView,
+from links.views import LinkListView, TopView, LogoutHelpView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, VoteFormView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView,
 
 
 admin.autodiscover()
@@ -35,9 +36,14 @@ urlpatterns = patterns('',
 	url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
+	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
+	#url(r'^users/(?P<slug>[\w.@+-]+)/message/$', auth(MessageActivityView.as_view()), name='message_activity'),
 	url(r'^link/create/$', auth(LinkCreateView.as_view()), name='link_create'),
+	url(r'^welcome/(?P<pk>\d+)/$', auth(WelcomeView.as_view()), name='welcome'),
+	url(r'^welcome_reply/(?P<pk>\d+)/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),
+	url(r'^welcome/(?P<pk>\d+)/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
 	url(r'^closed_group/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),
 	url(r'^open_group/create/$', auth(OpenGroupCreateView.as_view()), name='open_group_create'),
@@ -52,12 +58,14 @@ urlpatterns = patterns('',
 	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^notif_help/(?P<pk>\d+)/$', auth(NotifHelpView.as_view()), name='notif_help'),
+	url(r'^cross_notif/(?P<pk>\d+)/(?P<ident>\d+)/(?P<user>\d+)/$', cross_notif, name='x_notif'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
 	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
 	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
 	url(r'^register_walkthrough/$', RegisterWalkthroughView.as_view(), name='register_walkthrough'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
+	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
 	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
 	url(r'^link/delete/(?P<pk>\d+)/$', auth(LinkDeleteView.as_view()), name='link_delete'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
@@ -79,5 +87,6 @@ urlpatterns = patterns('',
 	url(r'^appoint/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/(?P<app>\d+)/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(GroupReportView.as_view()), name="group_report"),
-	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(KickView.as_view()), name='kick'),
+	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/(?P<id>\d+)/$', auth(KickView.as_view()), name='kick'),
+	#url(r'^kick/$', auth(KickView.as_view()), name='kick'),
 )

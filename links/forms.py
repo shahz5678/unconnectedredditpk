@@ -107,7 +107,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			image = MakeThumbnail(image)
 			return image
 		else:
-			raise 0#ValidationError("File kharab hai, doosri try karo")       
+			return 0#ValidationError("File kharab hai, doosri try karo")       
 
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (

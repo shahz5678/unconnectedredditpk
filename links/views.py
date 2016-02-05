@@ -757,7 +757,7 @@ class VerifiedView(ListView):
 	model = User
 	form_class = VerifiedForm
 	template_name = "verified.html"
-	paginate_by = 30
+	paginate_by = 100
 
 	def get_queryset(self):
 		global condemned

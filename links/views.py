@@ -15,7 +15,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, LinkForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, CrossNotifForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -48,7 +48,7 @@ def GetNonReplyLinks(user):
 	try:
 		now = datetime.utcnow().replace(tzinfo=utc)
 		timestamp = now - timedelta(minutes=60*48)
-		#print timestamp
+		global condemned
 		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
 	except:
 		#print "no relevant links"
@@ -59,6 +59,7 @@ def GetLinks(user):
 	try: 
 		now = datetime.utcnow().replace(tzinfo=utc)
 		timestamp = now - timedelta(minutes=30)
+		global condemned
 		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:10]))
 		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
 		#print "relevant link ids are: %s" % relevant_links_ids
@@ -70,6 +71,7 @@ def GetLatestUserInvolvement(user):
 	empty_timestamp = []
 	max_unseen_reply = []
 	relevant_link_ids = GetLinks(user)
+	global condemned
 	if relevant_link_ids:
 		try:
 			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
@@ -82,6 +84,10 @@ def GetLatestUserInvolvement(user):
 class OutsideMessageView(FormView):
 	form_class = OutsideMessageForm
 	template_name = "outside_message_help.html"
+
+class GroupHelpView(FormView):
+	form_class = GroupHelpForm
+	template_name = "group_help.html"
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -429,6 +435,7 @@ class OwnerGroupOnlineKonView(ListView):
 			if self.request.user_banned:
 				return redirect("online_aadmi")
 			else:
+				global condemned
 				context["legit"] = FEMALES
 				unique = self.kwargs.get('slug')
 				context["unique"] = unique
@@ -454,6 +461,7 @@ class GroupOnlineKonView(ListView):
 			if self.request.user_banned:
 				return redirect("online_aadmi")
 			else:
+				global condemned
 				context["legit"] = FEMALES
 				unique = self.kwargs.get('slug')
 				context["unique"] = unique
@@ -718,6 +726,7 @@ class InviteUsersToGroupView(FormView):
 					else:#this person ought to be sent an invite
 						#send a notification to this person to check out the group
 						GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee)
+						#GroupInvite.objects.filter(which_group=group ,invitee=self.request.user).exists() to check if an invite already exists
 						invitee = User.objects.get(id=invitee)
 						reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=self.request.user)
 						GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
@@ -744,6 +753,17 @@ class GroupListView(ListView):
 		#return allGrps
 		return trendingGrps
 
+class VerifiedView(ListView):
+	model = User
+	form_class = VerifiedForm
+	template_name = "verified.html"
+	paginate_by = 30
+
+	def get_queryset(self):
+		global condemned
+		return User.objects.filter(username__in=FEMALES).exclude(id__in=condemned).order_by('-userprofile__score')
+		#return User.objects.exclude(id__in=condemned).order_by('-userprofile__score')[:100]
+
 class TopView(ListView):
 	model = User
 	form_class = TopForm
@@ -753,6 +773,7 @@ class TopView(ListView):
 		if self.request.user_banned:
 			return User.objects.order_by('-userprofile__score')[:100]
 		else:
+			global condemned
 			return User.objects.exclude(id__in=condemned).order_by('-userprofile__score')[:100]
 
 	def get_context_data(self, **kwargs):
@@ -931,7 +952,7 @@ class OutsiderGroupView(CreateView):
 						return redirect("group_page")#, pk= reply.answer_to.id)
 				else:
 					self.request.user.userprofile.previous_retort = text
-					self.request.user.userprofile.score = self.request.user.userprofile.score + 5
+					self.request.user.userprofile.score = self.request.user.userprofile.score + 2
 					self.request.user.userprofile.save()
 					#print "image: %s" % f.image
 					if f.image:
@@ -984,8 +1005,15 @@ class PublicGroupView(CreateView):
 			GroupTraffic.objects.create(visitor_id=self.request.user.id,which_group_id=group.id)#create DB call
 			context["ensured"] = FEMALES
 			replies = Reply.objects.filter(which_group_id=group.id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
-			#replies = Reply.objects.filter(which_group_id=group.id).exclude().order_by('-submitted_on')[:25]
-			context["replies"] = replies
+			time_now = datetime.utcnow().replace(tzinfo=utc)
+			writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
+			most_recent = {}
+			for reply,user,time in writers_with_times:
+				most_recent[user] = min(most_recent.get(user,time),time)
+			replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
+			#print "REPLIES WITH MIN TIMES %s" % newList
+			context["replies"] = replies_writers_times
+			#context["replies"] = replies
 		return context
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
@@ -1001,7 +1029,7 @@ class PublicGroupView(CreateView):
 					return redirect("group_page")#, pk= reply.answer_to.id)
 			else:
 				self.request.user.userprofile.previous_retort = text
-				self.request.user.userprofile.score = self.request.user.userprofile.score + 5
+				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
 				self.request.user.userprofile.save()
 				#print "image: %s" % f.image
 				if f.image:
@@ -1029,65 +1057,64 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 	def get_context_data(self, **kwargs):
 		context = super(PrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)#get DB call
-			context["group"] = group
-			GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
-			context["ensured"] = FEMALES
-			replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
-			context["replies"] = replies
-			if not self.request.user_banned: #do the following ONLY if user isn't hell-banned
-				context["members"] = User.objects.filter(reply__which_group=group).distinct()#get DB call
-				own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
-				# if group.owner == self.request.user and own_reply==False: #user only made the topic, never contributed
-				# 	seen_replies = []
-				# 	reply_ids = [reply.id for reply in replies] #all ids of latest 25 replies
-				# 	seen_replies = Reply.objects.filter(id__in=reply_ids,groupseen__seen_user=self.request.user)
-				# 	#seen_replies = Publicreply.objects.filter(id__in=reply_ids,publicreply_seen_related__seen_user=self.request.user)
-				# 	context["seenreplies"] = seen_replies
-				# 	object_list=[]
-				# 	for response in replies:
-				# 		if response not in seen_replies:
-				# 			#bulk creating seen objects for every unseen reply, for that particular user
-				# 			object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-				# 	GroupSeen.objects.bulk_create(object_list)
-				if own_reply: #user wrote a reply too (whether or not they are group admin)
-					seen_replies=[]
-					latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
-					#print latest_own_reply
-					if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-						less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-						#print less_than_replies
-						less_than_replies_ids = [reply.id for reply in less_than_replies]
-						more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-						#print more_than_replies
-						more_than_replies_ids = [reply.id for reply in more_than_replies]
-						#all seen objects of less than replies and more than replies
-						less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
-						more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
-						insert_list = []
-						for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-							if reply not in less_than_seen_replies:
-								#this case kicks in when a user jumps into the middle of a conversation
-								insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
-								seen_replies.append(reply)
-							else:
-								seen_replies.append(reply)
-						GroupSeen.objects.bulk_create(insert_list)
-						for reply in more_than_replies:
-							#####################################################
-							if reply in more_than_seen_replies:
-								seen_replies.append(reply)
-					context["seenreplies"] = seen_replies
-					object_list = []
-					for response in replies:
-						if response not in seen_replies:
-							#bulk creating seen objects for every unseen reply, for that particular user
-							object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-					GroupSeen.objects.bulk_create(object_list)
-				else: #user didn't create group, or replied. User is visiting
-					context["seenreplies"] = replies
+			#if not self.request.user_banned: #do the following ONLY if user isn't hell-banned
+				unique = self.kwargs["slug"]
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)#get DB call
+				context["group"] = group
+				GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
+				context["ensured"] = FEMALES
+				replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
+				time_now = datetime.utcnow().replace(tzinfo=utc)
+				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
+				most_recent = {}
+				for reply,user,time in writers_with_times:
+					most_recent[user] = min(most_recent.get(user,time),time)
+				replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
+				#print "REPLIES WITH MIN TIMES %s" % newList
+				context["replies"] = replies_writers_times
+				#context["time"] = min_time
+				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					members = User.objects.filter(reply__which_group=group).distinct()#get DB call
+					context["members"] = members
+					own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
+					if own_reply: #user wrote a reply too (whether or not they are group admin)
+						seen_replies=[]
+						latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
+						#print latest_own_reply
+						if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
+							less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
+							#print less_than_replies
+							less_than_replies_ids = [reply.id for reply in less_than_replies]
+							more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
+							#print more_than_replies
+							more_than_replies_ids = [reply.id for reply in more_than_replies]
+							#all seen objects of less than replies and more than replies
+							less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
+							more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
+							insert_list = []
+							for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
+								if reply not in less_than_seen_replies:
+									#this case kicks in when a user jumps into the middle of a conversation
+									insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
+									seen_replies.append(reply)
+								else:
+									seen_replies.append(reply)
+							GroupSeen.objects.bulk_create(insert_list)
+							for reply in more_than_replies:
+								#####################################################
+								if reply in more_than_seen_replies:
+									seen_replies.append(reply)
+						context["seenreplies"] = seen_replies
+						object_list = []
+						for response in replies:
+							if response not in seen_replies:
+								#bulk creating seen objects for every unseen reply, for that particular user
+								object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
+						GroupSeen.objects.bulk_create(object_list)
+					else: #user didn't create group, or replied. User is visiting
+						context["seenreplies"] = replies
+						#return context
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
@@ -1103,7 +1130,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					return redirect("group_page")#, pk= reply.answer_to.id)
 			else:
 				self.request.user.userprofile.previous_retort = text
-				self.request.user.userprofile.score = self.request.user.userprofile.score + 5
+				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
 				self.request.user.userprofile.save()
 				#print "image: %s" % f.image
 				if f.image:
@@ -1123,6 +1150,28 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				except:
 					return redirect("private_group_reply", slug=reply.which_group.unique)
 
+class WelcomeView(FormView):
+	form_class = WelcomeForm
+	template_name = "welcome.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(WelcomeView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["target_user"] = User.objects.get(id=self.kwargs["pk"])
+		return context
+
+class WelcomeMessageView(CreateView):
+	model = Publicreply
+	form_class = WelcomeMessageForm
+	template_name = "welcome_message.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(WelcomeMessageView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["target_user"] = User.objects.get(id=self.kwargs["pk"])
+			context["option"] = self.kwargs["option"]
+		return context
+
 class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Publicreply
 	form_class = PublicreplyForm
@@ -1140,6 +1189,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				context["replies"] = replies
 				context["seenreplies"] = context["replies"]#i.e. all replies are seen for hell-banned person, none are *new*
 			else:
+				global condemned
 				replies = Publicreply.objects.filter(answer_to=link).exclude(submitted_by_id__in=condemned).order_by('-id')[:25]
 				context["replies"] = replies #latest replies, sans condemned
 				own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
@@ -1255,6 +1305,7 @@ class UnseenActivityView(ListView):
 		context = super(UnseenActivityView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			#user = User.objects.filter(username=self.kwargs['slug'])
+			global condemned
 			eachlink = defaultdict(list)
 			index = 0
 			seen_replies = []
@@ -1313,6 +1364,7 @@ class UserActivityView(ListView):
 			if self.request.user_banned and (self.request.user.username ==  self.kwargs['slug']):
 					return redirect("error")
 			else:
+				global condemned
 				if self.request.user.userprofile.score > 9:
 					context["can_vote"] = True
 				links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
@@ -1464,22 +1516,38 @@ class KickView(FormView):
 			culprit_id = self.kwargs.get("pk")
 			culprit = User.objects.get(id=culprit_id)
 			context["culprit"] = culprit
+			owner_id = self.kwargs.get("id")
+			owner = User.objects.get(id=owner_id)
+			context["owner"] = owner
 		return context
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			pk = self.request.POST.get("culprit")
 			unique = self.request.POST.get("unique")
-			culprit = User.objects.get(id=pk)
+			ident = self.request.POST.get("owner")
 			group = Group.objects.get(unique=unique)
-			GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
-			culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
-			culprit.userprofile.save()
-			text = culprit.username
-			reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
-			#GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
-			#print "droplet"
-			return redirect("public_group_reply", slug=unique)
+			culprit = User.objects.get(id=pk)
+			supposed_owner = User.objects.get(id=ident)
+			print supposed_owner
+			print group.owner
+			#change url to not include parameters
+			#use POST to sent all three numbers
+			#if group's owner and owner id sent in are not the same
+			if group.owner != supposed_owner:
+				#print "here"
+				return redirect("public_group_reply", slug=unique)
+			else:
+				#if user is already banned
+				if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():
+					return redirect("public_group_reply", slug=unique)
+				else:
+					GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
+					culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
+					culprit.userprofile.save()
+					text = culprit.username
+					reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
+					return redirect("public_group_reply", slug=unique)
 
 class GroupReportView(FormView):
 	form_class = GroupReportForm
@@ -1511,7 +1579,7 @@ class GroupReportView(FormView):
 				unique = self.kwargs.get("slug")
 				reply.category = '3'
 				reply.text = self.request.user.username
-				reply.writer.userprofile.score = reply.writer.userprofile.score - 10
+				reply.writer.userprofile.score = reply.writer.userprofile.score - 2
 				reply.writer.userprofile.save()
 				reply.save()
 				return redirect("public_group_reply", slug=unique)
@@ -1538,13 +1606,120 @@ class ReportView(FormView):
 				reply = get_object_or_404(Publicreply, pk=report)
 				return redirect("reply", pk= reply.answer_to.id)
 
+class WelcomeReplyView(FormView):
+	form_class = WelcomeReplyForm
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			if self.request.user_banned:
+				return redirect("home")
+			else:
+				target = User.objects.get(pk=self.kwargs["pk"])
+				option = self.request.POST.get("opt")
+				#print "option is %s" % option
+				message = self.request.POST.get("msg")
+				#print "message is %s" % message
+				self.request.user.userprofile.score = self.request.user.userprofile.score + 1
+				self.request.user.userprofile.save()
+				if Link.objects.filter(submitter=target).exists():
+					parent = Link.objects.filter(submitter=target).latest('id')
+				else:
+					num = random.randint(1,5)
+					if num == 1:
+						parent = Link.objects.create(description='I am new', submitter=target)
+					elif num == 2:
+						parent = Link.objects.create(description='hello', submitter=target)
+					elif num == 3:
+						parent = Link.objects.create(description='mein new hun', submitter=target)
+					elif num == 4:
+						parent = Link.objects.create(description='hi every1', submitter=target)
+					else:
+						parent = Link.objects.create(description='damadam mast qalander', submitter=target)						
+				#print "PARENT IS: %s" % parent
+				if option == '1' and message == 'Barfi khao aur mazay urao!':
+					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
+					description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '1' and message == 'Is barfi se mu meetha karo!':
+					description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '2' and message == 'Aik plate laddu se life set!':
+					description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '2' and message == 'Ye saray laddu aap ke liye!':
+					description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '2' and message == 'Laddu khao, jaan banao yar!':
+					description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
+					description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '3' and message == 'Jalebi meri pasandida hai!':
+					description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				elif option == '3' and message == 'Is jalebi se mu metha karo!':
+					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+				else:
+					return redirect("home")
+				global condemned
+				replies = list(Publicreply.objects.filter(answer_to=parent, submitted_on__lte=reply.submitted_on).exclude(submitted_by_id__in=condemned).order_by('-id')[:25])
+				#print "THESE ARE REPLIES: %s" % replies
+				relevant_ids = [rply.id for rply in replies]
+				seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=self.request.user))
+				unseen_replies = [x for x in replies if x not in seen_replies]
+				#print "THESE ARE UNSEEN REPLIES: %s" % unseen_replies
+				seen_list = []
+				for rpy in unseen_replies:
+					seen_list.append(Seen(seen_user=self.request.user,which_reply=rpy,seen_status=True))
+				#print seen_list
+				Seen.objects.bulk_create(seen_list)
+				#print "ALL YOUR UNSEEN REPLY BELONG TO US"
+				return redirect("home")
+
+def cross_notif(request, pk=None, ident=None, user=None, *args, **kwargs):
+	try:
+		link = Link.objects.get(pk=pk)
+		notif_reply = Publicreply.objects.get(pk=ident)
+		user = User.objects.get(pk=user)
+	except:
+		return redirect("home")
+	#get all unseen replies before 'reply'
+	global condemned
+	if user.pk in condemned:
+		return redirect("logout_help")
+	else:
+		replies = Publicreply.objects.filter(answer_to=link).exclude(submitted_by_id__in=condemned).order_by('-id')[:25]
+		relevant_list=[]
+		for reply in replies:
+			if reply.submitted_on > notif_reply.submitted_on:
+				pass
+			else:
+				relevant_list.append(reply)
+		relevant_ids = [reply.id for reply in relevant_list]
+		seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=user))
+		#print "relevant list is %s" % relevant_list
+		#print "seen replies are %s" % seen_replies
+		unseen_replies = [x for x in relevant_list if x not in seen_replies]
+		#print "unseen_replies are %s" % unseen_replies
+		seen_list = []
+		for reply in unseen_replies:
+				seen_list.append(Seen(seen_user= user,which_reply=reply,seen_status=True))
+		Seen.objects.bulk_create(seen_list)
+		return redirect("home")
+
 class VoteFormView(FormView): #corresponding view for the form for Vote we created in forms.py
 	form_class = VoteForm
 
 	def form_valid(self, form): #this function is always to be defined in views created for forms
 		link = get_object_or_404(Link, pk=form.data["link"]) #this gets the primary key from the form the user submitted
 		section = 0
-		#global banned
+		#if user has already voted on this object, and is maliciously accessing it
+		if Vote.objects.filter(voter=self.request.user,link=link).exists():
+			return redirect("top")
 		if self.request.method == 'POST':
 			btn = self.request.POST.get("val")
 			section = self.request.POST.get("section_number")
@@ -1558,7 +1733,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 						link.submitter.userprofile.score = link.submitter.userprofile.score + 50
 						link.submitter.userprofile.save()
 					else:
-						link.submitter.userprofile.score = link.submitter.userprofile.score + 5	
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 2	
 						link.submitter.userprofile.save() #this is a server call 
 				elif btn == 'chupair':
 					val = -1
@@ -1572,7 +1747,7 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()
 					else:
-						link.submitter.userprofile.score = link.submitter.userprofile.score - 5
+						link.submitter.userprofile.score = link.submitter.userprofile.score - 2
 						if link.submitter.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
@@ -1608,8 +1783,8 @@ class VoteFormView(FormView): #corresponding view for the form for Vote we creat
 
 
 	def form_invalid(self, form):
-		voter = get_object_or_404(Link, pk=form.data["voter"])
-		print 'form invalid, voter_id = %s' % voter.id
+		#voter = get_object_or_404(Link, pk=form.data["voter"])
+		#print 'form invalid, voter_id = %s' % voter.id
 		return redirect("home")
 	
 def LinkAutoCreate(user, content):   

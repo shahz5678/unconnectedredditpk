@@ -1,8 +1,9 @@
 
 {% load google_analytics %}
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-
+<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- <html> -->
 <head>
 
     <!-- ****** faviconit.com favicons ****** -->
@@ -38,6 +39,12 @@
         <meta name="description" content="">
         <meta name="author" content="">
         
+
+<!-- <FRAMESET border=0 rows="100%,*" frameborder="no" marginleft=0 margintop=0 marginright=0 marginbottom=0>
+<frame src="http://www.damadam.pk" scrolling=auto frameborder="no" border=0 noresize>
+<frame topmargin="0" marginwidth=0 scrolling=no marginheight=0 frameborder="no" border=0 noresize>
+</FRAMESET> -->
+
         {% google_analytics %}
 </head>
 <body>
@@ -49,20 +56,40 @@
     
     <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a> <span style="color:white;">|</span>
 {% if user.is_authenticated %}
-    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a> <span style="color:white;">|</span>
-    <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumharey Jawab</a> <span style="color:white;">|</span>
-    {% if user.userprofile.score %}
-        <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
-            {% if user.userprofile.score > 0 %}
-                <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
-            {% else %}
-                <span style="color:red;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
-            {% endif %}
+    {% if user.userprofile.score and user.userprofile.score > 14 %}
+    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
     {% else %}
-        <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">{{ user.username }}</a>
-    {% endif %} 
+    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
+    {% endif %}
     <span style="color:white;">|</span>
-    <a href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumhari Mehfil</a>
+        {% if user.userprofile.score and user.userprofile.score > 40 %}
+            <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Jawab</a> <span style="color:white;">|</span>
+            <a class="sharing" href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>
+            <span style="color:white;">|</span>
+        {% elif user.userprofile.score and user.userprofile.score > 14 %}
+            <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumharey Jawab</a> <span style="color:white;">|</span>
+        {% else %}
+        {% endif %} 
+    <a href="{% url 'online_kon' %}#section0" style="text-shadow:0 0 0.1px #886081;">Online Kon</a>
+        {% if user.userprofile.score and user.userprofile.score < 10 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>Damadam Help</b></a>
+        {% elif user.userprofile.score and user.userprofile.score < 15 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Damadam Help</a>
+        {% elif user.userprofile.score and user.userprofile.score < 41 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
+        {% else %}
+        {% endif %}
+    <span style="color:white;">|</span>
+    <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;"><bdi>{{ user.username }}</bdi></a>
+        {% if user.userprofile.score > 0 %}
+            <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
+        {% else %}
+            <span style="color:red;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
+        {% endif %}
+
     {% load verified %}
     {% check_user_is_verified as is_verified %}
     {% if is_verified %}

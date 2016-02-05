@@ -96,13 +96,18 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	def clean_avatar(self): # where self is the form
 		image=self.cleaned_data.get("avatar")
 		if image:
-			if image.size > 1000000:
-				raise ValidationError("File buhut barri hai, doosri try karo")
+			#print "the image size is %s" % image.size
+			try:
+				if image.size > 1000000:
+					#raise ValidationError("File buhut barri hai, doosri try karo")
+					return 0
+			except:
+				pass
 			image = Image.open(image)
 			image = MakeThumbnail(image)
 			return image
 		else:
-			raise ValidationError("File kharab hai, doosri try karo")       
+			raise 0#ValidationError("File kharab hai, doosri try karo")       
 
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (
@@ -143,6 +148,13 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
+
+class WelcomeMessageForm(forms.ModelForm):
+	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Publicreply
+		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
+		fields = ("description",)
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -191,9 +203,18 @@ class ChangeGroupRulesForm(forms.ModelForm):
 		model = Group
 		fields = ("rules",)
 
+class CrossNotifForm(forms.Form):
+	class Meta:
+		pass
+		#model = Link
+
 class VoteForm(forms.ModelForm): #creates a form for Vote
 	class Meta:
 		model = Vote
+
+class WelcomeReplyForm(forms.Form):
+	class Meta:
+		model = Publicreply
 
 class DirectMessageForm(forms.Form):
 	class Meta:
@@ -206,6 +227,10 @@ class DirectMessageCreateForm(forms.Form):
 class InviteForm(forms.Form): # doesn't work if one uses Model form
 	class Meta:
 		model = Session
+
+class VerifiedForm(forms.Form):
+	class Meta:
+		model = User
 
 class TopForm(forms.Form):
 	class Meta:
@@ -227,6 +252,10 @@ class OutsideMessageForm(forms.Form):
 	class Meta:
 		pass
 
+class WelcomeForm(forms.Form):
+	class Meta:
+		pass
+
 class GroupPageForm(forms.Form):
 	class Meta:
 		model = Reply
@@ -238,7 +267,7 @@ class AppointCaptainForm(forms.Form): #doesn't work as forms.ModelForm
 class GroupListForm(forms.Form):
 	class Meta:
 		pass
-		
+
 class OpenGroupHelpForm(forms.Form):
 	class Meta:
 		pass
@@ -340,6 +369,10 @@ class HistoryHelpForm(forms.Form):
 		pass
 
 class WhoseOnlineForm(forms.Form):
+	class Meta:
+		pass
+
+class GroupHelpForm(forms.Form):
 	class Meta:
 		pass
 

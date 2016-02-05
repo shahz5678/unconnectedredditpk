@@ -24,7 +24,7 @@ ON_AZURE = os.environ.get('ON_AZURE')
 #git add <files>
 #git push origin master	
 
-if ON_HEROKU == '1':
+if ON_HEROKU == '1' or ON_AZURE == '1':
 	DEBUG=False
 else:
 	DEBUG=True
@@ -133,7 +133,7 @@ MIDDLEWARE_CLASSES = (
 	'django.contrib.messages.middleware.MessageMiddleware',
 	#'mobi.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:
-	# 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 SESSION_ENGINE = 'user_sessions.backends.db'
@@ -143,6 +143,7 @@ SESSION_ENGINE = 'user_sessions.backends.db'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
 	"django.contrib.auth.context_processors.auth",
+	"django.core.context_processors.csrf",
 	"django.core.context_processors.debug",
 	"django.core.context_processors.i18n",
 	"django.core.context_processors.media",

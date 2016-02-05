@@ -14,7 +14,7 @@
 				{% else %}
 					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 				{% endif %}
-				<span style="color:dimgrey;">{{ parent_link.submitter.username }}</span>:{% emoticons %}<span style="color:dimgrey;"> {{ parent_link.description|truncatechars:40 }}</span>{% endemoticons %}
+				<span style="color:dimgrey;">{{ parent_link.submitter.username }}</span>:<span style="color:dimgrey;">{% emoticons %} {{ parent_link.description|truncatechars:40 }}{% endemoticons %}</span>
 			
 			<p style="margin-top:.5em;"></p>
 			<span style="color:darkorange;font-size:90%;">
@@ -32,9 +32,11 @@
 					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 					</a>
 				{% endif %}
-			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;">{{ latest_reply.submitted_by.username }}</a>:{% emoticons %}<span style="font-size:110%;"> {{ latest_reply.description|truncatechars:40 }}</span>{% endemoticons %}<span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
+			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;">{{ latest_reply.submitted_by.username }}</a>:<span style="font-size:110%;">{% emoticons %} {{ latest_reply.description|truncatechars:40 }}{% endemoticons %}</span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
 				<p style="margin-top:.5em;"></p>
-				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">jawab do</button></a><a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
+				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">jawab do</button></a>
+				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk user.pk %}" style="color:red;"><b>x</b></a>
+				<a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
@@ -46,11 +48,13 @@
 	{% else %}
 			{% if user.is_authenticated %}
 				{% if random == 1 %}
-					<span style="color:purple;font-size:90%;"><b>Taza tareen: </b>dekho iss waqt <b><a href="{% url 'online_kon' %}#section0"><u>online kon</u></a></b> hai!</span>
-				{% elif random == 2 %}
-					<span style="color:purple;font-size:90%;"><b>Taza tareen: </b>sab se <b><a href="{% url 'top' %}"><u>mashoor damadamers</u></a></b> ko dekho!</span>
+					<span style="color:orange;font-size:90%;"><b>Taza tareen: </b><b><a href="{% url 'verified' %}"><u>verified females</u></a></b> ki list</span>
 				{% else %}
-					<span style="color:purple;font-size:90%;"><b>Taza tareen: </b><b><a href="{% url 'profile' slug=newest_user.username %}#section0"><u>{{ newest_user.username }}</u></a></b> ne abhi abhi khaata khola. Isko welcome kaho!</span>
+					{% if user.username == newest_user.username %}
+					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b> {{ newest_user.username }}</b> new hai, isko  welcome karo!</span>
+					{% else %}
+					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome' pk=newest_user.pk %}"><u>mithai bhej kar welcome</u></a> karo!</span>
+					{% endif %}
 				{% endif %}
 			{% else %}
 				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Khata khol</u></a> kar neechay chat karo:</span>
@@ -79,18 +83,12 @@
 		{% endif %}
 			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
 		<span style="font-size:85%;">
-		{% if user.is_authenticated %}
-				{% if user.usersettings.score_setting == '1' %}
-					{% if link.submitter.userprofile.score %}
-						{% if link.submitter.userprofile.score < 0 %}
-					    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
-					    {% else %}
-					    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
-						{% endif %}
-				    {% else %}
-				    {% endif %}
-				{% else %}
-				{% endif %}
+		{% if user.is_authenticated and user.userprofile.score > 25 %}				
+			{% if link.submitter.userprofile.score < 0 %}
+		    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
+		    {% else %}
+		    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
+			{% endif %}
 		{% endif %}
 		</span>
 		    {% for person in checked %}
@@ -98,9 +96,7 @@
 		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}:
-		{% emoticons %}
-    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{{ link.description|urlize_target_blank:25 }}</span>
-    	{% endemoticons %}
+    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;">{% emoticons %}{{ link.description|urlize_target_blank:25 }}{% endemoticons %}</span>
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p>

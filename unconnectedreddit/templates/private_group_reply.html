@@ -61,9 +61,9 @@
                 <span style="color:green;font-size:90%;">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                    <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
                     {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
                     {% endif %}
                 {{ writer }}
                     {% for person in ensured %}
@@ -72,7 +72,7 @@
                     {% endif %}
                     {% endfor %}
                 </a>
-                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}">{{ reply.text }}</a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
+                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
                 </span>
             {% elif reply.category = '4' %}
                 {% if time < 41 %}
@@ -82,7 +82,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-                <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}{{ reply.text }}{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
                 {% if reply.image %}
                 <img src="{{ reply.image.url }}"></img><br>
@@ -100,11 +100,11 @@
             
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+                <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
             {% else %}
-                <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+                <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
             {% endif %}
-            {{ reply.writer }}
+            <bdi>{{ reply.writer }}</bdi>
             </a>
             
             <span style="font-size:70%;">
@@ -123,11 +123,11 @@
                 {% if person == writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}:&nbsp;{% emoticons %}{{ reply.text }}{% endemoticons %}
+            {% endfor %}:&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
 
             {% endif %}
             
-            <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}</span>
+            <span style="color:grey;font-size:65%">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi></span>
         
     	<br>
         </td></tr>

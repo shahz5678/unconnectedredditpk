@@ -8,9 +8,9 @@
     <b class="numbers">{{ forloop.counter }}.</b>
     <a href="{% url 'profile' slug=user.username %}#section0">
 	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar.url }}" alt="no pic" height="15" width="15"></img>
+		<img src="{{ user.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
 	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="15" width="15"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 	{% endif %}
     {{ user }}</a>{% if user.username in verified %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
 	{% if user.userprofile.score %}

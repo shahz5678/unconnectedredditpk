@@ -14,7 +14,7 @@
 				{% else %}
 					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 				{% endif %}
-				<span style="color:dimgrey;">{{ parent_link.submitter.username }}</span>:<span style="color:dimgrey;">{% emoticons %} {{ parent_link.description|truncatechars:40 }}{% endemoticons %}</span>
+				<span style="color:dimgrey;"><bdi>{{ parent_link.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent_link.description|truncatechars:40 }}{% endemoticons %}</span>
 			
 			<p style="margin-top:.5em;"></p>
 			<span style="color:darkorange;font-size:90%;">
@@ -32,7 +32,7 @@
 					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 					</a>
 				{% endif %}
-			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;">{{ latest_reply.submitted_by.username }}</a>:<span style="font-size:110%;">{% emoticons %} {{ latest_reply.description|truncatechars:60 }}{% endemoticons %}</span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
+			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:60 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
 				<p style="margin-top:.5em;"></p>
 				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">jawab do</button></a>
 				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk user.pk %}" style="color:red;"><b>x</b></a>
@@ -81,7 +81,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 		</a>
 		{% endif %}
-			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;">{{ link.submitter }}</a>
+			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;"><bdi>{{ link.submitter }}</bdi></a>
 		<span style="font-size:85%;">
 		{% if user.is_authenticated and user.userprofile.score > 25 %}				
 			{% if link.submitter.userprofile.score < 0 %}

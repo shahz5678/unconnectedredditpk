@@ -3,7 +3,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-<a href="{% url 'profile' slug=parent.submitter %}">{{ parent.submitter }}</a>
+<a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
 {% if user.is_authenticated and user.userprofile.score > 25 %}
     {% if parent.submitter.userprofile.score < 0 %}
         <span style="color:red;">({{ parent.submitter.userprofile.score }})</span>
@@ -18,7 +18,7 @@
         <span style="font-size:140%;color:deeppink;"><b>*</b></span>
     {% endif %}
 {% endfor %}
-:&nbsp;{% emoticons %}{{ parent.description }}{% endemoticons %}&nbsp;<span style="color:grey;font-size:80%">,{{ parent.submitted_on|naturaltime }}</span><br><br>
+:&nbsp;<bdi>{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span style="color:grey;font-size:80%"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi></span><br><br>
 <a name="sectionJ"></a> 
 {% if user.userprofile.score > -10 %}
 <form action="{% url 'reply' pk=parent.pk %}" method="POST">
@@ -58,7 +58,7 @@
         {% if reply not in seenreplies %}
             <b style="color:orange;font-size:80%">(new)</b>
         {% endif %}
-        <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}">{{ reply.submitted_by }}</a></span>
+        <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}"><bdi>{{ reply.submitted_by }}</bdi></a></span>
             {% if user.is_authenticated and user.userprofile.score > 25 %}  
                 {% if reply.submitted_by.userprofile.score < 0 %}
                     <span style="color:red;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
@@ -71,7 +71,7 @@
         {% if reply not in seenreplies %}
             <b style="color:orange;font-size:80%"><i>(new)</i></b>
         {% endif %}
-	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;">{{ reply.submitted_by }}</a>
+	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;"><bdi>{{ reply.submitted_by }}</bdi></a>
         <span style="font-size:80%;">
             {% if user.is_authenticated and user.userprofile.score > 25 %}
                 {% if reply.submitted_by.userprofile.score < 0 %}
@@ -86,8 +86,8 @@
             	
                 <span style="font-size:140%;color:deeppink;"><b>*</b></span>
             {% endif %}
-        {% endfor %}:&nbsp;{% emoticons %}{{ reply.description }}{% endemoticons %}
-    <span style="color:grey;font-size:80%">,{{ reply.submitted_on|naturaltime }}</span>
+        {% endfor %}:&nbsp;<bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
+    <span style="color:grey;font-size:80%"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
     {% if user == parent.submitter %}
     <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
     {% endif %}

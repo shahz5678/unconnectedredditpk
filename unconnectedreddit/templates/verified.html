@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="margin">
-    <b>Verified females:</b><br><br>
+    <b>Verified females:</b><br>
+    <span style="font-size:85%;">Nickname ke aagey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
     {% for user in object_list %}
     <a href="{% url 'profile' slug=user.username %}#section0">
 	{% if user.userprofile.avatar %}

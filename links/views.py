@@ -1189,8 +1189,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				context["replies"] = replies
 				context["seenreplies"] = context["replies"]#i.e. all replies are seen for hell-banned person, none are *new*
 			else:
-				global condemned
-				replies = Publicreply.objects.filter(answer_to=link).exclude(submitted_by_id__in=condemned).order_by('-id')[:25]
+				#global condemned
+				replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
 				context["replies"] = replies #latest replies, sans condemned
 				own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
 				#from_notification = self.request.POST.get('home', False)

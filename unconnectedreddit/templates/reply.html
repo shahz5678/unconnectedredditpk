@@ -108,7 +108,7 @@
 {% cache 6000 emocions_reply_frament %}
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
-<p>{{ emoticons.0|emoticons }}    {{ emoticons|join:" " }}</p>
+<p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
 {% endfor %}
 {% endcache %}
 </div>

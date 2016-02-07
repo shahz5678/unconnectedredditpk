@@ -366,25 +366,54 @@ class LinkListView(ListView):
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
 				freshest_reply = GetLatestUserInvolvement(self.request.user)
-				#print "freshest_reply is %s" % freshest_reply
+				#print freshest_reply
+				if freshest_reply:
+					parent_link = freshest_reply.answer_to
+					parent_link_writer = parent_link.submitter
+					parent_link_writer_username = parent_link_writer.username
+					#print parent_link_writer_username
+					WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+					#print WELCOME_MESSAGE1
+					WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+					WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+					WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+					WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+					WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+					WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+					WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+					WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+					WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+					WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+				else:
+					parent_link_writer = User()
+					#parent_link.submitter = 0
+					WELCOME_MESSAGES = []
 				try:
 					if freshest_reply:
 						context["latest_reply"] = freshest_reply
 						context["notification"] = 1
-						context["parent_link"] = freshest_reply.answer_to
-						context["parent_link_pk"] = freshest_reply.answer_to.pk
+						context["parent_link"] = parent_link
+						context["parent_link_pk"] = parent_link.pk
+						if self.request.user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
+							#print "first time user"
+							context["first_time_user"] = True
+						else:
+							#print "not first time user"
+							context["first_time_user"] = False
 					else:
 						context["latest_reply"] = []
 						context["notification"] = 0
 						context["parent_link"] = []
 						context["parent_link_pk"] = 0
+						context["first_time_user"] = False
 						#print "freshest reply didn't exist"
 				except:
 					context["latest_reply"] = []
 					context["notification"] = 0
 					context["parent_link"] = []
 					context["parent_link_pk"] = 0
-					print "freshest reply didn't exist"
+					context["first_time_user"] = False
+					#print "freshest reply didn't exist"
 		return context
 
 class LinkUpdateView(UpdateView):
@@ -1628,7 +1657,7 @@ class WelcomeReplyView(FormView):
 					if num == 1:
 						parent = Link.objects.create(description='I am new', submitter=target)
 					elif num == 2:
-						parent = Link.objects.create(description='hello', submitter=target)
+						parent = Link.objects.create(description='Salam, Im new', submitter=target)
 					elif num == 3:
 						parent = Link.objects.create(description='mein new hun', submitter=target)
 					elif num == 4:

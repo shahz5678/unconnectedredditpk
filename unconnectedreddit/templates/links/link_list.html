@@ -9,6 +9,14 @@
 	{% if notification %}
 			<span>
 			<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:green;">
+			{% if first_time_user %}
+			
+			<span style="color:darkorange;font-size:90%;">
+			<b><a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:90%;">{{ latest_reply.submitted_by.username }}</a> ne tumhe welcome kiya:</b>
+			</span>
+			
+			{% else %}
+
 				{% if parent_link.submitter.userprofile.avatar %}
 					<img src="{{ parent_link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22" style="color:dimgrey;"></img>
 				{% else %}
@@ -16,11 +24,13 @@
 				{% endif %}
 				<span style="color:dimgrey;"><bdi>{{ parent_link.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent_link.description|truncatechars:40 }}{% endemoticons %}</span>
 			
-			<p style="margin-top:.5em;"></p>
-			<span style="color:darkorange;font-size:90%;">
-			<b> is par <a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:90%;">{{ latest_reply.submitted_by.username }}</a> ka neya jawab:</b>
-			</span>
-				
+				<p style="margin-top:.5em;"></p>
+			
+				<span style="color:darkorange;font-size:90%;">
+				<b> is par <a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:90%;">{{ latest_reply.submitted_by.username }}</a> ka neya jawab:</b>
+				</span>
+
+			{% endif %}	
 			<p style="margin-top:.5em;"></p>
 			
 				{% if latest_reply.submitted_by.userprofile.avatar %}
@@ -32,9 +42,9 @@
 					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 					</a>
 				{% endif %}
-			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:60 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
+			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
 				<p style="margin-top:.5em;"></p>
-				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">jawab do</button></a>
+				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
 				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk user.pk %}" style="color:red;"><b>x</b></a>
 				<a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
 			</div>

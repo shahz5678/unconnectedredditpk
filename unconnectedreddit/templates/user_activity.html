@@ -15,7 +15,7 @@
 <i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kiss cheez ka hai?!</i>
 {% else %}
 <b>Is ki home wali chat ki history:</b><br>
-<span style="color:grey;font-size:80%;"><i>mehfil ki history nazar nahi aati</i></span><br>
+<span style="color:grey;font-size:80%;"><i><b>mehfil</b> ki history nazar nahi aati</i></span><br>
 {% for link in object_list %}
 	{% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img><br>
@@ -29,7 +29,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
 		</a>
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}#section0">{{ link.submitter }}</a>
+	<a href="{% url 'profile' slug=link.submitter %}#section0"><bdi>{{ link.submitter }}</bdi></a>
 	{% if user.is_authenticated and user.userprofile.score > 25 %}
 		{% if link.submitter.userprofile.score < 0 %}
 	    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
@@ -41,7 +41,7 @@
     {% if girl == link.submitter.username %}
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: {% emoticons %}{{ link.description }}{% endemoticons %}<span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
+	: <bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
 	{% if link.publicreply_set.count %}
 	{% if link.publicreply_set.count < 26 %}
 		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
@@ -72,19 +72,6 @@
 		{% endif %}
 	{% endfor %}
 	{% endif %}
-	<form  method="POST" action="{% url 'vote' %}" class="vote_form">
-	<input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
-	<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}">
-	<input type="hidden" id="id_value" name="value" class="hidden_id" value="1">	
-	<input type="hidden" id="id_page" name="section_number" value="{{ forloop.counter }}">
-	{% csrf_token %}
-	<p style="margin-top:.5em;">
-	{% if link.pk not in voted and link.submitter != user and can_vote %}	
-		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee"><br>
-		<input  class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
-
-	{% endif %}</p>
-	</form>
 <hr size=1>
 {% endfor %}
 {% endif %}

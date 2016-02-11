@@ -60,9 +60,9 @@
 					<span style="color:orange;font-size:90%;"><b>Taza tareen: </b><b><a href="{% url 'verified' %}"><u>verified females</u></a></b> ki list</span>
 				{% else %}
 					{% if user.username == newest_user.username %}
-					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b> {{ newest_user.username }}</b> new hai, isko  welcome karo!</span>
+					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b style="color:green;"> {{ newest_user.username }}</b> new hai, isko  welcome karo!</span>
 					{% else %}
-					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome' pk=newest_user.pk %}"><u><b>mithai bhejo</b></u></a></span>
+					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b style="color:green;"> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome' pk=newest_user.pk %}"><u><b>mithai bhejo</b></u></a></span>
 					{% endif %}
 				{% endif %}
 			{% else %}

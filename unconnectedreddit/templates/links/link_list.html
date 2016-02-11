@@ -2,7 +2,6 @@
 {% load humanize %}
 {% load comments %}
 {% load mathfilters %}
-{% load urlize_target_blank %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
@@ -106,7 +105,7 @@
 		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}:
-    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;"><bdi>{% emoticons %}{{ link.description|urlize_target_blank:25 }}{% endemoticons %}</bdi></span>
+    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p>

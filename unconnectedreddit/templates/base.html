@@ -1,10 +1,10 @@
 
 {% load google_analytics %}
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"> -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<head>
+<!-- <head> -->
 
     <!-- ****** faviconit.com favicons ****** -->
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
@@ -51,11 +51,16 @@
 {% load verified%}
 <h1 style="text-shadow:0 0 0.7px white;"></h1>
 <h5 style="text-shadow:0 0 0.1px white;font-family:arial;padding-top:0.3em;">Damadam.pk par chat, aik dum 100% muft!</h5>
-<div class="navbar"><a name="section0"></a>
+<div class="navbar">
 <p>
     
     <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a> <span style="color:white;">|</span>
+<!-- {% if not user.is_authenticated %}
+    <a href="{% url 'pic_upload' %}" style="text-shadow:0 0 0.1px #886081;"> Photo </a><span style="color:white;">|</span>
+{% endif %} -->
 {% if user.is_authenticated %}
+    {% if user.username == 'Shireen' %}
+    <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-weight:bold;font-size:80%;color:yellow;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
     {% if user.userprofile.score and user.userprofile.score > 14 %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
     {% else %}
@@ -83,7 +88,7 @@
         {% else %}
         {% endif %}
     <span style="color:white;">|</span>
-    <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;"><bdi>{{ user.username }}</bdi></a>
+    <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;"><bdi>Profile</bdi></a>
         {% if user.userprofile.score > 0 %}
             <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
         {% else %}
@@ -103,6 +108,7 @@
     <a href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>Neya Khaata Kholo</b></a> <span style="color:white;">|</span>
     <a href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;">Purana Khaata Chalao</a>
 {% endif %}</p>
+<a name="section0"></a>
 </div>
 <div class="container"></div>
 {% block content %}

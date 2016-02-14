@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<span style="font-size:90%;">Yeh photo hamesha ke liye mita di jaye gi:</span><br><br>
+<form method="POST" action="{% url 'delete_pic' slug=unique %}">
+{% csrf_token %}
+<input type="hidden" name="ident" value="{{ unique }}">
+<b style="color:grey;">.</b><input type="submit" name="decision" style="border:none;background-color:transparent;width:2.8em;" value="Haan"><br>
+<b style="color:grey;">.</b><input type="submit" name="decision" style="border:none;background-color:transparent;width:2.8em;" value="Nahi">
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "empty.html" %}
+{% block content %}
+<body bgcolor="#FFFFE0" style="font-family:sans-serif;">
+<div class="margin">
+<b style="color:green;font-size:90%;">Muft photo bhejnay ki sahoolat!</b>
+<hr size=1>
+<b style="color:grey;">. </b><span style="font-size:85%;">Photo lagao, uska waqt set karo, aur dost ko bhejo</span><br>
+<b style="color:grey;">. </b><span style="font-size:85%;">Photo dekhney ya bhejney ke liye Damadam par khata kholna zaroori nahi</span><br>
+<b style="color:grey;">. </b><span style="font-size:85%;">Photo sirf usko nazar aye gi jis ko tum bhejo gey</span><br>
+<b style="color:grey;">. </b><span style="font-size:85%;">Ye sahoolat <b>bilkul muft</b> hai</span><br><hr size=1>
+{% if user.is_authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<b>try karo ></b></a>
+</div>
+</body>
+{% endblock %}

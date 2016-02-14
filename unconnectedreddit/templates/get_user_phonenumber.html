@@ -1,0 +1,19 @@
+{% extends "empty.html" %}
+{% block content %}
+<body bgcolor="#FFFFE0">
+<div class="margin" style="font-family:sans-serif;">
+<form action="{% url 'user_phonenumber' slug=unique num=decision %}" method="POST">
+{% csrf_token %}
+<input type="hidden" name="unique" value="{{ unique }}">
+<input type="hidden" name="decision" value="{{ decision }}">
+<!-- <input type="submit" class="hidden" id="submit-form"> -->
+<b style="font-size:90%;color:green;">Dost ka mobile number dal kar OK dabao:</b><br><br>
+{{ form.mobile_number }}<br><br>
+<!-- <a href="http://www.google.com" type="submit">OK</a> -->
+
+<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-bottom:1em;width:3em;font-weight:bold;border-radius:4px;" type="submit" name="number" value="OK"><br>
+</form>
+<span style="color:grey;font-size:80%;">Chat karney ke liye <a href="/"><b>ye dabao</b></a></span>
+</div>
+</body>
+{% endblock %}

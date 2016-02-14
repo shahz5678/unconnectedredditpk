@@ -920,7 +920,7 @@ class UserPhoneNumberView(FormView):
 		which_image = ChatPic.objects.get(unique=unique)
 		decision = self.request.POST.get("decision")
 		messageobject = ChatPicMessage.objects.create(which_pic=which_image, expiry_interval=decision, what_number=phonenumber)
-		url = "http://127.0.0.1:8000/p/"+str(messageobject.pk)+"/"+unique
+		url = "http://damadam.pk/p/"+str(messageobject.pk)+"/"+unique
 		# http_url = HttpResponse("", status=302)	
 		# http_url['Location'] = url
 		# http_url['Cache-Control'] = 'no-cache, no-store, must-revalidate'

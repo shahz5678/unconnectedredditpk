@@ -78,6 +78,9 @@
 		</p>
 
 {% for link in object_list %}
+		{% if forloop.counter == 3 and user.username == 'Shireen' %}
+		<span style="font-weight:bold;color:green;">{% if user.is_authenticated%}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1>
+		{% endif %}
 	    {% if link.image_file %}
 	    <img src="{{ link.image_file.url }}"></img><br>
 		{% endif %}
@@ -107,16 +110,16 @@
 		    {% endfor %}:
     	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter }}"></a> 
-		<span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		<span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p>
 			{% if link.publicreply_set.count %}
 				{% if link.publicreply_set.count < 26 %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</button></a>
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">{{ link.publicreply_set.count }} jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">25+ jawab</button></a>
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">25+ jawab</button></a>
 				{% endif %}
 			{% else %}
-					<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
+					<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
 			{% endif %}
 		<form  method="POST" action="{% url 'vote' %}" class="vote_form">
 		{% csrf_token %}

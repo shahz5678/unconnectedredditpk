@@ -132,6 +132,17 @@ def upload_pic_to_location(instance, filename):
 		print '%s (%s)' % (e.message, type(e))
 		return 0
 
+def upload_chatpic_to_location(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1]
+		filename = "%s.%s" % (uuid.uuid4(), ext)
+		instance.title = blocks[0]
+		return os.path.join('picschat/', filename)
+	except Exception as e:
+		print '%s (%s)' % (e.message, type(e))
+		return 0
+
 def upload_avatar_to_location(instance, filename):
 	try:
 		blocks = filename.split('.') 
@@ -171,6 +182,12 @@ STATUS = (
 ('1','Strangers'),
 ('2','Friends'),
 ('3','Blocked')
+	)
+
+LIFETIME = (
+('1','Finite'),
+('2','Infinite'),#considered 3 days currently, instead of truly infinite
+('3','User Decided')
 	)
 
 REPLIES = (
@@ -382,6 +399,27 @@ class UserSettings(models.Model):
 
 	def __unicode__(self):
 		return u"%s's settings" % self.user
+
+class ChatPic(models.Model):
+	image = models.ImageField("Tasveer lagao:", upload_to=upload_chatpic_to_location, storage=OverwriteStorage())
+	owner = models.ForeignKey(User)
+	upload_time = models.DateTimeField(db_index=True, auto_now_add=True)
+	times_sent = models.IntegerField(default=0)
+	is_visible = models.BooleanField(default=True)
+	unique = models.CharField(max_length=36, unique=True)
+
+	def __unicode__(self):
+		return u"new ChatPic was uploaded by %s at %s" % (self.owner, self.upload_time)
+
+class ChatPicMessage(models.Model):
+	which_pic = models.ForeignKey(ChatPic)
+	sending_time = models.DateTimeField(auto_now_add=True)
+	what_number = models.CharField(max_length=50)
+	expiry_interval = models.CharField(choices=LIFETIME, default='1', max_length=15)
+	caption = models.CharField("Paigham:", blank=True, max_length=50)
+
+	def __unicode__(self):
+		return u"a ChatPicMessage was formed at %s, with expiry set to %s" % (self.sending_time, self.expiry_interval)
 
 # Signal, while saving user
 from django.db.models.signals import post_save

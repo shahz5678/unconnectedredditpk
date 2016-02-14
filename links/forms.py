@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Textarea
-from .models import UserProfile, Link, Vote, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
+from .models import UserProfile, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile
@@ -48,7 +48,7 @@ def MakeThumbnail(filee):
 	img = square_image(img)
 	if img.mode != 'RGB':
 		img = img.convert("RGB")
-	img.thumbnail((120, 120))
+	img.thumbnail((200, 200))
 	thumbnailString = StringIO.StringIO()
 	#if img.mode != 'RGB':
 	#    img = img.convert("RGB")
@@ -62,7 +62,7 @@ def clean_image_file(image): # where self is the form
 			#raise ValidationError("File buhut barri hai, doosri try karo")
 			return 0
 		image = Image.open(image)
-		print "inside clean_image_file"
+		#print "inside clean_image_file"
 		image = MakeThumbnail(image)
 		print "thumbnailed image is %s" % image.size
 		return image
@@ -174,6 +174,11 @@ class OutsideMessageCreateForm(forms.Form):
 	class meta:
 		fields = ("full_name","mobile_number")
 
+class UserPhoneNumberForm(forms.Form):
+	mobile_number = forms.CharField(max_length=50)
+	class Meta:
+		fields = ("mobile_number")
+
 class ClosedGroupCreateForm(forms.ModelForm):
 	class Meta:
 		model = Group
@@ -196,6 +201,12 @@ class ChangeGroupTopicForm(forms.ModelForm):
 	class Meta:
 		model = Group
 		fields = ("topic",)
+
+class PicsChatUploadForm(forms.ModelForm):
+	class Meta:
+		model = ChatPic
+		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
+		fields = ("image",)
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -220,9 +231,21 @@ class DirectMessageForm(forms.Form):
 	class Meta:
 		pass
 
+class DeletePicForm(forms.Form):
+	class Meta:
+		pass
+
+class PicHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class DirectMessageCreateForm(forms.Form):
 	class Meta:
 		model = Group
+
+class PicExpiryForm(forms.Form):
+	class Meta:
+		pass
 
 class InviteForm(forms.Form): # doesn't work if one uses Model form
 	class Meta:

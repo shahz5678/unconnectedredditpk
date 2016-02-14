@@ -3,29 +3,31 @@ import re, urlmarker, StringIO
 from itertools import chain
 from collections import OrderedDict
 from operator import attrgetter
+from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from collections import defaultdict
 from django.db.models import Max, Count, Q, Sum
 from verified import FEMALES
 from allowed import ALLOWED
-from .models import Link, Vote, UserProfile, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
+from .models import Link, Vote, ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, CrossNotifForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, CrossNotifForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, VoteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404
-from django.http import HttpRequest, HttpResponse
+from django.shortcuts import redirect, get_object_or_404, render
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from math import log
+from urllib import quote
 from PIL import Image, ImageFile
 from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, never_cache
 import random
 import uuid
 
@@ -80,6 +82,11 @@ def GetLatestUserInvolvement(user):
 		except:
 			return empty_timestamp
 	return empty_timestamp
+
+class NeverCacheMixin(object):
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super(NeverCacheMixin, self).dispatch(*args, **kwargs)
 
 class OutsideMessageView(FormView):
 	form_class = OutsideMessageForm
@@ -838,8 +845,182 @@ class GroupTypeView(FormView):
 	form_class = GroupTypeForm
 	template_name = "group_type.html"
 
+class AuthPicsDisplayView(ListView):
+	model = ChatPic
+	template_name = "pics_display.html"
+	paginate_by = 8
+
+	def get_queryset(self):
+		if self.request.user.is_authenticated():
+			return ChatPic.objects.filter(owner=self.request.user).exclude(is_visible=False).order_by('-upload_time')
+		else:
+			return 0
+
+class PicsChatUploadView(CreateView):
+	model = ChatPic
+	form_class = PicsChatUploadForm
+	template_name = "pics_chat_upload.html"
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+		#image = f.image
+		if f.image:
+			image_file = clean_image_file(f.image)
+			if image_file:
+				f.image = image_file
+			else:
+				f.image = None
+		else: 
+			f.image = None
+		unique = uuid.uuid4()
+		if self.request.user.is_authenticated():
+			ChatPic.objects.create(image=f.image, owner=self.request.user, times_sent=0, unique=unique)
+		else:
+			unregistered_bhoot = User.objects.get(pk=1)# allot this to unregistered_bhoot (i.e. pk=8)
+			ChatPic.objects.create(image=f.image, owner=unregistered_bhoot, times_sent=0, unique=unique)
+		return redirect("pic_expiry", slug=unique)
+
+class PicExpiryView(FormView):
+	form_class = PicExpiryForm
+	template_name = "pic_expiry_form.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PicExpiryView, self).get_context_data(**kwargs)
+		unique = self.kwargs["slug"]
+		#photo = ChatPic.objects.get(unique=unique)
+		context["unique"] = unique
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		unique = self.request.POST.get("unique")
+		decision = self.request.POST.get("decision")
+		if decision == 'sirf 15 minute':
+			num = 1
+		elif decision == 'aglay 3 din':
+			num = 2
+		else:
+			return redirect("home")
+		return redirect("user_phonenumber", slug=unique, num=num)
+
+class UserPhoneNumberView(FormView):
+	form_class = UserPhoneNumberForm
+	template_name = "get_user_phonenumber.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(UserPhoneNumberView, self).get_context_data(**kwargs)
+		unique = self.kwargs["slug"]
+		context["unique"] = unique
+		num = self.kwargs["num"]
+		context["decision"] = num
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		phonenumber = self.request.POST.get("mobile_number")
+		unique = self.request.POST.get("unique")
+		which_image = ChatPic.objects.get(unique=unique)
+		decision = self.request.POST.get("decision")
+		messageobject = ChatPicMessage.objects.create(which_pic=which_image, expiry_interval=decision, what_number=phonenumber)
+		url = "http://127.0.0.1:8000/p/"+str(messageobject.pk)+"/"+unique
+		# http_url = HttpResponse("", status=302)	
+		# http_url['Location'] = url
+		# http_url['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+		# http_url['Pragma'] = 'no-cache'
+		# http_url['Expires'] = 0
+		# http_url['Vary'] = '*' 
+		if decision == '1':
+			sending_time = datetime.now().replace(tzinfo=None)
+			sending_time = sending_time + timedelta(minutes=15)
+			sending_time = sending_time.time().strftime('%I:%M %p') #should give a human AM or PM style time stamp
+			body = "Meri photo "+str(sending_time)+" tak yahan par dekho: "+url
+		else:
+			body = "Meri photo aglay 3 din tak yahan par dekho: "+url
+		nonhttp_url = "sms:"+phonenumber+"?body="+body
+		which_image.times_sent = which_image.times_sent + 1
+		which_image.save()
+		# if self.request.user.is_authenticated():
+		# 	Link.objects.create(description="Initiating photo feature", submitter=self.request.user, )
+		context = {'url': nonhttp_url}
+		return render(self.request, 'send_pic_sms.html', context)
+
+class DeletePicView(FormView):
+	form_class = DeletePicForm
+	template_name = "delete_pic.html"	
+
+	def get_context_data(self, **kwargs):
+		context = super(DeletePicView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			unique = self.kwargs["slug"]
+			context["unique"] = unique
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		if self.request.method == 'POST':
+			unique = self.request.POST.get("ident")
+			decision = self.request.POST.get("decision")
+			if decision == 'Haan':
+				pic = ChatPic.objects.get(unique=unique)
+				if self.request.user == pic.owner:
+					pic.is_visible = False
+					pic.save()
+				else:
+					pass
+			elif decision == 'Nahi':
+				pass
+			else:
+				pass
+			return redirect("auth_pics_display")
+		else:
+			return redirect("home")
+
+class PicHelpView(FormView):
+	form_class = PicHelpForm
+	template_name = "pic_help.html"		
+
+class PicView(NeverCacheMixin,DetailView):
+	model = ChatPicMessage
+	#form_class = PicForm
+	template_name = "pic.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PicView, self).get_context_data(**kwargs)
+		unique = self.kwargs["slug"]
+		pk = self.kwargs["pk"]
+		messageobject = ChatPicMessage.objects.get(pk=pk)
+		pic = ChatPic.objects.get(unique=unique)
+		if messageobject.which_pic != pic: #i.e. this combination never existed
+			context["exists"] = 0
+			context["pic"] = 2
+		else:
+			sending_time = messageobject.sending_time
+			sending_time_utc = sending_time.replace(tzinfo=utc)
+			time_now = datetime.utcnow().replace(tzinfo=utc)
+			difference = time_now - sending_time_utc
+			if messageobject.expiry_interval == '1':#expiry_interval is finite
+				if difference.total_seconds() < (15*60) and pic.is_visible:
+					context["pic"] = pic
+					context["exists"] = 1
+				elif difference.total_seconds() < (15*60) and not pic.is_visible:
+					context["exists"] = 0
+					context["pic"] = -1
+				else:
+					context["exists"] = 0
+					context["pic"] = 0
+				# unaware_submission = datetime.now().replace(tzinfo=None)
+			else:# if pic is infinitely viewable
+				if difference.total_seconds() < (3*24*60*60) and pic.is_visible: #if less than 3 days have elapsed
+					context["pic"] = ChatPic.objects.get(unique=unique)
+					context["exists"] = 1
+				elif difference.total_seconds() < (3*24*60*60) and not pic.is_visible:
+					context["pic"] = -1
+					context["exists"] = 0
+				else: #expire the pic after 3 days anyway
+					context["exists"] = 0
+					context["pic"] = 1
+		return context
+
+
 class ChangeGroupRulesView(CreateView):
-	mode = Group
+	model = Group
 	form_class = ChangeGroupRulesForm
 	template_name = "change_group_rules.html"
 

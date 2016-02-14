@@ -7,6 +7,7 @@ MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedreddi
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
+#AZURE_ACCOUNT_KEY = os.environ.get('AZURE_ACCOUNT_KEY')
 
 #ON_AZURE = '1'
 #heroku config:set ON_HEROKU=1 

@@ -1,5 +1,10 @@
 {% extends "empty.html" %}
 {% block content %}
+<head>
+{% load google_analytics %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
+{% google_analytics %}
+</head>
 <body bgcolor="#FFFFE0">
 <div class="margin" style="font-family:sans-serif;">
 <form action="{% url 'user_phonenumber' slug=unique num=decision %}" method="POST">

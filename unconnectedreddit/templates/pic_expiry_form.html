@@ -1,5 +1,10 @@
 {% extends "empty.html" %}
 {% block content %}
+<head>
+{% load google_analytics %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
+{% google_analytics %}
+</head>
 <body bgcolor="#FFFFE0">
 <div class="margin">
 <form action="{% url 'pic_expiry' slug=unique %}" method="POST">

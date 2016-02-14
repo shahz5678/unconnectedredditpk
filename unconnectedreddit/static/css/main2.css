@@ -264,21 +264,19 @@ h1 {
 
 
 }
+
 h3 {
 font: arial;
 font-size: 100%;
 color:black;
-
-
 }
 
 img {
 
     max-width: 100%;
     float: none;
-
- 
 }
+
 video{
     max-width: 50%;
     background-color: white;

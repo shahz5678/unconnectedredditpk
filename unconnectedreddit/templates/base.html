@@ -60,7 +60,7 @@
 {% endif %} -->
 {% if user.is_authenticated %}
     {% if user.username == 'Shireen' %}
-    {{ request }},
+    {{ request.META.HTTP_VIA }},
     <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-weight:bold;font-size:80%;color:yellow;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
     {% if user.userprofile.score and user.userprofile.score > 14 %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>

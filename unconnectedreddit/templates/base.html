@@ -48,7 +48,7 @@
         {% google_analytics %}
 </head>
 <body>
-{% load verified%}
+{% load verified %}
 <h1 style="text-shadow:0 0 0.7px white;"></h1>
 <h5 style="text-shadow:0 0 0.1px white;font-family:arial;padding-top:0.3em;">Damadam.pk par chat, aik dum 100% muft!</h5>
 <div class="navbar">
@@ -60,6 +60,7 @@
 {% endif %} -->
 {% if user.is_authenticated %}
     {% if user.username == 'Shireen' %}
+    {{ request.META.HTTP_HOST }},
     <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-weight:bold;font-size:80%;color:yellow;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
     {% if user.userprofile.score and user.userprofile.score > 14 %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>

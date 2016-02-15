@@ -1,18 +1,14 @@
-{% extends "shell.html" %}
+{% extends "empty.html" %}
 {% block content %}
-<head>
-{% load google_analytics %}
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
-{% google_analytics %}
-</head>
+
 <body bgcolor="#FFFFE0">
 <div class="margin">
 <form action="{% url 'pic_upload' %}" method="POST" enctype="multipart/form-data">
 {% csrf_token %}
-<b style="font-family:sans-serif;font-size:90%;color:green;">Apni photo apnay dost ko SMS kro!</b><br><hr size=1>
-<span style="font-family:sans-serif;font-size:85%;">Photo lagao: </span>{{ form.image }}<br>
-<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Neechay <b>OK</b> ko dabao jab photo lag jai</i></span><br><br>
-<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;border-radius:4px;font-weight:bold;" type="submit" value="OK" id="id_submit">
+	<b style="font-family:sans-serif;font-size:90%;color:green;">Apni photo apnay dost ko SMS kro!</b><br><hr size=1>
+	<span style="font-family:sans-serif;font-size:85%;">Photo lagao: </span>{{ form.image }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Neechay <b>OK</b> ko dabao jab photo lag jai</i></span><br><br>
+	<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;border-radius:4px;font-weight:bold;" type="submit" value="OK" id="id_submit">
 </form>
 <span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye <b>bilkul muft</b> hai. Dost internet ke zariye photo dekhay ga</i></span><br><br>
 </div>

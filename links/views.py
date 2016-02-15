@@ -84,9 +84,9 @@ def GetLatestUserInvolvement(user):
 	return empty_timestamp
 
 class NeverCacheMixin(object):
-    @method_decorator(never_cache)
-    def dispatch(self, *args, **kwargs):
-        return super(NeverCacheMixin, self).dispatch(*args, **kwargs)
+	@method_decorator(never_cache)
+	def dispatch(self, *args, **kwargs):
+		return super(NeverCacheMixin, self).dispatch(*args, **kwargs)
 
 class OutsideMessageView(FormView):
 	form_class = OutsideMessageForm
@@ -874,10 +874,18 @@ class PicsChatUploadView(CreateView):
 			f.image = None
 		unique = uuid.uuid4()
 		if self.request.user.is_authenticated():
-			ChatPic.objects.create(image=f.image, owner=self.request.user, times_sent=0, unique=unique)
+			if f.image:
+				ChatPic.objects.create(image=f.image, owner=self.request.user, times_sent=0, unique=unique)
+			else:
+				context = {'unique': unique}
+				return render(self.request, 'error_pic.html', context)
 		else:
-			unregistered_bhoot = User.objects.get(pk=1)# allot this to unregistered_bhoot (i.e. pk=8)
-			ChatPic.objects.create(image=f.image, owner=unregistered_bhoot, times_sent=0, unique=unique)
+			if f.image:
+				unregistered_bhoot = User.objects.get(pk=1)# allot this to unregistered_bhoot (i.e. pk=8)
+				ChatPic.objects.create(image=f.image, owner=unregistered_bhoot, times_sent=0, unique=unique)
+			else:
+				context = {'unique': unique}
+				return render(self.request, 'error_pic.html', context)
 		return redirect("pic_expiry", slug=unique)
 
 class PicExpiryView(FormView):
@@ -1605,6 +1613,14 @@ class UserProfileEditView(UpdateView):
 	model = UserProfile
 	form_class = UserProfileForm
 	template_name = "edit_profile.html"
+
+	def get_form_kwargs(self):
+	    """
+	    Returns the keyword arguments for instantiating the form.
+	    """
+	    kwargs = super(UserProfileEditView, self).get_form_kwargs()
+	    kwargs.update({'user': self.request.user})
+	    return kwargs
 
 	def get_object(self, queryset=None):
 		return UserProfile.objects.get_or_create(user=self.request.user)[0]

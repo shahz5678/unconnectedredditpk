@@ -9,7 +9,11 @@
 	{% else %}
 		<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Isko jawab do</button></a><br><br>
 	{% endif %}
-<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
+{% if pic.image %}
+	<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
+{% else %}
+	<img style="width:100%;max-width:200px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+{% endif %}
 {% else %}
 	{% if pic == -1 %}
 		<span style="color:grey;font-size:90%;">Ye photo bhejnay waley ne mita di hai</span><br><hr size=1><br>

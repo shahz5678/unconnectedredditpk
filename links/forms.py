@@ -58,6 +58,7 @@ def MakeThumbnail(filee):
 
 def clean_image_file(image): # where self is the form
 	if image:
+		#print image
 		if image.size > 1000000:
 			#raise ValidationError("File buhut barri hai, doosri try karo")
 			return 0
@@ -83,7 +84,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		('1','Itni burri bhi nahi'),
 		('2','Shakal pe mat ja'),
 	)
-	avatar = forms.ImageField(label='Upload Photo', help_text='less than 1 mb')
+	avatar = forms.ImageField(label='Photo Lagao', help_text='less than 1 mb', required=False)
 	gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
 	shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
 	attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
@@ -92,14 +93,22 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		exclude = ('user','previous_retort') #so user and previous_retort doesn't show, but the extended attributes of bio and mobile number do show    
 		fields=('avatar', 'mobilenumber', 'bio', 'gender', 'age', 'shadi_shuda', 'attractiveness')
 	
+	def __init__(self, *args, **kwargs):
+		# you take the user out of kwargs and store it as a class attribute
+		self.user = kwargs.pop('user', None)
+		super(UserProfileForm, self).__init__(*args, **kwargs)
 
-	def clean_avatar(self): # where self is the form
+	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
+		try:
+			if image.name in self.user.userprofile.avatar.url:
+				print "no need to re-submit image"
+				return image
+		except:
+			pass
 		if image:
-			#print "the image size is %s" % image.size
 			try:
 				if image.size > 1000000:
-					#raise ValidationError("File buhut barri hai, doosri try karo")
 					return 0
 			except:
 				pass
@@ -107,7 +116,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			image = MakeThumbnail(image)
 			return image
 		else:
-			return 0#ValidationError("File kharab hai, doosri try karo")       
+			return 0   
 
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (

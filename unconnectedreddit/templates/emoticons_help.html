@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<span style="font-size:85%;color:dimgrey;"><b>Shaklein bananey ke liye unkay aagey likhay harf likho:</b></span><br>
+{% load emoticons_tags %}
+{% emoticons_index as emoticons_list %}
+
+{% for emoticons in emoticons_list %}
+<p><span style="font-size:75%;color:lightgrey;"><b>{{ forloop.counter }}.</b></span> {{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
+{% endfor %}
+</div>
+{% endblock %}

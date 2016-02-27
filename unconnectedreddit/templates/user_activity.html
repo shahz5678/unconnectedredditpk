@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
+{% load thumbnail %}
 {% load emoticons_tags %}
 {% block content %}
 {{ block.super }}
@@ -20,16 +21,17 @@
 	{% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img><br>
 	{% endif %}
+	<a href="{% url 'profile' slug=link.submitter %}#section0">
     {% if link.submitter.userprofile.avatar %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
-		</a>
+		
+		<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		
 	{% else %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
-		</a>
+		
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}#section0"><bdi>{{ link.submitter }}</bdi></a>
+	<bdi>{{ link.submitter }}</bdi></a>
 	{% if user.is_authenticated and user.userprofile.score > 25 %}
 		{% if link.submitter.userprofile.score < 0 %}
 	    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
+{% load thumbnail %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
@@ -15,11 +16,11 @@
 	<a href="{% url 'profile' slug=value.0.submitter %}#section0">
 	{% if value.0.submitter.userprofile.avatar %}
 		
-		<img src="{{ value.0.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+		<img src="{{ value.0.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 		
 	{% else %}
 		
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		
 	{% endif %}
 	{{ value.0.submitter }}</a>
@@ -54,11 +55,11 @@
 	<!-- unseen post -->
 	{% if value.2.submitter.userprofile.avatar %}
 		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
-		<img src="{{ value.2.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+		<img src="{{ value.2.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 		</a>
 	{% else %}
 		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		</a>
 	{% endif %}
 	<a href="{% url 'profile' slug=value.2.submitter %}#section0">{{ value.2.submitter }}</a>

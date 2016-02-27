@@ -3,6 +3,7 @@
 {% load comments %}
 {% load mathfilters %}
 {% load emoticons_tags %}
+{% load thumbnail %}
 {% block content %}
 <div class="margin">
 	{% if notification %}
@@ -17,9 +18,9 @@
 			{% else %}
 
 				{% if parent_link.submitter.userprofile.avatar %}
-					<img src="{{ parent_link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22" style="color:dimgrey;"></img>
+					<img src="{{ parent_link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 				{% else %}
-					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 				{% endif %}
 				<span style="color:dimgrey;"><bdi>{{ parent_link.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent_link.description|truncatechars:40 }}{% endemoticons %}</span>
 			
@@ -34,11 +35,11 @@
 			
 				{% if latest_reply.submitted_by.userprofile.avatar %}
 					<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0">
-					<img src="{{ latest_reply.submitted_by.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+					<img src="{{ latest_reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 					</a>
 				{% else %}
 					<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0">
-					<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 					</a>
 				{% endif %}
 			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
@@ -78,22 +79,46 @@
 		</p>
 
 {% for link in object_list %}
-		{% if forloop.counter == 3 and user.username == 'Shireen' %}
-		<span style="font-weight:bold;color:green;">{% if user.is_authenticated%}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1>
-		{% endif %}
+		
+	{% if forloop.counter == 3 and not request.META.HTTP_VIA %}
+		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if user.is_authenticated%}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
+	{% endif %}
+
+	{% if link.cagtegory == '2' %}
+		<div style="background-color:#F6CEF5;margin-top:-1em;padding-top:1em;">
+		<span style="font-size:80%;color:red;"><b>(new) </b></span><a href="{% url 'profile' slug=link.submitter %}#section0">
+		{% if link.submitter.userprofile.avatar %}
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}<span style="font-size:120%;">
+		{{ link.submitter }}</span>
+		{% for person in checked %}
+		    {% if person == link.submitter.username %}
+		    	<span style="font-size:130%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		</a><span style="font-size:110%;"> ki naee open <b>mehfil</b> mein ao gupshup lagao: <a href="{% url 'public_group_reply' slug=link.url %}" style="color:red;">{{ link.description }}</a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		<p style="color:gray"><hr size=1></p>
+		</div>
+	{% else %}
+
 	    {% if link.image_file %}
 	    <img src="{{ link.image_file.url }}"></img><br>
 		{% endif %}
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ link.submitter.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
-		</a>
+
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+
 		{% else %}
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
-		</a>
+		
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		
 		{% endif %}
-			<a href="{% url 'profile' slug=link.submitter %}" class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;"><bdi>{{ link.submitter }}</bdi></a>
+
+			<span class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;"><bdi>{{ link.submitter }}</bdi></span></a>
+		
 		<span style="font-size:85%;">
 		{% if user.is_authenticated and user.userprofile.score > 25 %}				
 			{% if link.submitter.userprofile.score < 0 %}
@@ -103,6 +128,7 @@
 			{% endif %}
 		{% endif %}
 		</span>
+
 		    {% for person in checked %}
 		    {% if person == link.submitter.username %}
 		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
@@ -132,12 +158,12 @@
 
 		<input class="voting" type="submit" id="id_valup" name="val" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="jhappee">
 		{% if user.username in checked %}
-		<a href="{% url 'home' %}" style="font-size:90%;color:green;"><u>+50</u></a>
+		<a href="{% url 'home' %}" style="font-size:80%;color:green;"><u>+50</u></a>
 		{% endif %}
 		<br>
 		<input class="voting" type="submit" id="id_valdown" name="val" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:100%;" value="chupair">
 		{% if user.username in checked %}
-		<a href="{% url 'home' %}" style="font-size:90%;color:red;"><u>-300</u></a>	
+		<a href="{% url 'home' %}" style="font-size:80%;color:red;"><u>-300</u></a>	
 		{% endif %}
 		{% endif %}
 		</p>
@@ -151,16 +177,16 @@
 					{% if link.id == vote.link.id %}
 						{% if vote.value == -1 %}
 							{% if vote.voter.username in checked %}
-								<span style="color:red;font-size:80%;"><b><a href="{% url 'profile' slug=vote.voter.username %}">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko nani yad kara di (-300)!<br></span>
+								<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko nani yad kara di (-300)!<br></span>
 							{% else %}
-								<span style="color:red;font-size:80%;"><b><a href="{% url 'profile' slug=vote.voter.username %}">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+								<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">{{ vote.voter.username }}</a></b> ne khinch ke chupair lagai<br></span>
 							{% endif %}
 						{% endif %}
 						{% if vote.value == 1 %}
 							{% if vote.voter.username in checked %}
-								<span style="color:green;font-size:80%;"><b><a href="{% url 'profile' slug=vote.voter.username %}">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko buhuuut barri jhappee mari (+50)!<br></span>
+								<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko buhut barri jhappi di (+50)!<br></span>
 							{% else %}
-								<span style="color:green;font-size:80%;"><b><a href="{% url 'profile' slug=vote.voter.username %}">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+								<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">{{ vote.voter.username }}</a></b> ne jhappi di<br></span>
 							{% endif %}
 						{% endif %}
 					{% endif %}
@@ -168,7 +194,8 @@
 			{% endif %}
 		</p>
 		{% endif %}
-<p style="color:gray"><hr size=1></p>
+		<p style="color:gray"><hr size=1></p>
+	{% endif %}
 {% endfor %}
 </div>
 </span>

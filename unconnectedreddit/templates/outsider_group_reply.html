@@ -1,5 +1,6 @@
 {% extends user.is_authenticated|yesno:"base.html,empty.html" %}
 {% load humanize %}
+{% load thumbnail %}
 {% load emoticons_tags %}
 {% block content %}
 {% if not user.is_authenticated %}
@@ -46,9 +47,9 @@
                     <span style="font-size:90%;color:purple;font-family:arial;">mehmaan</span>
                     {% else %}
                     {% if reply.writer.userprofile.avatar %}
-                        <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+                        <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                     {% else %}
-                        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+                        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                    <span style="font-family:arial;font-size:90%;color:purple;">{{ reply.writer }}{% endif %}:</span>
 
@@ -109,9 +110,9 @@
                     <span style="color:purple;font-size:90%;">
                     <a href="{% url 'profile' slug=reply.writer.username %}">
                         {% if reply.writer.userprofile.avatar %}
-                        <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+                        <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                         {% else %}
-                        <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+                        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                         {% endif %}
                     {{ reply.writer }}
                         {% for person in ensured %}
@@ -142,9 +143,9 @@
                     {% else %}
                         <a href="{% url 'profile' slug=reply.writer.username %}#section0">
                         {% if reply.writer.userprofile.avatar %}
-                            <img src="{{ reply.writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+                            <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                         {% else %}
-                            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                         {% endif %}
                         </a>
             	   <a href="{% url 'profile' slug=reply.writer.username %}" style="font-size:90%;">{{ reply.writer }}</a>{% endif %}

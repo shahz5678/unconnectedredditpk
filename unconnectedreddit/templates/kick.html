@@ -2,7 +2,7 @@
 {% block content %}
 <div class="margin">
 
-{% if culprit == user %}
+{% if culprit == owner %}
 Tum apney aap ko mehfil se nikalna chahtey ho?<br>Pagal tou nahi ho gaye?<br><br>
 <a href="{% url 'public_group_reply' slug=unique %}">< Wapis jao</a>
 {% else %}

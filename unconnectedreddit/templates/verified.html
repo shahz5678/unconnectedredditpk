@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% load thumbnail %}
 {% block content %}
     <div class="margin">
     <b>Verified females:</b><br>
-    <span style="font-size:85%;">Nickname ke aagey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
+    <span style="font-size:85%;">Nickname ke agey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
     {% for user in object_list %}
     <a href="{% url 'profile' slug=user.username %}#section0">
 	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+		<img src="{{ user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
     {{ user }}</a><b style="color:deeppink;font-size:125%;">*</b>
 	{% if user.userprofile.score %}

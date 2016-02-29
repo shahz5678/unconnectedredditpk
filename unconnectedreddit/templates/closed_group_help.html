@@ -4,11 +4,11 @@
 <div class="margin">
 {% if user.userprofile.score > 499 %}
 Private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai.<br>Tum ye qeemat dena chahtey ho?<br><br>
-&bullet;&nbsp;<a href="{% url 'closed_group_create' %}">Haan</a><br>
-&bullet;&nbsp;<a href="{% url 'group_page' %}">Nahi</a>
+&bullet;&nbsp;<a href="{% url 'closed_group_create' %}#section0">Haan</a><br>
+&bullet;&nbsp;<a href="{% url 'group_page' %}#section0">Nahi</a>
 {% else %}
-Sorry, private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
- <a href="{% url 'group_page' %}"><b><</b>&nbsp;Wapis jao</a>
+Sorry, private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhao</a>:<br><br>
+ <a href="{% url 'group_page' %}#section0"><b><</b>&nbsp;Wapis jao</a>
 {% endif %}
 </div>
 

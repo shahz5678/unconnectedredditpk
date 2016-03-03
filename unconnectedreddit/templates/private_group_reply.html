@@ -5,7 +5,9 @@
 {% block content %}
 <div class="margin">
 
-
+{% if switching %}
+    <span style="color:orange;"><b>Ye mehfil is terah nahi chalti!</b></span>
+{% else %}
     <b style="color:green;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change)</a>
     <br>
     <span style="font-size:85%;">
@@ -136,6 +138,6 @@
 
     </table>
  <hr size=1><span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
-
+{% endif %}
 </div>
 {% endblock %}

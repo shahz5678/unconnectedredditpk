@@ -3,6 +3,9 @@
 {% load thumbnail %}
 {% load emoticons_tags %}
 {% block content %}
+{% if switching %}
+<span style="color:orange;"><b>&nbsp;&nbsp;Ye mehfil is terah nahi chalti!</b></span>
+{% else %}
 {% if not user.is_authenticated %}
 <body bgcolor="#EDFFEE">
 <div class="margin">
@@ -161,5 +164,6 @@
         </table>
         </div>
     {% endif %}
+{% endif %}
 {% endblock %}
 

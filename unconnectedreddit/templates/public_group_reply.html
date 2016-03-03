@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
+{% load thumbnail %}
 {% block content %}
 <div class="margin">
 
 
 {% if group_banned %}
 	
-	<br><span style="color:red;">Tum <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho.<br>Ab kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
+	<span style="color:red;">Tum <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho.<br>Ab kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
 
+{% elif switching %}
+    <span style="color:orange;"><b>Ye mehfil is terah nahi chalti</b></span>
 {% else %}
     
 		Topic:&nbsp;<span style="color:red;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+            <img src="{{ group.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
         {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
         </a>
     	<a href="{% url 'profile' slug=group.owner.username %}"><bdi>{{ group.owner }}</bdi></a>
@@ -90,9 +93,9 @@
                 <span style="color:red;font-size:90%;">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+                    <img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                     {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                     {{ writer }}
                     {% for person in ensured %}
@@ -157,9 +160,9 @@
 
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url }}" alt="no pic" height="22" width="22"></img>
+                <img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
             {% else %}
-                <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no pic" height="22" width="22"></img>
+                <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
             {% endif %}
             </a>          
   
@@ -190,8 +193,7 @@
         </td></tr>
         {% endfor %}
     </table>
-
-    {% endif %}
  <hr size=1><span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
+    {% endif %}
     </div>
 {% endblock %}

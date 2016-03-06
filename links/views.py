@@ -2018,7 +2018,7 @@ class GroupReportView(FormView):
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			unique = Group.objects.get(unique=self.kwargs.get("slug"))
-			if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group_id=which_group.id).exists():
+			if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group=unique).exists():
 				return redirect("group_page")
 			elif self.request.user.userprofile.score < -25:
 				HellBanList.objects.create(condemned=self.request.user)

@@ -45,7 +45,7 @@
 			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi></span>
 				<p style="margin-top:.5em;"></p>
 				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
-				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk user.pk %}" style="color:red;"><b>x</b></a>
+				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk ident %}" style="color:red;"><b>x</b></a>
 				<a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
 			</div>
 			<p style="margin-top:.5em;"></p>
@@ -56,11 +56,11 @@
 			<span style="color:darkorange;font-size:90%;"><b>baaqi logoon ki chat:</b></span>
 			</span>
 	{% else %}
-			{% if user.is_authenticated %}
+			{% if authenticated %}
 				{% if random == 1 %}
 					<span style="color:orange;font-size:90%;"><b>Taza tareen: </b><b><a href="{% url 'verified' %}"><u>verified females</u></a></b> ki list</span>
 				{% else %}
-					{% if user.username == newest_user.username %}
+					{% if username == newest_user.username %}
 					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b style="color:green;"> {{ newest_user.username }}</b> new hai, isko  welcome karo!</span>
 					{% else %}
 					<span style="color:purple;font-size:90%;"><b>Taza tareen</b>:<b style="color:green;"> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome' pk=newest_user.pk %}"><u><b>mithai bhejo</b></u></a></span>
@@ -80,8 +80,8 @@
 
 {% for link in object_list %}
 		
-	{% if forloop.counter == 3 and user.username == 'Shireen' %}
-		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if user.is_authenticated%}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
+	{% if forloop.counter == 3 and username == 'Shireen' %}
+		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
 	{% endif %}
 
 	{% if link.cagtegory == '2' %}
@@ -120,7 +120,7 @@
 			<span class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;"><bdi>{{ link.submitter }}</bdi></span></a>
 		
 		<span style="font-size:85%;">
-		{% if user.is_authenticated and user.userprofile.score > 25 %}				
+		{% if authenticated and user.userprofile.score > 25 %}				
 			{% if link.submitter.userprofile.score < 0 %}
 		    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
 		    {% else %}
@@ -146,14 +146,14 @@
 				{% endif %}
 			<br>
 		{% if link.pk not in voted and link.submitter != user and can_vote %}
-			<a href="{% url 'vote' link.pk user.pk forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a><br>
-			<a href="{% url 'vote' link.pk user.pk forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#FF1A1A;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;">chupair</button></a><br>
+			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a><br>
+			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#FF1A1A;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;">chupair</button></a><br>
 		{% endif %}
 		</p>
-		{% if user.is_authenticated %}
+		{% if authenticated %}
 		<p style="margin-top:.5em;">
 		{% endif %}
-		{% if user.is_authenticated and can_vote %}
+		{% if authenticated and can_vote %}
 			{% if link.votes != 'None' %}
 				{% for vote in vote_cluster reversed %}
 					{% if link.id == vote.link.id %}

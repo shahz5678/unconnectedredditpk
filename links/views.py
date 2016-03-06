@@ -2037,17 +2037,17 @@ class GroupReportView(FormView):
 					reply = get_object_or_404(Reply, pk=reply_id)
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists():
 						#print GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists()
-						return redirect("public_group_reply", slug=unique)
+						return redirect("public_group_reply", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
 						reply.text = self.request.user.username
 						reply.writer.userprofile.score = reply.writer.userprofile.score - 10
 						reply.writer.userprofile.save()
 						reply.save()
-						return redirect("public_group_reply", slug=unique)
+						return redirect("public_group_reply", slug=unique.unique)
 				else:
 					unique = self.kwargs.get("slug")
-					return redirect("public_group_reply", slug= unique)
+					return redirect("public_group_reply", slug= unique.unique)
 
 class ReportView(FormView):
 	form_class = ReportForm

@@ -1703,8 +1703,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				self.request.user.userprofile.score = self.request.user.userprofile.score + 3
 				self.request.user.userprofile.save()
 				answer_to = Link.objects.get(id=self.request.POST.get("object_id"))
+				answer_to.reply_count = answer_to.reply_count + 1
 				reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1')
 				Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
+				answer_to.save()
 				try:
 					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
 				except:
@@ -2091,15 +2093,15 @@ class WelcomeReplyView(FormView):
 				else:
 					num = random.randint(1,5)
 					if num == 1:
-						parent = Link.objects.create(description='I am new', submitter=target)
+						parent = Link.objects.create(description='I am new', submitter=target, reply_count=1)
 					elif num == 2:
-						parent = Link.objects.create(description='Salam, Im new', submitter=target)
+						parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1)
 					elif num == 3:
-						parent = Link.objects.create(description='mein new hun', submitter=target)
+						parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1)
 					elif num == 4:
-						parent = Link.objects.create(description='hi every1', submitter=target)
+						parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1)
 					else:
-						parent = Link.objects.create(description='damadam mast qalander', submitter=target)						
+						parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1)						
 				#print "PARENT IS: %s" % parent
 				if option == '1' and message == 'Barfi khao aur mazay urao!':
 					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"

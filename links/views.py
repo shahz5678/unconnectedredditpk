@@ -414,8 +414,14 @@ class LinkListView(ListView):
 		context["newest_user"] = User.objects.latest('id') #for unauthenticated users
 		global condemned
 		context["can_vote"] = False
+		context["authenticated"] = False
 		if self.request.user.is_authenticated():
-			if self.request.user.userprofile.score > 10:
+			context["authenticated"] = True
+			context["ident"] = self.request.user.id
+			context["username"] = self.request.user.username
+			score = self.request.user.userprofile.score
+			context["score"] = score
+			if score > 10:
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
@@ -2197,29 +2203,32 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 			return redirect("home")
 		value = int(val)
 		if vote.voter.id == int(target_id): #target is indeed the user who's vote was identified
-			if value == 1:
-				if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
-					Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-					target.userprofile.score = target.userprofile.score + 2
-					target.userprofile.save()
-				else:
-					pass
-			elif value == 0:
-				value = -1
-				if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
-					Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-					target.userprofile.score = target.userprofile.score - 3
-					if target.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned=target) #adding target to hell-ban list
-							target.userprofile.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						else:
-							pass
+			try:
+				if value == 1:
+					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
+						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+						target.userprofile.score = target.userprofile.score + 2
+						target.userprofile.save()
 					else:
 						pass
-					target.userprofile.save()
-			else:
-				return redirect("score_help")
+				elif value == 0:
+					value = -1
+					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
+						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+						target.userprofile.score = target.userprofile.score - 3
+						if target.userprofile.score < -25:
+							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
+								HellBanList.objects.create(condemned=target) #adding target to hell-ban list
+								target.userprofile.userprofile.score = random.randint(10,71) #assigning random score to banned user
+							else:
+								pass
+						else:
+							pass
+						target.userprofile.save()
+				else:
+					return redirect("score_help")
+			except:
+				return redirect("home")
 		else:
 			return redirect("link_create")
 		return redirect("home")

@@ -36,9 +36,12 @@
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        
+        <meta name="description" content="Free chat with new friends, on any mobile phone, old or new. Muft chat karo aur nae dost banao!">
+        <meta property="og:title" content="Damadam">
+        <meta property="og:description" content="Muft chat karo aur nae dost banao">
+        <meta property="og:image" content="{{ STATIC_URL }}img/favicon-192.png">
+        <meta name="author" content="hb">
+        <meta name="keywords" content="damadam, chat, friends, boys, girls">
 
 <!-- <FRAMESET border=0 rows="100%,*" frameborder="no" marginleft=0 margintop=0 marginright=0 marginbottom=0>
 <frame src="http://www.damadam.pk" scrolling=auto frameborder="no" border=0 noresize>
@@ -59,9 +62,9 @@
     <a href="{% url 'pic_upload' %}" style="text-shadow:0 0 0.1px #886081;"> Photo </a><span style="color:white;">|</span>
 {% endif %} -->
 {% if user.is_authenticated %}
+    
     {% if user.username == 'Shireen' %}
-    {{ request.META.HTTP_VIA }},
-    <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-weight:bold;font-size:80%;color:yellow;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
+    <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-size:80%;color:purple;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
     {% if user.userprofile.score and user.userprofile.score > 14 %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
     {% else %}

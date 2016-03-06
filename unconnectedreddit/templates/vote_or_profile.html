@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+
+{% if self == 2 %}
+<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
+<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho<br><br>
+<a href="{% url 'home' %}#section0">< wapis</a>
+
+{% elif self == 1 %}
+<b style="color:grey;">. </b>apni <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho</a><br>
+<b style="color:grey;">. </b>apni <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho</a><br><br>
+<a href="{% url 'home' %}#section0">< wapis</a>
+
+{% elif self == -1 %}
+<b>Yahan kuch nahi hai...</b><br><br>
+<a href="{% url 'home' %}#section0">< wapis</a>
+
+{% else %}
+
+	<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
+	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 1 %}#section0"><b>jhappee</b></a> do<br>
+	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 0 %}#section0"><b>chupair</b></a> maro<br>
+<a href="{% url 'home' %}#section0">< wapis</a>
+
+{% endif %}
+</div>
+{% endblock %}

@@ -36,8 +36,8 @@
 <i style="color:red;">Tumhara score itna nahi ke tum jawab de sako</i>
 {% endif %}
 <p style="margin-top:.3em;"></p>
-{% if replies|length < 25 %}
-    <b style="font-size:90%;">{{ replies|length }} Jawab:</b><br>
+{% if parent.reply_count < 26 %}
+    <b style="font-size:90%;">{{ parent.reply_count }} Jawab:</b><br>
 {% else %}
     <b style="font-size:90%;">Pichley 25 Jawab:</b><br>
 {% endif %}
@@ -107,7 +107,7 @@
 <hr size=1>
 <p style="margin-top:-0.9em;"></p>
 <hr size=1>
-<span style="font-size:90%;color:dimgrey;"><b>10 shaklein neechay dekho:<br></b><span style="font-size:85%;">(poori list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
+<span style="font-size:80%;color:dimgrey;"><b>Shakal banaey ke liye uskay aagey likhay harf type karo:<br></b><span style="font-size:95%;">(poori list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 {% if forloop.counter in random %}

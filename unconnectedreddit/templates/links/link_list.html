@@ -138,15 +138,12 @@
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p style="margin-top:.5em;">
-			{% if link.publicreply_set.count %}
-				{% if link.publicreply_set.count < 26 %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">{{ link.publicreply_set.count }} jawab</button></a>
+			
+				{% if link.reply_count > 0 %}
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;"><b style="text-shadow:none;">{{ link.reply_count }} jawab</b></button></a>
 				{% else %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">25+ jawab</button></a>
+						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
 				{% endif %}
-			{% else %}
-					<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
-			{% endif %}
 			<br>
 		{% if link.pk not in voted and link.submitter != user and can_vote %}
 			<a href="{% url 'vote' link.pk user.pk forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a><br>

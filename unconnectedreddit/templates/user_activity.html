@@ -44,15 +44,13 @@
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
 	: <bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
-	{% if link.publicreply_set.count %}
-	{% if link.publicreply_set.count < 26 %}
-		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ link.publicreply_set.count }} jawab</a>
+
+		{% if link.reply_count > 0 %}
+		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;"><b>{{ link.reply_count }} jawab</b></a>
 		{% else %}
-		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 		{% endif %}
-	{% else %}
-	<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
-	{% endif %}
+
 	{% if can_vote %}
 	<br>
 	{% for vote in vote_cluster reversed %}

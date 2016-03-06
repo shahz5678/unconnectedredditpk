@@ -41,15 +41,13 @@
 	<span style="color:gray;font-size:75%;">, jawab aya {{ value.1|naturaltime }}</span>
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
-	{% if value.0.publicreply_set.count %}
-	{% if value.0.publicreply_set.count < 26 %}
-		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.publicreply_set.count }} jawab</a>
+
+	{% if value.0.reply_count > 0 %}
+		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.reply_count }} jawab</a>
 		{% else %}
-		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">25+ jawab</a>
+		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 		{% endif %}
-	{% else %}
-	<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
-	{% endif %}
+
 	<br>
 	{% else %}
 	<!-- unseen post -->

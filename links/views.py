@@ -1608,8 +1608,13 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 	def get_context_data(self, **kwargs):
 		context = super(PublicreplyView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			link = Link.objects.get(id=self.kwargs["pk"])
+			try:
+				link = Link.objects.get(id=self.kwargs["pk"])
+			except:
+				context["error"] = True
+				return context
 			#is_notification = self.kwargs["is_notif"]
+			context["error"] = False
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52

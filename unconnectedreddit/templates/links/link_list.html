@@ -120,7 +120,7 @@
 			<span class="bigger" style="font-family:arial;line-height:1.8; display:inline;text-shadow:0 0 0px #8080FF;"><bdi>{{ link.submitter }}</bdi></span></a>
 		
 		<span style="font-size:85%;">
-		{% if authenticated and user.userprofile.score > 25 %}				
+		{% if authenticated and score > 25 %}				
 			{% if link.submitter.userprofile.score < 0 %}
 		    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
 		    {% else %}

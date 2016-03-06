@@ -19,8 +19,8 @@
 {% else %}
 
 	<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
-	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 1 %}#section0"><b>jhappee</b></a> do<br>
-	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 0 %}#section0"><b>chupair</b></a> maro<br>
+	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 1 %}#section0"><b style="color:green;">jhappee</b></a> do<br>
+	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 0 %}#section0"><b style="color:red;">chupair</b></a> maro<br>
 <a href="{% url 'home' %}#section0">< wapis</a>
 
 {% endif %}

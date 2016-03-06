@@ -3,7 +3,7 @@ from django.forms import Textarea
 from .models import UserProfile, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, ImageEnhance
 import StringIO
 import math
 from user_sessions.models import Session
@@ -48,6 +48,12 @@ def MakeThumbnail(filee):
 	img = square_image(img)
 	if img.mode != 'RGB':
 		img = img.convert("RGB")
+	enhancer = ImageEnhance.Brightness(img)
+	enhancer = enhancer.enhance(1.2)
+	enhancer2 = ImageEnhance.Contrast(enhancer)
+	enhancer2 = enhancer2.enhance(1.07)
+	enhancer3 = ImageEnhance.Color(enhancer2)
+	img = enhancer3.enhance(1.15)
 	img.thumbnail((200, 200))
 	thumbnailString = StringIO.StringIO()
 	#if img.mode != 'RGB':
@@ -102,7 +108,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		image=self.cleaned_data.get("avatar")
 		try:
 			if image.name in self.user.userprofile.avatar.url:
-				print "no need to re-submit image"
+				#print "no need to re-submit image"
 				return image
 		except:
 			pass
@@ -188,6 +194,10 @@ class UserPhoneNumberForm(forms.Form):
 	class Meta:
 		fields = ("mobile_number")
 
+class UserSMSForm(forms.Form):
+	class Meta:
+		pass
+
 class ClosedGroupCreateForm(forms.ModelForm):
 	class Meta:
 		model = Group
@@ -227,10 +237,6 @@ class CrossNotifForm(forms.Form):
 	class Meta:
 		pass
 		#model = Link
-
-class VoteForm(forms.ModelForm): #creates a form for Vote
-	class Meta:
-		model = Vote
 
 class WelcomeReplyForm(forms.Form):
 	class Meta:
@@ -324,6 +330,10 @@ class LogoutHelpForm(forms.Form):
 	class Meta:
 		pass
 
+class EmoticonsHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class ReportreplyForm(forms.Form):
 	class Meta:
 		pass
@@ -373,6 +383,10 @@ class RegisterWalkthroughForm(forms.Form):
 		pass
 
 class LoginWalkthroughForm(forms.Form):
+	class Meta:
+		pass
+
+class VoteOrProfileForm(forms.Form):
 	class Meta:
 		pass
 

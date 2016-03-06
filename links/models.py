@@ -20,7 +20,6 @@ class OverwriteStorage(Storage):
 	account_name = accountName
 	account_key = accountKey
 	#cdn_host = settings.AZURE_STORAGE.get('CDN_HOST')
-	#use_ssl = settings.AZURE_STORAGE.get('USE_SSL')
 	def __init__(self, account_name=None, account_key=None, container=None):
 
 		if account_name is not None:
@@ -123,11 +122,7 @@ class OverwriteStorage(Storage):
 		Returns the URL where the contents of the file referenced by name can
 		be accessed.
 		"""
-		#url = '%s/%s' % (self._get_container_url(), name)
-		url = '%s/%s/%s' % ('http://damadam.blob.core.windows.net','pictures', name)
-		#print "name is %s" % name
-		#print "url is %s" % url
-		#print "exiting url"
+		url = '%s/%s/%s' % ('//damadam.blob.core.windows.net','pictures', name)
 		return url
 
 def upload_to_location(instance, filename):
@@ -206,7 +201,7 @@ STATUS = (
 
 LIFETIME = (
 ('1','Finite'),
-('2','Infinite'),#considered 3 days currently, instead of truly infinite
+('2','Infinite'),	
 ('3','User Decided')
 	)
 
@@ -433,17 +428,20 @@ class ChatPic(models.Model):
 
 class ChatPicMessage(models.Model):
 	which_pic = models.ForeignKey(ChatPic)
+	viewing_time = models.DateTimeField()
 	sending_time = models.DateTimeField(auto_now_add=True)
 	what_number = models.CharField(max_length=50)
 	expiry_interval = models.CharField(choices=LIFETIME, default='1', max_length=15)
 	caption = models.CharField("Paigham:", blank=True, max_length=50)
+	seen = models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return u"a ChatPicMessage was formed at %s, with expiry set to %s" % (self.sending_time, self.expiry_interval)
 
-# class ChatURL(models.Model):
-# 	short_id = models.SlugField(max_length=6, primary_key=True)
-# 	httpurl = models.URLField(max_length=200)
+# class ChatInbox(models.Model):
+# 	short_id = models.SlugField(max_length=4, primary_key=True)
+# 	owner = models.ForeignKey(User)
+#	httpurl = models.URLField(max_length=200)
 # 	creation_time = models.DateTimeField(auto_now_add=True)
 
 # Signal, while saving user

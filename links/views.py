@@ -2100,6 +2100,8 @@ class WelcomeReplyView(FormView):
 				self.request.user.userprofile.save()
 				if Link.objects.filter(submitter=target).exists():
 					parent = Link.objects.filter(submitter=target).latest('id')
+					parent.reply_count = parent.reply_count + 1
+					parent.save()
 				else:
 					num = random.randint(1,5)
 					if num == 1:
@@ -2211,7 +2213,10 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				if value == 1:
 					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
 						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-						target.userprofile.score = target.userprofile.score + 2
+						if request.user.username in FEMALES:
+							target.userprofile.score = target.userprofile.score + 50
+						else:
+							target.userprofile.score = target.userprofile.score + 2
 						target.userprofile.save()
 					else:
 						pass
@@ -2219,11 +2224,14 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					value = -1
 					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
 						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-						target.userprofile.score = target.userprofile.score - 3
+						if request.user.username in FEMALES:
+							target.userprofile.score = target.userprofile.score - 300
+						else:
+							target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=target) #adding target to hell-ban list
-								target.userprofile.userprofile.score = random.randint(10,71) #assigning random score to banned user
+								target.userprofile.score = random.randint(10,71) #assigning random score to banned user
 							else:
 								pass
 						else:
@@ -2232,7 +2240,32 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				else:
 					return redirect("score_help")
 			except:
-				return redirect("home")
+				if value == 1:
+					link = Link.objects.create(description='mein idher hu', submitter=target)
+					Vote.objects.create(voter=request.user, link=link, value=value)
+					if request.user.username in FEMALES:
+						target.userprofile.score = target.userprofile.score + 50
+					else:
+						target.userprofile.score = target.userprofile.score + 2
+					target.userprofile.save()
+					return redirect("home")
+				elif value == -1:
+					link = Link.objects.create(description='mein idher hu', submitter=target)
+					Vote.objects.create(voter=request.user, link=link, value=value)
+					if request.user.username in FEMALES:
+						target.userprofile.score = target.userprofile.score - 300
+					else:
+						target.userprofile.score = target.userprofile.score - 3
+					if target.userprofile.score < -25:
+						if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
+							HellBanList.objects.create(condemned=target) #adding target to hell-ban list
+							target.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						else:
+							pass
+					target.userprofile.save()
+					return redirect("home")
+				else:
+					return redirect("home")
 		else:
 			return redirect("link_create")
 		return redirect("home")

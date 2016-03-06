@@ -238,6 +238,7 @@ class Link(models.Model):
 	submitter = models.ForeignKey(User) # link.submitter is a user!
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	rank_score = models.FloatField(default=0.0)
+	reply_count = models.IntegerField(default=0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
 	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )

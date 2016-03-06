@@ -1613,7 +1613,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 
 	def get_context_data(self, **kwargs):
 		context = super(PublicreplyView, self).get_context_data(**kwargs)
+		context["authenticated"] = False
 		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+			score = self.request.user.userprofile.score
+			context["score"] = score
 			try:
 				link = Link.objects.get(id=self.kwargs["pk"])
 			except:

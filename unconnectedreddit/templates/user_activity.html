@@ -59,14 +59,14 @@
 			{% if vote.voter.username in verified %}
 				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko nani yad kara di (-300)!<br></span>
 			{% else %}
-				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko chupair mari<br></span>
+				<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne khinch ke chupair mari<br></span>
 			{% endif %}
 		{% endif %}
 		{% if vote.value == 1 %}
 			{% if vote.voter.username in verified %}
 				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne <b>{{ link.submitter.username }}</b> ko buhuuut barri jhappee mari (+50)!<br></span>
 			{% else %}
-				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne <b>{{ link.submitter.username }}</b> ko jhappi mari<br></span>
+				<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne jhappi di<br></span>
 			{% endif %}
 		{% endif %}
 		{% endif %}

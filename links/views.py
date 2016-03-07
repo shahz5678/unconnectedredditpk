@@ -2058,7 +2058,7 @@ class GroupReportView(FormView):
 						reply.save()
 						return redirect("public_group_reply", slug=unique.unique)
 				else:
-					unique = self.kwargs.get("slug")
+					#unique = self.kwargs.get("slug")
 					return redirect("public_group_reply", slug= unique.unique)
 
 class ReportView(FormView):

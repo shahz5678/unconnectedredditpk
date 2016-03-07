@@ -423,6 +423,8 @@ class LinkListView(ListView):
 		context["can_vote"] = False
 		context["authenticated"] = False
 		if self.request.user.is_authenticated():
+			#self.request.META['HTTP_REFERER'] = '/example/uri/here/'
+			#print self.request.META.get('HTTP_REFERER')
 			context["authenticated"] = True
 			context["ident"] = self.request.user.id
 			context["username"] = self.request.user.username
@@ -492,6 +494,59 @@ class LinkListView(ListView):
 					context["first_time_user"] = False
 					#print "freshest reply didn't exist"
 		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session['target_id']
+			self.request.session['target_id'] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(link.id for link in self.object_list).index(target_id)
+				#print index
+			except:
+				#print "error"
+				index = None
+			if 0 <= index <= 19:
+				addendum = '#section'+str(index+1)
+				#print addendum
+			elif 20 <= index <= 39:
+				addendum = '?page=2#section'+str(index+1-20)
+				#print addendum
+			elif 40 <= index <= 59:
+				addendum = '?page=3#section'+str(index+1-40)
+				#print addendum
+			elif 60 <= index <= 79:
+				addendum = '?page=4#section'+str(index+1-60)
+				#print addendum
+			elif 80 <= index <= 99:
+				addendum = '?page=5#section'+str(index+1-80)
+				#print addendum
+			elif 100 <= index <= 119:
+				addendum = '?page=6#section'+str(index+1-100)
+				#print addendum
+			else:
+				addendum = '#section0'
+			#return self.render_to_response(context)
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -2331,7 +2386,9 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			except:#if vote object can't be created, just redirect the user, no harm done
 				return redirect("link_create")
 			try:
-				return redirect(request.META.get('HTTP_REFERER')+'#section'+section)
+				request.session['target_id'] = link.id
+				#return redirect(request.META.get('HTTP_REFERER')+'#section'+section)
+				return redirect("home")
 			except:
 				return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
 		else:

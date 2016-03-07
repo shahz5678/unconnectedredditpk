@@ -238,7 +238,14 @@ class VoteOrProfileView(FormView):
 			link_submitter_id = self.kwargs["num"] # the link submitter who was voted on
 			vote_id = self.kwargs["id"] #the vote that was cast
 			user_id = self.kwargs["pk"] #person who voted
-			vote = Vote.objects.get(pk=vote_id)
+			try:
+				vote = Vote.objects.get(pk=vote_id)
+			except:
+				context["self"] = -1
+				context["subject"] = self.request.user
+				context["vote_id"] = vote_id
+				context["link_submitter_id"] = link_submitter_id
+				return context
 			#link_submitter = User.objects.get(pk=link_submitter_id)
 			if vote.voter.id == int(user_id): #confirming voter
 				if self.request.user.id == int(user_id): #if person looking at own vote
@@ -324,7 +331,7 @@ class LogoutReconfirmView(FormView):
 
 	def form_valid(self, form):
 		if self.request.user_banned:
-			return redirect("error") #you can come in any time you like, you can never leave!
+			return redirect("score_help") #you can come in any time you like, you can never leave!
 		else:
 			if self.request.method == 'POST':
 				decision = self.request.POST.get("decision")

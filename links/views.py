@@ -417,26 +417,29 @@ class LinkListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES
-		context["random"] = random.randint(1,3)
-		context["newest_user"] = User.objects.latest('id') #for unauthenticated users
-		global condemned
 		context["can_vote"] = False
 		context["authenticated"] = False
 		if self.request.user.is_authenticated():
-			#self.request.META['HTTP_REFERER'] = '/example/uri/here/'
-			#print self.request.META.get('HTTP_REFERER')
+			num = random.randint(1,3)
+			context["random"] = num
+			if num > 1:
+				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
+			else:
+				context["newest_user"] = None
 			context["authenticated"] = True
-			context["ident"] = self.request.user.id
-			context["username"] = self.request.user.username
-			score = self.request.user.userprofile.score
+			user = self.request.user
+			context["ident"] = user.id
+			context["username"] = user.username
+			score = user.userprofile.score
 			context["score"] = score
 			if score > 10:
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
-			voted = votes_in_page.filter(voter=self.request.user) #all votes the user cast
+			voted = votes_in_page.filter(voter=user) #all votes the user cast
 			voted = voted.values_list('link_id', flat=True) #link ids of all votes the user voted on
 			context["voted"] = voted #voted is used to check which links the user has already voted on
+			global condemned
 			if self.request.user_banned:
 				context["vote_cluster"] = votes_in_page # all votes in the page
 				context["notification"] = 0 #hell banned users will never see notifications
@@ -444,7 +447,7 @@ class LinkListView(ListView):
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				freshest_reply = GetLatestUserInvolvement(self.request.user)
+				freshest_reply = GetLatestUserInvolvement(user)
 				#print freshest_reply
 				if freshest_reply:
 					parent_link = freshest_reply.answer_to
@@ -473,7 +476,7 @@ class LinkListView(ListView):
 						context["notification"] = 1
 						context["parent_link"] = parent_link
 						context["parent_link_pk"] = parent_link.pk
-						if self.request.user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
+						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
 							#print "first time user"
 							context["first_time_user"] = True
 						else:
@@ -493,6 +496,8 @@ class LinkListView(ListView):
 					context["parent_link_pk"] = 0
 					context["first_time_user"] = False
 					#print "freshest reply didn't exist"
+		else:
+			return context
 		return context
 
 	def get(self, request, *args, **kwargs):
@@ -2153,73 +2158,79 @@ class WelcomeReplyView(FormView):
 			if self.request.user_banned:
 				return redirect("score_help")
 			else:
-				target = User.objects.get(pk=self.kwargs["pk"])
-				option = self.request.POST.get("opt")
-				#print "option is %s" % option
-				message = self.request.POST.get("msg")
-				#print "message is %s" % message
-				self.request.user.userprofile.score = self.request.user.userprofile.score + 1
-				self.request.user.userprofile.save()
-				if Link.objects.filter(submitter=target).exists():
-					parent = Link.objects.filter(submitter=target).latest('id')
-					parent.reply_count = parent.reply_count + 1
-					parent.save()
-				else:
-					num = random.randint(1,5)
-					if num == 1:
-						parent = Link.objects.create(description='I am new', submitter=target, reply_count=1)
-					elif num == 2:
-						parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1)
-					elif num == 3:
-						parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1)
-					elif num == 4:
-						parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1)
+				pk = self.kwargs["pk"]
+				target = User.objects.get(pk=pk)
+				current = User.objects.latest('id')
+				num = current.id
+				if (num-100) <= int(pk) <= (num+100):
+					option = self.request.POST.get("opt")
+					#print "option is %s" % option
+					message = self.request.POST.get("msg")
+					#print "message is %s" % message
+					self.request.user.userprofile.score = self.request.user.userprofile.score + 1
+					self.request.user.userprofile.save()
+					if Link.objects.filter(submitter=target).exists():
+						parent = Link.objects.filter(submitter=target).latest('id')
+						parent.reply_count = parent.reply_count + 1
+						parent.save()
 					else:
-						parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1)						
-				#print "PARENT IS: %s" % parent
-				if option == '1' and message == 'Barfi khao aur mazay urao!':
-					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
-					description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '1' and message == 'Is barfi se mu meetha karo!':
-					description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '2' and message == 'Aik plate laddu se life set!':
-					description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '2' and message == 'Ye saray laddu aap ke liye!':
-					description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '2' and message == 'Laddu khao, jaan banao yar!':
-					description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
-					description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '3' and message == 'Jalebi meri pasandida hai!':
-					description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
-				elif option == '3' and message == 'Is jalebi se mu metha karo!':
-					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						num = random.randint(1,5)
+						if num == 1:
+							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1)
+						elif num == 2:
+							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1)
+						elif num == 3:
+							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1)
+						elif num == 4:
+							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1)
+						else:
+							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1)						
+					#print "PARENT IS: %s" % parent
+					if option == '1' and message == 'Barfi khao aur mazay urao!':
+						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
+						description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '1' and message == 'Is barfi se mu meetha karo!':
+						description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '2' and message == 'Aik plate laddu se life set!':
+						description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '2' and message == 'Ye saray laddu aap ke liye!':
+						description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '2' and message == 'Laddu khao, jaan banao yar!':
+						description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
+						description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '3' and message == 'Jalebi meri pasandida hai!':
+						description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					elif option == '3' and message == 'Is jalebi se mu metha karo!':
+						description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+					else:
+						return redirect("score_help")
+					global condemned
+					replies = list(Publicreply.objects.filter(answer_to=parent, submitted_on__lte=reply.submitted_on).exclude(submitted_by_id__in=condemned).order_by('-id')[:25])
+					#print "THESE ARE REPLIES: %s" % replies
+					relevant_ids = [rply.id for rply in replies]
+					seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=self.request.user))
+					unseen_replies = [x for x in replies if x not in seen_replies]
+					#print "THESE ARE UNSEEN REPLIES: %s" % unseen_replies
+					seen_list = []
+					for rpy in unseen_replies:
+						seen_list.append(Seen(seen_user=self.request.user,which_reply=rpy,seen_status=True))
+					#print seen_list
+					Seen.objects.bulk_create(seen_list)
+					#print "ALL YOUR UNSEEN REPLY BELONG TO US"
+					return redirect("home")
 				else:
 					return redirect("score_help")
-				global condemned
-				replies = list(Publicreply.objects.filter(answer_to=parent, submitted_on__lte=reply.submitted_on).exclude(submitted_by_id__in=condemned).order_by('-id')[:25])
-				#print "THESE ARE REPLIES: %s" % replies
-				relevant_ids = [rply.id for rply in replies]
-				seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=self.request.user))
-				unseen_replies = [x for x in replies if x not in seen_replies]
-				#print "THESE ARE UNSEEN REPLIES: %s" % unseen_replies
-				seen_list = []
-				for rpy in unseen_replies:
-					seen_list.append(Seen(seen_user=self.request.user,which_reply=rpy,seen_status=True))
-				#print seen_list
-				Seen.objects.bulk_create(seen_list)
-				#print "ALL YOUR UNSEEN REPLY BELONG TO US"
-				return redirect("home")
 
 def cross_notif(request, pk=None, ident=None, user=None, *args, **kwargs):
 	try:

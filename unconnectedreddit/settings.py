@@ -34,8 +34,8 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
 	('Hassan Baig', 'baig.hassan@gmail.com'),
-	('Sophie Pervez', 'spz3113@gmail.com'),
-	('Fahad Rao', 'fahadrao@gmail.com'),
+	#('Sophie Pervez', 'spz3113@gmail.com'),
+	#('Fahad Rao', 'fahadrao@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -132,7 +132,7 @@ MIDDLEWARE_CLASSES = (
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
 	#'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
-	#'mobi.middleware.MobileDetectionMiddleware',
+	'mobileesp.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -187,6 +187,7 @@ INSTALLED_APPS = (
 	'mathfilters',
 	'storages',
 	'emoticons',
+	'django_extensions',
 	#'request',
     #'debug_toolbar',
 	#'analytical',
@@ -246,7 +247,7 @@ if ON_HEROKU == '1':
 	AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 elif ON_AZURE == '1':
 	print "ON_AZURE!"
-	DATABASE_URL = 'postgres://damadamrg.cloudapp.net:5432/damadam'
+	DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@damadamrg.cloudapp.net:5432/damadam'
 	DATABASES = {
 	'default': dj_database_url.config(default=DATABASE_URL)
 	}
@@ -256,7 +257,6 @@ elif ON_AZURE == '1':
 	AZURE_CONTAINER = 'pictures'
 else:
 # Parse database configuration from $DATABASE_URL
-	print "NOT_ON_HEROKU_NOR_AZURE!"
 	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
 	AZURE_ACCOUNT_NAME = 'damadam'
 	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='

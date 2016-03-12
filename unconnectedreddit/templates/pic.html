@@ -6,7 +6,7 @@
 <div class="margin">
 {% if exists %}
 	{% if user.is_authenticated and user != sender %}
-		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Isko jawab do</button></a><br><br>
+		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Isko jawab do</button></a><br>
 			{% if pic.image %}
 			<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
 			{% else %}
@@ -14,7 +14,7 @@
 			{% endif %}
 			<hr size=1><span style="color:green;font-size:80%;">Ye photo ghayeb ho jaye gi, <b>{{ max_time|naturaltime }}</b></span><br><br>
 	{% elif not user.is_authenticated %}
-		<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Isko jawab do</button></a><br><br>
+		<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Isko jawab do</button></a><br>
 			{% if pic.image %}
 			<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
 			{% else %}
@@ -22,7 +22,7 @@
 			{% endif %}
 			<hr size=1><span style="color:green;font-size:80%;">Ye photo ghayeb ho jaye gi, <b>{{ max_time|naturaltime }}</b></span><br><br>
 	{% else %}
-		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Aik aur photo bhejo</button></a><br><br>
+		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Aik aur photo bhejo</button></a><br>
 			{% if pic.image %}
 			<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
 			{% else %}
@@ -34,22 +34,22 @@
 	{% if pic == -1 %}
 		<span style="color:grey;font-size:90%;">Ye photo bhejnay waley ne mita di hai</span><br><hr size=1><br>
 	{% elif pic == 0 %}
-		<span style="color:grey;font-size:90%;">Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b></span><br><hr size=1><br>
+		<span style="color:grey;font-size:90%;">Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b></span><br><hr size=1>
 	{% elif pic == 1 %}
-		<span style="color:grey;font-size:90%;">Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</span><br><hr size=1><br>
+		<span style="color:grey;font-size:90%;">Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</span><br><hr size=1>
 	{% elif pic == 2 %}
-		<span style="color:grey;font-size:90%;">Yahan dekhney ke liye kuch nahi hai</span><br><hr size=1><br>
+		<span style="color:grey;font-size:90%;">Yahan dekhney ke liye kuch nahi hai</span><br><hr size=1>
 	{% elif pic == 3 %}
-		<b style="color:green;">Ye photo dekh li gaye hai!</b><br><hr size=1><span style="color:grey;font-size:80%;">1 minute wali photo aik dafa se ziyada nahi nazar ati.<br>Bhejnay wala bhi yad rakhay!</span><br><br>
+		<b style="color:green;">Ye photo dekh li gaye hai!</b><br><hr size=1><span style="color:grey;font-size:80%;">1 minute wali photo aik dafa se ziyada nahi nazar ati.<br>Bhejnay wala bhi yad rakhay!</span><br>
 	{% else %}
-		<span style="color:grey;font-size:90%;">Yahan se dostoon ko muft photo bhejo</span><br><hr size=1><br>
+		<span style="color:grey;font-size:90%;">Yahan se dostoon ko muft photo bhejo</span><br><hr size=1>
 	{% endif %}
 	{% if user.is_authenticated %}
-	<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;">muft photo bhejo</button></a><br>
-	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.8em;">muft chat karo</button></a>
+	<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;margin-top:0.3em;font-size:90%;">muft photo bhejo</button></a><br>
+	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat karo</button></a>
 	{% else %}
-	<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;">muft photo bhejo</button></a><br>
-	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.8em;">muft chat karo</button></a>
+	<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft photo bhejo</button></a><br>
+	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat karo</button></a>
 	{% endif %}
 {% endif %}
 </div>

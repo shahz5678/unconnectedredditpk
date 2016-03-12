@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from links.models import UserProfile
 from links.views import cross_notif, vote, vote_on_vote
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, TopView, PicHelpView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView,
+from links.views import LinkListView, TopView, PicHelpView, DeviceHelpView, PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView,
 
 
 admin.autodiscover()
@@ -43,6 +43,7 @@ urlpatterns = patterns('',
 	#url(r'^users/(?P<slug>[\w.@+-]+)/message/$', auth(MessageActivityView.as_view()), name='message_activity'),
 	url(r'^link/create/$', auth(LinkCreateView.as_view()), name='link_create'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(WelcomeView.as_view()), name='welcome'),
+	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^welcome_reply/(?P<pk>\d+)/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),
 	url(r'^welcome/(?P<pk>\d+)/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
@@ -73,10 +74,11 @@ urlpatterns = patterns('',
 	url(r'^pic_expiry/(?P<slug>[\w.@+-]+)/$', PicExpiryView.as_view(), name='pic_expiry'),
 	url(r'^delete_pic/(?P<slug>[\w.@+-]+)/$', DeletePicView.as_view(), name='delete_pic'),
 	url(r'^pic_upload/$', PicsChatUploadView.as_view(), name='pic_upload'),
-	url(r'^p/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', PicView.as_view(), name='pic_view'),
-	url(r'^user_SMS/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/$', UserSMSView.as_view(), name='user_SMS'),
-	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),
-	url(r'^user_phonenumber/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/$', UserPhoneNumberView.as_view(), name='user_phonenumber'),
+	url(r'^wap/(?P<code>\d+)/$', PicPasswordView.as_view(), name='pic_password'),
+	#url(r'^user_inbox_help/$', UserInboxHelpView.as_view(), name='user_inbox_help'),
+	url(r'^user_SMS/(?P<sms>\d+)/(?P<fbs>\d+)/(?P<num>[\w.@+-]+)/$', UserSMSView.as_view(), name='user_SMS'),
+	url(r'^wap/$', PicHelpView.as_view(), name='pic_help'),
+	url(r'^user_phonenumber/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/(?P<err>\d+)/$', UserPhoneNumberView.as_view(), name='user_phonenumber'),
 	#url(r'^send_pic_sms/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/$', SendPicSMSView.as_view(), name='send_pic_sms'),
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	url(r'^comments/', include('django.contrib.comments.urls')),

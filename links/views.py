@@ -1506,7 +1506,17 @@ class OutsiderGroupView(CreateView):
 				writer = User(id=8) # ALWAYS set this ID to unregistered_bhoot
 				unique = self.kwargs["slug"]
 				group = Group.objects.get(unique=unique)
-				Reply.objects.create(text=f.text,which_group=group,writer=writer, image=f.image)
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				Reply.objects.create(text=f.text,which_group=group,writer=writer, image=f.image, device=device)
 				return redirect("outsider_group_reply", slug=unique)
 
 class PublicGroupView(CreateView):
@@ -2243,9 +2253,17 @@ class WelcomeReplyView(FormView):
 				num = current.id
 				if (num-100) <= int(pk) <= (num+100):
 					option = self.request.POST.get("opt")
-					#print "option is %s" % option
 					message = self.request.POST.get("msg")
-					#print "message is %s" % message
+					if self.request.is_feature_phone:
+						device = '1'
+					elif self.request.is_phone:
+						device = '2'
+					elif self.request.is_tablet:
+						device = '4'
+					elif self.request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
 					self.request.user.userprofile.score = self.request.user.userprofile.score + 1
 					self.request.user.userprofile.save()
 					if Link.objects.filter(submitter=target).exists():
@@ -2255,43 +2273,43 @@ class WelcomeReplyView(FormView):
 					else:
 						num = random.randint(1,5)
 						if num == 1:
-							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1)
+							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1, device=device)
 						elif num == 2:
-							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1)
+							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1, device=device)
 						elif num == 3:
-							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1)
+							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1, device=device)
 						elif num == 4:
-							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1)
+							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1, device=device)
 						else:
-							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1)						
+							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)						
 					#print "PARENT IS: %s" % parent
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
 						description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '1' and message == 'Is barfi se mu meetha karo!':
 						description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '2' and message == 'Aik plate laddu se life set!':
 						description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '2' and message == 'Ye saray laddu aap ke liye!':
 						description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '2' and message == 'Laddu khao, jaan banao yar!':
 						description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
 						description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '3' and message == 'Jalebi meri pasandida hai!':
 						description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					elif option == '3' and message == 'Is jalebi se mu metha karo!':
 						description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description)
+						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					else:
 						return redirect("score_help")
 					global condemned

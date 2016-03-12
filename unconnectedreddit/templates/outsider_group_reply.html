@@ -47,7 +47,7 @@
                     </span>
 
                     {% if reply.writer.username == 'unregistered_bhoot' %}
-                    <span style="font-size:90%;color:purple;font-family:arial;">mehmaan</span>
+                    <span style="font-size:90%;color:purple;font-family:arial;">mehman</span>
                     {% else %}
                     {% if reply.writer.userprofile.avatar %}
                         <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
@@ -56,7 +56,20 @@
                     {% endif %}
                    <span style="font-family:arial;font-size:90%;color:purple;">{{ reply.writer }}{% endif %}:</span>
 
-               <span style="font-family:arial;">{% emoticons %}{{ reply.text }}{% endemoticons %}</span>
+               <span style="font-family:arial;">{% emoticons %}{{ reply.text }}{% endemoticons %}
+        {% if reply.device == '1' %}
+        <a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+        {% elif reply.device == '2' %}
+        <a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+        {% elif reply.device == '4' %}
+        <a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+        {% elif reply.device == '5' %}
+        <a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+        {% elif reply.device == '3' %}
+        <a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+        {% else %}
+        {% endif %}
+               </span>
 
 
                 
@@ -156,7 +169,20 @@
 
                 {% endif %}
                 
-                <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}</span>
+                <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}
+        {% if reply.device == '1' %}
+        <a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+        {% elif reply.device == '2' %}
+        <a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+        {% elif reply.device == '4' %}
+        <a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+        {% elif reply.device == '5' %}
+        <a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+        {% elif reply.device == '3' %}
+        <a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+        {% else %}
+        {% endif %}
+                </span>
             
         	<br>
             </td></tr>

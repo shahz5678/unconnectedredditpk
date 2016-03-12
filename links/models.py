@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.core.urlresolvers import reverse
+from django_extensions.db.fields import RandomCharField
 from django.utils import timezone
 from datetime import datetime, timedelta
 from math import log
@@ -193,6 +194,14 @@ CATEGS = (
 ('9', 'Khareedna Baichna')
 	)
 
+DEVICE = (
+('1','Feature'),
+('2','Smartphone'),
+('3','Laptop'),
+('4','Tablet'),
+('5','Other')
+	)
+
 STATUS = (
 ('1','Strangers'),
 ('2','Friends'),
@@ -238,6 +247,7 @@ class Link(models.Model):
 	submitter = models.ForeignKey(User) # link.submitter is a user!
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	rank_score = models.FloatField(default=0.0)
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	reply_count = models.IntegerField(default=0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
@@ -327,6 +337,7 @@ class Reply(models.Model):
 	writer = models.ForeignKey(User) # reply.writer is a user!
 	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
 	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, storage=OverwriteStorage(), null=True, blank=True )
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	category = models.CharField(choices=REPLIES, default='0', max_length=15)
 
 	def __unicode__(self):
@@ -379,6 +390,7 @@ class Publicreply(models.Model):
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	description = models.TextField("Jawab:", validators=[MaxLengthValidator(250)])
 	category = models.CharField("Category", choices=CATEGS, default=1, max_length=20)
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	seen = models.BooleanField(default=False)
 	abuse = models.BooleanField(default=False)
 
@@ -429,6 +441,7 @@ class ChatPic(models.Model):
 
 class ChatPicMessage(models.Model):
 	which_pic = models.ForeignKey(ChatPic)
+	sender = models.ForeignKey(User)
 	viewing_time = models.DateTimeField()
 	sending_time = models.DateTimeField(auto_now_add=True)
 	what_number = models.CharField(max_length=50)
@@ -439,11 +452,13 @@ class ChatPicMessage(models.Model):
 	def __unicode__(self):
 		return u"a ChatPicMessage was formed at %s, with expiry set to %s" % (self.sending_time, self.expiry_interval)
 
-# class ChatInbox(models.Model):
-# 	short_id = models.SlugField(max_length=4, primary_key=True)
-# 	owner = models.ForeignKey(User)
-#	httpurl = models.URLField(max_length=200)
-# 	creation_time = models.DateTimeField(auto_now_add=True)
+class ChatInbox(models.Model):
+	pin_code = RandomCharField(length=4, unique=True, include_alpha=False)
+	owner = models.ForeignKey(User)
+	creation_time = models.DateTimeField(auto_now_add=True)
+
+	def __unicode__(self):
+		return u"new ChatInbox was created for %s at %s with pin %s" % (self.owner, self.creation_time, self.pin_code)
 
 # Signal, while saving user
 from django.db.models.signals import post_save

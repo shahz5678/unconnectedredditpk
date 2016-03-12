@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Link, Vote, ChatPic, ChatPicMessage, UserProfile, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen
+from .models import Link, Vote, ChatInbox, ChatPic, ChatPicMessage, UserProfile, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 #these will appear in the admin panel
@@ -35,6 +35,9 @@ admin.site.register(Seen, SeenAdmin)
 
 class VoteAdmin(admin.ModelAdmin): pass
 admin.site.register(Vote, VoteAdmin)
+
+class ChatInboxAdmin(admin.ModelAdmin): pass
+admin.site.register(ChatInbox, ChatInboxAdmin)
 
 class ChatPicAdmin(admin.ModelAdmin): pass
 admin.site.register(ChatPic, ChatPicAdmin)

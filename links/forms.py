@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Textarea
-from .models import UserProfile, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
+from .models import UserProfile, ChatInbox, ChatPicMessage, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile, ImageEnhance
@@ -189,10 +189,12 @@ class OutsideMessageCreateForm(forms.Form):
 	class meta:
 		fields = ("full_name","mobile_number")
 
-class UserPhoneNumberForm(forms.Form):
-	mobile_number = forms.CharField(max_length=50)
+class UserPhoneNumberForm(forms.ModelForm):
+	what_number = forms.CharField(label='Mobile number:', max_length=50)
 	class Meta:
-		fields = ("mobile_number")
+		model = ChatPicMessage
+		exclude = ("which_pic","viewing_time","sending_time","expiry_interval","caption","seen")
+		fields = ("what_number",)
 
 class UserSMSForm(forms.Form):
 	class Meta:
@@ -237,6 +239,11 @@ class CrossNotifForm(forms.Form):
 	class Meta:
 		pass
 		#model = Link
+
+class PicPasswordForm(forms.Form):
+	mobile_number = forms.CharField(max_length=50)
+	class meta:
+		fields = ("mobile_number",)
 
 class WelcomeReplyForm(forms.Form):
 	class Meta:
@@ -287,6 +294,10 @@ class GroupOnlineKonForm(forms.ModelForm):
 		model = GroupTraffic
 
 class OutsideMessageForm(forms.Form):
+	class Meta:
+		pass
+
+class DeviceHelpForm(forms.Form):
 	class Meta:
 		pass
 

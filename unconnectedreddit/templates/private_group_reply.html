@@ -23,12 +23,10 @@
     <br><a href="{% url 'closed_invite_type' slug=unique %}#section0" style="font-size:70%;">(invite karo)</a>
     <a name="sectionJ"></a> 
     <hr size=1>
-
-
     <form action="{% url 'private_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
     	{% csrf_token %}
     	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
-        <br><span style="color:green;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
+        <span style="color:green;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
         <span style="color:grey;font-size:80%;"><i><b>1 mb</b> se barri pic nahi lag sakti</i></span><br>
         <span style="color:red;font-size:80%;">{{ form.errors }}</span>
         <br><span style="color:green;font-size:90%;">Likho:</span>{{ form.text }}
@@ -36,7 +34,7 @@
     <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
     </form>
 
-    <p style="margin-top:.3em;"></p>
+    <p style="margin-top:.2em;"></p>
     <a name="sectionJ"></a> 
     <span style="font-size:90%;">
     {% if replies|length < 25 %}
@@ -130,7 +128,20 @@
 
             {% endif %}
             
-            <span style="color:grey;font-size:65%">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi></span>
+            <span style="color:grey;font-size:65%">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
+        {% if reply.device == '1' %}
+        <a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+        {% elif reply.device == '2' %}
+        <a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+        {% elif reply.device == '4' %}
+        <a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+        {% elif reply.device == '5' %}
+        <a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+        {% elif reply.device == '3' %}
+        <a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+        {% else %}
+        {% endif %}
+            </span>
         
     	<br>
         </td></tr>

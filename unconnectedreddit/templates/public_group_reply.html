@@ -65,15 +65,15 @@
         <br><span style="color:red;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
         <span style="color:grey;font-size:80%;"><i>1 mb se barri pic nahi lag sakti</i></span><br>
         {% endif %}
-        <br><span style="color:red;font-size:90%;">Likho:</span>{{ form.text }}
+        <span style="color:red;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
         <br>
-    <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-bottom:0.1em;" type="submit" value="OK" id="id_submit">
     </form>
-        <br>
+        
 	    <a href="{% url 'open_invite_type' slug=unique %}#section0" style="font-size:65%;"><b>invite</b></a>&nbsp;{% if user == group.owner %}<span style="font-size:70%;">|</span>
         <a href="{% url 'owner_group_online_kon' slug=unique %}" style="font-size:65%;"><b>afsar banao</b></a>
         {% endif %}
-    <p style="margin-top:.3em;"></p>
+    <p style="margin-top:.2em;"></p>
 	    {% if replies|length < 25 %}
 	        <b style="font-size:90%;">{{ replies|length }} Baatien:</b><br>
 	    {% else %}
@@ -182,7 +182,20 @@
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
             {% endfor %}:&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-            <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}</span>
+            <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}
+        {% if reply.device == '1' %}
+        <a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+        {% elif reply.device == '2' %}
+        <a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+        {% elif reply.device == '4' %}
+        <a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+        {% elif reply.device == '5' %}
+        <a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+        {% elif reply.device == '3' %}
+        <a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+        {% else %}
+        {% endif %}
+            </span>
             {% if user == group.owner %}
                 <a href="{% url 'kick' pk=writer.pk slug=unique id=group.owner.pk %}"><span style="font-size:65%;">(kick)</span></a>
             {% else %}

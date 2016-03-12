@@ -22,20 +22,32 @@
         <span style="font-size:140%;color:deeppink;"><b>*</b></span>
     {% endif %}
 {% endfor %}
-:&nbsp;<bdi>{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span style="color:grey;font-size:80%"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi></span><br><br>
+:&nbsp;<bdi>{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span style="color:grey;font-size:80%"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
+{% if parent.device == '1' %}
+<a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.jpg" alt="no pic"></img></a>
+{% elif parent.device == '2' %}
+<a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.jpg" alt="no pic"></img></a>
+{% elif parent.device == '4' %}
+<a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.jpg" alt="no pic"></img></a>
+{% elif parent.device == '5' %}
+<a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.jpg" alt="no pic"></img></a>
+{% elif parent.device == '3' %}
+<a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.jpg" alt="no pic"></img></a>
+{% else %}
+{% endif %}
+</span><br>
 <a name="sectionJ"></a> 
 {% if score > -10 %}
+<hr size=1>
 <form action="{% url 'reply' pk=parent.pk %}" method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
-    <span style="font-size:90%;color:dimgrey;">Jawab:</span>{{ form.description }}
-    <br>
-<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    <span style="font-size:85%;color:dimgrey;"><b>Jawab likho:</b></span>{{ form.description }}
+<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:0.3em;" type="submit" value="OK" id="id_submit">
 </form>
 {% else %}
 <i style="color:red;">Tumhara score itna nahi ke tum jawab de sako</i>
 {% endif %}
-<p style="margin-top:.3em;"></p>
 {% if parent.reply_count < 26 %}
     <b style="font-size:90%;">{{ parent.reply_count }} Jawab:</b><br>
 {% else %}
@@ -91,7 +103,20 @@
                 <span style="font-size:140%;color:deeppink;"><b>*</b></span>
             {% endif %}
         {% endfor %}:&nbsp;<bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
-    <span style="color:grey;font-size:80%"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
+    <span style="color:grey;font-size:80%"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
+        {% if reply.device == '1' %}
+        <a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+        {% elif reply.device == '2' %}
+        <a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+        {% elif reply.device == '4' %}
+        <a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+        {% elif reply.device == '5' %}
+        <a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+        {% elif reply.device == '3' %}
+        <a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+        {% else %}
+        {% endif %}
+    </span>
     {% if user == parent.submitter %}
     <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
     {% endif %}

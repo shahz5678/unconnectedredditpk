@@ -43,7 +43,20 @@
     {% if girl == link.submitter.username %}
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: <bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}</span><a name="section{{ forloop.counter }}"></a><br>
+	: <bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}
+		{% if link.device == '1' %}
+		<a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		{% elif link.device == '2' %}
+		<a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		{% elif link.device == '4' %}
+		<a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		{% elif link.device == '5' %}
+		<a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		{% elif link.device == '3' %}
+		<a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		{% else %}
+		{% endif %}
+	</span><a name="section{{ forloop.counter }}"></a><br>
 
 		{% if link.reply_count > 0 %}
 		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;"><b>{{ link.reply_count }} jawab</b></a>

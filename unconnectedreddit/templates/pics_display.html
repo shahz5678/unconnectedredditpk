@@ -6,13 +6,13 @@
 	<p style="color:gray"><hr size=1></p>
 	{% for pic in object_list %}
 		{% if pic.image %}
-		<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img><br>
+		<img style="width:100%;max-width:200px;margin-bottom:0.3em;" src="{{ pic.image.url }}"></img><br>
 		{% else %}
-		<img style="width:100%;max-width:200px;" src="{{ STATIC_URL }}img/broken_pic.png"></img><br>
+		<img style="width:100%;max-width:200px;margin-bottom:0.3em;" src="{{ STATIC_URL }}img/broken_pic.png"></img><br>
 		{% endif %}
-	<a href="{% url 'pic_expiry' slug=pic.unique %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;">dost ko yeh bhejo</button></a><br>
-	<a href="{% url 'delete_pic' slug=pic.unique %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-top:0.2em;">isko mita do</button></a>
-	<p style="color:gray"><hr size=1></p>
+	<a href="{% url 'pic_expiry' slug=pic.unique %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">dost ko yeh bhejo</button></a><br>
+	<a href="{% url 'delete_pic' slug=pic.unique %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-top:0.1em;">isko mita do</button></a>
+	<p style="color:gray;"><hr size=1></p>
 	{% endfor %}
 {% else %}
 	<span style="font-size:90%;">Yahan se apni photo dostoon ko bhejo:</span><br>

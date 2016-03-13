@@ -6,15 +6,13 @@
 <form action="{% url 'pic_expiry' slug=unique %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="unique" value="{{ unique }}">
-<b style="font-family:sans-serif;font-size:90%;color:green;">Dost ko photo kitni deir tak nazar aye?</b><br>
-<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:1em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" type="submit" name="decision" value="aik minute"><br>
-<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:-0.3em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" name="decision" type="submit" value="aik din">
+<b style="font-family:sans-serif;font-size:90%;color:green;">Dost ko ye photo kitni bar dekhni ki ijazat hai?</b><br>
+<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:1em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" type="submit" name="decision" value="sirf aik bar"><br>
+<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:-0.3em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" name="decision" type="submit" value="kayee bar">
 </form>
-{% if is_authenticated %}
-<span style="font-size:85%;color:grey;">Is time ke baad dost ke liye photo ghayeb ho jaye gi, lekin tumharey pas mahfooz rehay gi</span>
-{% else %}
-<span style="font-size:85%;color:grey;">Is time ke baad photo ghayeb ho jaye gi</span>
-{% endif %}
+
+<span style="font-size:85%;color:grey;">mudat poori honay par photo dost ke liye ghayab ho jaye gi</span>
+
 </div>
 </body>
 {% endblock %}

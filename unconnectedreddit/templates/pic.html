@@ -12,7 +12,7 @@
 			{% else %}
 			<img style="width:100%;max-width:200px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
-			<hr size=1><span style="color:green;font-size:80%;">Ye photo ghayeb ho jaye gi, <b>{{ max_time|naturaltime }}</b></span><br><br>
+			<hr size=1><span style="color:green;font-size:80%;">Ye photo <b>{{ max_time }} bar</b> dekhi ja sakti hai</span><br><br>
 	{% elif not user.is_authenticated %}
 		<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Isko jawab do</button></a><br>
 			{% if pic.image %}
@@ -20,27 +20,27 @@
 			{% else %}
 			<img style="width:100%;max-width:200px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
-			<hr size=1><span style="color:green;font-size:80%;">Ye photo ghayeb ho jaye gi, <b>{{ max_time|naturaltime }}</b></span><br><br>
-	{% else %}
+			<hr size=1><span style="color:green;font-size:80%;">Ye photo <b>{{ max_time }} bar</b> dekhi ja sakti hai</span><br><br>
+	{% else %}<!-- sender == user -->
 		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Aik aur photo bhejo</button></a><br>
 			{% if pic.image %}
 			<img style="width:100%;max-width:200px;" src="{{ pic.image.url }}"></img>
 			{% else %}
 			<img style="width:100%;max-width:200px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
-			<hr size=1><span style="color:green;font-size:80%;">Ye photo apney waqt ke baad ghayeb ho jaye gi</span><br><br>
+			<hr size=1><span style="color:green;font-size:80%;">Tumhari apni photo hai, beshak bar bar dekh lo!</span><br><br>
 	{% endif %}
 {% else %}
 	{% if pic == -1 %}
 		<span style="color:grey;font-size:90%;">Ye photo bhejnay waley ne mita di hai</span><br><hr size=1><br>
 	{% elif pic == 0 %}
-		<span style="color:grey;font-size:90%;">Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b></span><br><hr size=1>
+		<span style="color:grey;font-size:90%;">Ye photo khatam ho gayee, <b>{{ max_time|naturaltime }}</b></span><br><hr size=1>
 	{% elif pic == 1 %}
-		<span style="color:grey;font-size:90%;">Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</span><br><hr size=1>
+		<span style="color:grey;font-size:90%;">Ye photo khatam ho gyee, <b>{{ max_time|naturaltime }}</span><br><hr size=1>
 	{% elif pic == 2 %}
 		<span style="color:grey;font-size:90%;">Yahan dekhney ke liye kuch nahi hai</span><br><hr size=1>
 	{% elif pic == 3 %}
-		<b style="color:green;">Ye photo dekh li gaye hai!</b><br><hr size=1><span style="color:grey;font-size:80%;">1 minute wali photo aik dafa se ziyada nahi nazar ati.<br>Bhejnay wala bhi yad rakhay!</span><br>
+		<b style="color:green;">Ye photo dekh li gaye hai!</b><br><hr size=1><span style="color:grey;font-size:80%;">Aik bar wali photo aik dafa se ziyada nahi nazar ati.<br>Bhejnay wala bhi yad rakhay!</span><br>
 	{% else %}
 		<span style="color:grey;font-size:90%;">Yahan se dostoon ko muft photo bhejo</span><br><hr size=1>
 	{% endif %}

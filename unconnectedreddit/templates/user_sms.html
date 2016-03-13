@@ -6,11 +6,11 @@
 {% if legit %}
 	{% if send_sms == '1' and fbs == '1' %}
 		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/wap/<b>{{ addr }}</b></span> pe mojood hai. Ye link dost ko SMS karne ke liye <b>OK</b> dabao:<br>
-		<a href="sms:{{ num }}?body=Meri photo yahan se dekh lo: https://damadam.pk/wap/{{ addr }}"><button>OK</button></a><br>
+		<a href="sms:?body=Meri photo yahan se dekh lo: https://damadam.pk/wap/{{ addr }}"><button>OK</button></a><br>
 		<span style="font-size:85%;color:grey;">Tum freebasics se bahir nikal jao ge lekin <b>paise nahi lagein ge</b></span>
 	{% elif send_sms == '1' and fbs == '0' %}
 		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/wap/<b>{{ addr }}</b></span> pe mojood hai. Ye link dost ko SMS karne ke liye <b>OK</b> dabao:<br>
-		<a href="sms:{{ num }}?body=Meri photo yahan se dekh lo: https://damadam.pk/wap/{{ addr }}"><button>OK</button></a>
+		<a href="sms:?body=Meri photo yahan se dekh lo: https://damadam.pk/wap/{{ addr }}"><button>OK</button></a>
 	{% else %}
 		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/wap/<b>{{ addr }}</b></span> pe mojood hai.<br>Dost ko ye link {{ num }} pe SMS kro.</span><hr size=1>
 		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>

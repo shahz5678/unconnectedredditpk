@@ -63,14 +63,13 @@
 {% endif %} -->
 {% if user.is_authenticated %}
     
-    {% if user.username == 'Shireen' %}
-    <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo <span style="font-size:80%;color:purple;">(new)</span> </a><span style="color:white;">|</span>{% endif %}
     {% if user.userprofile.score and user.userprofile.score > 14 %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
     {% else %}
     <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
     {% endif %}
     <span style="color:white;">|</span>
+    <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo </a><span style="color:white;">|</span>
         {% if user.userprofile.score and user.userprofile.score > 40 %}
             <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Jawab</a> <span style="color:white;">|</span>
             <a class="sharing" href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>

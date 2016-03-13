@@ -253,6 +253,10 @@ class DirectMessageForm(forms.Form):
 	class Meta:
 		pass
 
+class PhotoHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class DeletePicForm(forms.Form):
 	class Meta:
 		pass

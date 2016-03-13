@@ -17,7 +17,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, DeviceHelpForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -143,6 +143,16 @@ class ReinviteView(FormView):
 class HistoryHelpView(FormView):
 	form_class = HistoryHelpForm
 	template_name = "history_help.html"
+
+class PhotosHelpView(FormView):
+	form_class = PhotoHelpForm
+	template_name = "photos_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotosHelpView, self).get_context_data(**kwargs)
+		context["unique"] = self.kwargs.get("slug")
+		context["decision"] = self.kwargs.get("pk")
+		return context
 
 class NotifHelpView(FormView):
 	form_class = NotifHelpForm
@@ -1048,9 +1058,9 @@ class PicExpiryView(FormView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		unique = self.request.POST.get("unique")
 		decision = self.request.POST.get("decision")
-		if decision == 'aik minute' and valid_uuid(unique):
+		if decision == 'sirf aik bar' and valid_uuid(unique):
 			num = 1
-		elif decision == 'aik din' and valid_uuid(unique):
+		elif decision == 'kayee bar' and valid_uuid(unique):
 			num = 2
 		else:
 			return redirect("pic_expiry", slug=unique)
@@ -1258,7 +1268,7 @@ class PicPasswordView(NeverCacheMixin,FormView):
 				difference = time_now - viewing_time
 				if difference.total_seconds() < 60 and is_visible:
 					#pic:3 Ye photo dekh li gaye hai. 1 minute wali photo aik dafa se ziyada nahi dekhi jaa sakti. 
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':3, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':3, 'max_times':0,}
 				elif difference.total_seconds() < 60 and not is_visible:
 					#pic:-1 Ye photo bhejnay waley ne mita di hai
 					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':-1, 'max_time':0,}
@@ -1274,7 +1284,7 @@ class PicPasswordView(NeverCacheMixin,FormView):
 				viewing_time = message.viewing_time
 				difference = time_now - viewing_time
 				if difference.total_seconds() < (60*60*24) and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':viewing_time + timedelta(minutes = 1440),}
+					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee',}
 				elif difference.total_seconds() < (60*60*24) and not is_visible:
 					#pic:-1 Ye photo bhejnay waley ne mita di hai
 					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
@@ -1293,7 +1303,7 @@ class PicPasswordView(NeverCacheMixin,FormView):
 			if self.request.user.is_authenticated() and self.request.user == sender:
 				#if the person opening it is the same person who sent the photo
 				time_now = datetime.utcnow().replace(tzinfo=utc)
-				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':time_now + timedelta(minutes = 1),}
+				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':0,}
 			else:
 				#set the seen flag of the message object
 				message.seen = True
@@ -1301,11 +1311,11 @@ class PicPasswordView(NeverCacheMixin,FormView):
 				message.viewing_time = viewing_time
 				message.save()
 				if expiry_interval == '1' and is_visible:
-					context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':viewing_time + timedelta(minutes = 1),}
+					context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':'aik',}
 				elif expiry_interval == '1' and not is_visible:
 					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
 				elif expiry_interval == '2' and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':viewing_time + timedelta(minutes = 1440),}
+					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee',}
 				elif expiry_interval == '2' and not is_visible:
 					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
 				else:

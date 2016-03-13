@@ -44,15 +44,15 @@
 				{% endif %}
 			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi>
 		{% if latest_reply.device == '1' %}
-		<a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
 		{% elif latest_reply.device == '2' %}
-		<a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
 		{% elif latest_reply.device == '4' %}
-		<a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
 		{% elif latest_reply.device == '5' %}
-		<a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
 		{% elif latest_reply.device == '3' %}
-		<a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
 		{% else %}
 		{% endif %}
 			</span>
@@ -152,15 +152,15 @@
 		<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>
 	{% if authenticated %}
 		{% if link.device == '1' %}
-		<a href="{% url 'device_help' 1 %}"><img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
 		{% elif link.device == '2' %}
-		<a href="{% url 'device_help' 2 %}"><img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
 		{% elif link.device == '4' %}
-		<a href="{% url 'device_help' 4 %}"><img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
 		{% elif link.device == '5' %}
-		<a href="{% url 'device_help' 5 %}"><img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
 		{% elif link.device == '3' %}
-		<a href="{% url 'device_help' 3 %}"><img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
 		{% else %}
 		{% endif %}
 	{% endif %}

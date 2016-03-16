@@ -4,11 +4,11 @@
 <body bgcolor="#FFFFE0">
 <div class="margin" style="font-family:sans-serif;">
 {% if err == '0' %}
-<b style="font-size:90%;color:green;">Dost ka mobile number dal kar OK dabao:</b><br>
+<b style="font-size:90%;color:green;">Jis ko photo bhejni hai, uska mobile number dal kr OK dabao:</b><br>
 {% elif err == '1' %}
 <b style="font-size:90%;color:red;">Mobile number mein sirf hindsay (number) likho:</b><br>
 {% elif err == '2' %}
-<b style="font-size:90%;color:red;">Safety code sahi nahi hai!</b><br>
+<b style="font-size:90%;color:red;">Safety pin code sahi nahi hai!</b><br>
 {% else %}
 {% endif %}
 <form action="{% url 'user_phonenumber' unique decision err %}" method="POST" style="margin-top:0.2em;">
@@ -21,7 +21,7 @@
 <input style="color:#1947D1;background-color:white;text-shadow:none;margin-top:0.3em;border:solid 1px orange;margin-bottom:1em;width:3em;font-weight:bold;border-radius:4px;" type="submit" name="number" value="OK"><br>
 </form>
 
-<span style="font-size:85%;color:grey;">Dost ka mobile number daaltey waqt ye <a href="{% url 'photos_help' unique decision %}">5 cheezain yad rakhna</a></span>
+<span style="font-size:85%;color:grey;">Mobile number daaltey waqt ye <a href="{% url 'photos_help' unique decision %}">5 cheezain yad rakhna</a></span>
 
 </div>
 </body>

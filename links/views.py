@@ -1116,26 +1116,16 @@ class UserPhoneNumberView(CreateView):
 			messageobject = ChatPicMessage.objects.create(which_pic=which_image, sender=user, expiry_interval=decision, what_number=num)
 		elif not user.is_authenticated():
 			messageobject = ChatPicMessage.objects.create(which_pic=which_image, sender_id=1, expiry_interval=decision, what_number=num)
-		on_fbs = self.request.META.get('HTTP_VIA')
-		if on_fbs == 'Internet.org':
+		#on_fbs = False
+		try:
+			on_fbs = self.request.META.get('X-IORG-FBS')
+		except:
+			on_fbs = False
+		if on_fbs:
 				#definitely on a mobile browser, but can't redirect out now, so show the web address they are to send
-				return redirect("user_SMS", sms=0, fbs=1, num=num)
+				return redirect("user_SMS", fbs=1, num=num)
 		else:#i.e. not on internet.org, now detect whether mobile browser or desktop browser
-			if self.request.is_feature_phone:
-				#print "is a featurephone"
-				return redirect("user_SMS", sms=1, fbs=0, num=num)
-			elif self.request.is_phone:
-				#print "is a smartphone"
-				return redirect("user_SMS", sms=1, fbs=0, num=num)
-			elif self.request.is_tablet:
-				#print "is a tablet"
-				return redirect("user_SMS", sms=0, fbs=0, num=num)
-			elif self.request.is_mobile:
-				#print "is other phone"
-				return redirect("user_SMS", sms=1, fbs=0, num=num)
-			else:
-				#print "is a desktop"
-				return redirect("user_SMS", sms=0, fbs=0, num=num)
+				return redirect("user_SMS", fbs=0, num=num)
 
 class UserSMSView(FormView):
 	form_class = UserSMSForm
@@ -1143,59 +1133,56 @@ class UserSMSView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(UserSMSView, self).get_context_data(**kwargs)
-		send_sms = str(self.kwargs["sms"])
-		num = self.kwargs["num"]
+		#send_sms = str(self.kwargs["sms"])
+		num = str(self.kwargs["num"])
 		fbs = str(self.kwargs["fbs"])
-		if (send_sms == '1' or '0') and (fbs == '1' or '0') and num.isdigit():
+		if (fbs == '1' or '0') and num.isdigit():
 			context["legit"] = True
 			context["num"] = num
 			context["fbs"] = fbs
-			context["send_sms"] = send_sms
+			if self.request.is_feature_phone:
+				context["device"] = '1'
+			elif self.request.is_phone:
+				context["device"] = '2'
+			elif self.request.is_tablet:
+				context["device"] = '4'
+			elif self.request.is_mobile:
+				context["device"] = '5'
+			else:
+				context["device"] = '3'
 			user = self.request.user
-			if send_sms == '1' and user.is_authenticated():
+			if user.is_authenticated():
 				try:
-					inbox = ChatInbox.objects.get(owner=user)
+					inbox = ChatInbox.objects.filter(owner=user).latest('id')
 				except:
-					inbox = ChatInbox.objects.create(owner=user)
+					inbox = ChatInbox.objects.create(owner=user)#.latest('id')
 				addr = inbox.pin_code
 				context["addr"] = addr
-				context["authenticated"] = True
-			elif send_sms == '1' and not user.is_authenticated():
+				#context["authenticated"] = True
+			elif not user.is_authenticated():
 				inbox = ChatInbox.objects.create(owner_id=1)
 				addr = inbox.pin_code
 				context["addr"] = addr
-				context["authenticated"] = False
-			elif send_sms == '0' and user.is_authenticated():
-				try:
-					inbox = ChatInbox.objects.get(owner_id=user)
-				except:
-					inbox = ChatInbox.objects.create(owner=user)
-				addr = inbox.pin_code
-				context["addr"] = addr
-				context["authenticated"] = False
-			elif send_sms == '0' and not user.is_authenticated():
-				inbox = ChatInbox.objects.create(owner_id=1)
-				addr = inbox.pin_code
-				context["addr"] = addr
-				context["authenticated"] = False
+				#context["authenticated"] = False
 			else:
 				context["legit"] = False
-				context["dev"] = None
+				#context["dev"] = None
 				context["num"] = None
 				context["fbs"] = None
 				context["addr"] = None
-				context["send_sms"] = None
-				context["authenticated"] = None
-				context["sentence"] = None								
+				#context["send_sms"] = None
+				#context["authenticated"] = None
+				#context["sentence"] = None								
 		else:
 			context["legit"] = False
-			context["dev"] = None
+			#context["dev"] = None
 			context["num"] = None
 			context["fbs"] = None
 			context["addr"] = None
-			context["send_sms"] = None
-			context["authenticated"] = None
-			context["sentence"] = None
+			context["device"] = '0'
+			#context["send_sms"] = None
+			#context["authenticated"] = None
+			#context["sentence"] = None
 		return context
 
 class DeletePicView(FormView):

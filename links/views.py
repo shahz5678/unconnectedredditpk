@@ -11,13 +11,13 @@ from collections import defaultdict
 from django.db.models import Max, Count, Q, Sum
 from verified import FEMALES
 from allowed import ALLOWED
-from .models import Link, Vote, ChatInbox, ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
+from .models import Link, Vote, Cooldown, ChatInbox, ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, CooldownForm, DeviceHelpForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -702,6 +702,10 @@ class WhoseOnlineView(FormView):
 class LinkDeleteView(DeleteView):
 	model = Link
 	success_url = reverse_lazy("home")
+
+class CooldownView(FormView):
+	form_class = CooldownForm
+	template_name = "cooldown.html"
 
 class UserProfileDetailView(DetailView):
 	model = get_user_model()
@@ -2026,27 +2030,19 @@ class LinkCreateView(CreateView):
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		#global condemned
-		#Setting rank score
-		#epoch = datetime(1970, 1, 1).replace(tzinfo=None)
-		#unaware_submission = datetime.now().replace(tzinfo=None)
-		#td = unaware_submission - epoch 
-		#epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
-		#secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+		user = self.request.user
 		f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-		if not self.request.user_banned:
-			if self.request.user.userprofile.score < -25:
-				if not HellBanList.objects.filter(condemned_id=self.request.user.id).exists(): #only insert user in hell-ban list if she isn't there already
-					HellBanList.objects.create(condemned=self.request.user) #adding user to hell-ban list
-					self.request.user.userprofile.score = random.randint(10,71)
-					f.submitter = self.request.user
-				else:
-					f.submitter = self.request.user # ALWAYS set this ID to unregistered_bhoot
+		if user.userprofile.score < -25:
+			if not HellBanList.objects.filter(condemned=user).exists(): #only insert user in hell-ban list if she isn't there already
+				HellBanList.objects.create(condemned=user) #adding user to hell-ban list
+				user.userprofile.score = random.randint(10,71)
+				user.userprofile.save()
+				f.submitter = user
 			else:
-				f.submitter = self.request.user
-				f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 2 points every time a user submits new content
+				f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 		else:
-			f.submitter = self.request.user # ALWAYS set this ID to unregistered_bhoot
+			f.submitter = user
+			f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 2 points every time a user submits new content
 		f.with_votes = 0
 		f.category = '1'
 		if self.request.is_feature_phone:
@@ -2070,49 +2066,6 @@ class LinkCreateView(CreateView):
 			if image_file:
 				f.image_file = image_file
 			else: f.image_file = None
-		''' removing representative image code
-		urls1 = re.findall(urlmarker.URL_REGEX,f.description)
-		urls2 = re.findall(urlmarker.URL_REGEX,f.url)
-		try:
-			if len(urls1)==0:
-				if len(urls2)==1:
-					#eliminate that urls2[0] is a media site URL
-					name, image = read_image(urls2[0])
-					if image:
-						image_io = StringIO.StringIO()#creating a file-like object
-						image.save(image_io, format='JPEG')
-						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-						f.image_file = thumbnail
-			elif len(urls1)==1:
-				#eliminate that urls1[0] is a media site URL
-				name, image = read_image(urls1[0])
-				if image:
-					image_io = StringIO.StringIO()#creating a file-like object
-					image.save(image_io, format='JPEG')
-					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-					f.image_file = thumbnail
-			elif len(urls1)>=2:
-				#eliminate that urls1[0] is a media site URL
-				name, image = read_image(urls1[0])
-				if image:
-					image_io = StringIO.StringIO()#creating a file-like object
-					image.save(image_io, format='JPEG')
-					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-					f.image_file = thumbnail
-				else:
-					#eliminate that urls1[1] is a media site URL
-					name, image = read_image(urls1[1])
-					if image:
-						image_io = StringIO.StringIO()#creating a file-like object
-						image.save(image_io, format='JPEG')
-						thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-						f.image_file = thumbnail
-			else:
-				pass
-		except Exception as e:
-			print '%s (%s)' % (e.message, type(e))	
-			pass			
-		'''
 		f.save()
 		f.submitter.userprofile.save()
 		return super(CreateView, self).form_valid(form)
@@ -2380,10 +2333,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				if value == 1:
 					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
 						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-						if request.user.username in FEMALES:
-							target.userprofile.score = target.userprofile.score + 50
-						else:
-							target.userprofile.score = target.userprofile.score + 2
+						target.userprofile.score = target.userprofile.score + 2
 						target.userprofile.save()
 					else:
 						pass
@@ -2391,10 +2341,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					value = -1
 					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
 						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-						if request.user.username in FEMALES:
-							target.userprofile.score = target.userprofile.score - 300
-						else:
-							target.userprofile.score = target.userprofile.score - 3
+						target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=target) #adding target to hell-ban list
@@ -2410,19 +2357,13 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				if value == 1:
 					link = Link.objects.create(description='mein idher hu', submitter=target)
 					Vote.objects.create(voter=request.user, link=link, value=value)
-					if request.user.username in FEMALES:
-						target.userprofile.score = target.userprofile.score + 50
-					else:
-						target.userprofile.score = target.userprofile.score + 2
+					target.userprofile.score = target.userprofile.score + 2
 					target.userprofile.save()
 					return redirect("home")
 				elif value == -1:
 					link = Link.objects.create(description='mein idher hu', submitter=target)
 					Vote.objects.create(voter=request.user, link=link, value=value)
-					if request.user.username in FEMALES:
-						target.userprofile.score = target.userprofile.score - 300
-					else:
-						target.userprofile.score = target.userprofile.score - 3
+					target.userprofile.score = target.userprofile.score - 3
 					if target.userprofile.score < -25:
 						if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
 							HellBanList.objects.create(condemned=target) #adding target to hell-ban list
@@ -2438,10 +2379,45 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 		return redirect("home")
 	else:
 		return redirect("link_create")
-	
+
+def update_cooldown(obj):
+	time_now = datetime.utcnow().replace(tzinfo=utc)
+	print time_now
+	time_passed = obj.time_of_casting
+	print time_passed
+	difference = time_now - time_passed
+	print difference.total_seconds()
+	difference_in_mins = difference.total_seconds() / 60
+	print difference_in_mins
+	interval = int(difference_in_mins / 30) # to round everything down
+	print "interval: %s" % interval
+	obj.hot_score = obj.hot_score + interval
+	if obj.hot_score > 10:
+		obj.hot_score = 10
+	return obj
+
+def find_time(obj):
+	time_passed = obj.time_of_casting
+	target_time = time_passed + timedelta(minutes=30)
+	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
+	return difference
 
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
+		try:
+			cooldown = Cooldown.objects.filter(voter=request.user).latest('id')
+		except:
+			cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=datetime.utcnow().replace(tzinfo=utc))
+		print cooldown.pk
+		print "score before update: %s" % cooldown.hot_score
+		obj = update_cooldown(cooldown)
+		print "score after update %s" % obj.hot_score
+		if int(obj.hot_score) < 1:
+			time_remaining = find_time(obj)
+			time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
+			print "time_remaining: %s" % time_remaining
+			context = {'time_remaining': time_stamp}
+			return render(request, 'cooldown.html', context)
 		try:
 			link = Link.objects.get(pk=int(pk))
 		except:
@@ -2458,23 +2434,27 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			#only if user never voted on this link
 			if value == 1:
 				if request.user_banned:
-					pass
-				elif request.user.username in FEMALES:
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 50
-					link.submitter.userprofile.save()
+					return redirect("score_help")
 				else:
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 2	
+					link.submitter.userprofile.score = link.submitter.userprofile.score + 2
 					link.submitter.userprofile.save()
-			elif value == 0:
-				if request.user_banned:
-					pass
-				elif request.user.username in FEMALES:
-					link.submitter.userprofile.score = link.submitter.userprofile.score -300
+					cooldown.hot_score = cooldown.hot_score - 1
+					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+			elif value == 2:
+				if request.user_banned or request.user.username not in FEMALES:
+					return redirect("score_help")
+				else:
+					link.submitter.userprofile.score = link.submitter.userprofile.score + 50
 					if link.submitter.userprofile.score < -25:
 						if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
+					cooldown.hot_score = cooldown.hot_score - 2
+					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+			elif value == 0:
+				if request.user_banned:
+					return redirect("score_help")
 				else:
 					link.submitter.userprofile.score = link.submitter.userprofile.score - 3
 					if link.submitter.userprofile.score < -25:
@@ -2482,22 +2462,36 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
+					cooldown.hot_score = cooldown.hot_score - 1
+					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
 				value = -1
+			elif value == 3:
+				if request.user_banned or request.user.username not in FEMALES:
+					return redirect("score_help")
+				else:
+					link.submitter.userprofile.score = link.submitter.userprofile.score -300
+					if link.submitter.userprofile.score < -25:
+						if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+					link.submitter.userprofile.save()
+					cooldown.hot_score = cooldown.hot_score - 2
+					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+				value = -2
 			else:
 				value = 0
 				return redirect("link_create")
 			try:
 				Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
+				cooldown.save()
 			except:#if vote object can't be created, just redirect the user, no harm done
 				return redirect("link_create")
 			try:
 				request.session['target_id'] = link.id
-				#return redirect(request.META.get('HTTP_REFERER')+'#section'+section)
 				return redirect("home")
 			except:
 				return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
 		else:
-			# the user has already voted on this link
 			try:
 				return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
 			except:

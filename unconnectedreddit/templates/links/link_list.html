@@ -94,7 +94,7 @@
 {% for link in object_list %}
 		
 	{% if forloop.counter == 3 %}
-		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> dostoon ko muft mein photo bhejo</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
+		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> muft mein apni photos dostoon ko SMS ke zariye bhejo!</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
 	{% endif %}
 
 	{% if link.cagtegory == '2' %}

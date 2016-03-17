@@ -6,7 +6,7 @@ from django_extensions.db.fields import RandomCharField
 from django.utils import timezone
 from datetime import datetime, timedelta
 from math import log
-from django.core.validators import MaxLengthValidator
+from django.core.validators import MaxLengthValidator, MaxValueValidator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
 import uuid, os, StringIO, string
@@ -359,15 +359,10 @@ class Vote(models.Model):
 	def __unicode__(self):
 		return u"%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
 
-# class SuperDownvote(models.Model):
-# 	caster = models.ForeignKey(User)
-# 	time = models.DateTimeField(auto_now_add=True)
-# 	available = models.PositiveIntegerField(default=0)
-
-# class SuperUpvote(models.Model):
-# 	caster = models.ForeignKey(User)
-# 	time = models.DateTimeField(auto_now_add=True)
-# 	available = models.PositiveIntegerField(default=3)
+class Cooldown(models.Model):
+	voter = models.ForeignKey(User)
+	time_of_casting = models.DateTimeField() #Max 10 votes, regenerate a vote after 30 mins.
+	hot_score = models.IntegerField(default=0, validators=[MaxValueValidator(12)])
 
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, unique=True)

@@ -1071,21 +1071,21 @@ class UserPhoneNumberView(CreateView):
 	form_class = UserPhoneNumberForm
 	template_name = "get_user_phonenumber.html"
 
-	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
-		"""
-		Returns the initial data to use for forms on this view.
-		"""
-		user = self.request.user
-		if user.is_authenticated():
-			try:
-				msg = ChatPicMessage.objects.filter(sender=user).latest('sending_time')
-				self.initial = {'what_number': msg.what_number} #initial needs to be passed a dictionary
-				return self.initial
-			except:
-				return self.initial
-		else:#i.e user is not authenticated
-			return self.initial
-		return self.initial
+	# def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+	# 	"""
+	# 	Returns the initial data to use for forms on this view.
+	# 	"""
+	# 	user = self.request.user
+	# 	if user.is_authenticated():
+	# 		try:
+	# 			msg = ChatPicMessage.objects.filter(sender=user).latest('sending_time')
+	# 			self.initial = {'what_number': msg.what_number} #initial needs to be passed a dictionary
+	# 			return self.initial
+	# 		except:
+	# 			return self.initial
+	# 	else:#i.e user is not authenticated
+	# 		return self.initial
+	# 	return self.initial
 
 	def get_context_data(self, **kwargs):
 		context = super(UserPhoneNumberView, self).get_context_data(**kwargs)

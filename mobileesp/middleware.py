@@ -12,6 +12,7 @@ class MobileDetectionMiddleware(object):
         is_mobile = False
         is_tablet = False
         is_phone = False
+        is_feature_phone = False
 
         user_agent = request.META.get("HTTP_USER_AGENT")
         http_accept = request.META.get("HTTP_ACCEPT")

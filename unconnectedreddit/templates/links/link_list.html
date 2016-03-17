@@ -31,7 +31,7 @@
 				</span>
 
 			{% endif %}	
-			<p style="margin-top:.5em;"></p>
+			<p style="margin-top:.3em;"></p>
 			
 				{% if latest_reply.submitted_by.userprofile.avatar %}
 					<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0">
@@ -175,9 +175,9 @@
 			<br>
 		{% if link.pk not in voted and link.submitter != user and can_vote %}
 			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a>
-			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;">+50</a>{% endif %}<br>
+			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
 			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#FF1A1A;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;">chupair</button></a>
-			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 3 %}" style="font-size:90%;color:red;">-300</a>{% endif %}<br>
+			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-300</u></a>{% endif %}<br>
 		{% endif %}
 		</p>
 		{% if authenticated %}

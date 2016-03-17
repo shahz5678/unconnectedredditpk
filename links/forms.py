@@ -249,10 +249,6 @@ class WelcomeReplyForm(forms.Form):
 	class Meta:
 		model = Publicreply
 
-class CooldownForm(forms.Form):
-	class Meta:
-		pass
-
 class DirectMessageForm(forms.Form):
 	class Meta:
 		pass

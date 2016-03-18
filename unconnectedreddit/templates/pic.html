@@ -8,9 +8,9 @@
 	{% if user.is_authenticated and user != sender %}
 		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Isko jawab do</button></a><br>
 			{% if pic.image %}
-			<img style="width:100%;max-width:300px;" src="{{ pic.image.url }}"></img>
+			<img style="width:100%;max-width:400px;" src="{{ pic.image.url }}"></img>
 			{% else %}
-			<img style="width:100%;max-width:300px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			<img style="width:100%;max-width:400px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
 			{% if caption %}
 			<br><span style="color:green;font-size:90%;">{{ caption }}</span>
@@ -19,9 +19,9 @@
 	{% elif not user.is_authenticated %}
 		<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Isko jawab do</button></a><br>
 			{% if pic.image %}
-			<img style="width:100%;max-width:300px;" src="{{ pic.image.url }}"></img>
+			<img style="width:100%;max-width:400px;" src="{{ pic.image.url }}"></img>
 			{% else %}
-			<img style="width:100%;max-width:300px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			<img style="width:100%;max-width:400px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
 			{% if caption %}
 			<br><span style="color:green;font-size:90%;">{{ caption }}</span>
@@ -30,9 +30,9 @@
 	{% else %}<!-- sender == user -->
 		<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;margin-bottom:0.3em;">Aik aur photo bhejo</button></a><br>
 			{% if pic.image %}
-			<img style="width:100%;max-width:300px;" src="{{ pic.image.url }}"></img>
+			<img style="width:100%;max-width:400px;" src="{{ pic.image.url }}"></img>
 			{% else %}
-			<img style="width:100%;max-width:300px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			<img style="width:100%;max-width:400px;" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% endif %}
 			{% if caption %}
 			<br><span style="color:green;font-size:90%;">{{ caption }}</span>

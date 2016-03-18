@@ -86,7 +86,7 @@
                 <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
                 {% if reply.image %}
-                <img style="width:100%;max-width:300px;" src="{{ reply.image.url }}"></img><br>
+                <img style="width:100%;max-width:400px;" src="{{ reply.image.url }}"></img><br>
                 {% endif %}
                 {% if time < 41 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">

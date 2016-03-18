@@ -180,14 +180,25 @@ class PublicreplyForm(forms.ModelForm):
 
 class OutsideMessageRecreateForm(forms.Form):
 	mobile_number = forms.CharField(max_length=50)
-	class meta:
+	class Meta:
 		fields = ("mobile_number",)
 
 class OutsideMessageCreateForm(forms.Form):
 	full_name = forms.CharField(max_length=50)
 	mobile_number = forms.CharField(max_length=50)
-	class meta:
+	class Meta:
 		fields = ("full_name","mobile_number")
+
+class CaptionDecForm(forms.Form):
+	class Meta:
+		pass
+
+class CaptionForm(forms.ModelForm):
+	caption = forms.CharField(max_length=150)
+	class Meta:
+		model = ChatPicMessage
+		exclude = ("which_pic","viewing_time","sending_time","expiry_interval","what_number","seen")
+		fields = ("caption",)
 
 class UserPhoneNumberForm(forms.ModelForm):
 	what_number = forms.CharField(label='Mobile number:', max_length=50)

@@ -17,7 +17,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, DeviceHelpForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -37,9 +37,21 @@ import uuid
 
 condemned = HellBanList.objects.values('condemned_id').distinct()
 
+def valid_passcode(user,num):
+    if user.is_authenticated():
+    	if ChatPicMessage.objects.filter(sender=user,what_number=num).exists():
+    		return False
+    	else:
+    		return True
+    else:
+    	if ChatPicMessage.objects.filter(sender_id=1,what_number=num).exists():
+    		return False
+    	else:
+    		return True
+
+
 def valid_uuid(uuid):
     regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
-    #regex = re.compile('[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}\Z', re.I)
     match = regex.match(uuid)
     return bool(match)
 
@@ -1064,7 +1076,62 @@ class PicExpiryView(FormView):
 			num = 2
 		else:
 			return redirect("pic_expiry", slug=unique)
-		return redirect("user_phonenumber", slug=unique, num=num, err=0)
+		return redirect("captionview", num=num, slug=unique)
+
+class CaptionView(CreateView):
+	model = ChatPicMessage
+	form_class = CaptionForm
+	template_name = "caption.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(CaptionView, self).get_context_data(**kwargs)
+		unique = self.kwargs["slug"]
+		num = self.kwargs["num"]
+		err = self.kwargs["err"]
+		context["unique"] = unique
+		context["num"] = num
+		context["err"] = err
+		return context
+
+	def form_valid(self,form):
+		if self.request.method == 'POST':
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			user = self.request.user
+			caption = f.caption
+			unique = self.kwargs["slug"]
+			num = self.kwargs["num"]
+			if len(caption) > 149:
+				return redirect("caption", num=num, slug=unique, err=1)
+			which_pic = ChatPic.objects.get(unique=unique)
+			if user.is_authenticated():
+				message = ChatPicMessage.objects.create(which_pic=which_pic, sender=user, caption=caption, expiry_interval=num)
+			else:
+				message = ChatPicMessage.objects.create(which_pic=which_pic, sender_id=1, caption=caption, expiry_interval=num)
+			#print "message id is: %s" % message.id
+			return redirect("user_phonenumber", slug=unique, num=num, err=0, id=message.id)
+
+class CaptionDecView(FormView):
+	form_class = CaptionDecForm
+	template_name = "caption_form.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(CaptionDecView, self).get_context_data(**kwargs)
+		unique = self.kwargs["slug"]
+		num = self.kwargs["num"]
+		context["unique"] = unique
+		context["num"] = num
+		return context
+
+	def form_valid(self,form):
+		unique = self.kwargs["slug"]
+		num = self.kwargs["num"]
+		dec = self.request.POST.get("dec")
+		if dec == 'Haan':
+			return redirect("caption", num=num, slug=unique, err=0)
+		elif dec == 'Nahi':
+			return redirect("user_phonenumber", slug=unique, num=num, err=0, id=0)		
+		else:
+			return redirect("captionview", num=num, slug=unique)
 
 class UserPhoneNumberView(CreateView):
 	model = ChatPicMessage
@@ -1090,9 +1157,11 @@ class UserPhoneNumberView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(UserPhoneNumberView, self).get_context_data(**kwargs)
 		unique = self.kwargs["slug"]
+		ident = self.kwargs["id"]
 		context["unique"] = unique
 		num = self.kwargs["num"]
 		context["decision"] = num
+		context["id"] = ident
 		err = self.kwargs["err"]
 		context["err"] = err
 		return context
@@ -1101,22 +1170,34 @@ class UserPhoneNumberView(CreateView):
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		num = f.what_number
 		user = self.request.user
-		unique = self.request.POST.get("unique")
-		decision = self.request.POST.get("decision")
-		if not valid_uuid(unique):
-			return redirect("user_phonenumber", slug=unique, num=decision, err=2)
+		unique = self.kwargs["slug"]
+		ident = self.kwargs["id"]
+		decision = self.kwargs["num"]
 		if not num.isdigit():
-			return redirect("user_phonenumber", slug=unique, num=decision, err=1)
+			return redirect("user_phonenumber", slug=unique, num=decision, err=1, id=ident)		
+		if not valid_uuid(unique):
+			return redirect("user_phonenumber", slug=unique, num=decision, err=3, id=ident)
+		if not valid_passcode(user=user, num=num):
+			return redirect("user_phonenumber", slug=unique, num=decision, err=2, id=ident)
 		if not (decision == '1' or '2'):
 			return redirect("pic_expiry", slug=unique)
 		which_image = ChatPic.objects.get(unique=unique)
 		which_image.times_sent = which_image.times_sent + 1
 		which_image.save()
-		if user.is_authenticated():
-			messageobject = ChatPicMessage.objects.create(which_pic=which_image, sender=user, expiry_interval=decision, what_number=num)
-		elif not user.is_authenticated():
-			messageobject = ChatPicMessage.objects.create(which_pic=which_image, sender_id=1, expiry_interval=decision, what_number=num)
-		#on_fbs = False
+		if int(ident):#i.e. it is not zero
+			try:
+				messageobject = ChatPicMessage.objects.get(pk=ident)
+				messageobject.what_number = num
+				messageobject.save()
+			except:
+				return redirect("user_phonenumber", slug=unique, num=decision, err=3, id=ident)
+		else:#i.e. it is 0; no caption was set
+			if user.is_authenticated():
+				ChatPicMessage.objects.create(which_pic=which_image, sender=user, expiry_interval=decision, what_number=num)
+			elif not user.is_authenticated():
+				ChatPicMessage.objects.create(which_pic=which_image, sender_id=1, expiry_interval=decision, what_number=num)
+			else:
+				return redirect("user_phonenumber", slug=unique, num=decision, err=2, id=ident)
 		try:
 			on_fbs = self.request.META.get('X-IORG-FBS')
 		except:
@@ -1240,11 +1321,12 @@ class PicPasswordView(NeverCacheMixin,FormView):
 			user = inbox.owner #mhb11 is selected if unauthenticated user
 			message = ChatPicMessage.objects.filter(what_number=mobile, sender=user).latest('sending_time')
 			sender = message.sender
+			caption = message.caption
 			expiry_interval = message.expiry_interval
 			pic = message.which_pic #the picture to be shown
 			is_visible = pic.is_visible
 		except:
-			context = {'sender':None, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,}
+			context = {'sender':None, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
 			return render(self.request, 'pic.html', context)
 		if message.seen:
 			#i.e. the message was already seen
@@ -1255,42 +1337,42 @@ class PicPasswordView(NeverCacheMixin,FormView):
 				difference = time_now - viewing_time
 				if difference.total_seconds() < 60 and is_visible:
 					#pic:3 Ye photo dekh li gaye hai. 1 minute wali photo aik dafa se ziyada nahi dekhi jaa sakti. 
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':3, 'max_times':0,}
+					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':3, 'max_times':0,'caption':None,}
 				elif difference.total_seconds() < 60 and not is_visible:
 					#pic:-1 Ye photo bhejnay waley ne mita di hai
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':-1, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
 				elif difference.total_seconds() > 60 and is_visible:
 					#pic:0 Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1),}
+					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1),'caption':None,}
 				else:
 					#pic:1 Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1),}
+					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1),'caption':None,}
 			elif expiry_interval == '2':
 				#the user has refreshed, but it was a day-long image
 				time_now = datetime.utcnow().replace(tzinfo=utc)
 				viewing_time = message.viewing_time
 				difference = time_now - viewing_time
 				if difference.total_seconds() < (60*60*24) and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee',}
+					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee','caption':caption,}
 				elif difference.total_seconds() < (60*60*24) and not is_visible:
 					#pic:-1 Ye photo bhejnay waley ne mita di hai
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
 				elif difference.total_seconds() > (60*60*24) and is_visible:
 					#pic:0 Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1440),}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1440),'caption':None,}
 				else:
 					#pic:1 Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1440),}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1440),'caption':None,}
 			else:# the expiry_interval was not set: ABORT
 				#pic:2 Yahan dekney ke liye kuch nahi hai
-				context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,}
+				context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
 			return render(self.request, 'pic.html', context)
 		else:
 			#the message object is being opened for the first time
 			if self.request.user.is_authenticated() and self.request.user == sender:
 				#if the person opening it is the same person who sent the photo
 				time_now = datetime.utcnow().replace(tzinfo=utc)
-				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':0,}
+				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':0,'caption':caption,}
 			else:
 				#set the seen flag of the message object
 				message.seen = True
@@ -1298,16 +1380,16 @@ class PicPasswordView(NeverCacheMixin,FormView):
 				message.viewing_time = viewing_time
 				message.save()
 				if expiry_interval == '1' and is_visible:
-					context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':'aik',}
+					context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':'aik','caption':caption,}
 				elif expiry_interval == '1' and not is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
 				elif expiry_interval == '2' and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee',}
+					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee','caption':caption,}
 				elif expiry_interval == '2' and not is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
 				else:
 					#Yahan dekhney ke liye kuch nahi hai
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,}
+					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
 			return render(self.request, 'pic.html', context)
 
 class ChangeGroupRulesView(CreateView):
@@ -2442,7 +2524,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				else:
 					link.submitter.userprofile.score = link.submitter.userprofile.score + 50
 					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
@@ -2454,7 +2536,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				else:
 					link.submitter.userprofile.score = link.submitter.userprofile.score - 3
 					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
@@ -2467,7 +2549,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				else:
 					link.submitter.userprofile.score = link.submitter.userprofile.score -300
 					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=link.submitter.id).exists(): #only insert user in hell-ban list if she isn't there already
+						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
@@ -2542,117 +2624,3 @@ def LinkAutoCreate(user, content):
 	link.save()
 	user.userprofile.previous_retort = content
 	user.userprofile.save()
-
-
-# class PicView(NeverCacheMixin,DetailView):
-# 	model = ChatPicMessage
-# 	#form_class = PicForm
-# 	template_name = "pic.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(PicView, self).get_context_data(**kwargs)
-# 		unique = self.kwargs["slug"]
-# 		pk = self.kwargs["pk"]
-# 		messageobject = ChatPicMessage.objects.get(pk=pk)
-# 		pic = ChatPic.objects.get(unique=unique)
-# 		sender = pic.owner
-# 		context["sender"] = sender
-# 		if messageobject.which_pic != pic: #i.e. this message was never sent, ABORT
-# 			context["exists"] = 0
-# 			context["pic"] = 2 # Yahan dekney ke liye kuch nahi hai
-# 			context["max_time"] = 0
-# 			context["refresh_now"] = False
-# 			return context
-# 		if messageobject.seen:
-# 			#i.e. message was already seen
-# 			if messageobject.expiry_interval == '1':
-# 				#the viewer has refreshed, disappear the image FOREVER, but determine which error message to show
-# 				context["refresh_now"] = True
-# 				time_now = datetime.utcnow().replace(tzinfo=utc)
-# 				difference = time_now - messageobject.viewing_time
-# 				if difference.total_seconds() < 60 and pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = 3 # Ye photo dekh li gaye hai. 1 minute wali photo aik dafa se ziyada nahi dekhi jaa sakti. 
-# 					context["max_time"] = 0
-# 				elif difference.total_seconds() < 60 and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = -1 # Ye photo bhejnay waley ne mita di hai
-# 					context["max_time"] = 0
-# 				elif difference.total_seconds() > 60 and pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = 0 # Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1)
-# 				else:#elif difference.total_seconds() > 60 and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = 1 # Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1)
-# 				return context
-# 			elif messageobject.expiry_interval == '2':
-# 				#the user has refreshed, but it was a day-long image
-# 				context["refresh_now"] = False
-# 				time_now = datetime.utcnow().replace(tzinfo=utc)
-# 				difference = time_now - messageobject.viewing_time
-# 				if difference.total_seconds() < (60*60*24) and pic.is_visible:
-# 					context["exists"] = 1
-# 					context["pic"] = pic
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1440)
-# 				elif difference.total_seconds() < (60*60*24) and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = -1 #Ye photo bhejnay waley ne mita di
-# 					context["max_time"] = 0
-# 				elif difference.total_seconds() > (60*60*24) and pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = 0 #Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1440)
-# 				elif difference.total_seconds() > (60*60*24) and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = 1 #Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1440)
-# 				return context	
-# 			else:# the expiry_interval was not set: ABORT
-# 				context["exists"] = 0
-# 				context["pic"] = 2 #Yahan dekney ke liye kuch nahi hai
-# 				context["max_time"] = 0
-# 				context["refresh_now"] = False
-# 				return context
-# 		else:
-# 			#the message object is being opened for the first time
-# 			if self.request.user.is_authenticated() and self.request.user == sender:
-# 				#if the person opening it is the same person who sent the photo
-# 				time_now = datetime.utcnow().replace(tzinfo=utc)
-# 				context["exists"] = 1
-# 				context["pic"] = pic
-# 				context["max_time"] = time_now + timedelta(minutes = 1)
-# 				context["refresh_now"] = True
-# 				return context
-# 			else:
-# 				messageobject.seen = True
-# 				messageobject.viewing_time = datetime.utcnow().replace(tzinfo=utc)
-# 				messageobject.save()
-# 				if messageobject.expiry_interval == '1' and pic.is_visible:
-# 					context["exists"] = 1
-# 					context["pic"] = pic
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1)
-# 					context["refresh_now"] = True
-# 				elif messageobject.expiry_interval == '1' and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = -1
-# 					context["max_time"] = 0
-# 					context["refresh_now"] = False
-# 				elif messageobject.expiry_interval == '2' and pic.is_visible:
-# 					context["exists"] = 1
-# 					context["pic"] = pic
-# 					context["max_time"] = messageobject.viewing_time + timedelta(minutes = 1440)
-# 					context["refresh_now"] = False
-# 				elif messageobject.expiry_interval == '2' and not pic.is_visible:
-# 					context["exists"] = 0
-# 					context["pic"] = -1
-# 					context["max_time"] = 0
-# 					context["refresh_now"] = False
-# 				else:
-# 					context["exists"] = 0
-# 					context["pic"] = 2 #Yahan dekhney ke liye kuch nahi hai
-# 					context["max_time"] = 0
-# 					context["refresh_now"] = False
-# 				return context
-# 		return context

@@ -117,7 +117,7 @@
 	{% else %}
 
 	    {% if link.image_file %}
-	    <img src="{{ link.image_file.url }}"></img><br>
+	    <img style="width:100%;max-width:300px;" src="{{ link.image_file.url }}"></img><br>
 		{% endif %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}

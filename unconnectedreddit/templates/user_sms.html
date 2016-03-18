@@ -7,7 +7,7 @@
 	{% if fbs == '1' and device == '1' %}
 		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do:<br>
 		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><br>
-		<span style="font-size:85%;color:grey;"><b>Paise nahi lagein ge</b> agr tm yahan se bahir nikal gaye. Fikar na karna.</span><hr size=1>
+		<span style="font-size:85%;color:grey;">Fikr na kro, <b>paise nahi lagein ge</b> agr tm yahan se bahir nikal gaye</span><hr size=1>
 		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
 	{% elif fbs == '1' and device == '2' %}
 		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do:<br>

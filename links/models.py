@@ -441,7 +441,7 @@ class ChatPicMessage(models.Model):
 	sending_time = models.DateTimeField(auto_now_add=True)
 	what_number = models.CharField(max_length=50)
 	expiry_interval = models.CharField(choices=LIFETIME, default='1', max_length=15)
-	caption = models.CharField("Paigham:", blank=True, max_length=50)
+	caption = models.CharField("Paigham:", blank=True, max_length=150)
 	seen = models.BooleanField(default=False)
 
 	def __unicode__(self):

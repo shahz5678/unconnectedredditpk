@@ -6,7 +6,7 @@
 <form action="{% url 'pic_expiry' slug=unique %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="unique" value="{{ unique }}">
-<b style="font-family:sans-serif;font-size:90%;color:green;">Dekhney waley ko ye photo kitni bar dekhne ki ijazat hai?</b><br>
+<b style="font-family:sans-serif;font-size:90%;color:green;">Dost ko ye photo kitni bar dekhne ki ijazat deni hai?</b><br>
 <input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:1em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" type="submit" name="decision" value="sirf aik bar"><br>
 <input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:-0.3em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" name="decision" type="submit" value="kayee bar">
 </form>

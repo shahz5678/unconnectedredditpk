@@ -2378,15 +2378,15 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 
 def update_cooldown(obj):
 	time_now = datetime.utcnow().replace(tzinfo=utc)
-	print time_now
+	#print time_now
 	time_passed = obj.time_of_casting
-	print time_passed
+	#print time_passed
 	difference = time_now - time_passed
-	print difference.total_seconds()
+	#print difference.total_seconds()
 	difference_in_mins = difference.total_seconds() / 60
-	print difference_in_mins
-	interval = int(difference_in_mins / 30) # to round everything down
-	print "interval: %s" % interval
+	#print difference_in_mins
+	interval = int(difference_in_mins / 10) # control the interval length from here
+	#print "interval: %s" % interval
 	obj.hot_score = obj.hot_score + interval
 	if obj.hot_score > 10:
 		obj.hot_score = 10
@@ -2394,7 +2394,7 @@ def update_cooldown(obj):
 
 def find_time(obj):
 	time_passed = obj.time_of_casting
-	target_time = time_passed + timedelta(minutes=30)
+	target_time = time_passed + timedelta(minutes=10) # control the interval length from here
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
@@ -2404,14 +2404,14 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			cooldown = Cooldown.objects.filter(voter=request.user).latest('id')
 		except:
 			cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=datetime.utcnow().replace(tzinfo=utc))
-		print cooldown.pk
-		print "score before update: %s" % cooldown.hot_score
+		#print cooldown.pk
+		#print "score before update: %s" % cooldown.hot_score
 		obj = update_cooldown(cooldown)
-		print "score after update %s" % obj.hot_score
+		#print "score after update %s" % obj.hot_score
 		if int(obj.hot_score) < 1:
 			time_remaining = find_time(obj)
 			time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
-			print "time_remaining: %s" % time_remaining
+			#print "time_remaining: %s" % time_remaining
 			context = {'time_remaining': time_stamp}
 			return render(request, 'cooldown.html', context)
 		try:
@@ -2446,7 +2446,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 2
+					cooldown.hot_score = cooldown.hot_score - 3
 					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
 			elif value == 0:
 				if request.user_banned:
@@ -2471,7 +2471,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 2
+					cooldown.hot_score = cooldown.hot_score - 3
 					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
 				value = -2
 			else:

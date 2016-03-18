@@ -1,0 +1,21 @@
+{% extends "empty.html" %}
+{% block content %}
+
+<body bgcolor="#FFFFE0">
+<div class="margin">
+<form action="{% url 'caption' num unique 0 %}" method="POST">
+{% csrf_token %}
+{% if err == '0' %}
+<b style="font-family:sans-serif;font-size:90%;color:green;">Likho:</b><br>
+{% elif err == '1' %}
+<b style="font-family:sans-serif;font-size:90%;color:red;">Paigham buhut lamba hai, chota likho:</b><br>
+{% endif %}
+{{ form.caption }}<br><br>
+<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:-0.3em;text-shadow:none;width:3em;font-weight:bold;border-radius: 4px;font-size:90%;" name="okay" type="submit" value="OK">
+</form>
+<hr size=1>
+<span style="font-size:80%;color:grey;">Jo likho gey, woh dost ko photo ke neechay nazr aye ga</span>
+
+</div>
+</body>
+{% endblock %}

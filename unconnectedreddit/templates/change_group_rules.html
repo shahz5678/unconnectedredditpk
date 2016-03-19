@@ -3,6 +3,11 @@
 
 
 <div class="margin">
+{% if unauthorized %}
+
+<span style="font-size:90%;color:red;"><b>Sirf mehfil ka malik ya kaam kar sakta hai!</b></span>
+
+{% else %}
 <span>Iss mehfil ka neya qanoon keya rakhna hai?</span><br>
 
 {% if group.private == '1' %}
@@ -19,6 +24,7 @@
 <b>{{ form.rules.label_tag }}</b>{{ form.rules }}
 <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="OK">
 </form>
+{% endif %}
 </div>
 
 

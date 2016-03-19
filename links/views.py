@@ -2193,6 +2193,9 @@ class KickView(FormView):
 			unique = self.kwargs.get("slug")
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
+			context["unauthorized"] = False
+			if group.private != '0':
+				context["unauthorized"] = True
 			context["owner"] = group.owner
 			if group.owner != self.request.user:
 				context["culprit"] = self.request.user
@@ -2214,20 +2217,23 @@ class KickView(FormView):
 			else:
 				unique = self.request.POST.get("unique")
 				group = Group.objects.get(unique=unique)
-				if group.owner != self.request.user:
-					return redirect("public_group_reply", slug=unique)
-				else:
-					pk = self.request.POST.get("culprit")
-					culprit = User.objects.get(id=pk)
-					if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():
+				if group.private == '0':
+					if group.owner != self.request.user:
 						return redirect("public_group_reply", slug=unique)
 					else:
-						GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
-						culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
-						culprit.userprofile.save()
-						text = culprit.username
-						reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
-						return redirect("public_group_reply", slug=unique)
+						pk = self.request.POST.get("culprit")
+						culprit = User.objects.get(id=pk)
+						if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():
+							return redirect("public_group_reply", slug=unique)
+						else:
+							GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
+							culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
+							culprit.userprofile.save()
+							text = culprit.username
+							reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
+							return redirect("public_group_reply", slug=unique)
+				else:
+					return redirect("score_help")
 
 class GroupReportView(FormView):
 	form_class = GroupReportForm
@@ -2251,6 +2257,8 @@ class GroupReportView(FormView):
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			unique = Group.objects.get(unique=self.kwargs.get("slug"))
+			if unique.private != '0':
+				return redirect("score_help")
 			if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group=unique).exists():
 				return redirect("group_page")
 			elif self.request.user.userprofile.score < -25:

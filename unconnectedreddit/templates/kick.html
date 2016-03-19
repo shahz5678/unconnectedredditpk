@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
+{% if unauthorized %}
 
+<span style="color:purple;font-size:95%;"><b>{{ user.username }}</b> ye mumqin nahi hai, wapis jao!</span>
+
+{% else %}
 {% if culprit == owner %}
 Tum apney aap ko mehfil se nikalna chahtey ho?<br>Pagal tou nahi ho gaye?<br><br>
 <a href="{% url 'public_group_reply' slug=unique %}">< Wapis jao</a>
@@ -16,6 +20,6 @@ Kiya <a href="{% url 'profile' slug=culprit.username %}"><b>{{ culprit.username 
 </form>
 <span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'public_group_reply' slug=unique %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
 {% endif %}
-
+{% endif %}
 </div>
 {% endblock %}

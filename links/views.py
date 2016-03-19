@@ -1412,7 +1412,7 @@ class ChangeGroupRulesView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupRulesView, self).get_context_data(**kwargs)
 		user = self.request.user
-		context["unauthorized"] = True
+		context["unauthorized"] = False
 		if user.is_authenticated():
 			unique = self.kwargs["slug"]
 			context["unique"] = unique
@@ -1448,7 +1448,7 @@ class ChangeGroupTopicView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupTopicView, self).get_context_data(**kwargs)
 		user = self.request.user
-		context["unauthorized"] = True
+		context["unauthorized"] = False
 		if user.is_authenticated():
 			unique = self.kwargs["slug"]
 			context["unique"] = unique

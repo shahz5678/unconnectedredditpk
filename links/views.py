@@ -1411,23 +1411,33 @@ class ChangeGroupRulesView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupRulesView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
+		user = self.request.user
+		context["unauthorized"] = True
+		if user.is_authenticated():
 			unique = self.kwargs["slug"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["group"] = group
+			if group.private == '0':
+				if not group.owner == user:
+					context["unauthorized"] = True
+				else:
+					context["unauthorized"] = False
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
 		if self.request.user_banned:
-			return redirect("profile", slug=self.request.user.username)
+			return redirect("profile", slug=user.username)
 		else:
 			rules = self.request.POST.get("rules")
 			unique = self.request.POST.get("unique")
 			group = Group.objects.get(unique=unique)
+			if group.private == '0' and group.owner != user:
+				return redirect("score_help")
 			group.rules = rules
 			group.save()
-			Reply.objects.create(text=rules ,which_group=group ,writer=self.request.user ,category='5')
+			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
 			return redirect("public_group_reply", slug=unique)
 
 class ChangeGroupTopicView(CreateView):
@@ -1437,23 +1447,33 @@ class ChangeGroupTopicView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupTopicView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
+		user = self.request.user
+		context["unauthorized"] = True
+		if user.is_authenticated():
 			unique = self.kwargs["slug"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["group"] = group
+			if group.private == '0':
+				if not group.owner == user:
+					context["unauthorized"] = True
+				else:
+					context["unauthorized"] = False
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
 		if self.request.user_banned:
-			return redirect("profile", slug=self.request.user.username)
+			return redirect("profile", slug=user.username)
 		else:
 			topic = self.request.POST.get("topic")
 			unique = self.request.POST.get("unique")
 			group = Group.objects.get(unique=unique)
+			if group.private == '0' and group.owner != user:
+				return redirect("score_help")
 			group.topic = topic
 			group.save()
-			Reply.objects.create(text=topic ,which_group=group , writer=self.request.user, category='4')
+			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			if group.private == '1':
 				return redirect("private_group_reply", slug=unique)
 			elif group.private == '0':

@@ -235,10 +235,16 @@ class ChangeGroupTopicForm(forms.ModelForm):
 		fields = ("topic",)
 
 class PicsChatUploadForm(forms.ModelForm):
+	image = forms.ImageField()
+	image.widget.attrs["value"] ='Upload'
 	class Meta:
 		model = ChatPic
 		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
 		fields = ("image",)
+
+	def __init__(self, *args, **kwargs):
+		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
+		self.fields['image'].widget.attrs.update({'value':'Upload'})#["value"]='Upload'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -261,6 +267,18 @@ class WelcomeReplyForm(forms.Form):
 		model = Publicreply
 
 class DirectMessageForm(forms.Form):
+	class Meta:
+		pass
+
+class ContactForm(forms.Form):
+	class Meta:
+		pass
+
+class AboutForm(forms.Form):
+	class Meta:
+		pass
+
+class PrivacyPolicyForm(forms.Form):
 	class Meta:
 		pass
 

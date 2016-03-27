@@ -389,7 +389,7 @@ class LogoutReconfirmView(FormView):
 				if decision == 'Khuda Hafiz':
 					self.request.user.userprofile.score = 10
 					self.request.user.userprofile.save()
-					return redirect("logout")
+					return redirect("bahirniklo")
 				else:
 					return redirect("home")
 			else:
@@ -2507,7 +2507,7 @@ def update_cooldown(obj):
 	#print difference.total_seconds()
 	difference_in_mins = difference.total_seconds() / 60
 	#print difference_in_mins
-	interval = int(difference_in_mins / 10) # control the interval length from here
+	interval = int(difference_in_mins / 6) # control the interval length from here
 	#print "interval: %s" % interval
 	obj.hot_score = obj.hot_score + interval
 	if obj.hot_score > 10:
@@ -2516,7 +2516,7 @@ def update_cooldown(obj):
 
 def find_time(obj):
 	time_passed = obj.time_of_casting
-	target_time = time_passed + timedelta(minutes=10) # control the interval length from here
+	target_time = time_passed + timedelta(minutes=6) # control the interval length from here
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 

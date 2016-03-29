@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
-from links.views import cross_notif, vote, vote_on_vote
+from links.views import cross_notif, vote, vote_on_vote, private_group
 from django.views.generic.base import TemplateView
 from links.views import LinkListView, TopView, PicHelpView, AboutView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView,
 
@@ -87,7 +87,8 @@ urlpatterns = patterns('',
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
 	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name='reply'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/public/$', auth(PublicGroupView.as_view()), name='public_group_reply'),
-	url(r'^mehfil/(?P<slug>[\w.@+-]+)/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
+	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
+	url(r'^mehfil/(?P<slug>[\w.@+-]+)/$', auth(private_group), name='private_group'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/outsider/$', OutsiderGroupView.as_view(), name='outsider_group_reply'),####
 	url(r'^group/(?P<slug>[\w.@+-]+)/change_topic/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),
 	url(r'^group/(?P<slug>[\w.@+-]+)/change_rules/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),

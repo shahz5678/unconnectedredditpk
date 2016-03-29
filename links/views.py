@@ -31,7 +31,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
 import random, string
 import uuid
-from throttle.decorators import throttle
+#from throttle.decorators import throttle
 
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
@@ -2506,7 +2506,7 @@ def find_time(obj):
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
-@throttle(zone='default')
+#@throttle(zone='default')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
 		try:

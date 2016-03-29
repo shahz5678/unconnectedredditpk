@@ -8,7 +8,7 @@
 {% if switching %}
     <span style="color:orange;"><b>Ye mehfil is terah nahi chalti!</b></span>
 {% else %}
-    <b style="color:green;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change)</a>
+    <b style="color:green;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' 'private' %}" style="font-size:70%;">(change)</a>
     <br>
     <span style="font-size:85%;">
     <b>members:</b>
@@ -23,7 +23,7 @@
     <br><a href="{% url 'closed_invite_type' slug=unique %}#section0" style="font-size:70%;">(invite karo)</a>
     <a name="sectionJ"></a> 
     <hr size=1>
-    <form action="{% url 'private_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data">
     	{% csrf_token %}
     	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
         <span style="color:green;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>

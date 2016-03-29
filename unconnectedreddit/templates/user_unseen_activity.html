@@ -37,7 +37,7 @@
     	
     	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: {% emoticons %}{{ value.0.description }}{% endemoticons %}
+	: <span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ value.0.description }}{% endemoticons %}</span>
 	<span style="color:gray;font-size:75%;">, jawab aya {{ value.1|naturaltime }}</span>
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
@@ -79,7 +79,7 @@
     	
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: {% emoticons %}{{ value.2.description }}{% endemoticons %}
+	: <span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ value.2.description }}{% endemoticons %}</span>
 	<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
@@ -95,7 +95,7 @@
 <p style="color:gray"><hr size=1></p>
 {% endfor %}
 {% else %}
-<b>Pichlay 2 din ka koi jawab nahi mila!</b><br><a href="{% url 'home' %}">Home</a> par wapis jao aur kisi naee chat ke neechay jawab do!
+<span style="color:#404040;"><b>Pichlay 2 din ka koi jawab nahi mila!</b><br><a href="{% url 'home' %}">Home</a> par wapis jao aur kisi naee chat ke neechay jawab do!</span>
 {% endif %}
 </div>
 {% endblock %}

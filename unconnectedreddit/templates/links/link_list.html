@@ -42,7 +42,7 @@
 					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 					</a>
 				{% endif %}
-			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi>{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi>
+			<a href="{% url 'profile' slug=latest_reply.submitted_by.username %}#section0" style="font-size:110%;"><bdi>{{ latest_reply.submitted_by.username }}</bdi></a>:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi>
 		{% if latest_reply.device == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
 		{% elif latest_reply.device == '2' %}
@@ -111,7 +111,7 @@
 		    	<span style="font-size:130%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
-		</a><span style="font-size:110%;"> ki naee open <b>mehfil</b> mein ao gup lagao: <a href="{% url 'public_group_reply' slug=link.url %}" style="color:red;">{{ link.description }}</a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki naee <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group_reply' slug=link.url %}" style="color:red;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p style="color:gray"><hr size=1></p>
 		</div>
 	{% else %}
@@ -147,7 +147,7 @@
 		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}:
-    	<span style="color:black; font-size:125%; font-family:arial; line-height:1.8;text-shadow:0 0 0px #808080;"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
+    	<span style="color:#404040; font-size:115%; line-height:1.8;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>
 	{% if authenticated %}

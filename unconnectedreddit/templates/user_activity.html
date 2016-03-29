@@ -43,7 +43,7 @@
     {% if girl == link.submitter.username %}
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
-	: <bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}
+	: <bdi style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}
 		{% if link.device == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
 		{% elif link.device == '2' %}

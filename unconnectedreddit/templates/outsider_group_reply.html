@@ -91,7 +91,7 @@
         <br><a href="{% url 'outside_message_recreate' slug=unique %}" style="font-size:70%;">(isko bulao)</a>
         <a name="sectionJ"></a> 
         <hr size=1>
-        <form action="{% url 'private_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'outsider_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
         	{% csrf_token %}
         	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
             <span style="color:purple;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>

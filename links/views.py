@@ -31,6 +31,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
 import random, string
 import uuid
+#from throttle.decorators import throttle
 
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
@@ -53,6 +54,7 @@ def valid_passcode(user,num):
 def valid_uuid(uuid):
     regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
     match = regex.match(uuid)
+    #print bool(match)
     return bool(match)
 
 def GetNonReplyLinks(user):
@@ -297,7 +299,6 @@ class VoteOrProfileView(FormView):
 				context["vote_id"] = vote_id
 				context["link_submitter_id"] = link_submitter_id
 				return context
-			#link_submitter = User.objects.get(pk=link_submitter_id)
 			if vote.voter.id == int(user_id): #confirming voter
 				if self.request.user.id == int(user_id): #if person looking at own vote
 					context["self"] = 1
@@ -335,46 +336,6 @@ class LogoutHelpView(FormView):
 	form_class = LogoutHelpForm
 	template_name = "logout_help.html"
 
-# class DownvoteView(FormView):
-# 	form_class = DownvoteForm
-# 	template_name = "downvote.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(UpvoteView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			if self.available:
-# 				context["can_vote"] = 1
-# 			else:
-# 				context["can_vote"] = 0
-# 		return context
-
-# class UpvoteView(FormView):
-# 	form_class = UpvoteForm
-# 	template_name = "upvote.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(UpvoteView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				upvote = SuperUpvote.objects.get(caster=self.request.user)
-# 				if upvote.available > 0: #i.e. upvotes exist
-# 					context["can_vote"] = 1
-# 					context["time"] = upvote.time
-# 					#upvote.time = datetime.utcnow().replace(tzinfo=utc)
-# 				else:
-# 					context["can_vote"] = 0
-# 					context["time"] = upvote.time
-# 			except:
-# 				upvote = SuperUpvote.objects.create(caster=self.request.user, available=3)#if doesn't have an entry in the DB table, include it
-# 				context["can_vote"] = 1
-# 				context["time"] = upvote.time
-# 		return context
-
-# 	def form_valid(self,form):
-# 		if self.request.user_banned:
-# 			return redirect("error")
-# 		else:
-# 			if self.request.method == 'POST':
 
 class LogoutReconfirmView(FormView):
 	form_class = LogoutReconfirmForm
@@ -460,9 +421,6 @@ class LinkListView(ListView):
 			return Link.objects.order_by('-id')[:120]
 		else:#if user is not hell-banned
 			global condemned
-			#print condemned
-			#print Link.objects.order_by('-id')[:120]
-			#print Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
 			return Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
 
 	def get_context_data(self, **kwargs):
@@ -807,7 +765,7 @@ class DirectMessageCreateView(FormView):
 				reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=self.request.user))
 				reply_list.append(Reply(text='ao baat karein', which_group_id=group.id, writer=self.request.user))
 				Reply.objects.bulk_create(reply_list)
-				return redirect("private_group_reply", slug=unique)
+				return redirect("private_group", slug=unique)
 			except:
 				return redirect("profile", slug=invitee)
 
@@ -840,7 +798,7 @@ class ClosedGroupCreateView(CreateView):
 		try: 
 			return redirect("invite", slug=unique)
 		except:
-			return redirect("private_group_reply", slug=unqiue)
+			return redirect("private_group", slug=unqiue)
 
 class OpenGroupCreateView(CreateView):
 	model = Group
@@ -887,10 +845,6 @@ class DirectMessageView(FormView):
 			target = User.objects.get(id=pk)
 			context["target"] = target
 		return context
-
-	# def form_valid(self, form):
-	# 	if self.request.method == 'POST':
-	# 		return redirect("direct_message_create", pk=self.kwargs.get('pk'))
 
 class InviteUsersToGroupView(FormView):
 	model = Session
@@ -1004,11 +958,12 @@ class GroupPageView(ListView):
 	def get_queryset(self):
 		groups = []
 		replies = []
-		groups = Group.objects.filter(Q(owner=self.request.user)|Q(reply__writer=self.request.user)).distinct().values_list('id', flat=True)
-		replies = Reply.objects.filter(Q(which_group__in=groups)|Q(category='1',text=self.request.user.username)).\
-		exclude(category='1',writer=self.request.user).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
+		user = self.request.user
+		groups = Group.objects.filter(Q(owner=user)|Q(reply__writer=user)).distinct().values_list('id', flat=True)
+		replies = Reply.objects.filter(Q(which_group__in=groups)|Q(category='1',text=user.username)).\
+		exclude(category='1',writer=user).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
 		replies_qs = Reply.objects.filter(id__in=replies).order_by('-id')[:60]
-		seen_for = {groupseen.which_reply_id: groupseen for groupseen in GroupSeen.objects.filter(seen_user=self.request.user)}
+		seen_for = {groupseen.which_reply_id: groupseen for groupseen in GroupSeen.objects.filter(seen_user=user)}
 		replies = [(reply, seen_for.get(reply.pk))for reply in replies_qs]
 		return replies
 
@@ -1017,6 +972,7 @@ class GroupPageView(ListView):
 		if self.request.user.is_authenticated():
 			context["verified"] = FEMALES
 		return context
+
 
 class GroupTypeView(FormView):
 	form_class = GroupTypeForm
@@ -1451,14 +1407,20 @@ class ChangeGroupTopicView(CreateView):
 		context["unauthorized"] = False
 		if user.is_authenticated():
 			unique = self.kwargs["slug"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["group"] = group
-			if group.private == '0':
-				if not group.owner == user:
-					context["unauthorized"] = True
-				else:
-					context["unauthorized"] = False
+			if not valid_uuid(unique):
+				unique = self.request.session['unique_id']
+			if unique:	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+				if group.private == '0':
+					if not group.owner == user:
+						context["unauthorized"] = True
+					else:
+						context["unauthorized"] = False
+			else:
+				context["unauthorized"] = True
+				return context
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
@@ -1475,7 +1437,7 @@ class ChangeGroupTopicView(CreateView):
 			group.save()
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			if group.private == '1':
-				return redirect("private_group_reply", slug=unique)
+				return redirect("private_group", slug=unique)
 			elif group.private == '0':
 				return redirect("public_group_reply", slug=unique)
 			else:
@@ -1713,6 +1675,15 @@ class PublicGroupView(CreateView):
 				except:
 					return redirect("public_group_reply", slug=reply.which_group.unique)
 
+#def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
+def private_group(request, slug=None, *args, **kwargs):
+	if valid_uuid(slug):
+		request.session['unique_id'] = slug
+	else:
+	 	return redirect("score_help")
+	return redirect("private_group_reply")
+	
+
 class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Reply
 	form_class = PrivateGroupReplyForm		
@@ -1721,68 +1692,75 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 	def get_context_data(self, **kwargs):
 		context = super(PrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			#if not self.request.user_banned: #do the following ONLY if user isn't hell-banned
-				unique = self.kwargs["slug"]
+			try:
+				unique = self.request.session['unique_id']
+			except:
+				context["switching"] = True
+				return context
+			if unique:
 				context["unique"] = unique
-				group = Group.objects.get(unique=unique)#get DB call
-				context["group"] = group
-				if 'private' in self.request.path and group.private=='1':
-					context["switching"] = False
-					GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
-					context["ensured"] = FEMALES
-					replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
-					time_now = datetime.utcnow().replace(tzinfo=utc)
-					writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
-					most_recent = {}
-					for reply,user,time in writers_with_times:
-						most_recent[user] = min(most_recent.get(user,time),time)
-					replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
-					#print "REPLIES WITH MIN TIMES %s" % newList
-					context["replies"] = replies_writers_times
-					#context["time"] = min_time
-					if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
-						members = User.objects.filter(reply__which_group=group).distinct()#get DB call
-						context["members"] = members
-						own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
-						if own_reply: #user wrote a reply too (whether or not they are group admin)
-							seen_replies=[]
-							latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
-							#print latest_own_reply
-							if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-								less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-								#print less_than_replies
-								less_than_replies_ids = [reply.id for reply in less_than_replies]
-								more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-								#print more_than_replies
-								more_than_replies_ids = [reply.id for reply in more_than_replies]
-								#all seen objects of less than replies and more than replies
-								less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
-								more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
-								insert_list = []
-								for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-									if reply not in less_than_seen_replies:
-										#this case kicks in when a user jumps into the middle of a conversation
-										insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
-										seen_replies.append(reply)
-									else:
-										seen_replies.append(reply)
-								GroupSeen.objects.bulk_create(insert_list)
-								for reply in more_than_replies:
-									#####################################################
-									if reply in more_than_seen_replies:
-										seen_replies.append(reply)
-							context["seenreplies"] = seen_replies
-							object_list = []
-							for response in replies:
-								if response not in seen_replies:
-									#bulk creating seen objects for every unseen reply, for that particular user
-									object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-							GroupSeen.objects.bulk_create(object_list)
-						else: #user didn't create group, or replied. User is visiting
-							context["seenreplies"] = replies
-							#return context
-				else:
-					context["switching"] = True
+			else:
+				context["switching"] = True
+				return context
+			group = Group.objects.get(unique=unique)#get DB call
+			context["group"] = group
+			if 'private' in self.request.path and group.private=='1':
+				context["switching"] = False
+				GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
+				context["ensured"] = FEMALES
+				replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
+				time_now = datetime.utcnow().replace(tzinfo=utc)
+				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
+				most_recent = {}
+				for reply,user,time in writers_with_times:
+					most_recent[user] = min(most_recent.get(user,time),time)
+				replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
+				#print "REPLIES WITH MIN TIMES %s" % newList
+				context["replies"] = replies_writers_times
+				#context["time"] = min_time
+				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					members = User.objects.filter(reply__which_group=group).distinct()#get DB call
+					context["members"] = members
+					own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
+					if own_reply: #user wrote a reply too (whether or not they are group admin)
+						seen_replies=[]
+						latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
+						#print latest_own_reply
+						if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
+							less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
+							#print less_than_replies
+							less_than_replies_ids = [reply.id for reply in less_than_replies]
+							more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
+							#print more_than_replies
+							more_than_replies_ids = [reply.id for reply in more_than_replies]
+							#all seen objects of less than replies and more than replies
+							less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
+							more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
+							insert_list = []
+							for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
+								if reply not in less_than_seen_replies:
+									#this case kicks in when a user jumps into the middle of a conversation
+									insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
+									seen_replies.append(reply)
+								else:
+									seen_replies.append(reply)
+							GroupSeen.objects.bulk_create(insert_list)
+							for reply in more_than_replies:
+								#####################################################
+								if reply in more_than_seen_replies:
+									seen_replies.append(reply)
+						context["seenreplies"] = seen_replies
+						object_list = []
+						for response in replies:
+							if response not in seen_replies:
+								#bulk creating seen objects for every unseen reply, for that particular user
+								object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
+						GroupSeen.objects.bulk_create(object_list)
+					else: #user didn't create group, or replied. User is visiting
+						context["seenreplies"] = replies
+						#return context
+			else:
+				context["switching"] = True
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
@@ -1827,10 +1805,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				which_group = Group.objects.get(unique=self.request.POST.get("unique"))
 				reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)
 				GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
-				try:
-					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-				except:
-					return redirect("private_group_reply", slug=reply.which_group.unique)
+				self.request.session['unique_id'] = None
+				return redirect("private_group", reply.which_group.unique)
 
 class WelcomeView(FormView):
 	form_class = WelcomeForm
@@ -2520,6 +2496,7 @@ def find_time(obj):
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
+#@throttle(zone='default')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
 		try:

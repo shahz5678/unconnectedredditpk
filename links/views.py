@@ -31,7 +31,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
 import random, string
 import uuid
-#from throttle.decorators import throttle
+from throttle.decorators import throttle
 
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
@@ -363,8 +363,8 @@ class MehfilView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(MehfilView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			target_id = self.kwargs["pk"]
-			link_id = self.kwargs["slug"]
+			target_id = self.request.session['user_pk']
+			link_id = self.request.session['link_id']
 			context["target"] = User.objects.get(id=target_id)
 			context["link_id"] = link_id
 		return context
@@ -372,19 +372,13 @@ class MehfilView(FormView):
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			report = self.request.POST.get("decision")
-			target = self.kwargs["pk"]
-			link_id = self.kwargs["slug"]
+			target = self.request.session['user_pk']
+			link_id = self.request.session['link_id']
+			self.request.session['link_id'] = None
+			self.request.session['user_pk'] = None
 			if report == 'Haan':
-				# report = self.request.POST.get("reply")
-				# reply = get_object_or_404(Publicreply, pk=report)
-				# reply.abuse = True
-				# reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 2
-				# reply.submitted_by.userprofile.save()
-				# reply.save()
-				return redirect("direct_message_help", pk=target)
+				return redirect("direct_message", pk=target)
 			else:
-				# report = self.request.POST.get("reply")
-				# reply = get_object_or_404(Publicreply, pk=report)
 				return redirect("reply", pk=link_id)	
 
 class ReportreplyView(FormView):
@@ -833,6 +827,12 @@ class OpenGroupCreateView(CreateView):
 		else:
 			return redirect("group_page")
 
+def direct_message(request, pk=None, *args, **kwargs):
+	if pk.isdigit():
+		request.session["dm"] = pk
+		return redirect("direct_message_help")
+	else:
+		return redirect("score_help")
 
 class DirectMessageView(FormView):
 	form_class = DirectMessageForm
@@ -841,7 +841,8 @@ class DirectMessageView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(DirectMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			pk = self.kwargs.get('pk')
+			pk = self.request.session["dm"]
+			self.request.session = None
 			target = User.objects.get(id=pk)
 			context["target"] = target
 		return context
@@ -1830,6 +1831,15 @@ class WelcomeMessageView(CreateView):
 			context["option"] = self.kwargs["option"]
 		return context
 
+def mehfil_help(request, pk=None, num=None, *args, **kwargs):
+	if pk.isdigit() and num.isdigit():
+		request.session['user_pk'] = pk
+		request.session['link_id'] = num
+		return redirect("mehfil_help")
+	else:
+		return redirect("score_help")
+
+
 class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Publicreply
 	form_class = PublicreplyForm
@@ -2496,7 +2506,7 @@ def find_time(obj):
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
-#@throttle(zone='default')
+@throttle(zone='default')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
 		try:

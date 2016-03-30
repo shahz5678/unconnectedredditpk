@@ -43,9 +43,9 @@
 	<p style="margin-top:.5em;"></p>
 
 	{% if value.0.reply_count > 0 %}
-		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.reply_count }} jawab</a>
+		<a href="{% url 'reply_pk' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.reply_count }} jawab</a>
 		{% else %}
-		<a href="{% url 'reply' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+		<a href="{% url 'reply_pk' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 		{% endif %}
 
 	<br>
@@ -80,14 +80,14 @@
     	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
     {% endif %}{% endfor %}
 	: <span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ value.2.description }}{% endemoticons %}</span>
-	<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
+	<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
 	<a name="section{{ forloop.counter }}"></a>
 	<p style="margin-top:.5em;"></p>
 
 	{% if value.2.reply_count > 0 %}
-		<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.reply_count }} jawab</a>
+		<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.reply_count }} jawab</a>
 		{% else %}
-		<a href="{% url 'reply' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+		<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 		{% endif %}
 	<br>
 {% endif %}

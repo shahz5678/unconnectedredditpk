@@ -59,9 +59,9 @@
 	</span><a name="section{{ forloop.counter }}"></a><br>
 
 		{% if link.reply_count > 0 %}
-		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;"><b>{{ link.reply_count }} jawab</b></a>
+		<a href="{% url 'reply_pk' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;"><b>{{ link.reply_count }} jawab</b></a>
 		{% else %}
-		<a href="{% url 'reply' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
+		<a href="{% url 'reply_pk' pk=link.pk %}" style="color:#1947D1;background-color:white;font-size:90%;font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
 		{% endif %}
 
 	{% if can_vote %}

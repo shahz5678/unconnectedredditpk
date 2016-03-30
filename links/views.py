@@ -2195,6 +2195,14 @@ class LinkCreateView(CreateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
 
+def kick_pk(request, pk=None, slug=None, *args, **kwargs):
+	if pk.isdigit() and valid_uuid(slug):
+		request.session["kick_pk"] = pk
+		request.session["kick_slug"] = slug
+		return redirect("kick")
+	else:
+		return redirect("score_help")
+
 class KickView(FormView):
 	form_class = KickForm
 	template_name = "kick.html"
@@ -2202,7 +2210,7 @@ class KickView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(KickView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs.get("slug")
+			unique = self.request.session["kick_slug"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["unauthorized"] = False
@@ -2212,7 +2220,7 @@ class KickView(FormView):
 			if group.owner != self.request.user:
 				context["culprit"] = self.request.user
 			else:
-				culprit_id = self.kwargs.get("pk")
+				culprit_id = self.request.session["kick_pk"]
 				culprit = User.objects.get(id=culprit_id)
 				context["culprit"] = culprit
 		return context
@@ -2227,15 +2235,17 @@ class KickView(FormView):
 				self.request.user.userprofile.save()
 				return redirect("group_page")
 			else:
-				unique = self.request.POST.get("unique")
+				unique = self.request.session["kick_slug"]
+				self.request.session["kick_slug"] = None
 				group = Group.objects.get(unique=unique)
 				if group.private == '0':
 					if group.owner != self.request.user:
 						return redirect("public_group_reply", slug=unique)
 					else:
-						pk = self.request.POST.get("culprit")
+						pk = self.request.session["kick_pk"]
+						self.request.session["kick_pk"] = None
 						culprit = User.objects.get(id=pk)
-						if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():
+						if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():# already kicked and banned
 							return redirect("public_group_reply", slug=unique)
 						else:
 							GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list

@@ -1992,7 +1992,12 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1', device=device)
 				Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
 				answer_to.save()
-				return redirect("reply_pk", pk=pk)
+				try:
+					return redirect("reply_pk", pk=pk)
+				except:
+					self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+					self.request.user.userprofile.save()
+					return redirect("profile", slug=self.request.user.username)
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		try: 

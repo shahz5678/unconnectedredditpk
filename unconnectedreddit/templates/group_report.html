@@ -3,9 +3,8 @@
 <div class="margin">
 {% if captain %}
 	<h2>Kiya tum iss baat ko mita dena chahtey ho?</h2>
-	<form action="{% url 'group_report' slug=unique pk=reply.pk %}" method="POST">
+	<form action="{% url 'group_report' %}" method="POST">
 	{% csrf_token %}
-	<input type="hidden" name="reply" class="hidden_id" value="{{ reply.pk }}">
 	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan mita do"><br>
 	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi rehne do"><br>
 	</form>

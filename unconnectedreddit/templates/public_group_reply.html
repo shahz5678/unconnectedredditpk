@@ -199,7 +199,7 @@
             {% if user == group.owner %}
                 <a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><span style="font-size:65%;">(kick)</span></a>
             {% else %}
-                <a href="{% url 'group_report' slug=unique pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
+                <a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
             {% endif %}
             <br>
         {% endif %}

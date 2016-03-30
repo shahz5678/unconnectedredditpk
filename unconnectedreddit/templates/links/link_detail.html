@@ -10,7 +10,7 @@
     display: none;
   }
 </style>
-<form  method="POST" action="{% url 'vote' %}" class="vote_form">
+<form  method="POST" action="{% url 'vote' 1 1 1 1 %}" class="vote_form">
   {% csrf_token %}
   <input type="hidden" id="id_link" name="link" class="hidden_id" value="{{ link.pk }}">
   

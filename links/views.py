@@ -1680,7 +1680,7 @@ def private_group(request, slug=None, *args, **kwargs):
 	#PERIODS = (1,5*1,10*1,)
 	was_limited = getattr(request, 'limits', {})
 	#print was_limited
-	print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
+	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if valid_uuid(slug):
 		request.session['unique_id'] = slug
 	else:

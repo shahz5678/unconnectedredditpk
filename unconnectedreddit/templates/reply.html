@@ -39,7 +39,7 @@
 <a name="sectionJ"></a> 
 {% if score > -10 %}
 <hr size=1>
-<form action="{% url 'reply' pk=parent.pk %}" method="POST">
+<form action="{% url 'reply' %}" method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
     <span style="font-size:85%;color:dimgrey;"><b>Jawab likho:</b></span>{{ form.description }}
@@ -118,7 +118,7 @@
         {% endif %}
     </span>
     {% if user == parent.submitter %}
-    <a href="{% url 'reportreply' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
+    <a href="{% url 'reportreply_pk' pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
     {% endif %}
     {% if user != reply.submitted_by %}
     <a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><span style="font-size:65%;">(mehfil)</span></a>

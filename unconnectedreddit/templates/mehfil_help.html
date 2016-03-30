@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
-<h2>Private mehfil mein logg zaati chat kartey hain</h2>
-Kiya tum <b>{{ target.username }}</b> ke saath private mehfil banana chahtey ho?
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Private mehfil mein logg zaati chat kartey hain</h2>
+<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum <b>{{ target.username }}</b> ke saath private mehfil banana chahtey ho?</span>
 <form action="{% url 'mehfil_help' %}" method="POST">
 {% csrf_token %}
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"><br>
+<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
+<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"><br>
 </form>
 </div>
 {% endblock %}

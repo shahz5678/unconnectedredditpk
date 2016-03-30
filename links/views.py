@@ -350,9 +350,12 @@ class LogoutReconfirmView(FormView):
 			if self.request.method == 'POST':
 				decision = self.request.POST.get("decision")
 				if decision == 'Khuda Hafiz':
-					self.request.user.userprofile.score = 10
-					self.request.user.userprofile.save()
-					return redirect("bahirniklo")
+					try:
+						self.request.user.userprofile.score = 10
+						self.request.user.userprofile.save()
+						return redirect("bahirniklo")
+					except:
+						return redirect("home")
 				else:
 					return redirect("home")
 			else:

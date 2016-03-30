@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Kiya tum iss jawab ko report karna chahtey ho?</h2>
+<div class="margin">
+
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum iss jawab ko report karna chahtey ho?</h2>
 <form action="{% url 'report' %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="reply" class="hidden_id" value="{{ reply }}">
-<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan ye ghair ikhlaaqi hai"><br>
-<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi rehnay do khair hai"><br>
+<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan ye gher ikhlaqi hai"><br>
+<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi rehnay do kher hai"><br>
 </form>
+
+</div>
 {% endblock %}

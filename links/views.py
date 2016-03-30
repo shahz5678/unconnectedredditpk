@@ -1965,8 +1965,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		pk = self.request.session["link_pk"]
 		self.request.session["link_pk"] = None
 		score = fuzz.ratio(description, self.request.user.userprofile.previous_retort)
-		if score > 90:
-			return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
+		if score > 85:
+			try:
+				return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
+			except:
+				return redirect("profile", slug=self.request.user.username)
 		else:
 			if self.request.user_banned:
 				return redirect("score_help")

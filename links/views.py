@@ -41,23 +41,23 @@ from brake.decorators import ratelimit
 condemned = HellBanList.objects.values('condemned_id').distinct()
 
 def valid_passcode(user,num):
-    if user.is_authenticated():
-    	if ChatPicMessage.objects.filter(sender=user,what_number=num).exists():
-    		return False
-    	else:
-    		return True
-    else:
-    	if ChatPicMessage.objects.filter(sender_id=1,what_number=num).exists():
-    		return False
-    	else:
-    		return True
+	if user.is_authenticated():
+		if ChatPicMessage.objects.filter(sender=user,what_number=num).exists():
+			return False
+		else:
+			return True
+	else:
+		if ChatPicMessage.objects.filter(sender_id=1,what_number=num).exists():
+			return False
+		else:
+			return True
 
 
 def valid_uuid(uuid):
-    regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
-    match = regex.match(uuid)
-    #print bool(match)
-    return bool(match)
+	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
+	match = regex.match(uuid)
+	#print bool(match)
+	return bool(match)
 
 def GetNonReplyLinks(user):
 	#links_with_user_replies=[]
@@ -843,10 +843,21 @@ class DirectMessageView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(DirectMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			pk = self.request.session["dm"]
-			self.request.session = None
-			target = User.objects.get(id=pk)
-			context["target"] = target
+			context["nopk"] = False
+			try:
+				pk = self.request.session["dm"]
+				self.request.session["dm"] = None
+			except:
+				context["nopk"] = True
+				context["target"] = None
+				return context
+			if pk:
+				target = User.objects.get(id=pk)
+				context["target"] = target
+			else:
+				context["nopk"] = True
+				context["target"] = None
+				return context
 		return context
 
 class InviteUsersToGroupView(FormView):
@@ -1675,17 +1686,23 @@ class PublicGroupView(CreateView):
 				except:
 					return redirect("public_group_reply", slug=self.kwargs["slug"])
 
-@ratelimit(rate='30/m')
+@ratelimit(rate='2/s')
 def private_group(request, slug=None, *args, **kwargs):
 	#PERIODS = (1,5*1,10*1,)
-	was_limited = getattr(request, 'limits', {})
-	#print was_limited
+	was_limited = getattr(request, 'limits', False)
 	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
-	if valid_uuid(slug):
-		request.session['unique_id'] = slug
+	if was_limited:
+		deduction = 1 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty.html', context)
 	else:
-	 	return redirect("score_help")
-	return redirect("private_group_reply")
+		if valid_uuid(slug):
+			request.session['unique_id'] = slug
+		else:
+			return redirect("score_help")
+		return redirect("private_group_reply")
 	
 
 class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
@@ -1783,7 +1800,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
 			else:
 				self.request.user.userprofile.previous_retort = text
-				#self.request.user.userprofile.score = self.request.user.userprofile.score + 2
+				self.request.user.userprofile.score = self.request.user.userprofile.score + 1
 				self.request.user.userprofile.save()
 				#print "image: %s" % f.image
 				if f.image:

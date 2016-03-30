@@ -31,6 +31,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
 import random, string
 import uuid
+from fuzzywuzzy import fuzz
 #from throttle.decorators import throttle
 
 #from django.utils.translation import ugettext_lazy as _
@@ -1532,11 +1533,10 @@ class OutsiderGroupView(CreateView):
 					return redirect("group_page")
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				text = f.text
-				if text == self.request.user.userprofile.previous_retort:
-					try: 
-						return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-					except: 
-						return redirect("group_page")#, pk= reply.answer_to.id)
+				#if text == self.request.user.userprofile.previous_retort:
+				score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
+				if score > 90:
+					return redirect("group_page")#, pk= reply.answer_to.id)
 				else:
 					self.request.user.userprofile.previous_retort = text
 					#self.request.user.userprofile.score = self.request.user.userprofile.score + 2
@@ -1641,11 +1641,9 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			text = f.text
-			if text == self.request.user.userprofile.previous_retort:
-				try: 
-					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-				except: 
-					return redirect("group_page")#, pk= reply.answer_to.id)
+			score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
+			if score > 90:
+				return redirect("public_group_reply", slug=self.kwargs["slug"])
 			else:
 				self.request.user.userprofile.previous_retort = text
 				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
@@ -1674,7 +1672,7 @@ class PublicGroupView(CreateView):
 				try:
 					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
 				except:
-					return redirect("public_group_reply", slug=reply.which_group.unique)
+					return redirect("public_group_reply", slug=self.kwargs["slug"])
 
 #def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
 def private_group(request, slug=None, *args, **kwargs):
@@ -1775,11 +1773,9 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			text = f.text
-			if text == self.request.user.userprofile.previous_retort:
-				try: 
-					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-				except: 
-					return redirect("group_page")#, pk= reply.answer_to.id)
+			score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
+			if score > 90:
+				return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
 			else:
 				self.request.user.userprofile.previous_retort = text
 				#self.request.user.userprofile.score = self.request.user.userprofile.score + 2
@@ -1871,17 +1867,6 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
 				context["replies"] = replies #latest replies, sans condemned
 				own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
-				#from_notification = self.request.POST.get('home', False)
-				#is_notification = self.kwargs["is_notif"]
-				# if is_notification:
-				# 	#print "came from home notification"
-				# 	user_object = Unseennotification.objects.get(recipient=self.request.user)#updating the unseennotification object
-				# 	user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
-				# 	user_object.save()
-				#if it's the right public reply:
-					# user_object = Unseennotification.objects.get(recipient=self.request.user)#updating the unseennotification object
-					# user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
-					# user_object.save()
 				if link.submitter == self.request.user and own_reply==False: #user only wrote parent link, and has never replied under it
 					seen_replies = []
 					reply_ids = [reply.id for reply in replies] #the ids of the latest 25 replies
@@ -1934,11 +1919,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		description = self.request.POST.get("description")
-		if description == self.request.user.userprofile.previous_retort:
-			try: 
-				return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-			except: 
-				return redirect("home")#, pk= reply.answer_to.id)
+		#if description == self.request.user.userprofile.previous_retort:
+		score = fuzz.ratio(description, self.request.user.userprofile.previous_retort)
+		if score > 90:
+			return redirect("reply", pk=self.kwargs["pk"])#, pk= reply.answer_to.id)
 		else:
 			if self.request.user_banned:
 				return redirect("score_help")
@@ -1964,7 +1948,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				try:
 					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
 				except:
-					return redirect("reply", pk= reply.answer_to.id)
+					return redirect("reply", pk= self.kwargs["pk"])
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		try: 
@@ -2152,8 +2136,12 @@ class LinkCreateView(CreateView):
 		else:
 			f.device = '3'
 		try:
-			if f.description==f.submitter.userprofile.previous_retort:
+			#if f.description==f.submitter.userprofile.previous_retort:
+			score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
+			if score > 90:
 				return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
+			else:
+				pass
 		except:
 			pass
 		f.submitter.userprofile.previous_retort = f.description

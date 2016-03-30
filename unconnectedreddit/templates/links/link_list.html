@@ -57,7 +57,7 @@
 		{% endif %}
 			</span>
 				<p style="margin-top:.5em;"></p>
-				<a href="{% url 'reply' pk=parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
+				<a href="{% url 'reply_pk' parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
 				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk ident %}" style="color:red;"><b>x</b></a>
 				<a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
 			</div>
@@ -168,9 +168,9 @@
 		<p style="margin-top:.5em;">
 			
 				{% if link.reply_count > 0 %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;"><b style="text-shadow:none;">{{ link.reply_count }} jawab</b></button></a>
+						<a href="{% url 'reply_pk' link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;"><b style="text-shadow:none;">{{ link.reply_count }} jawab</b></button></a>
 				{% else %}
-						<a href="{% url 'reply' pk=link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
 				{% endif %}
 			<br>
 		{% if link.pk not in voted and link.submitter != user and can_vote %}

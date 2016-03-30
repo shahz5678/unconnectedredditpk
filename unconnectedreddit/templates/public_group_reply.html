@@ -197,7 +197,7 @@
         {% endif %}
             </span>
             {% if user == group.owner %}
-                <a href="{% url 'kick' pk=writer.pk slug=unique id=group.owner.pk %}"><span style="font-size:65%;">(kick)</span></a>
+                <a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><span style="font-size:65%;">(kick)</span></a>
             {% else %}
                 <a href="{% url 'group_report' slug=unique pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
             {% endif %}

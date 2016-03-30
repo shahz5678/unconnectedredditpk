@@ -2268,6 +2268,14 @@ class KickView(FormView):
 				else:
 					return redirect("score_help")
 
+def groupreport_pk(request, slug=None, pk=None, *args, **kwargs):
+	if pk.isdigit() and valid_uuid(slug):
+		request.session["groupreport_slug"] = slug
+		request.session["groupreport_pk"] = pk
+		return redirect("group_report")
+	else:
+		return redirect("about")
+
 class GroupReportView(FormView):
 	form_class = GroupReportForm
 	template_name = "group_report.html"
@@ -2275,12 +2283,12 @@ class GroupReportView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(GroupReportView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs.get("slug")
+			unique = self.request.session["groupreport_slug"]
 			context["unique"] = unique
 			if GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists():
 				#print GroupCaptain.objects.filter(which_user=self.request.user).exists()
 				context["captain"] = True
-				reply_id = self.kwargs.get("pk")
+				reply_id = self.request.session["groupreport_pk"]
 				reply = Reply.objects.get(id=reply_id)
 				context["reply"] = reply
 			else:
@@ -2289,7 +2297,8 @@ class GroupReportView(FormView):
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
-			unique = Group.objects.get(unique=self.kwargs.get("slug"))
+			unique = Group.objects.get(unique=self.request.session["groupreport_slug"])
+			self.request.session["groupreport_slug"] = None
 			if unique.private != '0':
 				return redirect("score_help")
 			if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group=unique).exists():
@@ -2302,7 +2311,8 @@ class GroupReportView(FormView):
 			else:
 				report = self.request.POST.get("report")
 				if report == 'Haan mita do':
-					reply_id = self.request.POST.get("reply")
+					reply_id = self.request.session["groupreport_pk"]
+					self.request.session["groupreport_pk"] = None
 					reply = get_object_or_404(Reply, pk=reply_id)
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists():
 						#print GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists()
@@ -2315,7 +2325,6 @@ class GroupReportView(FormView):
 						reply.save()
 						return redirect("public_group_reply", slug=unique.unique)
 				else:
-					#unique = self.kwargs.get("slug")
 					return redirect("public_group_reply", slug= unique.unique)
 
 class ReportView(FormView):

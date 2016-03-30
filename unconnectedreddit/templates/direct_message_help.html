@@ -2,19 +2,23 @@
 {% block content %}
 
 <div class="margin">
-{% if user.userprofile.score > 499 %}
+{% if not nopk %}
+	{% if user.userprofile.score > 499 %}
 
-Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai.<br>Tum ye qeemat dena chahtey ho?<br><br>
-<form action="{% url 'direct_message_create' pk=target.pk %}" method="POST">
-{% csrf_token %}
-<span style="color:lightgrey;"><b>.</b></span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
-</form>
-<span style="color:lightgrey;"><b>.</b></span>&nbsp;<a href="{% url 'profile' slug=target.username %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
+	Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai.<br>Tum ye qeemat dena chahtey ho?<br><br>
+	<form action="{% url 'direct_message_create' pk=target.pk %}" method="POST">
+	{% csrf_token %}
+	<span style="color:lightgrey;"><b>.</b></span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
+	</form>
+	<span style="color:lightgrey;"><b>.</b></span>&nbsp;<a href="{% url 'profile' slug=target.username %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
+	{% else %}
+
+	Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
+	 <a href="{% url 'home' %}"><b><</b>&nbsp;Wapis jao</a>
+
+	{% endif %}
 {% else %}
-
-Ye private mehfil bananey ki qeemat <b style="color:red;">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
- <a href="{% url 'home' %}"><b><</b>&nbsp;Wapis jao</a>
-
+	<span color:"color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);font-size:110%;"><b>Ye mehfil nahi chal sakti!</b></span>
 {% endif %}
 </div>
 

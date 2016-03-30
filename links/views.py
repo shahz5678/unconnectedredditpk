@@ -381,7 +381,14 @@ class MehfilView(FormView):
 			if report == 'Haan':
 				return redirect("direct_message", pk=target)
 			else:
-				return redirect("reply", pk=link_id)	
+				return redirect("reply_pk", pk=link_id)	
+
+def reportreply_pk(request, pk=None, *args, **kwargs):
+	if pk.isdigit():
+		request.session["report_pk"] = pk
+		return redirect("reportreply")
+	else:
+		return redirect("score_help")
 
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm
@@ -390,7 +397,7 @@ class ReportreplyView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(ReportreplyView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["reply"] = self.kwargs["pk"]
+			context["reply"] = self.request.session["report_pk"]
 		return context
 
 class LinkDetailView(DetailView):
@@ -1857,6 +1864,12 @@ def mehfil_help(request, pk=None, num=None, *args, **kwargs):
 	else:
 		return redirect("score_help")
 
+def reply_pk(request, pk=None, *args, **kwargs):
+	if pk.isdigit():
+		request.session["link_pk"] = pk
+		return redirect("reply")
+	else:
+		return redirect("score_help")
 
 class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Publicreply
@@ -1871,7 +1884,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			score = self.request.user.userprofile.score
 			context["score"] = score
 			try:
-				link = Link.objects.get(id=self.kwargs["pk"])
+				link = Link.objects.get(id=self.request.session["link_pk"])
 			except:
 				context["error"] = True
 				return context
@@ -1941,10 +1954,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 		description = self.request.POST.get("description")
-		#if description == self.request.user.userprofile.previous_retort:
+		pk = self.request.session["link_pk"]
+		self.request.session["link_pk"] = None
 		score = fuzz.ratio(description, self.request.user.userprofile.previous_retort)
 		if score > 90:
-			return redirect("reply", pk=self.kwargs["pk"])#, pk= reply.answer_to.id)
+			return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
 		else:
 			if self.request.user_banned:
 				return redirect("score_help")
@@ -1967,10 +1981,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1', device=device)
 				Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
 				answer_to.save()
-				try:
-					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-				except:
-					return redirect("reply", pk= self.kwargs["pk"])
+				return redirect("reply_pk", pk=pk)
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		try: 
@@ -2161,7 +2172,7 @@ class LinkCreateView(CreateView):
 			#if f.description==f.submitter.userprofile.previous_retort:
 			score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
 			if score > 90:
-				return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
+				return redirect("link_create")
 			else:
 				pass
 		except:
@@ -2288,18 +2299,20 @@ class ReportView(FormView):
 		if self.request.method == 'POST':
 			if not self.request.user_banned:
 				report = self.request.POST.get("report")
-				if report == 'Haan ye ghair ikhlaaqi hai':
+				if report == 'Haan ye gher ikhlaqi hai':
 					report = self.request.POST.get("reply")
 					reply = get_object_or_404(Publicreply, pk=report)
 					reply.abuse = True
 					reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 3
 					reply.submitted_by.userprofile.save()
 					reply.save()
-					return redirect("reply", pk=reply.answer_to.id)
+					self.request.session["report_pk"] = None
+					return redirect("reply_pk", pk=reply.answer_to.id)
 				else:
 					report = self.request.POST.get("reply")
 					reply = get_object_or_404(Publicreply, pk=report)
-					return redirect("reply", pk= reply.answer_to.id)
+					self.request.session["report_pk"] = None
+					return redirect("reply_pk", pk= reply.answer_to.id)
 			else:
 				return redirect("score_help")
 

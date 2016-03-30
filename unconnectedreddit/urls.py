@@ -3,10 +3,9 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
-from links.views import cross_notif, vote, vote_on_vote, private_group, direct_message, mehfil_help
+from links.views import cross_notif, vote, vote_on_vote, private_group, direct_message, mehfil_help, reply_pk, reportreply_pk
 from django.views.generic.base import TemplateView
 from links.views import LinkListView, TopView, PicHelpView, AboutView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsideMessageRecreateView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView#, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView,
-
 
 admin.autodiscover()
 
@@ -52,7 +51,7 @@ urlpatterns = patterns('',
 	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
 	url(r'^group/open_invite_type/(?P<slug>[\w.@+-]+)/$', auth(OpenInviteTypeView.as_view()), name='open_invite_type'),
 	url(r'^group/closed_invite_type/(?P<slug>[\w.@+-]+)/$', auth(ClosedInviteTypeView.as_view()), name='closed_invite_type'),
-	url(r'^link/(?P<pk>\d+)/$', LinkDetailView.as_view(), name='link_detail'),
+	#url(r'^link/(?P<pk>\d+)/$', LinkDetailView.as_view(), name='link_detail'),
 	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
 	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
@@ -87,7 +86,8 @@ urlpatterns = patterns('',
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
-	url(r'^link/(?P<pk>\d+)/reply/$', auth(PublicreplyView.as_view()), name='reply'),
+	url(r'^link/reply/$', auth(PublicreplyView.as_view()), name='reply'),
+	url(r'^link/(?P<pk>\d+)/$', auth(reply_pk), name='reply_pk'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/public/$', auth(PublicGroupView.as_view()), name='public_group_reply'),
 	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/$', auth(private_group), name='private_group'),
@@ -99,7 +99,8 @@ urlpatterns = patterns('',
 	url(r'^group/$', auth(GroupPageView.as_view()), name='group_page'),
 	url(r'^group_list/$', auth(GroupListView.as_view()), name='group_list'),
 	url(r'^group_type/$', auth(GroupTypeView.as_view()), name='group_type'),
-	url(r'^report/(?P<pk>\d+)/$', auth(ReportreplyView.as_view()), name='reportreply'),
+	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
+	url(r'^report/(?P<pk>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
 	url(r'^appoint/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/(?P<app>\d+)/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(GroupReportView.as_view()), name="group_report"),

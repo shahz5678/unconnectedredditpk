@@ -32,6 +32,7 @@ from django.views.decorators.cache import cache_page, never_cache
 import random, string
 import uuid
 from fuzzywuzzy import fuzz
+from brake.decorators import ratelimit
 #from throttle.decorators import throttle
 
 #from django.utils.translation import ugettext_lazy as _
@@ -1674,8 +1675,12 @@ class PublicGroupView(CreateView):
 				except:
 					return redirect("public_group_reply", slug=self.kwargs["slug"])
 
-#def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
+@ratelimit(rate='30/m')
 def private_group(request, slug=None, *args, **kwargs):
+	#PERIODS = (1,5*1,10*1,)
+	was_limited = getattr(request, 'limits', {})
+	#print was_limited
+	print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if valid_uuid(slug):
 		request.session['unique_id'] = slug
 	else:

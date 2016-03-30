@@ -365,10 +365,15 @@ class MehfilView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(MehfilView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			target_id = self.request.session['user_pk']
-			link_id = self.request.session['link_id']
-			context["target"] = User.objects.get(id=target_id)
-			context["link_id"] = link_id
+			try:
+				target_id = self.request.session['user_pk']
+				link_id = self.request.session['link_id']
+				context["target"] = User.objects.get(id=target_id)
+				context["link_id"] = link_id
+			except:
+				context["target"] = None
+				context["link_id"] = None
+				return context
 		return context
 
 	def form_valid(self, form):

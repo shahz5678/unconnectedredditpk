@@ -2232,8 +2232,11 @@ class KickView(FormView):
 				context["culprit"] = self.request.user
 			else:
 				culprit_id = self.request.session["kick_pk"]
-				culprit = User.objects.get(id=culprit_id)
-				context["culprit"] = culprit
+				if Reply.objects.filter(writer_id=culprit_id,which_group=group).exists():
+					culprit = User.objects.get(id=culprit_id)
+					context["culprit"] = culprit
+				else:
+					context["unauthorized"] = True
 		return context
 
 	def form_valid(self, form):

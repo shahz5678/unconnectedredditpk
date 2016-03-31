@@ -391,9 +391,10 @@ class MehfilView(FormView):
 			else:
 				return redirect("reply_pk", pk=link_id)	
 
-def reportreply_pk(request, pk=None, *args, **kwargs):
-	if pk.isdigit():
+def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
+	if pk.isdigit() and num.isdigit():
 		request.session["report_pk"] = pk
+		request.session["linkreport_pk"] = num
 		return redirect("reportreply")
 	else:
 		return redirect("score_help")
@@ -405,7 +406,14 @@ class ReportreplyView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(ReportreplyView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["reply"] = self.request.session["report_pk"]
+			pk = self.request.session["report_pk"]
+			link_id = self.request.session["linkreport_pk"]
+			if Publicreply.objects.filter(pk=pk,answer_to=link_id).exists() and Link.objects.filter(pk=link_id,submitter=self.request.user).exists():
+				context["reply"] = pk
+				context["authorized"] = True
+			else:
+				context["reply"] = None
+				context["authorized"] = False
 		return context
 
 class LinkDetailView(DetailView):
@@ -2346,11 +2354,13 @@ class ReportView(FormView):
 					reply.submitted_by.userprofile.save()
 					reply.save()
 					self.request.session["report_pk"] = None
+					self.request.session["linkreport_pk"] = None
 					return redirect("reply_pk", pk=reply.answer_to.id)
 				else:
 					report = self.request.POST.get("reply")
 					reply = get_object_or_404(Publicreply, pk=report)
 					self.request.session["report_pk"] = None
+					self.request.session["linkreport_pk"] = None
 					return redirect("reply_pk", pk= reply.answer_to.id)
 			else:
 				return redirect("score_help")

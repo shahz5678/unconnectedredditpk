@@ -2285,10 +2285,11 @@ class GroupReportView(FormView):
 		if self.request.user.is_authenticated():
 			unique = self.request.session["groupreport_slug"]
 			context["unique"] = unique
-			if GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists():
+			reply_id = self.request.session["groupreport_pk"]
+			group = Group.objects.get(unique=unique)
+			if GroupCaptain.objects.filter(which_user=self.request.user, which_group=group).exists() and Reply.objects.filter(pk=reply_id, which_group=group).exists():
 				#print GroupCaptain.objects.filter(which_user=self.request.user).exists()
 				context["captain"] = True
-				reply_id = self.request.session["groupreport_pk"]
 				reply = Reply.objects.get(id=reply_id)
 				context["reply"] = reply
 			else:

@@ -8,14 +8,14 @@
 {% else %}
 {% if culprit == owner %}
 Tum apney aap ko mehfil se nikalna chahtey ho?<br>Pagal tou nahi ho gaye?<br><br>
-<a href="{% url 'public_group_reply' slug=unique %}">< Wapis jao</a>
+<a href="{% url 'public_group' slug=unique %}">< wapis jao</a>
 {% else %}
 Kiya <a href="{% url 'profile' slug=culprit.username %}"><b>{{ culprit.username }}</b></a> ko mehfil se hamesha ke liye nikaal diya jaye?<br><br>
 <form action="{% url 'kick' %}" method="POST">
 {% csrf_token %}
 	<span style="color:lightgrey;">&bullet;</span>&nbsp;<input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="haan" value="Haan"><br>
 </form>
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'public_group_reply' slug=unique %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'public_group' slug=unique %}"><input type="submit" style="background-color:transparent;border:none;text-align:left;outline:none;" name="Nahi" value="Nahi"></a>
 {% endif %}
 {% endif %}
 </div>

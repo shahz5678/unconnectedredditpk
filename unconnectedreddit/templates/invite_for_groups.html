@@ -4,15 +4,15 @@
 <div class="margin">
 
 {% if group.private == '1' %}
-<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group' slug=unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% else %}
-<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group_reply' slug=unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
 
 {% for visitor in visitors %}
 {% if visitor.userprofile.score > 0 and visitor != user %}
 
-	<form action="{% url 'invite' slug=group.unique %}" method="POST" >
+	<form action="{% url 'invite' %}" method="POST" >
 	{% csrf_token %}
 	<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor.pk }}">
 		{% if visitor.userprofile.avatar %}

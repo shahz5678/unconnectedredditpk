@@ -955,7 +955,7 @@ class InviteUsersToPrivateGroupView(FormView):
 				if group_id > -1:
 					if GroupInvite.objects.filter(which_group_id=group_id, invitee_id=invitee).exists() or \
 					Reply.objects.filter(which_group_id=group_id, writer_id=invitee).exists():
-						return redirect("reinvite_private_help", slug = uuid)
+						return redirect("reinvite_private_help")
 					else:#this person ought to be sent an invite
 						#send a notification to this person to check out the group
 						GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee)

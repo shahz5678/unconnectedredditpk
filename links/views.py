@@ -17,7 +17,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, ContactForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsideMessageRecreateForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm,
+from .forms import UserProfileForm, DeviceHelpForm, ContactForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -196,10 +196,9 @@ class SmsReinviteView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(SmsReinviteView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
-			number = self.kwargs["num"]
-			context["number"] = number
-			context["sms_url"] = "www.damadam.pk/mehfil/"+unique+"/outsider/"
+			unique = self.request.session["unique_outsider"]#self.kwargs["slug"]
+			context["number"] = '03450000000'
+			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
 			#context["group"] = Group.objects.get(unique=unique)
 		return context
 
@@ -238,9 +237,9 @@ class OpenInviteTypeView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(OpenInviteTypeView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
+			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
-			context["sms_url"] = "www.damadam.pk/mehfil/"+unique+"/public/"
+			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
 		return context
 
 class RegisterLoginView(FormView):
@@ -386,10 +385,13 @@ class MehfilView(FormView):
 			link_id = self.request.session['link_id']
 			self.request.session['link_id'] = None
 			self.request.session['user_pk'] = None
-			if report == 'Haan':
-				return redirect("direct_message", pk=target)
-			else:
-				return redirect("reply_pk", pk=link_id)	
+			try:
+				if report == 'Haan':
+					return redirect("direct_message", pk=target)
+				else:
+					return redirect("reply_pk", pk=link_id)
+			except:
+				return redirect("profile", self.request.user.username)
 
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	if pk.isdigit() and num.isdigit():
@@ -586,6 +588,14 @@ class LinkUpdateView(UpdateView):
 	form_class = LinkForm
 	#paginate_by = 10
 
+def appoint_pk(request, pk=None, app=None, *args, **kwargs):
+	if pk.isdigit() and app.isdigit():
+		request.session["appoint_id"] = pk
+		request.session["appoint_decision"] = app
+		return redirect("appoint")
+	else:
+		return redirect("score_help")
+
 class AppointCaptainView(FormView):
 	form_class = AppointCaptainForm
 	template_name = "appoint_captain.html"
@@ -593,9 +603,9 @@ class AppointCaptainView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(AppointCaptainView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			user_id = self.kwargs.get('pk')
-			unique_id = self.kwargs.get('slug')
-			decision = self.kwargs.get('app')
+			user_id = self.request.session["appoint_id"]
+			unique_id = self.request.session["public_uuid"]
+			decision = self.request.session["appoint_decision"]
 			context["appoint"] = decision
 			context["candidate"] = User.objects.get(id=user_id)
 			context["unique"] = unique_id
@@ -606,20 +616,24 @@ class AppointCaptainView(FormView):
 		if self.request.user_banned:
 			return redirect("group_page") #errorbanning
 		else:
-			candidate = self.request.POST.get("candidate")
-			unique = self.request.POST.get("unique")
+			candidate = self.request.session["appoint_id"]
+			self.request.session["appoint_id"] = None
+			unique = self.request.session["public_uuid"]
 			group = Group.objects.get(unique=unique)
-			appoint = self.request.POST.get("appoint")
-			if appoint == '1' and group.owner == self.request.user:
+			appoint = self.request.session["appoint_decision"]
+			self.request.session["appoint_decision"] = None
+			#print appoint
+			if appoint == '1' and group.owner == self.request.user and not GroupCaptain.objects.filter(which_user_id = candidate, which_group=group).exists():
 				GroupCaptain.objects.create(which_user_id=candidate,which_group=group)
 			elif appoint == '0' and group.owner == self.request.user:
 				try:
 					GroupCaptain.objects.get(which_user_id=candidate,which_group=group).delete()
 				except:
-					return redirect("owner_group_online_kon", slug=unique)
+					return redirect("owner_group_online_kon")
 			else:
-				return redirect("public_group_reply", slug=unique)
-			return redirect("owner_group_online_kon", slug=unique)
+				self.request.session["public_uuid"] = None
+				return redirect("public_group", slug=unique)
+			return redirect("owner_group_online_kon")
 
 class OwnerGroupOnlineKonView(ListView):
 	model = GroupTraffic
@@ -631,9 +645,10 @@ class OwnerGroupOnlineKonView(ListView):
 		if self.request.user.is_authenticated():
 			global condemned
 			context["legit"] = FEMALES
-			unique = self.kwargs.get('slug')
+			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
+			#print group.topic
 			context["group"] = group
 			total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
 			online_ids = total_traffic.values_list('visitor_id',flat=True)
@@ -719,25 +734,25 @@ class UserProfileDetailView(DetailView):
 		context["ratified"] = FEMALES
 		return context
 
-class OutsideMessageRecreateView(FormView):
-	model = Group
-	form_class = OutsideMessageRecreateForm
-	template_name = "outside_message_recreate.html"
+# class OutsideMessageRecreateView(FormView):
+# 	model = Group
+# 	form_class = OutsideMessageRecreateForm
+# 	template_name = "outside_message_recreate.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(OutsideMessageRecreateView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["unique"] = self.kwargs["slug"]
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(OutsideMessageRecreateView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			context["unique"] = self.kwargs["slug"]
+# 		return context
 
-	def form_valid(self, form):
-		if self.request.user_banned:
-			return redirect("group_page") #errorbanning
-		else:
-			number = self.request.POST.get("mobile_number")
-			unique = self.request.POST.get("unique")
-			#print "hello"
-			return redirect("sms_reinvite", slug=unique, num=number)
+# 	def form_valid(self, form):
+# 		if self.request.user_banned:
+# 			return redirect("group_page") #errorbanning
+# 		else:
+# 			number = self.request.POST.get("mobile_number")
+# 			unique = self.request.POST.get("unique")
+# 			#print "hello"
+# 			return redirect("sms_reinvite", slug=unique, num=number)
 
 class OutsideMessageCreateView(FormView):
 	model = Group
@@ -848,7 +863,7 @@ class OpenGroupCreateView(CreateView):
 			try: 
 				return redirect("invite", slug=unique)
 			except:
-				return redirect("public_group_reply", slug=unique)
+				return redirect("public_group", slug=unique)
 		else:
 			return redirect("group_page")
 
@@ -893,7 +908,7 @@ class InviteUsersToGroupView(FormView):
 		context = super(InviteUsersToGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["legit"] = FEMALES
-			unique = self.kwargs.get('slug')
+			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["group"] = group
@@ -912,12 +927,13 @@ class InviteUsersToGroupView(FormView):
 		return context
 
 	def form_valid(self, form):
+		uuid = self.request.session["public_uuid"]
 		if self.request.user_banned:
 			return redirect("group_page")
 		else:
 			if self.request.method == 'POST':
 				try:
-					unique = self.kwargs.get('slug')
+					unique = uuid
 					group = Group.objects.get(unique=unique)
 					invitee = self.request.POST.get('invitee')
 					group_id = group.id
@@ -1431,7 +1447,7 @@ class ChangeGroupRulesView(CreateView):
 			group.rules = rules
 			group.save()
 			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
-			return redirect("public_group_reply", slug=unique)
+			return redirect("public_group", slug=unique)
 
 class ChangeGroupTopicView(CreateView):
 	model = Group
@@ -1476,9 +1492,26 @@ class ChangeGroupTopicView(CreateView):
 			if group.private == '1':
 				return redirect("private_group", slug=unique)
 			elif group.private == '0':
-				return redirect("public_group_reply", slug=unique)
+				return redirect("public_group", slug=unique)
 			else:
-				return redirect("outsider_group_reply", slug=unique)
+				return redirect("outsider_group", slug=unique)
+
+@ratelimit(rate='1/s')
+def outsider_group(request, slug=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 1 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty_outsider.html', context)
+	else:
+		if valid_uuid(slug):
+			request.session["unique_outsider"] = slug
+			#request.session["outsider_path"] = 'outsider'
+			return redirect("outsider_group_reply")
+		else:
+			return redirect("profile", request.user.username)
 
 class OutsiderGroupView(CreateView):
 	model = Reply
@@ -1487,31 +1520,19 @@ class OutsiderGroupView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(OutsiderGroupView, self).get_context_data(**kwargs)
-		unique = self.kwargs["slug"]
+		unique = self.request.session["unique_outsider"]
 		context["unique"] = unique
 		group = Group.objects.get(unique=unique)
-		if 'outsider' in self.request.path and group.private == '2':
+		if 'mehfilbahir' in self.request.path and group.private == '2':
 			context["switching"] = False
 			context["group"] = group
 			replies = Reply.objects.filter(which_group_id=group.id).order_by('-submitted_on')[:25]#get DB call
 			context["replies"] = replies
-			context["sms_url"] = "www.damadam.pk/mehfil/"+unique+"/outsider/"
+			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
 			if self.request.user.is_authenticated():
 				context["ensured"] = FEMALES
 				context["members"] = User.objects.filter(reply__which_group=group).distinct()#get DB call
 				own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
-				# if group.owner == self.request.user and own_reply==False: #user only made the topic, never contributed
-				# 	seen_replies = []
-				# 	reply_ids = [reply.id for reply in replies] #all ids of latest 25 replies
-				# 	seen_replies = Reply.objects.filter(id__in=reply_ids,groupseen__seen_user=self.request.user)
-				# 	#seen_replies = Publicreply.objects.filter(id__in=reply_ids,publicreply_seen_related__seen_user=self.request.user)
-				# 	context["seenreplies"] = seen_replies
-				# 	object_list=[]
-				# 	for response in replies:
-				# 		if response not in seen_replies:
-				# 			#bulk creating seen objects for every unseen reply, for that particular user
-				# 			object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-				# 	GroupSeen.objects.bulk_create(object_list)
 				if own_reply: #user wrote a reply too (whether or not they are group admin)
 					seen_replies=[]
 					latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
@@ -1571,6 +1592,7 @@ class OutsiderGroupView(CreateView):
 				#if text == self.request.user.userprofile.previous_retort:
 				score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
 				if score > 90:
+					self.request.session["unique_outsider"] = None
 					return redirect("group_page")#, pk= reply.answer_to.id)
 				else:
 					self.request.user.userprofile.previous_retort = text
@@ -1595,13 +1617,12 @@ class OutsiderGroupView(CreateView):
 						device = '5'
 					else:
 						device = '3'
-					which_group = Group.objects.get(unique=self.request.POST.get("unique"))
+					unique = self.request.session["unique_outsider"]
+					which_group = Group.objects.get(unique=unique)
+					self.request.session["unique_outsider"] = None
 					reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)
 					GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
-					try:
-						return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-					except:
-						return redirect("outsider_group_reply", slug=reply.which_group.unique)
+					return redirect("outsider_group", slug=unique)
 			else:
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				if f.image:
@@ -1613,7 +1634,7 @@ class OutsiderGroupView(CreateView):
 				else: 
 					f.image = None
 				writer = User(id=8) # ALWAYS set this ID to unregistered_bhoot
-				unique = self.kwargs["slug"]
+				unique = self.request.session["unique_outsider"]
 				group = Group.objects.get(unique=unique)
 				if self.request.is_feature_phone:
 					device = '1'
@@ -1626,7 +1647,24 @@ class OutsiderGroupView(CreateView):
 				else:
 					device = '3'
 				Reply.objects.create(text=f.text,which_group=group,writer=writer, image=f.image, device=device)
-				return redirect("outsider_group_reply", slug=unique)
+				self.request.session["unique_outsider"] = None
+				return redirect("outsider_group", slug=unique)
+
+@ratelimit(rate='1/s')
+def public_group(request, slug=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 2 * -2
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty_pubic.html', context)
+	else:
+		if valid_uuid(slug):
+			request.session["public_uuid"] = slug
+			return redirect("public_group_reply")
+		else:
+			return redirect("score_help")
 
 class PublicGroupView(CreateView):
 	model = Reply
@@ -1636,11 +1674,16 @@ class PublicGroupView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(PublicGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
+			try:
+				unique = self.request.session["public_uuid"]	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+			except:
+				context["switching"] = True
+				context["group_banned"] = False
+				return context
 			#print self.request.path
-			if 'public' in self.request.path and group.private == '0': 
+			if 'awami' in self.request.path and group.private == '0': 
 				context["switching"] = False
 				context["group"] = group
 				if GroupBanList.objects.filter(which_user_id=self.request.user.id,which_group_id=group.id).exists():
@@ -1665,7 +1708,8 @@ class PublicGroupView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
-		which_group = Group.objects.get(unique=self.request.POST.get("unique"))
+		pk = self.request.session["public_uuid"]
+		which_group = Group.objects.get(unique=pk)
 		if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group_id=which_group.id).exists():
 			return redirect("group_page")
 		else:
@@ -1677,8 +1721,11 @@ class PublicGroupView(CreateView):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			text = f.text
 			score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
-			if score > 90:
-				return redirect("public_group_reply", slug=self.kwargs["slug"])
+			if score > 87:
+				self.request.user.userprofile.score = self.request.user.userprofile.score - 10
+				self.request.user.userprofile.save()
+				self.request.session["public_uuid"] = None
+				return redirect("public_group", slug=pk)
 			else:
 				self.request.user.userprofile.previous_retort = text
 				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
@@ -1703,15 +1750,11 @@ class PublicGroupView(CreateView):
 				else:
 					device = '3'
 				reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)
-				#GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
-				try:
-					return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-				except:
-					return redirect("public_group_reply", slug=self.kwargs["slug"])
+				self.request.session["public_uuid"] = None
+				return redirect("public_group", slug=pk)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='1/s')
 def private_group(request, slug=None, *args, **kwargs):
-	#PERIODS = (1,5*1,10*1,)
 	was_limited = getattr(request, 'limits', False)
 	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
@@ -1880,12 +1923,21 @@ def mehfil_help(request, pk=None, num=None, *args, **kwargs):
 	else:
 		return redirect("score_help")
 
+@ratelimit(rate='1/s')
 def reply_pk(request, pk=None, *args, **kwargs):
-	if pk.isdigit():
-		request.session["link_pk"] = pk
-		return redirect("reply")
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'pk': pk}
+		return render(request, 'penalty_publicreply.html', context)
 	else:
-		return redirect("score_help")
+		if pk.isdigit():
+			request.session["link_pk"] = pk
+			return redirect("reply")
+		else:
+			return redirect("score_help")
 
 class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Publicreply
@@ -1977,6 +2029,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			try:
 				return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
 			except:
+				self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+				self.request.user.userprofile.save()
 				return redirect("profile", slug=self.request.user.username)
 		else:
 			if self.request.user_banned:
@@ -2153,6 +2207,8 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
+
+
 class LinkCreateView(CreateView):
 	model = Link
 	form_class = LinkForm
@@ -2214,13 +2270,22 @@ class LinkCreateView(CreateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
 
+@ratelimit(rate='1/s')
 def kick_pk(request, pk=None, slug=None, *args, **kwargs):
-	if pk.isdigit() and valid_uuid(slug):
-		request.session["kick_pk"] = pk
-		request.session["kick_slug"] = slug
-		return redirect("kick")
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 50 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty_kick.html', context)
 	else:
-		return redirect("score_help")
+		if pk.isdigit() and valid_uuid(slug):
+			request.session["kick_pk"] = pk
+			request.session["kick_slug"] = slug
+			return redirect("kick")
+		else:
+			return redirect("score_help")
 
 class KickView(FormView):
 	form_class = KickForm
@@ -2262,30 +2327,39 @@ class KickView(FormView):
 				group = Group.objects.get(unique=unique)
 				if group.private == '0':
 					if group.owner != self.request.user:
-						return redirect("public_group_reply", slug=unique)
+						return redirect("public_group", slug=unique)
 					else:
 						pk = self.request.session["kick_pk"]
 						self.request.session["kick_pk"] = None
 						culprit = User.objects.get(id=pk)
 						if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():# already kicked and banned
-							return redirect("public_group_reply", slug=unique)
+							return redirect("public_group", slug=unique)
 						else:
 							GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
 							culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
 							culprit.userprofile.save()
 							text = culprit.username
 							reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
-							return redirect("public_group_reply", slug=unique)
+							return redirect("public_group", slug=unique)
 				else:
 					return redirect("score_help")
 
+@ratelimit(rate='1/s')
 def groupreport_pk(request, slug=None, pk=None, *args, **kwargs):
-	if pk.isdigit() and valid_uuid(slug):
-		request.session["groupreport_slug"] = slug
-		request.session["groupreport_pk"] = pk
-		return redirect("group_report")
-	else:
-		return redirect("about")
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 10 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty_groupreport.html', context)
+	else:	
+		if pk.isdigit() and valid_uuid(slug):
+			request.session["groupreport_slug"] = slug
+			request.session["groupreport_pk"] = pk
+			return redirect("group_report")
+		else:
+			return redirect("about")
 
 class GroupReportView(FormView):
 	form_class = GroupReportForm
@@ -2328,16 +2402,16 @@ class GroupReportView(FormView):
 					reply = get_object_or_404(Reply, pk=reply_id)
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists():
 						#print GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists()
-						return redirect("public_group_reply", slug=unique.unique)
+						return redirect("public_group", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
 						reply.text = self.request.user.username
 						reply.writer.userprofile.score = reply.writer.userprofile.score - 10
 						reply.writer.userprofile.save()
 						reply.save()
-						return redirect("public_group_reply", slug=unique.unique)
+						return redirect("public_group", slug=unique.unique)
 				else:
-					return redirect("public_group_reply", slug= unique.unique)
+					return redirect("public_group", slug= unique.unique)
 
 class ReportView(FormView):
 	form_class = ReportForm
@@ -2486,37 +2560,68 @@ def cross_notif(request, pk=None, ident=None, user=None, *args, **kwargs):
 		Seen.objects.bulk_create(seen_list)
 		return redirect("home")
 
+@ratelimit(rate='1/s')
 def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
-	if vote_id.isdigit() and target_id.isdigit() and link_submitter_id.isdigit() and val.isdigit():
-		if request.user_banned:
-			return redirect("score_help")
-		if request.user.id == link_submitter_id:
-			return redirect("score_help")
-		try:
-			vote = Vote.objects.get(pk=vote_id)
-		except:
-			return redirect("score_help")	
-		if target_id:
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': vote_id}
+		return render(request, 'penalty_vote_on_vote.html', context)
+	else:	
+		if vote_id.isdigit() and target_id.isdigit() and link_submitter_id.isdigit() and val.isdigit():
+			if request.user_banned:
+				return redirect("score_help")
+			if request.user.id == link_submitter_id:
+				return redirect("score_help")
 			try:
-				target = User.objects.get(pk=target_id)
+				vote = Vote.objects.get(pk=vote_id)
 			except:
+				return redirect("score_help")	
+			if target_id:
+				try:
+					target = User.objects.get(pk=target_id)
+				except:
+					return redirect("home")
+			else:
 				return redirect("home")
-		else:
-			return redirect("home")
-		value = int(val)
-		if vote.voter.id == int(target_id): #target is indeed the user who's vote was identified
-			try:
-				if value == 1:
-					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
-						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+			value = int(val)
+			if vote.voter.id == int(target_id): #target is indeed the user who's vote was identified
+				try:
+					if value == 1:
+						if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
+							Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+							target.userprofile.score = target.userprofile.score + 2
+							target.userprofile.save()
+						else:
+							pass
+					elif value == 0:
+						value = -1
+						if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
+							Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+							target.userprofile.score = target.userprofile.score - 3
+							if target.userprofile.score < -25:
+								if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
+									HellBanList.objects.create(condemned=target) #adding target to hell-ban list
+									target.userprofile.score = random.randint(10,71) #assigning random score to banned user
+								else:
+									pass
+							else:
+								pass
+							target.userprofile.save()
+					else:
+						return redirect("score_help")
+				except:
+					if value == 1:
+						link = Link.objects.create(description='mein idher hu', submitter=target)
+						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score + 2
 						target.userprofile.save()
-					else:
-						pass
-				elif value == 0:
-					value = -1
-					if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
-						Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
+						return redirect("home")
+					elif value == -1:
+						link = Link.objects.create(description='mein idher hu', submitter=target)
+						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
@@ -2524,37 +2629,15 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 								target.userprofile.score = random.randint(10,71) #assigning random score to banned user
 							else:
 								pass
-						else:
-							pass
 						target.userprofile.save()
-				else:
-					return redirect("score_help")
-			except:
-				if value == 1:
-					link = Link.objects.create(description='mein idher hu', submitter=target)
-					Vote.objects.create(voter=request.user, link=link, value=value)
-					target.userprofile.score = target.userprofile.score + 2
-					target.userprofile.save()
-					return redirect("home")
-				elif value == -1:
-					link = Link.objects.create(description='mein idher hu', submitter=target)
-					Vote.objects.create(voter=request.user, link=link, value=value)
-					target.userprofile.score = target.userprofile.score - 3
-					if target.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned=target) #adding target to hell-ban list
-							target.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						else:
-							pass
-					target.userprofile.save()
-					return redirect("home")
-				else:
-					return redirect("home")
+						return redirect("home")
+					else:
+						return redirect("home")
+			else:
+				return redirect("link_create")
+			return redirect("home")
 		else:
 			return redirect("link_create")
-		return redirect("home")
-	else:
-		return redirect("link_create")
 
 def update_cooldown(obj):
 	time_now = datetime.utcnow().replace(tzinfo=utc)
@@ -2578,103 +2661,113 @@ def find_time(obj):
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
-#@throttle(zone='default')
+@ratelimit(rate='1/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
-	if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
-		try:
-			cooldown = Cooldown.objects.filter(voter=request.user).latest('id')
-		except:
-			cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=datetime.utcnow().replace(tzinfo=utc))
-		#print cooldown.pk
-		#print "score before update: %s" % cooldown.hot_score
-		obj = update_cooldown(cooldown)
-		#print "score after update %s" % obj.hot_score
-		if int(obj.hot_score) < 1:
-			time_remaining = find_time(obj)
-			time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
-			#print "time_remaining: %s" % time_remaining
-			context = {'time_remaining': time_stamp}
-			return render(request, 'cooldown.html', context)
-		try:
-			link = Link.objects.get(pk=int(pk))
-		except:
-			return redirect("link_create")
-		section = str(loc)
-		if usr:
-			if request.user.id != int(usr):
-				# the user sending this request is trying to vote with someone else's ID
-				return redirect("link_create")
-		else:
-			return redirect("link_create")	
-		value = int(val)
-		if not Vote.objects.filter(voter=request.user, link=link).exists():
-			#only if user never voted on this link
-			if value == 1:
-				if request.user_banned:
-					return redirect("score_help")
-				else:
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 2
-					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 1
-					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
-			elif value == 2:
-				if request.user_banned or request.user.username not in FEMALES:
-					return redirect("score_help")
-				else:
-					link.submitter.userprofile.score = link.submitter.userprofile.score + 50
-					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 3
-					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
-			elif value == 0:
-				if request.user_banned:
-					return redirect("score_help")
-				else:
-					link.submitter.userprofile.score = link.submitter.userprofile.score - 3
-					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 1
-					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
-				value = -1
-			elif value == 3:
-				if request.user_banned or request.user.username not in FEMALES:
-					return redirect("score_help")
-				else:
-					link.submitter.userprofile.score = link.submitter.userprofile.score -300
-					if link.submitter.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
-							HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-							link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-					link.submitter.userprofile.save()
-					cooldown.hot_score = cooldown.hot_score - 3
-					cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
-				value = -2
-			else:
-				value = 0
-				return redirect("link_create")
-			try:
-				Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
-				cooldown.save()
-			except:#if vote object can't be created, just redirect the user, no harm done
-				return redirect("link_create")
-			try:
-				request.session['target_id'] = link.id
-				return redirect("home")
-			except:
-				return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
-		else:
-			try:
-				return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
-			except:
-				return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
+	#PERIODS = (1,5*1,10*1,)
+	was_limited = getattr(request, 'limits', False)
+	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': pk}
+		return render(request, 'penalty_vote.html', context)
 	else:
-		return redirect("link_create")
+		if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
+			try:
+				cooldown = Cooldown.objects.filter(voter=request.user).latest('id')
+			except:
+				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=datetime.utcnow().replace(tzinfo=utc))
+			#print cooldown.pk
+			#print "score before update: %s" % cooldown.hot_score
+			obj = update_cooldown(cooldown)
+			#print "score after update %s" % obj.hot_score
+			if int(obj.hot_score) < 1:
+				time_remaining = find_time(obj)
+				time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
+				#print "time_remaining: %s" % time_remaining
+				context = {'time_remaining': time_stamp}
+				return render(request, 'cooldown.html', context)
+			try:
+				link = Link.objects.get(pk=int(pk))
+			except:
+				return redirect("link_create")
+			section = str(loc)
+			if usr:
+				if request.user.id != int(usr):
+					# the user sending this request is trying to vote with someone else's ID
+					return redirect("link_create")
+			else:
+				return redirect("link_create")	
+			value = int(val)
+			if not Vote.objects.filter(voter=request.user, link=link).exists():
+				#only if user never voted on this link
+				if value == 1:
+					if request.user_banned:
+						return redirect("score_help")
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 2
+						link.submitter.userprofile.save()
+						cooldown.hot_score = cooldown.hot_score - 1
+						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+				elif value == 2:
+					if request.user_banned or request.user.username not in FEMALES:
+						return redirect("score_help")
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 50
+						if link.submitter.userprofile.score < -25:
+							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
+								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						link.submitter.userprofile.save()
+						cooldown.hot_score = cooldown.hot_score - 3
+						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+				elif value == 0:
+					if request.user_banned:
+						return redirect("score_help")
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score - 3
+						if link.submitter.userprofile.score < -25:
+							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
+								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						link.submitter.userprofile.save()
+						cooldown.hot_score = cooldown.hot_score - 1
+						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+					value = -1
+				elif value == 3:
+					if request.user_banned or request.user.username not in FEMALES:
+						return redirect("score_help")
+					else:
+						link.submitter.userprofile.score = link.submitter.userprofile.score -300
+						if link.submitter.userprofile.score < -25:
+							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
+								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
+						link.submitter.userprofile.save()
+						cooldown.hot_score = cooldown.hot_score - 3
+						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+					value = -2
+				else:
+					value = 0
+					return redirect("link_create")
+				try:
+					Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
+					cooldown.save()
+				except:#if vote object can't be created, just redirect the user, no harm done
+					return redirect("link_create")
+				try:
+					request.session['target_id'] = link.id
+					return redirect("home")
+				except:
+					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
+			else:
+				try:
+					return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
+				except:
+					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
+		else:
+			return redirect("link_create")
 	
 def LinkAutoCreate(user, content):   
 	link = Link()

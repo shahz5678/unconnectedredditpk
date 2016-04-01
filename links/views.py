@@ -1773,7 +1773,10 @@ class PublicGroupView(CreateView):
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
 		pk = self.request.session["public_uuid"]
-		which_group = Group.objects.get(unique=pk)
+		try:
+			which_group = Group.objects.get(unique=pk)
+		except:
+			return redirect("profile", self.request.user.username )
 		if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group_id=which_group.id).exists():
 			return redirect("group_page")
 		else:

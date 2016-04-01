@@ -2,9 +2,9 @@
 {% block content %}
 
 <div class="margin">
-SMS kar ke dost bulao, ya damadam se hi online logg invite kar lo:<br><br>
+SMS kar ke dost bulao, ya damadam se hi online log invite kar lo:<br><br>
 <span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="sms:+0345?body=Yr mujh se muft chat ke liye Damadam pr aa ja: {{ sms_url }}">SMS Invite</a><br>
-<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'invite' slug=unique %}">Damadam Invite</a><br>
+<span style="color:lightgrey;">&bullet;</span>&nbsp;<a href="{% url 'invite_private_group' %}">Damadam Invite</a><br>
 <span style="color:grey;font-size:85%;"><b>invite</b> ka matlab hai kisi ko dawat dena, ya bulana</span>
 </div>
 

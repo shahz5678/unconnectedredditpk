@@ -111,7 +111,7 @@
 		    	<span style="font-size:130%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
-		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki naee <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group_reply' slug=link.url %}" style="color:red;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki naee <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group' slug=link.url %}" style="color:red;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p style="color:gray"><hr size=1></p>
 		</div>
 	{% else %}

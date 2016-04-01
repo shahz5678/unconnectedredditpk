@@ -5,15 +5,14 @@
 <div class="margin">
 Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
 
 {% for traffic, captain in groupies %}
-		
 		<span class="numbers">
 		<b style="color:lightgrey;">
 		&bullet;
@@ -34,8 +33,8 @@ Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 		{% endif %}
 
 		{% if traffic.visitor != group.owner %}
-			{% if captain == N %}<a href="{% url 'appoint' pk=traffic.visitor.pk slug=unique app=1 %}" class="voting" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:85%;margin-bottom:0.2em;">afsar banao</a>
-			{% else %}<a href="{% url 'appoint' pk=traffic.visitor.pk  slug=unique app=0 %}" class="voting" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:85%;margin-bottom:0.2em;">afsar hatao</a>
+			{% if captain == N %}<a href="{% url 'appoint_pk' pk=traffic.visitor.pk app=1 %}" class="voting" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:85%;margin-bottom:0.2em;">afsar banao</a>
+			{% else %}<a href="{% url 'appoint_pk' pk=traffic.visitor.pk app=0 %}" class="voting" style="color:white;background-color:#FF0000;border:none;text-shadow:0 0 0px white;font-size:85%;margin-bottom:0.2em;">afsar hatao</a>
 			{% endif %}
 		{% endif %}
 	<br>
@@ -43,11 +42,11 @@ Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
 </div>
 

@@ -58,9 +58,8 @@
     <a name="sectionJ"></a> 
     <hr size=1>
 
-    <form action="{% url 'public_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
         {% if group.pics_ki_ijazat == '1' %}
         <br><span style="color:red;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
         <span style="color:grey;font-size:80%;"><i>1 mb se barri pic nahi lag sakti</i></span><br>
@@ -70,8 +69,8 @@
     <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-bottom:0.1em;" type="submit" value="OK" id="id_submit">
     </form>
         
-	    <a href="{% url 'open_invite_type' slug=unique %}#section0" style="font-size:65%;"><b>invite</b></a>&nbsp;{% if user == group.owner %}<span style="font-size:70%;">|</span>
-        <a href="{% url 'owner_group_online_kon' slug=unique %}" style="font-size:65%;"><b>afsar banao</b></a>
+	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>&nbsp;{% if user == group.owner %}<span style="font-size:70%;">|</span>
+        <a href="{% url 'owner_group_online_kon' %}" style="font-size:65%;"><b>afsar banao</b></a>
         {% endif %}
     <p style="margin-top:.2em;"></p>
 	    {% if replies|length < 25 %}

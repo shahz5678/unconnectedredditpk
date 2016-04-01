@@ -10,7 +10,7 @@
 <body bgcolor="#EDFFEE">
 <div class="margin">
 
-    <form action="{% url 'outsider_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'outsider_group_reply' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
     <input type="hidden" id="id_link" name="unregistered" class="hidden_id" value="unregistered">
@@ -24,7 +24,7 @@
 
 
     <hr size=1>
-    <a href="sms:{{ number }}?body=Yar mien tumhara yahan intezar kar raha hoon: {{ sms_url }}" style="font-size:75%;font-family:arial;">{{ host }} ko bulao</a>&nbsp;<span style="font-size:70%;">|</span>
+    <a href="sms:{{ number }}?body=Mujhe tumhara yahan intezar hai: {{ sms_url }}" style="font-size:75%;font-family:arial;">{{ host }} ko bulao</a>&nbsp;<span style="font-size:70%;">|</span>
     <a href="/mehfil/{{ unique }}/outsider" style="font-family:arial;font-size:75%;">taaza karo</a>
     <br><br>
     <span style="font-size:85%;font-family:arial;">
@@ -88,10 +88,10 @@
 
     <div class="margin">
         <b style="color:purple;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change karo)</a>
-        <br><a href="{% url 'outside_message_recreate' slug=unique %}" style="font-size:70%;">(isko bulao)</a>
+        <br><a href="{% url 'sms_reinvite' %}" style="font-size:70%;">(isko bulao)</a>
         <a name="sectionJ"></a> 
         <hr size=1>
-        <form action="{% url 'outsider_group_reply' slug=unique %}" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'outsider_group_reply' %}" method="POST" enctype="multipart/form-data">
         	{% csrf_token %}
         	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
             <span style="color:purple;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>

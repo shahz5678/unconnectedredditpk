@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+
+{% if group.private == '1' %}
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
+{% else %}
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
+{% endif %}
+
+{% for visitor in visitors %}
+{% if visitor.userprofile.score > 0 and visitor != user %}
+
+	<form action="{% url 'invite_private_group' %}" method="POST" >
+	{% csrf_token %}
+	<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor.pk }}">
+		{% if visitor.userprofile.avatar %}
+	        <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	    {% else %}
+	        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	    {% endif %}
+		{{ visitor.username }}
+	    <span style="color:#18A018;">({{ visitor.userprofile.score }})</span>
+		{% for person in legit %}
+		    {% if person == visitor.username %}
+		        <span style="font-size:200%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		{% endfor %}	
+		<input class="voting" type="submit" id="id_valup" name="invite" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="invite"><br>
+	</form>
+
+{% endif %}
+{% endfor %}
+
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

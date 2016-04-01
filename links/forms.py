@@ -178,10 +178,10 @@ class PublicreplyForm(forms.ModelForm):
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
 
-class OutsideMessageRecreateForm(forms.Form):
-	mobile_number = forms.CharField(max_length=50)
-	class Meta:
-		fields = ("mobile_number",)
+# class OutsideMessageRecreateForm(forms.Form):
+# 	mobile_number = forms.CharField(max_length=50)
+# 	class Meta:
+# 		fields = ("mobile_number",)
 
 class OutsideMessageCreateForm(forms.Form):
 	full_name = forms.CharField(max_length=50)
@@ -235,8 +235,9 @@ class ChangeGroupTopicForm(forms.ModelForm):
 		fields = ("topic",)
 
 class PicsChatUploadForm(forms.ModelForm):
-	image = forms.ImageField()
-	image.widget.attrs["value"] ='Upload'
+	image = forms.ImageField(label='Upload')
+	#image.widget.attrs["value"] ='Upload'
+	#image.widget.attrs["type"] ='image'
 	class Meta:
 		model = ChatPic
 		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
@@ -244,7 +245,7 @@ class PicsChatUploadForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
-		self.fields['image'].widget.attrs.update({'value':'Upload'})#["value"]='Upload'
+		self.fields['image'].label='Upload'#["value"]='Upload'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))

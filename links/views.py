@@ -1722,7 +1722,7 @@ def public_group(request, slug=None, *args, **kwargs):
 		request.user.userprofile.score = request.user.userprofile.score + deduction
 		request.user.userprofile.save()
 		context = {'unique': slug}
-		return render(request, 'penalty_pubic.html', context)
+		return render(request, 'penalty_public.html', context)
 	else:
 		if valid_uuid(slug):
 			request.session["public_uuid"] = slug

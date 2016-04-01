@@ -17,7 +17,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, ContactForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
+from .forms import UserProfileForm, DeviceHelpForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -145,6 +145,17 @@ class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
 
+class ReinvitePrivateView(FormView):
+	form_class = ReinvitePrivateForm
+	template_name = "reinvite_private.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ReinvitePrivateView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			unique = request.sesion["private_uuid"]
+			context["unique"] = unique
+		return context
+
 class ReinviteView(FormView):
 	form_class = ReinviteForm
 	template_name = "reinvite.html"
@@ -214,8 +225,7 @@ class SmsInviteView(FormView):
 			name = self.kwargs["name"]
 			context["name"] = name
 			context["number"] = number
-			context["sms_url"] = "www.damadam.pk/mehfil/"+unique+"/outsider/"
-			#context["group"] = Group.objects.get(unique=unique)
+			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
 		return context
 
 class ClosedInviteTypeView(FormView):
@@ -225,9 +235,9 @@ class ClosedInviteTypeView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(ClosedInviteTypeView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
+			unique = self.request.session["private_uuid"]
 			context["unique"] = unique
-			context["sms_url"] = "www.damadam.pk/mehfil/"+unique+"/private/"
+			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique
 		return context
 
 class OpenInviteTypeView(FormView):
@@ -810,8 +820,6 @@ class ClosedGroupCreateView(CreateView):
 
 	def form_valid(self, form):
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		# if self.request.user_banned:
-		# 	return redirect("group_page")
 		f.owner = self.request.user
 		f.private = 1
 		unique = uuid.uuid4()
@@ -830,9 +838,9 @@ class ClosedGroupCreateView(CreateView):
 		GroupSeen.objects.create(seen_user=self.request.user,which_reply=reply)
 		f.owner.userprofile.save()
 		try: 
-			return redirect("invite", slug=unique)
+			return redirect("invite_private", slug=unique)
 		except:
-			return redirect("private_group", slug=unqiue)
+			return redirect("private_group", slug=unique)
 
 class OpenGroupCreateView(CreateView):
 	model = Group
@@ -898,6 +906,65 @@ class DirectMessageView(FormView):
 				return context
 		return context
 
+def invite_private(request, slug=None, *args, **kwargs):
+	if valid_uuid(slug):
+		request.session["private_uuid"] = slug
+		return redirect("invite_private_group")
+	else:
+		return redirect("score_help")
+
+class InviteUsersToPrivateGroupView(FormView):
+	model = Session
+	template_name = "invite_for_private_group.html"
+	paginate_by = 70
+	form_class = InvitePrivateForm
+
+	def get_context_data(self, **kwargs):
+		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["legit"] = FEMALES
+			unique = self.request.session["private_uuid"]
+			context["unique"] = unique
+			group = Group.objects.get(unique=unique)
+			context["group"] = group
+			if self.request.user_banned:
+				context ["visitors"] = [] # there are no visitors to invite for hellbanned users
+			else:
+				invites = []
+				user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=15))).only('user').distinct('user')
+				users = [session.user for session in user_sessions]#all users that are online
+				users = [user for user in users if user is not None] #sanitizing any NONE values that may exist in shared devices
+				user_ids = [user.id for user in users]
+				online_invited_replied_users = \
+				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
+				context ["visitors"] = online_invited_replied_users
+		return context				
+
+	def form_valid(self, form):
+		uuid = self.request.session["private_uuid"]
+		if self.request.user_banned:
+			return redirect("group_page")
+		else:
+			if self.request.method == 'POST':
+				try:
+					group = Group.objects.get(unique=uuid)
+					invitee = self.request.POST.get('invitee')
+					group_id = group.id
+				except:
+					group_id = -1
+				if group_id > -1:
+					if GroupInvite.objects.filter(which_group_id=group_id, invitee_id=invitee).exists() or \
+					Reply.objects.filter(which_group_id=group_id, writer_id=invitee).exists():
+						return redirect("reinvite_private_help", slug = uuid)
+					else:#this person ought to be sent an invite
+						#send a notification to this person to check out the group
+						GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee)
+						invitee = User.objects.get(id=invitee)
+						reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=self.request.user)
+						GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
+			self.request.session["private_uuid"] = None
+			return redirect("invite_private", slug=uuid)
+
 class InviteUsersToGroupView(FormView):
 	model = Session
 	template_name = "invite_for_groups.html"
@@ -950,10 +1017,7 @@ class InviteUsersToGroupView(FormView):
 						invitee = User.objects.get(id=invitee)
 						reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=self.request.user)
 						GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
-			try:
-				return redirect(self.request.META.get('HTTP_REFERER')+"#section0")
-			except:
-				return redirect("invite", slug=unique)
+			return redirect("invite")
 	
 class GroupListView(ListView):
 	model = Group
@@ -1766,6 +1830,7 @@ def private_group(request, slug=None, *args, **kwargs):
 	else:
 		if valid_uuid(slug):
 			request.session['unique_id'] = slug
+			request.session["private_uuid"] = slug
 		else:
 			return redirect("score_help")
 		return redirect("private_group_reply")

@@ -303,6 +303,10 @@ class PicExpiryForm(forms.Form):
 	class Meta:
 		pass
 
+class InvitePrivateForm(forms.Form):
+	class Meta:
+		model = Session
+
 class InviteForm(forms.Form): # doesn't work if one uses Model form
 	class Meta:
 		model = Session
@@ -388,6 +392,10 @@ class LogoutReconfirmForm(forms.Form):
 		pass
 
 class LogoutPenaltyForm(forms.Form):
+	class Meta:
+		pass
+
+class ReinvitePrivateForm(forms.Form):
 	class Meta:
 		pass
 

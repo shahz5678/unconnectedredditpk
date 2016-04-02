@@ -2275,7 +2275,17 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-
+@ratelimit(rate='1/s')
+def link_create_pk(request, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 2 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': 'ID'}
+		return render(request, 'penalty_linkcreate.html', context)
+	else:
+		return redirect("link_create")
 
 class LinkCreateView(CreateView):
 	model = Link
@@ -2319,8 +2329,8 @@ class LinkCreateView(CreateView):
 		try:
 			#if f.description==f.submitter.userprofile.previous_retort:
 			score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
-			if score > 90:
-				return redirect("link_create")
+			if score > 88:
+				return redirect("link_create_pk")
 			else:
 				pass
 		except:
@@ -2702,10 +2712,10 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					else:
 						return redirect("home")
 			else:
-				return redirect("link_create")
+				return redirect("link_create_pk")
 			return redirect("home")
 		else:
-			return redirect("link_create")
+			return redirect("link_create_pk")
 
 def update_cooldown(obj):
 	time_now = datetime.utcnow().replace(tzinfo=utc)
@@ -2759,14 +2769,14 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			try:
 				link = Link.objects.get(pk=int(pk))
 			except:
-				return redirect("link_create")
+				return redirect("link_create_pk")
 			section = str(loc)
 			if usr:
 				if request.user.id != int(usr):
 					# the user sending this request is trying to vote with someone else's ID
-					return redirect("link_create")
+					return redirect("link_create_pk")
 			else:
-				return redirect("link_create")	
+				return redirect("link_create_pk")	
 			value = int(val)
 			if not Vote.objects.filter(voter=request.user, link=link).exists():
 				#only if user never voted on this link
@@ -2818,12 +2828,12 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 					value = -2
 				else:
 					value = 0
-					return redirect("link_create")
+					return redirect("link_create_pk")
 				try:
 					Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
 					cooldown.save()
 				except:#if vote object can't be created, just redirect the user, no harm done
-					return redirect("link_create")
+					return redirect("link_create_pk")
 				try:
 					request.session['target_id'] = link.id
 					return redirect("home")
@@ -2835,7 +2845,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				except:
 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
 		else:
-			return redirect("link_create")
+			return redirect("link_create_pk")
 	
 def LinkAutoCreate(user, content):   
 	link = Link()

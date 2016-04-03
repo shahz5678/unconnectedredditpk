@@ -87,7 +87,7 @@
 {% else %}
 
     <div class="margin">
-        <b style="color:purple;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_topic' slug=unique %}" style="font-size:70%;">(change karo)</a>
+        <b style="color:purple;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_outside_topic' %}" style="font-size:70%;">(change karo)</a>
         <br><a href="{% url 'sms_reinvite' %}" style="font-size:70%;">(isko bulao)</a>
         <a name="sectionJ"></a> 
         <hr size=1>

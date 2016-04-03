@@ -19,7 +19,6 @@
 
 <form method="post" action="">
 {% csrf_token %}
-<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
 <span style="color:red;">{{ form.topic.errors }}</span>
 <b>{{ form.topic.label_tag }}</b>{{ form.topic }}
 <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="OK">

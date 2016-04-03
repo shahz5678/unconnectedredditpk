@@ -69,8 +69,11 @@
     <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-bottom:0.1em;" type="submit" value="OK" id="id_submit">
     </form>
         
-	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>&nbsp;{% if user == group.owner %}<span style="font-size:70%;">|</span>
+	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>{% if user == group.owner %}<span style="font-size:70%;">|</span>
         <a href="{% url 'owner_group_online_kon' %}" style="font-size:65%;"><b>afsar banao</b></a>
+        {%else %}
+        <span style="font-size:70%;">|</span>
+        <a href="{% url 'group_online_kon' %}" style="font-size:65%;"><b>online kon</b></a>
         {% endif %}
     <p style="margin-top:.2em;"></p>
 	    {% if replies|length < 25 %}

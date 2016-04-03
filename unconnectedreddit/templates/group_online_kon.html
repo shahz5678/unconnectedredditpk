@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% block content %}
-    {% load cache %}
-    {% cache 60 group_online_kon_fragment %}
-
 
 
 <div class="margin">
-Iss group mien ye logg pichley 10 min mein nazar aye:<br>
+{% if unauthorized %}
+<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Tumhe ye dekhne ki ijazat nahi</b></span>
+{% else %}
+Is group mien ye log pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
 {% for traffic in groupies %}
 	<span class="numbers">
@@ -42,16 +42,15 @@ Iss group mien ye logg pichley 10 min mein nazar aye:<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
+{% endif %}
 </div>
 
-
-	{% endcache %}
 {% endblock %}
 
 {% block pagination %}

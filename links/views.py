@@ -654,18 +654,27 @@ class OwnerGroupOnlineKonView(ListView):
 		context = super(OwnerGroupOnlineKonView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			global condemned
+			context["unauthorized"] = False
 			context["legit"] = FEMALES
 			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			#print group.topic
-			context["group"] = group
-			total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
-			online_ids = total_traffic.values_list('visitor_id',flat=True)
-			captains = GroupCaptain.objects.filter(which_user_id__in=online_ids, which_group=group)
-			captains = {captain.which_user_id: captain for captain in captains}
-			helpers = [(traffic,captains.get(traffic.visitor.pk)) for traffic in total_traffic]
-			context["groupies"] = helpers
+			try:
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+			except:
+				context["group"] = None
+				context["unauthorized"] = True
+				context["groupies"] = []
+			if group.owner == self.request.user and group.private == '0':
+				total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
+				online_ids = total_traffic.values_list('visitor_id',flat=True)
+				captains = GroupCaptain.objects.filter(which_user_id__in=online_ids, which_group=group)
+				captains = {captain.which_user_id: captain for captain in captains}
+				helpers = [(traffic,captains.get(traffic.visitor.pk)) for traffic in total_traffic]
+				context["groupies"] = helpers
+			else:
+				context["groupies"] = []
+				context["unauthorized"] = True
 		return context
 
 class GroupOnlineKonView(ListView):

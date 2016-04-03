@@ -228,6 +228,18 @@ class OpenGroupCreateForm(forms.ModelForm):
 		exclude = ("owner","created_at", "members", "cagtegory","private")
 		fields = ("topic", "rules", "pics_ki_ijazat")
 
+class ChangeOutsideGroupTopicForm(forms.ModelForm):
+	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Group
+		fields = ("topic",)
+
+class ChangePrivateGroupTopicForm(forms.ModelForm):
+	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Group
+		fields = ("topic",)
+
 class ChangeGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:

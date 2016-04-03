@@ -3,7 +3,7 @@
 {% block content %}
 <div class="margin">
 <h2>{{ target_user.username }} ko saath mein aik paigham bhi do:</h2>
-<form action="{% url 'welcome_reply' pk=target_user.pk %}" method="POST">
+<form action="{% url 'welcome_reply' %}" method="POST">
 {% csrf_token %}
 	<input type="hidden" name="opt" value="{{ option }}">
 	{% if option == '1' %}

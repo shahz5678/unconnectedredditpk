@@ -17,7 +17,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
+from .forms import UserProfileForm, DeviceHelpForm, ChangeOutsideGroupTopicForm, ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -1537,6 +1537,84 @@ class ChangeGroupRulesView(CreateView):
 			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
 			return redirect("public_group", slug=unique)
 
+class ChangeOutsideGroupTopicView(CreateView):
+	model = Group
+	form_class = ChangeOutsideGroupTopicForm
+	template_name = "change_outside_group_topic.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ChangeOutsideGroupTopicView, self).get_context_data(**kwargs)
+		user = self.request.user
+		context["unauthorized"] = False
+		if user.is_authenticated():
+			unique = self.request.session["unique_outsider"]
+			if unique:	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+				if group.private == '0' or group.private == '1':
+					context["unauthorized"] = True
+					context["group"] = None
+					return context
+			else:
+				context["unauthorized"] = True
+				context["group"] = None
+				return context
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
+		if self.request.user_banned:
+			return redirect("profile", slug=user.username)
+		else:
+			topic = self.request.POST.get("topic")
+			unique = self.request.session["unique_outsider"]
+			group = Group.objects.get(unique=unique)
+			group.topic = topic
+			group.save()
+			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
+			return redirect("outsider_group", slug=unique)
+
+class ChangePrivateGroupTopicView(CreateView):
+	model = Group
+	form_class = ChangePrivateGroupTopicForm
+	template_name = "change_private_group_topic.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ChangePrivateGroupTopicView, self).get_context_data(**kwargs)
+		user = self.request.user
+		context["unauthorized"] = False
+		if user.is_authenticated():
+			unique = self.request.session["unique_id"]
+			if unique:	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+				if group.private == '0' or group.private == '2':
+					context["unauthorized"] = True
+					context["group"] = None
+					return context
+			else:
+				context["unauthorized"] = True
+				context["group"] = None
+				return context
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
+		if self.request.user_banned:
+			return redirect("profile", slug=user.username)
+		else:
+			topic = self.request.POST.get("topic")
+			unique = self.request.session["unique_id"]
+			group = Group.objects.get(unique=unique)
+			if group.private == '0' and group.owner != user:
+				return redirect("score_help")
+			group.topic = topic
+			group.save()
+			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
+			return redirect("private_group", slug=unique)
+
 class ChangeGroupTopicView(CreateView):
 	model = Group
 	form_class = ChangeGroupTopicForm
@@ -1547,9 +1625,7 @@ class ChangeGroupTopicView(CreateView):
 		user = self.request.user
 		context["unauthorized"] = False
 		if user.is_authenticated():
-			unique = self.request.session["unique_id"]#kwargs["slug"]
-			if not valid_uuid(unique):
-				unique = self.request.session['unique_id']
+			unique = self.request.session["public_uuid"]
 			if unique:	
 				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
@@ -1570,19 +1646,14 @@ class ChangeGroupTopicView(CreateView):
 			return redirect("profile", slug=user.username)
 		else:
 			topic = self.request.POST.get("topic")
-			unique = self.request.POST.get("unique")
+			unique = self.request.session['public_uuid']
 			group = Group.objects.get(unique=unique)
 			if group.private == '0' and group.owner != user:
 				return redirect("score_help")
 			group.topic = topic
 			group.save()
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
-			if group.private == '1':
-				return redirect("private_group", slug=unique)
-			elif group.private == '0':
-				return redirect("public_group", slug=unique)
-			else:
-				return redirect("outsider_group", slug=unique)
+			return redirect("public_group", slug=unique)
 
 @ratelimit(rate='1/s')
 def outsider_group(request, slug=None, *args, **kwargs):

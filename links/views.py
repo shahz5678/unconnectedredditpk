@@ -1511,7 +1511,7 @@ class ChangeGroupRulesView(CreateView):
 		user = self.request.user
 		context["unauthorized"] = False
 		if user.is_authenticated():
-			unique = self.kwargs["slug"]
+			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["group"] = group
@@ -1528,7 +1528,7 @@ class ChangeGroupRulesView(CreateView):
 			return redirect("profile", slug=user.username)
 		else:
 			rules = self.request.POST.get("rules")
-			unique = self.request.POST.get("unique")
+			unique = self.request.session["public_uuid"]
 			group = Group.objects.get(unique=unique)
 			if group.private == '0' and group.owner != user:
 				return redirect("score_help")
@@ -1547,7 +1547,7 @@ class ChangeGroupTopicView(CreateView):
 		user = self.request.user
 		context["unauthorized"] = False
 		if user.is_authenticated():
-			unique = self.kwargs["slug"]
+			unique = self.request.session["unique_id"]#kwargs["slug"]
 			if not valid_uuid(unique):
 				unique = self.request.session['unique_id']
 			if unique:	

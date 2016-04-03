@@ -8,11 +8,11 @@
 {% else %}
 Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
 
 {% for traffic, captain in groupies %}
@@ -45,11 +45,11 @@ Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
 {% endif %}
 </div>

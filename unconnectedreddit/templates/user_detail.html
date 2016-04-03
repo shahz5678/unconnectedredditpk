@@ -84,19 +84,8 @@
 		{% endif %}
 	{% endif %}
 	</div>
-{% if object.username == user.username %}
-<a href="{% url 'outside_message_help' %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Bahir waley ke saath private mehfil</button></a>
+{% if object.username == 'Shireen' %}
+<a href="{% url 'outside_message_help' %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Bahir wali mehfil</button></a>
 {% endif %}
-<!-- <h2><u>{{ object.username }} ke ikhtiyar</u></h2>
-	<div>
-	<b class="profile">Sab ka score dikhao:</b>
-	{% if not object.usersettings.score_setting == '1' %}
-		<a class="info">No</a>
-	{% else %}
-		<a class="info">Yes</a>
-	</div>
-	{% endif %}
-<p><a href='{% url "edit_settings" %}#section0' class="button" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">Ikhtiyar badlo</a></p>
- -->
 </div>
 {% endblock %}

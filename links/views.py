@@ -665,6 +665,7 @@ class OwnerGroupOnlineKonView(ListView):
 				context["group"] = None
 				context["unauthorized"] = True
 				context["groupies"] = []
+				return context
 			if group.owner == self.request.user and group.private == '0':
 				total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
 				online_ids = total_traffic.values_list('visitor_id',flat=True)
@@ -687,16 +688,30 @@ class GroupOnlineKonView(ListView):
 		context = super(GroupOnlineKonView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			global condemned
+			context["unauthorized"] = False
 			context["legit"] = FEMALES
-			unique = self.kwargs.get('slug')
+			unique = self.request.session["public_uuid"]
 			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["group"] = group
-			total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
-			total_traffic_ids = total_traffic.values_list('visitor_id', flat=True)
-			context["groupies"] = total_traffic 
-			captains = GroupCaptain.objects.filter(which_group=group, which_user__in=total_traffic_ids).values_list('which_user_id', flat=True)
-			context["officers"] = User.objects.filter(id__in=captains)
+			try:
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+			except:
+				context["group"] = None
+				context["unauthorized"] = True
+				context["groupies"] = []
+				context["officers"] = []
+				return context
+			if group.private == '0':
+				total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
+				total_traffic_ids = total_traffic.values_list('visitor_id', flat=True)
+				context["groupies"] = total_traffic 
+				captains = GroupCaptain.objects.filter(which_group=group, which_user__in=total_traffic_ids).values_list('which_user_id', flat=True)
+				context["officers"] = User.objects.filter(id__in=captains)
+			else:
+				context["group"] = None
+				context["unauthorized"] = True
+				context["groupies"] = []
+				context["officers"] = []
 		return context
 
 #@cache_page(20)

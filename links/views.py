@@ -1984,6 +1984,22 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
 				self.request.session['unique_id'] = None
 				return redirect("private_group", reply.which_group.unique)
+	
+@ratelimit(rate='1/s')
+def welcome_pk(request, pk=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 1 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': slug}
+		return render(request, 'penalty_welcome.html', context)
+	else:
+		if pk.isdigit():
+			request.session["welcome_pk"] = pk
+			return redirect("welcome")
+		else:
+			return redirect("group_help")
 
 class WelcomeView(FormView):
 	form_class = WelcomeForm
@@ -1992,7 +2008,7 @@ class WelcomeView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["target_user"] = User.objects.get(id=self.kwargs["pk"])
+			context["target_user"] = User.objects.get(id=self.request.session["welcome_pk"])
 		return context
 
 class WelcomeMessageView(CreateView):
@@ -2003,7 +2019,7 @@ class WelcomeMessageView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["target_user"] = User.objects.get(id=self.kwargs["pk"])
+			context["target_user"] = User.objects.get(id=self.request.session["welcome_pk"])
 			context["option"] = self.kwargs["option"]
 		return context
 
@@ -2549,7 +2565,7 @@ class WelcomeReplyView(FormView):
 			if self.request.user_banned:
 				return redirect("score_help")
 			else:
-				pk = self.kwargs["pk"]
+				pk = self.request.session["welcome_pk"]
 				target = User.objects.get(pk=pk)
 				current = User.objects.latest('id')
 				num = current.id

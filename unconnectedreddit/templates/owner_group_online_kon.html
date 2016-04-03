@@ -3,6 +3,9 @@
 {% block content %}
 
 <div class="margin">
+{% if unauthorized %}
+<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Tumhe ye dekhne ki ijazat nahi</b></span>
+{% else %}
 Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
 	<a href="{% url 'private_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
@@ -48,6 +51,7 @@ Tumhari mehfil mien ye logg pichley 10 min mein nazar aye:<br>
 	{% else %}
 	<a href="{% url 'outsider_group_reply' %}" style="font-size:80%;">< wapis</a><br><br>
 	{% endif %}
+{% endif %}
 </div>
 
 

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
-from links.views import cross_notif, vote, vote_on_vote, private_group, direct_message, mehfil_help, reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk
+from links.views import cross_notif, vote, vote_on_vote, private_group, direct_message, mehfil_help, reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk
 from django.views.generic.base import TemplateView
 from links.views import LinkListView, TopView, PicHelpView, AboutView, ReinvitePrivateView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
@@ -39,10 +39,11 @@ urlpatterns = patterns('',
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^kuch/likho/$', auth(LinkCreateView.as_view()), name='link_create'),
 	url(r'^link/create/$', auth(link_create_pk), name='link_create_pk'),
-	url(r'^welcome/(?P<pk>\d+)/$', auth(WelcomeView.as_view()), name='welcome'),
+	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
+	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
-	url(r'^welcome_reply/(?P<pk>\d+)/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),
-	url(r'^welcome/(?P<pk>\d+)/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
+	url(r'^damadam_par_khushamdeed/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),
+	url(r'^khushamdeed/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
 	url(r'^closed_mehfil/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),
 	url(r'^open_group/create/$', auth(OpenGroupCreateView.as_view()), name='open_group_create'),

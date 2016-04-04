@@ -2483,10 +2483,14 @@ class KickView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(KickView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.request.session["kick_slug"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["unauthorized"] = False
+			try:
+				unique = self.request.session["kick_slug"]
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["unauthorized"] = False
+			except:
+				context["unauthorized"] = True
+				context["unique"] = None
 			if group.private != '0':
 				context["unauthorized"] = True
 			context["owner"] = group.owner
@@ -2557,12 +2561,17 @@ class GroupReportView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(GroupReportView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.request.session["groupreport_slug"]
-			context["unique"] = unique
-			reply_id = self.request.session["groupreport_pk"]
-			group = Group.objects.get(unique=unique)
+			try:
+				unique = self.request.session["groupreport_slug"]
+				context["unique"] = unique
+				reply_id = self.request.session["groupreport_pk"]
+				group = Group.objects.get(unique=unique)
+			except:
+				context["captain"] = False
+				context["unique"] = None
+				context["reply"] = None
+				return context
 			if GroupCaptain.objects.filter(which_user=self.request.user, which_group=group).exists() and Reply.objects.filter(pk=reply_id, which_group=group).exists():
-				#print GroupCaptain.objects.filter(which_user=self.request.user).exists()
 				context["captain"] = True
 				reply = Reply.objects.get(id=reply_id)
 				context["reply"] = reply

@@ -2495,6 +2495,7 @@ class KickView(FormView):
 			except:
 				context["unauthorized"] = True
 				context["unique"] = None
+				group = None
 			if group.private != '0':
 				context["unauthorized"] = True
 			context["owner"] = group.owner

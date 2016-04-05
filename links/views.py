@@ -248,8 +248,12 @@ class OpenInviteTypeView(FormView):
 		context = super(OpenInviteTypeView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			unique = self.request.session["public_uuid"]
-			context["unique"] = unique
-			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
+			try:
+				context["unique"] = unique
+				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
+			except:
+				context["unique"] = None
+				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com"
 		return context
 
 class RegisterLoginView(FormView):

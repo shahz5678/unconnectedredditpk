@@ -2064,10 +2064,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 def welcome_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 1 * -1
+		deduction = 1 * -10
 		request.user.userprofile.score = request.user.userprofile.score + deduction
 		request.user.userprofile.save()
-		context = {'unique': slug}
+		context = {'unique': pk}
 		return render(request, 'penalty_welcome.html', context)
 	else:
 		if pk.isdigit():
@@ -2651,6 +2651,7 @@ class WelcomeReplyView(FormView):
 				return redirect("score_help")
 			else:
 				pk = self.request.session["welcome_pk"]
+				self.request.session["welcome_pk"] = None
 				target = User.objects.get(pk=pk)
 				current = User.objects.latest('id')
 				num = current.id

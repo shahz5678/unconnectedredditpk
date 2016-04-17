@@ -65,9 +65,9 @@
 {% if user.is_authenticated %}
     
     {% if user.userprofile.score and user.userprofile.score > 14 %}
-    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
+    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
     {% else %}
-    <a class="sharing" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
+    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
     {% endif %}
     <span style="color:white;">|</span>
     <a href="{% url 'auth_pics_display' %}#section0" style="text-shadow:0 0 0.1px #886081;"> Photo </a><span style="color:white;">|</span>
@@ -129,7 +129,7 @@
 </ul>
 </div>
 {% if user.is_authenticated %}
-<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create' %}#section0" style="text-shadow:0 0 0.1px blue;">Kuch Likho </a><span style="color:grey;">|</span>
+<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px blue;">Kuch Likho </a><span style="color:grey;">|</span>
 <a class="foot2" href="{% url 'logout_penalty' %}#section0" style="text-shadow:0 0 0.1px blue;">Bahir Niklo </a><span style="color:grey;">|</span>
 {% else %}
 <span style="color:grey;">|</span> <a class="foot2" href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Neya Khata </a><span style="color:grey;">|</span>  <a class="foot2" href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Purana Khata </a></a><span style="color:grey;">|</span>

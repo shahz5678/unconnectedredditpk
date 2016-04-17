@@ -74,7 +74,7 @@ def GetNonReplyLinks(user):
 		now = datetime.utcnow().replace(tzinfo=utc)
 		timestamp = now - timedelta(minutes=60*48)
 		global condemned
-		relevant_links = Link.objects.filter(Q(submitter=user,publicreply__isnull=False, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
+		relevant_links = Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
 	except:
 		#print "no relevant links"
 		relevant_links = []
@@ -100,7 +100,7 @@ def GetLatestUserInvolvement(user):
 	global condemned
 	if relevant_link_ids:
 		try:
-			max_unseen_reply = []#Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
 			#print "max unseen reply is %s" % max_unseen_reply
 			return max_unseen_reply 
 		except:

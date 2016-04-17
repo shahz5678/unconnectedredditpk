@@ -2083,7 +2083,13 @@ class WelcomeView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["target_user"] = User.objects.get(id=self.request.session["welcome_pk"])
+			try:
+				target_user = User.objects.get(id=self.request.session["welcome_pk"])
+				context["authenticated"] = True
+				context["target_user"] = target_user
+			except:
+				context["authenticated"] = False
+				context["target_user"] = []
 		return context
 
 class WelcomeMessageView(CreateView):

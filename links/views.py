@@ -95,6 +95,7 @@ def GetLinks(user):
 def GetLatestUserInvolvement(user):
 	empty_timestamp = []
 	max_unseen_reply = []
+	#get links subset from where latest public reply is to be extracted:
 	relevant_link_ids = GetLinks(user)
 	global condemned
 	if relevant_link_ids:
@@ -617,12 +618,19 @@ class AppointCaptainView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(AppointCaptainView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			user_id = self.request.session["appoint_id"]
-			unique_id = self.request.session["public_uuid"]
-			decision = self.request.session["appoint_decision"]
-			context["appoint"] = decision
-			context["candidate"] = User.objects.get(id=user_id)
-			context["unique"] = unique_id
+			try:
+				user_id = self.request.session["appoint_id"]
+				unique_id = self.request.session["public_uuid"]
+				decision = self.request.session["appoint_decision"]
+				context["authorized"] = True
+				context["candidate"] = User.objects.get(id=user_id)
+				context["appoint"] = decision
+				context["unique"] = unique_id
+			except:
+				context["authorized"] = False
+				context["candidate"] = None
+				context["appoint"] = None
+				context["unique"] = None
 		return context
 
 	def form_valid(self, form):

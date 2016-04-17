@@ -2470,9 +2470,9 @@ class LinkCreateView(CreateView):
 				f.submitter.userprofile.save()
 				return super(CreateView, self).form_valid(form)
 			else:
-				return redirect("score")
+				return redirect("score_help")
 		except:
-			return redirect("score")
+			return redirect("score_help")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")

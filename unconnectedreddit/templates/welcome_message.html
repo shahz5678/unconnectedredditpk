@@ -2,23 +2,27 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-<h2>{{ target_user.username }} ko saath mein aik paigham bhi do:</h2>
-<form action="{% url 'welcome_reply' %}" method="POST">
-{% csrf_token %}
-	<input type="hidden" name="opt" value="{{ option }}">
-	{% if option == '1' %}
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Barfi khao aur mazay urao!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Yeh zalim barfi try kar yar!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is barfi se mu meetha karo!">
-	{% elif option == '2' %}
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Aik plate laddu se life set!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Ye saray laddu aap ke liye!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Laddu khao, jaan banao yar!">
-	{% else %}
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi khao aur ayashi karo!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi meri pasandida hai!"><br>
-		<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is jalebi se mu metha karo!">	
-	{% endif %}
-</form>
+{% if authorized %}
+	<h2>{{ target_user.username }} ko saath mein paigham bhi do:</h2>
+	<form action="{% url 'welcome_reply' %}" method="POST">
+	{% csrf_token %}
+		<input type="hidden" name="opt" value="{{ option }}">
+		{% if option == '1' %}
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Barfi khao aur mazay urao!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Yeh zalim barfi try kar yar!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is barfi se mu meetha karo!">
+		{% elif option == '2' %}
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Aik plate laddu se life set!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Ye saray laddu aap ke liye!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Laddu khao, jaan banao yar!">
+		{% else %}
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi khao aur ayashi karo!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Jalebi meri pasandida hai!"><br>
+			<b>. </b><input name="msg" style="text-align:left;color:blue;background-color:white;border:none;" type="submit" value="Is jalebi se mu metha karo!">	
+		{% endif %}
+	</form>
+{% else %}
+	<b style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye nahi ho sakta!</b>
+{% endif %}
 </div>
 {% endblock %}

@@ -41,7 +41,7 @@
 <hr size=1>
 <form action="{% url 'reply' %}" method="POST">
 	{% csrf_token %}
-	<input type="hidden" id="id_link" name="object_id" class="hidden_id" value="{{ parent.pk }}">
+	
     <span style="font-size:85%;color:dimgrey;"><b>Jawab likho:</b></span>{{ form.description }}
 <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:0.3em;" type="submit" value="OK" id="id_submit">
 </form>

@@ -99,7 +99,7 @@ def GetLatestUserInvolvement(user):
 	global condemned
 	if relevant_link_ids:
 		try:
-			max_unseen_reply = []#Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
+			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
 			#print "max unseen reply is %s" % max_unseen_reply
 			return max_unseen_reply 
 		except:
@@ -2207,6 +2207,12 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		description = self.request.POST.get("description")
 		pk = self.request.session["link_pk"]
 		self.request.session["link_pk"] = None
+		try:
+			answer_to = Link.objects.get(id=pk)
+		except:
+			self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+			self.request.user.userprofile.save()
+			return redirect("profile", slug=self.request.user.username)
 		score = fuzz.ratio(description, self.request.user.userprofile.previous_retort)
 		if score > 85:
 			try:
@@ -2219,11 +2225,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			if self.request.user_banned:
 				return redirect("score_help")
 			else:
+				answer_to.reply_count = answer_to.reply_count + 1
 				self.request.user.userprofile.previous_retort = description
 				self.request.user.userprofile.score = self.request.user.userprofile.score + 3
 				self.request.user.userprofile.save()
-				answer_to = Link.objects.get(id=self.request.POST.get("object_id"))
-				answer_to.reply_count = answer_to.reply_count + 1
 				if self.request.is_feature_phone:
 					device = '1'
 				elif self.request.is_phone:
@@ -2400,6 +2405,7 @@ def link_create_pk(request, *args, **kwargs):
 		context = {'unique': 'ID'}
 		return render(request, 'penalty_linkcreate.html', context)
 	else:
+		request.session["link_create_token"] = uuid.uuid4()
 		return redirect("link_create")
 
 class LinkCreateView(CreateView):
@@ -2415,50 +2421,58 @@ class LinkCreateView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		user = self.request.user
-		f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-		if user.userprofile.score < -25:
-			if not HellBanList.objects.filter(condemned=user).exists(): #only insert user in hell-ban list if she isn't there already
-				HellBanList.objects.create(condemned=user) #adding user to hell-ban list
-				user.userprofile.score = random.randint(10,71)
-				user.userprofile.save()
-				f.submitter = user
-			else:
-				f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-		else:
-			f.submitter = user
-			f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 2 points every time a user submits new content
-		f.with_votes = 0
-		f.category = '1'
-		if self.request.is_feature_phone:
-			f.device = '1'
-		elif self.request.is_phone:
-			f.device = '2'
-		elif self.request.is_tablet:
-			f.device = '4'
-		elif self.request.is_mobile:
-			f.device = '5'
-		else:
-			f.device = '3'
+		token = self.request.session["link_create_token"]
+		self.request.session["link_create_token"] = None
 		try:
-			#if f.description==f.submitter.userprofile.previous_retort:
-			score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
-			if score > 88:
-				return redirect("link_create_pk")
+			if valid_uuid(str(token)):
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				user = self.request.user
+				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+				if user.userprofile.score < -25:
+					if not HellBanList.objects.filter(condemned=user).exists(): #only insert user in hell-ban list if she isn't there already
+						HellBanList.objects.create(condemned=user) #adding user to hell-ban list
+						user.userprofile.score = random.randint(10,71)
+						user.userprofile.save()
+						f.submitter = user
+					else:
+						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
+				else:
+					f.submitter = user
+					f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 2 points every time a user submits new content
+				f.with_votes = 0
+				f.category = '1'
+				if self.request.is_feature_phone:
+					f.device = '1'
+				elif self.request.is_phone:
+					f.device = '2'
+				elif self.request.is_tablet:
+					f.device = '4'
+				elif self.request.is_mobile:
+					f.device = '5'
+				else:
+					f.device = '3'
+				try:
+					#if f.description==f.submitter.userprofile.previous_retort:
+					score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
+					if score > 88:
+						return redirect("link_create_pk")
+					else:
+						pass
+				except:
+					pass
+				f.submitter.userprofile.previous_retort = f.description
+				if f.image_file:
+					image_file = clean_image_file(f.image_file)
+					if image_file:
+						f.image_file = image_file
+					else: f.image_file = None
+				f.save()
+				f.submitter.userprofile.save()
+				return super(CreateView, self).form_valid(form)
 			else:
-				pass
+				return redirect("score")
 		except:
-			pass
-		f.submitter.userprofile.previous_retort = f.description
-		if f.image_file:
-			image_file = clean_image_file(f.image_file)
-			if image_file:
-				f.image_file = image_file
-			else: f.image_file = None
-		f.save()
-		f.submitter.userprofile.save()
-		return super(CreateView, self).form_valid(form)
+			return redirect("score")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")

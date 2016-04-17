@@ -2,10 +2,14 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
+{% if authenticated %}
 <b style="font-size:120%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">{{ target_user.username }} ko konsi mithai bhejni hai?</b><br>
 <span style="color:grey;font-size:90%;">is se tumhara score <b style="color:green;">+1</b> ho ga</span><br><br>
 <a href="{% url 'welcome_message' option=1 %}"><b>. barfi</b></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/barfi.png" alt="no pic" height="45" width="46"><br>
 <a href="{% url 'welcome_message' option=2 %}"><b>. laddu</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/laddu.png" alt="no pic" height="24" width="46"><br>
 <a href="{% url 'welcome_message' option=3 %}"><b>. jalebi</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/jalebi.png" alt="no pic" height="28" width="46">
+{% else %}
+<b style="font-size:120%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Ye nahi ho sakta!</b>
+{% endif %}
 </div>
 {% endblock %}

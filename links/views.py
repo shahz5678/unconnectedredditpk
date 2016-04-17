@@ -97,13 +97,13 @@ def GetLatestUserInvolvement(user):
 	max_unseen_reply = []
 	relevant_link_ids = GetLinks(user)
 	global condemned
-	if relevant_link_ids:
-		try:
-			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
-			#print "max unseen reply is %s" % max_unseen_reply
-			return max_unseen_reply 
-		except:
-			return empty_timestamp
+	# if relevant_link_ids:
+	# 	try:
+	# 		max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
+	# 		#print "max unseen reply is %s" % max_unseen_reply
+	# 		return max_unseen_reply 
+	# 	except:
+	# 		return empty_timestamp
 	return empty_timestamp		
 
 class NeverCacheMixin(object):
@@ -491,7 +491,7 @@ class LinkListView(ListView):
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				freshest_reply = None#GetLatestUserInvolvement(user)
+				freshest_reply = GetLatestUserInvolvement(user)
 				#print freshest_reply
 				if freshest_reply:
 					parent_link = freshest_reply.answer_to

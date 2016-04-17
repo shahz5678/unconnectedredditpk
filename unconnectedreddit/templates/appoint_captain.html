@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
+{% if authorized %}
 {% if appoint == '1' %}
 
 	<h2>Kiya <span style="color:blue;">{{ candidate.username }}</span> ko afsar bana diya jaye?</h2>
 	<form method="POST" action="{% url 'appoint' %}">
 	{% csrf_token %}
-	<input type="hidden" name="candidate" class="hidden_id" value="{{ candidate.pk }}">
-	<input type="hidden" name="appoint" class="hidden_id" value="{{ appoint }}">
 	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="haan" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
 	</form>
 {% else %}
 	<h2>Kiya <span style="color:blue;">{{ candidate.username }}</span> ko hata diya jaye?</h2>
 	<form method="POST" action="{% url 'appoint' %}">
 	{% csrf_token %}
-	<input type="hidden" name="candidate" class="hidden_id" value="{{ candidate.pk }}">
-	<input type="hidden" name="appoint" class="hidden_id" value="{{ appoint }}">
 	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="haan" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
 	</form>
 {% endif %}
 	<span class="numbers"><b style="color:lightgrey;">&bullet;</b><a href="{% url 'owner_group_online_kon' %}"></span><input class="voting" type="submit" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"></a>
-	</div>
+{% else %}
+<b style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Tum ye nahi kar saktey!</b>
+{% endif %}
+</div>
 {% endblock %}

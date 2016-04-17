@@ -2094,8 +2094,15 @@ class WelcomeMessageView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["target_user"] = User.objects.get(id=self.request.session["welcome_pk"])
-			context["option"] = self.kwargs["option"]
+			pk = self.request.session["welcome_pk"]
+			try:
+				context["target_user"] = User.objects.get(id=pk)
+				context["authorized"] = True
+				context["option"] = self.kwargs["option"]
+			except:
+				context["authorized"] = False
+				context["target_user"] = None
+				context["option"] = None
 		return context
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -2666,7 +2673,10 @@ class WelcomeReplyView(FormView):
 			else:
 				pk = self.request.session["welcome_pk"]
 				self.request.session["welcome_pk"] = None
-				target = User.objects.get(pk=pk)
+				try:
+					target = User.objects.get(pk=pk)
+				except:
+					return redirect("profile", slug=self.request.user.username)
 				current = User.objects.latest('id')
 				num = current.id
 				if (num-100) <= int(pk) <= (num+100):

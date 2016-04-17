@@ -2428,7 +2428,10 @@ class LinkCreateView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		token = self.request.session["link_create_token"]
+		try:
+			token = self.request.session["link_create_token"]
+		except:
+			return redirect("profile", slug=self.request.user.username)
 		self.request.session["link_create_token"] = None
 		try:
 			if valid_uuid(str(token)):

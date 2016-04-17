@@ -491,7 +491,7 @@ class LinkListView(ListView):
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				freshest_reply = GetLatestUserInvolvement(user)
+				freshest_reply = None#GetLatestUserInvolvement(user)
 				#print freshest_reply
 				if freshest_reply:
 					parent_link = freshest_reply.answer_to

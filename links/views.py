@@ -103,7 +103,7 @@ def GetLatestUserInvolvement(user):
 	if relevant_publicreply_ids:
 		try:
 			max_unseen_reply = Publicreply.objects.filter(id__in=relevant_publicreply_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
-			print "max unseen reply is %s" % max_unseen_reply
+			#print "max unseen reply is %s" % max_unseen_reply
 			return max_unseen_reply 
 		except:
 			return empty_timestamp

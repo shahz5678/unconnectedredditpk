@@ -252,6 +252,7 @@ class Link(models.Model):
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
 	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
+	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, on_delete=models.SET_NULL)
 	
 	with_votes = LinkVoteCountManager() #change this to set_rank()
 	objects = models.Manager() #default, in-built manager

@@ -85,23 +85,25 @@ def GetLinks(user):
 		now = datetime.utcnow().replace(tzinfo=utc)
 		timestamp = now - timedelta(minutes=30)
 		global condemned
-		relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:10]))
+		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:10]))
+		relevant_publicreply_ids = list(set(Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(latest_reply__submitted_by=user).exclude(submitter_id__in=condemned).order_by('-id').values_list('latest_reply', flat=True)[:10]))
 		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
-		#print "relevant link ids are: %s" % relevant_links_ids
+		#print "relevant publicreply ids are: %s" % relevant_publicreply_ids
 	except:
-		relevant_links_ids = []
-	return relevant_links_ids
+		relevant_publicreply_ids = []
+		#print "here"
+	return relevant_publicreply_ids
 
 def GetLatestUserInvolvement(user):
 	empty_timestamp = []
 	max_unseen_reply = []
 	#get links subset from where latest public reply is to be extracted:
-	relevant_link_ids = GetLinks(user)
+	relevant_publicreply_ids = GetLinks(user)
 	global condemned
-	if relevant_link_ids:
+	if relevant_publicreply_ids:
 		try:
-			max_unseen_reply = Publicreply.objects.filter(answer_to_id__in=relevant_link_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
-			#print "max unseen reply is %s" % max_unseen_reply
+			max_unseen_reply = Publicreply.objects.filter(id__in=relevant_publicreply_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
+			print "max unseen reply is %s" % max_unseen_reply
 			return max_unseen_reply 
 		except:
 			return empty_timestamp
@@ -2262,6 +2264,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					device = '3'
 				reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1', device=device)
 				Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
+				answer_to.latest_reply = reply
 				answer_to.save()
 				try:
 					return redirect("reply_pk", pk=pk)
@@ -2714,7 +2717,6 @@ class WelcomeReplyView(FormView):
 					if Link.objects.filter(submitter=target).exists():
 						parent = Link.objects.filter(submitter=target).latest('id')
 						parent.reply_count = parent.reply_count + 1
-						parent.save()
 					else:
 						num = random.randint(1,5)
 						if num == 1:
@@ -2758,6 +2760,8 @@ class WelcomeReplyView(FormView):
 					else:
 						return redirect("score_help")
 					global condemned
+					parent.latest_reply = reply
+					parent.save()
 					replies = list(Publicreply.objects.filter(answer_to=parent, submitted_on__lte=reply.submitted_on).exclude(submitted_by_id__in=condemned).order_by('-id')[:25])
 					#print "THESE ARE REPLIES: %s" % replies
 					relevant_ids = [rply.id for rply in replies]

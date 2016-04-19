@@ -5,7 +5,8 @@
 <div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
 {% if object.username == user.username %}
 <h2><u>Welcome apni profile pe</u></h2>
-<p><a href="{% url 'edit_profile' %}#section0"> <button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Profile badlo</button></a></p>
+<a href="{% url 'edit_profile' %}#section0"> <button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;">Profile badlo</button></a><br>
+<a href="{% url 'user_activity' slug=object.username %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Tumhari history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% else %}
 <h2><u>{{ object.username }} ki profile</u></h2>
 <a href="{% url 'direct_message' pk=object.id %}"> <button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;">Iss ke saath private mehfil</button></a>

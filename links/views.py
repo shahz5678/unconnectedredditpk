@@ -961,21 +961,25 @@ class InviteUsersToPrivateGroupView(FormView):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["legit"] = FEMALES
-			unique = self.request.session["private_uuid"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["group"] = group
-			if self.request.user_banned:
-				context ["visitors"] = [] # there are no visitors to invite for hellbanned users
-			else:
-				invites = []
-				user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=15))).only('user').distinct('user')
-				users = [session.user for session in user_sessions]#all users that are online
-				users = [user for user in users if user is not None] #sanitizing any NONE values that may exist in shared devices
-				user_ids = [user.id for user in users]
-				online_invited_replied_users = \
-				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
-				context ["visitors"] = online_invited_replied_users
+			try:	
+				unique = self.request.session["private_uuid"]
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["authorized"] = True
+				context["group"] = group
+				if self.request.user_banned:
+					context ["visitors"] = [] # there are no visitors to invite for hellbanned users
+				else:
+					invites = []
+					user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=15))).only('user').distinct('user')
+					users = [session.user for session in user_sessions]#all users that are online
+					users = [user for user in users if user is not None] #sanitizing any NONE values that may exist in shared devices
+					user_ids = [user.id for user in users]
+					online_invited_replied_users = \
+					User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
+					context ["visitors"] = online_invited_replied_users
+			except:
+				context["authorized"] = False
 		return context				
 
 	def form_valid(self, form):

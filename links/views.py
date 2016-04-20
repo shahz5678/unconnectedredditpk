@@ -1885,8 +1885,8 @@ class PublicGroupView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
-		pk = self.request.session["public_uuid"]
 		try:
+			pk = self.request.session["public_uuid"]
 			which_group = Group.objects.get(unique=pk)
 		except:
 			return redirect("profile", self.request.user.username )
@@ -2537,22 +2537,22 @@ class KickView(FormView):
 				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
 				context["unauthorized"] = False
+				if group.private != '0':
+					context["unauthorized"] = True
+				context["owner"] = group.owner
+				if group.owner != self.request.user:
+					context["culprit"] = self.request.user
+				else:
+					culprit_id = self.request.session["kick_pk"]
+					if Reply.objects.filter(writer_id=culprit_id,which_group=group).exists():
+						culprit = User.objects.get(id=culprit_id)
+						context["culprit"] = culprit
+					else:
+						context["unauthorized"] = True
 			except:
 				context["unauthorized"] = True
 				context["unique"] = None
-				group = None
-			if group.private != '0':
-				context["unauthorized"] = True
-			context["owner"] = group.owner
-			if group.owner != self.request.user:
-				context["culprit"] = self.request.user
-			else:
-				culprit_id = self.request.session["kick_pk"]
-				if Reply.objects.filter(writer_id=culprit_id,which_group=group).exists():
-					culprit = User.objects.get(id=culprit_id)
-					context["culprit"] = culprit
-				else:
-					context["unauthorized"] = True
+				# group = None
 		return context
 
 	def form_valid(self, form):

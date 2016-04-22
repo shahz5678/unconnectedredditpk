@@ -13,10 +13,10 @@
     <span style="font-size:85%;">
     <b>members:</b>
     {% if not members %}
-    <a href="{% url 'profile' slug=group.owner.username %}">{{ group.owner }}</a>
+    <a href="{% url 'profile' slug=group.owner.username %}#section0">{{ group.owner }}</a>
     {% else %}
         {% for member in members %}
-        <a href="{% url 'profile' slug=member.username %}">{{ member.username }}</a>,&nbsp;
+        <a href="{% url 'profile' slug=member.username %}#section0">{{ member.username }}</a>,&nbsp;
         {% endfor %}
     {% endif %}
     </span>
@@ -60,7 +60,7 @@
                     {% endif %}
                 
                 <span style="color:green;font-size:90%;">
-                <a href="{% url 'profile' slug=reply.writer.username %}">
+                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
                     {% if writer.userprofile.avatar %}
                     <img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                     {% else %}
@@ -73,7 +73,7 @@
                     {% endif %}
                     {% endfor %}
                 </a>
-                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
+                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}#section0"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
                 </span>
             {% elif reply.category = '4' %}
                 {% if time < 41 %}

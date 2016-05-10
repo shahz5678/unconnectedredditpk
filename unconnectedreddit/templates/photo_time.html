@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+<span style="color:grey;">Ye photo charhi <b>{{ photo_time|naturaltime }}</b></span><br><br>
+<a href="{% url 'see_photo' %}"><< wapis</a>
+
+</div>
+{% endblock %}

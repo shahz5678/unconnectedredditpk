@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+<a href="{% url 'see_photo_pk' key %}">
+{% if photo.vote_score < -8 %}
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+{% elif photo.vote_score < -3 %}
+    {% if photo.image_file %}
+        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+    {% else %}
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% else %}
+	{% if photo.image_file %}
+    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    {% endif %}
+{% endif %}</a>
+<span style="color:#a6a6a6;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
+<br><br>
+{% if content %}
+{% for vote in votes %}
+	<b style="color:#bfbfbf;">.</b>
+	{% if vote.value == 1 %}
+		<a href="{% url 'profile' vote.voter.username %}"><b>{{ vote.voter }}</b>			
+		    {% for person in girls %}
+		    {% if person == vote.voter.username %}
+		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		</a><span style="color:green;"> ko photo <b>fit</b> lagi</span>
+	{% elif vote.value == -1 %}
+		<a href="{% url 'profile' vote.voter.username %}"><b>{{ vote.voter }}</b>
+		    {% for person in girls %}
+		    {% if person == vote.voter.username %}
+		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		</a><span style="color:red;"> ne <b>lanat</b> bheji</span>
+	{% else %}
+	{% endif %}
+	<br>
+{% endfor %}
+{% else %}
+{% if authenticated %}
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is photo ko kisi ne <b>fit</b> ya <b>fit-e-moo</b> dabane ke qabil nahi samjha</span><br>
+	{% if visible_score > 0 %}
+	<span style="color:grey; font-size:95%;"><i>iske tamam points tabsroon se aye hain</i></span><br>
+	{% endif %}
+{% else %}
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is photo pe voting nahi hui</span><br>
+{% endif %}
+{% endif %}
+<br>
+<a href="{% url 'see_photo_pk' key %}"><< wapis</a></span><br>
+
+</div>
+{% endblock %}

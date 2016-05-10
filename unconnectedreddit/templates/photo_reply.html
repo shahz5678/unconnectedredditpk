@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load emoticons_tags %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+{% if authenticated %}
+<a href="{% url 'see_photo_pk' stream_related_id %}">
+
+	{% if photo.vote_score < -8 %}
+	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	{% elif photo.vote_score < -3 %}
+		{% if photo.image_file %}
+	    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+	    {% else %}
+	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	    {% endif %}
+	{% else %}
+		{% if photo.image_file %}
+	    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+	    {% else %}
+	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	    {% endif %}
+	{% endif %}
+</a>
+	<b style="font-size:110%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Is photo ke jawab mein:</b><br><br>
+	<form action="{% url 'reply_options' %}" method="POST">
+	{% csrf_token %}
+	<span style="color:grey;">-</span><input class="voting" type="submit" name="option" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Photo lagao"><span style="font-size:90%;">(<a href="{% url 'photo_jawab' %}#section0">?</a>)</span><br>
+	
+	<span style="color:grey;">-</span><input class="voting" type="submit" name="option" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Tabsra kro"><br>
+	</form>
+	{% if count > 0 %}
+
+	  <hr size=1 COLOR="ORANGE">
+	  {% if count > 25 %}
+	  <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Pichley 25 tabsrey:</b></span><br>
+	  {% else %}
+	  <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>{{ count }} tabsrey:</b></span><br>
+	  {% endif %}
+	  {% for comment in comments %}
+	  
+	  <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+    	{% if comment.submitted_by.userprofile.avatar %}
+        	<img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        {% else %}
+        	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+        {% endif %}
+    	{{ comment.submitted_by.username }}</a>
+            <span style="font-size:70%;">
+            {% if comment.submitted_by.userprofile.score %}
+                {% if comment.submitted_by.userprofile.score < 0 %}
+                    <span style="color:red;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% endif %}
+            {% endif %}
+        	</span>
+
+    	{% for person in verified %}
+            {% if person == comment.submitted_by.username %}
+            <span style="color:deeppink;"><b>*</b></span>
+            {% endif %}
+        {% endfor %}
+
+	  :&nbsp;<bdi style="color:#404040;">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span style="font-size:73%;color:gray;"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+   		{% if comment.device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif comment.device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif comment.device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif comment.device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif comment.device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}
+	  </span><br>
+	  
+	  {% endfor %}
+  	
+  	{% endif %}
+{% else %}
+	<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye nahi chal sakta!</h2>
+{% endif %}
+</div>
+{% endblock %}

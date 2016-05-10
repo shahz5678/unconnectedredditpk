@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+{% load emoticons_tags %}
+{% load cache %}
+{% cache 3600 photo_help_fragment %}
+
+<span class="score">
+<div style="margin-left:20px;">
+<b style="color:#404040;">Photo ke jawab mein photo laga kr train bnao!</b><br>
+<span style="color:#404040;">
+{% emoticons %}Maslan kisi ne apni stylish selfie 8) lagaii ho, toh tum apni selfie laga kr usko jawab do. Yaani, likhne ke bajai, photo ka jawab photo se do!{% endemoticons %}</span><br> 
+<a href="{% url 'reply_options' %}#section0"><< wapis</a>
+</div>
+</span>
+
+{% endcache %}
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+{% if valid %}
+<a href="{% url 'see_photo_pk' stream_id %}#section0" style="font-size:85%;"><< wapis</a>
+<br><a name="section1"></a>
+	<div style="background-color:#faebeb;margin-top:0.5em;padding-top:0.5em;padding-bottom:0.5em;"><span style="font-size:95%;color:#a22a2a;">(<a href="{% url 'photo_qataar_help' stream_id %}#section0">?</a>)&nbsp;<b>{{ number }} photos ki qataar:</b></span></div>
+		{% for pic in object_list %}
+			{% if forloop.counter > 1 %}
+				<hr size=1 COLOR="#f2f2f2">
+				<div style="background-color:#faebeb;margin-top:-0.5em;padding-top:0.5em;"><span style="font-size:80%;color:#a22a2a;"><span style="color:#A52A2A;">! <b>Uper</b> ki photo jawab he <b>nichli</b> photo ka !</span>
+				<br><hr size=1 COLOR="#f2f2f2"></div>
+			{% endif %}
+			{% if forloop.counter > 1 %}
+			<a name="section{{ forloop.counter }}"></a>
+			{% endif %}
+			<div style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;margin-top:1em;margin-bottom:-1em;"><b>{% emoticons %}{{ pic.caption }}{% endemoticons %}
+			{% if pic.visible_score == 0 %}
+			{% elif pic.visible_score > 0 %}
+			<span style="font-size:80%;color:#00B800;">(+{{ pic.visible_score }})</span>
+			{% else %}
+			<span style="font-size:80%;color:red;">({{ pic.visible_score }})</span>
+			{% endif %}</b></div>
+			<br>
+			
+			{% if pic.vote_score < -8 %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png">
+			{% elif pic.vote_score < -3 %}
+				{% if pic.image_file %}
+				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ pic.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% else %}
+				{% if pic.image_file %}
+				
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ pic.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% endif %}
+			<br>
+
+			<a href="{% url 'reply_to_photo' pic.id stream_id %}">
+
+			{% if pic.latest_comment and pic.second_latest_comment %}
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:white;">.</span>{{ pic.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ pic.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			<span style="color:#1947D1;font-size:97%;"><span style="color:white;">.</span>{{ pic.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ pic.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			{% elif pic.latest_comment %}
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:white;">.</span>{{ pic.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ pic.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
+			</span>
+			{% else %}
+			{% endif %}
+
+			{% if pic.comment_count > 0 %}
+				<button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;margin-top:0.2em;">{{ pic.comment_count }} tabsrey</button>
+			{% else %}
+				<button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;margin-top:0.2em;">tabsra kro</button>
+			{% endif %}
+			<br>
+			</a>
+			<!-- { if cant_vote and pik.awner_iid != uzer_iid and pik.iid nawt inn votd }
+				<a href="{% url 'photo_vote' stream_id pic.id 100 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">mazedar</button></a><br>
+				<a href="{% url 'photo_vote' stream_id pic.id 99 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">fazool</button></a><br>
+				{ enif } -->
+
+		<span style="color:grey;font-size:85%;">
+		<a href="{% url 'profile' pic.owner.username %}#section0">{{ pic.owner }}</a>
+			{% for person in girls %}
+		    {% if person == pic.owner.username %}
+		    	<span style="font-size:100%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		
+			<span style="font-size:85%;">
+			{% if authenticated and score > 25 %}				
+				{% if pic.owner.userprofile.score < 0 %}
+			    	<span style="color:red;">({{ pic.owner.userprofile.score }})</span>
+			    {% else %}
+			    	<span style="color:#18A018;">({{ pic.owner.userprofile.score }})</span>
+				{% endif %}
+			{% endif %}
+			</span>
+		
+			&nbsp;ki photo, {{ pic.upload_time|naturaltime }}
+		</span>
+		
+			{% if pic.device == '1' %}
+			&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+			{% elif pic.device == '2' %}
+			&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+			{% elif pic.device == '4' %}
+			&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+			{% elif pic.device == '5' %}
+			&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+			{% elif pic.device == '3' %}
+			&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+			{% else %}
+			{% endif %}
+			<br>
+		
+		{% endfor %}
+{% else %}
+
+	<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye nahi chal sakta!</h2>
+
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:115%;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:115%;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from math import log
 from django.core.validators import MaxLengthValidator, MaxValueValidator
 from django.core.files.uploadedfile import InMemoryUploadedFile
+import PIL
 from PIL import Image
 import uuid, os, StringIO, string
 from django.conf import settings
@@ -64,7 +65,31 @@ class OverwriteStorage(Storage):
 			image = small_content.file		
 			image = Image.open(image)
 			small_image = image.resize(size, Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=90)
+			small_image.save(thumbnail,'JPEG',quality=70)
+			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
+			small_content.file = img
+			small_content.open()
+			stream = small_content.read()
+			blob_service.put_blob(
+				'pictures',
+				small_image_name,
+				stream,
+				x_ms_blob_type='BlockBlob',
+				x_ms_blob_content_type=content_type
+			)
+			small_content.close()
+		elif "photos" in name:
+			small_image_name = name
+			small_image_name = string.replace(small_image_name, "photos", "thumbnails")
+			thumbnail = StringIO.StringIO()
+			#size = 40, 40
+			height = 38
+			image = small_content.file		
+			image = Image.open(image)
+			wpercent = (height/float(image.size[1]))
+			bsize = int((float(image.size[0])*float(wpercent)))
+			small_image = image.resize((bsize,height), PIL.Image.ANTIALIAS)
+			small_image.save(thumbnail,'JPEG',quality=70)
 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 			small_content.file = img
 			small_content.open()
@@ -170,6 +195,40 @@ def upload_avatar_to_location(instance, filename):
 		print '%s (%s)' % (e.message, type(e))
 		return 0
 
+def upload_photo_to_location(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1] #whether jpg or png
+		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
+		instance.title = blocks[0]
+		return os.path.join('photos/', filename)
+	except Exception as e:
+		print '%s (%s)' % (e.message, type(e))
+		return 0
+
+def upload_photocomment_to_location(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1] #whether jpg or png
+		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
+		instance.title = blocks[0]
+		return os.path.join('photos/', filename)
+	except Exception as e:
+		print '%s (%s)' % (e.message, type(e))
+		return 0
+
+PHOTOS = (
+('1','Islam'),
+('2','Funny'),
+('3','Shairi'),
+('4','Sports'),
+('5','Masala'),
+('6','Style'),
+('7','Selfies'),
+('8','Nail Color'),
+('9', 'Ajooba'),
+	)
+
 TYPE = (
 ('1','Tamashaee'),
 ('2','Gupshup'),
@@ -206,6 +265,11 @@ STATUS = (
 ('1','Strangers'),
 ('2','Friends'),
 ('3','Blocked')
+	)
+
+OBJECTS = (
+('0','Comments'),
+('1','Jawabiphotos')
 	)
 
 LIFETIME = (
@@ -252,7 +316,7 @@ class Link(models.Model):
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
 	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
-	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, on_delete=models.SET_NULL)
+	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, on_delete=models.CASCADE)#models.SET_NULL)
 	
 	with_votes = LinkVoteCountManager() #change this to set_rank()
 	objects = models.Manager() #default, in-built manager
@@ -280,6 +344,63 @@ class Link(models.Model):
 		self.rank_score = round(sign * order + secs / 45000, 8)
 		self.save() # this persists the rank_score in the database'''
 		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 
+
+class PhotoCooldown(models.Model):
+	which_user = models.ForeignKey(User)
+	time_of_uploading = models.DateTimeField(db_index=True) #regenerate a trial after 1 min.
+
+class PhotoStream(models.Model):
+	cover = models.ForeignKey('links.Photo')
+	creation_time = models.DateTimeField(auto_now_add=True)
+	show_time =  models.DateTimeField(db_index=True)
+	photo_count = models.IntegerField(default=1)
+
+	def __unicode__(self):
+		return u"A photostream was created at %s" % self.creation_time
+
+class Photo(models.Model):
+	owner = models.ForeignKey(User)
+	which_stream = models.ManyToManyField(PhotoStream)
+	image_file = models.ImageField(upload_to=upload_photo_to_location, storage=OverwriteStorage())
+	upload_time = models.DateTimeField(auto_now_add=True, db_index=True)
+	comment_count = models.IntegerField()
+	is_public = models.BooleanField(default=True) #in case user wants to upload private photos too
+	vote_score = models.IntegerField(default=0) #only counts vote score, for censorship purposes
+	visible_score = models.IntegerField(default=0)
+	invisible_score = models.FloatField(default=0.0) #for use when time-decay is factored in
+	caption = models.CharField("Privacy:", max_length=100, null=True, default=None)
+	avg_hash = models.CharField(max_length=16, default=None)
+	latest_comment = models.ForeignKey('links.PhotoComment', blank=True, null=True, on_delete=models.CASCADE, related_name="latest")
+	second_latest_comment = models.ForeignKey('links.PhotoComment', blank=True, null=True, on_delete=models.CASCADE, related_name="second_latest")
+	category = models.CharField(choices=PHOTOS, default='1', max_length=11)
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
+
+	def __unicode__(self):
+		return u"%s uploaded a photo" % self.owner
+
+	class Meta:
+		ordering = ['-id', '-upload_time', '-comment_count']
+
+class PhotoVote(models.Model):
+	voter = models.ForeignKey(User, related_name='voter') #what user.id voted
+	photo = models.ForeignKey(Photo) #which photo did the user vote on
+	photo_owner = models.ForeignKey(User, related_name='photo_owner')
+	value = models.IntegerField(null=True, blank=True, default=0)
+
+	def __unicode__(self):
+		return u"%s gave %s to %s" % (self.voter.username, self.value, self.photo.caption)
+
+class PhotoComment(models.Model):
+	which_photo = models.ForeignKey(Photo)
+	text = models.TextField("Jawab:", validators=[MaxLengthValidator(250)])
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
+	submitted_by = models.ForeignKey(User)
+	submitted_on = models.DateTimeField(auto_now_add=True)
+	image_comment = models.ImageField(upload_to=upload_photocomment_to_location, storage=OverwriteStorage())
+	has_image = models.BooleanField(default=False)
+
+	def __unicode__(self):
+		return u"%s commented on a photo, saying: %s" % (self.submitted_by, self.text)
 
 class Group(models.Model):
 	topic = models.TextField("Topic dalo:", validators=[MaxLengthValidator(200)], default='Damadam ki aik karari si mehfil...', null=True)
@@ -344,6 +465,13 @@ class Reply(models.Model):
 	def __unicode__(self):
 		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)
 
+class PhotoObjectSubscription(models.Model):
+	viewer = models.ForeignKey(User)
+	updated_at = models.DateTimeField(db_index=True)
+	seen = models.BooleanField(default=True, db_index=True)
+	type_of_object = models.CharField(choices=OBJECTS, default='0', max_length=15)
+	which_photo = models.ForeignKey(Photo)
+
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)
 	seen_at = models.DateTimeField(auto_now_add=True)
@@ -375,6 +503,7 @@ class UserProfile(models.Model):
 	attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
 	mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
 	score = models.IntegerField("Score", default=0)
+	media_score = models.IntegerField("Media Score", default=0)
 	avatar = models.ImageField(upload_to=upload_avatar_to_location, storage=OverwriteStorage(), null=True, blank=True )
 
 	def __unicode__(self):
@@ -412,6 +541,10 @@ class Unseennotification(models.Model):
 
 	def __unicode__(self):
 		return u"%s recieved a replynotification" % self.recipient
+
+class TutorialFlag(models.Model):
+	user = models.OneToOneField(User, unique=True)
+	seen_chain = models.BooleanField(default=False)
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

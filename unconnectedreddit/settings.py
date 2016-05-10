@@ -189,7 +189,7 @@ INSTALLED_APPS = (
 	'emoticons',
 	'django_extensions',
 	#'request',
-    'debug_toolbar',
+    #'debug_toolbar',
 	#'analytical',
 	#'django_whoshere',
 	# Uncomment the next line to enable admin documentation:

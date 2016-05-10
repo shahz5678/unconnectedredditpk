@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Textarea
-from .models import UserProfile, ChatInbox, ChatPicMessage, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
+from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile, ImageEnhance
@@ -9,6 +9,23 @@ import math
 from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
 #from django.core.files.base import ContentFile
+
+def uploaded_recently(avghash, hash_list):
+	try:
+		hash_list=list(hash_list)
+		index = hash_list.index(avghash)
+		return index
+	except:
+		index = -1 
+		return index
+
+def compute_avg_hash(image):
+	small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
+	pixels = list(small_image_bw.getdata())
+	avg = sum(pixels) / len(pixels)
+	bits = "".join(map(lambda pixel: '1' if pixel > avg else '0', pixels)) #turning the image into string of 0s and 1s
+	photo_hash = int(bits, 2).__format__('16x').upper()
+	return photo_hash
 
 def image_entropy(img):
 	"""calculate the entropy of an image"""
@@ -71,10 +88,27 @@ def clean_image_file(image): # where self is the form
 		image = Image.open(image)
 		#print "inside clean_image_file"
 		image = MakeThumbnail(image)
-		print "thumbnailed image is %s" % image.size
+		#print "thumbnailed image is %s" % image.size
 		return image
 	else:
 		return 0
+
+def clean_image_file_with_hash(image, hashes): # where self is the form
+	if image:
+		if image.size > 1000000:
+			#raise ValidationError("File buhut barri hai, doosri try karo")
+			return (0,-1)
+		image = Image.open(image)
+		avghash = compute_avg_hash(image)
+		index = uploaded_recently(avghash, hashes)
+		if index == -1:
+			image = MakeThumbnail(image)
+			return image, avghash
+		else:
+			# return without futher processing
+			return image, index
+	else:
+		return (0,-1)
 
 class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	MardAurat = (
@@ -171,6 +205,13 @@ class WelcomeMessageForm(forms.ModelForm):
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
 
+class CommentForm(forms.ModelForm):
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2}))
+	class Meta:
+		model = PhotoComment
+		exclude = ("which_photo", "device", "submitted_by", "submitted_on",)
+		fields = ("text",)
+
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
@@ -193,6 +234,10 @@ class CaptionDecForm(forms.Form):
 	class Meta:
 		pass
 
+class PhotostreamForm(forms.Form):
+	class Meta:
+		pass
+
 class CaptionForm(forms.ModelForm):
 	caption = forms.CharField(max_length=150)
 	class Meta:
@@ -208,6 +253,10 @@ class UserPhoneNumberForm(forms.ModelForm):
 		fields = ("what_number",)
 
 class UserSMSForm(forms.Form):
+	class Meta:
+		pass
+
+class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
 
@@ -246,6 +295,22 @@ class ChangeGroupTopicForm(forms.ModelForm):
 		model = Group
 		fields = ("topic",)
 
+class UploadPhotoReplyForm(forms.ModelForm):
+	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
+	class Meta:
+		model = Photo
+		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
+		fields = ("image_file", "caption",)
+
+class UploadPhotoForm(forms.ModelForm):
+	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2}), error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
+	class Meta:
+		model = Photo
+		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
+		fields = ("image_file","caption",)
+
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')
 	#image.widget.attrs["value"] ='Upload'
@@ -270,6 +335,14 @@ class CrossNotifForm(forms.Form):
 		pass
 		#model = Link
 
+class PhotoReplyForm(forms.Form):
+	class Meta:
+		pass
+
+class PhotoJawabForm(forms.Form):
+	class Meta:
+		pass
+
 class PicPasswordForm(forms.Form):
 	mobile_number = forms.CharField(max_length=50)
 	class meta:
@@ -280,6 +353,22 @@ class WelcomeReplyForm(forms.Form):
 		model = Publicreply
 
 class DirectMessageForm(forms.Form):
+	class Meta:
+		pass
+
+class ChainPhotoTutorialForm(forms.Form):
+	class Meta:
+		pass
+
+class PhotoScoreForm(forms.Form):
+	class Meta:
+		pass
+
+class BaqiPhotosHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class PhotoQataarHelpForm(forms.Form):
 	class Meta:
 		pass
 

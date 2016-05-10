@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+{% if authenticated %}
+<a href="{% url 'see_photo_pk' photo.pk %}">
+{% if photo.vote_score < -8 %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+{% elif photo.vote_score < -3 %}
+	{% if photo.image_file %}
+    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% else %}
+	{% if photo.image_file %}
+    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% endif %}
+</a><span style="color:#a6a6a6;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
+<br><b style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Is photo ka jawab photo se do!</b><br><br>
+<form action="{% url 'upload_photo_reply' %}" method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+{{ form.image_file.errors }}
+<span style="font-size:98%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Jawabi photo ka intikhab kro:</span><br>{{ form.image_file }}<br>
+<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>1mb se barri photo nahi lagti</i></span><br><br>
+{{ form.caption.errors }}
+<span style="font-size:98%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Jawabi photo pr kuch likho:</span><br>{{ form.caption }}<br>
+<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye likh kr OK dabao</i></span><br>
+	<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;text-shadow:none;border-radius:4px;font-weight:bold;margin-bottom:0.4em;" type="submit" value="OK" id="id_submit"><br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Jawabi photo lagane ki qeemat <b>15</b> he</i></span>
+</form>
+{% else %}
+
+{% endif %}
+</div>
+{% endblock %}

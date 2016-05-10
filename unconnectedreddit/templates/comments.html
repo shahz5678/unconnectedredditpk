@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+{% if authorized %}
+{% if from_photos %}
+<a href="{% url 'see_photo_pk' photostream_pk %}">
+{% else %}
+<a href="{% url 'user_profile_photo' photo.owner.username photo.id %}">
+{% endif %}
+{% if photo.vote_score < -8 %}
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+{% elif photo.vote_score < -3 %}
+    {% if photo.image_file %}
+        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+    {% else %}
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% else %}
+	{% if photo.image_file %}
+    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    {% endif %}
+{% endif %}
+</a><span style="color:#a6a6a6;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
+<br><b style="font-size:98%;color:#404040;">Photo pe tabsra:</b>
+    <form action="{% url 'comment' %}" method="POST">
+	{% csrf_token %}
+    {{ form.errors }}
+    {{ form.text }}
+    <br>
+    <input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    </form>
+{% if count > 0 %}
+    <hr size=1 COLOR="ORANGE">
+    {% if count > 25 %}
+      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Pichley 25 tabsrey:</b></span><br>
+      {% elif count == 1 %}
+      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>{{ count }} tabsra:</b></span><br>
+      {% else %}
+      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>{{ count }} tabsrey:</b></span><br>
+      {% endif %}
+    {% for comment in comments %}
+    <tr><td>
+    {% if authenticated and viewed_at %}
+    {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
+    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+    {% endif %}
+    {% endif %}
+    <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+    	{% if comment.submitted_by.userprofile.avatar %}
+        	<img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        {% else %}
+        	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+        {% endif %}
+    {{ comment.submitted_by.username }}</a>
+        <span style="font-size:70%;">
+            {% if comment.submitted_by.userprofile.score %}
+                {% if comment.submitted_by.userprofile.score < 0 %}
+                    <span style="color:red;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% endif %}
+            {% endif %}
+        </span>
+
+    	{% for person in verified %}
+            {% if person == comment.submitted_by.username %}
+            <span style="color:deeppink;"><b>*</b></span>
+            {% endif %}
+        {% endfor %}
+    :&nbsp;<bdi style="color:#404040;">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span style="font-size:73%;color:gray;"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+    	{% if comment.device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif comment.device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif comment.device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif comment.device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif comment.device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}
+    </span><br>
+    </td></tr>
+    {% endfor %}
+{% endif %}
+<hr size=1 COLOR="LIGHTGRAY">
+
+<span style="font-size:80%;color:dimgrey;"><b>Sticker banaey ke liye uskay aagey likhay harf type karo:<br></b><span style="font-size:95%;">(poori list <a href="{% url 'emoticons_help' %}"><u>ye hai</u></a>)</span></span>
+
+{% emoticons_index as emoticons_list %}
+
+{% for emoticons in emoticons_list %}
+{% if forloop.counter in random %}
+<p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
+{% endif %}
+{% endfor %}
+
+{% else %}
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye is terah nahi chalta!</h2>
+{% endif %}
+</div>
+{% endblock %}

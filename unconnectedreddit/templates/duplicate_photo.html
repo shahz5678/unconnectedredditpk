@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;"><b>Is jesi photo kuch waqt pehlay charhai ja chuki hai:</b><br>
+{% if photo.vote_score < -8 %}
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+{% elif photo.vote_score < -3 %}
+    {% if photo.image_file %}
+        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);width:auto;"></img>
+    {% else %}
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% else %}
+	{% if photo.image_file %}
+    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    {% endif %}
+{% endif %}
+<span style="color:#a6a6a6;font-size:90%;"><a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a>
+    	{% for person in females %}
+            {% if person == photo.owner.username %}
+            <span style="color:deeppink;"><b>*</b></span>
+            {% endif %}
+        {% endfor %}
+ne&nbsp;lagai, {{ photo.upload_time|naturaltime }}</span>
+<br><br>Tum kuch neya charhao!<br><br></span>
+<a href="{% url 'upload_photo' %}" style="font-size:90%;"><b><< wapis</b></a>
+</div>
+{% endblock %}

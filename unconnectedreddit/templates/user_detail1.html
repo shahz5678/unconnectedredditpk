@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+{% if own_profile %}
+<h2><u>Tumhari profile</u></h2>
+{% else %}
+<h2><u>{{ slug }} ki profile</u></h2>
+{% endif %}
+
+<b>Nickname:</b> {{ slug }}<a href="{% url 'user_profile' slug %}" style="font-size:85%;">&nbsp;(baqi profile dekho)</a>
+{% if object_list %}
+<br><br> {% if own_profile %}<b><u>Tumhari photos:</u></b>{% else %}<b><u>{{ slug }} ki photos:</u></b>{% endif %}<br><br>
+{% for photo in object_list %}
+<a name="section{{ forloop.counter }}"></a>
+<a href="{% url 'comment_pk' photo.id %}">
+<b style="color:#1947D1;">{{ photo.caption }}</b>&nbsp;<span style="color:#ff8000;font-size:90%;">({{ photo.comment_count }}
+{% if photo.comment_count == 1 %}
+tabsra)
+{% else %}
+tabsrey)
+{% endif %}
+</span>
+</span>
+</a><br>
+<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+<br><span style="font-size:90%;color:grey;">{{ photo.upload_time|naturaltime }}</span><p><hr size=1 COLOR="#bababa"></p>
+{% endfor %}
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:115%;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:115%;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

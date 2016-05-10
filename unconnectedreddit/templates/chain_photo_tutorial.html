@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<b style="color:#404040;font-size:95%;">Jawabi photo ko kesay istmal krna he?</b><br>
+<span style="color:grey;font-size:85%;">Ye do misaalein parho: </span><br>
+<span style="color:#404040;font-size:93%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}
+<span style="color:green;"><b>1)</b></span> Kisi ne apni selfie lagai ho, toh tum fit si jawabi selfie lagao aur uska naam rakh do: "apun ka style tujh se behtr he ;)"<br>
+<span style="color:green;"><b>2)</b></span> Tum ne kisi jagah ki khubsurat photos li hon, toh pehli photo charhao, aur phir baqi bari bari <b>jawabi photos</b> mien charha do. Is terha dekhne waley ko asani ho gi.<br>
+<span style="color:green;"><b>3)</b></span> Ye sirf do misaalein hain, aur bhi buhut ho sakta hai. Apni zehaanat istimal kro!<br>{% endemoticons %}
+</span>
+<form action="{% url 'chain_photo_tutorial' %}" method="POST">
+{% csrf_token %}
+<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="samajh gaya"><br>
+<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="nahi samjha">
+</form>
+
+</div>
+{% endblock %}

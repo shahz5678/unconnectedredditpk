@@ -27,25 +27,25 @@
 		<a href="{% url 'profile' vote.voter.username %}"><b>{{ vote.voter }}</b>			
 		    {% for person in girls %}
 		    {% if person == vote.voter.username %}
-		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
-		</a><span style="color:green;"> ko photo <b>fit</b> lagi</span>
+		</a><span style="color:green;font-size:90%;"> ko photo itni fit lagi, usne <b>jhappi</b> de di</span>
 	{% elif vote.value == -1 %}
 		<a href="{% url 'profile' vote.voter.username %}"><b>{{ vote.voter }}</b>
 		    {% for person in girls %}
 		    {% if person == vote.voter.username %}
-		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
-		</a><span style="color:red;"> ne <b>lanat</b> bheji</span>
+		</a><span style="color:red;font-size:90%;"> ne aesi photo lagane pr khinch ke <b>chupair</b> mari</span>
 	{% else %}
 	{% endif %}
 	<br>
 {% endfor %}
 {% else %}
 {% if authenticated %}
-<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is photo ko kisi ne <b>fit</b> ya <b>fit-e-moo</b> dabane ke qabil nahi samjha</span><br>
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is photo ko kisi ne <b style="color:#2DB92D;">jhappi</b> ya <b style="color:#FF1A1A;">chupair</b> ke qabil nahi samjha</span><br>
 	{% if visible_score > 0 %}
 	<span style="color:grey; font-size:95%;"><i>iske tamam points tabsroon se aye hain</i></span><br>
 	{% endif %}

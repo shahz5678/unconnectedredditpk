@@ -140,6 +140,8 @@ button, input[type="button"], input[type="reset"], input[type="submit"]
 
 .errorlist {
     color:red;
+    list-style-type: none;
+    padding: 2px;
 }
 
 h4{
@@ -161,6 +163,22 @@ h5 {
     padding-top:3px;
   
 }
+
+.sepiaimg {
+    filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'old-timey\'><feColorMatrix type=\'matrix\' values=\'0.14 0.45 0.05 0 0 0.12 0.39 0.04 0 0 0.08 0.28 0.03 0 0 0 0 0 1 0\'/></filter></svg>#old-timey");
+    -webkit-filter: sepia(0.9);
+    -webkit-filter: sepia(90%);
+    -moz-filter: sepia(90%);
+    -ms-filter: sepia(90%);
+    -o-filter: sepia(90%);
+    filter: sepia(90%);
+    opacity:0.55;
+    filter:alpha(opacity=55);
+    -khtml-opacity: 0.55;
+    -moz-opacity: 0.55;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=55)";
+}
+
 .comment{
     width: 100%;
     display:inline;

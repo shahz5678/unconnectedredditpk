@@ -8,16 +8,31 @@ from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from collections import defaultdict
-from django.db.models import Max, Count, Q, Sum
+from django.db import connection
+from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
-from .models import Link, Vote, Cooldown, ChatInbox, ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
+from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
+ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, Seen, \
+GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from .forms import UserProfileForm, DeviceHelpForm, ChangeOutsideGroupTopicForm, ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, 
+from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
+ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
+ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
+CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, VoteOrProfileForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, \
+DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, \
+WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, \
+SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, \
+OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, \
+PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, \
+RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, \
+GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
+WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
+ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file, clean_image_file_with_hash#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -108,6 +123,20 @@ def GetLatestUserInvolvement(user):
 		except:
 			return empty_timestamp
 	return empty_timestamp		
+
+def GetLatestComment(user):
+	try:
+		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
+		#print latest_pos
+		photo = Photo.objects.get(id=latest_pos.which_photo_id)
+		#print photo
+		latest_unseen_comment = PhotoComment.objects.get(id=photo.latest_comment_id)
+		#print latest_unseen_comment
+	except:
+		latest_unseen_comment = []
+		photo = None
+	#latest_unseen_comment = []
+	return latest_unseen_comment, photo
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -571,31 +600,22 @@ class LinkListView(ListView):
 		if target_id:
 			try:
 				index = list(link.id for link in self.object_list).index(target_id)
-				#print index
 			except:
-				#print "error"
 				index = None
 			if 0 <= index <= 19:
 				addendum = '#section'+str(index+1)
-				#print addendum
 			elif 20 <= index <= 39:
 				addendum = '?page=2#section'+str(index+1-20)
-				#print addendum
 			elif 40 <= index <= 59:
 				addendum = '?page=3#section'+str(index+1-40)
-				#print addendum
 			elif 60 <= index <= 79:
 				addendum = '?page=4#section'+str(index+1-60)
-				#print addendum
 			elif 80 <= index <= 99:
 				addendum = '?page=5#section'+str(index+1-80)
-				#print addendum
 			elif 100 <= index <= 119:
 				addendum = '?page=6#section'+str(index+1-100)
-				#print addendum
 			else:
 				addendum = '#section0'
-			#return self.render_to_response(context)
 			return HttpResponseRedirect(addendum)
 		else:
 			return self.render_to_response(context)
@@ -766,6 +786,107 @@ class WhoseOnlineView(FormView):
 class LinkDeleteView(DeleteView):
 	model = Link
 	success_url = reverse_lazy("home")
+
+def user_profile_photo(request, slug=None, photo_pk=None, *args, **kwargs):
+	if photo_pk:
+		request.session["photograph_id"] = photo_pk
+		return redirect("profile", slug)
+	else:
+		return redirect("profile", slug)
+
+class UserProfilePhotosView(ListView):
+	model = Photo
+	template_name = "user_detail1.html"
+	paginate_by = 10
+
+	def get_queryset(self):
+		slug = self.kwargs["slug"]
+		user = User.objects.get(username=slug)
+		return Photo.objects.filter(owner=user).order_by('-upload_time')
+
+	def get_context_data(self, **kwargs):
+		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
+		slug = self.kwargs["slug"]
+		username = self.request.user.username
+		if slug == username:
+			context["own_profile"] = True
+			context["slug"] = slug
+		else:
+			context["own_profile"] = False
+			context["slug"] = slug
+		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session["photograph_id"]
+			self.request.session["photograph_id"] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(photo.id for photo in self.object_list).index(int(target_id))
+			except:
+				index = None
+			if 0 <= index <= 9:
+				addendum = '#section'+str(index+1)
+			elif 10 <= index <= 19:
+				addendum = '?page=2#section'+str(index+1-10)
+			elif 20 <= index <= 29:
+				addendum = '?page=3#section'+str(index+1-20)
+			elif 30 <= index <= 39:
+				addendum = '?page=4#section'+str(index+1-30)
+			elif 40 <= index <= 49:
+				addendum = '?page=5#section'+str(index+1-40)
+			elif 50 <= index <= 59:
+				addendum = '?page=6#section'+str(index+1-50)
+			elif 60 <= index <= 69:
+				addendum = '?page=7#section'+str(index+1-60)
+			elif 70 <= index <= 79:
+				addendum = '?page=8#section'+str(index+1-70)
+			elif 80 <= index <= 89:
+				addendum = '?page=9#section'+str(index+1-80)
+			elif 90 <= index <= 99:
+				addendum = '?page=10#section'+str(index+1-90)
+			elif 100 <= index <= 109:
+				addendum = '?page=11#section'+str(index+1-100)
+			elif 110 <= index <= 119:
+				addendum = '?page=12#section'+str(index+1-110)
+			elif 120 <= index <= 129:
+				addendum = '?page=13#section'+str(index+1-120)
+			elif 130 <= index <= 139:
+				addendum = '?page=14#section'+str(index+1-130)
+			elif 140 <= index <= 149:
+				addendum = '?page=15#section'+str(index+1-140)
+			elif 150 <= index <= 159:
+				addendum = '?page=16#section'+str(index+1-150)
+			elif 160 <= index <= 169:
+				addendum = '?page=17#section'+str(index+1-160)
+			elif 170 <= index <= 179:
+				addendum = '?page=18#section'+str(index+1-170)
+			elif 180 <= index <= 189:
+				addendum = '?page=19#section'+str(index+1-180)
+			elif 190 <= index <= 199:
+				addendum = '?page=20#section'+str(index+1-190)
+			else:
+				addendum = '#section0'		
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
 
 class UserProfileDetailView(DetailView):
 	model = get_user_model()
@@ -1132,10 +1253,24 @@ class GroupPageView(ListView):
 			context["verified"] = FEMALES
 		return context
 
-
 class GroupTypeView(FormView):
 	form_class = GroupTypeForm
 	template_name = "group_type.html"
+
+class PhotoJawabView(FormView):
+	form_class = PhotoJawabForm
+	template_name = "photo_jawab.html"
+
+class PhotoTimeView(FormView):
+	form_class = PhotoTimeForm
+	template_name = "photo_time.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoTimeView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			ident = self.kwargs["pk"]
+			context["photo_time"] = Photo.objects.get(id=ident).upload_time
+		return context
 
 class AuthPicsDisplayView(ListView):
 	model = ChatPic
@@ -1147,6 +1282,664 @@ class AuthPicsDisplayView(ListView):
 			return ChatPic.objects.filter(owner=self.request.user).exclude(is_visible=False).order_by('-upload_time')
 		else:
 			return 0
+
+def photostream_pk(request, pk=None, ident=None, *args, **kwargs):
+	if pk.isdigit():
+		request.session["photo_photostream_id"] = pk
+		request.session["photo_stream_id"] = ident
+		return redirect("photostream")
+	else:
+		return redirect("see_photo")
+
+class PhotostreamView(ListView):
+	model = Photo
+	#form_class = PhotostreamForm
+	template_name = "photostream.html"
+	paginate_by = 10
+
+	def get_queryset(self):
+		try:
+			ps = PhotoStream.objects.filter(id=self.request.session["photo_photostream_id"])
+			queryset = Photo.objects.filter(which_stream=ps).order_by('-upload_time')[:200]
+		except:
+			querset = []
+		return queryset
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotostreamView, self).get_context_data(**kwargs)
+		context["girls"] = FEMALES
+		if context["object_list"]:
+			context["valid"] = True
+		else:
+			context["valid"] = False
+		pk = self.request.session["photo_photostream_id"]
+		context["stream_id"] = pk
+		context["can_vote"] = False
+		context["number"] = PhotoStream.objects.get(id=pk).photo_count
+		# disallowing voting in photostream
+		# if self.request.user.is_authenticated():
+		# 	context["voted"] = []
+		# 	if self.request.user.userprofile.score > 9 and not self.request.user_banned:
+		# 		context["can_vote"] = True
+		# 		photos_in_page = [pic.id for pic in context["object_list"]]
+		# 		vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
+		# 		context["voted"] = vote_cluster.filter(voter=self.request.user).values_list('photo_id', flat=True)
+		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session["photo_stream_id"]
+			self.request.session["photo_stream_id"] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(photo.id for photo in self.object_list).index(int(target_id))
+			except:
+				index = None
+			if 0 <= index <= 9:
+				addendum = '#section'+str(index+1)
+			elif 10 <= index <= 19:
+				addendum = '?page=2#section'+str(index+1-10)
+			elif 20 <= index <= 29:
+				addendum = '?page=3#section'+str(index+1-20)
+			elif 30 <= index <= 39:
+				addendum = '?page=4#section'+str(index+1-30)
+			elif 40 <= index <= 49:
+				addendum = '?page=5#section'+str(index+1-40)
+			elif 50 <= index <= 59:
+				addendum = '?page=6#section'+str(index+1-50)
+			elif 60 <= index <= 69:
+				addendum = '?page=7#section'+str(index+1-60)
+			elif 70 <= index <= 79:
+				addendum = '?page=8#section'+str(index+1-70)
+			elif 80 <= index <= 89:
+				addendum = '?page=9#section'+str(index+1-80)
+			elif 90 <= index <= 99:
+				addendum = '?page=10#section'+str(index+1-90)
+			elif 100 <= index <= 109:
+				addendum = '?page=11#section'+str(index+1-100)
+			elif 110 <= index <= 119:
+				addendum = '?page=12#section'+str(index+1-110)
+			elif 120 <= index <= 129:
+				addendum = '?page=13#section'+str(index+1-120)
+			elif 130 <= index <= 139:
+				addendum = '?page=14#section'+str(index+1-130)
+			elif 140 <= index <= 149:
+				addendum = '?page=15#section'+str(index+1-140)
+			elif 150 <= index <= 159:
+				addendum = '?page=16#section'+str(index+1-150)
+			elif 160 <= index <= 169:
+				addendum = '?page=17#section'+str(index+1-160)
+			elif 170 <= index <= 179:
+				addendum = '?page=18#section'+str(index+1-170)
+			elif 180 <= index <= 189:
+				addendum = '?page=19#section'+str(index+1-180)
+			elif 190 <= index <= 199:
+				addendum = '?page=20#section'+str(index+1-190)
+			else:
+				addendum = '#section0'		
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
+
+class ChainPhotoTutorialView(FormView):
+	form_class = ChainPhotoTutorialForm
+	template_name = "chain_photo_tutorial.html"
+
+	# def get_context_data(self, **kwargs):
+	# 	context = super(ChainPhotoTutorialView, self).get_context_data(**kwargs)
+
+	def form_valid(self, form):
+			if self.request.session["ftue_chain"] and self.request.session["reply_photo_id"]:
+				self.request.session["ftue_chain"] = None
+				pk = self.request.session["reply_photo_id"]
+				self.request.session["reply_photo_id"] = None
+				if self.request.user_banned:
+					return redirect("see_photo")
+				else:
+					#which_photo = Photo.objects.get(id=pk)
+					if self.request.method == 'POST':
+						option = self.request.POST.get("choice",'')
+						if option == 'samajh gaya':
+							try:
+								TutorialFlag.objects.filter(user=self.request.user).update(seen_chain=True)
+								return redirect("upload_photo_reply_pk", pk)
+							except:
+								return redirect("see_photo")
+						else:
+							return redirect("see_photo")
+					else:
+						return redirect("see_photo")
+			else:
+				return redirect("see_photo")
+
+def upload_photo_reply_pk(request, pk=None, *args, **kwargs):
+	if pk.isdigit():
+		request.session["reply_photo_id"] = pk
+		try:
+			seen_chain = TutorialFlag.objects.get(user=request.user).seen_chain
+			print seen_chain
+			if seen_chain:
+				return redirect("upload_photo_reply")
+			else:
+				request.session["ftue_chain"] = True
+				return redirect("chain_photo_tutorial")
+		except:
+			request.session["ftue_chain"] = True
+			TutorialFlag.objects.create(user=request.user)
+			return redirect("chain_photo_tutorial")
+	else:
+		return redirect("see_photo")
+
+class UploadPhotoReplyView(CreateView):
+	model = Photo
+	form_class = UploadPhotoReplyForm
+	template_name = "upload_photo_reply.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(UploadPhotoReplyView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			try:
+				context["authenticated"] = True
+				context["photo"] = Photo.objects.get(pk=self.request.session["reply_photo_id"])
+			except:
+				context["authenticated"] = False
+				context["photo"] = None
+		return context
+
+	def form_valid(self, form):
+		f = form.save(commit=False)
+		try:
+			pk = self.request.session["reply_photo_id"]
+			self.request.session["reply_photo_id"] = None
+			target = Photo.objects.get(id=pk)
+		except:
+			return redirect("see_photo")
+		user = self.request.user
+		if user.userprofile.score < 15:
+			context = {'score': '15'}
+			return render(self.request, 'score_photo.html', context)
+		else:
+			time_now = datetime.utcnow().replace(tzinfo=utc)
+			try:
+				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
+				difference = time_now - photocooldown.time_of_uploading 
+				seconds = difference.total_seconds()
+				if seconds < 30:
+					context = {'time': round((30 - seconds),0)}
+					return render(self.request, 'error_photo.html', context)
+				else:
+					photocooldown.time_of_uploading = time_now
+					photocooldown.save()
+			except:
+				PhotoCooldown.objects.create(which_user=user, time_of_uploading=time_now)
+			if f.image_file:
+				image_file = clean_image_file(f.image_file)
+				if image_file:
+					f.image_file = image_file
+				else:
+					f.image_file = None
+			else:
+				f.image_file = None
+			if f.image_file:
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				try:
+					#photo being added to the head of a stream
+					photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
+					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
+					photo.which_stream.add(photo_stream)
+					photo_stream.cover = photo
+					photo_stream.photo_count = photo_stream.photo_count + 1
+					photo_stream.show_time = photo.upload_time
+					photo_stream.save()
+					#photo.save()
+				except:
+					#photo added anywhere in the middle of the stream, i.e. new stream being made
+					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
+					tail_photos = Photo.objects.filter(which_stream=target.which_stream.latest('creation_time')).exclude(upload_time__gt=target.upload_time).order_by('upload_time')
+					tail_photos_count = tail_photos.count()
+					stream = PhotoStream.objects.create(cover=photo, show_time=photo.upload_time, photo_count = (tail_photos_count + 1))
+					photo.which_stream.add(stream)
+					#gives you control of the 'through' model
+					through_model = Photo.which_stream.through
+					through_model.objects.bulk_create([
+						through_model(photo_id=pk, photostream_id = stream.pk) for pk in tail_photos.values_list('pk', flat=True)
+						])
+				user.userprofile.score = user.userprofile.score - 15
+				user.userprofile.save()
+				return redirect("see_photo")
+			else:
+				context = {'photo': 'photo'}
+				return render(self.request, 'big_photo.html', context)
+
+class PhotoScoreView(FormView):
+	form_class = PhotoScoreForm
+	template_name = "photo_score_breakdown.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoScoreView, self).get_context_data(**kwargs)
+		key = self.kwargs["pk"]
+		context["key"] = key
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+		else:
+			context["authenticated"] = False
+		cover_photo = PhotoStream.objects.get(id=key).cover
+		context["photo"] = cover_photo
+		context["votes"] = PhotoVote.objects.filter(photo=cover_photo).order_by('-id')
+		if context["votes"]:
+			context["content"] = True
+			context["visible_score"] = cover_photo.visible_score 
+		else:
+			context["content"] = False
+			context["visible_score"] = cover_photo.visible_score
+		context["girls"] = FEMALES
+		return context
+
+@ratelimit(rate='1/s')
+def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'pk': 'pk'}
+		return render(request, 'penalty_photocomment.html', context)
+	else:
+		if pk.isdigit():
+			request.session["photo_id"] = pk
+			request.session["related_photostream_id"] = ident
+			return redirect("reply_options")
+		else:
+			return redirect("profile", request.user.username )
+
+class PhotoReplyView(FormView):
+	form_class = PhotoReplyForm
+	template_name = "photo_reply.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoReplyView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			try:
+				pk = self.request.session["photo_id"]
+				if pk:
+					context["photo"] = Photo.objects.get(id=pk)
+					context["stream_related_id"] = self.request.session["related_photostream_id"]
+					context["count"] = PhotoComment.objects.filter(which_photo= pk).count()
+					context["comments"] = PhotoComment.objects.filter(which_photo= pk)
+					context["authenticated"] = True
+				else:
+					context["photo"] = None
+					context["authenticated"] = False
+					context["comments"] = None
+					context["count"] = None
+			except:
+				context["photo"] = None
+				context["authenticated"] = False
+				context["comments"] = None
+				context["count"] = None
+			return context
+
+	def form_valid(self, form):
+		try:
+			pk = self.request.session["photo_id"]
+			self.request.session["photo_id"] = None
+			which_photo = Photo.objects.get(id=pk)
+			if self.request.user_banned:
+				return redirect("see_photo")
+			else:
+				if self.request.method == 'POST':
+					option = self.request.POST.get("option")
+					if option == 'Photo lagao':
+						return redirect("upload_photo_reply_pk", pk)
+					else:
+						return redirect("comment_pk", pk)
+				else:
+					return redirect("see_photo")
+		except:
+			return redirect("see_photo")
+
+@ratelimit(rate='1/s')
+def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'pk': 'pk'}
+		return render(request, 'penalty_commentpk.html', context)
+	else:
+		if pk.isdigit():
+			request.session["photo_id"] = pk
+			request.session["related_photostream_id"] = stream_id
+			if from_photos:
+				return redirect("comment", from_photos)
+			else:
+				return redirect("comment")
+		else:
+			return redirect("see_photo")	
+
+class CommentView(CreateView):
+	model = PhotoComment
+	form_class = CommentForm
+	template_name = "comments.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(CommentView, self).get_context_data(**kwargs)
+		# if self.request.user.is_authenticated():
+		comments = PhotoComment.objects.filter(which_photo_id=self.request.session["photo_id"]).order_by('-id')[:25]
+		context["count"] = PhotoComment.objects.filter(which_photo_id=self.request.session["photo_id"]).count()
+		try:
+			from_photos = self.kwargs["from_photos"]
+			context["from_photos"] = True
+		except:
+			context["front_photos"] = False
+		context["comments"] = comments
+		context["verified"] = FEMALES
+		context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+		try:
+			pk = self.request.session["photo_id"]
+			context["photo"] = Photo.objects.get(id=pk)
+			context["photostream_pk"] = self.request.session["related_photostream_id"]
+			context["authorized"] = True
+			if self.request.user.is_authenticated():
+				context["authenticated"] = True
+				if comments.exists():
+					try:
+						context["viewed_at"] = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False).updated_at#.update(viewed_at=time_now)
+						#print context["viewed_at"]
+					except:
+						context["viewed_at"] = None
+			else:
+				context["authenticated"] = False
+		except:
+			context["photo"] = None
+			context["authorized"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.user.is_authenticated():
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			user = self.request.user
+			text = self.request.POST.get("text")
+			try:
+				pk = self.request.session["photo_id"]
+				stream_id = self.request.session["related_photostream_id"]
+				self.request.session["photo_id"] = None
+				self.request.session["related_photostream_id"] = None
+				which_photo = Photo.objects.get(id=pk)
+			except:
+				user.userprofile.score = user.userprofile.score - 10
+				user.userprofile.save()
+				return redirect("profile", slug=user.username)
+			score = fuzz.ratio(text, user.userprofile.previous_retort)
+			if score > 86:
+				try:
+					return redirect("comment_pk", pk=pk)
+				except:
+					user.userprofile.score = user.userprofile.score - 10
+					user.userprofile.save()
+					return redirect("profile", slug=user.username)
+			else:
+				if self.request.user_banned:
+					return redirect("score_help")
+				else:
+					which_photo.comment_count = which_photo.comment_count + 1
+					user.userprofile.previous_retort = text
+					if user != which_photo.owner and not PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists():
+						user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+						which_photo.owner.userprofile.media_score = which_photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+						which_photo.owner.userprofile.score = which_photo.owner.userprofile.score + 2 # giving score to the photo poster
+						which_photo.visible_score = which_photo.visible_score + 2
+						which_photo.owner.userprofile.save()
+						which_photo.save()
+					user.userprofile.save()
+					if self.request.is_feature_phone:
+						device = '1'
+					elif self.request.is_phone:
+						device = '2'
+					elif self.request.is_tablet:
+						device = '4'
+					elif self.request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					photocomment = PhotoComment.objects.create(submitted_by=user, which_photo=which_photo, text=text,device=device)
+					all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo=which_photo).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+					if which_photo.owner_id not in all_commenter_ids:	
+						all_commenter_ids.append(which_photo.owner_id)
+					PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, which_photo=which_photo).update(seen=False)			
+					objs = PhotoObjectSubscription.objects.filter(viewer=user, which_photo=which_photo)
+					exists = objs.update(updated_at=photocomment.submitted_on, seen=True)
+					print exists
+					if not exists:
+						PhotoObjectSubscription.objects.create(viewer=user, which_photo=which_photo, updated_at=photocomment.submitted_on)
+					which_photo.second_latest_comment = which_photo.latest_comment
+					which_photo.latest_comment = photocomment
+					which_photo.save()
+					try:
+						if pk and stream_id:
+							return redirect("comment_pk", pk=pk, stream_id=stream_id)
+						elif pk:
+							return redirect("comment_pk", pk=pk)
+						else:
+							return redirect("profile", user.username)
+					except:
+						user.userprofile.score = user.userprofile.score - 3
+						user.userprofile.save()
+						return redirect("profile", slug=user.username)
+		else:
+			context = {'pk': 'pk'}
+			return render(self.request, 'auth_commentpk.html', context)
+
+def see_photo_pk(request,pk=None,*args,**kwargs):
+	if pk.isdigit():
+		request.session["target_photo_id"] = pk
+		return redirect("see_photo")
+	else:
+		return redirect("see_photo")
+
+class PhotoView(ListView):
+	model = Photo
+	template_name = "photos.html"
+	paginate_by = 10 #i.e. 20 pages in total with a query-set of 200 objects
+
+	def get_queryset(self):
+		if self.request.is_feature_phone:
+			queryset = PhotoStream.objects.order_by('-show_time')[:200]
+		else:
+			queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
+		return queryset
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoView, self).get_context_data(**kwargs)
+		context["girls"] = FEMALES
+		context["authenticated"] = False
+		context["can_vote"] = False
+		context["score"] = None
+		if self.request.is_feature_phone:
+			context["feature_phone"] = True
+		else:
+			context["feature_phone"] = False
+		if self.request.user.is_authenticated():
+			user = self.request.user
+			context["voted"] = []
+			if self.request.user.userprofile.score > 9 and not self.request.user_banned:
+				latest_unseen_comment, photo = GetLatestComment(user)
+				context["freshest_unseen_comment"] = latest_unseen_comment
+				context["photo"] = photo
+				context["can_vote"] = True
+				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
+				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
+				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
+			context["authenticated"] = True
+			context["score"] = user.userprofile.score
+		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session["target_photo_id"]
+			self.request.session["target_photo_id"] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(photostream.id for photostream in self.object_list).index(int(target_id))
+			except:
+				index = None
+			if 0 <= index <= 9:
+				addendum = '#section'+str(index+1)
+			elif 10 <= index <= 19:
+				addendum = '?page=2#section'+str(index+1-10)
+			elif 20 <= index <= 29:
+				addendum = '?page=3#section'+str(index+1-20)
+			elif 30 <= index <= 39:
+				addendum = '?page=4#section'+str(index+1-30)
+			elif 40 <= index <= 49:
+				addendum = '?page=5#section'+str(index+1-40)
+			elif 50 <= index <= 59:
+				addendum = '?page=6#section'+str(index+1-50)
+			elif 60 <= index <= 69:
+				addendum = '?page=7#section'+str(index+1-60)
+			elif 70 <= index <= 79:
+				addendum = '?page=8#section'+str(index+1-70)
+			elif 80 <= index <= 89:
+				addendum = '?page=9#section'+str(index+1-80)
+			elif 90 <= index <= 99:
+				addendum = '?page=10#section'+str(index+1-90)
+			elif 100 <= index <= 109:
+				addendum = '?page=11#section'+str(index+1-100)
+			elif 110 <= index <= 119:
+				addendum = '?page=12#section'+str(index+1-110)
+			elif 120 <= index <= 129:
+				addendum = '?page=13#section'+str(index+1-120)
+			elif 130 <= index <= 139:
+				addendum = '?page=14#section'+str(index+1-130)
+			elif 140 <= index <= 149:
+				addendum = '?page=15#section'+str(index+1-140)
+			elif 150 <= index <= 159:
+				addendum = '?page=16#section'+str(index+1-150)
+			elif 160 <= index <= 169:
+				addendum = '?page=17#section'+str(index+1-160)
+			elif 170 <= index <= 179:
+				addendum = '?page=18#section'+str(index+1-170)
+			elif 180 <= index <= 189:
+				addendum = '?page=19#section'+str(index+1-180)
+			elif 190 <= index <= 199:
+				addendum = '?page=20#section'+str(index+1-190)
+			else:
+				addendum = '#section0'		
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
+
+class UploadPhotoView(CreateView):
+	model = Photo
+	form_class = UploadPhotoForm
+	template_name = "upload_photo.html"
+
+	def form_valid(self, form):
+		f = form.save(commit=False)
+		user = self.request.user
+		if user.userprofile.score < 5:
+			context = {'score': '5'}
+			return render(self.request, 'score_photo.html', context)
+		else:
+			time_now = datetime.utcnow().replace(tzinfo=utc)
+			try:
+				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
+				difference = time_now - photocooldown.time_of_uploading 
+				seconds = difference.total_seconds()
+				if seconds < 30:
+					context = {'time': round((30 - seconds),0)}
+					return render(self.request, 'error_photo.html', context)
+				else:
+					photocooldown.time_of_uploading = time_now
+					photocooldown.save()
+			except:
+				PhotoCooldown.objects.create(which_user=user, time_of_uploading=time_now)
+			if f.image_file:
+				#fetch last 200 photos
+				recent_photos = Photo.objects.order_by('-id')[:200]
+				recent_hashes = [photo.avg_hash for photo in recent_photos]
+				image_file, avghash = clean_image_file_with_hash(f.image_file, recent_hashes)
+				if isinstance(avghash,int):
+					#avghash contains the index number of cover_ids within recent_photo_ids
+					try:
+						photo_from_list = recent_photos[avghash]
+						photo = Photo.objects.get(id=photo_from_list.id)
+						context = {'photo': photo, 'females': FEMALES}
+						return render(self.request, 'duplicate_photo.html', context)
+					except:
+						f.image_file = None
+				else:
+					if image_file:
+						f.image_file = image_file
+					else:
+						f.image_file = None
+			else:
+				f.image_file = None
+			if f.image_file:
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash)
+				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=photo.upload_time)
+				stream = PhotoStream.objects.create(cover = photo, show_time = photo.upload_time)
+				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
+				user.userprofile.score = user.userprofile.score - 5
+				user.userprofile.save()
+				return redirect("see_photo")
+			else:
+				context = {'photo': 'photo'}
+				return render(self.request, 'big_photo.html', context)
 
 class PicsChatUploadView(CreateView):
 	model = ChatPic
@@ -2237,7 +3030,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		try:
 			answer_to = Link.objects.get(id=pk)
 		except:
-			self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+			self.request.user.userprofile.score = self.request.user.userprofile.score - 2
 			self.request.user.userprofile.save()
 			return redirect("profile", slug=self.request.user.username)
 		score = fuzz.ratio(description, self.request.user.userprofile.previous_retort)
@@ -2245,7 +3038,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			try:
 				return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
 			except:
-				self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+				self.request.user.userprofile.score = self.request.user.userprofile.score - 2
 				self.request.user.userprofile.save()
 				return redirect("profile", slug=self.request.user.username)
 		else:
@@ -2254,7 +3047,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			else:
 				answer_to.reply_count = answer_to.reply_count + 1
 				self.request.user.userprofile.previous_retort = description
-				self.request.user.userprofile.score = self.request.user.userprofile.score + 3
+				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
 				self.request.user.userprofile.save()
 				if self.request.is_feature_phone:
 					device = '1'
@@ -2273,7 +3066,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:
-					self.request.user.userprofile.score = self.request.user.userprofile.score - 3
+					self.request.user.userprofile.score = self.request.user.userprofile.score - 2
 					self.request.user.userprofile.save()
 					return redirect("profile", slug=self.request.user.username)
 
@@ -2469,7 +3262,7 @@ class LinkCreateView(CreateView):
 						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 				else:
 					f.submitter = user
-					f.submitter.userprofile.score = f.submitter.userprofile.score + 2 #adding 2 points every time a user submits new content
+					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 2 points every time a user submits new content
 				f.with_votes = 0
 				f.category = '1'
 				if self.request.is_feature_phone:
@@ -2485,7 +3278,7 @@ class LinkCreateView(CreateView):
 				try:
 					#if f.description==f.submitter.userprofile.previous_retort:
 					score = fuzz.ratio(f.description, f.submitter.userprofile.previous_retort)
-					if score > 88:
+					if score > 86:
 						return redirect("link_create_pk")
 					else:
 						pass
@@ -2603,6 +3396,24 @@ def groupreport_pk(request, slug=None, pk=None, *args, **kwargs):
 			return redirect("group_report")
 		else:
 			return redirect("about")
+
+class PhotoQataarHelpView(FormView):
+	form_class = PhotoQataarHelpForm
+	template_name = "photo_qataar.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoQataarHelpView, self).get_context_data(**kwargs)
+		context["key"] = self.kwargs["pk"]
+		return context
+
+class BaqiPhotosHelpView(FormView):
+	form_class = BaqiPhotosHelpForm
+	template_name = "baqi_photos_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(BaqiPhotosHelpView, self).get_context_data(**kwargs)
+		context["key"] = self.kwargs["pk"]
+		return context
 
 class GroupReportView(FormView):
 	form_class = GroupReportForm
@@ -2782,6 +3593,10 @@ class WelcomeReplyView(FormView):
 				else:
 					return redirect("score_help")
 
+def cross_comment_notif(request, pk=None, usr=None, *args, **kwargs):
+	PhotoObjectSubscription.objects.filter(viewer_id=usr, which_photo_id=pk).update(seen=True)
+	return redirect("see_photo")
+
 def cross_notif(request, pk=None, ident=None, user=None, *args, **kwargs):
 	try:
 		link = Link.objects.get(pk=pk)
@@ -2892,6 +3707,53 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 		else:
 			return redirect("link_create_pk")
 
+@ratelimit(rate='1/s')
+def photo_vote(request, stream=None, pk=None, val=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': pk}
+		return render(request, 'penalty_photovote.html', context)
+	else:
+		if pk.isdigit() and val.isdigit():
+			if PhotoVote.objects.filter(voter=request.user, photo_id=pk).exists():
+				return redirect("photostream_pk", ident=pk, pk=stream)
+			else:
+				if val == '1':
+						if request.user_banned:
+							return redirect("score_help")
+						else:
+							photo = Photo.objects.get(id=pk)
+							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=1)
+							photo.visible_score = photo.visible_score + 1
+							photo.vote_score = photo.vote_score + 1
+							photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 1
+							photo.owner.userprofile.score = photo.owner.userprofile.score + 1
+							photo.owner.userprofile.save()
+							photo.save()
+							# cooldown.hot_score = cooldown.hot_score - 1
+							# cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+				elif val == '0':
+						if request.user_banned:
+							return redirect("score_help")
+						else:
+							photo = Photo.objects.get(id=pk)
+							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=-1)
+							photo.vote_score = photo.vote_score - 1 
+							photo.visible_score = photo.visible_score - 1
+							photo.owner.userprofile.media_score = photo.owner.userprofile.media_score - 1
+							photo.owner.userprofile.score = photo.owner.userprofile.score - 1
+							photo.owner.userprofile.save()
+							photo.save()
+				else:
+					return redirect("photostream_pk", ident=pk, pk=stream)
+				return redirect("photostream_pk", ident=pk, pk=stream)
+		else:
+			return redirect("photostream_pk", ident=pk, pk=stream)
+
 def update_cooldown(obj):
 	time_now = datetime.utcnow().replace(tzinfo=utc)
 	#print time_now
@@ -2913,6 +3775,56 @@ def find_time(obj):
 	target_time = time_passed + timedelta(minutes=6) # control the interval length from here
 	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
 	return difference
+
+@ratelimit(rate='1/s')
+def photostream_vote(request, pk=None, val=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'unique': pk}
+		return render(request, 'penalty_photovote.html', context)
+	else:
+		if pk.isdigit() and val.isdigit():
+			#print pk
+			stream = PhotoStream.objects.get(id=pk)
+			ident = stream.cover_id
+			if PhotoVote.objects.filter(voter=request.user, photo_id=ident).exists() or request.user == stream.cover.owner:
+				#already voted or is owner of photo, abort
+				return redirect("see_photo_pk", pk)
+			else:
+				if val == '1':
+						if request.user_banned:
+							return redirect("score_help")
+						else:
+							photo = Photo.objects.get(id=ident)
+							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=1)
+							photo.visible_score = photo.visible_score + 1
+							photo.vote_score = photo.vote_score + 1
+							photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 1
+							photo.owner.userprofile.score = photo.owner.userprofile.score + 1
+							photo.owner.userprofile.save()
+							photo.save()
+				elif val == '0':
+						if request.user_banned:
+							return redirect("score_help")
+						else:
+							photo = Photo.objects.get(id=ident)
+							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=-1)
+							photo.visible_score = photo.visible_score - 1
+							photo.vote_score = photo.vote_score -1
+							photo.owner.userprofile.media_score = photo.owner.userprofile.media_score - 1
+							photo.owner.userprofile.score = photo.owner.userprofile.score - 1
+							photo.owner.userprofile.save()
+							photo.save()
+				else:
+					return redirect("see_photo_pk", pk)
+				return redirect("see_photo_pk", pk)
+		else:
+			return redirect("see_photo_pk", pk)
+
 
 @ratelimit(rate='1/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):

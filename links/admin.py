@@ -1,10 +1,22 @@
 from django.contrib import admin
-from .models import Link, Vote, ChatInbox, ChatPic, ChatPicMessage, UserProfile, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen
+from .models import Link, Vote, Photo, PhotoVote, PhotoComment, PhotoStream, ChatInbox, ChatPic, ChatPicMessage, UserProfile, UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 #these will appear in the admin panel
 class LinkAdmin(admin.ModelAdmin): pass
 admin.site.register(Link, LinkAdmin)
+
+class PhotoStreamAdmin(admin.ModelAdmin): pass
+admin.site.register(PhotoStream, PhotoStreamAdmin)
+
+class PhotoAdmin(admin.ModelAdmin): pass
+admin.site.register(Photo, PhotoAdmin)
+
+class PhotoCommentAdmin(admin.ModelAdmin): pass
+admin.site.register(PhotoComment, PhotoCommentAdmin)
+
+class PhotoVoteAdmin(admin.ModelAdmin): pass
+admin.site.register(PhotoVote, PhotoVoteAdmin)
 
 class GroupCreateAdmin(admin.ModelAdmin): pass
 admin.site.register(Group, GroupCreateAdmin)

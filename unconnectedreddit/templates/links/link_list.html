@@ -58,7 +58,7 @@
 			</span>
 				<p style="margin-top:.5em;"></p>
 				<a href="{% url 'reply_pk' parent_link_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>
-				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk ident %}" style="color:red;"><b>x</b></a>
+				<a href="{% url 'x_notif' parent_link_pk latest_reply.pk ident %}" style="color:red;font-size:90%;"><b>(x)</b></a>
 				<a href="{% url 'notif_help' pk=parent_link_pk %}" style="font-size:80%;">  (?)</a>
 			</div>
 			<p style="margin-top:.5em;"></p>
@@ -94,7 +94,7 @@
 {% for link in object_list %}
 		
 	{% if forloop.counter == 3 %}
-		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> muft mein apni photos dostoon ko SMS ke zariye bhejo!</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1></div>
+		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> muft mein apni photos dostoon ko SMS ke zariye bhejo!</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1 COLOR="#cccccc"></div>
 	{% endif %}
 
 	{% if link.cagtegory == '2' %}
@@ -173,7 +173,7 @@
 						<a href="{% url 'reply_pk' link.pk %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">isko jawab do</button></a>
 				{% endif %}
 			<br>
-		{% if link.pk not in voted and link.submitter != user and can_vote %}
+		{% if can_vote and link.submitter != user and link.pk not in voted %}
 			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
 			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#FF1A1A;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;">chupair</button></a>
@@ -186,18 +186,18 @@
 		{% if authenticated and can_vote %}
 			{% if link.votes != 'None' %}
 				{% for vote in vote_cluster reversed %}
-					{% if link.id == vote.link.id %}
+					{% if link.id == vote.link_id %}
 						{% if vote.value == -1 %}
-							<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">
+							<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter_id %}#section0">
 							{% if vote.voter.username in checked %}
 								{{ vote.voter.username }}<span style="color:deeppink;">*</span>
 							{% else %}
 								{{ vote.voter.username }}
 							{% endif %}
-								</a></b> ne khinch ke chupair mari<br></span>
+								</a></b> ne sb ke samney chupair mari<br></span>
 						{% endif %}
 						{% if vote.value == 1 %}
-							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">
+							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter_id %}#section0">
 							{% if vote.voter.username in checked %}
 								{{ vote.voter.username }}<span style="color:deeppink;">*</span>
 							{% else %}
@@ -206,12 +206,12 @@
 								</a></b> ne jhappi di<br></span>
 						{% endif %}
 						{% if vote.value == -2 %}
-							<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">
+							<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter.id %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
-							</a></b> ne nani yad kara di <b>(-300)</b><br></span>
+							</a></b> ne chupair mar kr nani yad kara di <b>(-300)</b><br></span>
 						{% endif %}
 						{% if vote.value == 2 %}
-							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter.id id=vote.id num=link.submitter.id %}#section0">
+							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter.id %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
 							</a></b> ne barri jhappi di <b>(+50)</b><br></span>
 						{% endif %}
@@ -220,7 +220,7 @@
 			{% endif %}
 		</p>
 		{% endif %}
-		<p style="color:gray"><hr size=1></p>
+		<p><hr size=1 COLOR="#cccccc"></p>
 	{% endif %}
 {% endfor %}
 </div>

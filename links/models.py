@@ -312,6 +312,7 @@ class Link(models.Model):
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	rank_score = models.FloatField(default=0.0)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
+	which_photostream = models.ForeignKey('links.PhotoStream')
 	reply_count = models.IntegerField(default=0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)

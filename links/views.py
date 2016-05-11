@@ -1933,6 +1933,7 @@ class UploadPhotoView(CreateView):
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash)
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=photo.upload_time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = photo.upload_time)
+				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)
 				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
 				user.userprofile.score = user.userprofile.score - 5
 				user.userprofile.save()

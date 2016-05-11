@@ -114,6 +114,66 @@
 		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki naee <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group' slug=link.url %}" style="color:red;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p style="color:gray"><hr size=1></p>
 		</div>
+	{% elif link.cagtegory == '6' %}
+	<div style="margin-top:-1em;padding-top:1em;">
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		{% if link.submitter.userprofile.avatar %}
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}
+	<span style="font-size:110%;">
+		{{ link.submitter }}</span></a>
+		    		<span style="font-size:85%;">
+		{% if authenticated and score > 25 %}				
+			{% if link.submitter.userprofile.score < 0 %}
+		    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
+		    {% else %}
+		    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
+			{% endif %}
+		{% endif %}
+		</span>{% for person in checked %}
+		    {% if person == link.submitter.username %}
+		    	<span style="font-size:120%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}:<a name="section{{ forloop.counter }}"></a>&nbsp;<a href="{% url 'see_photo_pk' link.which_photostream_id %}"><img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="border:1px solid blue;width:auto;"></img> </a>
+		    <span style="color:#404040; font-size:115%; line-height:1.8;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
+			
+		
+				<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>
+	{% if authenticated %}
+		{% if link.device == '1' %}
+		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		{% elif link.device == '2' %}
+		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		{% elif link.device == '4' %}
+		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		{% elif link.device == '5' %}
+		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		{% elif link.device == '3' %}
+		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		{% else %}
+		{% endif %}
+	{% endif %}
+		</span>
+		<p style="margin-top:.5em;">
+		<a href="{% url 'comment_pk' pk=link.which_photostream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">
+		{% if link.which_photostream.cover.comment_count > 1 %}
+		{{ link.which_photostream.cover.comment_count }} tabsrey
+		{% elif link.which_photostream.cover.comment_count == 1 %}
+		{{ link.which_photostream.cover.comment_count }} tabsra
+		{% else %}tabsra kro
+		{% endif %}
+		</button></a><br>
+				{% if can_vote and link.submitter != user and link.pk not in voted %}
+			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#2DB92D;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.7em;">jhappee</button></a>
+			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
+			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#FF1A1A;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;">chupair</button></a>
+			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-300</u></a>{% endif %}<br>
+		{% endif %}
+		</p>
+	<p><hr size=1 COLOR="#cccccc"></p>
+	</div>
 	{% else %}
 
 	    {% if link.image_file %}
@@ -194,7 +254,7 @@
 							{% else %}
 								{{ vote.voter.username }}
 							{% endif %}
-								</a></b> ne sb ke samney chupair mari<br></span>
+								</a></b> ne bhare bazar me chupair mari<br></span>
 						{% endif %}
 						{% if vote.value == 1 %}
 							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter_id %}#section0">
@@ -203,17 +263,17 @@
 							{% else %}
 								{{ vote.voter.username }}
 							{% endif %}
-								</a></b> ne jhappi di<br></span>
+								</a></b> ne barri si jhappi di<br></span>
 						{% endif %}
 						{% if vote.value == -2 %}
 							<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter.id %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
-							</a></b> ne chupair mar kr nani yad kara di <b>(-300)</b><br></span>
+							</a></b> ne chupair mr mr kr nani yad kara di <b>(-300)</b><br></span>
 						{% endif %}
 						{% if vote.value == 2 %}
 							<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter.id %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
-							</a></b> ne barri jhappi di <b>(+50)</b><br></span>
+							</a></b> ne zordar jhappi di <b>(+50)</b><br></span>
 						{% endif %}
 					{% endif %}
 				{% endfor %}

@@ -11,5 +11,8 @@ def thumbnailize_target_url(url):
 	elif 'users' in url:
 		url = string.replace(url, "users", "thumbnails")
 		return url
+	elif 'photos' in url:
+		url = string.replace(url, "photos", "thumbnails")
+		return url
 	else:
 		return url

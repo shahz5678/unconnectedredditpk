@@ -28,7 +28,7 @@
 	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:97%;"><b>Naee photo charhao:</b></span>
 	<p style="padding-top:-.3em;">
 	{% endif %}
-<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:90%;"><i>qeemat: 5 points</i></span>
+<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:90%;"><i>qeemat: 5 points</i></span>
 </p>
 {% elif not authenticated %}
 <span style="color:grey;font-size:90%;">Photo lagane ke liye khata kholna zaroori hai</span>
@@ -178,11 +178,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:115%;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:115%;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey&nbsp;</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
     {% endif %}
 </div>
 {% endif %}

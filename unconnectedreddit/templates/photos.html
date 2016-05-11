@@ -55,14 +55,26 @@
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
 	</a>
-	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</b></a>
-	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="color:#ff8000;font-size:90%;">
+	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</b>
+	<span style="color:#ff8000;font-size:90%;">
 	{% if picstream.cover.comment_count > 1 %}
 	({{ picstream.cover.comment_count }} tabsrey)
 	{% elif picstream.cover.comment_count == 1 %}
 	({{ picstream.cover.comment_count }} tabsra)
-	{% endif %}
-	</a>
+	{% endif %}</span>
+	
+	{% if picstream.cover.device == '1' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '2' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '4' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '5' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '3' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+		{% else %}
+		{% endif %}</a>
 	<br>
 	
 

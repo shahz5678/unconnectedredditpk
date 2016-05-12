@@ -226,7 +226,7 @@ PHOTOS = (
 ('6','Style'),
 ('7','Selfies'),
 ('8','Nail Color'),
-('9', 'Ajooba'),
+('9', 'Halat-e-hazra'),
 	)
 
 TYPE = (
@@ -316,7 +316,7 @@ class Link(models.Model):
 	reply_count = models.IntegerField(default=0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
-	image_file = models.ImageField("Tasveer dalo:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
+	image_file = models.ImageField("Photo charhao:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
 	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, on_delete=models.CASCADE)#models.SET_NULL)
 	
 	with_votes = LinkVoteCountManager() #change this to set_rank()
@@ -390,6 +390,12 @@ class PhotoVote(models.Model):
 
 	def __unicode__(self):
 		return u"%s gave %s to %s" % (self.voter.username, self.value, self.photo.caption)
+
+class HotUser(models.Model):
+	which_user = models.OneToOneField(User, unique=True)
+	hot_score = models.IntegerField(default=0, db_index=True)
+	allowed = models.BooleanField(default=False)
+	updated_at = models.DateTimeField()
 
 class PhotoComment(models.Model):
 	which_photo = models.ForeignKey(Photo)
@@ -546,6 +552,7 @@ class Unseennotification(models.Model):
 class TutorialFlag(models.Model):
 	user = models.OneToOneField(User, unique=True)
 	seen_chain = models.BooleanField(default=False)
+	seen_photo_option = models.BooleanField(default=False)
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

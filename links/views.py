@@ -497,7 +497,7 @@ class LinkListView(ListView):
 			return Link.objects.order_by('-id')[:120]
 		else:#if user is not hell-banned
 			global condemned
-			return Link.objects.exclude(submitter_id__in=condemned).order_by('-id')[:120]
+			return Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)

@@ -3,9 +3,24 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
-from links.views import cross_notif, vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk
 from django.views.generic.base import TemplateView
-from links.views import LinkListView, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+from links.views import cross_notif, vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
+comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
+reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk
+from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
+PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
+PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
+ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, \
+PicPasswordView, VoteOrProfileView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, \
+UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, \
+NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, \
+KickView, SmsReinviteView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, \
+DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, \
+RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, \
+GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, \
+OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
+ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
+ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -61,9 +76,11 @@ urlpatterns = patterns('',
 	url(r'^link/create/$', auth(link_create_pk), name='link_create_pk'),
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
 	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
+	url(r'^photo_option_seekho/$', auth(PhotoOptionTutorialView.as_view()), name='photo_option_tutorial'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
+	url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
 	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
 	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),

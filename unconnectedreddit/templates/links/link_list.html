@@ -116,14 +116,23 @@
 		</div>
 	{% elif link.cagtegory == '6' %}
 	<div style="margin-top:-1em;padding-top:1em;">
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
+		
+		{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 1 %}
+	    	<a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">(barri photo)</div></a>
+	    	<br>
+			<a href="{% url 'see_photo_pk' link.which_photostream.cover_id %}#section0">
+	    	<img style="width:100%;max-width:200px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url }}"></img>
+	    	</a>
+	    	<br>
+		{% endif %}
+		<a href="{% url 'profile' link.submitter.username %}#secton0">
 		{% if link.submitter.userprofile.avatar %}
 			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}
-	<span style="font-size:110%;">
-		{{ link.submitter }}</span></a>
+		<span style="font-size:110%;">
+		{{ link.submitter }}</span>
 		    		<span style="font-size:85%;">
 		{% if authenticated and score > 25 %}				
 			{% if link.submitter.userprofile.score < 0 %}
@@ -136,7 +145,26 @@
 		    {% if person == link.submitter.username %}
 		    	<span style="font-size:120%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
-		    {% endfor %}:<a name="section{{ forloop.counter }}"></a>&nbsp;<a href="{% url 'see_photo_pk' link.which_photostream_id %}"><img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="border:1px solid blue;width:auto;"></img> </a>
+		    {% endfor %}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
+		    {% if not link.submitter.hotuser.allowed or not link.submitter.hotuser.hot_score > 1 %}
+		    <a href="{% url 'see_photo_pk' link.which_photostream_id %}">
+		    {% if link.which_photostream.cover.vote_score < -7 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		    {% elif link.which_photostream.cover.vote_score < -2 %}
+			    {% if link.which_photostream.cover.image_file %}
+			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% else %}
+			    {% if link.which_photostream.cover.image_file %}
+			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="border:1px solid blue;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% endif %}
+		    </a>
+		    {% endif %}
 		    <span style="color:#404040; font-size:115%; line-height:1.8;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
 			
 		
@@ -170,9 +198,6 @@
 	</div>
 	{% else %}
 
-	    {% if link.image_file %}
-	    <img style="width:100%;max-width:400px;" src="{{ link.image_file.url }}"></img><br>
-		{% endif %}
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}
 

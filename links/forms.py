@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import Textarea
-from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
+from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
+ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from PIL import Image, ImageFile, ImageEnhance
@@ -71,7 +72,7 @@ def MakeThumbnail(filee):
 	enhancer2 = enhancer2.enhance(1.07)
 	enhancer3 = ImageEnhance.Color(enhancer2)
 	img = enhancer3.enhance(1.15)
-	img.thumbnail((200, 200))
+	img.thumbnail((265, 265))
 	thumbnailString = StringIO.StringIO()
 	#if img.mode != 'RGB':
 	#    img = img.convert("RGB")
@@ -356,6 +357,10 @@ class DirectMessageForm(forms.Form):
 	class Meta:
 		pass
 
+class PhotoOptionTutorialForm(forms.Form):
+	class Meta:
+		pass
+
 class ChainPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
@@ -431,6 +436,10 @@ class OwnerGroupOnlineKonForm(forms.ModelForm):
 class GroupOnlineKonForm(forms.ModelForm):
 	class Meta:
 		model = GroupTraffic
+
+class BigPhotoHelpForm(forms.Form):
+	class Meta:
+		pass
 
 class OutsideMessageForm(forms.Form):
 	class Meta:

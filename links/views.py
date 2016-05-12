@@ -14,7 +14,7 @@ from verified import FEMALES
 from allowed import ALLOWED
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, Seen, \
-GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen
+GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -32,7 +32,7 @@ PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWa
 RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, \
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
-ClosedGroupCreateForm, OpenGroupCreateForm, clean_image_file, clean_image_file_with_hash#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -383,6 +383,15 @@ class LogoutHelpView(FormView):
 	form_class = LogoutHelpForm
 	template_name = "logout_help.html"
 
+class BigPhotoHelpView(FormView):
+	form_class = BigPhotoHelpForm
+	template_name = "big_photo_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(BigPhotoHelpView, self).get_context_data(**kwargs)
+		photo_id = self.kwargs["pk"]
+		context["photo"] = Photo.objects.get(id=photo_id)
+		return context
 
 class LogoutReconfirmView(FormView):
 	form_class = LogoutReconfirmForm
@@ -488,7 +497,7 @@ class LinkListView(ListView):
 			return Link.objects.order_by('-id')[:120]
 		else:#if user is not hell-banned
 			global condemned
-			return Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
+			return Link.objects.exclude(submitter_id__in=condemned).order_by('-id')[:120]
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
@@ -1398,6 +1407,25 @@ class PhotostreamView(ListView):
 		else:
 			return self.render_to_response(context)
 
+class PhotoOptionTutorialView(FormView):
+	form_class = PhotoOptionTutorialForm
+	template_name = "photo_option_tutorial.html"
+
+	def form_valid(self, form):
+		if self.request.session["ftue_photo_option"]:
+			self.request.session["ftue_photo_option"] = None
+			if self.request.method == 'POST':
+				option = self.request.POST.get("choice", '')
+				if option == 'samajh gaya':
+					if TutorialFlag.objects.filter(user=self.request.user).update(seen_photo_option=True):
+						return redirect("link_create_pk")
+					else:
+						return redirect("home")
+				else:
+					return redirect("home")
+		else:
+			return redirect("link_create_pk")
+
 class ChainPhotoTutorialView(FormView):
 	form_class = ChainPhotoTutorialForm
 	template_name = "chain_photo_tutorial.html"
@@ -1406,28 +1434,28 @@ class ChainPhotoTutorialView(FormView):
 	# 	context = super(ChainPhotoTutorialView, self).get_context_data(**kwargs)
 
 	def form_valid(self, form):
-			if self.request.session["ftue_chain"] and self.request.session["reply_photo_id"]:
-				self.request.session["ftue_chain"] = None
-				pk = self.request.session["reply_photo_id"]
-				self.request.session["reply_photo_id"] = None
-				if self.request.user_banned:
-					return redirect("see_photo")
-				else:
-					#which_photo = Photo.objects.get(id=pk)
-					if self.request.method == 'POST':
-						option = self.request.POST.get("choice",'')
-						if option == 'samajh gaya':
-							try:
-								TutorialFlag.objects.filter(user=self.request.user).update(seen_chain=True)
-								return redirect("upload_photo_reply_pk", pk)
-							except:
-								return redirect("see_photo")
-						else:
+		if self.request.session["ftue_chain"] and self.request.session["reply_photo_id"]:
+			self.request.session["ftue_chain"] = None
+			pk = self.request.session["reply_photo_id"]
+			self.request.session["reply_photo_id"] = None
+			if self.request.user_banned:
+				return redirect("see_photo")
+			else:
+				#which_photo = Photo.objects.get(id=pk)
+				if self.request.method == 'POST':
+					option = self.request.POST.get("choice",'')
+					if option == 'samajh gaya':
+						try:
+							TutorialFlag.objects.filter(user=self.request.user).update(seen_chain=True)
+							return redirect("upload_photo_reply_pk", pk)
+						except:
 							return redirect("see_photo")
 					else:
 						return redirect("see_photo")
-			else:
-				return redirect("see_photo")
+				else:
+					return redirect("see_photo")
+		else:
+			return redirect("see_photo")
 
 def upload_photo_reply_pk(request, pk=None, *args, **kwargs):
 	if pk.isdigit():
@@ -1878,6 +1906,27 @@ class UploadPhotoView(CreateView):
 	form_class = UploadPhotoForm
 	template_name = "upload_photo.html"
 
+	def get_context_data(self, **kwargs):
+		context = super(UploadPhotoView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score')[:5]
+			vote_score_positive = True
+			number_of_photos = 0
+			for photo in photos:
+				number_of_photos = number_of_photos + 1
+				if photo[0] < 0:
+					vote_score_positive = False
+			if vote_score_positive and number_of_photos < 5:
+				vote_score_positive = False
+			total_visible_score = sum(photo[1] for photo in photos)
+			now = datetime.utcnow().replace(tzinfo=utc)
+			hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+			if hotuser:
+				pass
+			else:
+				HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+		return context
+
 	def form_valid(self, form):
 		f = form.save(commit=False)
 		user = self.request.user
@@ -1934,6 +1983,7 @@ class UploadPhotoView(CreateView):
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=photo.upload_time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = photo.upload_time)
 				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)
+				#HotUser.objects.get(which_user=user, )
 				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
 				user.userprofile.score = user.userprofile.score - 5
 				user.userprofile.save()
@@ -3227,8 +3277,19 @@ def link_create_pk(request, *args, **kwargs):
 		context = {'unique': 'ID'}
 		return render(request, 'penalty_linkcreate.html', context)
 	else:
-		request.session["link_create_token"] = uuid.uuid4()
-		return redirect("link_create")
+		try:
+			seen_photo_option = TutorialFlag.objects.get(user=request.user).seen_photo_option
+			if seen_photo_option:
+				request.session["link_create_token"] = uuid.uuid4()
+				return redirect("link_create")
+			else:
+				request.session["ftue_photo_option"] = True
+				return redirect("photo_option_tutorial")
+		except:
+			request.session["ftue_photo_option"] = True
+			TutorialFlag.objects.create(user=request.user)
+			return redirect("photo_option_tutorial")
+
 
 class LinkCreateView(CreateView):
 	model = Link

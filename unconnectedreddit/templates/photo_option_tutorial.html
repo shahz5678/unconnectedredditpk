@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<b style="color:#404040;font-size:100%;">Ab Damadam pr tasvir charhao!</b><br>
+<span style="color:grey;font-size:85%;">Tasvir charhane ka tareeqa: </span><br>
+<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+<span style="color:green;">1)</span> Sb se uper "Photo" option me jao, aur tasvir charhao<br>
+<span style="color:green;">2)</span> Tasvir dono "Home" aur "Photo" mein nzr aygi<br>
+<span style="color:green;">3)</span> "Home" pr tasvir <b>choti</b> nzr aygi, lekin "Photo" mein <b>barri</b> nzr aygi<br>
+<span style="color:green;">4)</span> Jin logon ki pichli 5 photos ko ziyada points miley, unki tasvir "Home" pr bhi <b>barri</b> nzr aygi!<br>
+</span>
+<form action="{% url 'photo_option_tutorial' %}" method="POST">
+{% csrf_token %}
+<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="samajh gaya"><br>
+<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="nahi samjha">
+</form>
+
+</div>
+{% endblock %}

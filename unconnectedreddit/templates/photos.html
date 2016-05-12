@@ -9,9 +9,9 @@
 	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;padding-bottom:0.5em;">
 	<b style="color:#ff8000;font-size:90%;">Is photo pr neya tabsra aya:</b><br>
 	<a href="{% url 'comment_pk' freshest_unseen_comment.which_photo_id %}" style="font-size:90%;">
-	{% if photo.vote_score < -8 %}
+	{% if photo.vote_score < -7 %}
 	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-	{% elif photo.vote_score < -3 %}
+	{% elif photo.vote_score < -2 %}
 	{% if photo.image_file %}
         <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
     {% else %}
@@ -28,7 +28,7 @@
 	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:97%;"><b>Naee photo charhao:</b></span>
 	<p style="padding-top:-.3em;">
 	{% endif %}
-<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:90%;"><i>qeemat: 5 points</i></span>
+<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:85%;"><i>qeemat: 5 points</i></span>
 </p>
 {% elif not authenticated %}
 <span style="color:grey;font-size:90%;">Photo lagane ke liye khata kholna zaroori hai</span>
@@ -78,9 +78,9 @@
 	<br>
 	
 
-			{% if picstream.cover.vote_score < -8 %}
+			{% if picstream.cover.vote_score < -7 %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-			{% elif picstream.cover.vote_score < -3 %}
+			{% elif picstream.cover.vote_score < -2 %}
 				{% if picstream.cover.image_file %}
 				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
 				{% else %}

@@ -1911,9 +1911,12 @@ class UploadPhotoView(CreateView):
 		if self.request.user.is_authenticated():
 			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score', 'upload_time')[:5]
 			count = photos.count()
-			time_now = datetime.utcnow().replace(tzinfo=utc)			
-			difference = time_now - photos[0][2]
-			seconds = difference.total_seconds()
+			if count > 4:
+				time_now = datetime.utcnow().replace(tzinfo=utc)			
+				difference = time_now - photos[0][2]
+				seconds = difference.total_seconds()
+			else:
+				pass
 			######### first check if the person is posting abusive stuff repeatedly #########
 			if count > 4 and photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288): #five previous photos
 				context["forbidden"] = True

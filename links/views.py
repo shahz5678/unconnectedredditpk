@@ -67,6 +67,86 @@ def valid_passcode(user,num):
 		else:
 			return True
 
+def check_photo_abuse(count, photos):
+	#photos is a list
+	#count is the number of objects in that list
+	if count == 0:
+		forbidden = False
+		time_remaining = None
+		return forbidden, time_remaining
+	else:
+		time_now = datetime.utcnow().replace(tzinfo=utc)			
+		difference = time_now - photos[0][2]
+		seconds = difference.total_seconds()
+		#print "seconds: %s:" % seconds
+		if count == 1:
+			if photos[0][0] < -7 and seconds < (60*60*6):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
+				return forbidden, time_remaining
+		if count == 2:
+			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and seconds < (60*60*6):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
+				return forbidden, time_remaining
+		if count == 3:
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and seconds < (60*60*6):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
+				return forbidden, time_remaining
+		if count == 4:
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and seconds < (60*60*6):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
+				return forbidden, time_remaining
+		if count == 5:
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*288-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
+				return forbidden, time_remaining
+			if photos[0][0] < -7 and seconds < (60*60*6):
+				forbidden = True
+				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
+				return forbidden, time_remaining
+		forbidden = False
+		time_remaining = None
+		return forbidden, time_remaining
 
 def valid_uuid(uuid):
 	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
@@ -1509,8 +1589,8 @@ class UploadPhotoReplyView(CreateView):
 				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
 				difference = time_now - photocooldown.time_of_uploading 
 				seconds = difference.total_seconds()
-				if seconds < 30:
-					context = {'time': round((30 - seconds),0)}
+				if seconds < 60:
+					context = {'time': round((60 - seconds),0)}
 					return render(self.request, 'error_photo.html', context)
 				else:
 					photocooldown.time_of_uploading = time_now
@@ -1910,39 +1990,14 @@ class UploadPhotoView(CreateView):
 		context = super(UploadPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score', 'upload_time')[:5]
-			count = photos.count()
-			if count > 4:
-				time_now = datetime.utcnow().replace(tzinfo=utc)			
-				difference = time_now - photos[0][2]
-				seconds = difference.total_seconds()
-			else:
-				pass
-			######### first check if the person is posting abusive stuff repeatedly #########
-			if count > 4 and photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288): #five previous photos
-				context["forbidden"] = True
-				context["time_remaining"] = time_now + timedelta(seconds= (60*60*288-seconds)) #288-hr penalty 
-				return context
-			elif count > 4 and photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144): #four previous photos 
-				context["forbidden"] = True
-				context["time_remaining"] = time_now + timedelta(seconds= (60*60*144-seconds)) #144-hr penalty 
-				return context
-			elif count > 4 and photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72): #three previous photos 
-				context["forbidden"] = True
-				context["time_remaining"] = time_now + timedelta(seconds= (60*60*72-seconds)) #72-hr penalty
-				return context
-			elif count > 4 and photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24): #two previous photos 
-				context["forbidden"] = True
-				context["time_remaining"] = time_now + timedelta(seconds= (60*60*24-seconds)) #24-hr penalty
-				return context
-			elif count > 4 and photos[0][0] < -7 and seconds < (60*60*6): # accessing the vote_score and time of the latest photo
-				context["forbidden"] = True
-				context["time_remaining"] = time_now + timedelta(seconds = (60*60*6-seconds)) #6 hr penalty
-				return context
+			forbidden, time_remaining = check_photo_abuse(photos.count(), photos)
+			if forbidden:
+				context["forbidden"] = forbidden
+				context["time_remaining"] = time_remaining
 			else:
 				vote_score_positive = True
 				number_of_photos = 0
 				for photo in photos:
-					#print photo
 					number_of_photos = number_of_photos + 1
 					if photo[0] < 0:
 						vote_score_positive = False
@@ -1955,6 +2010,7 @@ class UploadPhotoView(CreateView):
 					pass
 				else:
 					HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+				context["score"] = self.request.user.userprofile.score
 				return context
 			return context
 		return context
@@ -1971,8 +2027,8 @@ class UploadPhotoView(CreateView):
 				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
 				difference = time_now - photocooldown.time_of_uploading 
 				seconds = difference.total_seconds()
-				if seconds < 30:
-					context = {'time': round((30 - seconds),0)}
+				if seconds < 60:
+					context = {'time': round((60 - seconds),0)}
 					return render(self.request, 'error_photo.html', context)
 				else:
 					photocooldown.time_of_uploading = time_now
@@ -3395,6 +3451,7 @@ class LinkCreateView(CreateView):
 					else: f.image_file = None
 				f.save()
 				f.submitter.userprofile.save()
+				#PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2')
 				return super(CreateView, self).form_valid(form)
 			else:
 				return redirect("score_help")

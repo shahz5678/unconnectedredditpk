@@ -53,7 +53,7 @@ from brake.decorators import ratelimit
 #from django.utils.translation import ugettext_lazy as _
 #from registration.backends.simple.views import RegistrationView
 
-condemned = HellBanList.objects.values('condemned_id').distinct()
+condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -1909,22 +1909,50 @@ class UploadPhotoView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(UploadPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score')[:5]
-			vote_score_positive = True
-			number_of_photos = 0
-			for photo in photos:
-				number_of_photos = number_of_photos + 1
-				if photo[0] < 0:
-					vote_score_positive = False
-			if vote_score_positive and number_of_photos < 5:
-				vote_score_positive = False
-			total_visible_score = sum(photo[1] for photo in photos)
-			now = datetime.utcnow().replace(tzinfo=utc)
-			hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
-			if hotuser:
-				pass
+			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score', 'upload_time')[:5]
+			time_now = datetime.utcnow().replace(tzinfo=utc)			
+			difference = time_now - photos[0][2]
+			seconds = difference.total_seconds()
+			######### first check if the person is posting abusive stuff repeatedly #########
+			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288): #five previous photos
+				context["forbidden"] = True
+				context["time_remaining"] = time_now + timedelta(seconds= (60*60*288-seconds)) #288-hr penalty 
+				return context
+			elif photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144): #four previous photos 
+				context["forbidden"] = True
+				context["time_remaining"] = time_now + timedelta(seconds= (60*60*144-seconds)) #144-hr penalty 
+				return context
+			elif photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72): #three previous photos 
+				context["forbidden"] = True
+				context["time_remaining"] = time_now + timedelta(seconds= (60*60*72-seconds)) #72-hr penalty
+				return context
+			elif photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24): #two previous photos 
+				context["forbidden"] = True
+				context["time_remaining"] = time_now + timedelta(seconds= (60*60*24-seconds)) #24-hr penalty
+				return context
+			elif photos[0][0] < -7 and seconds < (60*60*6): # accessing the vote_score and time of the latest photo
+				context["forbidden"] = True
+				context["time_remaining"] = time_now + timedelta(seconds = (60*60*6-seconds)) #6 hr penalty
+				return context
 			else:
-				HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+				vote_score_positive = True
+				number_of_photos = 0
+				for photo in photos:
+					#print photo
+					number_of_photos = number_of_photos + 1
+					if photo[0] < 0:
+						vote_score_positive = False
+				if vote_score_positive and number_of_photos < 5:
+					vote_score_positive = False
+				total_visible_score = sum(photo[1] for photo in photos)
+				now = datetime.utcnow().replace(tzinfo=utc)
+				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+				if hotuser:
+					pass
+				else:
+					HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+				return context
+			return context
 		return context
 
 	def form_valid(self, form):

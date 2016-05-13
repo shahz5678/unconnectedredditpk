@@ -1766,7 +1766,7 @@ class CommentView(CreateView):
 			from_photos = self.kwargs["from_photos"]
 			context["from_photos"] = True
 		except:
-			context["front_photos"] = False
+			context["from_photos"] = False
 		context["comments"] = comments
 		context["verified"] = FEMALES
 		context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
@@ -1779,8 +1779,10 @@ class CommentView(CreateView):
 				context["authenticated"] = True
 				if comments.exists():
 					try:
-						context["viewed_at"] = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False).updated_at#.update(viewed_at=time_now)
-						#print context["viewed_at"]
+						unseen_notification = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False)
+						context["viewed_at"] = unseen_notification.updated_at#.update(viewed_at=time_now)
+						unseen_notification.seen = True
+						unseen_notification.save()
 					except:
 						context["viewed_at"] = None
 			else:

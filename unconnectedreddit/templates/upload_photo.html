@@ -1,17 +1,23 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block content %}
 <div class="margin">
-<h2 style="font-size:115%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Damadam pe photo charhao!</h2>
-<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">
-{% csrf_token %}
-{{ form.image_file.errors }}
-<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Photo ka intikhab kro:</span><br>{{ form.image_file }}<br>
-<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>1mb se barri photo nahi lagti</i></span><br><br>
-{{ form.caption.errors }}
-<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Photo pr kuch likho:</span><br>{{ form.caption }}<br>
-<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye likh kr OK dabao</i></span><br>
-	<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;text-shadow:none;border-radius:4px;font-weight:bold;margin-bottom:0.4em;" type="submit" value="OK" id="id_submit"><br>
-	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Photo lagane ki qeemat <b>5</b> he</i></span>
-</form>
+{% if forbidden %}
+	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi <b style="color:red;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+	<span style="color:grey;font-size:90%;">Aisi photos lagao jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
+	<a href="{% url 'see_photo' %}" style="font-size:90%;"><< wapis</a>
+{% else %}
+	<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">
+	{% csrf_token %}
+	{{ form.image_file.errors }}
+	<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;"><b>Photo</b> ka intikhab kro:</span><br>{{ form.image_file }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>1mb se barri photo nahi lagti</i></span><br><br>
+	{{ form.caption.errors }}
+	<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Photo pr <b>kuch likho</b>:</span><br>{{ form.caption }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye likh kr OK dabao</i></span><br>
+		<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;text-shadow:none;border-radius:4px;font-weight:bold;margin-bottom:0.4em;" type="submit" value="OK" id="id_submit"><br>
+		<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Photo lagane ki qeemat <b>5</b> he</i></span>
+	</form>
+{% endif %}
 </div>
 {% endblock %}

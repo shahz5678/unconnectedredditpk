@@ -3307,17 +3307,26 @@ def link_create_pk(request, *args, **kwargs):
 		return render(request, 'penalty_linkcreate.html', context)
 	else:
 		try:
-			seen_photo_option = TutorialFlag.objects.get(user=request.user).seen_photo_option
-			if seen_photo_option:
+			score = User.objects.get(pk=request.user.id).userprofile.score
+			if score < 101:
 				request.session["link_create_token"] = uuid.uuid4()
 				return redirect("link_create")
 			else:
-				request.session["ftue_photo_option"] = True
-				return redirect("photo_option_tutorial")
+				try:
+					seen_photo_option = TutorialFlag.objects.get(user=request.user).seen_photo_option
+					if seen_photo_option:
+						request.session["link_create_token"] = uuid.uuid4()
+						return redirect("link_create")
+					else:
+						request.session["ftue_photo_option"] = True
+						return redirect("photo_option_tutorial")
+				except:
+					request.session["ftue_photo_option"] = True
+					TutorialFlag.objects.create(user=request.user)
+					return redirect("photo_option_tutorial")
 		except:
-			request.session["ftue_photo_option"] = True
-			TutorialFlag.objects.create(user=request.user)
-			return redirect("photo_option_tutorial")
+			request.session["link_create_token"] = uuid.uuid4()
+			return redirect("link_create")
 
 
 class LinkCreateView(CreateView):

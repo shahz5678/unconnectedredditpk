@@ -1,101 +1,77 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load mathfilters %}
 {% load thumbnail %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-
-<span style="color:green;font-size:80%;">Home ki pichaley <b>2 din</b> ki chats, jahan tum ne ya kisi aur ne tumhe jawab diya:</span><p></p>
-{% if eachlink.items %}
-{% for key, value in eachlink.items %} <!-- value.0 is seen link, value.1 is time stamp, value.2 is unseen link-->
-	{% if value.0.image_file %}
-    	<img src="{{ value.0.image_file.url }}"></img><br>
-	{% endif %}
-	{% if value.0 %} <!-- if seen post -->
-	<a href="{% url 'profile' slug=value.0.submitter %}#section0">
-	{% if value.0.submitter.userprofile.avatar %}
-		
-		<img src="{{ value.0.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-		
-	{% else %}
-		
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-		
-	{% endif %}
-	{{ value.0.submitter }}</a>
-	{% if user.is_authenticated and user.userprofile.score > 25 %}
-		{% if value.0.submitter.userprofile.score < 0 %}
-	    	<span style="color:red;">({{ value.0.submitter.userprofile.score }})</span>
-	    {% else %}
-	    	<span style="color:#18A018;">({{ value.0.submitter.userprofile.score }})</span>
-		{% endif %}
-	{% endif %}
-	
-	{% for girl in verify %}
-    {% if girl == value.0.submitter.username %}
-    	
-    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
-    {% endif %}{% endfor %}
-	: <span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ value.0.description }}{% endemoticons %}</span>
-	<span style="color:gray;font-size:75%;">, jawab aya {{ value.1|naturaltime }}</span>
-	<a name="section{{ forloop.counter }}"></a>
-	<p style="margin-top:.5em;"></p>
-
-	{% if value.0.reply_count > 0 %}
-		<a href="{% url 'reply_pk' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.0.reply_count }} jawab</a>
-		{% else %}
-		<a href="{% url 'reply_pk' pk=value.0.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
-		{% endif %}
-
-	<br>
-	{% else %}
-	<!-- unseen post -->
-	{% if value.2.submitter.userprofile.avatar %}
-		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
-		<img src="{{ value.2.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-		</a>
-	{% else %}
-		<a href="{% url 'profile' slug=value.2.submitter %}#section0">
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-		</a>
-	{% endif %}
-	<a href="{% url 'profile' slug=value.2.submitter %}#section0">{{ value.2.submitter }}</a>
-	{% if user.is_authenticated %}
-			{% if user.usersettings.score_setting == '1' %}
-				{% if value.2.submitter.userprofile.score %}
-					{% if value.2.submitter.userprofile.score < 0 %}
-				    	<span style="color:red;">({{ value.2.submitter.userprofile.score }})</span>
-				    {% else %}
-				    	<span style="color:#18A018;">({{ value.2.submitter.userprofile.score }})</span>
-					{% endif %}
-			    {% else %}
-			    {% endif %}
-			{% else %}
-			{% endif %}
-	{% endif %}
-	{% for girl in verify %}
-    {% if girl == value.2.submitter.username %}
-    	
-    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}{% endfor %}
-	: <span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ value.2.description }}{% endemoticons %}</span>
-	<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:red;font-size:75%;">, naya jawab aya {{ value.1|naturaltime }}</a> 
-	<a name="section{{ forloop.counter }}"></a>
-	<p style="margin-top:.5em;"></p>
-
-	{% if value.2.reply_count > 0 %}
-		<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">{{ value.2.reply_count }} jawab</a>
-		{% else %}
-		<a href="{% url 'reply_pk' pk=value.2.pk %}#section0" style="color:#1947D1;background-color:white; font-family:arial;border:solid;border-width:1px;border-radius:4px; padding-left:4px;padding-right:2px;padding-bottom:2px;border-color:orange;white-space:nowrap;">isko jawab do</a>
-		{% endif %}
-	<br>
-{% endif %}
-
-<p style="color:gray"><hr size=1></p>
-{% endfor %}
+{% if object_list %}
+<span style="color:green;font-size:80%;">Yahan jawab aur tabsrey dekho:</span><p></p>
+{% for linksubscription in object_list %}
+<!-- link submitter, photo submitter or group submitter -->
+{% if linksubscription.type_of_object == '2' %}
+{% if linksubscription.which_link.submitter.userprofile.avatar %}
+<img src="{{ linksubscription.which_link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 {% else %}
-<span style="color:#404040;"><b>Pichlay 2 din ka koi jawab nahi mila!</b><br><a href="{% url 'home' %}">Home</a> par wapis jao aur kisi naee chat ke neechay jawab do!</span>
+<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+{% endif %}
+<a href="{% url 'profile' linksubscription.which_link.submitter.username %}">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_link.description }}{% endemoticons %}</span>
+{% if linksubscription.seen %}
+<span style="color:gray;font-size:75%;">, jawab aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</span><br>
+{% else %}
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:red;font-size:75%;">, <b>neya jawab</b> aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</a><br>
+{% endif %}<br>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;"><b style="text-shadow:none;">
+{{ linksubscription.which_link.reply_count }} jawab
+</b></button></a>
+{% elif linksubscription.type_of_object == '0' %}
+
+		    {% if linksubscription.which_photo.vote_score < -7 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		    {% elif linksubscription.which_photo.vote_score < -2 %}
+			    {% if linksubscription.which_photo.image_file %}
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% else %}
+			    {% if linksubscription.which_photo.image_file %}
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid lightgrey;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% endif %}
+		    <br>
+	{% if linksubscription.which_photo.owner.userprofile.avatar %}
+	<img src="{{ linksubscription.which_photo.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+
+	<a href="{% url 'profile' linksubscription.which_photo.owner.username %}">{{ linksubscription.which_photo.owner }}</a>:
+		    
+	<span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_photo.caption }}{% endemoticons %}</span>
+
+	{% if linksubscription.seen %}
+	<span style="color:gray;font-size:75%;">, tabsra hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</span><br>
+	{% else %}
+	<a href="{% url 'comment_pk' linksubscription.which_photo_id %}" style="color:red;font-size:75%;">, <b>neya tabsra</b> hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</a><br>
+	{% endif %}<br>
+
+
+	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;">
+	{% if linksubscription.which_photo.comment_count > 1 %}
+		{{ linksubscription.which_photo.comment_count }} tabsrey
+		{% elif linksubscription.which_photo.comment_count == 1 %}
+		1 tabsra
+		{% else %}tabsra kro
+		{% endif %}</button></a>
+
+{% endif %}
+<hr size=1 COLOR="#cccccc">
+{% endfor %}
+
+{% else %}
+<span style="color:#404040;">Is waqt yahan koi jawab nahi hai</span>
 {% endif %}
 </div>
 {% endblock %}
@@ -104,11 +80,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
     {% endif %}
 </div>
 {% endif %}

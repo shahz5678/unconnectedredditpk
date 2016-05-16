@@ -8,7 +8,7 @@
 {% if from_photos %}
 <a href="{% url 'see_photo_pk' photostream_pk %}">
 {% else %}
-<a href="{% url 'user_profile_photo' photo.owner.username photo.id %}">
+<a href="{% url 'home' %}">
 {% endif %}
 {% if photo.vote_score < -7 %}
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
@@ -29,6 +29,7 @@
 <br><b style="font-size:98%;color:#404040;">Photo pe tabsra:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}
+    <input type="hidden" id="id_link" name="from_photos" class="hidden_id" value="{{ from_photos }}">
     {{ form.errors }}
     {{ form.text }}
     <br>
@@ -60,7 +61,7 @@
         <span style="font-size:70%;">
             {% if comment.submitted_by.userprofile.score %}
                 {% if comment.submitted_by.userprofile.score < 0 %}
-                    <span style="color:red;">({{ comment.submitted_by.userprofile.score }})</span>
+                    <span style="color:#18A018;">(1)</span>
                 {% else %}
                     <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
                 {% endif %}
@@ -106,3 +107,8 @@
 {% endif %}
 </div>
 {% endblock %}
+
+check new feature with hell banned users 
+negative points show up as 1 point 
+stop abusive users from posting anywhere for 15 mins regardless of their score
+fix redirect from photo on comments.html

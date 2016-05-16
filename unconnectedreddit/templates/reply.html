@@ -10,7 +10,7 @@
 <a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
 {% if authenticated and score > 25 %}
     {% if parent.submitter.userprofile.score < 0 %}
-        <span style="color:red;font-size:88%;">({{ parent.submitter.userprofile.score }})</span>
+        <span style="color:#18A018;font-size:88%;">(1)</span>
     {% else %}
         <span style="color:#18A018;font-size:88%;">({{ parent.submitter.userprofile.score }})</span>
     {% endif %}
@@ -71,27 +71,31 @@
     {% endif %}
     </a>
     {% if reply.abuse %}
-        {% if reply not in seenreplies %}
-            <b style="color:orange;font-size:80%">(new)</b>
+        {% if authenticated and viewed_at %}
+        {% if reply.submitted_on > viewed_at and reply.submitted_by != user %}
+        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% endif %}
         {% endif %}
         <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}"><bdi>{{ reply.submitted_by }}</bdi></a></span>
             {% if authenticated and score > 25 %}  
                 {% if reply.submitted_by.userprofile.score < 0 %}
-                    <span style="color:red;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                    <span style="color:#18A018;font-size:80%;">(1)</span>
                 {% else %}
                     <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
                 {% endif %}
             {% endif %}
          <span style="color:grey;font-size:90%;">ne ghalat baat ki, isko report kar diya gaya</span>
     {% else %}
-        {% if reply not in seenreplies %}
-            <b style="color:orange;font-size:80%"><i>(new)</i></b>
+        {% if authenticated and viewed_at %}
+        {% if reply.submitted_on > viewed_at and reply.submitted_by != user %}
+        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% endif %}
         {% endif %}
 	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;"><bdi>{{ reply.submitted_by }}</bdi></a>
         <span style="font-size:80%;">
             {% if authenticated and score > 25 %}
                 {% if reply.submitted_by.userprofile.score < 0 %}
-                    <span style="color:red;">({{ reply.submitted_by.userprofile.score }})</span>
+                    <span style="color:#18A018;">(1)</span>
                 {% else %}
                     <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
                 {% endif %}

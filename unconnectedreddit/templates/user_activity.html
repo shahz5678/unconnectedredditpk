@@ -34,7 +34,7 @@
 	<bdi>{{ link.submitter }}</bdi></a>
 	{% if user.is_authenticated and user.userprofile.score > 25 %}
 		{% if link.submitter.userprofile.score < 0 %}
-	    	<span style="color:red;">({{ link.submitter.userprofile.score }})</span>
+	    	<span style="color:#18A018;">(1)</span>
 	    {% else %}
 	    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
 		{% endif %}

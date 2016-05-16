@@ -15,8 +15,8 @@
 {% if not object_list %}
 <i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kiss cheez ka hai?!</i>
 {% else %}
-<b>Is ki home wali chat ki history:</b><br>
-<span style="color:grey;font-size:80%;"><i><b>mehfil</b> ki history nazar nahi aati</i></span><br>
+<b>Home ki chat history:</b><p style="margin-top:.5em;"></p>
+
 {% for link in object_list %}
 	{% if link.image_file %}
     	<img src="{{ link.image_file.url }}"></img><br>

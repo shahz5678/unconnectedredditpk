@@ -4022,13 +4022,15 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				link = Link.objects.get(pk=int(pk))
 			except:
 				return redirect("link_create_pk")
+			if request.user == link.submitter:
+				return redirect("home")
 			section = str(loc)
-			if usr:
-				if request.user.id != int(usr):
-					# the user sending this request is trying to vote with someone else's ID
-					return redirect("link_create_pk")
-			else:
-				return redirect("link_create_pk")	
+			# if usr:
+			# 	if request.user.id != int(usr):
+			# 		# the user sending this request is trying to vote with someone else's ID
+			# 		return redirect("link_create_pk")
+			# else:
+			# 	return redirect("link_create_pk")	
 			value = int(val)
 			if not Vote.objects.filter(voter=request.user, link=link).exists():
 				#only if user never voted on this link

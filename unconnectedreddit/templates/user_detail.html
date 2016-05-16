@@ -31,12 +31,12 @@
 	<a class="info">
 	{% if object.userprofile.score %}
 		{% if object.userprofile.score < 0 %}
-			<b style="color:red;">{{ object.userprofile.score }}</b>
+			<b style="color:green;">1</b>
 		{% else %}
 			<b style="color:green;">{{ object.userprofile.score }}</b>
 		{% endif %}
 	{% else %}
-		<b>{{ object.userprofile.score }}</b>
+		<b style="color:green;">1</b>
 	{% endif %}
 	</a>&nbsp;(<a href="{% url 'score_help' %}#section0">?</a>)<br>
 	</div>

@@ -13,7 +13,7 @@ from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, Seen, \
+ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
@@ -124,6 +124,13 @@ def check_photo_abuse(count, photos):
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 5:
+			print "here"
+			print photos[0][0]
+			print photos[1][0]
+			print photos[2][0]
+			print photos[3][0]
+			print photos[4][0]
+			print seconds
 			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*288-seconds))
@@ -173,49 +180,37 @@ def GetNonReplyLinks(user):
 	except:
 		#print "no relevant links"
 		relevant_links = []
-	return relevant_links
+	return relevant_links	
 
-def GetLinks(user):
-	try: 
+def GetLatest(user):
+	try:
 		now = datetime.utcnow().replace(tzinfo=utc)
-		timestamp = now - timedelta(minutes=30)
-		global condemned
-		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:10]))
-		relevant_publicreply_ids = list(set(Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(latest_reply__submitted_by=user).exclude(submitter_id__in=condemned).order_by('-id').values_list('latest_reply', flat=True)[:10]))
-		#relevant_links_ids = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(publicreply__submitted_by=user)).exclude(submitter_id__in=condemned).order_by('-id').values_list('id', flat=True)[:90]))
-		#print "relevant publicreply ids are: %s" % relevant_publicreply_ids
+ 		timestamp = now - timedelta(minutes=60)
+		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False, updated_at__gte=timestamp).latest('updated_at')
+		if latest_pos.type_of_object == '0':
+			photo = Photo.objects.get(id=latest_pos.which_photo_id)
+			latest_comment = PhotoComment.objects.filter(which_photo=photo).latest('id')
+			return latest_comment, False, True, True
+		elif latest_pos.type_of_object == '2':
+			link = Link.objects.get(id=latest_pos.which_link_id)
+			latest_reply = Publicreply.objects.filter(answer_to=link).latest('id')
+			return latest_reply, True, False, False
+		elif latest_pos.type_of_object == '1':
+			pass
+		else:
+			pass
 	except:
-		relevant_publicreply_ids = []
-		#print "here"
-	return relevant_publicreply_ids
-
-def GetLatestUserInvolvement(user):
-	empty_timestamp = []
-	max_unseen_reply = []
-	#get links subset from where latest public reply is to be extracted:
-	relevant_publicreply_ids = GetLinks(user)
-	global condemned
-	if relevant_publicreply_ids:
-		try:
-			max_unseen_reply = Publicreply.objects.filter(id__in=relevant_publicreply_ids).exclude(publicreply_seen_related__seen_status=True,publicreply_seen_related__seen_user=user).exclude(submitted_by_id__in=condemned).latest('id')
-			#print "max unseen reply is %s" % max_unseen_reply
-			return max_unseen_reply 
-		except:
-			return empty_timestamp
-	return empty_timestamp		
+		latest = []
+	return latest, False, False, False
 
 def GetLatestComment(user):
 	try:
-		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
-		#print latest_pos
+		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='0', seen=False).latest('updated_at')
 		photo = Photo.objects.get(id=latest_pos.which_photo_id)
-		#print photo
 		latest_unseen_comment = PhotoComment.objects.get(id=photo.latest_comment_id)
-		#print latest_unseen_comment
 	except:
 		latest_unseen_comment = []
 		photo = None
-	#latest_unseen_comment = []
 	return latest_unseen_comment, photo
 
 class NeverCacheMixin(object):
@@ -612,55 +607,70 @@ class LinkListView(ListView):
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
 				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				freshest_reply = GetLatestUserInvolvement(user)
-				#print freshest_reply
-				if freshest_reply:
-					parent_link = freshest_reply.answer_to
-					parent_link_writer = parent_link.submitter
-					parent_link_writer_username = parent_link_writer.username
-					#print parent_link_writer_username
-					WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-					#print WELCOME_MESSAGE1
-					WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-					WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-					WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-					WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-					WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-					WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-					WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-					WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-					WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-					WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-				else:
-					parent_link_writer = User()
-					#parent_link.submitter = 0
-					WELCOME_MESSAGES = []
-				try:
+				freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply:
+					context["latest_reply"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+				elif not freshest_reply:
+					context["latest_reply"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+				elif is_link:
+					context["type_of_object"] = '2'
 					if freshest_reply:
+						parent_link = freshest_reply.answer_to
+						parent_link_writer = parent_link.submitter
+						parent_link_writer_username = parent_link_writer.username
+						#print parent_link_writer_username
+						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+						#print WELCOME_MESSAGE1
+						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+					else:
+						parent_link_writer = User()
+						#parent_link.submitter = 0
+						WELCOME_MESSAGES = []
+					try:
 						context["latest_reply"] = freshest_reply
 						context["notification"] = 1
-						context["parent_link"] = parent_link
-						context["parent_link_pk"] = parent_link.pk
+						context["parent"] = parent_link
+						context["parent_pk"] = parent_link.pk
 						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
 							#print "first time user"
 							context["first_time_user"] = True
 						else:
 							#print "not first time user"
 							context["first_time_user"] = False
-					else:
+					except:
 						context["latest_reply"] = []
 						context["notification"] = 0
-						context["parent_link"] = []
-						context["parent_link_pk"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
 						context["first_time_user"] = False
-						#print "freshest reply didn't exist"
-				except:
-					context["latest_reply"] = []
-					context["notification"] = 0
-					context["parent_link"] = []
-					context["parent_link_pk"] = 0
+				elif is_photo:
+					context["latest_comment"] = freshest_reply
+					context["notification"] = 1
+					context["parent"] = freshest_reply.which_photo
+					context["parent_pk"] = freshest_reply.which_photo_id
 					context["first_time_user"] = False
-					#print "freshest reply didn't exist"
+					context["type_of_object"] = '0'
+				elif is_groupreply:
+					return context
+				else:
+					return context
 		else:
 			return context
 		return context
@@ -1776,6 +1786,11 @@ class CommentView(CreateView):
 			context["photostream_pk"] = self.request.session["related_photostream_id"]
 			context["authorized"] = True
 			if self.request.user.is_authenticated():
+				try:
+					from_photos = self.kwargs["from_photos"]
+					context["from_photos"] = 1
+				except:
+					context["from_photos"] = 0
 				context["authenticated"] = True
 				if comments.exists():
 					try:
@@ -1817,7 +1832,7 @@ class CommentView(CreateView):
 					return redirect("profile", slug=user.username)
 			else:
 				if self.request.user_banned:
-					return redirect("score_help")
+					return redirect("see_photo")
 				else:
 					which_photo.comment_count = which_photo.comment_count + 1
 					user.userprofile.previous_retort = text
@@ -1844,17 +1859,16 @@ class CommentView(CreateView):
 					if which_photo.owner_id not in all_commenter_ids:	
 						all_commenter_ids.append(which_photo.owner_id)
 					PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, which_photo=which_photo).update(seen=False)			
-					objs = PhotoObjectSubscription.objects.filter(viewer=user, which_photo=which_photo)
-					exists = objs.update(updated_at=photocomment.submitted_on, seen=True)
-					print exists
+					exists = PhotoObjectSubscription.objects.filter(viewer=user, which_photo=which_photo).update(updated_at=photocomment.submitted_on, seen=True)
 					if not exists:
 						PhotoObjectSubscription.objects.create(viewer=user, which_photo=which_photo, updated_at=photocomment.submitted_on)
 					which_photo.second_latest_comment = which_photo.latest_comment
 					which_photo.latest_comment = photocomment
 					which_photo.save()
 					try:
-						if pk and stream_id:
-							return redirect("comment_pk", pk=pk, stream_id=stream_id)
+						from_photos=self.request.POST.get("from_photos")
+						if pk and stream_id and from_photos:
+							return redirect("comment_pk", pk=pk, stream_id=stream_id, from_photos=1)
 						elif pk:
 							return redirect("comment_pk", pk=pk)
 						else:
@@ -1897,18 +1911,110 @@ class PhotoView(ListView):
 		else:
 			context["feature_phone"] = False
 		if self.request.user.is_authenticated():
+			context["authenticated"] = True
 			user = self.request.user
+			context["score"] = user.userprofile.score
 			context["voted"] = []
 			if self.request.user.userprofile.score > 9 and not self.request.user_banned:
-				latest_unseen_comment, photo = GetLatestComment(user)
-				context["freshest_unseen_comment"] = latest_unseen_comment
-				context["photo"] = photo
 				context["can_vote"] = True
 				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
-			context["authenticated"] = True
-			context["score"] = user.userprofile.score
+				freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif not freshest_reply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif is_photo:
+					context["freshest_unseen_comment"] = freshest_reply
+					context["type_of_object"] = '0'
+					context["notification"] = 1
+					context["parent"] = freshest_reply.which_photo
+					context["parent_pk"] = freshest_reply.which_photo_id
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif is_link:
+					context["type_of_object"] = '2'
+					context["banned"] = False
+					if freshest_reply:
+						parent_link = freshest_reply.answer_to
+						parent_link_writer = parent_link.submitter
+						parent_link_writer_username = parent_link_writer.username
+						#print parent_link_writer_username
+						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+						#print WELCOME_MESSAGE1
+						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+					else:
+						parent_link_writer = User()
+						#parent_link.submitter = 0
+						WELCOME_MESSAGES = []
+					try:
+						context["freshest_unseen_comment"] = freshest_reply
+						context["notification"] = 1
+						context["parent"] = parent_link
+						context["parent_pk"] = parent_link.pk
+						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
+							#print "first time user"
+							context["first_time_user"] = True
+						else:
+							#print "not first time user"
+							context["first_time_user"] = False
+					except:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+					return context
+				elif is_groupreply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["type_of_object"] = '1'
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				else:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["banned"] = False
+					context["first_time_user"] = False
+					return context
+			else:
+				context["notification"] = 0
+				context["banned"] = True
+				context["can_vote"] = False
+				context["first_time_user"] = False
+				context["type_of_object"] = None
+				context["freshest_unseen_comment"] = []
+				context["parent"] = []
+				context["parent_pk"] = 0
+				return context
 		return context
 
 	def get(self, request, *args, **kwargs):
@@ -3105,63 +3211,19 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+			replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
+			context["replies"] = replies
 			if self.request.user_banned:
-				replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
-				context["replies"] = replies
-				context["seenreplies"] = context["replies"]#i.e. all replies are seen for hell-banned person, none are *new*
+				context["viewed_at"] = None
 			else:
-				#global condemned
-				replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
-				context["replies"] = replies #latest replies, sans condemned
-				own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).exists()
-				if link.submitter == self.request.user and own_reply==False: #user only wrote parent link, and has never replied under it
-					seen_replies = []
-					reply_ids = [reply.id for reply in replies] #the ids of the latest 25 replies
-					seen_replies = Publicreply.objects.filter(id__in=reply_ids,publicreply_seen_related__seen_user=self.request.user)
-					context["seenreplies"] = seen_replies #all replies, from the latest 25, that were seen by the user
-					insert_list=[]
-					for response in replies:
-						if response not in seen_replies:
-							#creating seen objects for every unseen reply, for that particular user
-							#Seen.objects.create(seen_user= self.request.user,which_reply=response,seen_status=True)
-							insert_list.append(Seen(seen_user=self.request.user,which_reply=response,seen_status=True))
-					Seen.objects.bulk_create(insert_list)
-					#handling exception where own reply makes all earlier replies become "new" (happens when jumping into a new convo):
-				elif own_reply: #user wrote a reply too (whether or not they wrote a parent link)
-					seen_replies=[]
-					latest_own_reply = Publicreply.objects.filter(answer_to=link, submitted_by=self.request.user).latest('submitted_on')
-					if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-						less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-						less_than_replies_ids = [reply.id for reply in less_than_replies]
-						more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-						more_than_replies_ids = [reply.id for reply in more_than_replies]
-						#all seen objects of less than replies and more than replies
-						less_than_seen_replies = Publicreply.objects.filter(id__in=less_than_replies_ids,publicreply_seen_related__seen_user=self.request.user)
-						more_than_seen_replies = Publicreply.objects.filter(id__in=more_than_replies_ids,publicreply_seen_related__seen_user=self.request.user)
-						insert_list=[]
-						for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-							if reply not in less_than_seen_replies:
-								#Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)
-								insert_list.append(Seen(seen_user= self.request.user,which_reply=reply,seen_status=True))
-								seen_replies.append(reply)
-							else:
-								seen_replies.append(reply)
-						Seen.objects.bulk_create(insert_list)
-						for reply in more_than_replies:
-							#####################################################
-							if reply in more_than_seen_replies:
-								seen_replies.append(reply)
-					context["seenreplies"] = seen_replies
-					object_list=[]
-					for response in replies:
-						if response not in seen_replies:
-							#creating seen objects for every unseen reply, for that particular user
-							#Seen.objects.create(seen_user= self.request.user,which_reply=response,seen_status=True)
-							object_list.append(Seen(seen_user= self.request.user,which_reply=response,seen_status=True))
-					Seen.objects.bulk_create(object_list)
-				else: #user didn't write parent link, nor ever replied
-					context["seenreplies"] = replies
-		return context
+				try:
+					linkobj = PhotoObjectSubscription.objects.get(viewer=self.request.user, type_of_object='2', which_link=link, seen=False)
+					context["viewed_at"] = linkobj.updated_at
+					linkobj.seen = True
+					linkobj.save()
+				except:
+					context["viewed_at"] = None
+			return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
@@ -3184,12 +3246,13 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				return redirect("profile", slug=self.request.user.username)
 		else:
 			if self.request.user_banned:
-				return redirect("score_help")
+				return redirect("see_photo")
 			else:
+				user = self.request.user
 				answer_to.reply_count = answer_to.reply_count + 1
-				self.request.user.userprofile.previous_retort = description
-				self.request.user.userprofile.score = self.request.user.userprofile.score + 2
-				self.request.user.userprofile.save()
+				user.userprofile.previous_retort = description
+				user.userprofile.score = user.userprofile.score + 2
+				user.userprofile.save()
 				if self.request.is_feature_phone:
 					device = '1'
 				elif self.request.is_phone:
@@ -3200,16 +3263,22 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					device = '5'
 				else:
 					device = '3'
-				reply= Publicreply.objects.create(submitted_by=self.request.user, answer_to=answer_to, description=description, category='1', device=device)
-				Seen.objects.create(seen_user= self.request.user,which_reply=reply,seen_status=True)#creating seen object for reply created
+				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 				answer_to.latest_reply = reply
 				answer_to.save()
+				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+				if answer_to.submitter_id not in all_reply_ids:
+					all_reply_ids.append(answer_to.submitter_id)
+				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False)
+				exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=reply.submitted_on, seen=True)
+				if not exists: #i.e. could not be updated
+					PhotoObjectSubscription.objects.create(viewer=user, type_of_object='2', which_link=answer_to, updated_at=reply.submitted_on)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:
-					self.request.user.userprofile.score = self.request.user.userprofile.score - 2
-					self.request.user.userprofile.save()
-					return redirect("profile", slug=self.request.user.username)
+					user.userprofile.score = user.userprofile.score - 2
+					user.userprofile.save()
+					return redirect("profile", slug=user.username)
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		try: 
@@ -3218,68 +3287,26 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			return redirect("home")#, pk= reply.answer_to.id)
 
 class UnseenActivityView(ListView):
-	model = Link
-	#form_class = UnseenActivityForm
+	model = PhotoObjectSubscription
 	slug_field = "username"
 	template_name = "user_unseen_activity.html"
-	paginate_by = 15
+	paginate_by = 20
 
 	def get_queryset(self):
-		#queryset to return all relevant links (own & others), sorted by unseen links queryset = Link.objects.order_by('-submitted_on')[:180]
-		all_links = []
-		all_links_qset = []
-		all_links = GetNonReplyLinks(self.request.user) #returns a list, upto 90 links
-		if all_links:
-			all_link_ids = [link.id for link in all_links]
-			all_links_qset = Link.objects.filter(id__in=all_link_ids)
-			all_links_qset = all_links_qset.annotate(date=Max('publicreply__submitted_on')).order_by('-date')
-			return all_links_qset
-		return all_links_qset
+		all_subscribed_links = PhotoObjectSubscription.objects\
+		.filter(viewer=self.request.user)\
+		.exclude(which_link__reply_count__lt=1)\
+		.exclude(which_photo__comment_count__lt=1)\
+		.order_by('seen','-updated_at')
+		return all_subscribed_links
 
 	def get_context_data(self, **kwargs):
 		context = super(UnseenActivityView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			#user = User.objects.filter(username=self.kwargs['slug'])
-			global condemned
-			eachlink = defaultdict(list)
-			index = 0
-			seen_replies = []
 			context["verify"] = FEMALES
-			link_ids = [link.id for link in context["object_list"]]
-			#latest_replies = Publicreply.objects.filter(answer_to_id__in=link_ids).order_by('answer_to','-submitted_on').distinct('answer_to')
-			seen_replies = Publicreply.objects.filter(answer_to_id__in=link_ids,publicreply_seen_related__seen_user = self.request.user)#all seen replies to all links in object_list
-			#self.request.user_banned should not be part of eachlink at all (for unbanned user)
-			for link in context["object_list"]:
-				try: #i.e. for only links that have replies, check if latest reply has seen object
-					if self.request.user_banned:
-						latest_reply = link.publicreply_set.latest('submitted_on')
-					else:
-						latest_reply = link.publicreply_set.exclude(submitted_by_id__in=condemned).latest('submitted_on')
-					if latest_reply in seen_replies:
-						#link is seen:
-						eachlink[index].append(link) #seen
-						eachlink[index].append(latest_reply.submitted_on)#timestamp
-						eachlink[index].append(None)#unseen
-						index += 1
-					else:
-						#link is unseen:
-						eachlink[index].append(None)#seen
-						eachlink[index].append(latest_reply.submitted_on)#timestamp
-						eachlink[index].append(link) #unseen
-						index += 1
-				except:# i.e. there is no reply, this is ignored
-					pass
-			eachlink.default_factory=None
-			context["eachlink"] = dict(eachlink)
-			# try:
-			# 	user_object = Unseennotification.objects.get(recipient=self.request.user)
-			# 	user_object.timestamp = datetime.utcnow().replace(tzinfo=utc) #time now
-			# 	user_object.save()
-			# except:
-			# 	Unseennotification.objects.create(recipient=self.request.user,timestamp=datetime.utcnow().replace(tzinfo=utc))
-			#print eachlink
+			#sort context["object_list"] by "seen" first, and then "updated_at"
+			return context
 		return context
-
 
 class UserActivityView(ListView):
 	model = Link
@@ -3453,7 +3480,7 @@ class LinkCreateView(CreateView):
 					else: f.image_file = None
 				f.save()
 				f.submitter.userprofile.save()
-				#PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2')
+				PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2', which_link=f)
 				return super(CreateView, self).form_valid(form)
 			else:
 				return redirect("score_help")
@@ -3698,14 +3725,19 @@ class WelcomeReplyView(FormView):
 						num = random.randint(1,5)
 						if num == 1:
 							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1, device=device)
+							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 2:
 							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1, device=device)
+							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 3:
 							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1, device=device)
+							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 4:
 							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1, device=device)
+							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						else:
-							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)						
+							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)
+							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)						
 					#print "PARENT IS: %s" % parent
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
@@ -3736,59 +3768,30 @@ class WelcomeReplyView(FormView):
 						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
 					else:
 						return redirect("score_help")
-					global condemned
 					parent.latest_reply = reply
 					parent.save()
-					replies = list(Publicreply.objects.filter(answer_to=parent, submitted_on__lte=reply.submitted_on).exclude(submitted_by_id__in=condemned).order_by('-id')[:25])
-					#print "THESE ARE REPLIES: %s" % replies
-					relevant_ids = [rply.id for rply in replies]
-					seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=self.request.user))
-					unseen_replies = [x for x in replies if x not in seen_replies]
-					#print "THESE ARE UNSEEN REPLIES: %s" % unseen_replies
-					seen_list = []
-					for rpy in unseen_replies:
-						seen_list.append(Seen(seen_user=self.request.user,which_reply=rpy,seen_status=True))
-					#print seen_list
-					Seen.objects.bulk_create(seen_list)
-					#print "ALL YOUR UNSEEN REPLY BELONG TO US"
+					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+					if parent.submitter_id not in all_reply_ids:	
+						all_reply_ids.append(parent.submitter_id)
+					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=parent).update(seen=False)			
+					PhotoObjectSubscription.objects.create(viewer=self.request.user, updated_at=reply.submitted_on, type_of_object='2', which_link=parent)
 					return redirect("home")
 				else:
 					return redirect("score_help")
 
-def cross_comment_notif(request, pk=None, usr=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer_id=usr, which_photo_id=pk).update(seen=True)
-	return redirect("see_photo")
-
-def cross_notif(request, pk=None, ident=None, user=None, *args, **kwargs):
-	try:
-		link = Link.objects.get(pk=pk)
-		notif_reply = Publicreply.objects.get(pk=ident)
-		user = User.objects.get(pk=user)
-	except:
+def cross_comment_notif(request, pk=None, usr=None, from_home=None, *args, **kwargs):
+	PhotoObjectSubscription.objects.filter(viewer_id=usr, type_of_object='0', which_photo_id=pk).update(seen=True)
+	if from_home == '1':
 		return redirect("home")
-	#get all unseen replies before 'reply'
-	global condemned
-	if user.pk in condemned:
-		return redirect("logout_help")
 	else:
-		replies = Publicreply.objects.filter(answer_to=link).exclude(submitted_by_id__in=condemned).order_by('-id')[:25]
-		relevant_list=[]
-		for reply in replies:
-			if reply.submitted_on > notif_reply.submitted_on:
-				pass
-			else:
-				relevant_list.append(reply)
-		relevant_ids = [reply.id for reply in relevant_list]
-		seen_replies = list(Publicreply.objects.filter(id__in=relevant_ids, publicreply_seen_related__seen_user=user))
-		#print "relevant list is %s" % relevant_list
-		#print "seen replies are %s" % seen_replies
-		unseen_replies = [x for x in relevant_list if x not in seen_replies]
-		#print "unseen_replies are %s" % unseen_replies
-		seen_list = []
-		for reply in unseen_replies:
-				seen_list.append(Seen(seen_user= user,which_reply=reply,seen_status=True))
-		Seen.objects.bulk_create(seen_list)
+		return redirect("see_photo")
+
+def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
+	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True)
+	if from_home == '1':
 		return redirect("home")
+	else:
+		return redirect("see_photo")
 
 @ratelimit(rate='1/s')
 def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):

@@ -269,7 +269,9 @@ STATUS = (
 
 OBJECTS = (
 ('0','Comments'),
-('1','Jawabiphotos')
+('1','Jawabiphotos'),
+('2','Links'),
+('3','Groups')
 	)
 
 LIFETIME = (
@@ -477,7 +479,9 @@ class PhotoObjectSubscription(models.Model):
 	updated_at = models.DateTimeField(db_index=True)
 	seen = models.BooleanField(default=True, db_index=True)
 	type_of_object = models.CharField(choices=OBJECTS, default='0', max_length=15)
-	which_photo = models.ForeignKey(Photo)
+	which_photo = models.ForeignKey(Photo, null=True, blank=True)
+	which_link = models.ForeignKey(Link, null=True, blank=True)
+	which_group = models.ForeignKey(Group, null=True, blank=True)
 
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)

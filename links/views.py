@@ -203,15 +203,15 @@ def GetLatest(user):
 		latest = []
 	return latest, False, False, False
 
-def GetLatestComment(user):
-	try:
-		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='0', seen=False).latest('updated_at')
-		photo = Photo.objects.get(id=latest_pos.which_photo_id)
-		latest_unseen_comment = PhotoComment.objects.get(id=photo.latest_comment_id)
-	except:
-		latest_unseen_comment = []
-		photo = None
-	return latest_unseen_comment, photo
+# def GetLatestComment(user):
+# 	try:
+# 		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='0', seen=False).latest('updated_at')
+# 		photo = Photo.objects.get(id=latest_pos.which_photo_id)
+# 		latest_unseen_comment = PhotoComment.objects.get(id=photo.latest_comment_id)
+# 	except:
+# 		latest_unseen_comment = []
+# 		photo = None
+# 	return latest_unseen_comment, photo
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)

@@ -4,6 +4,7 @@ from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import PIL
 from PIL import Image, ImageFile, ImageEnhance
 import StringIO
 import math
@@ -49,6 +50,15 @@ def square_image(img):
 		img = img.crop((0, slice_height, x, y)) #cut from the top
 		x,y = img.size
 	return img
+
+def restyle_image(image):
+	width = 265
+	#height = 38
+	wpercent = (width/float(image.size[0]))
+	hsize = int((float(image.size[1])*float(wpercent)))
+	image_resized = image.resize((width,hsize), PIL.Image.ANTIALIAS)
+	return image_resized
+
 '''
 def square_image(img):
 	if the image is taller than it is wide, square it off. determine
@@ -63,7 +73,7 @@ def square_image(img):
 
 def MakeThumbnail(filee):
 	img = filee
-	img = square_image(img)
+	img = restyle_image(img)
 	if img.mode != 'RGB':
 		img = img.convert("RGB")
 	enhancer = ImageEnhance.Brightness(img)

@@ -313,8 +313,8 @@ CELERY_IGNORE_RESULT=True
 from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
-	'tasks.rank_all': {
-		'task': 'tasks.rank_all',
+	'tasks.rank_all_photos': {
+		'task': 'tasks.rank_all_photos',
 		'schedule': timedelta(seconds=30),
 	},
 }

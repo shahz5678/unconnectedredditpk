@@ -124,13 +124,6 @@ def check_photo_abuse(count, photos):
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 5:
-			print "here"
-			print photos[0][0]
-			print photos[1][0]
-			print photos[2][0]
-			print photos[3][0]
-			print photos[4][0]
-			print seconds
 			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*288-seconds))
@@ -161,26 +154,16 @@ def valid_uuid(uuid):
 	#print bool(match)
 	return bool(match)
 
-def GetNonReplyLinks(user):
-	#links_with_user_replies=[]
-	#reply_list = []
-	#relevant_links = []
-	'''
-	if Publicreply.objects.filter(submitted_by=user).exists() or Link.objects.filter(submitter=user).exists(): #user has replied and linked both
-		reply_list = Publicreply.objects.filter(submitted_by=user).order_by('-submitted_on').values_list('answer_to',flat=True)[:75]
-		if reply_list:
-			relevant_links = list(set(Link.objects.filter(Q(submitter=user,publicreply__isnull=False)|Q(id__in=reply_list)).\
-				order_by('-submitted_on')[:150]))
-	'''
-	try:
-		now = datetime.utcnow().replace(tzinfo=utc)
-		timestamp = now - timedelta(minutes=60*48)
-		global condemned
-		relevant_links = Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
-	except:
-		#print "no relevant links"
-		relevant_links = []
-	return relevant_links	
+# def GetNonReplyLinks(user):
+# 	try:
+# 		now = datetime.utcnow().replace(tzinfo=utc)
+# 		timestamp = now - timedelta(minutes=60*48)
+# 		global condemned
+# 		relevant_links = Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
+# 	except:
+# 		#print "no relevant links"
+# 		relevant_links = []
+# 	return relevant_links	
 
 def GetLatest(user):
 	try:
@@ -202,16 +185,6 @@ def GetLatest(user):
 	except:
 		latest = []
 	return latest, False, False, False
-
-# def GetLatestComment(user):
-# 	try:
-# 		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='0', seen=False).latest('updated_at')
-# 		photo = Photo.objects.get(id=latest_pos.which_photo_id)
-# 		latest_unseen_comment = PhotoComment.objects.get(id=photo.latest_comment_id)
-# 	except:
-# 		latest_unseen_comment = []
-# 		photo = None
-# 	return latest_unseen_comment, photo
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -1906,6 +1879,7 @@ class PhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
+		#print self.request
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 		else:
@@ -2089,6 +2063,220 @@ class PhotoView(ListView):
 		else:
 			return self.render_to_response(context)
 
+class BestPhotoView(ListView):
+	model = Photo
+	template_name = "best_photos.html"
+	paginate_by = 10 #i.e. 20 pages in total with a query-set of 200 objects
+
+	def get_queryset(self):
+		if self.request.is_feature_phone:
+			queryset = PhotoStream.objects.order_by('-cover__invisible_score')[:200]
+		else:
+			queryset = PhotoStream.objects.order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
+		return queryset
+
+	def get_context_data(self, **kwargs):
+		context = super(BestPhotoView, self).get_context_data(**kwargs)
+		context["girls"] = FEMALES
+		context["authenticated"] = False
+		context["can_vote"] = False
+		context["score"] = None
+		#print self.request
+		if self.request.is_feature_phone:
+			context["feature_phone"] = True
+		else:
+			context["feature_phone"] = False
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+			user = self.request.user
+			context["score"] = user.userprofile.score
+			context["voted"] = []
+			if self.request.user.userprofile.score > 9 and not self.request.user_banned:
+				context["can_vote"] = True
+				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
+				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
+				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
+				freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif not freshest_reply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif is_photo:
+					context["freshest_unseen_comment"] = freshest_reply
+					context["type_of_object"] = '0'
+					context["notification"] = 1
+					context["parent"] = freshest_reply.which_photo
+					context["parent_pk"] = freshest_reply.which_photo_id
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif is_link:
+					context["type_of_object"] = '2'
+					context["banned"] = False
+					if freshest_reply:
+						parent_link = freshest_reply.answer_to
+						parent_link_writer = parent_link.submitter
+						parent_link_writer_username = parent_link_writer.username
+						#print parent_link_writer_username
+						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+						#print WELCOME_MESSAGE1
+						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+					else:
+						parent_link_writer = User()
+						#parent_link.submitter = 0
+						WELCOME_MESSAGES = []
+					try:
+						context["freshest_unseen_comment"] = freshest_reply
+						context["notification"] = 1
+						context["parent"] = parent_link
+						context["parent_pk"] = parent_link.pk
+						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
+							#print "first time user"
+							context["first_time_user"] = True
+						else:
+							#print "not first time user"
+							context["first_time_user"] = False
+					except:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+					return context
+				elif is_groupreply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["type_of_object"] = '1'
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				else:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["banned"] = False
+					context["first_time_user"] = False
+					return context
+			else:
+				context["notification"] = 0
+				context["banned"] = True
+				context["can_vote"] = False
+				context["first_time_user"] = False
+				context["type_of_object"] = None
+				context["freshest_unseen_comment"] = []
+				context["parent"] = []
+				context["parent_pk"] = 0
+				return context
+		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session["target_photo_id"]
+			self.request.session["target_photo_id"] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(photostream.id for photostream in self.object_list).index(int(target_id))
+			except:
+				index = None
+			if 0 <= index <= 9:
+				addendum = '#section'+str(index+1)
+			elif 10 <= index <= 19:
+				addendum = '?page=2#section'+str(index+1-10)
+			elif 20 <= index <= 29:
+				addendum = '?page=3#section'+str(index+1-20)
+			elif 30 <= index <= 39:
+				addendum = '?page=4#section'+str(index+1-30)
+			elif 40 <= index <= 49:
+				addendum = '?page=5#section'+str(index+1-40)
+			elif 50 <= index <= 59:
+				addendum = '?page=6#section'+str(index+1-50)
+			elif 60 <= index <= 69:
+				addendum = '?page=7#section'+str(index+1-60)
+			elif 70 <= index <= 79:
+				addendum = '?page=8#section'+str(index+1-70)
+			elif 80 <= index <= 89:
+				addendum = '?page=9#section'+str(index+1-80)
+			elif 90 <= index <= 99:
+				addendum = '?page=10#section'+str(index+1-90)
+			elif 100 <= index <= 109:
+				addendum = '?page=11#section'+str(index+1-100)
+			elif 110 <= index <= 119:
+				addendum = '?page=12#section'+str(index+1-110)
+			elif 120 <= index <= 129:
+				addendum = '?page=13#section'+str(index+1-120)
+			elif 130 <= index <= 139:
+				addendum = '?page=14#section'+str(index+1-130)
+			elif 140 <= index <= 149:
+				addendum = '?page=15#section'+str(index+1-140)
+			elif 150 <= index <= 159:
+				addendum = '?page=16#section'+str(index+1-150)
+			elif 160 <= index <= 169:
+				addendum = '?page=17#section'+str(index+1-160)
+			elif 170 <= index <= 179:
+				addendum = '?page=18#section'+str(index+1-170)
+			elif 180 <= index <= 189:
+				addendum = '?page=19#section'+str(index+1-180)
+			elif 190 <= index <= 199:
+				addendum = '?page=20#section'+str(index+1-190)
+			else:
+				addendum = '#section0'		
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
+
+def set_rank():
+	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+	netvotes = 0
+	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
+	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+	unaware_submission = datetime.utcnow().replace(tzinfo=None)
+	td = unaware_submission - epoch 
+	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+	invisible_score = round(sign * order + secs / 45000, 8)
+	return invisible_score
+
 class UploadPhotoView(CreateView):
 	model = Photo
 	form_class = UploadPhotoForm
@@ -2175,7 +2363,8 @@ class UploadPhotoView(CreateView):
 					device = '5'
 				else:
 					device = '3'
-				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash)
+				invisible_score = set_rank()
+				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=photo.upload_time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = photo.upload_time)
 				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)

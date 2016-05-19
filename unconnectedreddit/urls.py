@@ -20,7 +20,7 @@ RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHel
 GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, \
 OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
-ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -64,6 +64,7 @@ urlpatterns = patterns('',
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
+	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),

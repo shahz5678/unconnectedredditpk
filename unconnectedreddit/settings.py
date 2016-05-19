@@ -296,6 +296,8 @@ djcelery.setup_loader()
 # Redis broker
 BROKER_URL = 'redis://localhost:6379/0'
 
+BROKER_TRANSPORT = 'redis'
+
 # List of modules to import when celery starts, in myapp.tasks form. 
 CELERY_IMPORTS = ('links.tasks', )  
 
@@ -312,12 +314,14 @@ CELERY_IGNORE_RESULT=True
 
 from datetime import timedelta
 
-CELERYBEAT_SCHEDULE = {
-	'tasks.rank_all_photos': {
-		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=30),
-	},
-}
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+# CELERYBEAT_SCHEDULE = {
+# 	'tasks.rank_all_photos': {
+# 		'task': 'tasks.rank_all_photos',
+# 		'schedule': timedelta(seconds=30),
+# 	},
+# }
 
 CELERY_TIMEZONE = 'UTC'
 

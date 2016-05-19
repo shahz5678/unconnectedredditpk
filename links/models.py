@@ -384,6 +384,22 @@ class Photo(models.Model):
 	class Meta:
 		ordering = ['-id', '-upload_time', '-comment_count']
 
+	def set_rank(self): # it seems this is run ONLY when validating models is called (pressing ctrl S after changin code)
+		# Based on reddit ranking algo at http://amix.dk/blog/post/19588
+		epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+		netvotes = self.visible_score # 'NONE' votes are messing up netvotes amount.
+		if netvotes == None:
+			netvotes = 0
+		order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
+		sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+		unaware_submission = self.upload_time.replace(tzinfo=None)
+		td = unaware_submission - epoch 
+		epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+		secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+		self.invisible_score = round(sign * order + secs / 45000, 8)
+		self.save() # this persists the invisible_score in the database
+		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 
+
 class PhotoVote(models.Model):
 	voter = models.ForeignKey(User, related_name='voter') #what user.id voted
 	photo = models.ForeignKey(Photo) #which photo did the user vote on

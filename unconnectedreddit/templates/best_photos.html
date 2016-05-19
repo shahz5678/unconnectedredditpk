@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load thumbnail %}
+{% load mathfilters %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+	{% if notification %}
+	{% if type_of_object == '2' %}
+	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		{% if first_time_user %}
+		<span style="color:darkorange;font-size:90%;">
+		Tumhe <b>welcome</b> pegham aya:
+		</span>
+		<br>
+		{% else %}
+		{% if parent.submitter.userprofile.avatar %}
+			<img src="{{ parent.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}
+		<span style="color:dimgrey;"><bdi>{{ parent.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.description|truncatechars:40 }}{% endemoticons %}</span>
+	
+		<p style="margin-top:.5em;"></p>
+	
+		<span style="color:darkorange;font-size:90%;">
+		is pr <b>neya</b> jawab:
+		</span>
+		<p style="margin-top:.3em;"></p>
+		{% endif %}	
+		<a href="{% url 'reply_pk' parent_pk %}" style="font-size:95%;"><bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
+		{% for person in girls %}
+	    {% if person == freshest_unseen_comment.submitted_by.username %}
+	    	<span style="font-size:110%;color:deeppink;"><b>*</b></span>
+	    {% endif %}
+	    {% endfor %}
+		:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ freshest_unseen_comment.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi>
+		</span>
+			<p style="margin-top:.5em;"></p>
+			<button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>&nbsp;&nbsp;
+			<a href="{% url 'x_notif' parent_pk user.id 0 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+		</div>
+		<p style="margin-top:.5em;"></p>
+		<hr size=1>
+		<p style="margin-top:-0.9em;"></p>
+		<hr size=1><br>
+	
+	{% elif type_of_object == '0' %}
+	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+	<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
+	
+	<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
+	{% if parent.vote_score < -7 %}
+	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	{% elif parent.vote_score < -2 %}
+	{% if parent.image_file %}
+        <img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+    {% else %}
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+	{% else %}
+	<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+	{% endif %}
+	<span style="color:grey;">{% emoticons %}{{ parent.caption|truncatechars:30 }}{% endemoticons %}</span>
+	<p style="margin-top:.3em;"></p>
+	<bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
+	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:110%;">:&nbsp;<bdi>{% emoticons %}{{ freshest_unseen_comment.text|truncatechars:40 }}{% endemoticons %}</bdi></span></a>
+	<span style="font-size:80%;color:grey;">, <bdi>{{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi></span>
+	<br>
+	<p style="margin-top:.5em;"></p>
+	<a href="{% url 'comment_pk' parent_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;<a href="{% url 'cross_comment_notif' parent_pk user.id 0 %}" style="color:red;font-size:90%;"><b>[x]</b></a>
+	</div>
+		<p style="margin-top:.5em;"></p>
+			<hr size=1>
+			<p style="margin-top:-0.9em;"></p>
+	<hr size=1><br>
+	{% endif %}
+	{% endif %}
+{% if authenticated and score > 100 and not banned %}
+	{% if not freshest_unseen_comment %}
+	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:97%;"><b>Naee photo charhao:</b></span>
+	<p style="padding-top:-.3em;">
+	{% endif %}
+<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:85%;"><i>qeemat: 5 points</i></span>
+</p>
+{% elif not authenticated %}
+<span style="color:grey;font-size:90%;">Photo lagane ke liye khata kholna zaroori hai</span>
+{% elif banned %}
+
+{% else %}
+<span style="color:#404040;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
+{% endif %}
+{% if object_list %}
+{% for picstream in object_list %}
+
+	{% if forloop.counter == 1 %}
+	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
+	<a href="{% url 'see_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
+	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>
+	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
+	{% else %}
+	<p><hr size=1 COLOR="#bababa"></p>
+	{% endif %}
+
+	<a name="section{{ forloop.counter }}"></a>
+	
+	<a href="{% url 'profile' picstream.cover.owner.username %}#section0">
+	{% if picstream.cover.owner.userprofile.avatar and user == picstream.cover.owner %}
+		<img style="border: 1px solid #00B800;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% elif picstream.cover.owner.userprofile.avatar %}
+		<img style="border: 1px solid #A9A9A9;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+	</a>
+	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</b>
+	<span style="color:#ff8000;font-size:90%;">
+	{% if picstream.cover.comment_count > 1 %}
+	(<b>{{ picstream.cover.comment_count }}</b> tabsrey)
+	{% elif picstream.cover.comment_count == 1 %}
+	(<b>1</b> tabsra)
+	{% else %}
+	(tabsra kro)
+	{% endif %}</span>
+	
+	{% if picstream.cover.device == '1' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '2' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '4' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '5' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+		{% elif picstream.cover.device == '3' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+		{% else %}
+		{% endif %}</a>
+	<br>
+	
+
+			{% if picstream.cover.vote_score < -7 %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			{% elif picstream.cover.vote_score < -2 %}
+				{% if picstream.cover.image_file %}
+				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% else %}
+				{% if picstream.cover.image_file %}
+				
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% endif %}<br>
+
+			<a href="{% url 'comment_pk' picstream.cover_id picstream.id %}">
+			{% if picstream.cover.latest_comment and picstream.cover.second_latest_comment %}
+			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:#FFF8DC;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ picstream.cover.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ picstream.cover.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			</div>
+			{% elif picstream.cover.latest_comment %}
+			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:lightgrey;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
+			</span>
+			</div>
+			{% else %}
+			{% endif %}
+			</a>
+
+			<a href="{% url 'photo_izzat' picstream.id %}">
+			{% if picstream.cover.visible_score > 1 %}
+			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} points</b></div><br>
+			{% elif picstream.cover.visible_score == 1 %}
+			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} point</b></div><br>
+			{% else %}
+			<div style="font-size:95%;color:red;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} points</b></div><br>
+			{% endif %}
+			</a>
+
+				{% if can_vote and picstream.cover_id not in voted and picstream.cover.owner != user %}
+				<a href="{% url 'photostream_vote' picstream.id 1 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
+				<a href="{% url 'photostream_vote' picstream.id 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
+				{% endif %}
+
+
+			{{ picstream.cover.invisible_score }}
+			<!-- <a href="sms:+03?body=Oye ye photo check kr: https://http-damadam-pk.0.freebasics.com/photo/?page={{ page_obj.number }}#section{{ forloop.counter }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:7.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">photo SMS kro</button></a> -->
+
+
+<!-- 			<a href="{% url 'upload_photo_reply_pk' pk=picstream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;margin-top:0.2em;margin-bottom:0.2em;">jawabi photo</button></a>
+			<br>
+
+		{% if picstream.photo_count > 1 and not feature_phone %}
+		<div style="margin-top:0.2em;margin-bottom:-0.5em;">
+			{% if picstream.photo_count == 2 %}
+			<span style="font-size:90%;color:grey;">Baqi <b>{{ picstream.photo_count|add:"-1" }}</b> photo:</span>
+			{% else %}
+			<span style="font-size:90%;color:grey;">Baqi <b>{{ picstream.photo_count|add:"-1" }}</b> photos:</span>
+			{% endif %}
+		<br>
+			{% for pic in picstream.photo_set.all|slice:":4" %}
+				{% if pic.vote_score < -8 %}
+					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
+					<img style="margin-top:0.3em;" src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+					</a>
+				{% elif pic.vote_score < -3 %}
+					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
+					<img style="filter:brightness(35%);-webkit-filter: brightness(0.35);width:auto;border:1px solid #C0C0C0;margin-top:0.3em;" src="{{ pic.image_file.url|thumbnail }}" alt="no pic"></img>
+					</a>
+				{% else %}
+					{% if forloop.counter == 1 %}
+					{% else %}
+					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
+					<img style="border:1px solid #808080;width:auto;margin-top:0.3em;" src="{{ pic.image_file.url|thumbnail }}" alt="no pic"></img>
+					</a>
+					{% endif %}
+				{% endif %}
+				
+				</a>
+			{% endfor %}
+				{% if picstream.photo_count > 4 %}
+				<a href="{% url 'photostream_pk' picstream.pk %}#section1" style="color:grey;display:inline-block;">...</a>
+				{% endif %}
+			&nbsp;<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">(<a href="{% url 'baqi_photos_help' picstream.pk %}">?</a>)</span>
+			<br>
+		</div> 
+		{% endif %}-->
+		
+{% endfor %}
+{% endif %}
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>&nbsp;wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey&nbsp;</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

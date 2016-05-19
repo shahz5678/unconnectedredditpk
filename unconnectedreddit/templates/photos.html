@@ -92,9 +92,12 @@
 {% endif %}
 {% if object_list %}
 {% for picstream in object_list %}
-	
-	{% if forloop.counter == 1 %}
-	<p><hr size=1.3 COLOR="#00B800" ></p>
+
+	{% if forloop.counter == 1 and user.username == 'mhb11' %}
+	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
+	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span>
+	<a href="{% url 'see_best_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Best photos&nbsp;&nbsp;</a>
+	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#bababa"></p>
 	{% endif %}
@@ -184,7 +187,9 @@
 				<a href="{% url 'photostream_vote' picstream.id 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
 				{% endif %}
 
-			<a href="sms:+03?body=Oye ye photo check kr: https://http-damadam-pk.0.freebasics.com/photo/?page={{ page_obj.number }}#section{{ forloop.counter }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:7.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">photo SMS kro</button></a>
+
+			{{ picstream.cover.invisible_score }}
+			<!-- <a href="sms:+03?body=Oye ye photo check kr: https://http-damadam-pk.0.freebasics.com/photo/?page={{ page_obj.number }}#section{{ forloop.counter }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:7.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">photo SMS kro</button></a> -->
 
 
 <!-- 			<a href="{% url 'upload_photo_reply_pk' pk=picstream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;margin-top:0.2em;margin-bottom:0.2em;">jawabi photo</button></a>

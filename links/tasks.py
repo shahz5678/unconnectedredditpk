@@ -12,6 +12,6 @@ from links.models import Photo
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
-	for photo in Photo.objects.all()[:400]:
+	for photo in Photo.objects.order_by('-id')[:400]:
 		photo.set_rank()
     

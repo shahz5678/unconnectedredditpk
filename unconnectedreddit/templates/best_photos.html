@@ -93,7 +93,7 @@
 {% if object_list %}
 {% for picstream in object_list %}
 
-	{% if forloop.counter == 1 %}
+	{% if forloop.counter == 1 and user.username == 'mhb11' %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
 	<a href="{% url 'see_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
 	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>

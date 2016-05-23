@@ -93,7 +93,7 @@
 {% if object_list %}
 {% for picstream in object_list %}
 
-	{% if forloop.counter == 1 and user.username == 'mhb11' %}
+	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
 	<a href="{% url 'see_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
 	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>
@@ -188,9 +188,6 @@
 				{% endif %}
 
 
-			{% if user.username == 'mhb11' %}
-			{{ picstream.cover.invisible_score }}
-			{% endif %}
 			<!-- <a href="sms:+03?body=Oye ye photo check kr: https://http-damadam-pk.0.freebasics.com/photo/?page={{ page_obj.number }}#section{{ forloop.counter }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:7.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">photo SMS kro</button></a> -->
 
 

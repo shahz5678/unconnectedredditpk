@@ -294,7 +294,8 @@ djcelery.setup_loader()
 # config settings for Celery Daemon
 
 # Redis broker
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = 'redis://mhb11@asdasdASFDA234@localhost:6379/0'
+
 
 BROKER_TRANSPORT = 'redis'
 
@@ -304,7 +305,7 @@ CELERY_IMPORTS = ('links.tasks', )
 CELERY_ALWAYS_EAGER = False
 
 # default RabbitMQ backend
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://mhb11@asdasdASFDA234@localhost:6379/0'
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
 
 CELERY_ACCEPT_CONTENT = ['json']

@@ -314,14 +314,14 @@ CELERY_IGNORE_RESULT=True
 
 from datetime import timedelta
 
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-# CELERYBEAT_SCHEDULE = {
-# 	'tasks.rank_all_photos': {
-# 		'task': 'tasks.rank_all_photos',
-# 		'schedule': timedelta(seconds=30),
-# 	},
-# }
+CELERYBEAT_SCHEDULE = {
+	'tasks.rank_all_photos': {
+		'task': 'tasks.rank_all_photos',
+		'schedule': timedelta(seconds=30),
+	},
+}
 
 CELERY_TIMEZONE = 'UTC'
 

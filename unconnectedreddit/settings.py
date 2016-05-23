@@ -305,7 +305,7 @@ CELERY_IMPORTS = ('links.tasks', )
 CELERY_ALWAYS_EAGER = False
 
 # default RabbitMQ backend
-CELERY_RESULT_BACKEND = 'redis://hassan:asdasdASFDA234@localhost:6379/damadampakistan'
+CELERY_RESULT_BACKEND = 'redis://localhost/0'
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
 
 CELERY_ACCEPT_CONTENT = ['json']

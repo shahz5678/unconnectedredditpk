@@ -294,7 +294,7 @@ djcelery.setup_loader()
 # config settings for Celery Daemon
 
 # Redis broker
-BROKER_URL = 'redis://hassan:asdasdASFDA234@localhost:6379/damadampakistan'
+BROKER_URL = 'redis://:asdasdASFDA234@localhost/0'
 #DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@damadamrg.cloudapp.net:5432/damadam'
 
 BROKER_TRANSPORT = 'redis'

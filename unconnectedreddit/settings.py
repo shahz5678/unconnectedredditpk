@@ -314,7 +314,7 @@ CELERY_IGNORE_RESULT=True
 
 from datetime import timedelta
 
-#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_all_photos': {

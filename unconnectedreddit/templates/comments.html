@@ -6,7 +6,13 @@
 <div class="margin">
 {% if authorized %}
 {% if from_photos %}
-<a href="{% url 'see_photo_pk' photostream_pk %}">
+    {% if from_photos == '1' %}
+    <a href="{% url 'see_photo_pk' photostream_pk %}">
+    {% elif from_photos == '2' %}
+    <a href="{% url 'see_best_photo_pk' photostream_pk %}">
+    {% else %}
+    <a href="{% url 'home' %}">
+    {% endif %}
 {% else %}
 <a href="{% url 'home' %}">
 {% endif %}

@@ -1742,12 +1742,16 @@ class CommentView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
-		# if self.request.user.is_authenticated():
 		comments = PhotoComment.objects.filter(which_photo_id=self.request.session["photo_id"]).order_by('-id')[:25]
 		context["count"] = PhotoComment.objects.filter(which_photo_id=self.request.session["photo_id"]).count()
 		try:
 			from_photos = self.kwargs["from_photos"]
-			context["from_photos"] = True
+			if from_photos == '1':
+				context["from_photos"] = '1'
+			elif from_photos == '2':
+				context["from_photos"] = '2'
+			else:
+				context["from_photos"] = False
 		except:
 			context["from_photos"] = False
 		context["comments"] = comments
@@ -1761,9 +1765,14 @@ class CommentView(CreateView):
 			if self.request.user.is_authenticated():
 				try:
 					from_photos = self.kwargs["from_photos"]
-					context["from_photos"] = 1
+					if from_photos == '1':
+						context["from_photos"] = '1'
+					elif from_photos == '2':
+						context["from_photos"] = '2'
+					else:
+						context["from_photos"] = False
 				except:
-					context["from_photos"] = 0
+					context["from_photos"] = False
 				context["authenticated"] = True
 				if comments.exists():
 					try:

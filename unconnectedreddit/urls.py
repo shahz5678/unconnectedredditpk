@@ -20,7 +20,8 @@ RegisterWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHel
 GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, \
 OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
-ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
+see_best_photo_pk #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -69,6 +70,7 @@ urlpatterns = patterns('',
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
+	url(r'^best_photo_pk/(?P<pk>\d+)/$', see_best_photo_pk, name='see_best_photo_pk'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
@@ -134,7 +136,7 @@ urlpatterns = patterns('',
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
 	url(r'^phstote/(?P<stream>\d+)/(?P<pk>\d+)/(?P<val>\d+)/$', auth(photo_vote), name='photo_vote'),
-	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/$', auth(photostream_vote), name='photostream_vote'),
+	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	url(r'^link/reply/$', auth(PublicreplyView.as_view()), name='reply'),
 	url(r'^link/(?P<pk>\d+)/$', auth(reply_pk), name='reply_pk'),
 	url(r'^mehfil/awami/$', auth(PublicGroupView.as_view()), name='public_group_reply'),

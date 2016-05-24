@@ -183,8 +183,8 @@
 			</a>
 
 				{% if can_vote and picstream.cover_id not in voted and picstream.cover.owner != user %}
-				<a href="{% url 'photostream_vote' picstream.id 1 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
-				<a href="{% url 'photostream_vote' picstream.id 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
+				<a href="{% url 'photostream_vote' picstream.id 1 0 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
+				<a href="{% url 'photostream_vote' picstream.id 0 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
 				{% endif %}
 
 			<!-- <a href="sms:+03?body=Oye ye photo check kr: https://http-damadam-pk.0.freebasics.com/photo/?page={{ page_obj.number }}#section{{ forloop.counter }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:7.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">photo SMS kro</button></a> -->

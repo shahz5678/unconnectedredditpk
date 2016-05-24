@@ -155,7 +155,7 @@
 				{% endif %}
 			{% endif %}<br>
 
-			<a href="{% url 'comment_pk' picstream.cover_id picstream.id %}">
+			<a href="{% url 'comment_pk' picstream.cover_id picstream.id 2 %}">
 			{% if picstream.cover.latest_comment and picstream.cover.second_latest_comment %}
 			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
 			<span style="color:#1947D1;font-size:97%;">

@@ -2063,6 +2063,13 @@ class PhotoView(ListView):
 		else:
 			return self.render_to_response(context)
 
+def see_best_photo_pk(request,pk=None,*args,**kwargs):
+	if pk.isdigit():
+		request.session["target_best_photo_id"] = pk
+		return redirect("see_best_photo")
+	else:
+		return redirect("home")
+
 class BestPhotoView(ListView):
 	model = Photo
 	template_name = "best_photos.html"
@@ -2070,9 +2077,9 @@ class BestPhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.order_by('-cover__invisible_score')[:200]
+			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
 		else:
-			queryset = PhotoStream.objects.order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
+			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -2197,9 +2204,6 @@ class BestPhotoView(ListView):
 		self.object_list = self.get_queryset()
 		allow_empty = self.get_allow_empty()
 		if not allow_empty:
-			# When pagination is enabled and object_list is a queryset,
-			# it's better to do a cheap query than to load the unpaginated
-			# queryset in memory.
 			if (self.get_paginate_by(self.object_list) is not None
 				and hasattr(self.object_list, 'exists')):
 				is_empty = not self.object_list.exists()
@@ -2210,8 +2214,8 @@ class BestPhotoView(ListView):
 						% {'class_name': self.__class__.__name__})
 		context = self.get_context_data(object_list=self.object_list)
 		try:
-			target_id = self.request.session["target_photo_id"]
-			self.request.session["target_photo_id"] = None
+			target_id = self.request.session["target_best_photo_id"]
+			self.request.session["target_best_photo_id"] = None
 		except:
 			target_id = None
 		if target_id:
@@ -4131,7 +4135,7 @@ def find_time(obj):
 	return difference
 
 @ratelimit(rate='1/s')
-def photostream_vote(request, pk=None, val=None, *args, **kwargs):
+def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		deduction = 3 * -1
@@ -4174,10 +4178,19 @@ def photostream_vote(request, pk=None, val=None, *args, **kwargs):
 							photo.owner.userprofile.save()
 							photo.save()
 				else:
+					if from_best == '1':
+						return redirect("see_best_photo_pk", pk)
+					else:
+						return redirect("see_photo_pk", pk)
+				if from_best == '1':
+					return redirect("see_best_photo_pk", pk)
+				else:
 					return redirect("see_photo_pk", pk)
-				return redirect("see_photo_pk", pk)
 		else:
-			return redirect("see_photo_pk", pk)
+			if from_best == '1':
+				return redirect("see_best_photo_pk", pk)
+			else:
+				return redirect("see_photo_pk", pk)
 
 
 @ratelimit(rate='1/s')

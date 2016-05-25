@@ -3598,7 +3598,7 @@ def link_create_pk(request, *args, **kwargs):
 	else:
 		try:
 			score = User.objects.get(pk=request.user.id).userprofile.score
-			if score < 101:
+			if score < 30:
 				request.session["link_create_token"] = uuid.uuid4()
 				return redirect("link_create")
 			else:

@@ -32,7 +32,8 @@ PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWa
 RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, \
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
-ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
+TopPhotoForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -1282,6 +1283,24 @@ class VerifiedView(ListView):
 		global condemned
 		return User.objects.filter(username__in=FEMALES).exclude(id__in=condemned).order_by('-userprofile__score')
 		#return User.objects.exclude(id__in=condemned).order_by('-userprofile__score')[:100]
+
+class TopPhotoView(ListView):
+	model = User
+	form_class = TopPhotoForm
+	template_name = "top_photo.html"
+
+	def get_queryset(self):
+		if self.request.user_banned:
+			return User.objects.order_by('-userprofile__media_score')[:100]
+		else:
+			global condemned
+			return User.objects.exclude(id__in=condemned).order_by('-userprofile__media_score')[:100]
+
+	def get_context_data(self, **kwargs):
+		context = super(TopPhotoView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["verified"] = FEMALES
+		return context
 
 class TopView(ListView):
 	model = User

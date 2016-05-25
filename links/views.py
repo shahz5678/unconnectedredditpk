@@ -2350,8 +2350,8 @@ class UploadPhotoView(CreateView):
 	def form_valid(self, form):
 		f = form.save(commit=False)
 		user = self.request.user
-		if user.userprofile.score < 5:
-			context = {'score': '5'}
+		if user.userprofile.score < 3:
+			context = {'score': '3'}
 			return render(self.request, 'score_photo.html', context)
 		else:
 			time_now = datetime.utcnow().replace(tzinfo=utc)
@@ -2406,7 +2406,7 @@ class UploadPhotoView(CreateView):
 				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)
 				#HotUser.objects.get(which_user=user, )
 				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
-				user.userprofile.score = user.userprofile.score - 5
+				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("see_photo")
 			else:

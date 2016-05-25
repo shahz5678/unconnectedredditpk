@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+{% load cache %}
+{% cache 300 top_photo_fragment %}
+    <div class="margin">
+    <b>Top photo uploaders:</b><br><br>
+    {% for user in object_list %}
+    <b class="numbers">{{ forloop.counter }}.</b>
+    <a href="{% url 'profile' slug=user.username %}#section0">
+	{% if user.userprofile.avatar %}
+		<img src="{{ user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+    {{ user }}</a>{% if user.username in verified %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+	{% if user.userprofile.media_score %}
+		{% if user.userprofile.media_score < 0 %}
+	    	<span style="color:#9900cc;">(1)</span>
+	    {% else %}
+	    	<span style="color:#9900cc;">({{ user.userprofile.media_score }})</span>
+		{% endif %}
+    {% else %}
+    {% endif %}
+    <br>
+    
+    {% endfor %}
+    </div>
+{% endcache %}
+{% endblock %}

@@ -1300,6 +1300,10 @@ class TopPhotoView(ListView):
 		context = super(TopPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["verified"] = FEMALES
+			ids = [user.id for user in context["object_list"]]
+			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
+			users_photo_count = [(users[id], users[id].photo_count) for id in ids]
+			context["users"] = users_photo_count
 		return context
 
 class TopView(ListView):

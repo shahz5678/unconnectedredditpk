@@ -431,6 +431,10 @@ class VerifiedForm(forms.Form):
 	class Meta:
 		model = User
 
+class TopPhotoForm(forms.Form):
+	class Meta:
+		model = User
+
 class TopForm(forms.Form):
 	class Meta:
 		model = User

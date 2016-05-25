@@ -96,7 +96,7 @@
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
 	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span>
-	<a href="{% url 'see_best_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Best photos&nbsp;&nbsp;</a>
+	<a href="{% url 'see_best_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Best photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Top uploaders&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#bababa"></p>
@@ -246,15 +246,14 @@
     {% endif %}
 </div>
 {% endif %}
-{% endblock %}
-
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- first ad -->
 <ins class="adsbygoogle"
-    style="display:block"
-    data-ad-client="ca-pub-4107018236065555"
-    data-ad-slot="4841427023"
-    data-ad-format="link"></ins>
+     style="display:block"
+     data-ad-client="ca-pub-4107018236065555"
+     data-ad-slot="4841427023"
+     data-ad-format="link"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+{% endblock %}

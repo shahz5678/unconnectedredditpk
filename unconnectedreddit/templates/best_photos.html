@@ -81,7 +81,7 @@
 	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:97%;"><b>Naee photo charhao:</b></span>
 	<p style="padding-top:-.3em;">
 	{% endif %}
-<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:85%;"><i>qeemat: 5 points</i></span>
+<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;font-size:90%;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:85%;"><i>qeemat: 5 points</i></span>
 </p>
 {% elif not authenticated %}
 <span style="color:grey;font-size:90%;">Photo lagane ke liye khata kholna zaroori hai</span>
@@ -95,8 +95,8 @@
 
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<a href="{% url 'see_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
-	<span style="font-size:80%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:80%;color:grey;">&nbsp;&nbsp;Top uploaders&nbsp;&nbsp;</a>
+	<a href="{% url 'see_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
+	<span style="font-size:78%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top uploaders&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#bababa"></p>

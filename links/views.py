@@ -9,6 +9,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from collections import defaultdict
 from django.db import connection
+from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
@@ -828,16 +829,26 @@ class OnlineKonView(ListView):
 	#paginate_by = 75
 
 	def get_queryset(self):
-		global condemned
-		unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
-		users = [session.user for session in unique_user_sessions]
-		users = [user for user in users if user is not None]
+		# global condemned
+		# unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
+		# users = [session.user for session in unique_user_sessions]
+		# users = [user for user in users if user is not None]
+		# if self.request.user_banned:
+		# 	return users
+		# else:
+		# 	user_ids = [user.pk for user in users]
+		# 	users = User.objects.filter(id__in=user_ids).exclude(id__in=condemned)
+		# 	return users
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+        })
+		users = cache_mem.get('online_users')
 		if self.request.user_banned:
 			return users
 		else:
-			user_ids = [user.pk for user in users]
-			users = User.objects.filter(id__in=user_ids).exclude(id__in=condemned)
-			return users
+			global condemned
+			users_purified = [user for user in users if user.pk not in condemned]
+			return users_purified
 
 
 	def get_context_data(self, **kwargs):

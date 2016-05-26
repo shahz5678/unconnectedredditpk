@@ -30,4 +30,4 @@ def whoseonline():
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
-	cache_mem.set('online_users', users)  # expiring in 70 seconds
+	cache_mem.set('online_users', users)  # expiring in 120 seconds

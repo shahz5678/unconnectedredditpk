@@ -288,10 +288,17 @@ else:
 
 # CACHES = {
 #     'default': {
-#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-#         'LOCATION': '127.0.0.1:11211',
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         # 'LOCATION': 'unique-snowflake',
 #     }
 # }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -329,6 +336,11 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.rank_all_photos',
 		'schedule': timedelta(seconds=30),
 	},
+    'tasks.whoseonline': {
+        'task': 'tasks.whoseonline',
+        'schedule': timedelta(seconds=60),  # execute every 60 seconds
+        'args': (),
+    },
 }
 
 CELERY_TIMEZONE = 'UTC'

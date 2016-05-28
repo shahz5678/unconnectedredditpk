@@ -15,7 +15,7 @@
 {% for photo in object_list %}
 <a name="section{{ forloop.counter }}"></a>
 <a href="{% url 'comment_pk' photo.id %}">
-<b style="color:#1947D1;">{{ photo.caption }}</b>&nbsp;<span style="color:#ff8000;font-size:90%;">({{ photo.comment_count }}
+<b style="color:#1947D1;"><bdi>{{ photo.caption }}</bdi></b>&nbsp;<span style="color:#ff8000;font-size:90%;">({{ photo.comment_count }}
 {% if photo.comment_count == 1 %}
 tabsra)
 {% else %}

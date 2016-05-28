@@ -31,8 +31,9 @@
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
     {% endif %}
 {% endif %}
-</a><span style="color:#a6a6a6;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
-<br><b style="font-size:98%;color:#404040;">Photo pe tabsra:</b>
+</a><span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
+<br><span style="color:#a6a6a6;font-size:90%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+<br><b style="font-size:98%;color:#404040;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}
     <input type="hidden" id="id_link" name="from_photos" class="hidden_id" value="{{ from_photos }}">
@@ -96,6 +97,7 @@
     </td></tr>
     {% endfor %}
 {% endif %}
+<br>
 <hr size=1 COLOR="LIGHTGRAY">
 
 <span style="font-size:80%;color:dimgrey;"><b>Sticker bananey ke liye uske agey likhe harf type kro:<br></b><span style="font-size:95%;">(poori list <a href="{% url 'emoticons_help' %}"><u>ye hai</u></a>)</span></span>

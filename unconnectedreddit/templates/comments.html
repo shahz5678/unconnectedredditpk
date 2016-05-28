@@ -32,7 +32,7 @@
     {% endif %}
 {% endif %}
 </a><span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
-<br><span style="color:#a6a6a6;font-size:90%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+<br><span style="color:#a6a6a6;font-size:80%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
 <br><b style="font-size:98%;color:#404040;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}

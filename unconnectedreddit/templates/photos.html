@@ -113,7 +113,7 @@
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
 	</a>
-	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</b>
+	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</bdi></b>
 	<span style="color:#ff8000;font-size:90%;">
 	{% if picstream.cover.comment_count > 1 %}
 	(<b>{{ picstream.cover.comment_count }}</b> tabsrey)

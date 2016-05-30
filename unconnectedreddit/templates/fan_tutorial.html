@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin"> 
+
+	<b style="color:#404040;font-size:100%;">Fan bn kr photo sb se pehlay dekho!</b><br>
+	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:green;">1)</span> Agr tumhe <b>{{ name }}</b> ki photos pasand hain, toh iske fan ban jao.<br>
+	<span style="color:green;">2)</span> Ye jb bhi naee photo lagai ga, tumhe photo sb se pehlay nazr aa jaye gi.<br>
+	</span>
+	<form action="{% url 'fan_tutorial' %}" method="POST">
+	{% csrf_token %}
+	<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="samajh gaya"><br>
+	<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="nahi samjha"><br>
+	</form>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+    <div class="margin">
+    {% if user == star %}
+    <b>Tumhare fans:</b><br><br>
+    {% else %}
+    <b>{{ star.username }} ke fans:</b><br><br>
+    {% endif %}
+    {% for fan in fan_list %}
+    <b class="numbers">{{ forloop.counter }}.</b>
+    <a href="{% url 'profile' slug=fan.fan.username %}#section0">
+	{% if fan.fan.userprofile.avatar %}
+		<img src="{{ fan.fan.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+    {{ fan.fan.username }}</a>{% if fan.fan.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+	{% if fan.fan.userprofile.score %}
+		{% if fan.fan.userprofile.score < 0 %}
+	    	<span style="color:#18A018;">(1)</span>
+	    {% else %}
+	    	<span style="color:#18A018;">({{ fan.fan.userprofile.score }})</span>
+		{% endif %}
+    {% else %}
+    {% endif %}
+    <br>
+    
+    {% endfor %}
+    </div>
+{% endblock %}

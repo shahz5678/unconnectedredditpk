@@ -6,7 +6,8 @@ from links.models import UserProfile
 from django.views.generic.base import TemplateView
 from links.views import cross_notif, vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
-reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk
+reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
+fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -21,7 +22,7 @@ GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreat
 OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
-see_best_photo_pk, TopPhotoView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -35,7 +36,8 @@ urlpatterns = patterns('',
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),#r'^[\w.@+-]+$'
-	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),#r'^[\w.@+-]+$'
+	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
+	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/(?P<is_notif>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='user_profile'),#r'^[\w.@+-]+$'
 	url(r'^vote_or_user/(?P<pk>\d+)/(?P<id>\d+)/(?P<num>\d+)/$', auth(VoteOrProfileView.as_view()), name='vote_or_profile'),#r'^[\w.@+-]+$'
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
@@ -58,14 +60,22 @@ urlpatterns = patterns('',
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
 	url(r'^comment/(?P<from_photos>\d+)/$', CommentView.as_view(), name='comment'), #from_photos is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
+	url(r'^comment_chat_pk/(?P<pk>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/$', comment_pk, name='comment_pk'), #stream is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/(?P<from_photos>\d+)/$', comment_pk, name='comment_pk'), #from_photos is an optional variable
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
+	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
+	url(r'^fan/(?P<pk>\d+)/$', auth(fan), name='fan'),
+	url(r'^fanlist/(?P<pk>\d+)/$', fan_list, name='fan_list'),
+	url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
+	url(r'^starlist/(?P<pk>\d+)/$', star_list, name='star_list'),
+	url(r'^star_list/$', StarListView.as_view(), name='star_list_view'),
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
+	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
 	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
@@ -82,6 +92,7 @@ urlpatterns = patterns('',
 	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
 	url(r'^photo_option_seekho/$', auth(PhotoOptionTutorialView.as_view()), name='photo_option_tutorial'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
+	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
@@ -136,7 +147,7 @@ urlpatterns = patterns('',
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
-	url(r'^phstote/(?P<stream>\d+)/(?P<pk>\d+)/(?P<val>\d+)/$', auth(photo_vote), name='photo_vote'),
+	url(r'^phstote/(?P<user_id>\d+)/(?P<pk>\d+)/(?P<val>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	url(r'^link/reply/$', auth(PublicreplyView.as_view()), name='reply'),
 	url(r'^link/(?P<pk>\d+)/$', auth(reply_pk), name='reply_pk'),

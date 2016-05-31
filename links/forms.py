@@ -367,6 +367,18 @@ class DirectMessageForm(forms.Form):
 	class Meta:
 		pass
 
+class FanTutorialForm(forms.Form):
+	class Meta:
+		pass
+
+class StarListForm(forms.Form):
+	class Meta:
+		pass
+
+class FanListForm(forms.Form):
+	class Meta:
+		pass
+
 class PhotoOptionTutorialForm(forms.Form):
 	class Meta:
 		pass

@@ -3,9 +3,10 @@ from unconnectedreddit import celery_app1
 import time
 from django.core.cache import get_cache, cache
 #from celery import shared_task
+import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo
+from links.models import Photo, UserFan, PhotoObjectSubscription
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 
@@ -31,3 +32,13 @@ def whoseonline():
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
 	cache_mem.set('online_users', users)  # expiring in 120 seconds
+
+@celery_app1.task(name='tasks.bulk_create_notifications')
+def bulk_create_notifications(user_id, photo_id, timestring):
+	fans = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
+	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f+00:00")
+	if fans:
+		fan_list = []
+		for fan in fans:
+			fan_list.append(PhotoObjectSubscription(viewer_id=fan, which_photo_id=photo_id, updated_at=timeobj, seen=False, type_of_object='1'))
+		PhotoObjectSubscription.objects.bulk_create(fan_list)

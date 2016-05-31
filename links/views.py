@@ -13,6 +13,7 @@ from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
+from .tasks import bulk_create_notifications
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan
@@ -41,6 +42,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from math import log
 from urllib import quote
 from PIL import Image, ImageFile
+import datetime
 from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.utils import timezone
@@ -2623,20 +2625,20 @@ class UploadPhotoView(CreateView):
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)
 				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)
-				#				
-				# bulk_create_notifications.delay(self.request.user.id, photo.id, )
-				#
-				fans = UserFan.objects.filter(star=user).values_list('fan',flat=True)
-				if fans:
-					fan_list_type_1 = []
-					#fan_list_type_0 = []
-					for fan in fans:
-						fan_list_type_1.append(PhotoObjectSubscription(viewer_id=fan, which_photo=photo, updated_at=time, seen=False, type_of_object='1'))
-						#fan_list_type_0.append(PhotoObjectSubscription(viewer_id=fan, which_photo=photo, updated_at=time, seen=True, type_of_object='0'))
-					PhotoObjectSubscription.objects.bulk_create(fan_list_type_1)
-					#PhotoObjectSubscription.objects.bulk_create(fan_list_type_0)
-				else:
-					pass
+				######################################################
+				timestring = time.isoformat()
+				bulk_create_notifications.delay(self.request.user.id, photo.id, timestring)				
+				# fans = UserFan.objects.filter(star=user).values_list('fan',flat=True)
+				# if fans:
+				# 	fan_list_type_1 = []
+				# 	#fan_list_type_0 = []
+				# 	for fan in fans:
+				# 		fan_list_type_1.append(PhotoObjectSubscription(viewer_id=fan, which_photo=photo, updated_at=time, seen=False, type_of_object='1'))
+				# 		#fan_list_type_0.append(PhotoObjectSubscription(viewer_id=fan, which_photo=photo, updated_at=time, seen=True, type_of_object='0'))
+				# 	PhotoObjectSubscription.objects.bulk_create(fan_list_type_1)
+				# 	#PhotoObjectSubscription.objects.bulk_create(fan_list_type_0)
+				# else:
+				# 	pass
 				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()

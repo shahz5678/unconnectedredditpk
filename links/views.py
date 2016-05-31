@@ -2623,6 +2623,9 @@ class UploadPhotoView(CreateView):
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)
 				Link.objects.create(description=f.caption, submitter=user, device=device, cagtegory='6', which_photostream=stream)
+				#				
+				# bulk_create_notifications.delay(self.request.user.id, photo.id, )
+				#
 				fans = UserFan.objects.filter(star=user).values_list('fan',flat=True)
 				if fans:
 					fan_list_type_1 = []
@@ -4502,27 +4505,46 @@ class FanTutorialView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(FanTutorialView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			user = self.request.session["ftue_fan_user"]
-			context["name"] = user.username
+			try:
+				user = self.request.session["ftue_fan_user"]
+				context["name"] = user.username
+				context["skip"] = False
+			except:
+				context["skip"] = True
 		return context
 
 	def form_valid(self, form):
-		if self.request.session["ftue_fan_option"] and self.request.session["ftue_fan_user"]:
-			self.request.session["ftue_fan_option"] = None
-			user = self.request.session["ftue_fan_user"]
-			self.request.session["ftue_fan_user"] = None
-			if self.request.method == 'POST':
-				option = self.request.POST.get("choice", '')
-				if option == 'samajh gaya':
-					if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True):
-						UserFan.objects.create(fan=self.request.user, star=user)
-						return redirect("profile", user.username)
+		try:
+			if self.request.session["ftue_fan_option"] and self.request.session["ftue_fan_user"]:
+				self.request.session["ftue_fan_option"] = None
+				user = self.request.session["ftue_fan_user"]
+				self.request.session["ftue_fan_user"] = None
+				if self.request.method == 'POST':
+					option = self.request.POST.get("choice", '')
+					if option == 'samajh gaya':
+						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True):
+							UserFan.objects.create(fan=self.request.user, star=user)
+							return redirect("profile", user.username)
+						else:
+							return redirect("profile", user.username)
 					else:
 						return redirect("profile", user.username)
-				else:
-					return redirect("profile", user.username)
-		else:
-			return redirect("see_photo")	
+			else:
+				try:
+					flag = TutorialFlag.objects.get(user=self.request.user)
+					flag.seen_fan_option = True
+					flag.save()
+				except:
+					TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
+				return redirect("top_photo")
+		except:
+			try:
+				flag = TutorialFlag.objects.get(user=self.request.user)
+				flag.seen_fan_option = True
+				flag.save()
+			except:
+				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
+			return redirect("top_photo")
 
 @ratelimit(rate='1/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+{% if not absent %}
+	<a href="{% url 'comment_pk' photo.id stream_id '1' %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
+	<span style="color:#ff8000;font-size:90%;">
+	{% if photo.comment_count > 1 %}
+	(<b>{{ photo.comment_count }}</b> tabsrey)
+	{% elif photo.comment_count == 1 %}
+	(<b>1</b> tabsra)
+	{% else %}
+	(tabsra kro)
+	{% endif %}</span>
+
+		{% if photo.device == '1' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+		{% elif photo.device == '2' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+		{% elif photo.device == '4' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+		{% elif photo.device == '5' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+		{% elif photo.device == '3' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+		{% else %}
+		{% endif %}
+	</a><br>
+			{% if photo.vote_score < -7 %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			{% elif photo.vote_score < -2 %}
+				{% if photo.image_file %}
+				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% else %}
+				{% if photo.image_file %}
+				
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+				{% else %}
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				{% endif %}
+			{% endif %}<br>
+
+			<a href="{% url 'photo_izzat' stream_id %}">
+			{% if photo.visible_score > 1 %}
+			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
+			{% elif photo.visible_score == 1 %}
+			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} point</b></div><br>
+			{% else %}
+			<div style="font-size:95%;color:red;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
+			{% endif %}
+			</a>
+
+			{% if authenticated and not own_photo and can_vote and not voted %}
+			<a href="{% url 'photostream_vote' stream_id 1 0 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
+			<a href="{% url 'photostream_vote' stream_id 0 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
+			{% endif %}
+
+			<a href="{% url 'photo_share' photo.id %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+{% else %}
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Photo mojood nahi</h2>
+{% endif %}
+</div>
+{% endblock %}

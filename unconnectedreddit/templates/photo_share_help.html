@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin"> 
+{% if not no_id %}
+	<b style="color:#404040;font-size:105%;">Jis ko photo share krni hai, kya woh freebasics pe hai?</b><br><br>
+	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:green;">-</span> Agr <span style="color:green;">haan</span>, toh phir usse ye link bhejo: <b style="font-size:110%;color:green;">{{ freebasics_url }}</b><br></span><br>
+	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:green;">-</span> Agr <span style="color:purple;">nahi</span>, toh phir usse ye link bhejo: <b style="font-size:110%;color:purple;">{{ regular_url }}</b><br></span><br>
+	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:#a6a6a6;">- Agr link copy kr ke bhejna nahi ata, toh yeh button dbao:</span> <a href="sms:+03?body=Oye ye photo check kr: {{ freebasics_url }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">SMS kro</button></a><br></span>
+{% else %}
+	<b style="color:#404040;font-size:100%;">Ye nahi chal raha, koi aur photo try kro</b><br>
+{% endif %}
+</div>
+{% endblock %}

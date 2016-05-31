@@ -346,6 +346,10 @@ class CrossNotifForm(forms.Form):
 		pass
 		#model = Link
 
+class PhotoShareForm(forms.Form):
+	class Meta:
+		pass
+
 class PhotoReplyForm(forms.Form):
 	class Meta:
 		pass

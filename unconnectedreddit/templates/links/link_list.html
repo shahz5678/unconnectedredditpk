@@ -41,7 +41,7 @@
 			:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ latest_reply.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ latest_reply.submitted_on|naturaltime }}</bdi>
 			</span>
 				<p style="margin-top:.5em;"></p>
-				<button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>&nbsp;&nbsp;
+				<button style="color:#1947d1;background-color:#ffeccc;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>&nbsp;&nbsp;
 				<a href="{% url 'x_notif' parent_pk ident 1 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
@@ -49,46 +49,72 @@
 			<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
 
-			<span style="color:darkorange;font-size:90%;"><b>home</b> ki chat:</span>
+			<span style="color:green;font-size:90%;"><b>home</b> ki chat:</span>
 			</span>
 	{% elif type_of_object == '0' %}
 
-	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
-	<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
-	<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
-	{% if parent.vote_score < -7 %}
-		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-	{% elif parent.vote_score < -2 %}
-		{% if parent.image_file %}
-		<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
+		<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
+		{% if parent.vote_score < -7 %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		{% elif parent.vote_score < -2 %}
+			{% if parent.image_file %}
+			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			{% endif %}
 		{% else %}
-		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
 		{% endif %}
-	{% else %}
-		<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
-	{% endif %}
-	<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
-	<p style="margin-top:.3em;"></p>
-	<bdi>{{ latest_comment.submitted_by }}</bdi><span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:110%;">
-			{% for person in checked %}
-		    {% if person == latest_comment.submitted_by.username %}
-		    	<span style="font-size:110%;color:deeppink;"><b>*</b></span>
-		    {% endif %}
-		    {% endfor %}
-	:&nbsp;<bdi>{% emoticons %}{{ latest_comment.text|truncatechars:40 }}{% endemoticons %}</bdi></span><span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ latest_comment.submitted_on|naturaltime }}</bdi></span>
-	<br>
-	<p style="margin-top:.5em;"></p>
-	<a href="{% url 'comment_pk' parent_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;
-	<a href="{% url 'cross_comment_notif' parent_pk user.id 1 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
-	</a>
-	</div>
-	<p style="margin-top:.5em;"></p>
-			<hr size=1>
-			<p style="margin-top:-0.9em;"></p>
-	<hr size=1>
+		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
+		<p style="margin-top:.3em;"></p>
+		<bdi>{{ latest_comment.submitted_by }}</bdi><span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:110%;">
+				{% for person in checked %}
+			    {% if person == latest_comment.submitted_by.username %}
+			    	<span style="font-size:110%;color:deeppink;"><b>*</b></span>
+			    {% endif %}
+			    {% endfor %}
+		:&nbsp;<bdi>{% emoticons %}{{ latest_comment.text|truncatechars:40 }}{% endemoticons %}</bdi></span><span style="font-size:90%;font-family:'arial';color:gray;"><bdi>, {{ latest_comment.submitted_on|naturaltime }}</bdi></span>
+		<br>
+		<p style="margin-top:.5em;"></p>
+		<a href="{% url 'comment_pk' parent_pk %}"><button style="color:#1947d1;background-color:#ffeccc;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 0 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+		</a>
+		</div>
+		<p style="margin-top:.5em;"></p>
+				<hr size=1>
+				<p style="margin-top:-0.9em;"></p>
+		<hr size=1>
 
-			<span style="color:darkorange;font-size:90%;"><b>home</b> ki chat:</span>
-	{% endif %}
+				<span style="color:green;font-size:90%;"><b>home</b> ki chat:</span>
+	{% elif type_of_object == '1' %}
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
+		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
+		{% if parent.vote_score < -7 %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		{% elif parent.vote_score < -2 %}
+			{% if parent.image_file %}
+			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			{% endif %}
+		{% else %}
+			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+		{% endif %}
+		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
+		<p style="margin-top:.3em;"></p>
+		<button style="color:#1947d1;background-color:#ffeccc;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko dekho</button>
+		</a>&nbsp;&nbsp;
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+		</div>
+			<p style="margin-top:.5em;"></p>
+				<hr size=1>
+				<p style="margin-top:-0.9em;"></p>
+			<hr size=1>
+				<span style="color:green;font-size:90%;"><b>home</b> ki chat:</span>
+		{% endif %}
 	{% else %}
 			{% if authenticated %}
 				{% if random == 1 %}
@@ -206,7 +232,12 @@
 	{% endif %}
 		</span>
 		<p style="margin-top:.5em;">
-		<a href="{% url 'comment_pk' pk=link.which_photostream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">
+	{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 9 %}
+		<a href="{% url 'comment_pk' pk=link.which_photostream.cover_id %}">
+	{% else %}
+		<a href="{% url 'comment_chat_pk' pk=link.which_photostream.cover_id %}">
+	{% endif %}
+		<button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;">
 		{% if link.which_photostream.cover.comment_count > 1 %}
 		{{ link.which_photostream.cover.comment_count }} tabsrey
 		{% elif link.which_photostream.cover.comment_count == 1 %}

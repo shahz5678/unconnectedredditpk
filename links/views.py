@@ -35,7 +35,7 @@ RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicFo
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
-TopPhotoForm, FanListForm, StarListForm, FanTutorialForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -587,6 +587,41 @@ class ReportreplyView(FormView):
 				context["authorized"] = False
 		return context
 
+class PhotoDetailView(DetailView):
+	model = Photo
+	template_name = "photo_detail.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoDetailView, self).get_context_data(**kwargs)
+		context["can_vote"] = False
+		context["authenticated"] = False
+		try:
+			pk = self.kwargs["pk"]
+			photo = Photo.objects.get(id=pk)
+			stream_id = PhotoStream.objects.get(cover_id=photo.id).id
+			context["stream_id"] = stream_id
+			context["photo"] = photo
+			context["own_photo"] = False
+		except:
+			context["absent"] = True
+			return context
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+			if self.request.user == photo.owner:
+				context["own_photo"] = True
+			else:
+				context["own_photo"] = False
+				score = self.request.user.userprofile.score 
+				if score > 9:
+					context["can_vote"] = True
+					if PhotoVote.objects.filter(voter=self.request.user,photo=photo).exists():
+						context["voted"] = True
+					else:
+						context["voted"] = False
+				else:
+					context["can_vote"] = False
+		return context
+
 class LinkDetailView(DetailView):
 	model = Link
 
@@ -631,7 +666,7 @@ class LinkListView(ListView):
 			context["username"] = user.username
 			score = user.userprofile.score
 			context["score"] = score
-			if score > 10:
+			if score > 9:
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
@@ -2834,6 +2869,15 @@ class UserPhoneNumberView(CreateView):
 		else:#i.e. not on internet.org, now detect whether mobile browser or desktop browser
 				return redirect("user_SMS", fbs=0, num=num)
 
+	# def get_success_url(self): #which URL to go back once settings are saved?
+	# 	try: 
+	# 		on_fbs = self.request.META.get('X-IORG-FBS')
+	# 	except:
+	# 		on_fbs = False
+	# 	if on_fbs:
+	# 		return 
+	# 		return redirect("home")#, pk= reply.answer_to.id)
+
 class UserSMSView(FormView):
 	form_class = UserSMSForm
 	template_name = "user_sms.html"
@@ -2890,6 +2934,20 @@ class UserSMSView(FormView):
 			#context["send_sms"] = None
 			#context["authenticated"] = None
 			#context["sentence"] = None
+		return context
+				
+class PhotoShareView(FormView):
+	form_class = PhotoShareForm
+	template_name = "photo_share_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoShareView, self).get_context_data(**kwargs)
+		try:
+			context["no_id"] = False
+			context["freebasics_url"] = "https://http-damadam-pk.0.freebasics.com/photo_detail/"+str(self.kwargs["pk"])
+			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(self.kwargs["pk"])
+		except:
+			context["no_id"] = True
 		return context
 
 class DeletePicView(FormView):

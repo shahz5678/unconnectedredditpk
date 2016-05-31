@@ -22,7 +22,7 @@ GroupListView, OpenGroupHelpView, GroupTypeView, GroupPageView, ClosedGroupCreat
 OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
-see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -67,6 +67,7 @@ urlpatterns = patterns('',
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
+	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^fan/(?P<pk>\d+)/$', auth(fan), name='fan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', fan_list, name='fan_list'),
 	url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
@@ -134,6 +135,8 @@ urlpatterns = patterns('',
 	url(r'^p/(?P<code>\d+)/$', PicPasswordView.as_view(), name='pic_password'),
 	#url(r'^cooldown/$', CooldownView.as_view(), name='cooldown'),
 	#url(r'^user_inbox_help/$', UserInboxHelpView.as_view(), name='user_inbox_help'),
+	url(r'^photo_share/(?P<pk>\d+)/$', PhotoShareView.as_view(), name='photo_share'),
+	#url(r'^pshare/(?P<pk>\d+)/$', photo_share_pk, name='photo_share_pk'),
 	url(r'^user_SMS/(?P<fbs>\d+)/(?P<num>[\w.@+-]+)/$', UserSMSView.as_view(), name='user_SMS'),
 	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),
 	url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy_policy'),

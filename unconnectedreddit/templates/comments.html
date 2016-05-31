@@ -5,34 +5,67 @@
 {% block content %}
 <div class="margin">
 {% if authorized %}
-{% if from_photos %}
-    {% if from_photos == '1' %}
-    <a href="{% url 'see_photo_pk' photostream_pk %}">
-    {% elif from_photos == '2' %}
-    <a href="{% url 'see_best_photo_pk' photostream_pk %}">
+
+    {% if from_photos %}
+        {% if from_photos == '1' %}
+        <a href="{% url 'see_photo_pk' photostream_pk %}">
+        {% elif from_photos == '2' %}
+        <a href="{% url 'see_best_photo_pk' photostream_pk %}">
+        {% elif from_photos == '3' %}
+        <a href="{% url 'user_profile_photo' username photo.id %}">
+        {% endif %}
     {% else %}
-    <a href="{% url 'home' %}">
+    <a href="{% url 'home' %}#section0">
     {% endif %}
-{% else %}
-<a href="{% url 'home' %}">
-{% endif %}
-{% if photo.vote_score < -7 %}
-    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-{% elif photo.vote_score < -2 %}
-    {% if photo.image_file %}
-        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+
+    {% if photo.vote_score < -7 %}
+        {% if not from_photos and is_first %}
+            <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+        {% else %}
+            <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+        {% endif %}
+    {% elif photo.vote_score < -2 %}
+        {% if not from_photos and is_first %}
+            {% if photo.image_file %}
+                <img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>
+            {% else %}
+                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+            {% endif %}
+        {% else %}    
+            {% if photo.image_file %}
+                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+            {% else %}
+                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+            {% endif %}
+        {% endif %}
     {% else %}
-        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-    {% endif %}
-{% else %}
-	{% if photo.image_file %}
-    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+        {% if not from_photos and is_first %}
+            {% if photo.image_file %}
+                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>
+            {% else %}
+                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+            {% endif %}
+        {% else %}
+        	{% if photo.image_file %}
+            	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+            {% else %}
+            	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+            {% endif %}
+        {% endif %}
+    {% endif %}</a>
+    
+    {% if from_photos or not is_first %}
+    <span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
     {% else %}
-    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    <br><span style="color:#404040;font-size:100%;"><b>{{ photo.caption }}</b></span>
     {% endif %}
-{% endif %}
-</a><span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
-<br><span style="color:#a6a6a6;font-size:80%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+
+    {% if from_photos or not is_first %}
+    <br><span style="color:#a6a6a6;font-size:80%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+    {% else %}
+    <span style="color:#a6a6a6;font-size:80%;">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+    {% endif %}
+
 <br><b style="font-size:98%;color:#404040;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}

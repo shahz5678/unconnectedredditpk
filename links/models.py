@@ -269,7 +269,7 @@ STATUS = (
 
 OBJECTS = (
 ('0','Comments'),
-('1','Jawabiphotos'),
+('1','Fans'),
 ('2','Links'),
 ('3','Groups')
 	)
@@ -313,6 +313,7 @@ class Link(models.Model):
 	submitter = models.ForeignKey(User) # link.submitter is a user!
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	rank_score = models.FloatField(default=0.0)
+	is_visible = models.BooleanField(default=True)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	which_photostream = models.ForeignKey('links.PhotoStream')
 	reply_count = models.IntegerField(default=0)
@@ -469,6 +470,13 @@ class GroupTraffic(models.Model):
 	def __unicode__(self):
 		return u"%s visited %s" % (self.visitor, self.which_group.topic)
 
+class UserFan(models.Model):
+	star = models.ForeignKey(User, related_name='star')
+	fan = models.ForeignKey(User, related_name='fan')
+
+	def __unicode__(self):
+		return u"%s became a fan of %s" % (self.fan, self.star)
+
 class GroupInvite(models.Model):
 	invitee = models.ForeignKey(User, related_name='invitee')
 	inviter = models.ForeignKey(User, related_name ='inviter')
@@ -573,6 +581,7 @@ class TutorialFlag(models.Model):
 	user = models.OneToOneField(User, unique=True)
 	seen_chain = models.BooleanField(default=False)
 	seen_photo_option = models.BooleanField(default=False)
+	seen_fan_option = models.BooleanField(default=False)
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

@@ -43,37 +43,62 @@
 		<p style="margin-top:.5em;"></p>
 		<hr size=1>
 		<p style="margin-top:-0.9em;"></p>
-		<hr size=1><br>
+		<hr size=1>
 	
 	{% elif type_of_object == '0' %}
-	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
-	<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
-	
-	<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
-	{% if parent.vote_score < -7 %}
-	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-	{% elif parent.vote_score < -2 %}
-	{% if parent.image_file %}
-        <img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
-    {% else %}
-        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-    {% endif %}
-	{% else %}
-	<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
-	{% endif %}
-	<span style="color:grey;">{% emoticons %}{{ parent.caption|truncatechars:30 }}{% endemoticons %}</span>
-	<p style="margin-top:.3em;"></p>
-	<bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
-	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:110%;">:&nbsp;<bdi>{% emoticons %}{{ freshest_unseen_comment.text|truncatechars:40 }}{% endemoticons %}</bdi></span></a>
-	<span style="font-size:80%;color:grey;">, <bdi>{{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi></span>
-	<br>
-	<p style="margin-top:.5em;"></p>
-	<a href="{% url 'comment_pk' parent_pk %}"><button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;<a href="{% url 'cross_comment_notif' parent_pk user.id 0 %}" style="color:red;font-size:90%;"><b>[x]</b></a>
-	</div>
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
+		
+		<a href="{% url 'comment_pk' parent_pk photostream_id 2 %}" style="font-size:90%;">
+		{% if parent.vote_score < -7 %}
+		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		{% elif parent.vote_score < -2 %}
+		{% if parent.image_file %}
+	        <img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+	    {% else %}
+	        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	    {% endif %}
+		{% else %}
+		<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+		{% endif %}
+		<span style="color:grey;">{% emoticons %}{{ parent.caption|truncatechars:30 }}{% endemoticons %}</span>
+		<p style="margin-top:.3em;"></p>
+		<bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
+		<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:110%;">:&nbsp;<bdi>{% emoticons %}{{ freshest_unseen_comment.text|truncatechars:40 }}{% endemoticons %}</bdi></span>
+		<span style="font-size:80%;color:grey;">, <bdi>{{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi></span>
+		<br>
 		<p style="margin-top:.5em;"></p>
-			<hr size=1>
-			<p style="margin-top:-0.9em;"></p>
-	<hr size=1><br>
+		<button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;<a href="{% url 'cross_comment_notif' parent_pk user.id 2 0 %}" style="color:red;font-size:90%;"><b>[x]</b></a>
+		</div>
+			<p style="margin-top:.5em;"></p>
+				<hr size=1>
+				<p style="margin-top:-0.9em;"></p>
+		<hr size=1>
+	{% elif type_of_object == '1' %}
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
+		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
+		{% if parent.vote_score < -7 %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		{% elif parent.vote_score < -2 %}
+			{% if parent.image_file %}
+			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			{% endif %}
+		{% else %}
+			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+		{% endif %}
+		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
+		<p style="margin-top:.3em;"></p>
+		<button style="color:#1947d1;background-color:#ffeccc;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko dekho</button>
+		</a>&nbsp;&nbsp;
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 2 1 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+		</div>
+				<p style="margin-top:.5em;"></p>
+				<hr size=1>
+				<p style="margin-top:-0.9em;"></p>
+		<hr size=1>
 	{% endif %}
 	{% endif %}
 {% if authenticated and score > 29 and not banned %}
@@ -113,7 +138,7 @@
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
 	</a>
-	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</bdi></b>
+	<a href="{% url 'comment_pk' picstream.cover_id picstream.id 2 %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</bdi></b>
 	<span style="color:#ff8000;font-size:90%;">
 	{% if picstream.cover.comment_count > 1 %}
 	(<b>{{ picstream.cover.comment_count }}</b> tabsrey)

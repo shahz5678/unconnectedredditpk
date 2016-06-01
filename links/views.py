@@ -2943,10 +2943,20 @@ class PhotoShareView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(PhotoShareView, self).get_context_data(**kwargs)
 		try:
-			context["no_id"] = False
-			pk = self.kwargs["pk"]
 			loc = self.kwargs["loc"]
 			context["loc"] = loc
+			if loc == '3':
+				username = self.kwargs["slug"]
+				context["username"] = username
+			else:
+				username = None
+		except:
+			loc = '0'
+			context["loc"] = loc
+			username = None
+		try:
+			context["no_id"] = False
+			pk = self.kwargs["pk"]
 			context["ident"] = pk
 			context["freebasics_url"] = "https://http-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
 			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)

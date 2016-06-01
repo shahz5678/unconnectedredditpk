@@ -16,7 +16,10 @@
 	<a href="{% url 'see_photo_pk' ident %}">
 	{% elif loc == '2' %}
 	<a href="{% url 'see_best_photo_pk' ident %}">
+	{% elif loc == '3' %}
+	<a href="{% url 'user_profile_photo' username ident %}">
 	{% else %}
+	<a href="{% url 'see_photo' %}#section1">
 	{% endif %}
 	<button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button></a>
 {% else %}

@@ -71,6 +71,10 @@
 	<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
 	{% endif %}
 
+		{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
+			<a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+		{% endif %}
+<br>
 <span style="font-size:85%;color:grey;">charhai {{ photo.upload_time|naturaltime }}</span><p><hr size=1 COLOR="#bababa"></p>
 {% endfor %}
 {% endif %}

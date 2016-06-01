@@ -2945,7 +2945,9 @@ class PhotoShareView(FormView):
 		try:
 			context["no_id"] = False
 			pk = self.kwargs["pk"]
-			context["id"] = pk
+			loc = self.kwargs["loc"]
+			context["loc"] = loc
+			context["ident"] = pk
 			context["freebasics_url"] = "https://http-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
 			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)
 		except:

@@ -11,7 +11,14 @@
 	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
 	<span style="color:#a6a6a6;">- Agr link copy kr ke bhejna nahi ata, toh yeh button dbao:</span> <a href="sms:+03?body=Oye ye photo check kr: {{ freebasics_url }}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">SMS kro</button></a><br></span>
 	<hr size=1 COLOR="#ffbf00">
-	<a href="{% url 'see_photo_pk' id %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button></a>
+
+	{% if loc == '1' %}
+	<a href="{% url 'see_photo_pk' ident %}">
+	{% elif loc == '2' %}
+	<a href="{% url 'see_best_photo_pk' ident %}">
+	{% else %}
+	{% endif %}
+	<button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button></a>
 {% else %}
 	<b style="color:#404040;font-size:100%;">Ye nahi chal raha, koi aur photo try kro</b><br>
 {% endif %}

@@ -58,7 +58,7 @@
 			<a href="{% url 'photostream_vote' stream_id 0 0 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
 			{% endif %}
 
-			<a href="{% url 'photo_share' photo.id %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+			<a href="{% url 'photo_share' photo.id 1 %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
 {% else %}
 <h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Photo mojood nahi</h2>
 {% endif %}

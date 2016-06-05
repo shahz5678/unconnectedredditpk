@@ -2000,8 +2000,8 @@ class CommentView(CreateView):
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			try:
-				context["from_photos"] = '4'
 				if from_photos == '4':
+					context["from_photos"] = '4'
 					star_user_id = self.request.session["star_user_id"]
 					username = User.objects.get(id=star_user_id).username
 					context["username"] = username
@@ -2972,7 +2972,7 @@ class PhotoShareView(FormView):
 			context["no_id"] = False
 			pk = self.kwargs["pk"]
 			context["ident"] = pk
-			context["freebasics_url"] = "https://http-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
+			context["freebasics_url"] = "https://https-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
 			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)
 		except:
 			context["no_id"] = True

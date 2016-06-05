@@ -14,7 +14,7 @@
         {% elif from_photos == '3' %}
         <a href="{% url 'user_profile_photo' username photo.id %}">
         {% elif from_photos == '4' %}
-        <a href="{% url 'unseen_activity' username %}">
+        <a href="{% url 'unseen_activity' username %}#section0">
         {% endif %}
     {% else %}
     <a href="{% url 'home' %}#section0">

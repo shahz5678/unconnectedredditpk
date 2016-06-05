@@ -1,11 +1,20 @@
 {% extends "base.html" %}
 {% load thumbnail %}
+{% load emoticons_tags %}
 {% block content %}
     <div class="margin">
-    {% if user == star %}
-    <b>Tumhare fans:</b><br><br>
+    {% if not fan_list %}
+    <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+    {% emoticons %}Abhi tak koi fan nahi hai ;({% endemoticons %}</b>
+    <br>
+        <a href="{% url 'profile' star.username %}#section0">
+        <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border:solid 1px #179b36;color:white;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button>
+        </a>
     {% else %}
-    <b>{{ star.username }} ke fans:</b><br><br>
+    {% if user == star %}
+    <b><a href="{% url 'profile' user.username %}#section0">Tumhare</a> fans:</b><br><br>
+    {% else %}
+    <b><a href="{% url 'profile' star.username %}#section0">{{ star.username }}</a> ke fans:</b><br><br>
     {% endif %}
     {% for fan in fan_list %}
     <b class="numbers">{{ forloop.counter }}.</b>
@@ -25,7 +34,7 @@
     {% else %}
     {% endif %}
     <br>
-    
     {% endfor %}
+    {% endif %}
     </div>
 {% endblock %}

@@ -17,8 +17,8 @@
 {% endif %}
 	<form action="{% url 'fan_tutorial' %}" method="POST">
 	{% csrf_token %}
-	<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="samajh gaya"><br>
-	<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;width:6.4em;" type="submit" name= "choice" value="nahi samjha"><br>
+	<input class="button" style="color:white;background-color:#2DB92D;border:solid 1px #179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:6.4em;white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="samajh gaya"><br>
+	<input class="button" style="color:white;background-color:#FF1A1A;border:solid 1px #cc0000;width:6.4em;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="nahi samjha"><br>
 	</form>
 </div>
 {% endblock %}

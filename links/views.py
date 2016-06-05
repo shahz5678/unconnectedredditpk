@@ -1002,7 +1002,9 @@ class UserProfilePhotosView(ListView):
 		slug = self.kwargs["slug"]
 		subject = User.objects.get(username=slug)
 		star_id = subject.id
+		context["subject"] = subject
 		context["star_id"] = star_id
+		context["legit"] = FEMALES
 		context["fans"] = UserFan.objects.filter(star_id=star_id).count()
 		context["slug"] = slug
 		context["can_vote"] = False
@@ -1985,6 +1987,8 @@ class CommentView(CreateView):
 					context["username"] = username
 				except:
 					context["from_photos"] = False
+			else:
+				pass
 		except:
 			context["from_photos"] = False
 		try:
@@ -1995,6 +1999,16 @@ class CommentView(CreateView):
 			context["is_first"] = False
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
+			try:
+				context["from_photos"] = '4'
+				if from_photos == '4':
+					star_user_id = self.request.session["star_user_id"]
+					username = User.objects.get(id=star_user_id).username
+					context["username"] = username
+				else:
+					pass
+			except:
+				context["from_photos"] = False
 			if comments.exists():
 				try:
 					unseen_notification = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False)
@@ -2029,7 +2043,7 @@ class CommentView(CreateView):
 				except:
 					stream_id = None
 					star_user_id = None
-			elif from_photos == '3':
+			elif from_photos == '3' or from_photos == '4':
 				try:
 					star_user_id = self.request.session["star_user_id"]
 					self.request.session["star_user_id"] = None

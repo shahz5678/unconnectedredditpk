@@ -13,6 +13,8 @@
         <a href="{% url 'see_best_photo_pk' photostream_pk %}">
         {% elif from_photos == '3' %}
         <a href="{% url 'user_profile_photo' username photo.id %}">
+        {% elif from_photos == '4' %}
+        <a href="{% url 'unseen_activity' username %}">
         {% endif %}
     {% else %}
     <a href="{% url 'home' %}#section0">
@@ -66,23 +68,23 @@
     <span style="color:#a6a6a6;font-size:80%;">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
     {% endif %}
 
-<br><b style="font-size:98%;color:#404040;">Tabsra likho:</b>
+<br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}
     <input type="hidden" id="id_link" name="from_photos" class="hidden_id" value="{{ from_photos }}">
     {{ form.errors }}
     {{ form.text }}
     <br>
-    <input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    <input class="button" style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK" id="id_submit">
     </form>
 {% if count > 0 %}
     <hr size=1 COLOR="ORANGE">
     {% if count > 25 %}
-      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Pichley 25 tabsrey:</b></span><br>
+      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Pichley <b>25</b> tabsrey:</span><br>
       {% elif count == 1 %}
-      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>1 tabsra:</b></span><br>
+      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>1</b> tabsra:</span><br>
       {% else %}
-      <span style="font-size:90%;color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>{{ count }} tabsrey:</b></span><br>
+      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>{{ count }}</b> tabsrey:</span><br>
       {% endif %}
     {% for comment in comments %}
     <tr><td>

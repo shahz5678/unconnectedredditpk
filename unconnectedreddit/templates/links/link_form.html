@@ -10,12 +10,13 @@
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   <span style="color:red;">{{ form.description.errors }}</span>
-  <span style="font-size:100%;color:green;"><b>Kuch likho:</b></span><br>{{ form.description }}<br>
-  <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+  <span style="font-size:100%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Kuch likho:</b></span><br>{{ form.description }}<br>
+  <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK">
 </form>
 {% if user.userprofile.score and user.userprofile.score < 8 %}
 <span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzra?</i></span><br>
 {% endif %}
+<br>
 <hr size=1>
 <span style="font-size:80%;color:dimgrey;"><b>Sticker banaey ke liye uske agey likhay harf type karo:<br></b><span style="font-size:95%;">(poori list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
 

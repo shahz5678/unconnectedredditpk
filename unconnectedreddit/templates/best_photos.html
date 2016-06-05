@@ -7,9 +7,9 @@
 <div class="margin">
 	{% if notification %}
 	{% if type_of_object == '2' %}
-	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#229ec3;">
 		{% if first_time_user %}
-		<span style="color:darkorange;font-size:90%;">
+		<span style="color:#229ec3;font-size:90%;">
 		Tumhe <b>welcome</b> pegham aya:
 		</span>
 		<br>
@@ -23,7 +23,7 @@
 	
 		<p style="margin-top:.5em;"></p>
 	
-		<span style="color:darkorange;font-size:90%;">
+		<span style="color:#229ec3;font-size:90%;">
 		is pr <b>neya</b> jawab:
 		</span>
 		<p style="margin-top:.3em;"></p>
@@ -37,8 +37,8 @@
 		:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ freshest_unseen_comment.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi>
 		</span>
 			<p style="margin-top:.5em;"></p>
-			<button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko jawab do</button></a>&nbsp;&nbsp;
-			<a href="{% url 'x_notif' parent_pk user.id 0 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+			<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></a>&nbsp;&nbsp;
+			<a href="{% url 'x_notif' parent_pk user.id 0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
 		</div>
 		<p style="margin-top:.5em;"></p>
 		<hr size=1>
@@ -46,7 +46,7 @@
 		<hr size=1>
 	
 	{% elif type_of_object == '0' %}
-		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
 		
 		<a href="{% url 'comment_pk' parent_pk photostream_id 2 %}" style="font-size:90%;">
@@ -68,14 +68,14 @@
 		<span style="font-size:80%;color:grey;">, <bdi>{{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi></span>
 		<br>
 		<p style="margin-top:.5em;"></p>
-		<button style="color:#1947d1;background-color:moccasin;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">tabsra kro</button></a>&nbsp;&nbsp;<a href="{% url 'cross_comment_notif' parent_pk user.id 2 0 %}" style="color:red;font-size:90%;"><b>[x]</b></a>
+		<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">tabsra kro</button></a>&nbsp;&nbsp;<a href="{% url 'cross_comment_notif' parent_pk user.id 2 0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 		<hr size=1>
 	{% elif type_of_object == '1' %}
-		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#00B800;">
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
 		{% if parent.vote_score < -7 %}
@@ -91,9 +91,9 @@
 		{% endif %}
 		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
 		<p style="margin-top:.3em;"></p>
-		<button style="color:#1947d1;background-color:#ffeccc;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;">isko dekho</button>
+		<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk user.id 2 1 %}" style="color:red;font-size:90%;background-color:white;"><b>[x]</b></a>
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 2 1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
 		</div>
 				<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -103,31 +103,42 @@
 	{% endif %}
 {% if authenticated and score > 29 and not banned %}
 	{% if not freshest_unseen_comment %}
-	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:97%;"><b>Naee photo charhao:</b></span>
+	<span style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;font-size:88%;">Naee photo charhao:</span>
 	<p style="padding-top:-.3em;">
 	{% endif %}
-<a href="{% url 'upload_photo' %}#section0"><button style="color:#1947d1;background-color:#FFEFD5;font-size:90%;border-color:orange;width:7.7em;white-space:nowrap;">Photo charhao</button></a><br><span style="color:grey; font-size:85%;"><i>qeemat: 3 points</i></span>
+<a href="{% url 'upload_photo' %}#section0"><button style="border-color:#ff8000;background-color:#ff9933;font-size:90%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:6.5em;"><b>Photo Charhao</b></button></a><br><span style="color:grey; font-size:80%;"><i>qeemat: 3 points</i></span>
 </p>
 {% elif not authenticated %}
-<span style="color:grey;font-size:90%;">Photo lagane ke liye khata kholna zaroori hai</span>
+<span style="color:grey;font-size:90%;">Photo lagane ke liye pehle account banao</span>
 {% elif banned %}
 
 {% else %}
-<span style="color:#404040;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
+<span style="color:#ff8000;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
 {% endif %}
 {% if object_list %}
 {% for picstream in object_list %}
-
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
 	<a href="{% url 'see_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span>
 	<span style="font-size:78%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top uploaders&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
-	<p><hr size=1 COLOR="#bababa"></p>
+	<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}
 
 	<a name="section{{ forloop.counter }}"></a>
+	
+	<span style="color:#ff8000;font-size:80%;"><b>
+	{% if page_obj.number == 1 %}
+		{{ forloop.counter }}.
+	{% else %}
+		{% if forloop.counter == 10 %}
+			{{ page_obj.number }}0
+		{% else %}
+			{{ page_obj.number|add:"-1" }}{{ forloop.counter }}.
+		{% endif %}
+	{% endif %}
+	</b></span>
 	
 	<a href="{% url 'profile' picstream.cover.owner.username %}#section0">
 	{% if picstream.cover.owner.userprofile.avatar and user == picstream.cover.owner %}
@@ -139,14 +150,14 @@
 	{% endif %}
 	</a>
 	<a href="{% url 'comment_pk' picstream.cover_id picstream.id 2 %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</bdi></b>
-	<span style="color:#ff8000;font-size:90%;">
+	<button style="border-color:#ff8000;background-color:#ff9933;font-size:85%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;">
 	{% if picstream.cover.comment_count > 1 %}
-	(<b>{{ picstream.cover.comment_count }}</b> tabsrey)
+	<b>{{ picstream.cover.comment_count }}</b> tabsrey
 	{% elif picstream.cover.comment_count == 1 %}
-	(<b>1</b> tabsra)
+	<b>1</b> tabsra
 	{% else %}
-	(tabsra kro)
-	{% endif %}</span>
+	tabsra kro
+	{% endif %}</button>
 	
 	{% if picstream.cover.device == '1' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
@@ -184,13 +195,13 @@
 			{% if picstream.cover.latest_comment and picstream.cover.second_latest_comment %}
 			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
 			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:#FFF8DC;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			<span style="color:#ffe8cc;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
 			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ picstream.cover.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ picstream.cover.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
 			</div>
 			{% elif picstream.cover.latest_comment %}
 			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
 			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:lightgrey;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
+			<span style="color:#ffe8cc;">.</span>{{ picstream.cover.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ picstream.cover.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
 			</span>
 			</div>
 			{% else %}
@@ -199,21 +210,21 @@
 
 			<a href="{% url 'photo_izzat' picstream.id %}">
 			{% if picstream.cover.visible_score > 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} points</b></div><br>
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ picstream.cover.visible_score }}</b>&nbsp;points</button><br>
 			{% elif picstream.cover.visible_score == 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} point</b></div><br>
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ picstream.cover.visible_score }}</b>&nbsp;point</button><br>
 			{% else %}
-			<div style="font-size:95%;color:red;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ picstream.cover.visible_score }} points</b></div><br>
+			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ picstream.cover.visible_score }}</b>&nbsp;points</button><br>
 			{% endif %}
 			</a>
 
 				{% if can_vote and picstream.cover_id not in voted and picstream.cover.owner != user %}
-				<a href="{% url 'photostream_vote' picstream.id 1 1 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
-				<a href="{% url 'photostream_vote' picstream.id 0 1 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
+				<a href="{% url 'photostream_vote' picstream.id 1 1 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5em;">mazedar</button></a><br>
+				<a href="{% url 'photostream_vote' picstream.id 0 1 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5em;">bakwas</button></a><br>
 				{% endif %}
 
 			{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
-			<a href="{% url 'photo_share' picstream.cover_id 2 %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+			<a href="{% url 'photo_share' picstream.cover_id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 			{% endif %}
 
 
@@ -265,11 +276,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>&nbsp;wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:100%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey&nbsp;</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

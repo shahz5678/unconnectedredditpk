@@ -150,7 +150,7 @@ h4{
     text-decoration: none;
 }
 h5 {
-    background-color: #00B800;/*#E3262E;*/
+    background-color: #1CB841;/*#00B800;*/
     text-align:center;
     font-size: 130%;
     font-family: arial;
@@ -348,7 +348,7 @@ header {
     margin-top:-35px;
     color:blue;
     font-size: 100%;
-    box-shadow: 0px 0px 2px #F7AE1A;
+    box-shadow: 0px 0px 2px #f9c153;
     text-shadow: 0px 0px 0.1px light-blue;   
     line-height:100%;
     vertical-align: middle;

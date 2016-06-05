@@ -212,9 +212,9 @@
 				<a href="{% url 'photostream_vote' picstream.id 0 0 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5em;">bakwas</button></a><br>
 				{% endif %}
 
-			{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
+
 			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
-			{% endif %}
+
 
 
 <!-- 			<a href="{% url 'upload_photo_reply_pk' pk=picstream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;margin-top:0.2em;margin-bottom:0.2em;">jawabi photo</button></a>

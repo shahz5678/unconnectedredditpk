@@ -3,8 +3,15 @@
 {% block content %}
     <div class="margin">
     {% if allowed %}
-
-        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars jin ke tm fan ho:</b><br><br>
+        {% if not users %}
+        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars woh hote hain jin ke tum fan ho</b><br>
+        <br><span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Is waqt tum kisi star ke fan nahi</span>
+        <br>
+        <a href="{% url 'profile' user.username %}#section0">
+        <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border:solid 1px #179b36;color:white;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button>
+        </a>
+        {% else %}
+        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
         {% for star in users %}
         <b class="numbers">{{ forloop.counter }}.</b>
@@ -26,6 +33,7 @@
         <span style="font-size:80%;color:#ff8000;">, <a href="{% url 'profile' slug=star.0.username %}#section0" style="color:#ff8000;"><b>{{ star.1 }}</b> photos</a></span>
         <br>
         {% endfor %}
+        {% endif %}
 
     {% else %}
         <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Ye is terah nahi chalta!</b><br><br>    

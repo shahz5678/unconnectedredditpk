@@ -4,7 +4,7 @@
 <div class="margin">
 {% if forbidden %}
 	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi <b style="color:red;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
-	<span style="color:grey;font-size:90%;">Aisi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
+	<span style="color:grey;font-size:90%;">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
 	<a href="{% url 'see_photo' %}" style="font-size:90%;"><< wapis</a>
 {% elif score < 30 %}
 	<span style="color:#404040; font-size:95%;">Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
@@ -12,12 +12,12 @@
 	<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{ form.image_file.errors }}
-	<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;"><b>Photo</b> ka intikhab kro:</span><br>{{ form.image_file }}<br>
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>Photo</b> ka intikhab kro:</span><br>{{ form.image_file }}<br>
 	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>1mb se barri photo nahi lagti</i></span><br><br>
 	{{ form.caption.errors }}
-	<span style="font-size:105%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:green;">Photo pr <b>kuch likho</b>:</span><br>{{ form.caption }}<br>
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Photo pr <b>kuch likho</b>:</span><br>{{ form.caption }}<br>
 	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye likh kr OK dabao</i></span><br>
-		<input class="button" style="color:#1947D1;background-color:#FFEFD5;border:solid 1px orange;text-shadow:none;border-radius:4px;font-weight:bold;margin-bottom:0.4em;" type="submit" value="OK" id="id_submit"><br>
+		<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;" type="submit" value="OK" id="id_submit"><br>
 		<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Photo lagane ki qeemat <b>3</b> he</i></span>
 	</form>
 {% endif %}

@@ -4,79 +4,92 @@
 <div class="margin">
 
 {% if own_profile %}
-<h2 style="color:#404040;"><u>Tumhari profile</u></h2>
+<h2 style="color:#404040;"><u>Tumhari photos</u></h2>
 {% else %}
-<h2 style="color:#404040;"><u>{{ slug }} ki profile</u></h2>
+<h2 style="color:#404040;"><u>{{ slug }}{% if slug in legit %}<span style="color:deeppink;">*</span>{% endif %} ki photos</u></h2>
 {% endif %}
-
-<b style="color:#404040;">Nickname:&nbsp;</b><span style="style=color:#404040;"> {{ slug }}</span><a href="{% url 'user_profile' slug %}" style="font-size:85%;">&nbsp;(baqi profile dekho)</a>
+<b style="color:#404040;">Photo score:</b>&nbsp;<span style="color:#993399;"><b>{{ subject.userprofile.media_score }}</b></span>
+<br><b style="color:#404040;">Profile:&nbsp;</b><span style="color:#404040;"> {{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" style="font-size:85%;">&nbsp;(profile dekho)</a>
 <br>{% if fans == 1 %}
 <b style="color:#404040;">Fan:</b>
 {% else %}
 <b style="color:#404040;">Fans:</b>
 {% endif %}
+<a href="{% url 'fan_list' star_id %}" style="font-size:90%;">
+<button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;">
 {% if fans == 0 %}
-<b style="color:#FF0031;">{{ fans }}</b>
+{{ fans }}
 {% else %}
-<b style="color:#00B800;">{{ fans }}</b><a href="{% url 'fan_list' star_id %}" style="font-size:85%;">&nbsp;(fans dekho)</a>
+{{ fans }}
 {% endif %}
+</button>
+</a>
 
 {% if authenticated and own_profile %}
 	<br><b style="color:#404040;">Stars:</b>
+	<a href="{% url 'star_list' user.id %}" style="font-size:90%;">
+	<button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-top:0.1em;">
 	{% if stars == 0 %}
-	<b style="color:#FF0031;">{{ stars }}</b>
+	{{ stars }}
 	{% else %}
-	<b style="color:#00B800;">{{ stars }}</b><a href="{% url 'star_list' user.id %}" style="font-size:85%;">&nbsp;(stars dekho)</a>
+	{{ stars }}
 	{% endif %}
+	</button>
+	</a>
 {% endif %}
 
 {% if authenticated and allowed_fan and not own_profile and score > 22 %}
 {% if not_fan %}
-<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;background-color:#2DB92D;border-color:#41cc41;margin-top:0.3em;margin-bottom:0.3em;">iske fan bano</button></a>
+<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">iske fan bano</button></a>
 {% else %}
-<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;background-color:#FF1A1A;border-color:#f99d9d;margin-top:0.3em;margin-bottom:0.3em;">fan khatm kro</button></a>
+<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#FF1A1A;border-color:#cc0000;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">fan khatm kro</button></a>
 {% endif %}
 {% endif %}
-{% if object_list %}
-<br><br> {% if own_profile %}<b style="color:#404040;"><u>Tumhari photos:</u></b>{% else %}<b style="color:#404040;"><u>{{ slug }} ki photos:</u></b>{% endif %}<br><br>
-{% for photo in object_list %}
-<a name="section{{ forloop.counter }}"></a>
-<a href="{% url 'comment_profile_pk' photo.id star_id 3 %}">
-<b style="color:#1947D1;"><bdi>{{ photo.caption }}</bdi></b>
-{% if photo.comment_count == 0 %}
-<span style="color:#ff8000;font-size:90%;">(tabsra kro)</span>
-{% elif photo.comment_count == 1 %}
-<span style="color:#ff8000;font-size:90%;">(1 tabsra)</span>
-{% else %}
-<span style="color:#ff8000;font-size:90%;">({{ photo.comment_count }} tabsrey)</span>
-{% endif %}
-</span>
-</span>
-</a><br>
-<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
-<br>
 
-			<a href="{% url 'photostream_izzat' photo.id %}">
-			{% if photo.visible_score > 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
-			{% elif photo.visible_score == 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} point</b></div><br>
-			{% else %}
-			<div style="font-size:95%;color:red;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
-			{% endif %}
-			</a>
+{% if not object_list %}
+<br><hr size=1 COLOR="#ff9933"><br><i style="color:dimgrey;">Abhi tak photo upload nahi ki</i><br><br>
+	{% else %}
+	<br><hr size=1 COLOR="#ff9933"><br>
+	{% for photo in object_list %}
+	<a name="section{{ forloop.counter }}"></a>
+	<a href="{% url 'comment_profile_pk' photo.id star_id 3 %}">
+	<b style="color:#1947D1;"><bdi>{{ photo.caption }}</bdi></b>
 
-	{% if not own_profile and can_vote and photo.id not in voted %}
-	<a href="{% url 'photo_vote' star_id photo.id 1 slug %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
-	<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
+	<button style="border-color:#ff8000;background-color:#ff9933;font-size:85%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;">
+	{% if photo.comment_count == 0 %}
+	tabsra kro
+	{% elif photo.comment_count == 1 %}
+	<b>1</b> tabsra
+	{% else %}
+	<b>{{ photo.comment_count }}</b> tabsrey
 	{% endif %}
 
-		{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
-			<a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+	</button>
+	</a><br>
+	<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+	<br>
+
+				<a href="{% url 'photostream_izzat' photo.id %}">
+				{% if photo.visible_score > 1 %}
+				<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b> points</button><br>
+				{% elif photo.visible_score == 1 %}
+				<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b> point</button><br>
+				{% else %}
+				<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b> points</button><br>
+				{% endif %}
+				</a>
+
+		{% if not own_profile and can_vote and photo.id not in voted %}
+		<a href="{% url 'photo_vote' star_id photo.id 1 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5em;">mazedar</button></a><br>
+		<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5em;">bakwas</button></a><br>
 		{% endif %}
-<br>
-<span style="font-size:85%;color:grey;">charhai {{ photo.upload_time|naturaltime }}</span><p><hr size=1 COLOR="#bababa"></p>
-{% endfor %}
+
+			{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
+				<a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
+			{% endif %}
+	<br>
+	<span style="font-size:80%;color:grey;">charhai {{ photo.upload_time|naturaltime }}</span><p><hr size=1 COLOR="#ff9933"></p>
+	{% endfor %}
 {% endif %}
 
 </div>
@@ -86,11 +99,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;font-size:115%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;font-size:115%;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

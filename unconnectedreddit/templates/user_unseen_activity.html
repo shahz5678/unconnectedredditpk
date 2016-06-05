@@ -5,7 +5,7 @@
 {% block content %}
 <div class="margin">
 {% if object_list %}
-<span style="color:green;font-size:80%;">Yahan jawab aur tabsrey dekho:</span><p></p>
+<span style="color:color:#404040;font-size:80%;">Yahan nae <b style="color:#229ec3;">jawab</b> aur <b style="color:#ff8000;">tabsrey</b> dekho:</span><p></p>
 {% for linksubscription in object_list %}
 <!-- link submitter, photo submitter or group submitter -->
 {% if linksubscription.type_of_object == '2' %}
@@ -18,11 +18,12 @@
 {% if linksubscription.seen %}
 <span style="color:gray;font-size:75%;">, jawab aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</span><br>
 {% else %}
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:red;font-size:75%;">, <b>neya jawab</b> aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</a><br>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:#229ec3;font-size:75%;">, <b>neya jawab</b> aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</a><br>
 {% endif %}<br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="background-color:white;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;"><b style="text-shadow:none;">
-{{ linksubscription.which_link.reply_count }} jawab
-</b></button></a>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;"><b>
+{{ linksubscription.which_link.reply_count }}</b> jawab
+</button></a>
+<hr size=1 COLOR="#3cb7dd">
 {% elif linksubscription.type_of_object == '0' %}
 
 		    {% if linksubscription.which_photo.vote_score < -7 %}
@@ -54,24 +55,24 @@
 	{% if linksubscription.seen %}
 	<span style="color:gray;font-size:75%;">, tabsra hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</span><br>
 	{% else %}
-	<a href="{% url 'comment_pk' linksubscription.which_photo_id %}" style="color:red;font-size:75%;">, <b>neya tabsra</b> hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</a><br>
+	<a href="{% url 'comment_profile_pk' linksubscription.which_photo_id linksubscription.which_photo.owner_id 4 %}" style="color:#ff8000;font-size:75%;">, <b>neya tabsra</b> hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</a><br>
 	{% endif %}<br>
 
 
-	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:6em;white-space:nowrap;font-size:90%;">
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
-		{{ linksubscription.which_photo.comment_count }} tabsrey
+		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}
-		1 tabsra
+		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
 
+<hr size=1 COLOR="#ff9933">
 {% endif %}
-<hr size=1 COLOR="#cccccc">
 {% endfor %}
 
 {% else %}
-<span style="color:#404040;">Is waqt yahan koi jawab nahi hai</span>
+<span style="color:#404040;">Is waqt yahan kuch nahi hai</span>
 {% endif %}
 </div>
 {% endblock %}
@@ -80,11 +81,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:red;width:5em;white-space:nowrap;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button style="color:#1947d1;background-color:#FFEFD5;border-color:green;width:5em;white-space:nowrap;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

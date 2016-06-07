@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+
+
+<span style="color:#1f8cad;font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{% emoticons %}(*)(*) Mubarik ho dost! (*)(*){% endemoticons %}</b><br><br>Tum ne <b style="color:#179b36;">{{ namaz }}</b> parh kr nekiyun mein izafa kiya!<br>
+{% if user.userprofile.streak > 1 %}
+Tum lagatar pichli <b style="color:#179b36;">{{ user.userprofile.streak }} namazein</b> parh chuke ho!
+{% endif %}</span>
+<br>
+<hr size=1 COLOR="#3cb7dd">
+<br>
+{% for object in object_list %}
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+<span class="numbers">{{ forloop.counter }}.</span>
+<a href="{% url 'profile' slug=object.prayee.username %}#section0">
+	{% if object.prayee.userprofile.avatar %}
+		<img src="{{ object.prayee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+{{ object.prayee }}</a>
+{% if user.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+ne<b style="color:#179b36;">
+{% if object.which_salat == '1' %}
+Fajr
+{% elif object.which_salat == '2' %}
+Zuhr
+{% elif object.which_salat == '3' %}
+Asr
+{% elif object.which_salat == '4' %}
+Maghrib
+{% elif object.which_salat == '5' %}
+Isha
+{% else %}
+namaz 
+{% endif %}</b>
+parhi, {{ object.timing|naturaltime }}<br>
+</span>
+{% endfor %}
+<br>
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
+    {% endif %}
+</div>
+{% endif %}
+<br><br>
+{% endblock %}

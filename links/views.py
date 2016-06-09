@@ -66,8 +66,8 @@ prefajr_most = time_object(hour=3, minute=0)
 fajr_least = time_object(hour=3, minute=0)
 fajr_most = time_object(hour=6, minute=30) #i.e. FAJR is between 3AM and 6:30AM
 prezuhr_least = time_object(hour=6, minute=30) 
-prezuhr_most = time_object(hour=7, minute=47)
-zuhr_least = time_object(hour=7, minute=47)
+prezuhr_most = time_object(hour=11, minute=50)
+zuhr_least = time_object(hour=11, minute=50)
 zuhr_most = time_object(hour=14, minute=55)#i.e. ZUHR is between 11:50AM and 2:55PM
 asr_least = time_object(hour=14, minute=55)
 asr_most = time_object(hour=16, minute=55)#i.e. ASR is between 2:55PM and 4:55PM

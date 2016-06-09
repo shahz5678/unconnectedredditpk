@@ -6,12 +6,12 @@
 <form action="{% url 'pic_expiry' slug=unique %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="unique" value="{{ unique }}">
-<b style="font-family:sans-serif;font-size:90%;color:green;">Dost ko ye photo kitni bar dekhne ki ijazat deni hai?</b><br>
-<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:0.3em;margin-bottom:1em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" type="submit" name="decision" value="sirf aik bar"><br>
-<input style="color:#1947D1;background-color:white;border:solid 1px orange;margin-top:-0.3em;text-shadow:none;width:7em;font-weight:bold;border-radius: 4px;font-size:90%;" name="decision" type="submit" value="kayee bar">
+<div style="font-family:sans-serif;font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);margin-bottom:0.5em;"><b>Dost ko ye photo kitni bar dekhne ki ijazat deni hai?</b></div>
+<input style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;margin-bottom:0.5em;" type="submit" name="decision" value="sirf aik bar"><br>
+<input style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;" name="decision" type="submit" value="kayee bar">
 </form>
-<hr size=1>
-<span style="font-size:80%;color:grey;"><b>aik bar</b> wali photo aik bar dekhne ke bad ghayeb ho jati he. <b>kayee bar</b> wali photo 24 ghentay baad ghayeb ho jati he</span>
+<hr size=1 COLOR="#ff9933">
+<span style="font-size:85%;color:grey;"><b>aik bar</b> wali photo aik bar dekhne ke bad ghayeb ho jati he. <b>kayee bar</b> wali photo 24 ghentay baad ghayeb ho jati he. Lekin yad rakho, log photo save bhi kr saktey hain!</span>
 
 </div>
 </body>

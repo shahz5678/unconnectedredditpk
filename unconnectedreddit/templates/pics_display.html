@@ -2,22 +2,22 @@
 {% block content %}
 <div class="margin">
 {% if object_list %}
-	<a href="{% url 'pic_upload' %}"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:85%;">Naee photo bhejo</button></a>
-	<p style="color:gray"><hr size=1></p>
+	<a href="{% url 'pic_upload' %}"><button style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:7.5em;font-size:90%;"><b>Naee photo bhejo</b></button></a>
+	<p><hr size=1 COLOR="#ffbf00"></p>
 	{% for pic in object_list %}
 		{% if pic.image %}
 		<img style="width:100%;max-width:400px;margin-bottom:0.3em;" src="{{ pic.image.url }}"></img><br>
 		{% else %}
 		<img style="width:100%;max-width:400px;margin-bottom:0.3em;" src="{{ STATIC_URL }}img/broken_pic.png"></img><br>
 		{% endif %}
-	<a href="{% url 'pic_expiry' slug=pic.unique %}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">dost ko yeh bhejo</button></a><br>
-	<a href="{% url 'delete_pic' slug=pic.unique %}#section0"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-top:0.1em;">isko mita do</button></a>
-	<p style="color:gray;"><hr size=1></p>
+	<a href="{% url 'pic_expiry' slug=pic.unique %}"><button style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;font-size:90%;margin-bottom:0.4em;">dost ko bhejo</button></a><br>
+	<a href="{% url 'delete_pic' slug=pic.unique %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:7em;white-space:nowrap;font-size:90%;">isko mita do</button></a>
+	<p><hr size=1 COLOR="#ffbf00"></p>
 	{% endfor %}
 {% else %}
-	<span style="font-size:90%;">Yahan se apni photo dostoon ko SMS kro:</span><br>
-	<a href="{% url 'pic_upload' %}"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:85%;margin-top:0.5em;">photo bhejo</button></a><hr size=1>
-	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Damadam ki ye sahoolat <b>bilkul muft</b> hai</i></span>
+	<span style="font-size:90%;">Yahan se apni photo doston ko SMS kro:</span><br>
+	<a href="{% url 'pic_upload' %}"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:85%;margin-top:0.5em;">photo bhejo</button></a><hr size=1 COLOR="#ffbf00">
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Damadam ki ye sahulat <b>bilkul muft</b> hai</i></span>
 {% endif %}
 </div>
 {% endblock %}
@@ -26,12 +26,12 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
-{% endif %}
+{% endif %}<br><br>
 {% endblock %}

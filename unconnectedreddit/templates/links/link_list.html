@@ -42,7 +42,7 @@
 			</span>
 				<p style="margin-top:.5em;"></p>
 				<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></a>&nbsp;&nbsp;
-				<a href="{% url 'x_notif' parent_pk ident 1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
+				<a href="{% url 'x_notif' parent_pk ident 1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
@@ -79,7 +79,7 @@
 		<br>
 		<p style="margin-top:.5em;"></p>
 		<a href="{% url 'comment_pk' parent_pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">tabsra kro</button></a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
 		</a>
 		</div>
 		<p style="margin-top:.5em;"></p>
@@ -107,7 +107,7 @@
 		<p style="margin-top:.3em;"></p>
 		<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -118,12 +118,12 @@
 	{% else %}
 			{% if authenticated %}
 				{% if random == 1 %}
-					<span style="color:#ff8000;font-size:90%;"><b>Top</b> photo uploaders ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;"><b>ye hai</b></button></a></span>
+					<span style="color:#ff8000;font-size:90%;"><b>Top</b> photo uploaders ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
 				{% else %}
 					{% if username == newest_user.username %}
 					
 					{% else %}
-					<span style="color:#229ec3;font-size:90%;"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;"><b>mithai bhejo</b></button></a></span>
+					<span style="color:#229ec3;font-size:90%;"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;"><b>mithai bhejo</b></button></a></span>
 					{% endif %}
 				{% endif %}
 			{% else %}
@@ -140,8 +140,24 @@
 
 {% for link in object_list %}
 		
-	{% if forloop.counter == 3 %}
-		<div style="background-color:#BCF5A9;margin-top:-1em;padding-top:1em;"><span style="font-weight:bold;color:green;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<u>Yahan se</u></a> muft mein apni photos dostoon ko SMS ke zariye bhejo!</span><a href="{% url 'pic_help' %}" style="font-size:85%;"> (?)</a><br><br><hr size=1 COLOR="#3cb7dd"></div>
+	{% if authenticated and forloop.counter == 4 %}
+		{% if not show_current and not show_next %}
+			<!-- nothing to show -->
+		{% elif show_current and not show_next %}
+			<span style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);">Kya <b>{{ current_namaz }}</b> ki namaz parh li hai?</span>&nbsp;
+			<a href="{% url 'salat_tutorial_init' current_namaz %}">
+			<button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:4em;font-size:90%;border-radius:4px;text-align: center;"><b>Haan</b></button></a>&nbsp;
+			<a href="{% url 'skip_salat' current_namaz %}">
+			<button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;margin-bottom:0.4em;text-align: center;"><b>X</b></button></a><br>
+			<hr size=1 COLOR="#3cb7dd">
+		{% elif not show_current and show_next %}
+			<div style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);padding-bottom:0.4em;"><b>Agli namaz:</b> <b style="color:#179b36;">{{ next_namaz }}</b> parh kr yahan uska record zarur <b style="color:#179b36;">save</b> krna!&nbsp;
+			<!-- <a href="{% url 'skip_presalat' %}">
+			<button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;text-align: center;border-radius:4px;"><b>X</b></button></a> -->
+			</div><hr size=1 COLOR="#3cb7dd">
+		{% else %}
+			<!-- nothing to show -->
+		{% endif %}
 	{% endif %}
 
 	{% if link.cagtegory == '2' %}
@@ -299,16 +315,16 @@
 		<p style="margin-top:.5em;">
 			
 				{% if link.reply_count > 0 %}
-						<a href="{% url 'reply_pk' link.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button></a>
+						<a href="{% url 'reply_pk' link.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply_pk' link.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;">isko jawab do</button></a>
 				{% endif %}
 			<br>
 
 		{% if can_vote and link.submitter != user and link.pk not in voted %}
-			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;font-size:90%;margin-top:0.7em;border-radius:4px;">jhappee</button></a>
+			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">jhappee</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
-			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;border-radius:4px;">chupair</button></a>
+			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;border-radius:4px;text-align: center;">chupair</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-300</u></a>{% endif %}<br>
 		{% endif %}
 		</p>
@@ -365,11 +381,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

@@ -2,9 +2,9 @@
 {% load thumbnail %}
 {% block content %}
 {% load cache %}
-{% cache 300 top_fotos_fragment %}
+{% cache 300 top_photos_fragment %}
     <div class="margin">
-    <b>Top photo uploaders:</b><br><br>
+    <b style="color:#404040;font-size:105%;">Damadam top 100 stars:</b><br><br>
     {% for user in users %}
     <b class="numbers">{{ forloop.counter }}.</b>
     <a href="{% url 'profile' slug=user.0.username %}#section0">
@@ -21,7 +21,8 @@
 	    	<span style="color:#9900cc;">({{ user.0.userprofile.media_score }})</span>
 		{% endif %}
     {% else %}
-    {% endif %}<span style="font-size:80%;color:#ff8000;">, <a href="{% url 'profile' slug=user.0.username %}#section0" style="color:#ff8000;"><b>{{ user.1 }}</b> photos</a></span>
+    {% endif %}<b>:<span style="font-size:100%;color:#ff8000;"> <a href="{% url 'profile' slug=user.0.username %}#section0" style="color:#ff8000;">{{ user.2 }} fans</span></b>
+    <span style="font-size:80%;color:#ff8000;">({{ user.1 }} photos)</a></span>
     <br>
     
     {% endfor %}

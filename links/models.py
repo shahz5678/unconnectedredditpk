@@ -280,6 +280,14 @@ LIFETIME = (
 ('3','User Decided')
 	)
 
+SALAT = (
+('1','Fajr'),
+('2','Zuhr'),
+('3','Asr'),
+('4','Maghrib'),
+('5','Isha'),
+	)
+
 REPLIES = (
 ('0','Normal'),
 ('1','Invite'),
@@ -528,6 +536,20 @@ class Cooldown(models.Model):
 	time_of_casting = models.DateTimeField() #Max 10 votes, regenerate a vote after 30 mins.
 	hot_score = models.IntegerField(default=0, validators=[MaxValueValidator(12)])
 
+class LatestSalat(models.Model):
+	salatee = models.ForeignKey(User)
+	latest_salat = models.CharField(choices=SALAT, max_length = 8)
+	when = models.DateTimeField()
+	skipped = models.BooleanField(default=False)
+
+class Salat(models.Model):
+	prayee = models.ForeignKey(User)
+	which_salat = models.CharField(choices=SALAT, max_length = 8)
+	timing = models.DateTimeField()
+
+	def __unicode__(self):
+		return u"%s offered %s" % (self.prayee, self.which_salat)
+
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, unique=True)
 	bio = models.TextField("Apney baarey mein koi khaas baat batao", default='Ao gupshup lagain...', null=True)
@@ -538,6 +560,7 @@ class UserProfile(models.Model):
 	attractiveness = models.CharField("Shakal soorat", max_length=50, default=1)
 	mobilenumber = models.CharField("Mobile Number ", blank=True, max_length=50) #added mobile number to model, form and __init__
 	score = models.IntegerField("Score", default=0)
+	streak = models.IntegerField("Streak", default=0, db_index=True)
 	media_score = models.IntegerField("Media Score", default=0)
 	avatar = models.ImageField(upload_to=upload_avatar_to_location, storage=OverwriteStorage(), null=True, blank=True )
 
@@ -582,6 +605,7 @@ class TutorialFlag(models.Model):
 	seen_chain = models.BooleanField(default=False)
 	seen_photo_option = models.BooleanField(default=False)
 	seen_fan_option = models.BooleanField(default=False)
+	seen_salat_option = models.BooleanField(default=False)
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

@@ -4,10 +4,17 @@
 <div class="margin">
 
 {% if own_profile %}
-<h2 style="color:#404040;"><u>Tumhari photos</u></h2>
+<h2 style="color:#404040;">Tumhari photos:</h2>
 {% else %}
-<h2 style="color:#404040;"><u>{{ slug }}{% if slug in legit %}<span style="color:deeppink;">*</span>{% endif %} ki photos</u></h2>
+<h2 style="color:#404040;">{{ slug }}{% if slug in legit %}<span style="color:deeppink;">*</span>{% endif %} ki photos:</h2>
 {% endif %}
+<b style="color:#404040;">Profile photo:</b>
+{% if subject.userprofile.avatar %}
+<img src="{{ subject.userprofile.avatar.url }}" alt="no photo" class ="info"></img>
+{% else %}
+	<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
+{% endif %}
+<br>
 <b style="color:#404040;">Photo score:</b>&nbsp;<span style="color:#993399;"><b>{{ subject.userprofile.media_score }}</b></span>
 <br><b style="color:#404040;">Profile:&nbsp;</b><span style="color:#404040;"> {{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" style="font-size:85%;">&nbsp;(profile dekho)</a>
 <br>{% if fans == 1 %}
@@ -45,11 +52,11 @@
 <br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#FF1A1A;border-color:#cc0000;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">fan khatm kro</button></a>
 {% endif %}
 {% endif %}
-
+<br><hr size=1 COLOR="#ff9933"><br>
+<a name="sectionJ">
 {% if not object_list %}
-<br><hr size=1 COLOR="#ff9933"><br><i style="color:dimgrey;">Abhi tak photo upload nahi ki</i><br><br>
+<i style="color:dimgrey;">Abhi tak photos upload nahi ki</i><br><br>
 	{% else %}
-	<br><hr size=1 COLOR="#ff9933"><br>
 	{% for photo in object_list %}
 	<a name="section{{ forloop.counter }}"></a>
 	<a href="{% url 'comment_profile_pk' photo.id star_id 3 %}">
@@ -81,11 +88,11 @@
 
 		{% if not own_profile and can_vote and photo.id not in voted %}
 		<a href="{% url 'photo_vote' star_id photo.id 1 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5em;">mazedar</button></a><br>
-		<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5em;">bakwas</button></a><br>
+		<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.7em;width:5em;">bakwas</button></a>
 		{% endif %}
 
 			{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}
-				<a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
+				<a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 			{% endif %}
 	<br>
 	<span style="font-size:80%;color:grey;">charhai {{ photo.upload_time|naturaltime }}</span><p><hr size=1 COLOR="#ff9933"></p>
@@ -99,11 +106,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

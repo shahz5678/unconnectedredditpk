@@ -1,6 +1,5 @@
 # Create your views here.
 import re, urlmarker, StringIO
-from itertools import chain
 import urlparse
 from collections import OrderedDict
 from operator import attrgetter
@@ -16,7 +15,7 @@ from allowed import ALLOWED
 from .tasks import bulk_create_notifications
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
-GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan
+GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -35,7 +34,7 @@ RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicFo
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
-TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -44,6 +43,7 @@ from urllib import quote
 from PIL import Image, ImageFile
 import datetime
 from datetime import datetime, timedelta
+from datetime import time as time_object
 from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -58,6 +58,23 @@ from brake.decorators import ratelimit
 #from registration.backends.simple.views import RegistrationView
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
+
+namaz_timings = {}
+
+prefajr_least = time_object(hour=0, minute=0)
+prefajr_most = time_object(hour=3, minute=0) 
+fajr_least = time_object(hour=3, minute=0)
+fajr_most = time_object(hour=6, minute=30) #i.e. FAJR is between 3AM and 6:30AM
+prezuhr_least = time_object(hour=6, minute=30) 
+prezuhr_most = time_object(hour=7, minute=47)
+zuhr_least = time_object(hour=7, minute=47)
+zuhr_most = time_object(hour=14, minute=55)#i.e. ZUHR is between 11:50AM and 2:55PM
+asr_least = time_object(hour=14, minute=55)
+asr_most = time_object(hour=16, minute=55)#i.e. ASR is between 2:55PM and 4:55PM
+maghrib_least = time_object(hour=16, minute=55)
+maghrib_most = time_object(hour=20, minute=0)#i.e. MAGHRIB is between 4:55PM and 8:00PM
+isha_least = time_object(hour=20, minute=0)
+isha_most = time_object(hour=23, minute=59)#i.e. ISHA is between 8:00PM and 12:00AM (midnight)
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -79,7 +96,8 @@ def check_photo_abuse(count, photos):
 		time_remaining = None
 		return forbidden, time_remaining
 	else:
-		time_now = datetime.utcnow().replace(tzinfo=utc)			
+		#time_now = datetime.utcnow().replace(tzinfo=utc)			
+		time_now = timezone.now()
 		difference = time_now - photos[0][2]
 		seconds = difference.total_seconds()
 		#print "seconds: %s:" % seconds
@@ -171,7 +189,8 @@ def valid_uuid(uuid):
 
 def GetLatest(user):
 	try:
-		now = datetime.utcnow().replace(tzinfo=utc)
+		#now = datetime.utcnow().replace(tzinfo=utc)
+ 		now = timezone.now()
  		timestamp = now - timedelta(minutes=90)
 		#latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False, updated_at__gte=timestamp).latest('updated_at')
 		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
@@ -570,6 +589,24 @@ def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	else:
 		return redirect("score_help")
 
+class SalatSuccessView(ListView):
+	template_name = "salat_success.html"
+	model = Salat
+	paginate_by = 50
+
+	def get_queryset(self):
+			return Salat.objects.order_by('-timing')[:500]
+
+	def get_context_data(self, **kwargs):
+		context=super(SalatSuccessView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["namaz"] = self.kwargs["slug"]
+			context["weekday"] = self.kwargs["num"]
+			if context["weekday"] == '4' and context["namaz"] == 'Zuhr':
+				context["namaz"] = 'Jummah'
+			context["girls"] = FEMALES
+		return context
+
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm
 	template_name = "report_reply.html"
@@ -637,6 +674,244 @@ class LinkDetailView(DetailView):
 			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
 		return context
 
+def WhichNamaz(minutes):
+	hour = minutes // 60
+	minute = minutes % 60
+	current_time = time_object(hour=hour, minute=minute)
+	#print current_time, isha_least, isha_most
+	if prefajr_least <= current_time < prefajr_most:
+		namaz = False
+		next_namaz = 'Fajr'
+		previous_namaz = 'Isha'
+	elif fajr_least <= current_time < fajr_most:
+		namaz = 'Fajr'
+		next_namaz = 'Zuhr'
+		previous_namaz = 'Isha'
+	elif prezuhr_least <= current_time < prezuhr_most:
+		namaz = False
+		next_namaz = 'Zuhr'
+		previous_namaz = 'Fajr'
+	elif zuhr_least <= current_time < zuhr_most:
+		namaz = 'Zuhr'
+		next_namaz = 'Asr'
+		previous_namaz = 'Fajr'
+	elif asr_least <= current_time < asr_most:
+		namaz = 'Asr'
+		next_namaz = 'Maghrib'
+		previous_namaz = 'Zuhr'
+	elif maghrib_least <= current_time < maghrib_most:
+		namaz = 'Maghrib'
+		next_namaz = 'Isha'
+		previous_namaz = 'Asr'
+	elif isha_least <= current_time <= isha_most:
+		namaz = 'Isha'
+		next_namaz = 'Fajr'
+		previous_namaz = 'Maghrib'
+	else:
+		namaz = False
+		next_namaz = False
+		previous_namaz = False
+	return previous_namaz, next_namaz, namaz
+
+namaz_timings = {minute: WhichNamaz(minute) for minute in range(1440)}
+
+def streak_alive(prev_salat_name, latest_salat_object, now):
+	#latest_salat_minute = latest_salat_object.when.hour * 60 + latest_salat_object.when.minute
+	#previous_latest_namaz, next_latest_namaz, latest_namaz = namaz_timings[latest_salat_minute]
+	#latest_namaz is False if pre-namaz object was skipped
+	if latest_salat_object.skipped:# and latest_namaz:
+		return False
+	else:
+		latest_salat_date = latest_salat_object.when.date()
+		latest_salat_time = latest_salat_object.when.time()
+		# print "prev_salat_name: %s" % prev_salat_name
+		# print "latest_salat_date: %s" % latest_salat_date
+		# print "latest_salat_time: %s" % latest_salat_time
+		# print "now.date(): %s" % now.date()
+		if prev_salat_name == 'Fajr':
+			if (fajr_least <= latest_salat_time < fajr_most) and latest_salat_date == now.date():
+				return True
+			else:
+				return False
+		elif prev_salat_name == 'Zuhr':
+			if (zuhr_least <= latest_salat_time < zuhr_most) and latest_salat_date == now.date():
+				return True
+			else:
+				return False
+		elif prev_salat_name == 'Asr':
+			if (asr_least <= latest_salat_time < asr_most) and latest_salat_date == now.date():
+				return True
+			else:
+				return False
+		elif prev_salat_name == 'Maghrib':
+			if (maghrib_least <= latest_salat_time < maghrib_most) and latest_salat_date == now.date():
+				return True
+			else:
+				return False
+		elif prev_salat_name == 'Isha':
+			if (isha_least <= latest_salat_time < isha_most) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
+				return True
+			else:
+				return False
+		else:
+			return False
+
+def skip_presalat(request, *args, **kwargs):
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+	if namaz:
+		#i.e. it's not pre-namaz time
+		return redirect("home")
+	else:
+		if next_namaz == 'Fajr':
+			salat='5'
+		elif next_namaz == 'Zuhr':
+			salat='1'
+		elif next_namaz == 'Asr':
+			salat='2'
+		elif next_namaz == 'Maghrib':
+			salat='3'
+		elif next_namaz == 'Isha':
+			salat='4'
+		else:
+			return redirect("home")
+		try:
+			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
+			latest_namaz.skipped = True
+			latest_namaz.when = now
+			latest_namaz.save()
+		except:
+			LatestSalat.objects.create(salatee=request.user, latest_salat=salat, when=now, skipped=True)
+		return redirect("home")
+
+
+def skip_salat(request, skipped=None, *args, **kwargs):
+	if skipped:
+		now = datetime.utcnow()+timedelta(hours=5)
+		current_minute = now.hour * 60 + now.minute
+		previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+		if not namaz:
+			return redirect("home")
+		elif skipped != namaz:
+			return redirect("home")
+		else:
+			if namaz == 'Fajr':
+				salat='1'
+			elif namaz == 'Zuhr':
+				salat='2'
+			elif namaz == 'Asr':
+				salat='3'
+			elif namaz == 'Maghrib':
+				salat='4'
+			elif namaz == 'Isha':
+				salat='5'
+			else:
+				return redirect("home")
+		try:
+			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
+			latest_namaz.skipped = True
+			latest_namaz.latest_salat = salat
+			latest_namaz.when = now
+			latest_namaz.save()
+		except:
+			LatestSalat.objects.create(salatee=request.user, latest_salat=salat, when=now, skipped=True)
+		request.user.userprofile.streak = 0
+		request.user.userprofile.save()
+		return redirect("home")
+	else:
+		return redirect("home")
+
+def salat_tutorial_init(request, offered=None, *args, **kwargs):
+	try:
+		tut = TutorialFlag.objects.get(user=request.user)
+		if tut.seen_salat_option:
+			return redirect("process_salat")
+		else:
+			return redirect("salat_tutorial")
+	except:
+		TutorialFlag.objects.create(user=request.user)
+		return redirect("salat_tutorial")
+
+def process_salat(request, offered=None, *args, **kwargs):
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	#time_now = now.time()
+	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+	#print previous_namaz, next_namaz, namaz
+	if not namaz:
+		#it's not time for any namaz, ABORT
+		return redirect("home")
+	else:
+		if namaz == 'Fajr':
+			salat='1'
+		elif namaz == 'Zuhr':
+			salat='2'
+		elif namaz == 'Asr':
+			salat='3'
+		elif namaz == 'Maghrib':
+			salat='4'
+		elif namaz == 'Isha':
+			salat='5'
+		else:
+			return redirect("home")
+		Salat.objects.create(prayee=request.user, timing=now, which_salat=salat)
+		try:
+			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
+			if streak_alive(previous_namaz, latest_namaz,now):
+				request.user.userprofile.streak = request.user.userprofile.streak + 1
+			else:
+				request.user.userprofile.streak = 1
+			latest_namaz.when = now
+			latest_namaz.latest_salat = salat
+			latest_namaz.skipped = False
+			latest_namaz.save()
+			request.user.userprofile.save()
+		except:
+			#the person hasn't prayed before, i.e. streak is at 0
+			latest_salat = LatestSalat.objects.create(salatee=request.user, when=now, latest_salat=salat)
+			request.user.userprofile.streak = 1
+			request.user.userprofile.save()
+		return redirect("salat_success", namaz, now.weekday())
+
+def AlreadyPrayed(salat, now):
+	current_minute = now.hour * 60 + now.minute
+	time_now = now.time()
+	date_now = now.date()
+	datetime_of_latest_salat = salat.when
+	minute_of_latest_salat = datetime_of_latest_salat.hour * 60 + datetime_of_latest_salat.minute 
+	time_of_latest_salat = datetime_of_latest_salat.time()
+	date_of_latest_salat = datetime_of_latest_salat.date()
+	# print date_now, date_of_latest_salat
+	if date_now != date_of_latest_salat:
+		#prayee has not already prayed, in fact they haven't logged any salat today
+		#but cater to edge cases and graceful failure
+		return False
+	elif date_now == date_of_latest_salat:
+		#prayee logged a salat today
+		previous_salat_to_do, next_salat_to_do, salat_to_do = namaz_timings[current_minute]
+		previous_salat_done, next_salat_done, salat_done = namaz_timings[minute_of_latest_salat]
+		if not salat_to_do and not salat_done:
+			#this is some kind of an error, handle it gracefully
+			return True
+		elif not salat_to_do:
+			#i.e. it's either pre-fajr or pre-zuhr right now, and the person has already prayed too
+			if salat.skipped:
+				return 2
+			else:
+				return True
+		elif salat_done == salat_to_do:
+			#i.e. the user has already prayed
+			if salat.skipped:
+				return 2
+			else:
+				return True
+		elif salat_done != salat_to_do:
+			#print salat_done, salat_to_do
+			return False
+		else:
+			return True
+
 class LinkListView(ListView):
 	model = Link
 	paginate_by = 20
@@ -664,6 +939,67 @@ class LinkListView(ListView):
 			user = self.request.user
 			context["ident"] = user.id
 			context["username"] = user.username
+			#### Namaz feature #########################################################################################
+			# latest_saat = LatestSalat.objects.get(salatee=self.request.user)
+			# saat = Salat.objects.filter(prayee=self.request.user, which_salat='5').latest('timing')
+			# latest_saat.when = saat.timing
+			# latest_saat.latest_salat = saat.which_salat
+			# latest_saat.save()
+			now = datetime.utcnow()+timedelta(hours=5)
+			day = now.weekday()
+			current_minute = now.hour * 60 + now.minute
+			previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+			if namaz == 'Zuhr' and day == 4: #4 is Friday
+				context["current_namaz"] = 'Jummah'
+			else:
+				context["current_namaz"] = namaz
+			if next_namaz == 'Zuhr' and day == 4:#4 if Friday
+				context["next_namaz"] = 'Jummah'	
+			else:
+				context["next_namaz"] = next_namaz
+			if not namaz and not next_namaz:
+				# do not show namaz element at all, some error may have occurred
+				context["show_current"] = False
+				context["show_next"] = False
+			elif not namaz:
+				#i.e. it's pre-namaz time, just show the NEXT namaz to the user
+				try:
+					latest_salat = LatestSalat.objects.get(salatee=user)
+					already_prayed = AlreadyPrayed(latest_salat, now)
+					if already_prayed == 2:
+						#if user skipped previous namaz, no need to show prompt
+						context["show_current"] = False
+						context["show_next"] = False
+					else:
+						context["show_current"] = False
+						context["show_next"] = True
+				except:
+					context["show_current"] = False
+					context["show_next"] = True
+			else:
+				#it's currently namaz time, now it's time to check whether the person has already offered it or not!
+				#if she has offered it, show the NEXT namaz the user has to offer
+				#if she hasn't offered it, show the CURRENT namaz the user has to offer
+				try:
+					latest_salat = LatestSalat.objects.get(salatee=user)
+					#the user has prayed before, now check if this was the CURRENT prayer, or a previous one!
+					already_prayed = AlreadyPrayed(latest_salat, now)
+					if already_prayed:
+						if already_prayed == 2:
+							context["show_current"] = False
+							context["show_next"] = False
+						else:
+							context["show_current"] = False
+							context["show_next"] = True
+					else:
+						#i.e. show the CURRENT namaz the user has to offer
+						context["show_current"] = True
+						context["show_next"] = False
+				except:
+					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+					context["show_current"] = True
+					context["show_next"] = False
+			################################################################################################################
 			score = user.userprofile.score
 			context["score"] = score
 			if score > 9:
@@ -1735,7 +2071,8 @@ class UploadPhotoReplyView(CreateView):
 			context = {'score': '15'}
 			return render(self.request, 'score_photo.html', context)
 		else:
-			time_now = datetime.utcnow().replace(tzinfo=utc)
+			#time_now = datetime.utcnow().replace(tzinfo=utc)
+			time_now = timezone.now()
 			try:
 				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
 				difference = time_now - photocooldown.time_of_uploading 
@@ -2605,7 +2942,8 @@ class UploadPhotoView(CreateView):
 				if vote_score_positive and number_of_photos < 5:
 					vote_score_positive = False
 				total_visible_score = sum(photo[1] for photo in photos)
-				now = datetime.utcnow().replace(tzinfo=utc)
+				#now = datetime.utcnow().replace(tzinfo=utc)
+				now = timezone.now()
 				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
 				if hotuser:
 					pass
@@ -2623,7 +2961,8 @@ class UploadPhotoView(CreateView):
 			context = {'score': '3'}
 			return render(self.request, 'score_photo.html', context)
 		else:
-			time_now = datetime.utcnow().replace(tzinfo=utc)
+			#time_now = datetime.utcnow().replace(tzinfo=utc)
+			time_now = timezone.now()
 			try:
 				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
 				difference = time_now - photocooldown.time_of_uploading 
@@ -3044,7 +3383,8 @@ class PicPasswordView(NeverCacheMixin,FormView):
 			#i.e. the message was already seen
 			if expiry_interval == '1':
 				#the viewer has refreshed, so disappear the image FOREVER, but determine which error message to show
-				time_now = datetime.utcnow().replace(tzinfo=utc)
+				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				time_now = timezone.now()
 				viewing_time = message.viewing_time
 				difference = time_now - viewing_time
 				if difference.total_seconds() < 60 and is_visible:
@@ -3061,7 +3401,8 @@ class PicPasswordView(NeverCacheMixin,FormView):
 					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1),'caption':None,}
 			elif expiry_interval == '2':
 				#the user has refreshed, but it was a day-long image
-				time_now = datetime.utcnow().replace(tzinfo=utc)
+				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				time_now = timezone.now()
 				viewing_time = message.viewing_time
 				difference = time_now - viewing_time
 				if difference.total_seconds() < (60*60*24) and is_visible:
@@ -3083,12 +3424,14 @@ class PicPasswordView(NeverCacheMixin,FormView):
 			#the message object is being opened for the first time
 			if self.request.user.is_authenticated() and self.request.user == sender:
 				#if the person opening it is the same person who sent the photo
-				time_now = datetime.utcnow().replace(tzinfo=utc)
+				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				time_now = timezone.now
 				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':0,'caption':caption,}
 			else:
 				#set the seen flag of the message object
 				message.seen = True
-				viewing_time = datetime.utcnow().replace(tzinfo=utc)
+				#viewing_time = datetime.utcnow().replace(tzinfo=utc)
+				viewing_time = timezone.now()
 				message.viewing_time = viewing_time
 				message.save()
 				if expiry_interval == '1' and is_visible:
@@ -3454,7 +3797,8 @@ class PublicGroupView(CreateView):
 				GroupTraffic.objects.create(visitor_id=self.request.user.id,which_group_id=group.id)#create DB call
 				context["ensured"] = FEMALES
 				replies = Reply.objects.filter(which_group_id=group.id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
-				time_now = datetime.utcnow().replace(tzinfo=utc)
+				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				time_now = timezone.now()
 				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
 				most_recent = {}
 				for reply,user,time in writers_with_times:
@@ -3562,7 +3906,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
 				context["ensured"] = FEMALES
 				replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
-				time_now = datetime.utcnow().replace(tzinfo=utc)
+				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				time_now = timezone.now()
 				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
 				most_recent = {}
 				for reply,user,time in writers_with_times:
@@ -4464,7 +4809,8 @@ def photo_vote(request, user_id=None, pk=None, val=None, slug=None, *args, **kwa
 			return redirect("user_profile_photo", slug, pk)
 
 def update_cooldown(obj):
-	time_now = datetime.utcnow().replace(tzinfo=utc)
+	#time_now = datetime.utcnow().replace(tzinfo=utc)
+	time_now = timezone.now()
 	#print time_now
 	time_passed = obj.time_of_casting
 	#print time_passed
@@ -4482,7 +4828,7 @@ def update_cooldown(obj):
 def find_time(obj):
 	time_passed = obj.time_of_casting
 	target_time = time_passed + timedelta(minutes=6) # control the interval length from here
-	difference = target_time - datetime.utcnow().replace(tzinfo=utc)
+	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
 @ratelimit(rate='1/s')
@@ -4586,6 +4932,26 @@ def fan(request, pk=None, *args, **kwargs):
 			return redirect("profile", user.username)
 		return redirect("see_photo")
 
+class SalatTutorialView(FormView):
+	form_class = SalatTutorialForm
+	template_name = "salat_tutorial.html"
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			try:
+				choice = self.request.POST.get("choice")
+				if choice == 'samajh gaya':
+					TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
+					return redirect("process_salat")
+				else:
+					return redirect("home")
+			except:
+				TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
+				return redirect("process_salat")
+		else:
+			TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
+			return redirect("home")
+
 class FanTutorialView(FormView):
 	form_class = FanTutorialForm
 	template_name = "fan_tutorial.html"
@@ -4650,7 +5016,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			try:
 				cooldown = Cooldown.objects.filter(voter=request.user).latest('id')
 			except:
-				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=datetime.utcnow().replace(tzinfo=utc))
+				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=timezone.now())
 			#print cooldown.pk
 			#print "score before update: %s" % cooldown.hot_score
 			obj = update_cooldown(cooldown)
@@ -4658,6 +5024,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			if int(obj.hot_score) < 1:
 				time_remaining = find_time(obj)
 				time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
+				time_stamp = timezone.now() + time_remaining
 				#print "time_remaining: %s" % time_remaining
 				context = {'time_remaining': time_stamp}
 				return render(request, 'cooldown.html', context)
@@ -4684,7 +5051,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 						link.submitter.userprofile.score = link.submitter.userprofile.score + 2
 						link.submitter.userprofile.save()
 						cooldown.hot_score = cooldown.hot_score - 1
-						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 				elif value == 2:
 					if request.user_banned or request.user.username not in FEMALES:
 						return redirect("score_help")
@@ -4696,7 +5063,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()
 						cooldown.hot_score = cooldown.hot_score - 3
-						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 				elif value == 0:
 					if request.user_banned:
 						return redirect("score_help")
@@ -4708,7 +5075,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()
 						cooldown.hot_score = cooldown.hot_score - 1
-						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -1
 				elif value == 3:
 					if request.user_banned or request.user.username not in FEMALES:
@@ -4721,7 +5088,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
 						link.submitter.userprofile.save()
 						cooldown.hot_score = cooldown.hot_score - 3
-						cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
+						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -2
 				else:
 					value = 0

@@ -4,51 +4,21 @@
 <body bgcolor="#FFFFE0">
 <div class="margin" style="font-family:sans-serif;">
 {% if legit %}
-	{% if fbs == '1' and device == '1' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><br>
-		<span style="font-size:85%;color:grey;">Fikr na kro, <b>paise nahi lagein ge</b> agr tm yahan se bahir nikal gaye</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '1' and device == '2' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><br>
-		<span style="font-size:85%;color:grey;">Fikr na kro, <b>paise nahi lagein ge</b> agr tm yahan se bahir nikal gaye.</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '1' and device == '3' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do.</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '1' and device == '4' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye maloomat SMS kr do.</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '1' and device == '5' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakta hai.<br>Dost ko ye link SMS kr do:<br>
-		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><br>
-		<span style="font-size:85%;color:grey;">Fikr na kro, <b>paise nahi lagein ge</b> agr tm yahan se bahir nikal gaye</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
+{% if fbs == '1' %}
+<b style="color:#404040;">Jis ko photo dikhani hai, kya woh freebasics pe hai?</b><br>
+<span style="color:green;">-</span>&nbsp;<span style="color:#404040;font-size:95%;">Agr haan, toh usse yeh jumla SMS kro: <b style="color:#ff9933;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:95%;">meri photo dekhne ke liye {{ num }} code is link mein dalo:</span>&nbsp;https://https-damadam-pk.0.freebasics.com/p/{{ addr }}</b><br>
+<span style="color:green;">-</span>&nbsp;<span style="color:#404040;font-size:95%;">Agr nahi, toh usse yeh jumla bhejo: <b style="color:#ff9933;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:95%;">meri photo dekhne ke liye {{ num }} code is link mein dalo:</span>&nbsp;https://damadam.pk/p/{{ addr }}</b><br>
+<br><b style="color:#404040;">Agr alfaz copy kr ke bhejne nahi atey toh:</b><br>
+<span style="color:green;">-</span>&nbsp;<span style="color:#404040;font-size:95%;">Freebasics wale dost ko yahan se SMS kro&nbsp;<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: https://https-damadam-pk.0.freebasics.com/p/{{ addr }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">SMS kro</button></a></span><br>
+<span style="color:green;">-</span>&nbsp;<span style="color:#404040;font-size:95%;">Freebasics ke beghair dost ko yahan se SMS kro&nbsp;<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-bottom:0.3em;">SMS kro</button></a></span>
+{% else %}
+<span style="color:#404040;font-size:95%;">Jis ko photo dikhani hai, us ko yeh jumla bhejo:<br><b style="color:#ff9933;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:95%;">meri photo dekhne ke liye {{ num }} code is link mein dalo:&nbsp;https://damadam.pk/p/{{ addr }}</b></span><br><br>
+<span style="color:#404040;font-size:95%;">Agr alfaz copy kr ke bhejne nahi atey toh ye button dbao</span>&nbsp;<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-bottom:0.3em;">SMS kro</button></a><br>
+{% endif %}
+<br>
 
-	{% elif fbs == '0' and device == '1' %}			
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '0' and device == '2' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>			
-	{% elif fbs == '0' and device == '3' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do.</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '0' and device == '4' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do.</span><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% elif fbs == '0' and device == '5' %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% else %}
-		<span style="font-size:87%;color:green;">Tumhari photo <span style="color:blue;word-wrap:break-word;">damadam.pk/p/<b>{{ addr }}</b></span> pe <b>{{ num }}</b> code dal kr dekhi ja sakti hai.<br>Dost ko ye maloomat SMS kr do:<br>
-		<a href="sms:03?body={{ num }} code dal kr yahan meri photo dekho: damadam.pk/p/{{ addr }}"><button style="color:#1947D1;background-color:white;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:orange;white-space:nowrap;font-size:85%;margin-bottom:0.2em;">SMS kro</button></a><hr size=1>
-		<span style="color:grey;font-size:90%;">Muft chat ke liye <a href="{% url 'home' %}"><u>yahan jao</u></a></span>
-	{% endif %}
+	<hr size=1 COLOR="#ff9933">
+		<span style="color:#732673;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:90%;">Damadam pr wapis jao: <a href="{% url 'home' %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;"><b>Damadam</b></button></a></span>
 {% else %}
 	<span style="color:red;font-size:95%;"><b>Is terah kaam nahi chalta ...</b></span>
 {% endif %}

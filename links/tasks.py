@@ -2,7 +2,7 @@ import os
 from unconnectedreddit import celery_app1
 import time
 from django.core.cache import get_cache, cache
-#from celery import shared_task
+from django.db.models import Count
 import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -32,6 +32,17 @@ def whoseonline():
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
 	cache_mem.set('online_users', users)  # expiring in 120 seconds
+
+@celery_app1.task(name='tasks.fans')
+def fans():
+	object_list = User.objects.annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
+	ids = [user.id for user in object_list]
+	users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
+	users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+        })
+	cache_mem.set('fans', users_fans)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):

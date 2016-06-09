@@ -367,6 +367,10 @@ class WelcomeReplyForm(forms.Form):
 	class Meta:
 		model = Publicreply
 
+class SalatTutorialForm(forms.Form):
+	class Meta:
+		pass
+
 class DirectMessageForm(forms.Form):
 	class Meta:
 		pass

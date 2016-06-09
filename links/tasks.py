@@ -36,7 +36,7 @@ def whoseonline():
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):
 	fans = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
-	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f+00:00")
+	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
 	if fans:
 		fan_list = []
 		for fan in fans:

@@ -327,6 +327,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=60),  # execute every 60 seconds
         'args': (),
     },
+    'tasks.fans': {
+        'task': 'tasks.fans',
+        'schedule': timedelta(seconds=115),  # execute every 115 seconds
+        'args': (),
+    },
 }
 
 CELERY_TIMEZONE = 'UTC'

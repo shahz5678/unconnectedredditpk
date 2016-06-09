@@ -1775,18 +1775,19 @@ class TopPhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.user_banned:
-			return User.objects.order_by('-userprofile__media_score')[:100]
+			return User.objects.annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
 		else:
 			global condemned
-			return User.objects.exclude(id__in=condemned).order_by('-userprofile__media_score')[:100]
+			#return User.objects.exclude(id__in=condemned).order_by('-userprofile__media_score')[:100]
+			return User.objects.exclude(id__in=condemned).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
 
 	def get_context_data(self, **kwargs):
 		context = super(TopPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["verified"] = FEMALES
 			ids = [user.id for user in context["object_list"]]
-			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
-			users_photo_count = [(users[id], users[id].photo_count) for id in ids]
+			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
+			users_photo_count = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
 			context["users"] = users_photo_count
 		return context
 

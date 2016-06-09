@@ -140,7 +140,7 @@
 
 {% for link in object_list %}
 		
-	{% if authenticated and forloop.counter == 4 and user.username == 'mhb11' %}
+	{% if authenticated and forloop.counter == 4 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}

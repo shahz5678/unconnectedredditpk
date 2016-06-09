@@ -5,13 +5,12 @@
 <div class="margin">
 <form action="{% url 'pic_upload' %}" method="POST" enctype="multipart/form-data">
 {% csrf_token %}
-	<b style="font-family:sans-serif;font-size:90%;color:green;">Yahan photo ka intikhab kro:</b><br>
+	<div style="margin-bottom:0.7em;font-family:sans-serif;font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Yahan photo ka intikhab kro:</b></div>
 	<span style="font-family:sans-serif;font-size:85%;"></span>{{ form.image }}<br>
 	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Neechay <b>OK</b> dabao jab photo ka intikhab ho jaye</i></span><br>
-	<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;text-shadow:none;border-radius:4px;font-weight:bold;margin-bottom:0.4em;" type="submit" value="OK" id="id_submit">
+	<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;margin-bottom:0.3em;" type="submit" value="OK" id="id_submit">
 </form>
 <span style="font-family:sans-serif;color:grey;font-size:80%;"><i><b>OK</b> daba kr 1-2 minute intezar kro takey photo lag jai</i></span><br><hr size=1>
-<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Agr intezar ke bad bhi photo nahi lagti toh 0340-8570004 pe <b>Photo Upload</b> likh kr SMS kro</i></span
 </div>
 </body>
 {% endblock %}

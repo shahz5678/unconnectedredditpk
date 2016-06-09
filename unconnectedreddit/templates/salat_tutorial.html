@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin"> 
+
+	<b style="color:#1f8cad;font-size:100%;">Damadam pr apni <span style="color:#179b36;">namazoon</span> ka hisab rakho!</b><br>
+	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:green;">1)</span> Jb bhi namaz parho toh Damadam pe uska record save kr lo<br>
+	<span style="color:green;">2)</span> Tum apni tamam namazoon ka hisab hamesha dekh sko ge<br>
+	</span>
+	<form action="{% url 'salat_tutorial' %}" method="POST">
+	{% csrf_token %}
+	<input class="button" style="color:white;background-color:#2DB92D;border:solid 1px #179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:6.4em;white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="samajh gaya"><br>
+	<input class="button" style="color:white;background-color:#FF1A1A;border:solid 1px #cc0000;width:6.4em;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="nahi samjha"><br>
+	</form>
+</div>
+{% endblock %}

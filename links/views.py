@@ -190,8 +190,8 @@ def valid_uuid(uuid):
 def GetLatest(user):
 	try:
 		#now = datetime.utcnow().replace(tzinfo=utc)
- 		now = timezone.now()
- 		timestamp = now - timedelta(minutes=90)
+		now = timezone.now()
+		timestamp = now - timedelta(minutes=90)
 		#latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False, updated_at__gte=timestamp).latest('updated_at')
 		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
 		if latest_pos.type_of_object == '0' and latest_pos.updated_at >= timestamp:
@@ -1283,8 +1283,8 @@ class OnlineKonView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-        })
+			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		})
 		users = cache_mem.get('online_users')
 		if self.request.user_banned:
 			return users
@@ -1774,21 +1774,25 @@ class TopPhotoView(ListView):
 	template_name = "top_photo.html"
 
 	def get_queryset(self):
-		if self.request.user_banned:
-			return User.objects.annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
-		else:
-			global condemned
-			#return User.objects.exclude(id__in=condemned).order_by('-userprofile__media_score')[:100]
-			return User.objects.exclude(id__in=condemned).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		})
+		users_fans = cache_mem.get('fans')
+		print users_fans
+		return users_fans
+		# else:
+		# 	global condemned
+		# 	users_purified = [user for user in users_fans if user.pk not in condemned]
+		# 	return users_purified
 
 	def get_context_data(self, **kwargs):
 		context = super(TopPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["verified"] = FEMALES
-			ids = [user.id for user in context["object_list"]]
-			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
-			users_photo_count = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
-			context["users"] = users_photo_count
+			# ids = [user.id for user in context["object_list"]]
+			# users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
+			# users_photo_count = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
+			# context["users"] = users_photo_count
 		return context
 
 class TopView(ListView):

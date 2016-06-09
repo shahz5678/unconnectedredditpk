@@ -1778,7 +1778,6 @@ class TopPhotoView(ListView):
 			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('fans')
-		print users_fans
 		return users_fans
 		# else:
 		# 	global condemned

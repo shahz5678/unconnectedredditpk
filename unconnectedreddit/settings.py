@@ -65,7 +65,7 @@ USE_I18N = True
 USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
+USE_TZ = False
 
 GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-68289796-1'
 

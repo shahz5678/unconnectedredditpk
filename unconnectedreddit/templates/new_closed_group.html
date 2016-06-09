@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
-<b style="color:green;">Apni mehfil ka dilchusp sa topic dalo!</b><br>
+<b style="color:#179b36;">Apni mehfil ka dilchusp sa topic dalo!</b><br>
 
-<form method="post" action="" method="POST">
-{% csrf_token %}
-<span style="color:red;">{{ form.topic.errors }}</span>
-{{ form.topic }}<br>
-<input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK">
+<form method="post" action="{% url 'closed_group_create' %}" method="POST">
+	{% csrf_token %}
+	<span style="color:red;">{{ form.topic.errors }}</span>
+	{{ form.topic }}<br>
+	<input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;text-align: center;" type="submit" value="OK">
 </form>
-
+<br><br><br>
 </div>
 {% endblock %}

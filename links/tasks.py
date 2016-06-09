@@ -35,14 +35,14 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	object_list = User.objects.annotate(num_fans=Count('star', distinct=True)).exclude(num_fans=0).order_by('-num_fans')[:100]
-	ids = [user.id for user in object_list]
-	users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
-	users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
+	object_list = User.objects.annotate(num_fans=Count('star', distinct=True)).annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).order_by('-num_fans')[:100]
+	#ids = [user.id for user in object_list]
+	#users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
+	#users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
-	cache_mem.set('fans', users_fans)  # expiring in 120 seconds
+	cache_mem.set('fans', object_list)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):

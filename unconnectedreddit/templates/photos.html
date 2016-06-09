@@ -127,6 +127,11 @@
 	<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}
 
+		{% if forloop.counter == 3 %}
+		<div style="font-weight:bold;color:#ff8000;padding-bottom:1em;">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<button style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;">Muft mein</button></a> apni photos dostoon ko SMS kro!
+		&nbsp;<a href="{% url 'pic_help' %}" style="font-size:85%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:1.6em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.5em;padding-bottom:0.1em;text-align: center;"><b>?</b></button></a><br><hr size=1 COLOR="#ff9933"></div>
+	{% endif %}
+
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' picstream.cover.owner.username %}#section0">
@@ -213,7 +218,7 @@
 				{% endif %}
 
 
-			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
+			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 
 
 

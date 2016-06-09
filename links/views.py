@@ -4215,7 +4215,7 @@ class UserActivityView(ListView):
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
 			if self.request.user_banned and (self.request.user.username ==  self.kwargs['slug']):
-					return redirect("error")
+				return redirect("score_help")
 			else:
 				global condemned
 				if self.request.user.userprofile.score > 9:

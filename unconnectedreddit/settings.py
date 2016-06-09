@@ -329,7 +329,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'tasks.fans': {
         'task': 'tasks.fans',
-        'schedule': timedelta(seconds=115),  # execute every 115 seconds
+        'schedule': timedelta(seconds=90),  # execute every 90 seconds
         'args': (),
     },
 }

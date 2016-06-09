@@ -2,13 +2,12 @@
 {% block content %}
 <body bgcolor="#FFFFE0" style="font-family:sans-serif;">
 <div class="margin">
-<b style="color:green;font-size:90%;">Muft photo bhejnay ki sahoolat!</b>
-<hr size=1>
-<b style="color:grey;">. </b><span style="font-size:85%;"><b>Muft mein</b> photo lagao aur kisi ko bhi SMS kro</span><br>
-<b style="color:grey;">. </b><span style="font-size:85%;">Photo dekhney ya bhejney ke liye khata kholna zaroori nahi</span><br>
-<b style="color:grey;">. </b><span style="font-size:85%;">Photo sirf woh dekhay ga jis ko tum bhejo gey, koi aur nahi</span><br>
-<b style="color:grey;">. </b><span style="font-size:85%;">Khabardar, touchscreen phone par log <span style="color:red;">screenshot</span> le saktey hain!</span><br><hr size=1>
-{% if user.is_authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<b>try karo ></b></a>
+<b style="color:#179b36;font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Muft photo bhejnay ki sahoolat!</b>
+<hr size=1 COLOR="#ff9933">
+<b style="color:grey;">. </b><span style="font-size:85%;color:#404040;"><b>Muft mein</b> photo laga kr kisi ko bhi SMS kro</span><br>
+<b style="color:grey;">. </b><span style="font-size:85%;color:#404040;">Photo sirf woh dekh sake ga jis ko tm bhejo gey, koi aur nahi</span><br>
+<b style="color:grey;">. </b><span style="font-size:85%;color:#404040;">Gher ikhlaqi photos bhejne se dur raho</span><br><hr size=1 COLOR="#ff9933">
+{% if user.is_authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">try karo ></button></a>
 </div>
 </body>
 {% endblock %}

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% block content %}
-{% load cache %}
-{% cache 300 top_photos_fragment %}
+
     <div class="margin">
     <b style="color:#404040;font-size:105%;">Damadam top 100 stars:</b><br><br>
-    {% for user in users %}
+    {% for user in object_list %}
     <b class="numbers">{{ forloop.counter }}.</b>
     <a href="{% url 'profile' slug=user.0.username %}#section0">
 	{% if user.0.userprofile.avatar %}
@@ -27,5 +26,5 @@
     
     {% endfor %}
     </div>
-{% endcache %}
+
 {% endblock %}

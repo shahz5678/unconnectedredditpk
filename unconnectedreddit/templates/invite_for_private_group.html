@@ -4,9 +4,9 @@
 <div class="margin">
 {% if authorized %}
 {% if group.private == '1' %}
-<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'private_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% else %}
-<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group_reply' %}">{{ group.topic }}</a> mein invite karo: </span><br>
+<span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
 
 {% for visitor in visitors %}

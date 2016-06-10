@@ -111,9 +111,9 @@
 {% elif not authenticated %}
 <span style="color:grey;font-size:90%;">Photo lagane ke liye pehle account banao</span>
 {% elif banned %}
-
+{% elif first_time_user %}
 {% else %}
-<span style="color:#ff8000;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
+<span style="color:#ff8000;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;margin-bottom:0.5em;"><b>score barhao</b></button></a></span>
 {% endif %}
 {% if object_list %}
 {% for picstream in object_list %}

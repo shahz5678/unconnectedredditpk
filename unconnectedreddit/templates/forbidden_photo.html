@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi <b style="color:red;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+	<span style="color:grey;font-size:90%;">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
+	<a href="{% url 'see_photo' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">< wapis</button></a>
+
+</div>
+{% endblock %}

@@ -35,7 +35,7 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	object_list = User.objects.annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
+	object_list = User.objects.annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).annotate(num_fans=Count('star', distinct=True, unique=True)).order_by('-num_fans')[:100]
 	#ids = [user.id for user in object_list]
 	#users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
 	#users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]

@@ -88,7 +88,7 @@
 
 		{% if not own_profile and can_vote and photo.id not in voted %}
 		<a href="{% url 'photo_vote' star_id photo.id 1 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5em;">mazedar</button></a><br>
-		<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.7em;width:5em;">bakwas</button></a>
+		<a href="{% url 'photo_vote' star_id photo.id 0 slug %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.7em;width:5em;">bakwas</button></a><br>
 		{% endif %}
 
 			{% if user.username == 'mhb11' or user.username == 'pathan-e-khan' %}

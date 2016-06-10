@@ -2439,8 +2439,11 @@ class PhotoView(ListView):
 			user = self.request.user
 			context["score"] = user.userprofile.score
 			context["voted"] = []
-			if self.request.user.userprofile.score > 9 and not self.request.user_banned:
-				context["can_vote"] = True
+			if not self.request.user_banned:
+				if self.request.user.userprofile.score > 9:
+					context["can_vote"] = True
+				else:
+					context["can_vote"] = False
 				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
@@ -2667,8 +2670,11 @@ class BestPhotoView(ListView):
 			user = self.request.user
 			context["score"] = user.userprofile.score
 			context["voted"] = []
-			if self.request.user.userprofile.score > 9 and not self.request.user_banned:
-				context["can_vote"] = True
+			if not self.request.user_banned:
+				if self.request.user.userprofile.score > 9:
+					context["can_vote"] = True
+				else:
+					context["can_vote"] = False
 				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
@@ -4860,7 +4866,7 @@ def fan(request, pk=None, *args, **kwargs):
 		request.user.userprofile.save()
 		return redirect("see_photo")
 	else:
-		if pk.isdigit() and request.user.userprofile.score > 22:
+		if pk.isdigit() and (Photo.objects.filter(owner=request.user).exists() or request.user.userprofile.score > 30):
 			try:
 				user = User.objects.get(id=pk)
 				if request.user == user:
@@ -4894,6 +4900,18 @@ def fan(request, pk=None, *args, **kwargs):
 					request.session["ftue_fan_user"] = user
 					return redirect("fan_tutorial")
 			return redirect("profile", user.username)
+		else:
+			try:
+				user = User.objects.get(id=pk)
+				if request.user == user:
+					request.user.userprofile.score = request.user.userprofile.score - 5
+					request.user.userprofile.save()
+					context = {'unique': user}
+					return render(request, 'penalty_fan.html', context)
+			except:
+				return redirect("see_photo")
+			context = {'unique': user.username}
+			return render(request, 'fan_requirement.html', context)
 		return redirect("see_photo")
 
 class SalatTutorialView(FormView):

@@ -45,12 +45,12 @@
 	</a>
 {% endif %}
 
-{% if authenticated and allowed_fan and not own_profile and score > 22 %}
-{% if not_fan %}
-<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">iske fan bano</button></a>
-{% else %}
-<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#FF1A1A;border-color:#cc0000;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">fan khatm kro</button></a>
-{% endif %}
+{% if authenticated and allowed_fan and not own_profile %}
+	{% if not_fan %}
+	<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">iske fan bano</button></a>
+	{% else %}
+	<br><a href="{% url 'fan' subject_id %}"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#FF1A1A;border-color:#cc0000;margin-top:0.3em;margin-bottom:0.3em;font-size:90%;">fan khatm kro</button></a>
+	{% endif %}
 {% endif %}
 <br><hr size=1 COLOR="#ff9933"><br>
 <a name="sectionJ">

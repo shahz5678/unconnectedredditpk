@@ -12,6 +12,7 @@ from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
+from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
@@ -58,23 +59,6 @@ from brake.decorators import ratelimit
 #from registration.backends.simple.views import RegistrationView
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-
-namaz_timings = {}
-
-prefajr_least = time_object(hour=0, minute=0)
-prefajr_most = time_object(hour=3, minute=0) 
-fajr_least = time_object(hour=3, minute=0)
-fajr_most = time_object(hour=6, minute=30) #i.e. FAJR is between 3AM and 6:30AM
-prezuhr_least = time_object(hour=6, minute=30) 
-prezuhr_most = time_object(hour=11, minute=50)
-zuhr_least = time_object(hour=11, minute=50)
-zuhr_most = time_object(hour=14, minute=55)#i.e. ZUHR is between 11:50AM and 2:55PM
-asr_least = time_object(hour=14, minute=55)
-asr_most = time_object(hour=16, minute=55)#i.e. ASR is between 2:55PM and 4:55PM
-maghrib_least = time_object(hour=16, minute=55)
-maghrib_most = time_object(hour=20, minute=0)#i.e. MAGHRIB is between 4:55PM and 8:00PM
-isha_least = time_object(hour=20, minute=0)
-isha_most = time_object(hour=23, minute=59)#i.e. ISHA is between 8:00PM and 12:00AM (midnight)
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -674,87 +658,46 @@ class LinkDetailView(DetailView):
 			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
 		return context
 
-def WhichNamaz(minutes):
-	hour = minutes // 60
-	minute = minutes % 60
-	current_time = time_object(hour=hour, minute=minute)
-	#print current_time, isha_least, isha_most
-	if prefajr_least <= current_time < prefajr_most:
-		namaz = False
-		next_namaz = 'Fajr'
-		previous_namaz = 'Isha'
-	elif fajr_least <= current_time < fajr_most:
-		namaz = 'Fajr'
-		next_namaz = 'Zuhr'
-		previous_namaz = 'Isha'
-	elif prezuhr_least <= current_time < prezuhr_most:
-		namaz = False
-		next_namaz = 'Zuhr'
-		previous_namaz = 'Fajr'
-	elif zuhr_least <= current_time < zuhr_most:
-		namaz = 'Zuhr'
-		next_namaz = 'Asr'
-		previous_namaz = 'Fajr'
-	elif asr_least <= current_time < asr_most:
-		namaz = 'Asr'
-		next_namaz = 'Maghrib'
-		previous_namaz = 'Zuhr'
-	elif maghrib_least <= current_time < maghrib_most:
-		namaz = 'Maghrib'
-		next_namaz = 'Isha'
-		previous_namaz = 'Asr'
-	elif isha_least <= current_time <= isha_most:
-		namaz = 'Isha'
-		next_namaz = 'Fajr'
-		previous_namaz = 'Maghrib'
-	else:
-		namaz = False
-		next_namaz = False
-		previous_namaz = False
-	return previous_namaz, next_namaz, namaz
-
-namaz_timings = {minute: WhichNamaz(minute) for minute in range(1440)}
-
-def streak_alive(prev_salat_name, latest_salat_object, now):
-	#latest_salat_minute = latest_salat_object.when.hour * 60 + latest_salat_object.when.minute
-	#previous_latest_namaz, next_latest_namaz, latest_namaz = namaz_timings[latest_salat_minute]
-	#latest_namaz is False if pre-namaz object was skipped
-	if latest_salat_object.skipped:# and latest_namaz:
-		return False
-	else:
-		latest_salat_date = latest_salat_object.when.date()
-		latest_salat_time = latest_salat_object.when.time()
-		# print "prev_salat_name: %s" % prev_salat_name
-		# print "latest_salat_date: %s" % latest_salat_date
-		# print "latest_salat_time: %s" % latest_salat_time
-		# print "now.date(): %s" % now.date()
-		if prev_salat_name == 'Fajr':
-			if (fajr_least <= latest_salat_time < fajr_most) and latest_salat_date == now.date():
-				return True
-			else:
-				return False
-		elif prev_salat_name == 'Zuhr':
-			if (zuhr_least <= latest_salat_time < zuhr_most) and latest_salat_date == now.date():
-				return True
-			else:
-				return False
-		elif prev_salat_name == 'Asr':
-			if (asr_least <= latest_salat_time < asr_most) and latest_salat_date == now.date():
-				return True
-			else:
-				return False
-		elif prev_salat_name == 'Maghrib':
-			if (maghrib_least <= latest_salat_time < maghrib_most) and latest_salat_date == now.date():
-				return True
-			else:
-				return False
-		elif prev_salat_name == 'Isha':
-			if (isha_least <= latest_salat_time < isha_most) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
-				return True
-			else:
-				return False
-		else:
-			return False
+# def streak_alive(prev_salat_name, latest_salat_object, now):
+# 	#latest_salat_minute = latest_salat_object.when.hour * 60 + latest_salat_object.when.minute
+# 	#previous_latest_namaz, next_latest_namaz, latest_namaz = namaz_timings[latest_salat_minute]
+# 	#latest_namaz is False if pre-namaz object was skipped
+# 	if latest_salat_object.skipped:# and latest_namaz:
+# 		return False
+# 	else:
+# 		latest_salat_date = latest_salat_object.when.date()
+# 		latest_salat_time = latest_salat_object.when.time()
+# 		# print "prev_salat_name: %s" % prev_salat_name
+# 		# print "latest_salat_date: %s" % latest_salat_date
+# 		# print "latest_salat_time: %s" % latest_salat_time
+# 		# print "now.date(): %s" % now.date()
+# 		if prev_salat_name == 'Fajr':
+# 			if (fajr_least <= latest_salat_time < fajr_most) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Zuhr':
+# 			if (zuhr_least <= latest_salat_time < zuhr_most) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Asr':
+# 			if (asr_least <= latest_salat_time < asr_most) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Maghrib':
+# 			if (maghrib_least <= latest_salat_time < maghrib_most) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Isha':
+# 			if (isha_least <= latest_salat_time < isha_most) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
+# 				return True
+# 			else:
+# 				return False
+# 		else:
+# 			return False
 
 def skip_presalat(request, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
@@ -833,47 +776,6 @@ def salat_tutorial_init(request, offered=None, *args, **kwargs):
 		TutorialFlag.objects.create(user=request.user)
 		return redirect("salat_tutorial")
 
-def process_salat(request, offered=None, *args, **kwargs):
-	now = datetime.utcnow()+timedelta(hours=5)
-	current_minute = now.hour * 60 + now.minute
-	#time_now = now.time()
-	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
-	#print previous_namaz, next_namaz, namaz
-	if not namaz:
-		#it's not time for any namaz, ABORT
-		return redirect("home")
-	else:
-		if namaz == 'Fajr':
-			salat='1'
-		elif namaz == 'Zuhr':
-			salat='2'
-		elif namaz == 'Asr':
-			salat='3'
-		elif namaz == 'Maghrib':
-			salat='4'
-		elif namaz == 'Isha':
-			salat='5'
-		else:
-			return redirect("home")
-		Salat.objects.create(prayee=request.user, timing=now, which_salat=salat)
-		try:
-			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
-			if streak_alive(previous_namaz, latest_namaz,now):
-				request.user.userprofile.streak = request.user.userprofile.streak + 1
-			else:
-				request.user.userprofile.streak = 1
-			latest_namaz.when = now
-			latest_namaz.latest_salat = salat
-			latest_namaz.skipped = False
-			latest_namaz.save()
-			request.user.userprofile.save()
-		except:
-			#the person hasn't prayed before, i.e. streak is at 0
-			latest_salat = LatestSalat.objects.create(salatee=request.user, when=now, latest_salat=salat)
-			request.user.userprofile.streak = 1
-			request.user.userprofile.save()
-		return redirect("salat_success", namaz, now.weekday())
-
 def AlreadyPrayed(salat, now):
 	current_minute = now.hour * 60 + now.minute
 	time_now = now.time()
@@ -911,6 +813,50 @@ def AlreadyPrayed(salat, now):
 			return False
 		else:
 			return True
+
+def process_salat(request, offered=None, *args, **kwargs):
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	#time_now = now.time()
+	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+	#print previous_namaz, next_namaz, namaz
+	if not namaz:
+		#it's not time for any namaz, ABORT
+		return redirect("home")
+	else:
+		if namaz == 'Fajr':
+			salat='1'
+		elif namaz == 'Zuhr':
+			salat='2'
+		elif namaz == 'Asr':
+			salat='3'
+		elif namaz == 'Maghrib':
+			salat='4'
+		elif namaz == 'Isha':
+			salat='5'
+		else:
+			return redirect("home")
+		try:
+			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
+			if AlreadyPrayed(latest_namaz, now):
+				return redirect("home")
+			else:
+				if streak_alive(previous_namaz, latest_namaz,now):
+					request.user.userprofile.streak = request.user.userprofile.streak + 1
+				else:
+					request.user.userprofile.streak = 1
+				latest_namaz.when = now
+				latest_namaz.latest_salat = salat
+				latest_namaz.skipped = False
+				latest_namaz.save()
+				request.user.userprofile.save()
+		except:
+			#the person hasn't prayed before, i.e. streak is at 0
+			latest_salat = LatestSalat.objects.create(salatee=request.user, when=now, latest_salat=salat)
+			request.user.userprofile.streak = 1
+			request.user.userprofile.save()
+		Salat.objects.create(prayee=request.user, timing=now, which_salat=salat)
+		return redirect("salat_success", namaz, now.weekday())
 
 class LinkListView(ListView):
 	model = Link
@@ -2966,6 +2912,12 @@ class UploadPhotoView(CreateView):
 			return render(self.request, 'score_photo.html', context)
 		else:
 			#time_now = datetime.utcnow().replace(tzinfo=utc)
+			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').\
+			values_list('vote_score', 'visible_score', 'upload_time')[:5]
+			forbidden, time_remaining = check_photo_abuse(photos.count(), photos)
+			if forbidden:
+				context={'time_remaining': time_remaining}
+				return render(self.request, 'forbidden_photo.html', context)
 			time_now = timezone.now()
 			try:
 				photocooldown = PhotoCooldown.objects.filter(which_user=user).latest('time_of_uploading')
@@ -4442,9 +4394,12 @@ class KickView(FormView):
 				self.request.user.userprofile.save()
 				return redirect("group_page")
 			else:
-				unique = self.request.session["kick_slug"]
-				self.request.session["kick_slug"] = None
-				group = Group.objects.get(unique=unique)
+				try:
+					unique = self.request.session["kick_slug"]
+					self.request.session["kick_slug"] = None
+					group = Group.objects.get(unique=unique)
+				except:
+					return redirect("profile", self.request.user.username)
 				if group.private == '0':
 					if group.owner != self.request.user:
 						return redirect("public_group", slug=unique)
@@ -4526,8 +4481,11 @@ class GroupReportView(FormView):
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
-			unique = Group.objects.get(unique=self.request.session["groupreport_slug"])
-			self.request.session["groupreport_slug"] = None
+			try:
+				unique = Group.objects.get(unique=self.request.session["groupreport_slug"])
+				self.request.session["groupreport_slug"] = None
+			except:
+				return redirect("home")
 			if unique.private != '0':
 				return redirect("score_help")
 			if self.request.user_banned or GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group=unique).exists():
@@ -4590,9 +4548,9 @@ class WelcomeReplyView(FormView):
 			if self.request.user_banned:
 				return redirect("score_help")
 			else:
-				pk = self.request.session["welcome_pk"]
-				self.request.session["welcome_pk"] = None
 				try:
+					pk = self.request.session["welcome_pk"]
+					self.request.session["welcome_pk"] = None
 					target = User.objects.get(pk=pk)
 				except:
 					return redirect("profile", slug=self.request.user.username)
@@ -4919,8 +4877,10 @@ def fan(request, pk=None, *args, **kwargs):
 				try:
 					seen_fan_option = TutorialFlag.objects.get(user=request.user).seen_fan_option
 					if seen_fan_option:
-						# already seen fan tutorial
-						UserFan.objects.create(fan=request.user, star=user)
+						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
+							UserFan.objects.create(fan=request.user, star=user)
+						else:
+							return redirect("profile", user.username)	
 						return redirect("profile", user.username)
 					else:
 						#no seen fan tutorial
@@ -4980,7 +4940,8 @@ class FanTutorialView(FormView):
 				if self.request.method == 'POST':
 					option = self.request.POST.get("choice", '')
 					if option == 'samajh gaya':
-						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True):
+						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
+						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
 							UserFan.objects.create(fan=self.request.user, star=user)
 							return redirect("profile", user.username)
 						else:

@@ -140,16 +140,16 @@
 
 {% for link in object_list %}
 		
-	{% if authenticated and forloop.counter == 4 %}
+	{% if forloop.counter == 4 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
-			<span style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);">Kya <b>{{ current_namaz }}</b> ki namaz parh li hai?</span>&nbsp;
+			<span style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);"><b>{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:4em;font-size:90%;border-radius:4px;text-align: center;margin-bottom:0.4em;"><b>Haan</b></button></a>&nbsp;
 			<hr size=1 COLOR="#3cb7dd">
 		{% elif not show_current and show_next %}
-			<div style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);padding-bottom:0.4em;"><b>Agli namaz:</b> <b style="color:#179b36;">{{ next_namaz }}</b> parh kr yahan uska record zarur <b style="color:#179b36;">save</b> krna!&nbsp;
+			<div style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);padding-bottom:0.4em;">{% if authenticated %}<b>Agli namaz:</b> <b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch deir baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga.{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska record zarur <b style="color:#179b36;">save</b> krna!{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
 			</div><hr size=1 COLOR="#3cb7dd">
 		{% else %}
 			<!-- nothing to show -->

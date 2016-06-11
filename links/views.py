@@ -860,41 +860,44 @@ class LinkListView(ListView):
 			context["show_current"] = False
 			context["show_next"] = False
 		elif not namaz:
-			#i.e. it's pre-namaz time, just show the NEXT namaz to the user
-			try:
-				latest_salat = LatestSalat.objects.get(salatee=user)
-				already_prayed = AlreadyPrayed(latest_salat, now)
-				if already_prayed == 2:
-					#if user skipped previous namaz, no need to show prompt
-					context["show_current"] = False
-					context["show_next"] = False
-				else:
-					context["show_current"] = False
-					context["show_next"] = True
-			except:
-				context["show_current"] = False
-				context["show_next"] = True
-		else:
-			#it's currently namaz time, now it's time to check whether the person has already offered it or not!
-			#if she has offered it, show the NEXT namaz the user has to offer
-			#if she hasn't offered it, show the CURRENT namaz the user has to offer
-			try:
-				latest_salat = LatestSalat.objects.get(salatee=user)
-				#the user has prayed before, now check if this was the CURRENT prayer, or a previous one!
-				already_prayed = AlreadyPrayed(latest_salat, now)
-				if already_prayed:
+			if self.request.user.is_authenticated():
+				try:
+					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
+					already_prayed = AlreadyPrayed(latest_salat, now)
 					if already_prayed == 2:
+						#if user skipped previous namaz, no need to show prompt
 						context["show_current"] = False
 						context["show_next"] = False
 					else:
 						context["show_current"] = False
 						context["show_next"] = True
-				else:
-					#i.e. show the CURRENT namaz the user has to offer
+				except:
+					context["show_current"] = False
+					context["show_next"] = True
+			else:
+				context["show_current"] = False
+				context["show_next"] = True
+		else:
+			if self.request.user.is_authenticated():
+				try:
+					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
+					already_prayed = AlreadyPrayed(latest_salat, now)
+					if already_prayed:
+						if already_prayed == 2:
+							context["show_current"] = False
+							context["show_next"] = False
+						else:
+							context["show_current"] = False
+							context["show_next"] = True
+					else:
+						#i.e. show the CURRENT namaz the user has to offer
+						context["show_current"] = True
+						context["show_next"] = False
+				except:
+					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
 					context["show_current"] = True
 					context["show_next"] = False
-			except:
-				#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+			else:
 				context["show_current"] = True
 				context["show_next"] = False
 		################################################################################################################

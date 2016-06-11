@@ -93,89 +93,136 @@ def WhichNamaz(minutes, month):
 	if prefajr_least(month) <= current_time < prefajr_most(month):
 		namaz = False
 		next_namaz = 'Fajr'
+		next_namaz_start_time = fajr_least(month)
 		previous_namaz = 'Isha'
 	elif fajr_least(month) <= current_time < fajr_most(month):
 		namaz = 'Fajr'
 		next_namaz = 'Zuhr'
+		next_namaz_start_time = zuhr_least(month)
 		previous_namaz = 'Isha'
 	elif prezuhr_least(month) <= current_time < prezuhr_most(month):
 		namaz = False
 		next_namaz = 'Zuhr'
+		next_namaz_start_time = zuhr_least(month)
 		previous_namaz = 'Fajr'
 	elif zuhr_least(month) <= current_time < zuhr_most(month):
 		namaz = 'Zuhr'
 		next_namaz = 'Asr'
+		next_namaz_start_time = asr_least(month)
 		previous_namaz = 'Fajr'
 	elif preasr_least(month) <= current_time < preasr_most(month):
 		namaz = False
 		next_namaz = 'Asr'
+		next_namaz_start_time = asr_least(month)
 		previous_namaz = 'Zuhr'
 	elif asr_least(month) <= current_time < asr_most(month):
 		namaz = 'Asr'
 		next_namaz = 'Maghrib'
+		next_namaz_start_time = maghrib_least(month)
 		previous_namaz = 'Zuhr'
 	elif premaghrib_least(month) <= current_time < premaghrib_most(month):
 		namaz = False
 		next_namaz = 'Maghrib'
+		next_namaz_start_time = maghrib_least(month)
 		previous_namaz = 'Asr'
 	elif maghrib_least(month) <= current_time < maghrib_most(month):
 		namaz = 'Maghrib'
 		next_namaz = 'Isha'
+		next_namaz_start_time = isha_least(month)
 		previous_namaz = 'Asr'
 	elif preisha_least(month) <= current_time < preisha_most(month):
 		namaz = False
 		next_namaz = 'Isha'
+		next_namaz_start_time = isha_least(month)
 		previous_namaz = 'Maghrib'
 	elif isha_least(month) <= current_time <= isha_most(month):
 		namaz = 'Isha'
 		next_namaz = 'Fajr'
+		next_namaz_start_time = fajr_least(month)
 		previous_namaz = 'Maghrib'
 	else:
 		namaz = False
 		next_namaz = False
+		next_namaz_start_time = False
 		previous_namaz = False
-	return previous_namaz, next_namaz, namaz
+	return previous_namaz, next_namaz, namaz, next_namaz_start_time
 
 month = now.strftime("%m")
 namaz_timings = {minute: WhichNamaz(minute,month_name[month]) for minute in range(1440)}
 
-def streak_alive(prev_salat_name, latest_salat_object, now):
-	if latest_salat_object.skipped:# and latest_namaz:
+def streak_alive(latest_salat_object,namaz_number_to_do,time_now):
+	date = time_now.date()
+	if latest_salat_object.skipped:
 		return False
 	else:
-		latest_salat_date = latest_salat_object.when.date()
-		latest_salat_time = latest_salat_object.when.time()
-		if prev_salat_name == 'Fajr':
-			if (fajr_least(month_name[month]) <= latest_salat_time < fajr_most(month_name[month])) and latest_salat_date == now.date():
+		most_recent_namaz_number = latest_salat_object.latest_salat
+		most_recent_namaz_date = latest_salat_object.when.date()
+		if namaz_number_to_do == '5':
+			if most_recent_namaz_number == '4' and (date == most_recent_namaz_date):
 				return True
 			else:
 				return False
-		elif prev_salat_name == 'Zuhr':
-			if (zuhr_least(month_name[month]) <= latest_salat_time < zuhr_most(month_name[month])) and latest_salat_date == now.date():
+		elif namaz_number_to_do == '4':
+			if most_recent_namaz_number == '3' and (date == most_recent_namaz_date):
 				return True
 			else:
 				return False
-		elif prev_salat_name == 'Asr':
-			if (asr_least(month_name[month]) <= latest_salat_time < asr_most(month_name[month])) and latest_salat_date == now.date():
+		elif namaz_number_to_do == '3':
+			if most_recent_namaz_number == '2' and (date == most_recent_namaz_date):
 				return True
 			else:
 				return False
-		elif prev_salat_name == 'Maghrib':
-			if (maghrib_least(month_name[month]) <= latest_salat_time < maghrib_most(month_name[month])) and latest_salat_date == now.date():
+		elif namaz_number_to_do == '2':
+			if most_recent_namaz_number == '1' and (date == most_recent_namaz_date):
 				return True
 			else:
 				return False
-		elif prev_salat_name == 'Isha':
-			# print isha_least(month_name[month])
-			# print latest_salat_time
-			# print isha_most(month_name[month])
-			# print latest_salat_date
-			# print now.date()
-			# print now.date()-timedelta(days=1)
-			if (isha_least(month_name[month]) <= latest_salat_time < isha_most(month_name[month])) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
-				# print "True"
+		elif namaz_number_to_do == '1':
+			if most_recent_namaz_number == '5' and ((date-timedelta(days=1)) == most_recent_namaz_date):
 				return True
 			else:
 				return False
 		else:
 			return False
+
+# def streak_alive(prev_salat_name, latest_salat_object, now):
+# 	if latest_salat_object.skipped:# and latest_namaz:
+# 		return False
+# 	else:
+# 		date = now.date()
+# 		latest_salat_date = latest_salat_object.when.date()
+# 		latest_salat_time = latest_salat_object.when.time()
+# 		if prev_salat_name == 'Fajr':
+# 			if (fajr_least(month_name[month]) <= latest_salat_time < fajr_most(month_name[month])) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Zuhr':
+# 			if (zuhr_least(month_name[month]) <= latest_salat_time < zuhr_most(month_name[month])) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Asr':
+# 			if (asr_least(month_name[month]) <= latest_salat_time < asr_most(month_name[month])) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Maghrib':
+# 			if (maghrib_least(month_name[month]) <= latest_salat_time < maghrib_most(month_name[month])) and latest_salat_date == now.date():
+# 				return True
+# 			else:
+# 				return False
+# 		elif prev_salat_name == 'Isha':
+# 			# print isha_least(month_name[month])
+# 			# print latest_salat_time
+# 			# print isha_most(month_name[month])
+# 			# print latest_salat_date
+# 			# print now.date()
+# 			# print now.date()-timedelta(days=1)
+# 			if (isha_least(month_name[month]) <= latest_salat_time < isha_most(month_name[month])) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
+# 				# print "True"
+# 				return True
+# 			else:
+# 				return False
+# 		else:
+# 			return False

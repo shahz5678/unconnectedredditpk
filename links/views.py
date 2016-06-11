@@ -584,7 +584,10 @@ class SalatSuccessView(ListView):
 	def get_context_data(self, **kwargs):
 		context=super(SalatSuccessView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["namaz"] = self.kwargs["slug"]
+			mins = self.kwargs["mins"]
+			previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[int(mins)]
+			context["namaz"] = namaz
+			context["time"] = next_namaz_start_time
 			context["weekday"] = self.kwargs["num"]
 			if context["weekday"] == '4' and context["namaz"] == 'Zuhr':
 				context["namaz"] = 'Jummah'
@@ -658,51 +661,10 @@ class LinkDetailView(DetailView):
 			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
 		return context
 
-# def streak_alive(prev_salat_name, latest_salat_object, now):
-# 	#latest_salat_minute = latest_salat_object.when.hour * 60 + latest_salat_object.when.minute
-# 	#previous_latest_namaz, next_latest_namaz, latest_namaz = namaz_timings[latest_salat_minute]
-# 	#latest_namaz is False if pre-namaz object was skipped
-# 	if latest_salat_object.skipped:# and latest_namaz:
-# 		return False
-# 	else:
-# 		latest_salat_date = latest_salat_object.when.date()
-# 		latest_salat_time = latest_salat_object.when.time()
-# 		# print "prev_salat_name: %s" % prev_salat_name
-# 		# print "latest_salat_date: %s" % latest_salat_date
-# 		# print "latest_salat_time: %s" % latest_salat_time
-# 		# print "now.date(): %s" % now.date()
-# 		if prev_salat_name == 'Fajr':
-# 			if (fajr_least <= latest_salat_time < fajr_most) and latest_salat_date == now.date():
-# 				return True
-# 			else:
-# 				return False
-# 		elif prev_salat_name == 'Zuhr':
-# 			if (zuhr_least <= latest_salat_time < zuhr_most) and latest_salat_date == now.date():
-# 				return True
-# 			else:
-# 				return False
-# 		elif prev_salat_name == 'Asr':
-# 			if (asr_least <= latest_salat_time < asr_most) and latest_salat_date == now.date():
-# 				return True
-# 			else:
-# 				return False
-# 		elif prev_salat_name == 'Maghrib':
-# 			if (maghrib_least <= latest_salat_time < maghrib_most) and latest_salat_date == now.date():
-# 				return True
-# 			else:
-# 				return False
-# 		elif prev_salat_name == 'Isha':
-# 			if (isha_least <= latest_salat_time < isha_most) and (latest_salat_date == now.date() or latest_salat_date == (now.date()-timedelta(days=1))):
-# 				return True
-# 			else:
-# 				return False
-# 		else:
-# 			return False
-
 def skip_presalat(request, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
 	if namaz:
 		#i.e. it's not pre-namaz time
 		return redirect("home")
@@ -733,7 +695,7 @@ def skip_salat(request, skipped=None, *args, **kwargs):
 	if skipped:
 		now = datetime.utcnow()+timedelta(hours=5)
 		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+		previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
 		if not namaz:
 			return redirect("home")
 		elif skipped != namaz:
@@ -791,13 +753,13 @@ def AlreadyPrayed(salat, now):
 		return False
 	elif date_now == date_of_latest_salat:
 		#prayee logged a salat today
-		previous_salat_to_do, next_salat_to_do, salat_to_do = namaz_timings[current_minute]
-		previous_salat_done, next_salat_done, salat_done = namaz_timings[minute_of_latest_salat]
+		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_start_time = namaz_timings[current_minute]
+		previous_salat_done, next_salat_done, salat_done, salat_done_start_time = namaz_timings[minute_of_latest_salat]
 		if not salat_to_do and not salat_done:
 			#this is some kind of an error, handle it gracefully
 			return True
 		elif not salat_to_do:
-			#i.e. it's either pre-fajr or pre-zuhr right now, and the person has already prayed too
+			#i.e. it's pre-namaz time right now, and the person has already prayed too
 			if salat.skipped:
 				return 2
 			else:
@@ -818,7 +780,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
 	#time_now = now.time()
-	previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
 	#print previous_namaz, next_namaz, namaz
 	if not namaz:
 		#it's not time for any namaz, ABORT
@@ -841,7 +803,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 			if AlreadyPrayed(latest_namaz, now):
 				return redirect("home")
 			else:
-				if streak_alive(previous_namaz, latest_namaz,now):
+				if streak_alive(latest_namaz,salat,now):
 					request.user.userprofile.streak = request.user.userprofile.streak + 1
 				else:
 					request.user.userprofile.streak = 1
@@ -856,7 +818,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 			request.user.userprofile.streak = 1
 			request.user.userprofile.save()
 		Salat.objects.create(prayee=request.user, timing=now, which_salat=salat)
-		return redirect("salat_success", namaz, now.weekday())
+		return redirect("salat_success", current_minute, now.weekday())
 
 class LinkListView(ListView):
 	model = Link
@@ -874,6 +836,68 @@ class LinkListView(ListView):
 		context["checked"] = FEMALES
 		context["can_vote"] = False
 		context["authenticated"] = False
+		#### Namaz feature #########################################################################################
+		# latest_saat = LatestSalat.objects.get(salatee=self.request.user)
+		# saat = Salat.objects.filter(prayee=self.request.user, which_salat='5').latest('timing')
+		# latest_saat.when = saat.timing
+		# latest_saat.latest_salat = saat.which_salat
+		# latest_saat.save()
+		now = datetime.utcnow()+timedelta(hours=5)
+		day = now.weekday()
+		current_minute = now.hour * 60 + now.minute
+		previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+		context["next_namaz_start_time"] = next_namaz_start_time
+		if namaz == 'Zuhr' and day == 4: #4 is Friday
+			context["current_namaz"] = 'Jummah'
+		else:
+			context["current_namaz"] = namaz
+		if next_namaz == 'Zuhr' and day == 4:#4 if Friday
+			context["next_namaz"] = 'Jummah'	
+		else:
+			context["next_namaz"] = next_namaz
+		if not namaz and not next_namaz:
+			# do not show namaz element at all, some error may have occurred
+			context["show_current"] = False
+			context["show_next"] = False
+		elif not namaz:
+			#i.e. it's pre-namaz time, just show the NEXT namaz to the user
+			try:
+				latest_salat = LatestSalat.objects.get(salatee=user)
+				already_prayed = AlreadyPrayed(latest_salat, now)
+				if already_prayed == 2:
+					#if user skipped previous namaz, no need to show prompt
+					context["show_current"] = False
+					context["show_next"] = False
+				else:
+					context["show_current"] = False
+					context["show_next"] = True
+			except:
+				context["show_current"] = False
+				context["show_next"] = True
+		else:
+			#it's currently namaz time, now it's time to check whether the person has already offered it or not!
+			#if she has offered it, show the NEXT namaz the user has to offer
+			#if she hasn't offered it, show the CURRENT namaz the user has to offer
+			try:
+				latest_salat = LatestSalat.objects.get(salatee=user)
+				#the user has prayed before, now check if this was the CURRENT prayer, or a previous one!
+				already_prayed = AlreadyPrayed(latest_salat, now)
+				if already_prayed:
+					if already_prayed == 2:
+						context["show_current"] = False
+						context["show_next"] = False
+					else:
+						context["show_current"] = False
+						context["show_next"] = True
+				else:
+					#i.e. show the CURRENT namaz the user has to offer
+					context["show_current"] = True
+					context["show_next"] = False
+			except:
+				#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+				context["show_current"] = True
+				context["show_next"] = False
+		################################################################################################################
 		if self.request.user.is_authenticated():
 			num = random.randint(1,3)
 			context["random"] = num
@@ -885,67 +909,6 @@ class LinkListView(ListView):
 			user = self.request.user
 			context["ident"] = user.id
 			context["username"] = user.username
-			#### Namaz feature #########################################################################################
-			# latest_saat = LatestSalat.objects.get(salatee=self.request.user)
-			# saat = Salat.objects.filter(prayee=self.request.user, which_salat='5').latest('timing')
-			# latest_saat.when = saat.timing
-			# latest_saat.latest_salat = saat.which_salat
-			# latest_saat.save()
-			now = datetime.utcnow()+timedelta(hours=5)
-			day = now.weekday()
-			current_minute = now.hour * 60 + now.minute
-			previous_namaz, next_namaz, namaz = namaz_timings[current_minute]
-			if namaz == 'Zuhr' and day == 4: #4 is Friday
-				context["current_namaz"] = 'Jummah'
-			else:
-				context["current_namaz"] = namaz
-			if next_namaz == 'Zuhr' and day == 4:#4 if Friday
-				context["next_namaz"] = 'Jummah'	
-			else:
-				context["next_namaz"] = next_namaz
-			if not namaz and not next_namaz:
-				# do not show namaz element at all, some error may have occurred
-				context["show_current"] = False
-				context["show_next"] = False
-			elif not namaz:
-				#i.e. it's pre-namaz time, just show the NEXT namaz to the user
-				try:
-					latest_salat = LatestSalat.objects.get(salatee=user)
-					already_prayed = AlreadyPrayed(latest_salat, now)
-					if already_prayed == 2:
-						#if user skipped previous namaz, no need to show prompt
-						context["show_current"] = False
-						context["show_next"] = False
-					else:
-						context["show_current"] = False
-						context["show_next"] = True
-				except:
-					context["show_current"] = False
-					context["show_next"] = True
-			else:
-				#it's currently namaz time, now it's time to check whether the person has already offered it or not!
-				#if she has offered it, show the NEXT namaz the user has to offer
-				#if she hasn't offered it, show the CURRENT namaz the user has to offer
-				try:
-					latest_salat = LatestSalat.objects.get(salatee=user)
-					#the user has prayed before, now check if this was the CURRENT prayer, or a previous one!
-					already_prayed = AlreadyPrayed(latest_salat, now)
-					if already_prayed:
-						if already_prayed == 2:
-							context["show_current"] = False
-							context["show_next"] = False
-						else:
-							context["show_current"] = False
-							context["show_next"] = True
-					else:
-						#i.e. show the CURRENT namaz the user has to offer
-						context["show_current"] = True
-						context["show_next"] = False
-				except:
-					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
-					context["show_current"] = True
-					context["show_next"] = False
-			################################################################################################################
 			score = user.userprofile.score
 			context["score"] = score
 			if score > 9:

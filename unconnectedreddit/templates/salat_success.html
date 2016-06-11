@@ -6,10 +6,10 @@
 <div class="margin">
 <span style="color:#1f8cad;font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">
 {% if user.userprofile.streak < 2 %}
-<b>{% emoticons %}(*)(*) Mubarik ho dost! (*)(*){% endemoticons %}</b><br><br>Tum ne {% if namaz == 'Jummah' %}<b style="color:#ff9933;">{{ namaz }}</b>{% else %}<b style="color:#179b36;">{{ namaz }}</b>{% endif %} parh kr nekiyan kamai!<br>Agli namaz bhi zarur parhna
+<b>{% emoticons %}(*)(*) ALHUMDULILLAH! (*)(*){% endemoticons %}</b><br>Tum ne {% if namaz == 'Jummah' %}<b style="color:#ff9933;">{{ namaz }}</b>{% else %}<b style="color:#179b36;">{{ namaz }}</b>{% endif %} parh kr nekiyan kamai!<br><br>Agli namaz <b style="color:#179b36;">{{ time }}</b> bajey hai
 {% else %}
-{% emoticons %}(*)(*){% endemoticons %} <b>Mubarik ho dost!</b> Tum lagatar <b style="color:#179b36;font-size:110%;">{{ user.userprofile.streak }} namazein</b> parh chuke ho! {% emoticons %}(*)(*){% endemoticons %}<br><br>
-<span style="font-size:95%;">Agli namaz bhi parh kr Damadam pr save krna takey tum <b style="color:#179b36;">lagatar namazoon</b> ka hisab rakh sako</span>
+{% emoticons %}(*)(*){% endemoticons %} <b>ALHUMDULILLAH!</b> Tum <b style="color:#179b36;font-size:110%;">lagatar {{ user.userprofile.streak }} namazein</b> parh chuke ho! {% emoticons %}(*)(*){% endemoticons %}<br><br>
+<span style="font-size:95%;">Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey tumhari <b style="color:#179b36;">lagatar namazein</b> barhti jaein!</span>
 {% endif %}</span>
 <br>
 <hr size=1 COLOR="#3cb7dd">

@@ -14,44 +14,99 @@
 <br>
 <hr size=1 COLOR="#3cb7dd">
 <br>
-{% for object in object_list %}
-<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
-<span class="numbers">{{ forloop.counter }}.</span>
-<a href="{% url 'profile' slug=object.prayee.username %}#section0">
-	{% if object.prayee.userprofile.avatar %}
-		<img src="{{ object.prayee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-	{% endif %}
-{{ object.prayee }}</a>
-{% if user.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
-ne<b style="color:#179b36;">
-{% if object.which_salat == '1' %}
-Fajr
-{% elif object.which_salat == '2' %}
-	{% if weekday == '4' %}
-	<span style="color:#ff9933;">Jummah</span>
-	{% else %}
-	Zuhr
-	{% endif %}
-{% elif object.which_salat == '3' %}
-Asr
-{% elif object.which_salat == '4' %}
-Maghrib
-{% elif object.which_salat == '5' %}
-Isha
+{% if user.username == 'mhb11' %}
+	{% regroup object_list by latest_salat as salat_list %}
+	{% for latest_salat in salat_list %}
+		{% for item in latest_salat.list %}
+		<span class="numbers">{{ forloop.counter }}.</span>
+		<a href="{% url 'profile' slug=item.salatee.username %}#section0">
+		{% if item.salatee.userprofile.avatar %}
+			<img src="{{ item.salatee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}{{ item.salatee }}</a>
+		{% if item.salatee.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+		ne
+		<b style="color:#179b36;">
+		{% if item.latest_salat == '1' %}
+		Fajr
+		{% elif item.latest_salat == '2' %}
+			{% if weekday == '4' %}
+			<span style="color:#ff9933;">Jummah</span>
+			{% else %}
+			Zuhr
+			{% endif %}
+		{% elif item.latest_salat == '3' %}
+		Asr
+		{% elif item.latest_salat == '4' %}
+		Maghrib
+		{% elif item.latest_salat == '5' %}
+		Isha
+		{% else %}
+		namaz 
+		{% endif %}</b>
+		{% if weekday == '4' and item.latest_salat == '2' %}
+		parha
+		{% else %}
+		parhi
+		{% endif %}
+		<b style="color:#ff9933;">
+		{% if item.salatee.userprofile.streak < 2 %}
+		({{ item.salatee.userprofile.streak }} namaz)
+		{% else %}
+		({{ item.salatee.userprofile.streak }} lagatar namazein)
+		{% endif %}
+		</b>
+		<br>
+		{% endfor %}
+	{% endfor %}
 {% else %}
-namaz 
-{% endif %}</b>
+	{% for object in object_list %}
+	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+	<span class="numbers">{{ forloop.counter }}.</span>
+	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
+		{% if object.salatee.userprofile.avatar %}
+			<img src="{{ object.salatee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}
+	{{ object.salatee }}</a>
+	{% if object.salatee.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+	ne <!-- {{ object.when|naturaltime }}  --><b style="color:#179b36;">
+	{% if object.latest_salat == '1' %}
+	Fajr
+	{% elif object.latest_salat == '2' %}
+		{% if weekday == '4' %}
+		<span style="color:#ff9933;">Jummah</span>
+		{% else %}
+		Zuhr
+		{% endif %}
+	{% elif object.latest_salat == '3' %}
+	Asr
+	{% elif object.latest_salat == '4' %}
+	Maghrib
+	{% elif object.latest_salat == '5' %}
+	Isha
+	{% else %}
+	namaz 
+	{% endif %}</b>
 
-{% if weekday == '4' and object.which_salat == '2' %}
-parha,
-{% else %}
-parhi,
+	{% if weekday == '4' and object.latest_salat == '2' %}
+	parha
+	{% else %}
+	parhi
+	{% endif %}
+	<b style="color:#ff9933;">
+	{% if object.salatee.userprofile.streak < 2 %}
+	({{ object.salatee.userprofile.streak }} namaz)
+	{% else %}
+	({{ object.salatee.userprofile.streak }} lagatar namazein)
+	{% endif %}
+	</b>
+	<br>
+	</span>
+	{% endfor %}
 {% endif %}
-<b style="color:#179b36;font-size:90%;">{{ object.timing|naturaltime }}</b><br>
-</span>
-{% endfor %}
 <br>
 </div>
 {% endblock %}

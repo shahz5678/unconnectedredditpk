@@ -18,9 +18,9 @@
 			{% else %}
 
 				{% if parent.submitter.userprofile.avatar %}
-					<img src="{{ parent.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+					<img src="{{ parent.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
 				{% else %}
-					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 				{% endif %}
 				<span style="color:dimgrey;"><bdi>{{ parent.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.description|truncatechars:40 }}{% endemoticons %}</span>
 			
@@ -57,12 +57,12 @@
 		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
 		{% if parent.vote_score < -7 %}
-			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.vote_score < -2 %}
 			{% if parent.image_file %}
 			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
-			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
 			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
@@ -93,12 +93,12 @@
 		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
 		{% if parent.vote_score < -7 %}
-			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.vote_score < -2 %}
 			{% if parent.image_file %}
 			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
-			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
 			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
@@ -146,7 +146,7 @@
 		{% elif show_current and not show_next %}
 			<span style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
-			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;"></a>&nbsp;
+			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;
 			<hr size=1 COLOR="#3cb7dd" style="margin-top:1em;margin-bottom:1em;">
 		{% elif not show_current and show_next %}
 			<div style="color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);padding-bottom:0.4em;">{% if authenticated %}<b>Agli namaz:</b> <b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch deir baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga.{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska record zarur <b style="color:#179b36;">save</b> krna!{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
@@ -160,9 +160,9 @@
 		<div style="background-color:#F6CEF5;margin-top:-1em;padding-top:1em;">
 		<span style="font-size:80%;color:red;"><b>(new) </b></span><a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}
-			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
 			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 		{% endif %}<span style="font-size:120%;">
 		{{ link.submitter }}</span>
 		{% for person in checked %}
@@ -186,9 +186,9 @@
 		{% endif %}
 		<a href="{% url 'profile' link.submitter.username %}#secton0">
 		{% if link.submitter.userprofile.avatar %}
-			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
 			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 		{% endif %}
 		<span style="font-size:110%;">
 		{{ link.submitter }}</span>
@@ -208,18 +208,18 @@
 		    {% if not link.submitter.hotuser.allowed or not link.submitter.hotuser.hot_score > 9 %}
 		    <a href="{% url 'see_photo_pk' link.which_photostream_id %}">
 		    {% if link.which_photostream.cover.vote_score < -7 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.which_photostream.cover.vote_score < -2 %}
 			    {% if link.which_photostream.cover.image_file %}
 			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.which_photostream.cover.image_file %}
 			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="border:1px solid blue;width:auto;"></img>
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% endif %}
 		    </a>
@@ -230,15 +230,15 @@
 				<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>
 	{% if authenticated %}
 		{% if link.device == '1' %}
-		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '2' %}
-		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '4' %}
-		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic" width="14" height="11"></img></a>
 		{% elif link.device == '5' %}
-		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '3' %}
-		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic" width="17" height="13"></img></a>
 		{% else %}
 		{% endif %}
 	{% endif %}
@@ -265,11 +265,11 @@
 		<a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}
 
-			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
 
 		{% else %}
 		
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 		
 		{% endif %}
 
@@ -295,15 +295,15 @@
 		<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>
 	{% if authenticated %}
 		{% if link.device == '1' %}
-		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '2' %}
-		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '4' %}
-		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic" width="14" height="11"></img></a>
 		{% elif link.device == '5' %}
-		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.device == '3' %}
-		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic" width="17" height="13"></img></a>
 		{% else %}
 		{% endif %}
 	{% endif %}

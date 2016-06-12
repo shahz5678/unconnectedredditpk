@@ -579,29 +579,11 @@ class SalatSuccessView(ListView):
 	paginate_by = 50
 
 	def get_queryset(self):
-		now = datetime.utcnow()+timedelta(hours=5)
-		twelve_hrs_ago = now - timedelta(hours=12)
-		mins = self.kwargs["mins"]
-		previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[int(mins)]
-		if namaz == 'Fajr':
-			salat = '1'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		elif namaz == 'Zuhr':
-			salat = '2'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		elif namaz == 'Asr':
-			salat = '3'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		elif namaz == 'Maghrib':
-			salat = '4'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		elif namaz == 'Isha':
-			salat = '5'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		else:
-			salat = '1'
-			object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-		return object_list#Salat.objects.order_by('-timing')[:500]
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		})
+		users_fans = cache_mem.get('salat_streaks')
+		return users_fans
 
 	def get_context_data(self, **kwargs):
 		context=super(SalatSuccessView, self).get_context_data(**kwargs)

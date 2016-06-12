@@ -110,10 +110,10 @@ SECRET_KEY = 'iapysen!%y-wvpfdmlp^!*@#nkn3hi_y9(%si)5c(tig_r29a6'
 
 if ON_AZURE == '1':
 	TEMPLATE_LOADERS = (
-	    ('django.template.loaders.cached.Loader', (
-	        'django.template.loaders.filesystem.Loader',
-	        'django.template.loaders.app_directories.Loader',
-	    )),
+		('django.template.loaders.cached.Loader', (
+			'django.template.loaders.filesystem.Loader',
+			'django.template.loaders.app_directories.Loader',
+		)),
 	)
 else:
 	TEMPLATE_LOADERS = (
@@ -189,7 +189,7 @@ INSTALLED_APPS = (
 	'emoticons',
 	'django_extensions',
 	#'request',
-    #'debug_toolbar',
+	#'debug_toolbar',
 	#'analytical',
 	#'django_whoshere',
 	# Uncomment the next line to enable admin documentation:
@@ -322,16 +322,21 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.rank_all_photos',
 		'schedule': timedelta(seconds=30),
 	},
-    'tasks.whoseonline': {
-        'task': 'tasks.whoseonline',
-        'schedule': timedelta(seconds=60),  # execute every 60 seconds
-        'args': (),
-    },
-    'tasks.fans': {
-        'task': 'tasks.fans',
-        'schedule': timedelta(seconds=90),  # execute every 90 seconds
-        'args': (),
-    },
+	'tasks.whoseonline': {
+		'task': 'tasks.whoseonline',
+		'schedule': timedelta(seconds=60),  # execute every 60 seconds
+		'args': (),
+	},
+	'tasks.fans': {
+		'task': 'tasks.fans',
+		'schedule': timedelta(seconds=90),  # execute every 90 seconds
+		'args': (),
+	},
+	'tasks.salat_streaks': {
+		'task': 'tasks.salat_streaks',
+		'schedule': timedelta(seconds=110),  # execute every 110 seconds
+		'args': (),
+	},
 }
 
 CELERY_TIMEZONE = 'UTC'
@@ -347,5 +352,5 @@ REQUEST_TRAFFIC_MODULES = (
 REQUEST_LOG_USER = True
 
 ABSOLUTE_URL_OVERRIDES = {
-    'auth.user': lambda u: "/link/create/"
+	'auth.user': lambda u: "/link/create/"
 }

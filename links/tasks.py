@@ -2,11 +2,12 @@ import os
 from unconnectedreddit import celery_app1
 import time
 from django.core.cache import get_cache, cache
-from django.db.models import Count
+from django.db.models import Count, Q
 import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo, UserFan, PhotoObjectSubscription
+from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat
+from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 
@@ -43,6 +44,35 @@ def fans():
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
 	cache_mem.set('fans', object_list)  # expiring in 120 seconds
+
+@celery_app1.task(name='tasks.salat_streaks')
+def salat_streaks():
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	twelve_hrs_ago = now - timedelta(hours=12)
+	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+	if namaz == 'Fajr':
+		salat = '1'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	elif namaz == 'Zuhr':
+		salat = '2'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	elif namaz == 'Asr':
+		salat = '3'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	elif namaz == 'Maghrib':
+		salat = '4'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	elif namaz == 'Isha':
+		salat = '5'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	else:
+		salat = '1'
+		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+        'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+    })
+	cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):

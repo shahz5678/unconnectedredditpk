@@ -100,7 +100,7 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	user.userprofile.save()
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, answer_to_id, timestring, reply_id, count, description, score):
+def publicreply_tasks(user_id, answer_to_id, timestring, reply_id, description):
 	user = User.objects.get(id=user_id)
 	link = Link.objects.get(id=answer_to_id)
 	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
@@ -112,10 +112,10 @@ def publicreply_tasks(user_id, answer_to_id, timestring, reply_id, count, descri
 	if not exists: #i.e. could not be updated
 		PhotoObjectSubscription.objects.create(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id, updated_at=timeobj)
 	link.latest_reply_id=reply_id
-	link.reply_count = count
+	link.reply_count = link.reply_count + 1
 	link.save()
 	user.userprofile.previous_retort = description
-	user.userprofile.score = score
+	user.userprofile.score = user.userprofile.score + 2
 	user.userprofile.save()
 	
 @celery_app1.task(name='tasks.bulk_create_notifications')

@@ -90,7 +90,7 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count
 	user.userprofile.previous_retort = text
-	if user_id != photo.owner_id and not id_exists:
+	if user_id != photo.owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
 		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
 		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster

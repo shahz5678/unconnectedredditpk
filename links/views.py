@@ -13,7 +13,7 @@ from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
-from .tasks import bulk_create_notifications
+from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat
@@ -2323,16 +2323,8 @@ class CommentView(CreateView):
 				if self.request.user_banned:
 					return redirect("see_photo")
 				else:
+					exists = PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists()
 					which_photo.comment_count = which_photo.comment_count + 1
-					user.userprofile.previous_retort = text
-					if user != which_photo.owner and not PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists():
-						user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-						which_photo.owner.userprofile.media_score = which_photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-						which_photo.owner.userprofile.score = which_photo.owner.userprofile.score + 2 # giving score to the photo poster
-						which_photo.visible_score = which_photo.visible_score + 2
-						which_photo.owner.userprofile.save()
-						which_photo.save()
-					user.userprofile.save()
 					if self.request.is_feature_phone:
 						device = '1'
 					elif self.request.is_phone:
@@ -2344,16 +2336,9 @@ class CommentView(CreateView):
 					else:
 						device = '3'
 					photocomment = PhotoComment.objects.create(submitted_by=user, which_photo=which_photo, text=text,device=device)
-					all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo=which_photo).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-					if which_photo.owner_id not in all_commenter_ids:	
-						all_commenter_ids.append(which_photo.owner_id)
-					PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, type_of_object='0', which_photo=which_photo).update(seen=False)			
-					exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='0', which_photo=which_photo).update(updated_at=photocomment.submitted_on, seen=True)
-					if not exists:
-						PhotoObjectSubscription.objects.create(viewer=user, which_photo=which_photo, type_of_object='0',updated_at=photocomment.submitted_on)
-					which_photo.second_latest_comment = which_photo.latest_comment
-					which_photo.latest_comment = photocomment
-					which_photo.save()
+					time = photocomment.submitted_on
+					timestring = time.isoformat()
+					photo_tasks.delay(self.request.user.id, which_photo.id, timestring, photocomment.id, which_photo.comment_count, text, exists)
 					try:
 						if pk and stream_id and from_photos:
 							#fires if user from photos or best photos
@@ -4072,9 +4057,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			else:
 				user = self.request.user
 				answer_to.reply_count = answer_to.reply_count + 1
-				user.userprofile.previous_retort = description
 				user.userprofile.score = user.userprofile.score + 2
-				user.userprofile.save()
 				if self.request.is_feature_phone:
 					device = '1'
 				elif self.request.is_phone:
@@ -4086,15 +4069,9 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				else:
 					device = '3'
 				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
-				answer_to.latest_reply = reply
-				answer_to.save()
-				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-				if answer_to.submitter_id not in all_reply_ids:
-					all_reply_ids.append(answer_to.submitter_id)
-				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False)
-				exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=reply.submitted_on, seen=True)
-				if not exists: #i.e. could not be updated
-					PhotoObjectSubscription.objects.create(viewer=user, type_of_object='2', which_link=answer_to, updated_at=reply.submitted_on)
+				time = reply.submitted_on
+				timestring = time.isoformat()
+				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, answer_to.reply_count, description, user.userprofile.score)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:

@@ -4056,8 +4056,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				return redirect("see_photo")
 			else:
 				user = self.request.user
-				answer_to.reply_count = answer_to.reply_count + 1
-				user.userprofile.score = user.userprofile.score + 2
+				# answer_to.reply_count = answer_to.reply_count + 1
+				# user.userprofile.score = user.userprofile.score + 2
 				if self.request.is_feature_phone:
 					device = '1'
 				elif self.request.is_phone:
@@ -4071,7 +4071,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 				time = reply.submitted_on
 				timestring = time.isoformat()
-				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, answer_to.reply_count, description, user.userprofile.score)
+				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, description)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:

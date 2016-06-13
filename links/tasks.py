@@ -112,7 +112,6 @@ def publicreply_tasks(user_id, answer_to_id, timestring, reply_id, description):
 	if not exists: #i.e. could not be updated
 		PhotoObjectSubscription.objects.create(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id, updated_at=timeobj)
 	link.latest_reply_id=reply_id
-	link.reply_count = link.reply_count + 1
 	link.save()
 	user.userprofile.previous_retort = description
 	user.userprofile.score = user.userprofile.score + 2

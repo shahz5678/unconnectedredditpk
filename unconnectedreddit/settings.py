@@ -334,7 +334,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=110),  # execute every 110 seconds
+		'schedule': timedelta(seconds=90),  # execute every 110 seconds
 		'args': (),
 	},
 }

@@ -16,7 +16,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
-GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat
+GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat#, SalatInvite
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -35,7 +35,7 @@ RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicFo
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
-TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm#, SalatInviteForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -589,7 +589,7 @@ class SalatSuccessView(ListView):
 		context=super(SalatSuccessView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			mins = self.kwargs["mins"]
-			previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[int(mins)]
+			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[int(mins)]
 			context["namaz"] = namaz
 			context["time"] = next_namaz_start_time
 			context["weekday"] = self.kwargs["num"]
@@ -668,7 +668,7 @@ class LinkDetailView(DetailView):
 def skip_presalat(request, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
 	if namaz:
 		#i.e. it's not pre-namaz time
 		return redirect("home")
@@ -699,7 +699,7 @@ def skip_salat(request, skipped=None, *args, **kwargs):
 	if skipped:
 		now = datetime.utcnow()+timedelta(hours=5)
 		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
 		if not namaz:
 			return redirect("home")
 		elif skipped != namaz:
@@ -757,8 +757,8 @@ def AlreadyPrayed(salat, now):
 		return False
 	elif date_now == date_of_latest_salat:
 		#prayee logged a salat today
-		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_start_time = namaz_timings[current_minute]
-		previous_salat_done, next_salat_done, salat_done, salat_done_start_time = namaz_timings[minute_of_latest_salat]
+		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time = namaz_timings[current_minute]
+		previous_salat_done, next_salat_done, salat_done, salat_done_next_start_time, salat_done_start_time = namaz_timings[minute_of_latest_salat]
 		if not salat_to_do and not salat_done:
 			#this is some kind of an error, handle it gracefully
 			return True
@@ -784,7 +784,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
 	#time_now = now.time()
-	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
 	#print previous_namaz, next_namaz, namaz
 	if not namaz:
 		#it's not time for any namaz, ABORT
@@ -849,7 +849,7 @@ class LinkListView(ListView):
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
 		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
 		context["next_namaz_start_time"] = next_namaz_start_time
 		if namaz == 'Zuhr' and day == 4: #4 is Friday
 			context["current_namaz"] = 'Jummah'
@@ -1600,6 +1600,82 @@ class InviteUsersToPrivateGroupView(FormView):
 						GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
 			self.request.session["private_uuid"] = None
 			return redirect("invite_private", slug=uuid)
+
+# class SalatInviteView(FormView):
+# 	template_name = "salat_invite.html"
+# 	form_class = SalatInviteForm
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(SalatInviteView, self).get_context_data(**kwargs)
+# 		now = datetime.utcnow()+timedelta(hours=5)
+# 		#day = now.weekday()
+# 		current_minute = now.hour * 60 + now.minute
+# 		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+# 		if namaz:
+# 			context["namaz_time"] = True
+# 			context["namaz"] = namaz
+# 		else:
+# 			context["namaz_time"] = False
+# 		return context
+
+# class InternalSalatInviteView(ListView):
+# 	template_name = "internal_salat_invite.html"
+
+# 	def get_queryset(self):
+# 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+# 				'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+# 			})
+# 		users = cache_mem.get('online_users')
+# 		if self.request.user_banned:
+# 			return users
+# 		else:
+# 			global condemned
+# 			users_purified = [user for user in users if user.pk not in condemned]
+# 			return users_purified
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(InternalSalatInviteView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			#get current namaz start time
+# 			now = datetime.utcnow()+timedelta(hours=5)
+# 			current_minute = now.hour * 60 + now.minute
+# 			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+# 			user_ids = [user.id for user in context["object_list"]]
+# 			if namaz:
+# 				context["unauthorized"] = False
+# 				starting_time = datetime.combine(now.today(), current_namaz_start_time)
+# 				if namaz == 'Fajr':
+# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='1', sent_at__gte=starting_time).values_list('id', flat=True)
+# 					#remove already invited users from the object_list
+# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
+# 				elif namaz == 'Zuhr':
+# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='2', sent_at__gte=starting_time).values_list('id', flat=True)
+# 					#remove already invited users from the object_list
+# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
+# 				elif namaz == 'Asr':
+# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='3', sent_at__gte=starting_time).values_list('id', flat=True)
+# 					#remove already invited users from the object_list
+# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
+# 				elif namaz == 'Maghrib':
+# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='4', sent_at__gte=starting_time).values_list('id', flat=True)
+# 					#remove already invited users from the object_list
+# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
+# 				elif namaz == 'Isha':
+# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='5', sent_at__gte=starting_time).values_list('id', flat=True)
+# 					#remove already invited users from the object_list
+# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
+# 				else:
+# 					context["user_list"] = None
+# 					context["unauthorized"] = True #some error must have occurred, abort
+# 			else:
+# 				context["user_list"] = None
+# 				context["unauthorized"] = True #it's not time for any namaz!
+# 			return context
 
 class InviteUsersToGroupView(FormView):
 	model = Session
@@ -4071,7 +4147,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				answer_to.save()
 				time = reply.submitted_on
 				timestring = time.isoformat()
-				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, description)
+				publicreply_tasks.apply_async(args=[user.id, answer_to.id, timestring, reply.id, description], expires=7200)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:

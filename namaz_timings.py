@@ -90,62 +90,74 @@ def WhichNamaz(minutes, month):
 	hour = minutes // 60
 	minute = minutes % 60
 	current_time = time_object(hour=hour, minute=minute)
+	#print "current time: %s" % current_time
 	if prefajr_least(month) <= current_time < prefajr_most(month):
 		namaz = False
 		next_namaz = 'Fajr'
 		next_namaz_start_time = fajr_least(month)
+		current_namaz_start_time = None
 		previous_namaz = 'Isha'
 	elif fajr_least(month) <= current_time < fajr_most(month):
 		namaz = 'Fajr'
 		next_namaz = 'Zuhr'
 		next_namaz_start_time = zuhr_least(month)
+		current_namaz_start_time = fajr_least(month)
 		previous_namaz = 'Isha'
 	elif prezuhr_least(month) <= current_time < prezuhr_most(month):
 		namaz = False
 		next_namaz = 'Zuhr'
 		next_namaz_start_time = zuhr_least(month)
+		current_namaz_start_time = None
 		previous_namaz = 'Fajr'
 	elif zuhr_least(month) <= current_time < zuhr_most(month):
 		namaz = 'Zuhr'
 		next_namaz = 'Asr'
 		next_namaz_start_time = asr_least(month)
+		current_namaz_start_time = zuhr_least(month)
 		previous_namaz = 'Fajr'
 	elif preasr_least(month) <= current_time < preasr_most(month):
 		namaz = False
 		next_namaz = 'Asr'
 		next_namaz_start_time = asr_least(month)
+		current_namaz_start_time = None
 		previous_namaz = 'Zuhr'
 	elif asr_least(month) <= current_time < asr_most(month):
 		namaz = 'Asr'
 		next_namaz = 'Maghrib'
 		next_namaz_start_time = maghrib_least(month)
+		current_namaz_start_time = asr_least(month)
 		previous_namaz = 'Zuhr'
 	elif premaghrib_least(month) <= current_time < premaghrib_most(month):
 		namaz = False
 		next_namaz = 'Maghrib'
 		next_namaz_start_time = maghrib_least(month)
+		current_namaz_start_time = None
 		previous_namaz = 'Asr'
 	elif maghrib_least(month) <= current_time < maghrib_most(month):
 		namaz = 'Maghrib'
 		next_namaz = 'Isha'
 		next_namaz_start_time = isha_least(month)
+		current_namaz_start_time = maghrib_least(month)
 		previous_namaz = 'Asr'
 	elif preisha_least(month) <= current_time < preisha_most(month):
 		namaz = False
 		next_namaz = 'Isha'
 		next_namaz_start_time = isha_least(month)
+		current_namaz_start_time = None
 		previous_namaz = 'Maghrib'
 	elif isha_least(month) <= current_time <= isha_most(month):
 		namaz = 'Isha'
 		next_namaz = 'Fajr'
 		next_namaz_start_time = fajr_least(month)
+		current_namaz_start_time = isha_least(month)
 		previous_namaz = 'Maghrib'
 	else:
 		namaz = False
 		next_namaz = False
 		next_namaz_start_time = False
+		current_namaz_start_time = None
 		previous_namaz = False
-	return previous_namaz, next_namaz, namaz, next_namaz_start_time
+	return previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time
 
 month = now.strftime("%m")
 namaz_timings = {minute: WhichNamaz(minute,month_name[month]) for minute in range(1440)}

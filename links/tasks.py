@@ -50,7 +50,7 @@ def salat_streaks():
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
 	twelve_hrs_ago = now - timedelta(hours=12)
-	previous_namaz, next_namaz, namaz, next_namaz_start_time = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
 	if namaz == 'Fajr':
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]

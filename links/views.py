@@ -4147,7 +4147,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				answer_to.save()
 				time = reply.submitted_on
 				timestring = time.isoformat()
-				publicreply_tasks.apply_async(args=[user.id, answer_to.id, timestring, reply.id, description], expires=7200)
+				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, description)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:

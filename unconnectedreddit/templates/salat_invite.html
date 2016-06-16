@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+
+    <div class="margin">
+    
+    {% if namaz_time %}
+    <span style="color:#179b36;">Doston ko <b style="color:#179b36;">{{ namaz }}</b> parhne ka yad kra kr nekiyan kmao!</span><br>
+    <span style="color:#404040;font-size:90%;">Kya dost abhi Damadam pe mojood hain, ya unko SMS krni he?</span><br>
+    <a href="{% url 'internal_salat_invite' %}#section0"><button style="width:6em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;margin-top:0.7em;"><b>Damadam</b></button></a><br>
+    <a href=""><button style="width:6em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;margin-top:0.7em;"><b>SMS</b></button></a><br><br><br>
+    {% else %}
+    <span style="color:#404040;">Abhi namaz ka time nahi hua</span><br><br>
+    <a href="{% url 'home' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>< wapis</b></button></a>
+    {% endif %}
+
+    </div>
+
+{% endblock %}

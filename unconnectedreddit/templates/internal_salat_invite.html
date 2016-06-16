@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load emoticons_tags %}
+{% block content %}
+
+    <div class="margin">
+    
+    {% if unauthorized %}
+        <span style="color:#404040;"><b>Damadam tum se dar kr bhag gya hai! {% emoticons %}:P{% endemoticons %}</b><br>
+        Hum dubara pakarne ki koshish krein ge</span><br><br>
+        <a href="{% url 'home' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>< wapis</b></button></a>
+        <br><br><br>
+    {% else %}
+
+        <span style="color:#404040;"><b>Namaz ki dawat do:</b></span>
+        <br><br>
+        {% for invitee in user_list %}
+            <span class="numbers">{{ forloop.counter }}.</span>
+            <a href="{% url 'profile' invitee.username %}#section0">
+            {% if invitee.userprofile.avatar %}
+            <img src="{{ invitee.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
+            {% else %}
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+            {% endif %}
+            {{ invitee }}</a>
+            {% if user != invitee %}&nbsp;&nbsp;<a href="{% url 'salat_notification' invitee.id %}"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>dawat</b></button></a>
+            {% endif %}<br>
+        {% endfor %}
+        <br><br>
+    {% endif %}
+
+    </div>
+
+{% endblock %}

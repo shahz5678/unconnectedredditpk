@@ -2,7 +2,7 @@
 {% block content %}
 <div class="margin">
 {% if authorized %}
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum iss jawab ko report karna chahte ho?</h2>
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum is jawab ko report karna chahte ho?</h2>
 <form action="{% url 'report' %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="reply" class="hidden_id" value="{{ reply }}">

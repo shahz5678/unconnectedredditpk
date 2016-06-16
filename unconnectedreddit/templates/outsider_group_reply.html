@@ -4,7 +4,10 @@
 {% load emoticons_tags %}
 {% block content %}
 {% if switching %}
-<span style="color:orange;"><b>&nbsp;&nbsp;Ye mehfil is terah nahi chalti!</b></span>
+    <span style="color:#404040;"><b>Ye mehfil tum se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
+    Hum isey pakarne ki koshish krein ge</span><br><br>
+    <a href="{% url 'group_page' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>< wapis</b></button></a>
+    <br><br><br>
 {% else %}
 {% if not user.is_authenticated %}
 <body bgcolor="#EDFFEE">

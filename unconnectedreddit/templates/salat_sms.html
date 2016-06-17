@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block content %}
+
+    <div class="margin" style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+    {% if namaz_time %}
+    Jis ko <b style="color:#179b36;">{{ namaz }}</b> ki SMS krni hai, kya woh freebasics pe hai?<br><br>
+    <span style="font-size:90%;">
+    <span style="color:green;">-</span> Agr <span style="color:#179b36;">haan</span>, toh usse ye SMS bhejo:<br><b style="font-size:110%;color:#179b36;">&nbsp;&nbsp;Jab waqt miley toh {{ namaz }} zarur parhna :) --- namaz check by <span style="word-wrap: break-word;">{{ freebasics_url }}</span></b><br><br>
+    <span style="color:green;">-</span> Agr <span style="color:purple;">nahi</span>, toh usse ye SMS bhejo:<br><b style="font-size:110%;color:purple;">&nbsp;&nbsp;Jab waqt miley toh {{ namaz }} zarur parhna :) --- namaz check by <span style="word-wrap: break-word;">{{ regular_url }}</span></b><br><br>
+    </span>
+    <hr size=1 COLOR="#2DB92D">
+    Agr jumla copy kr ke SMS krna nahi ata, toh button dbao:</span> <br><a href="sms:+03?body=Agr waqt miley toh {{ namaz }} zarur parhna :) --- namaz check by {{ freebasics_url }} (muft chat aur photos)"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border:solid 1px #179b36;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;border-radius:4px;">freebasics SMS</button></a><br></span>
+    <a href="sms:+03?body=Agr waqt miley toh {{ namaz }} zarur parhna :) --- namaz check by {{ regular_url }} (muft chat aur photos)"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;border-radius:4px;">normal SMS</button></a>
+    {% else %}
+    <span style="color:#404040;"><b>Abhi namaz ka waqt nahi hai</b></span><br><br>
+    <a href="{% url 'home' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>< wapis</b></button></a>
+    {% endif %}
+    </div>
+<br><br>
+{% endblock %}

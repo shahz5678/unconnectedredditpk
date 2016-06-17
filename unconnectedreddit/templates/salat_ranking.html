@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+<b style="color:#404040;">Namaz report card:</b>
+        <br><br>
+	{% for object in object_list %}
+	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+	<span class="numbers">
+		{{ forloop.counter }}.
+	</span>
+	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
+		{% if object.salatee.userprofile.avatar %}
+			<img src="{{ object.salatee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}
+	{{ object.salatee }}</a>
+	{% if object.salatee.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+	ne <!-- {{ object.when|naturaltime }}  --><b style="color:#179b36;">
+	{% if object.latest_salat == '1' %}
+	Fajr
+	{% elif object.latest_salat == '2' %}
+		{% if weekday == '4' %}
+		<span style="color:#ff9933;">Jummah</span>
+		{% else %}
+		Zuhr
+		{% endif %}
+	{% elif object.latest_salat == '3' %}
+	Asr
+	{% elif object.latest_salat == '4' %}
+	Maghrib
+	{% elif object.latest_salat == '5' %}
+	Isha
+	{% else %}
+	namaz 
+	{% endif %}</b>
+
+	{% if weekday == '4' and object.latest_salat == '2' %}
+	parha
+	{% else %}
+	parhi
+	{% endif %}
+	<b style="color:#ff9933;">
+	{% if object.salatee.userprofile.streak < 2 %}
+	({{ object.salatee.userprofile.streak }} namaz)
+	{% else %}
+	({{ object.salatee.userprofile.streak }} lagatar namazein)
+	{% endif %}
+	</b>
+	<br>
+	</span>
+	{% if forloop.counter == 5 %}
+	<hr size=1 COLOR="#3cb7dd">&nbsp;&nbsp;<span style="color:#404040;">Doston ko namaz ki</span>
+	<a href="{% url 'salat_invite' %}"><button style="width:5.9em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:95%;border-radius:4px;text-align: center;"><b>dawat do</b></button></a><br>
+	<hr size=1 COLOR="#3cb7dd">
+	{% endif %}
+	{% endfor %}
+
+</div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
+    {% endif %}
+</div>
+{% endif %}
+<br><br>
+{% endblock %}

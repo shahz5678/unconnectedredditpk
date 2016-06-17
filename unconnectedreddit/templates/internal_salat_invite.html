@@ -7,7 +7,7 @@
     
     {% if unauthorized %}
         <span style="color:#404040;"><b>Damadam tum se dar kr bhag gya hai! {% emoticons %}:P{% endemoticons %}</b><br>
-        Hum dubara pakarne ki koshish krein ge</span><br><br>
+        Hum isey pakarne ki koshish krein ge</span><br><br>
         <a href="{% url 'home' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>< wapis</b></button></a>
         <br><br><br>
     {% else %}
@@ -31,4 +31,18 @@
 
     </div>
 
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi><&nbsp;wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey&nbsp;></bdi></button></a>
+    {% endif %}
+</div><br><br><br>
+{% endif %}
 {% endblock %}

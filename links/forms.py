@@ -350,6 +350,14 @@ class PhotoShareForm(forms.Form):
 	class Meta:
 		pass
 
+class InternalSalatInviteForm(forms.Form):
+	class Meta:
+		pass
+
+class ExternalSalatInviteForm(forms.Form):
+	class Meta:
+		pass
+
 class PhotoReplyForm(forms.Form):
 	class Meta:
 		pass
@@ -388,6 +396,10 @@ class FanListForm(forms.Form):
 		pass
 
 class PhotoOptionTutorialForm(forms.Form):
+	class Meta:
+		pass
+
+class SalatInviteForm(forms.Form):
 	class Meta:
 		pass
 

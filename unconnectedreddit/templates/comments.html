@@ -20,13 +20,13 @@
     <a href="{% url 'home' %}#section0">
     {% endif %}
 
-    {% if photo.vote_score < -7 %}
+    {% if photo.vote_score < -2 %}
         {% if not from_photos and is_first %}
             <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
         {% endif %}
-    {% elif photo.vote_score < -2 %}
+    {% elif photo.vote_score < -1 %}
         {% if not from_photos and is_first %}
             {% if photo.image_file %}
                 <img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>

@@ -76,9 +76,9 @@
 		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
 		
 		<a href="{% url 'comment_pk' parent_pk photostream_id 2 %}" style="font-size:90%;">
-		{% if parent.vote_score < -7 %}
+		{% if parent.vote_score < -2 %}
 		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-		{% elif parent.vote_score < -2 %}
+		{% elif parent.vote_score < -1 %}
 		{% if parent.image_file %}
 	        <img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 	    {% else %}
@@ -104,9 +104,9 @@
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
-		{% if parent.vote_score < -7 %}
+		{% if parent.vote_score < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-		{% elif parent.vote_score < -2 %}
+		{% elif parent.vote_score < -1 %}
 			{% if parent.image_file %}
 			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
@@ -200,9 +200,9 @@
 	<br>
 	
 
-			{% if picstream.cover.vote_score < -7 %}
+			{% if picstream.cover.vote_score < -2 %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-			{% elif picstream.cover.vote_score < -2 %}
+			{% elif picstream.cover.vote_score < -1 %}
 				{% if picstream.cover.image_file %}
 				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
 				{% else %}
@@ -266,11 +266,11 @@
 			{% endif %}
 		<br>
 			{% for pic in picstream.photo_set.all|slice:":4" %}
-				{% if pic.vote_score < -8 %}
+				{% if pic.vote_score < -2 %}
 					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
 					<img style="margin-top:0.3em;" src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 					</a>
-				{% elif pic.vote_score < -3 %}
+				{% elif pic.vote_score < -1 %}
 					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
 					<img style="filter:brightness(35%);-webkit-filter: brightness(0.35);width:auto;border:1px solid #C0C0C0;margin-top:0.3em;" src="{{ pic.image_file.url|thumbnail }}" alt="no pic"></img>
 					</a>

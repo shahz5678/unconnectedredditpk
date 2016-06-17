@@ -77,9 +77,9 @@
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'comment_pk' parent_pk %}" style="font-size:90%;">
-		{% if parent.vote_score < -7 %}
+		{% if parent.vote_score < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		{% elif parent.vote_score < -2 %}
+		{% elif parent.vote_score < -1 %}
 			{% if parent.image_file %}
 			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
@@ -113,9 +113,9 @@
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
-		{% if parent.vote_score < -7 %}
+		{% if parent.vote_score < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		{% elif parent.vote_score < -2 %}
+		{% elif parent.vote_score < -1 %}
 			{% if parent.image_file %}
 			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
@@ -230,9 +230,9 @@
 		    {% endfor %}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
 		    {% if not link.submitter.hotuser.allowed or not link.submitter.hotuser.hot_score > 9 %}
 		    <a href="{% url 'see_photo_pk' link.which_photostream_id %}">
-		    {% if link.which_photostream.cover.vote_score < -7 %}
+		    {% if link.which_photostream.cover.vote_score < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		    {% elif link.which_photostream.cover.vote_score < -2 %}
+		    {% elif link.which_photostream.cover.vote_score < -1 %}
 			    {% if link.which_photostream.cover.image_file %}
 			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
 			    {% else %}

@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin"> 
 {% if not no_id %}
-	<b style="color:#404040;font-size:105%;">Jis se photo share krni hai, kya woh freebasics pe hai?</b><br><br>
+	<span style="color:#404040;font-size:100%;">Jis se photo share krni hai, kya woh <b style="color:#ff8000;">freebasics</b> pe hai?</span><br><br>
 	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">-</span> Agr <span style="color:green;">haan</span>, toh phir usse ye link bhejo: <b style="font-size:110%;color:green;">{{ freebasics_url }}</b><br></span><br>
+	<span style="color:green;">-</span> Agr <span style="color:#ff8000;">haan</span>, toh usse ye link bhejo:<br><b style="font-size:110%;color:#ff8000;word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br></span><br>
 	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">-</span> Agr <span style="color:purple;">nahi</span>, toh phir usse ye link bhejo: <b style="font-size:110%;color:purple;">{{ regular_url }}</b><br></span><br>
+	<span style="color:green;">-</span> Agr <span style="color:purple;">nahi</span>, toh usse ye link bhejo:<br><b style="font-size:110%;color:purple;word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br></span>
 
 	{% if loc == '1' %}
 	<a href="{% url 'see_photo_pk' ident %}">
@@ -18,13 +19,17 @@
 	{% else %}
 	<a href="{% url 'see_photo' %}#section1">
 	{% endif %}
-	<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button></a>
+	<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>< wapis</b></button></a>
 
-	<hr size=1 COLOR="#993399">
-	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:#8c8c8c;">- Agr link copy kr ke bhejna nahi ata, toh yeh button dbao:</span> <a href="sms:+03?body=Oye ye photo check kr: {{ freebasics_url }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">SMS kro</button></a><br></span><br><br><br>
+	<hr size=1 COLOR="#ff9933">
+	<span style="color:#404040;font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Oye ye photo check kr: {{ freebasics_url }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;border-radius:4px;">freebasics SMS</button></a><br></span>
+    <a href="sms:+03?body=Oye ye photo check kr: {{ regular_url }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;border-radius:4px;">normal SMS</button></a>
 {% else %}
-	<b style="color:#404040;font-size:100%;">Ye nahi chal raha, koi aur photo try kro</b><br>
+		<span style="color:#404040;"><b>Ye photo sharma kr kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
+        Hum dhoondne ki koshish kr rehay hain</span><br>
+        <a href="{% url 'see_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>< wapis</b></button></a>
+        <br><br><br>
 {% endif %}
-</div>
+</div><br><br>
 {% endblock %}

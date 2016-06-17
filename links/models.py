@@ -271,7 +271,8 @@ OBJECTS = (
 ('0','Comments'),
 ('1','Fans'),
 ('2','Links'),
-('3','Groups')
+('3','Groups'),
+('4','Salat')
 	)
 
 LIFETIME = (
@@ -323,7 +324,7 @@ class Link(models.Model):
 	rank_score = models.FloatField(default=0.0)
 	is_visible = models.BooleanField(default=True)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-	which_photostream = models.ForeignKey('links.PhotoStream')
+	which_photostream = models.ForeignKey('links.PhotoStream', null=True, blank=True)
 	reply_count = models.IntegerField(default=0)
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
@@ -485,6 +486,15 @@ class UserFan(models.Model):
 	def __unicode__(self):
 		return u"%s became a fan of %s" % (self.fan, self.star)
 
+class SalatInvite(models.Model):
+	invitee = models.ForeignKey(User, related_name='salat_invitee')
+	inviter = models.ForeignKey(User, related_name ='salat_inviter')
+	sent_at = models.DateTimeField(db_index=True)
+	which_salat = models.CharField(db_index=True, choices=SALAT, max_length = 8)
+
+	def __unicode__(self):
+		return u"%s invited %s for prayer %s" % (self.inviter, self.invitee, self.which_salat)
+
 class GroupInvite(models.Model):
 	invitee = models.ForeignKey(User, related_name='invitee')
 	inviter = models.ForeignKey(User, related_name ='inviter')
@@ -495,13 +505,13 @@ class GroupInvite(models.Model):
 		return u"%s was invited to %s by %s" % (self.invitee, self.which_group.topic, self.inviter)
 
 class Reply(models.Model):
-	text = models.TextField("Likho:", validators=[MaxLengthValidator(500)])
+	text = models.TextField("Likho:",db_index=True, validators=[MaxLengthValidator(500)])
 	which_group = models.ForeignKey(Group)
 	writer = models.ForeignKey(User) # reply.writer is a user!
 	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
 	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, storage=OverwriteStorage(), null=True, blank=True )
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-	category = models.CharField(choices=REPLIES, default='0', max_length=15)
+	category = models.CharField(db_index=True,choices=REPLIES, default='0', max_length=15)
 
 	def __unicode__(self):
 		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)
@@ -514,6 +524,7 @@ class PhotoObjectSubscription(models.Model):
 	which_photo = models.ForeignKey(Photo, null=True, blank=True)
 	which_link = models.ForeignKey(Link, null=True, blank=True)
 	which_group = models.ForeignKey(Group, null=True, blank=True)
+	which_salat = models.ForeignKey(SalatInvite, null=True, blank=True)
 
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)

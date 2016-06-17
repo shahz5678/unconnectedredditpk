@@ -140,7 +140,7 @@
 			{% if authenticated %}
 				{% if random == 1 %}
 					<span style="color:#ff8000;font-size:90%;"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
-				{% elif random == 2 %}
+				{% elif random == 2 and user.username == 'mhb11'%}
 					<span style="color:#179b36;font-size:90%;"><b>Namaziyun</b> ki list <a href="{% url 'salat_ranking' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border-color:#179b36;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
 				{% else %}
 					{% if username == newest_user.username %}
@@ -163,7 +163,7 @@
 
 {% for link in object_list %}
 		
-	{% if forloop.counter == 4 %}
+	{% if forloop.counter == 4 and user.username == 'mhb11' %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}

@@ -45,6 +45,32 @@
 		<p style="margin-top:-0.9em;"></p>
 		<hr size=1>
 	
+		{% elif type_of_object == '4' %}
+		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#2DB92D;">
+		<a href="{% url 'profile' parent.inviter.username %}#section0">
+		{% if parent.inviter.userprofile.avatar %}
+		<img src="{{ parent.inviter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22">
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		{% endif %}
+		{{ parent.inviter }}</a>
+				{% for person in checked %}
+			    {% if person == parent.inviter.username %}
+			    	<span style="font-size:100%;color:deeppink;"><b>*</b></span>
+			    {% endif %}
+			    {% endfor %}
+		<span style="color:#404040;">: {{ user.username }} waqt miley toh <b style="color:#179b36;">{{ namaz }}</b> parh lena {% emoticons %}:-){% endemoticons %}</span>
+		<br>
+			{% if parent.inviter.userprofile.streak > 1 %}
+			<span style="color:#179b36;font-size:85%;">({{ parent.inviter }} ne pichli <b>lagatar {{ parent.inviter.userprofile.streak }} namazein</b> parhein)</span><br>
+			{% endif %}
+		<a href="{% url 'cross_salat_notif' parent.id user.id 2 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;margin-top:1em;"><b>X</b></button></a>
+		</div>
+					<p style="margin-top:.5em;"></p>
+				<hr size=1>
+				<p style="margin-top:-0.9em;"></p>
+		<hr size=1>
+
 	{% elif type_of_object == '0' %}
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
 		<span style="color:#ff8000;font-size:90%;">Photo pr <b>neya</b> tabsra:</span><p style="margin-top:.3em;"></p>

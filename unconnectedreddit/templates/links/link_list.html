@@ -198,13 +198,24 @@
 		</div>
 	{% elif link.cagtegory == '6' %}
 	<div style="margin-top:-1em;padding-top:1em;">
-		
 		{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 9 %}
-	    	<a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">(barri photo ?)</div></a>
-	    	<br>
-			<a href="{% url 'see_photo_pk' link.which_photostream.cover_id %}#section0">
-	    	<img style="width:100%;max-width:400px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url }}"></img>
-	    	</a>
+	    	{% if link.which_photostream.cover.vote_score < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.which_photostream.cover.vote_score < -1 %}
+			    {% if link.which_photostream.cover.image_file %}
+			    <img src="{{ link.which_photostream.cover.image_file.url|thumbnail }}" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+			{% else %}
+			    {% if link.which_photostream.cover.image_file %}
+			    <a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">(barri photo ?)</div></a><br>
+			    <a href="{% url 'see_photo_pk' link.which_photostream.cover_id %}#section0">
+			    <img style="width:100%;max-width:400px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url }}"></img></a>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}    
 	    	<br>
 		{% endif %}
 		<a href="{% url 'profile' link.submitter.username %}#secton0">

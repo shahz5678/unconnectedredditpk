@@ -479,6 +479,12 @@ class GroupTraffic(models.Model):
 	def __unicode__(self):
 		return u"%s visited %s" % (self.visitor, self.which_group.topic)
 
+class TotalFanAndPhotos(models.Model):
+	owner = models.OneToOneField(User, unique=True)
+	total_photos = models.IntegerField(default=0)
+	total_fans = models.IntegerField(default=0)
+	last_updated = models.DateTimeField(db_index=True)
+
 class UserFan(models.Model):
 	star = models.ForeignKey(User, related_name='star')
 	fan = models.ForeignKey(User, related_name='fan')

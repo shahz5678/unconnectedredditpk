@@ -2759,10 +2759,10 @@ class BestPhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
+			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
 		else:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
-			# queryset = PhotoStream.objects.select_related('cover', 'cover__owner').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
+			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
+			# queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -2786,7 +2786,7 @@ class BestPhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
+				photos_in_page = context["object_list"].values_list('cover',flat=True)#[picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)

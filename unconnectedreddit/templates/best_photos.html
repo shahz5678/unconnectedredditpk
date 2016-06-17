@@ -128,14 +128,10 @@
 	{% endif %}
 	{% endif %}
 {% if authenticated and score > 29 and not banned %}
-	{% if not freshest_unseen_comment %}
-	<span style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;font-size:88%;">Naee photo charhao:</span>
-	<p style="padding-top:-.3em;">
-	{% endif %}
-<a href="{% url 'upload_photo' %}#section0"><button style="border-color:#ff8000;background-color:#ff9933;font-size:90%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:6.5em;"><b>Photo Charhao</b></button></a><br><span style="color:grey; font-size:80%;"><i>qeemat: 3 points</i></span>
+<a href="{% url 'upload_photo' %}#section0"><button style="border-color:#ff8000;background-color:#ff9933;font-size:90%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:7em;"><b>New Photo Charhao</b></button></a>
 </p>
 {% elif not authenticated %}
-<span style="color:grey;font-size:90%;">Photo lagane ke liye pehle account banao</span>
+<span style="color:grey;font-size:90%;">Photo lagane ke liye account banao</span>
 {% elif banned %}
 {% elif first_time_user %}
 {% else %}

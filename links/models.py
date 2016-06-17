@@ -524,7 +524,7 @@ class PhotoObjectSubscription(models.Model):
 	which_photo = models.ForeignKey(Photo, null=True, blank=True)
 	which_link = models.ForeignKey(Link, null=True, blank=True)
 	which_group = models.ForeignKey(Group, null=True, blank=True)
-	#which_salat = models.ForeignKey(SalatInvite, null=True, blank=True)
+	which_salat = models.ForeignKey(SalatInvite, null=True, blank=True)
 
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)

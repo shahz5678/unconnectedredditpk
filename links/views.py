@@ -16,7 +16,8 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
-GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat#, SalatInvite
+GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
+SalatInvite
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -35,7 +36,7 @@ RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicFo
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
-TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm#, SalatInviteForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -160,52 +161,66 @@ def valid_uuid(uuid):
 	#print bool(match)
 	return bool(match)
 
-# def GetNonReplyLinks(user):
-# 	try:
-# 		now = datetime.utcnow().replace(tzinfo=utc)
-# 		timestamp = now - timedelta(minutes=60*48)
-# 		global condemned
-# 		relevant_links = Link.objects.filter(Q(submitter=user,reply_count__gte=1, submitted_on__gte=timestamp)|Q(publicreply__submitted_by=user, publicreply__submitted_on__gte=timestamp)).exclude(submitter_id__in=condemned).distinct().order_by('-id')[:10]
-# 	except:
-# 		#print "no relevant links"
-# 		relevant_links = []
-# 	return relevant_links	
-
 def GetLatest(user):
 	try:
 		#now = datetime.utcnow().replace(tzinfo=utc)
 		now = timezone.now()
 		timestamp = now - timedelta(minutes=90)
-		#latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False, updated_at__gte=timestamp).latest('updated_at')
-		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
+		latest_pos = PhotoObjectSubscription.objects.select_related('which_link','which_photo','which_group','which_salat__inviter__userprofile').filter(viewer=user, seen=False).latest('updated_at')
+		# print latest_pos.type_of_object
 		if latest_pos.type_of_object == '0' and latest_pos.updated_at >= timestamp:
-			photo = Photo.objects.get(id=latest_pos.which_photo_id)
-			latest_comment = PhotoComment.objects.filter(which_photo=photo).latest('id')
+			# photo = Photo.objects.get(id=latest_pos.which_photo)
+			latest_comment = PhotoComment.objects.select_related('submitted_by','which_photo').filter(which_photo=latest_pos.which_photo).latest('id')
 			try:
 				type_of_object = latest_pos.type_of_object
 			except:
 				type_of_object = None
-			return type_of_object, latest_comment, False, True, False
+			return type_of_object, latest_comment, False, True, False, False
 		elif latest_pos.type_of_object == '2' and latest_pos.updated_at >= timestamp:
-			link = Link.objects.get(id=latest_pos.which_link_id)
-			latest_reply = Publicreply.objects.filter(answer_to=link).latest('id')
+			latest_reply = Publicreply.objects.select_related('answer_to__submitter__userprofile','submitted_by__userprofile').filter(answer_to=latest_pos.which_link).latest('id')
 			try:
 				type_of_object = latest_pos.type_of_object
 			except:
 				type_of_object = None
-			return type_of_object, latest_reply, True, False, False
+			return type_of_object, latest_reply, True, False, False, False
+		elif latest_pos.type_of_object == '4':
+			#dont show this if the time for this is gone, or if the user has already prayed
+			time_now = datetime.utcnow()+timedelta(hours=5)
+			current_minute = time_now.hour * 60 + time_now.minute
+			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+			if not namaz:
+				#time for namaz has gone
+				latest_pos.seen=True
+				latest_pos.updated_at=time_now
+				latest_pos.save()
+				return None, None, False, False, False, False
+			else:
+				starting_time = datetime.combine(time_now.today(), current_namaz_start_time)
+				ending_time = datetime.combine(time_now.today(), current_namaz_end_time)
+				try:
+					latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
+				except:
+					#latest_namaz does not exist
+					latest_namaz = None
+				if (starting_time <= latest_pos.which_salat.sent_at < ending_time) and not AlreadyPrayed(latest_namaz,time_now):
+					return latest_pos.type_of_object,latest_pos.which_salat, False, False, False, True
+				else:
+					latest_pos.seen=True
+					latest_pos.updated_at=time_now
+					latest_pos.save()			
+					return None, None, False, False, False, False
 		elif latest_pos.type_of_object == '1':
 			photo_id = latest_pos.which_photo_id
 			try:
 				type_of_object = latest_pos.type_of_object
 			except:
 				type_of_object = None
-			return type_of_object, photo_id, False, True, False
+			return type_of_object, photo_id, False, True, False, False
 		else:
 			latest = []
 	except:
 		latest = []
-	return None, latest, False, False, False
+	return None, latest, False, False, False, False
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -290,7 +305,7 @@ class FanListView(FormView):
 		context = super(FanListView, self).get_context_data(**kwargs)
 		context["girls"] = FEMALES
 		pk = self.request.session["fan_target_id"]
-		context["fan_list"] = UserFan.objects.filter(star_id=pk).order_by('fan')
+		context["fan_list"] = UserFan.objects.select_related('fan__userprofile').filter(star_id=pk).order_by('fan')
 		context["star"] = User.objects.get(id=pk)
 		return context
 
@@ -565,17 +580,27 @@ class MehfilView(FormView):
 			except:
 				return redirect("profile", self.request.user.username)
 
-def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
-	if pk.isdigit() and num.isdigit():
-		request.session["report_pk"] = pk
-		request.session["linkreport_pk"] = num
-		return redirect("reportreply")
-	else:
-		return redirect("score_help")
+class SalatRankingView(ListView):
+	template_name = "salat_ranking.html"
+	model = LatestSalat
+	paginate_by = 50
+
+	def get_queryset(self):
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		})
+		users_fans = cache_mem.get('salat_streaks')
+		return users_fans
+
+	def get_context_data(self, **kwargs):
+		context=super(SalatRankingView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["girls"] = FEMALES
+		return context
 
 class SalatSuccessView(ListView):
 	template_name = "salat_success.html"
-	model = Salat
+	model = LatestSalat
 	paginate_by = 50
 
 	def get_queryset(self):
@@ -589,7 +614,7 @@ class SalatSuccessView(ListView):
 		context=super(SalatSuccessView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			mins = self.kwargs["mins"]
-			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[int(mins)]
+			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[int(mins)]
 			context["namaz"] = namaz
 			context["time"] = next_namaz_start_time
 			context["weekday"] = self.kwargs["num"]
@@ -597,6 +622,23 @@ class SalatSuccessView(ListView):
 				context["namaz"] = 'Jummah'
 			context["girls"] = FEMALES
 		return context
+
+@ratelimit(rate='1/s')
+def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		deduction = 5 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'pk': 'pk'}
+		return render(request, 'penalty_reportreply.html', context)
+	else:
+		if pk.isdigit() and num.isdigit():
+			request.session["report_pk"] = pk
+			request.session["linkreport_pk"] = num
+			return redirect("reportreply")
+		else:
+			return redirect("score_help")
 
 class ReportreplyView(FormView):
 	form_class = ReportreplyForm
@@ -668,7 +710,7 @@ class LinkDetailView(DetailView):
 def skip_presalat(request, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	if namaz:
 		#i.e. it's not pre-namaz time
 		return redirect("home")
@@ -699,7 +741,7 @@ def skip_salat(request, skipped=None, *args, **kwargs):
 	if skipped:
 		now = datetime.utcnow()+timedelta(hours=5)
 		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 		if not namaz:
 			return redirect("home")
 		elif skipped != namaz:
@@ -746,6 +788,8 @@ def AlreadyPrayed(salat, now):
 	current_minute = now.hour * 60 + now.minute
 	time_now = now.time()
 	date_now = now.date()
+	if not salat:
+		return False
 	datetime_of_latest_salat = salat.when
 	minute_of_latest_salat = datetime_of_latest_salat.hour * 60 + datetime_of_latest_salat.minute 
 	time_of_latest_salat = datetime_of_latest_salat.time()
@@ -757,8 +801,8 @@ def AlreadyPrayed(salat, now):
 		return False
 	elif date_now == date_of_latest_salat:
 		#prayee logged a salat today
-		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time = namaz_timings[current_minute]
-		previous_salat_done, next_salat_done, salat_done, salat_done_next_start_time, salat_done_start_time = namaz_timings[minute_of_latest_salat]
+		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time, salat_to_do_end_time = namaz_timings[current_minute]
+		previous_salat_done, next_salat_done, salat_done, salat_done_next_start_time, salat_done_start_time, salat_done_end_time = namaz_timings[minute_of_latest_salat]
 		if not salat_to_do and not salat_done:
 			#this is some kind of an error, handle it gracefully
 			return True
@@ -783,8 +827,12 @@ def AlreadyPrayed(salat, now):
 def process_salat(request, offered=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
-	#time_now = now.time()
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+	user = request.user
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	try:
+		starting_time = datetime.combine(now.today(), current_namaz_start_time)
+	except:
+		redirect("home")
 	#print previous_namaz, next_namaz, namaz
 	if not namaz:
 		#it's not time for any namaz, ABORT
@@ -803,25 +851,26 @@ def process_salat(request, offered=None, *args, **kwargs):
 		else:
 			return redirect("home")
 		try:
-			latest_namaz = LatestSalat.objects.filter(salatee=request.user).latest('when')
+			latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
 			if AlreadyPrayed(latest_namaz, now):
 				return redirect("home")
 			else:
 				if streak_alive(latest_namaz,salat,now):
-					request.user.userprofile.streak = request.user.userprofile.streak + 1
+					user.userprofile.streak = user.userprofile.streak + 1
 				else:
-					request.user.userprofile.streak = 1
+					user.userprofile.streak = 1
 				latest_namaz.when = now
 				latest_namaz.latest_salat = salat
 				latest_namaz.skipped = False
 				latest_namaz.save()
-				request.user.userprofile.save()
+				user.userprofile.save()
 		except:
 			#the person hasn't prayed before, i.e. streak is at 0
-			latest_salat = LatestSalat.objects.create(salatee=request.user, when=now, latest_salat=salat)
-			request.user.userprofile.streak = 1
-			request.user.userprofile.save()
-		Salat.objects.create(prayee=request.user, timing=now, which_salat=salat)
+			latest_salat = LatestSalat.objects.create(salatee=user, when=now, latest_salat=salat)
+			user.userprofile.streak = 1
+			user.userprofile.save()
+		Salat.objects.create(prayee=user, timing=now, which_salat=salat)
+		PhotoObjectSubscription.objects.filter(viewer=user, seen=False, type_of_object='4',updated_at__gte=starting_time).update(seen=True, updated_at=now)
 		return redirect("salat_success", current_minute, now.weekday())
 
 class LinkListView(ListView):
@@ -830,10 +879,10 @@ class LinkListView(ListView):
 
 	def get_queryset(self):
 		if self.request.user_banned:#if user is hell-banned
-			return Link.objects.order_by('-id')[:120]
+			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id')[:120]
 		else:#if user is not hell-banned
 			global condemned
-			return Link.objects.order_by('-id').exclude(submitter_id__in=condemned)[:120]
+			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id').exclude(submitter_id__in=condemned)[:120]
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
@@ -849,7 +898,7 @@ class LinkListView(ListView):
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
 		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 		context["next_namaz_start_time"] = next_namaz_start_time
 		if namaz == 'Zuhr' and day == 4: #4 is Friday
 			context["current_namaz"] = 'Jummah'
@@ -906,9 +955,9 @@ class LinkListView(ListView):
 				context["show_next"] = False
 		################################################################################################################
 		if self.request.user.is_authenticated():
-			num = random.randint(1,3)
+			num = random.randint(1,4)
 			context["random"] = num
-			if num > 1:
+			if num > 2:
 				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
 			else:
 				context["newest_user"] = None
@@ -921,7 +970,7 @@ class LinkListView(ListView):
 			if score > 9:
 				context["can_vote"] = True
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
-			votes_in_page = Vote.objects.filter(link_id__in=links_in_page)
+			votes_in_page = Vote.objects.select_related('voter__userprofile').filter(link_id__in=links_in_page)
 			voted = votes_in_page.filter(voter=user) #all votes the user cast
 			voted = voted.values_list('link_id', flat=True) #link ids of all votes the user voted on
 			context["voted"] = voted #voted is used to check which links the user has already voted on
@@ -932,9 +981,10 @@ class LinkListView(ListView):
 				context["sender"] = 0 #hell banned users will never see notifications
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
-				#context["fresh_users"] = User.objects.order_by('-id').exclude(id__in=condemned)[:3]
-				object_type, freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
-				if not is_link and not is_photo and not is_groupreply:
+				###############################################################################################################
+				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+				#print object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat
+				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["latest_reply"] = []
 					context["notification"] = 0
 					context["parent"] = []
@@ -946,6 +996,14 @@ class LinkListView(ListView):
 					context["parent"] = []
 					context["parent_pk"] = 0
 					context["first_time_user"] = False
+				elif is_salat:
+					salat_invite = freshest_reply
+					context["type_of_object"] = '4'
+					context["notification"] = 1
+					context["first_time_user"] = False
+					context["banned"] = False
+					context["parent"] = salat_invite
+					context["namaz"] = namaz 
 				elif is_link:
 					context["type_of_object"] = '2'
 					if freshest_reply:
@@ -954,7 +1012,6 @@ class LinkListView(ListView):
 						parent_link_writer_username = parent_link_writer.username
 						#print parent_link_writer_username
 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						#print WELCOME_MESSAGE1
 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
@@ -1247,7 +1304,7 @@ class UserProfilePhotosView(ListView):
 	def get_queryset(self):
 		slug = self.kwargs["slug"]
 		user = User.objects.get(username=slug)
-		return Photo.objects.filter(owner=user).order_by('-upload_time')
+		return Photo.objects.select_related('owner__userprofile').filter(owner=user).order_by('-upload_time')
 
 	def get_context_data(self, **kwargs):
 		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
@@ -1375,26 +1432,6 @@ class UserProfileDetailView(DetailView):
 		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
 		context["ratified"] = FEMALES
 		return context
-
-# class OutsideMessageRecreateView(FormView):
-# 	model = Group
-# 	form_class = OutsideMessageRecreateForm
-# 	template_name = "outside_message_recreate.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(OutsideMessageRecreateView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			context["unique"] = self.kwargs["slug"]
-# 		return context
-
-# 	def form_valid(self, form):
-# 		if self.request.user_banned:
-# 			return redirect("group_page") #errorbanning
-# 		else:
-# 			number = self.request.POST.get("mobile_number")
-# 			unique = self.request.POST.get("unique")
-# 			#print "hello"
-# 			return redirect("sms_reinvite", slug=unique, num=number)
 
 class OutsideMessageCreateView(FormView):
 	model = Group
@@ -1601,81 +1638,110 @@ class InviteUsersToPrivateGroupView(FormView):
 			self.request.session["private_uuid"] = None
 			return redirect("invite_private", slug=uuid)
 
-# class SalatInviteView(FormView):
-# 	template_name = "salat_invite.html"
-# 	form_class = SalatInviteForm
+class ExternalSalatInviteView(FormView):
+	template_name = "salat_sms.html"
+	form_class = ExternalSalatInviteForm
 
-# 	def get_context_data(self, **kwargs):
-# 		context = super(SalatInviteView, self).get_context_data(**kwargs)
-# 		now = datetime.utcnow()+timedelta(hours=5)
-# 		#day = now.weekday()
-# 		current_minute = now.hour * 60 + now.minute
-# 		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
-# 		if namaz:
-# 			context["namaz_time"] = True
-# 			context["namaz"] = namaz
-# 		else:
-# 			context["namaz_time"] = False
-# 		return context
+	def get_context_data(self, **kwargs):
+		context = super(ExternalSalatInviteView, self).get_context_data(**kwargs)
+		now = datetime.utcnow()+timedelta(hours=5)
+		current_minute = now.hour * 60 + now.minute
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		if namaz:
+			context["namaz_time"] = True
+			context["namaz"] = namaz
+			context["freebasics_url"] = "https://https-damadam-pk.0.freebasics.com"
+			context["regular_url"] = "https://damadam.pk"
+		else:
+			context["namaz_time"] = False
+		return context
 
-# class InternalSalatInviteView(ListView):
-# 	template_name = "internal_salat_invite.html"
+class SalatInviteView(FormView):
+	template_name = "salat_invite.html"
+	form_class = SalatInviteForm
 
-# 	def get_queryset(self):
-# 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-# 				'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-# 			})
-# 		users = cache_mem.get('online_users')
-# 		if self.request.user_banned:
-# 			return users
-# 		else:
-# 			global condemned
-# 			users_purified = [user for user in users if user.pk not in condemned]
-# 			return users_purified
+	def get_context_data(self, **kwargs):
+		context = super(SalatInviteView, self).get_context_data(**kwargs)
+		now = datetime.utcnow()+timedelta(hours=5)
+		current_minute = now.hour * 60 + now.minute
+		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		if namaz:
+			context["namaz_time"] = True
+			context["namaz"] = namaz
+		else:
+			context["namaz_time"] = False
+		return context
 
-# 	def get_context_data(self, **kwargs):
-# 		context = super(InternalSalatInviteView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			#get current namaz start time
-# 			now = datetime.utcnow()+timedelta(hours=5)
-# 			current_minute = now.hour * 60 + now.minute
-# 			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
-# 			user_ids = [user.id for user in context["object_list"]]
-# 			if namaz:
-# 				context["unauthorized"] = False
-# 				starting_time = datetime.combine(now.today(), current_namaz_start_time)
-# 				if namaz == 'Fajr':
-# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
-# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='1', sent_at__gte=starting_time).values_list('id', flat=True)
-# 					#remove already invited users from the object_list
-# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
-# 				elif namaz == 'Zuhr':
-# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
-# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='2', sent_at__gte=starting_time).values_list('id', flat=True)
-# 					#remove already invited users from the object_list
-# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
-# 				elif namaz == 'Asr':
-# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
-# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='3', sent_at__gte=starting_time).values_list('id', flat=True)
-# 					#remove already invited users from the object_list
-# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
-# 				elif namaz == 'Maghrib':
-# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
-# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='4', sent_at__gte=starting_time).values_list('id', flat=True)
-# 					#remove already invited users from the object_list
-# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
-# 				elif namaz == 'Isha':
-# 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
-# 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='5', sent_at__gte=starting_time).values_list('id', flat=True)
-# 					#remove already invited users from the object_list
-# 					context["user_list"] = [user for user in context["object_list"] if user.pk not in invites]
-# 				else:
-# 					context["user_list"] = None
-# 					context["unauthorized"] = True #some error must have occurred, abort
-# 			else:
-# 				context["user_list"] = None
-# 				context["unauthorized"] = True #it's not time for any namaz!
-# 			return context
+class InternalSalatInviteView(ListView):
+	template_name = "internal_salat_invite.html"
+
+	def get_queryset(self):
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+			})
+		users = cache_mem.get('online_users')
+		if self.request.user_banned:
+			return users
+		else:
+			global condemned
+			users_purified = [user for user in users if user.pk not in condemned]
+			return users_purified
+
+	def get_context_data(self, **kwargs):
+		context = super(InternalSalatInviteView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			#get current namaz start time
+			now = datetime.utcnow()+timedelta(hours=5)
+			current_minute = now.hour * 60 + now.minute
+			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+			try:
+				starting_time = datetime.combine(now.today(), current_namaz_start_time)
+			except:
+				context["user_list"] = None
+				context["unauthorized"] = True #it's not time for any namaz!
+				return context
+			user_ids = [user.id for user in context["object_list"]]
+			if namaz:
+				context["namaz"] = namaz
+				context["unauthorized"] = False
+				if namaz == 'Fajr':
+					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='1', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
+					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='1',when__gte=starting_time).values_list('salatee_id', flat=True)
+					#remove already invited and already prayed users from the object_list:
+					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
+					#context["user_list"] = [user for user in context["user_list"] if user.pk not in already_prayed]
+				elif namaz == 'Zuhr':
+					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='2', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
+					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='2',when__gte=starting_time).values_list('salatee_id', flat=True)
+					#remove already invited and already prayed users from the object_list:
+					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
+				elif namaz == 'Asr':
+					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='3', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
+					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='3',when__gte=starting_time).values_list('salatee_id', flat=True)
+					#remove already invited and already prayed users from the object_list:
+					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
+				elif namaz == 'Maghrib':
+					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='4', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
+					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='4',when__gte=starting_time).values_list('salatee_id', flat=True)
+					#remove already invited and already prayed users from the object_list:
+					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
+				elif namaz == 'Isha':
+					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
+					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='5', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
+					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='5',when__gte=starting_time).values_list('salatee_id', flat=True)
+					#remove already invited and already prayed users from the object_list:
+					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
+				else:
+					context["user_list"] = None
+					context["unauthorized"] = True #some error must have occurred, abort
+			else:
+				context["user_list"] = None
+				context["unauthorized"] = True #it's not time for any namaz!
+			return context
 
 class InviteUsersToGroupView(FormView):
 	model = Session
@@ -1796,7 +1862,7 @@ class TopView(ListView):
 			return User.objects.order_by('-userprofile__score')[:100]
 		else:
 			global condemned
-			return User.objects.exclude(id__in=condemned).order_by('-userprofile__score')[:100]
+			return User.objects.exclude(id__in=condemned).order_by('-userprofile__score').prefetch_related('userprofile')[:100]
 
 	def get_context_data(self, **kwargs):
 		context = super(TopView, self).get_context_data(**kwargs)
@@ -1817,7 +1883,7 @@ class GroupPageView(ListView):
 		groups = Group.objects.filter(Q(owner=user)|Q(reply__writer=user)).distinct().values_list('id', flat=True)
 		replies = Reply.objects.filter(Q(which_group__in=groups)|Q(category='1',text=user.username)).\
 		exclude(category='1',writer=user).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
-		replies_qs = Reply.objects.filter(id__in=replies).order_by('-id')[:60]
+		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=replies).order_by('-id')[:60]
 		seen_for = {groupseen.which_reply_id: groupseen for groupseen in GroupSeen.objects.filter(seen_user=user)}
 		replies = [(reply, seen_for.get(reply.pk))for reply in replies_qs]
 		return replies
@@ -2122,7 +2188,7 @@ class UploadPhotoReplyView(CreateView):
 					through_model.objects.bulk_create([
 						through_model(photo_id=pk, photostream_id = stream.pk) for pk in tail_photos.values_list('pk', flat=True)
 						])
-				user.userprofile.score = user.userprofile.score - 15
+				user.userprofile.score = user.userprofile.score - 10
 				user.userprofile.save()
 				return redirect("see_photo")
 			else:
@@ -2148,15 +2214,15 @@ class PhotoScoreView(FormView):
 			context["authenticated"] = True
 		else:
 			context["authenticated"] = False
-		cover_photo = PhotoStream.objects.get(id=key).cover
-		context["photo"] = cover_photo
-		context["votes"] = PhotoVote.objects.filter(photo=cover_photo).order_by('-id')
+		cover_photo = PhotoStream.objects.select_related('cover').get(id=key)
+		context["photo"] = cover_photo.cover
+		context["votes"] = PhotoVote.objects.select_related('voter__userprofile').filter(photo=cover_photo.cover).order_by('-id')
 		if context["votes"]:
 			context["content"] = True
-			context["visible_score"] = cover_photo.visible_score 
+			context["visible_score"] = cover_photo.cover.visible_score 
 		else:
 			context["content"] = False
-			context["visible_score"] = cover_photo.visible_score
+			context["visible_score"] = cover_photo.cover.visible_score
 		context["girls"] = FEMALES
 		return context
 
@@ -2286,8 +2352,8 @@ class CommentView(CreateView):
 		context = super(CommentView, self).get_context_data(**kwargs)
 		try:
 			pk = self.request.session["photo_id"]
-			context["photo"] = Photo.objects.get(id=pk)
-			comments = PhotoComment.objects.filter(which_photo_id=pk).order_by('-id')[:25]
+			context["photo"] = Photo.objects.select_related('owner').get(id=pk)
+			comments = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk).order_by('-id')[:25]
 			context["comments"] = comments
 			context["verified"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
@@ -2449,9 +2515,10 @@ class PhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.order_by('-show_time')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
 		else:
-			queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
+			# queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -2478,8 +2545,8 @@ class PhotoView(ListView):
 				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
-				object_type, freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
-				if not is_link and not is_photo and not is_groupreply:
+				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
 					context["notification"] = 0
 					context["parent"] = []
@@ -2495,6 +2562,18 @@ class PhotoView(ListView):
 					context["first_time_user"] = False
 					context["banned"] = False
 					return context
+				elif is_salat:
+					now = datetime.utcnow()+timedelta(hours=5)
+					current_minute = now.hour * 60 + now.minute
+					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					salat_invite = freshest_reply
+					context["type_of_object"] = '4'
+					context["notification"] = 1
+					context["first_time_user"] = False
+					context["banned"] = False
+					context["parent"] = salat_invite
+					context["namaz"] = namaz 
+					context["freshest_unseen_comment"] = 1				
 				elif is_photo:
 					if object_type == '1':
 						#i.e. it's a photo a fan ought to see!
@@ -2680,9 +2759,10 @@ class BestPhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
 		else:
-			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score')[:200]
+			# queryset = PhotoStream.objects.select_related('cover', 'cover__owner').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -2709,8 +2789,8 @@ class BestPhotoView(ListView):
 				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
-				object_type, freshest_reply, is_link, is_photo, is_groupreply = GetLatest(user)
-				if not is_link and not is_photo and not is_groupreply:
+				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
 					context["notification"] = 0
 					context["parent"] = []
@@ -2726,6 +2806,18 @@ class BestPhotoView(ListView):
 					context["first_time_user"] = False
 					context["banned"] = False
 					return context
+				elif is_salat:
+					now = datetime.utcnow()+timedelta(hours=5)
+					current_minute = now.hour * 60 + now.minute
+					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					salat_invite = freshest_reply
+					context["type_of_object"] = '4'
+					context["notification"] = 1
+					context["first_time_user"] = False
+					context["banned"] = False
+					context["parent"] = salat_invite
+					context["namaz"] = namaz 
+					context["freshest_unseen_comment"] = 1		
 				elif is_photo:
 					if object_type == '1':
 						#i.e. it's a photo a fan ought to see!
@@ -3789,7 +3881,7 @@ class PublicGroupView(CreateView):
 					return context#no need to process more
 				GroupTraffic.objects.create(visitor_id=self.request.user.id,which_group_id=group.id)#create DB call
 				context["ensured"] = FEMALES
-				replies = Reply.objects.filter(which_group_id=group.id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group.id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
 				#time_now = datetime.utcnow().replace(tzinfo=utc)
 				time_now = timezone.now()
 				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
@@ -3824,7 +3916,7 @@ class PublicGroupView(CreateView):
 			text = f.text
 			score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
 			if score > 87:
-				self.request.user.userprofile.score = self.request.user.userprofile.score - 10
+				self.request.user.userprofile.score = self.request.user.userprofile.score - 5
 				self.request.user.userprofile.save()
 				self.request.session["public_uuid"] = None
 				return redirect("public_group", slug=pk)
@@ -3898,7 +3990,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				context["switching"] = False
 				GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
 				context["ensured"] = FEMALES
-				replies = Reply.objects.filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
 				#time_now = datetime.utcnow().replace(tzinfo=utc)
 				time_now = timezone.now()
 				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
@@ -4085,7 +4177,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			score = self.request.user.userprofile.score
 			context["score"] = score
 			try:
-				link = Link.objects.get(id=self.request.session["link_pk"])
+				link = Link.objects.select_related('submitter__userprofile').get(id=self.request.session["link_pk"])
 			except:
 				context["error"] = True
 				return context
@@ -4094,7 +4186,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
-			replies = Publicreply.objects.filter(answer_to=link).order_by('-id')[:25]
+			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
 			context["replies"] = replies
 			if self.request.user_banned:
 				context["viewed_at"] = None
@@ -4168,8 +4260,7 @@ class UnseenActivityView(ListView):
 	paginate_by = 20
 
 	def get_queryset(self):
-		all_subscribed_links = PhotoObjectSubscription.objects\
-		.filter(viewer=self.request.user)\
+		all_subscribed_links = PhotoObjectSubscription.objects.select_related('which_link','which_link__submitter__userprofile','which_photo','which_photo__owner__userprofile').filter(viewer=self.request.user)\
 		.exclude(which_link__reply_count__lt=1)\
 		.exclude(which_photo__comment_count__lt=1)\
 		.exclude(type_of_object='1')\
@@ -4193,7 +4284,7 @@ class UserActivityView(ListView):
 	def get_queryset(self):
 		username = self.kwargs['slug']
 		user = User.objects.get(username=username)
-		return Link.objects.filter(submitter=user).order_by('-id')[:30]# instead of Link.with_votes.filter
+		return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:30]# instead of Link.with_votes.filter
 
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
@@ -4536,7 +4627,7 @@ class GroupReportView(FormView):
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
 						reply.text = self.request.user.username
-						reply.writer.userprofile.score = reply.writer.userprofile.score - 10
+						reply.writer.userprofile.score = reply.writer.userprofile.score - 5
 						reply.writer.userprofile.save()
 						reply.save()
 						return redirect("public_group", slug=unique.unique)
@@ -4670,6 +4761,15 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 	else:
 		return redirect("see_photo")
 
+def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
+	PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='4', which_salat_id=pk).update(seen=True)
+	if from_home == '1':
+		return redirect("home")
+	elif from_home == '2':
+		return redirect("see_best_photo")
+	else:
+		return redirect("see_photo")
+
 def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True)
 	if from_home == '1':
@@ -4709,7 +4809,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					if value == 1:
 						if not Vote.objects.filter(voter=request.user,link=Link.objects.filter(submitter_id=target_id).latest('id')):
 							Vote.objects.create(voter=request.user, link=Link.objects.filter(submitter_id=target_id).latest('id'), value=value)
-							target.userprofile.score = target.userprofile.score + 2
+							target.userprofile.score = target.userprofile.score + 3
 							target.userprofile.save()
 						else:
 							pass
@@ -4733,7 +4833,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					if value == 1:
 						link = Link.objects.create(description='mein idher hu', submitter=target)
 						Vote.objects.create(voter=request.user, link=link, value=value)
-						target.userprofile.score = target.userprofile.score + 2
+						target.userprofile.score = target.userprofile.score + 3
 						target.userprofile.save()
 						return redirect("home")
 					elif value == -1:
@@ -4879,6 +4979,40 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 				return redirect("see_best_photo_pk", pk)
 			else:
 				return redirect("see_photo_pk", pk)
+
+def salat_notification(request, pk=None, *args, **kwargs):
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	try:
+		starting_time = datetime.combine(now.today(), current_namaz_start_time)
+	except:
+		return redirect("salat_invite")
+	if namaz =='Fajr':
+		salat = '1'
+	elif namaz =='Zuhr':
+		salat = '2'
+	elif namaz == 'Asr':
+		salat = '3'
+	elif namaz == 'Maghrib':
+		salat = '4'
+	elif namaz == 'Isha':
+		salat = '5'
+	else:
+		return redirect("internal_salat_invite")
+	try:
+		latest_namaz = LatestSalat.objects.filter(salatee_id=pk).latest('when')
+	except:
+		#latest_namaz does not exist
+		latest_namaz = None
+	if pk.isdigit() and not SalatInvite.objects.filter(invitee_id=pk, which_salat=salat, sent_at__gte=starting_time).exists() and not AlreadyPrayed(latest_namaz,now):
+		salat_object = SalatInvite.objects.create(inviter=request.user, invitee_id=pk, which_salat=salat, sent_at=now)
+		PhotoObjectSubscription.objects.create(type_of_object='4',seen=False, viewer_id=pk, updated_at=now, which_salat=salat_object)
+		return redirect("internal_salat_invite")
+	else:
+		user = User.objects.get(id=pk)
+		context = {'invitee':user, 'namaz':namaz}
+		return render(request, 'salat_invite_error.html', context)
 
 @ratelimit(rate='1/s')
 def fan(request, pk=None, *args, **kwargs):
@@ -5054,7 +5188,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 					if request.user_banned:
 						return redirect("score_help")
 					else:
-						link.submitter.userprofile.score = link.submitter.userprofile.score + 2
+						link.submitter.userprofile.score = link.submitter.userprofile.score + 3
 						link.submitter.userprofile.save()
 						cooldown.hot_score = cooldown.hot_score - 1
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
@@ -5087,7 +5221,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 					if request.user_banned or request.user.username not in FEMALES:
 						return redirect("score_help")
 					else:
-						link.submitter.userprofile.score = link.submitter.userprofile.score -300
+						link.submitter.userprofile.score = link.submitter.userprofile.score - 50
 						if link.submitter.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list

@@ -8,7 +8,7 @@ from links.views import cross_notif, vote, cross_comment_notif, photostream_vote
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
-salat_tutorial_init
+salat_tutorial_init, salat_notification, cross_salat_notif
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -24,7 +24,7 @@ OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkD
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
-SalatTutorialView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -49,9 +49,14 @@ urlpatterns = patterns('',
 	url(r'^closed_group/help/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
+	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
+	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
+	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
+	url(r'^external_salat/$', auth(ExternalSalatInviteView.as_view()), name='external_salat_invite'),
 	url(r'^salat_success/(?P<mins>\d+)/(?P<num>\d+)/$', auth(SalatSuccessView.as_view()), name='salat_success'),
 	url(r'^salat_tutorial/(?P<offered>[\w.@+-]+)/$', auth(salat_tutorial_init), name='salat_tutorial_init'),
 	url(r'^process_salat/$', auth(process_salat), name='process_salat'),
+	url(r'^namaz_report/$', SalatRankingView.as_view(), name='salat_ranking'),
 	url(r'^salatutorial/$', auth(SalatTutorialView.as_view()), name='salat_tutorial'),
 	url(r'^skip_salat/(?P<skipped>[\w.@+-]+)/$', auth(skip_salat), name='skip_salat'),
 	url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
@@ -126,7 +131,8 @@ urlpatterns = patterns('',
 	url(r'^reinvite/private/$', auth(ReinvitePrivateView.as_view()), name='reinvite_private_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^notif_help/(?P<pk>\d+)/$', auth(NotifHelpView.as_view()), name='notif_help'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', cross_notif, name='x_notif'),
+	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
+	url(r'^cross_salat_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
 	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),

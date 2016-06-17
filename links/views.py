@@ -1675,6 +1675,7 @@ class SalatInviteView(FormView):
 
 class InternalSalatInviteView(ListView):
 	template_name = "internal_salat_invite.html"
+	paginate_by = 25
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{

@@ -137,7 +137,7 @@
 				<span style="color:#ff8000;font-size:90%;"><b>home</b> ki chat:</span>
 		{% endif %}
 	{% else %}
-			{% if authenticated and user.username == 'mhb11' %}
+			{% if authenticated %}
 				{% if random == 1 %}
 					<span style="color:#ff8000;font-size:90%;"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
 				{% elif random == 2 %}
@@ -149,7 +149,8 @@
 					<span style="color:#229ec3;font-size:90%;"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;"><b>mithai bhejo</b></button></a></span>
 					{% endif %}
 				{% endif %}
-	
+			{% else %}
+				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Account bana</u></a> kr yahan chat karo:</span>
 			{% endif %}
 	{% endif %}
 		<p style="margin-top:.5em;">
@@ -162,7 +163,7 @@
 
 {% for link in object_list %}
 		
-	{% if forloop.counter == 4 and user.username == 'mhb11' %}
+	{% if forloop.counter == 4 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}

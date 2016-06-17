@@ -9,8 +9,18 @@
 {% elif score < 30 %}
 	<span style="color:#404040; font-size:95%;">Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
 {% else %}
-	<h2 style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Dosto, photo charhane ka option 1 hour ke liye chutti pr gaya hua hai!<br><br></h2>
-	
+	<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">
+	{% csrf_token %}
+	{{ form.image_file.errors }}
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>Photo</b> ka intikhab kro:</span><br>{{ form.image_file }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>1mb se barri photo nahi lagti</i></span><br><br>
+	{{ form.caption.errors }}
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Photo pe <b>kuch likho</b>:</span><br>{{ form.caption }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Ye likh kr OK dabao</i></span><br>
+		<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;" type="submit" value="OK" id="id_submit"><br>
+		<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Photo lagane ki qeemat <b>3</b> he</i></span>
+	</form>
 {% endif %}
 </div>
+<br><br>
 {% endblock %}

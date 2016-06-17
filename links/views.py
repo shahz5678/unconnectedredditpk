@@ -17,7 +17,7 @@ from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite
+SalatInvite, TotalFanAndPhotos
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -1829,7 +1829,7 @@ class VerifiedView(ListView):
 
 class TopPhotoView(ListView):
 	model = User
-	form_class = TopPhotoForm
+	form_class = TotalFanAndPhotos
 	template_name = "top_photo.html"
 
 	def get_queryset(self):
@@ -2171,6 +2171,11 @@ class UploadPhotoReplyView(CreateView):
 					#photo being added to the head of a stream
 					photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
+					####################################
+					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+					aggregate_object.total_photos = aggregate_object.total_photos + 1
+					aggregate_object.save()
+					####################################
 					photo.which_stream.add(photo_stream)
 					photo_stream.cover = photo
 					photo_stream.photo_count = photo_stream.photo_count + 1
@@ -2180,6 +2185,11 @@ class UploadPhotoReplyView(CreateView):
 				except:
 					#photo added anywhere in the middle of the stream, i.e. new stream being made
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
+					####################################
+					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+					aggregate_object.total_photos = aggregate_object.total_photos + 1
+					aggregate_object.save()
+					####################################
 					tail_photos = Photo.objects.filter(which_stream=target.which_stream.latest('creation_time')).exclude(upload_time__gt=target.upload_time).order_by('upload_time')
 					tail_photos_count = tail_photos.count()
 					stream = PhotoStream.objects.create(cover=photo, show_time=photo.upload_time, photo_count = (tail_photos_count + 1))
@@ -2516,9 +2526,9 @@ class PhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile').order_by('-show_time')[:200]
 		else:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile').order_by('-show_time')[:200]
 			# queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
 		return queryset
 
@@ -3095,6 +3105,10 @@ class UploadPhotoView(CreateView):
 					device = '3'
 				invisible_score = set_rank()
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
+				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+				aggregate_object.total_photos = aggregate_object.total_photos + 1
+				aggregate_object.save()
+				######################################################
 				time = photo.upload_time
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=time)
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)
@@ -5036,6 +5050,9 @@ def fan(request, pk=None, *args, **kwargs):
 				return redirect("see_photo")
 			try:
 				UserFan.objects.get(fan=request.user, star=user).delete()
+				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+				aggregate_object.total_fans = aggregate_object.total_fans - 1
+				aggregate_object.save()
 				return redirect("profile", user.username)
 			except:
 				try:
@@ -5043,6 +5060,9 @@ def fan(request, pk=None, *args, **kwargs):
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
 							UserFan.objects.create(fan=request.user, star=user)
+							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+							aggregate_object.total_fans = aggregate_object.total_fans + 1
+							aggregate_object.save()
 						else:
 							return redirect("profile", user.username)	
 						return redirect("profile", user.username)
@@ -5119,6 +5139,9 @@ class FanTutorialView(FormView):
 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
 							UserFan.objects.create(fan=self.request.user, star=user)
+							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+							aggregate_object.total_fans = aggregate_object.total_fans + 1
+							aggregate_object.save()
 							return redirect("profile", user.username)
 						else:
 							return redirect("profile", user.username)

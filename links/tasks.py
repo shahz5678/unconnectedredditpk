@@ -6,7 +6,7 @@ from django.db.models import Count, Q
 import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply
+from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -36,7 +36,7 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	object_list = User.objects.annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans').prefetch_related('userprofile')[:100]
+	object_list = TotalFanAndPhotos.objects.select_related('owner__userprofile').exclude(total_photos=0).order_by('-total_fans','-total_photos')[:100]
 	#ids = [user.id for user in object_list]
 	#users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
 	#users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]

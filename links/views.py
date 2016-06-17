@@ -166,7 +166,8 @@ def GetLatest(user):
 		#now = datetime.utcnow().replace(tzinfo=utc)
 		now = timezone.now()
 		timestamp = now - timedelta(minutes=90)
-		latest_pos = PhotoObjectSubscription.objects.select_related('which_link','which_photo','which_group','which_salat__inviter__userprofile').filter(viewer=user, seen=False).latest('updated_at')
+		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
+		# latest_pos = PhotoObjectSubscription.objects.select_related('which_link','which_photo','which_group','which_salat__inviter__userprofile').filter(viewer=user, seen=False).latest('updated_at')
 		# print latest_pos.type_of_object
 		if latest_pos.type_of_object == '0' and latest_pos.updated_at >= timestamp:
 			# photo = Photo.objects.get(id=latest_pos.which_photo)

@@ -26,7 +26,7 @@ def rank_all_photos():
 #@shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')
+	unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user').prefetch_related('user__userprofile')
 	users = [session.user for session in unique_user_sessions]
 	users = [user for user in users if user is not None]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
@@ -36,7 +36,7 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	object_list = User.objects.annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans')[:100]
+	object_list = User.objects.annotate(photo_count=Count('photo', distinct=True)).exclude(photo_count=0).annotate(num_fans=Count('star', distinct=True)).order_by('-num_fans').prefetch_related('userprofile')[:100]
 	#ids = [user.id for user in object_list]
 	#users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
 	#users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
@@ -50,25 +50,25 @@ def salat_streaks():
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
 	twelve_hrs_ago = now - timedelta(hours=12)
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time = namaz_timings[current_minute]
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	if namaz == 'Fajr':
 		salat = '1'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	elif namaz == 'Zuhr':
 		salat = '2'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	elif namaz == 'Asr':
 		salat = '3'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	elif namaz == 'Maghrib':
 		salat = '4'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	elif namaz == 'Isha':
 		salat = '5'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	else:
 		salat = '1'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+		object_list = LatestSalat.objects.select_related('salatee__userprofile').filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
         'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
     })

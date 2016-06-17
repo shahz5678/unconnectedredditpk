@@ -87,67 +87,67 @@ def check_photo_abuse(count, photos):
 		seconds = difference.total_seconds()
 		#print "seconds: %s:" % seconds
 		if count == 1:
-			if photos[0][0] < -7 and seconds < (60*60*6):
+			if photos[0][0] < -2 and seconds < (60*60*6):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 2:
-			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and seconds < (60*60*6):
+			if photos[0][0] < -2 and seconds < (60*60*6):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 3:
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and seconds < (60*60*6):
+			if photos[0][0] < -2 and seconds < (60*60*6):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 4:
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and seconds < (60*60*144):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and seconds < (60*60*6):
+			if photos[0][0] < -2 and seconds < (60*60*6):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining
 		if count == 5:
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and photos[4][0] < -7 and seconds < (60*60*288):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and photos[4][0] < -2 and seconds < (60*60*288):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*288-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and photos[3][0] < -7 and seconds < (60*60*144):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and seconds < (60*60*144):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and photos[2][0] < -7 and seconds < (60*60*72):
+			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and photos[1][0] < -7 and seconds < (60*60*24):
+			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
 				return forbidden, time_remaining
-			if photos[0][0] < -7 and seconds < (60*60*6):
+			if photos[0][0] < -2 and seconds < (60*60*6):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
 				return forbidden, time_remaining

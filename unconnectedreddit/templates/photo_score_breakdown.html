@@ -4,9 +4,9 @@
 {% block content %}
 <div class="margin">
 <a href="{% url 'see_photo_pk' key %}">
-{% if photo.vote_score < -8 %}
+{% if photo.vote_score < -2 %}
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-{% elif photo.vote_score < -3 %}
+{% elif photo.vote_score < -1 %}
     {% if photo.image_file %}
         <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
     {% else %}

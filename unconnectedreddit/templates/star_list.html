@@ -13,26 +13,27 @@
         {% else %}
         <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
-        {% for star in users %}
-        <b class="numbers">{{ forloop.counter }}.</b>
-        <a href="{% url 'profile' slug=star.0.username %}#section0">
-    	{% if star.0.userprofile.avatar %}
-    		<img src="{{ star.0.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-    	{% else %}
-    		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-    	{% endif %}
-        {{ star.0.username }}</a>{% if star.0.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
-    	{% if star.0.userprofile.score %}
-    		{% if star.0.userprofile.score < 0 %}
-    	    	<span style="color:#18A018;">(1)</span>
-    	    {% else %}
-    	    	<span style="color:#18A018;">({{ star.0.userprofile.score }})</span>
-    		{% endif %}
-        {% else %}
-        {% endif %}
-        <span style="font-size:80%;color:#ff8000;">, <a href="{% url 'profile' slug=star.0.username %}#section0" style="color:#ff8000;"><b>{{ star.1 }}</b> photos</a></span>
-        <br>
-        {% endfor %}
+            {% for star in users %}
+            <b class="numbers">{{ forloop.counter }}.</b>
+            <a href="{% url 'profile' slug=star.0.username %}#section0">
+            	{% if star.0.userprofile.avatar %}
+            		<img src="{{ star.0.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            	{% else %}
+            		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+            	{% endif %}
+            {{ star.0.username }}</a>{% if star.0.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+            	{% if star.0.userprofile.score %}
+            		{% if star.0.userprofile.score < 0 %}
+            	    	<span style="color:#18A018;font-size:75%;">(1)</span>
+            	    {% else %}
+            	    	<span style="color:#18A018;font-size:75%;">({{ star.0.userprofile.score }})</span>
+            		{% endif %}:
+                {% else %}
+                {% endif %}
+            <span style="font-size:100%;color:#ff8000;"> <a href="{% url 'profile' slug=star.0.username %}#section0" style="color:#ff8000;"><b>{{ star.1 }}</b> photos</a></span>&nbsp;&nbsp;
+            <a href="{% url 'fan' star.0.id 2 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;border-radius:4px;text-align: center;">khatm</button></a>
+            <br>
+            {% endfor %}
         {% endif %}
 
     {% else %}

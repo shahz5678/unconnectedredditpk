@@ -893,11 +893,6 @@ class LinkListView(ListView):
 		context["can_vote"] = False
 		context["authenticated"] = False
 		#### Namaz feature #########################################################################################
-		# latest_saat = LatestSalat.objects.get(salatee=self.request.user)
-		# saat = Salat.objects.filter(prayee=self.request.user, which_salat='5').latest('timing')
-		# latest_saat.when = saat.timing
-		# latest_saat.latest_salat = saat.which_salat
-		# latest_saat.save()
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
 		current_minute = now.hour * 60 + now.minute
@@ -977,13 +972,22 @@ class LinkListView(ListView):
 			voted = votes_in_page.filter(voter=user) #all votes the user cast
 			voted = voted.values_list('link_id', flat=True) #link ids of all votes the user voted on
 			context["voted"] = voted #voted is used to check which links the user has already voted on
+			##################################
+			photos_in_page = [link.which_photostream.cover_id for link in context["object_list"] if link.which_photostream is not None]
+			photo_votes_in_page = PhotoVote.objects.select_related('voter__userprofile').filter(photo_id__in=photos_in_page)
+			photo_voted = photo_votes_in_page.filter(voter=user)
+			photo_voted = photo_voted.values_list('photo_id', flat=True)
+			context["photo_voted"] = photo_voted 
+			##################################
 			global condemned
 			if self.request.user_banned:
 				context["vote_cluster"] = votes_in_page # all votes in the page
+				context["photo_vote_cluster"] = photo_votes_in_page # all photo votes in the page
 				context["notification"] = 0 #hell banned users will never see notifications
 				context["sender"] = 0 #hell banned users will never see notifications
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
+				context["photo_vote_cluster"] = photo_votes_in_page.exclude(voter_id__in=condemned)
 				###############################################################################################################
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				#print object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat
@@ -5011,17 +5015,26 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 				else:
 					if from_best == '1':
 						return redirect("see_best_photo_pk", pk)
-					else:
+					elif from_best == '0':
 						return redirect("see_photo_pk", pk)
+					else:
+						request.session['target_id'] = int(from_best)
+						return redirect("home")
 				if from_best == '1':
 					return redirect("see_best_photo_pk", pk)
-				else:
+				elif from_best == '0':
 					return redirect("see_photo_pk", pk)
+				else:
+					request.session['target_id'] = int(from_best)
+					return redirect("home")
 		else:
 			if from_best == '1':
 				return redirect("see_best_photo_pk", pk)
-			else:
+			elif from_best == '0':
 				return redirect("see_photo_pk", pk)
+			else:
+				request.session['target_id'] = int(from_best)
+				return redirect("home")
 
 def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)

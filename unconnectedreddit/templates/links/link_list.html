@@ -291,7 +291,42 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
+		<br>
+		{% if can_vote and link.submitter != user and link.which_photostream.cover_id not in photo_voted %}
+		<a href="{% url 'photostream_vote' link.which_photostream_id 1 link.id %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">mazedar</button></a><br>
+		<a href="{% url 'photostream_vote' link.which_photostream_id 0 link.id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">bakwas</button></a>
+		{% endif %}
 		</p>
+
+		{% if authenticated %}
+		<p style="margin-top:.5em;">
+		{% endif %}
+		{% if authenticated and can_vote %}
+			{% for photo_vote in photo_vote_cluster reversed %}
+				{% if link.which_photostream.cover_id == photo_vote.photo_id %}
+					{% if photo_vote.value == -1 %}
+						<span style="color:red;font-size:80%;"><b><a href="{% url 'profile' photo_vote.voter.username %}#section0">
+						{% if photo_vote.voter.username in checked %}
+							{{ photo_vote.voter.username }}<span style="color:deeppink;">*</span>
+						{% else %}
+							{{ photo_vote.voter.username }}
+						{% endif %}</a>
+							</b> ko photo bilkul <b>bakwas</b> lagi<br></span>
+					{% elif photo_vote.value == 1 %}
+						<span style="color:green;font-size:80%;"><b><a href="{% url 'profile' photo_vote.voter.username %}#section0">
+						{% if photo_vote.voter.username in checked %}
+							{{ photo_vote.voter.username }}<span style="color:deeppink;">*</span>
+						{% else %}
+							{{ photo_vote.voter.username }}
+						{% endif %}</a>
+							</b> ko photo buhut <b>mazedar</b> lagi<br></span>
+					{% else %}
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+		</p>
+		{% endif %}
+
 	<p><hr size=1 COLOR="#ff9933"></p>
 	</div>
 	{% else %}
@@ -354,7 +389,7 @@
 		{% if can_vote and link.submitter != user and link.pk not in voted %}
 			<a href="{% url 'vote' link.pk ident forloop.counter 1 %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">jhappee</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
-			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;border-radius:4px;text-align: center;">chupair</button></a>
+			<a href="{% url 'vote' link.pk ident forloop.counter 0 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">chupair</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.pk ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-50</u></a>{% endif %}<br>
 		{% endif %}
 		</p>

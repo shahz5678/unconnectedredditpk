@@ -488,6 +488,7 @@ class TotalFanAndPhotos(models.Model):
 class UserFan(models.Model):
 	star = models.ForeignKey(User, related_name='star')
 	fan = models.ForeignKey(User, related_name='fan')
+	fanning_time = models.DateTimeField(db_index=True)
 
 	def __unicode__(self):
 		return u"%s became a fan of %s" % (self.fan, self.star)

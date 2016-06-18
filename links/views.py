@@ -1317,7 +1317,10 @@ class UserProfilePhotosView(ListView):
 		context["subject"] = subject
 		context["star_id"] = star_id
 		context["legit"] = FEMALES
-		context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
+		try:
+			context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
+		except:
+			context["fans"] = 0
 		context["slug"] = slug
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():

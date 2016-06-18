@@ -244,45 +244,6 @@
 			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 
 
-
-<!-- 			<a href="{% url 'upload_photo_reply_pk' pk=picstream.cover_id %}"><button style="background-color:#FFEFD5;border-color:orange;color:#1947D1;width:7em;white-space:nowrap;font-size:90%;margin-top:0.2em;margin-bottom:0.2em;">jawabi photo</button></a>
-			<br>
-
-		{% if picstream.photo_count > 1 and not feature_phone %}
-		<div style="margin-top:0.2em;margin-bottom:-0.5em;">
-			{% if picstream.photo_count == 2 %}
-			<span style="font-size:90%;color:grey;">Baqi <b>{{ picstream.photo_count|add:"-1" }}</b> photo:</span>
-			{% else %}
-			<span style="font-size:90%;color:grey;">Baqi <b>{{ picstream.photo_count|add:"-1" }}</b> photos:</span>
-			{% endif %}
-		<br>
-			{% for pic in picstream.photo_set.all|slice:":4" %}
-				{% if pic.vote_score < -2 %}
-					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
-					<img style="margin-top:0.3em;" src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-					</a>
-				{% elif pic.vote_score < -1 %}
-					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
-					<img style="filter:brightness(35%);-webkit-filter: brightness(0.35);width:auto;border:1px solid #C0C0C0;margin-top:0.3em;" src="{{ pic.image_file.url|thumbnail }}" alt="no pic"></img>
-					</a>
-				{% else %}
-					{% if forloop.counter == 1 %}
-					{% else %}
-					<a href="{% url 'photostream_pk' picstream.pk pic.pk %}">
-					<img style="border:1px solid #808080;width:auto;margin-top:0.3em;" src="{{ pic.image_file.url|thumbnail }}" alt="no pic"></img>
-					</a>
-					{% endif %}
-				{% endif %}
-				
-				</a>
-			{% endfor %}
-				{% if picstream.photo_count > 4 %}
-				<a href="{% url 'photostream_pk' picstream.pk %}#section1" style="color:grey;display:inline-block;">...</a>
-				{% endif %}
-			&nbsp;<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">(<a href="{% url 'baqi_photos_help' picstream.pk %}">?</a>)</span>
-			<br>
-		</div> 
-		{% endif %}-->
 		
 {% endfor %}
 {% endif %}

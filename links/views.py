@@ -651,10 +651,12 @@ class ReportreplyView(FormView):
 			pk = self.request.session["report_pk"]
 			link_id = self.request.session["linkreport_pk"]
 			if Publicreply.objects.filter(pk=pk,answer_to=link_id).exists() and Link.objects.filter(pk=link_id,submitter=self.request.user).exists():
-				context["reply"] = pk
+				context["reply_id"] = pk
+				context["link_id"] = link_id
 				context["authorized"] = True
 			else:
-				context["reply"] = None
+				context["reply_id"] = None
+				context["link_id"] = None
 				context["authorized"] = False
 		return context
 
@@ -4663,22 +4665,29 @@ class ReportView(FormView):
 		if self.request.method == 'POST':
 			if not self.request.user_banned:
 				report = self.request.POST.get("report")
-				if report == 'Haan ye gher ikhlaqi hai':
-					report = self.request.POST.get("reply")
-					reply = get_object_or_404(Publicreply, pk=report)
-					reply.abuse = True
-					reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 3
-					reply.submitted_by.userprofile.save()
-					reply.save()
-					self.request.session["report_pk"] = None
-					self.request.session["linkreport_pk"] = None
-					return redirect("reply_pk", pk=reply.answer_to.id)
+				if report == 'Haan':
+					reply_id = self.request.POST.get("reply")
+					link_id = self.request.POST.get("link")
+					if Publicreply.objects.filter(pk=reply_id,answer_to=link_id).exists() and \
+					Link.objects.filter(pk=link_id,submitter=self.request.user).exists():
+						reply = get_object_or_404(Publicreply, pk=reply_id)
+						reply.abuse = True
+						reply.submitted_by.userprofile.score = reply.submitted_by.userprofile.score - 3
+						reply.submitted_by.userprofile.save()
+						reply.save()
+						self.request.session["report_pk"] = None
+						self.request.session["linkreport_pk"] = None
+						return redirect("reply_pk", pk=reply.answer_to.id)
+					else:
+						self.request.user.userprofile.score = self.request.user.userprofile.score -3
+						self.request.user.userprofile.save()
+						return redirect("home")
 				else:
-					report = self.request.POST.get("reply")
-					reply = get_object_or_404(Publicreply, pk=report)
+					link_id = self.request.POST.get("link")
+					link = get_object_or_404(Link, pk=link_id)
 					self.request.session["report_pk"] = None
 					self.request.session["linkreport_pk"] = None
-					return redirect("reply_pk", pk= reply.answer_to.id)
+					return redirect("reply_pk", pk= link.id)
 			else:
 				return redirect("score_help")
 

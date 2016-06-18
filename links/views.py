@@ -1318,7 +1318,6 @@ class UserProfilePhotosView(ListView):
 		context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
 		context["slug"] = slug
 		context["can_vote"] = False
-		context["recent_fans"] = UserFan.objects.filter(star=star_id, )
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
 			context["authenticated"] = True

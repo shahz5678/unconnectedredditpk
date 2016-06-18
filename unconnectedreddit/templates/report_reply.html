@@ -5,12 +5,14 @@
 <h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum is jawab ko report karna chahte ho?</h2>
 <form action="{% url 'report' %}" method="POST">
 {% csrf_token %}
-<input type="hidden" name="reply" class="hidden_id" value="{{ reply }}">
-<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan ye gher ikhlaqi hai"><br>
-<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="report" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi rehnay do kher hai"><br>
+<input type="hidden" name="reply" class="hidden_id" value="{{ reply_id }}">
+<input type="hidden" name="link" class="hidden_id" value="{{ link_id }}">
+&nbsp;<input class="voting" type="submit" name="report" style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;" value="Haan"><br>
+&nbsp;<input class="voting" type="submit" name="report" style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;" value="Nahi"><br>
 </form>
 {% else %}
 <h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye report nahi ho sakta</h2>
 {% endif %}
 </div>
+<br><br><br>
 {% endblock %}

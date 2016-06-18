@@ -1202,7 +1202,7 @@ class OwnerGroupOnlineKonView(ListView):
 				context["groupies"] = []
 				return context
 			if group.owner == self.request.user and group.private == '0':
-				total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
+				total_traffic = GroupTraffic.objects.select_related('visitor__userprofile').filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
 				online_ids = total_traffic.values_list('visitor_id',flat=True)
 				captains = GroupCaptain.objects.filter(which_user_id__in=online_ids, which_group=group)
 				captains = {captain.which_user_id: captain for captain in captains}
@@ -1237,7 +1237,7 @@ class GroupOnlineKonView(ListView):
 				context["officers"] = []
 				return context
 			if group.private == '0':
-				total_traffic = GroupTraffic.objects.filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
+				total_traffic = GroupTraffic.objects.select_related('visitor__userprofile').filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
 				total_traffic_ids = total_traffic.values_list('visitor_id', flat=True)
 				context["groupies"] = total_traffic 
 				captains = GroupCaptain.objects.filter(which_group=group, which_user__in=total_traffic_ids).values_list('which_user_id', flat=True)
@@ -1315,7 +1315,7 @@ class UserProfilePhotosView(ListView):
 		context["subject"] = subject
 		context["star_id"] = star_id
 		context["legit"] = FEMALES
-		context["fans"] = UserFan.objects.filter(star_id=star_id).count()
+		context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
 		context["slug"] = slug
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
@@ -1813,7 +1813,7 @@ class GroupListView(ListView):
 		date = datetime.now()-timedelta(minutes=60)
 		new_traff = GroupTraffic.objects.filter(time__gte=date,which_group__private='0').distinct('visitor','which_group').values_list('id',flat=True)
 		trendingGrp_ids = GroupTraffic.objects.filter(id__in=new_traff).values('which_group').annotate(total=Count('which_group')).order_by('-total')
-		trendingGrps = [Group.objects.filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
+		trendingGrps = [Group.objects.select_related('owner').filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
 		#trendids = [grp['which_group'] for grp in trendingGrp_ids]
 		#nonTrendingGrps = Group.objects.filter(private='0').exclude(id__in=trendids).extra(select={"views":0})
 		#allGrps = trendingGrps.append(nonTrendingGrps)
@@ -2176,7 +2176,7 @@ class UploadPhotoReplyView(CreateView):
 					photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
 					####################################
-					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 					aggregate_object.total_photos = aggregate_object.total_photos + 1
 					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 					aggregate_object.save()
@@ -2191,7 +2191,7 @@ class UploadPhotoReplyView(CreateView):
 					#photo added anywhere in the middle of the stream, i.e. new stream being made
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
 					####################################
-					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 					aggregate_object.total_photos = aggregate_object.total_photos + 1
 					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 					aggregate_object.save()
@@ -3111,7 +3111,7 @@ class UploadPhotoView(CreateView):
 					device = '3'
 				invisible_score = set_rank()
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
-				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+				aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 				aggregate_object.total_photos = aggregate_object.total_photos + 1
 				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 				aggregate_object.save()
@@ -5057,7 +5057,7 @@ def fan(request, pk=None, *args, **kwargs):
 				return redirect("see_photo")
 			try:
 				UserFan.objects.get(fan=request.user, star=user).delete()
-				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+				aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 				aggregate_object.total_fans = aggregate_object.total_fans - 1
 				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 				aggregate_object.save()
@@ -5068,7 +5068,7 @@ def fan(request, pk=None, *args, **kwargs):
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
 							UserFan.objects.create(fan=request.user, star=user)
-							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 							aggregate_object.save()
@@ -5148,7 +5148,7 @@ class FanTutorialView(FormView):
 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
 							UserFan.objects.create(fan=self.request.user, star=user)
-							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
+							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 							aggregate_object.save()

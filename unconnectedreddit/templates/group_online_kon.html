@@ -7,7 +7,7 @@
 {% if unauthorized %}
 <span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Tumhe ye dekhne ki ijazat nahi</b></span>
 {% else %}
-Is group mien ye log pichley 10 min mein nazar aye:<br>
+Yahan ye log pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
 	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
 	{% elif group.private == '0' %}

@@ -8,7 +8,7 @@
 {% else %}
 <span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
-
+<br>
 {% for visitor in visitors %}
 {% if visitor.userprofile.score > 0 and visitor != user %}
 

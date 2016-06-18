@@ -1602,11 +1602,13 @@ class InviteUsersToPrivateGroupView(FormView):
 				if self.request.user_banned:
 					context ["visitors"] = [] # there are no visitors to invite for hellbanned users
 				else:
-					invites = []
-					user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=15))).only('user').distinct('user')
-					users = [session.user for session in user_sessions]#all users that are online
-					users = [user for user in users if user is not None] #sanitizing any NONE values that may exist in shared devices
-					user_ids = [user.id for user in users]
+					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+							'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+						})
+					users = cache_mem.get('online_users')
+					global condemned
+					users_purified = [user for user in users if user.pk not in condemned]
+					user_ids = [user.id for user in users_purified]
 					online_invited_replied_users = \
 					User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
 					context ["visitors"] = online_invited_replied_users
@@ -1761,11 +1763,13 @@ class InviteUsersToGroupView(FormView):
 			if self.request.user_banned:
 				context ["visitors"] = [] # there are no visitors to invite for hellbanned users
 			else:	
-				invites = []
-				user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=15))).only('user').distinct('user')
-				users = [session.user for session in user_sessions]#all users that are online
-				users = [user for user in users if user is not None] #sanitizing any NONE values that may exist in shared devices
-				user_ids = [user.id for user in users]
+				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+						'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+					})
+				users = cache_mem.get('online_users')
+				global condemned
+				users_purified = [user for user in users if user.pk not in condemned]
+				user_ids = [user.id for user in users_purified]
 				online_invited_replied_users = \
 				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
 				context ["visitors"] = online_invited_replied_users
@@ -2174,6 +2178,7 @@ class UploadPhotoReplyView(CreateView):
 					####################################
 					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 					aggregate_object.total_photos = aggregate_object.total_photos + 1
+					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 					aggregate_object.save()
 					####################################
 					photo.which_stream.add(photo_stream)
@@ -2188,6 +2193,7 @@ class UploadPhotoReplyView(CreateView):
 					####################################
 					aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 					aggregate_object.total_photos = aggregate_object.total_photos + 1
+					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 					aggregate_object.save()
 					####################################
 					tail_photos = Photo.objects.filter(which_stream=target.which_stream.latest('creation_time')).exclude(upload_time__gt=target.upload_time).order_by('upload_time')
@@ -2526,9 +2532,9 @@ class PhotoView(ListView):
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile').order_by('-show_time')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
 		else:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile').order_by('-show_time')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
 			# queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
 		return queryset
 
@@ -3107,6 +3113,7 @@ class UploadPhotoView(CreateView):
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
 				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 				aggregate_object.total_photos = aggregate_object.total_photos + 1
+				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 				aggregate_object.save()
 				######################################################
 				time = photo.upload_time
@@ -5052,6 +5059,7 @@ def fan(request, pk=None, *args, **kwargs):
 				UserFan.objects.get(fan=request.user, star=user).delete()
 				aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 				aggregate_object.total_fans = aggregate_object.total_fans - 1
+				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 				aggregate_object.save()
 				return redirect("profile", user.username)
 			except:
@@ -5062,6 +5070,7 @@ def fan(request, pk=None, *args, **kwargs):
 							UserFan.objects.create(fan=request.user, star=user)
 							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
+							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 							aggregate_object.save()
 						else:
 							return redirect("profile", user.username)	
@@ -5141,6 +5150,7 @@ class FanTutorialView(FormView):
 							UserFan.objects.create(fan=self.request.user, star=user)
 							aggregate_object = TotalFanAndPhotos.objects.filter(owner=user).latest('id')
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
+							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 							aggregate_object.save()
 							return redirect("profile", user.username)
 						else:

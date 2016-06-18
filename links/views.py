@@ -1318,6 +1318,7 @@ class UserProfilePhotosView(ListView):
 		context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
 		context["slug"] = slug
 		context["can_vote"] = False
+		context["recent_fans"] = UserFan.objects.filter(star=star_id, )
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
 			context["authenticated"] = True
@@ -5037,7 +5038,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		return render(request, 'salat_invite_error.html', context)
 
 @ratelimit(rate='1/s')
-def fan(request, pk=None, *args, **kwargs):
+def fan(request, pk=None, from_profile=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		deduction = 5 * -1
@@ -5061,20 +5062,35 @@ def fan(request, pk=None, *args, **kwargs):
 				aggregate_object.total_fans = aggregate_object.total_fans - 1
 				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 				aggregate_object.save()
-				return redirect("profile", user.username)
+				if from_profile == '1':
+					return redirect("profile", user.username)
+				elif from_profile == '2':
+					return redirect("star_list", request.user.id)
+				else:
+					return redirect("profile", user.username)
 			except:
 				try:
 					seen_fan_option = TutorialFlag.objects.get(user=request.user).seen_fan_option
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
-							UserFan.objects.create(fan=request.user, star=user)
+							UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
 							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
 							aggregate_object.save()
 						else:
-							return redirect("profile", user.username)	
-						return redirect("profile", user.username)
+							if from_profile == '1':
+								return redirect("profile", user.username)
+							elif from_profile == '2':
+								return redirect("star_list", request.user.id)
+							else:
+								return redirect("profile", user.username)
+						if from_profile == '1':
+							return redirect("profile", user.username)
+						elif from_profile == '2':
+							return redirect("star_list", request.user.id)
+						else:
+							return redirect("profile", user.username)
 					else:
 						#no seen fan tutorial
 						request.session["ftue_fan_option"] = True
@@ -5086,7 +5102,12 @@ def fan(request, pk=None, *args, **kwargs):
 					request.session["ftue_fan_option"] = True
 					request.session["ftue_fan_user"] = user
 					return redirect("fan_tutorial")
-			return redirect("profile", user.username)
+			if from_profile == '1':
+				return redirect("profile", user.username)
+			elif from_profile == '2':
+				return redirect("star_list", request.user.id)
+			else:
+				return redirect("profile", user.username)
 		else:
 			try:
 				user = User.objects.get(id=pk)
@@ -5147,7 +5168,7 @@ class FanTutorialView(FormView):
 					if option == 'samajh gaya':
 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
-							UserFan.objects.create(fan=self.request.user, star=user)
+							UserFan.objects.create(fan=self.request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
 							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 							aggregate_object.total_fans = aggregate_object.total_fans + 1
 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)

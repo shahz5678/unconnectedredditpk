@@ -2181,10 +2181,13 @@ class UploadPhotoReplyView(CreateView):
 					photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
 					####################################
-					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-					aggregate_object.total_photos = aggregate_object.total_photos + 1
-					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-					aggregate_object.save()
+					try:
+						aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+						aggregate_object.total_photos = aggregate_object.total_photos + 1
+						aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+						aggregate_object.save()
+					except:
+						TotalFanAndPhotos.objects.create(owner=user, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 					####################################
 					photo.which_stream.add(photo_stream)
 					photo_stream.cover = photo
@@ -2196,10 +2199,13 @@ class UploadPhotoReplyView(CreateView):
 					#photo added anywhere in the middle of the stream, i.e. new stream being made
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
 					####################################
-					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-					aggregate_object.total_photos = aggregate_object.total_photos + 1
-					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-					aggregate_object.save()
+					try:
+						aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+						aggregate_object.total_photos = aggregate_object.total_photos + 1
+						aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+						aggregate_object.save()
+					except:
+						TotalFanAndPhotos.objects.create(owner=user, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 					####################################
 					tail_photos = Photo.objects.filter(which_stream=target.which_stream.latest('creation_time')).exclude(upload_time__gt=target.upload_time).order_by('upload_time')
 					tail_photos_count = tail_photos.count()
@@ -3116,10 +3122,13 @@ class UploadPhotoView(CreateView):
 					device = '3'
 				invisible_score = set_rank()
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
-				aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-				aggregate_object.total_photos = aggregate_object.total_photos + 1
-				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-				aggregate_object.save()
+				try:
+					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+					aggregate_object.total_photos = aggregate_object.total_photos + 1
+					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+					aggregate_object.save()
+				except:
+					TotalFanAndPhotos.objects.create(owner=user, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 				######################################################
 				time = photo.upload_time
 				PhotoObjectSubscription.objects.create(viewer=user, which_photo=photo, updated_at=time)
@@ -5069,10 +5078,13 @@ def fan(request, pk=None, from_profile=None, *args, **kwargs):
 				return redirect("see_photo")
 			try:
 				UserFan.objects.get(fan=request.user, star=user).delete()
-				aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-				aggregate_object.total_fans = aggregate_object.total_fans - 1
-				aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-				aggregate_object.save()
+				try:
+					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+					aggregate_object.total_fans = aggregate_object.total_fans - 1
+					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+					aggregate_object.save()
+				except:
+					pass
 				if from_profile == '1':
 					return redirect("profile", user.username)
 				elif from_profile == '2':
@@ -5085,10 +5097,13 @@ def fan(request, pk=None, from_profile=None, *args, **kwargs):
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
 							UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
-							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-							aggregate_object.total_fans = aggregate_object.total_fans + 1
-							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-							aggregate_object.save()
+							try:
+								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+								aggregate_object.total_fans = aggregate_object.total_fans + 1
+								aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+								aggregate_object.save()
+							except:
+								TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
 						else:
 							if from_profile == '1':
 								return redirect("profile", user.username)
@@ -5180,10 +5195,13 @@ class FanTutorialView(FormView):
 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
 							UserFan.objects.create(fan=self.request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
-							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-							aggregate_object.total_fans = aggregate_object.total_fans + 1
-							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-							aggregate_object.save()
+							try:
+								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+								aggregate_object.total_fans = aggregate_object.total_fans + 1
+								aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+								aggregate_object.save()
+							except:
+								TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
 							return redirect("profile", user.username)
 						else:
 							return redirect("profile", user.username)

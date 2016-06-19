@@ -1326,7 +1326,7 @@ class UserProfilePhotosView(ListView):
 		except:
 			context["fans"] = 0
 		try:
-			now = datetime.utcnow()+timedelta(hours=3)
+			now = datetime.utcnow()
 			context["recent_fans"] = UserFan.objects.filter(star_id=star_id, fanning_time__gte=now).count()
 		except:
 			context["recent_fans"] = 0

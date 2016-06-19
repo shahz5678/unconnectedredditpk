@@ -1325,6 +1325,11 @@ class UserProfilePhotosView(ListView):
 			context["fans"] = TotalFanAndPhotos.objects.get(owner_id=star_id).total_fans
 		except:
 			context["fans"] = 0
+		try:
+			now = datetime.utcnow()+timedelta(hours=3)
+			context["recent_fans"] = UserFan.objects.filter(star_id=star_id, fanning_time__gte=now).count()
+		except:
+			context["recent_fans"] = 0
 		context["slug"] = slug
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
@@ -5106,7 +5111,7 @@ def fan(request, pk=None, from_profile=None, *args, **kwargs):
 					return redirect("profile", user.username)
 			except:
 				try:
-					seen_fan_option = TutorialFlag.objects.get(user=request.user).seen_fan_option
+					seen_fan_option = TutorialFlag.objects.filter(user=request.user).latest('id').seen_fan_option
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
 							UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))

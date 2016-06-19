@@ -7,6 +7,13 @@
 <h2 style="color:#404040;">Tumhari photos:</h2>
 {% else %}
 <h2 style="color:#404040;">{{ slug }}{% if slug in legit %}<span style="color:deeppink;">*</span>{% endif %} ki photos:</h2>
+	<span style="color:grey;font-size:80%;">
+	{% if recent_fans > 1 %}
+	<b>{{ recent_fans }} fans</b> pichle 2 hours mein<br>
+	{% elif recent_fans == 1 %}
+	<b>{{ recent_fans }} fan</b> pichle 2 hours mein<br>
+	{% else %}
+	{% endif %}</span>
 {% endif %}
 <b style="color:#404040;">Profile photo:</b>
 {% if subject.userprofile.avatar %}

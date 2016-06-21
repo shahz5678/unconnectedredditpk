@@ -2798,7 +2798,7 @@ class BestPhotoView(ListView):
 		if self.request.is_feature_phone:
 			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
 		else:
-			queryset = PhotoStream.objects.select_related('cover').exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
+			queryset = PhotoStream.objects.select_related('cover__owner__userprofile').exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
 			# queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
 		return queryset
 

@@ -140,6 +140,22 @@
 <div style="text-align: center;">
 <span style="color:grey;font-size:80%;">|</span><a href="{%url 'privacy_policy' %}" style="font-size:70%;">&nbsp;&nbsp;Privacy Policy&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'about' %}" style="font-size:70%;">&nbsp;&nbsp;About Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'contact' %}" style="font-size:70%;">&nbsp;&nbsp;Contact Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span>
 </div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1758220174446684',
+      xfbml      : true,
+      version    : 'v2.6'
+    });
+  };
 
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
 </body>
 </html>

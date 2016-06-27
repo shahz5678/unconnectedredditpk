@@ -1982,14 +1982,6 @@ class PhotostreamView(ListView):
 		context["stream_id"] = pk
 		context["can_vote"] = False
 		context["number"] = PhotoStream.objects.get(id=pk).photo_count
-		# disallowing voting in photostream
-		# if self.request.user.is_authenticated():
-		# 	context["voted"] = []
-		# 	if self.request.user.userprofile.score > 9 and not self.request.user_banned:
-		# 		context["can_vote"] = True
-		# 		photos_in_page = [pic.id for pic in context["object_list"]]
-		# 		vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
-		# 		context["voted"] = vote_cluster.filter(voter=self.request.user).values_list('photo_id', flat=True)
 		return context
 
 	def get(self, request, *args, **kwargs):
@@ -4301,11 +4293,17 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				else:
 					device = '3'
 				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
+				timestring = reply.submitted_on
 				answer_to.reply_count = answer_to.reply_count + 1
 				answer_to.save()
-				time = reply.submitted_on
-				timestring = time.isoformat()
-				publicreply_tasks.delay(user.id, answer_to.id, timestring, reply.id, description)
+				all_reply_ids = set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25])
+				if answer_to.submitter_id not in all_reply_ids:
+					all_reply_ids.append(answer_to.submitter_id)
+				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False)
+				exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=timestring, seen=True)
+				if not exists: #i.e. could not be updated
+					PhotoObjectSubscription.objects.create(viewer=user, type_of_object='2', which_link=answer_to, updated_at=timestring)
+				publicreply_tasks.delay(user.id, description)
 				try:
 					return redirect("reply_pk", pk=pk)
 				except:

@@ -11,13 +11,6 @@ from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "unconnectedreddit.settings")
-
-# @celery_app1.task(name='tasks.rank_all')
-# def rank_all():
-#     for link in Link.with_votes.all():
-#         link.set_rank()
-
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	for photo in Photo.objects.order_by('-id')[:400]:
@@ -37,9 +30,6 @@ def whoseonline():
 @celery_app1.task(name='tasks.fans')
 def fans():
 	object_list = TotalFanAndPhotos.objects.select_related('owner__userprofile').exclude(total_photos=0).order_by('-total_fans','-total_photos')[:100]
-	#ids = [user.id for user in object_list]
-	#users = User.objects.annotate(photo_count=Count('photo', distinct=True)).annotate(num_fans=Count('star', distinct=True)).in_bulk(ids)
-	#users_fans = [(users[id], users[id].photo_count, users[id].num_fans) for id in ids]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
             'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
         })
@@ -100,19 +90,19 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	user.userprofile.save()
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, answer_to_id, timestring, reply_id, description):
+def publicreply_tasks(user_id, description):
 	user = User.objects.get(id=user_id)
-	link = Link.objects.get(id=answer_to_id)
-	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
-	all_reply_ids = list(set(Publicreply.objects.filter(answer_to_id=answer_to_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-	if link.submitter_id not in all_reply_ids:
-		all_reply_ids.append(link.submitter_id)
-	PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link_id=answer_to_id).update(seen=False)
-	exists = PhotoObjectSubscription.objects.filter(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id).update(updated_at=timeobj, seen=True)
-	if not exists: #i.e. could not be updated
-		PhotoObjectSubscription.objects.create(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id, updated_at=timeobj)
-	link.latest_reply_id=reply_id
-	link.save()
+	#link = Link.objects.get(id=answer_to_id)
+	#timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
+	#all_reply_ids = list(set(Publicreply.objects.filter(answer_to_id=answer_to_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+	#if link.submitter_id not in all_reply_ids:
+	#	all_reply_ids.append(link.submitter_id)
+	#PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link_id=answer_to_id).update(seen=False)
+	#exists = PhotoObjectSubscription.objects.filter(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id).update(updated_at=timeobj, seen=True)
+	#if not exists: #i.e. could not be updated
+	#	PhotoObjectSubscription.objects.create(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id, updated_at=timeobj)
+	#link.latest_reply_id=reply_id
+	#link.save()
 	user.userprofile.previous_retort = description
 	user.userprofile.score = user.userprofile.score + 2
 	user.userprofile.save()

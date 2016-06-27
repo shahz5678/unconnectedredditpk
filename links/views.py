@@ -17,7 +17,7 @@ from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite, TotalFanAndPhotos
+SalatInvite, TotalFanAndPhotos, Logout
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -538,8 +538,10 @@ class LogoutReconfirmView(FormView):
 				decision = self.request.POST.get("decision")
 				if decision == 'Khuda Hafiz':
 					try:
-						self.request.user.userprofile.score = 10
-						self.request.user.userprofile.save()
+						user = self.request.user
+						Logout.objects.create(logout_user=user, pre_logout_score=user.userprofile.score)
+						user.userprofile.score = 10
+						user.userprofile.save()
 						return redirect("bahirniklo")
 					except:
 						return redirect("home")
@@ -2564,11 +2566,23 @@ class PhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
-		#print self.request
+		on_fbs = self.request.META.get('X-IORG-FBS')
+		if on_fbs:
+			context["on_fbs"] = True
+		else:
+			context["ob_fbs"] = False
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
+			context["is_android_phone"] = False
+		elif self.request.is_android_phone:
+			context["is_android_phone"] = True
+			context["feature_phone"] = False
+		elif self.request.is_iphone:
+			context["is_android_phone"] = True
+			context["feature_phone"] = False
 		else:
 			context["feature_phone"] = False
+			context["is_android_phone"] = True
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			user = self.request.user

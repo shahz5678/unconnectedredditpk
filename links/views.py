@@ -4296,7 +4296,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				timestring = reply.submitted_on
 				answer_to.reply_count = answer_to.reply_count + 1
 				answer_to.save()
-				all_reply_ids = set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25])
+				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 				if answer_to.submitter_id not in all_reply_ids:
 					all_reply_ids.append(answer_to.submitter_id)
 				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False)

@@ -485,7 +485,7 @@ class TotalFanAndPhotos(models.Model):
 	total_fans = models.IntegerField(default=0)
 	last_updated = models.DateTimeField(db_index=True)
 
-class UserFan(models.Model):
+class UserFan (models.Model):
 	star = models.ForeignKey(User, related_name='star')
 	fan = models.ForeignKey(User, related_name='fan')
 	fanning_time = models.DateTimeField(db_index=True)
@@ -510,6 +510,14 @@ class GroupInvite(models.Model):
 
 	def __unicode__(self):
 		return u"%s was invited to %s by %s" % (self.invitee, self.which_group.topic, self.inviter)
+
+class Logout(models.Model):
+	logout_user = models.ForeignKey(User)
+	logout_time = models.DateTimeField(auto_now_add=True)
+	pre_logout_score = models.IntegerField(null=True, blank=True, default=0)
+
+	def __unicode__(self):
+		return u"%s logged out at %s, dropping score to 10 from %s" % (self.logout_user,self.logout_time,self.pre_logout_score)
 
 class Reply(models.Model):
 	text = models.TextField("Likho:",db_index=True, validators=[MaxLengthValidator(500)])

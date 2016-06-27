@@ -4042,7 +4042,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			else:
 				context["switching"] = True
 				return context
-			group = Group.objects.get(unique=unique)#get DB call
+			try:
+				group = Group.objects.get(unique=unique)#get DB call
+			except:
+				context["switching"] = True
+				return context
 			context["group"] = group
 			if 'private' in self.request.path and group.private=='1':
 				context["switching"] = False

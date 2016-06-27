@@ -2232,8 +2232,11 @@ class UploadPhotoReplyView(CreateView):
 
 def photostream_izzat(request, pk=None, *args, **kwargs):
 	if pk.isdigit():
-		stream_object_id = PhotoStream.objects.get(cover_id=pk).id
-		return redirect("photo_izzat", stream_object_id)
+		try:
+			stream_object_id = PhotoStream.objects.get(cover_id=pk).id
+			return redirect("photo_izzat", stream_object_id)
+		except:
+			return redirect("see_photo")
 	else:
 		return redirect("see_photo")
 

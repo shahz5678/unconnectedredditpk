@@ -247,7 +247,7 @@ if ON_HEROKU == '1':
 	AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 elif ON_AZURE == '1':
 	print "ON_AZURE!"
-	DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@damadamrg.cloudapp.net:5432/damadam'
+	DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@40.114.247.165:5432/damadam'
 	DATABASES = {
 	'default': dj_database_url.config(default=DATABASE_URL)
 	}

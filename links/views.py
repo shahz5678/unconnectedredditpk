@@ -305,9 +305,13 @@ class FanListView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(FanListView, self).get_context_data(**kwargs)
 		context["girls"] = FEMALES
-		pk = self.request.session["fan_target_id"]
-		context["fan_list"] = UserFan.objects.select_related('fan__userprofile').filter(star_id=pk).order_by('fan')
-		context["star"] = User.objects.get(id=pk)
+		try:
+			pk = self.request.session["fan_target_id"]
+			context["fan_list"] = UserFan.objects.select_related('fan__userprofile').filter(star_id=pk).order_by('fan')
+			context["star"] = User.objects.get(id=pk)
+			context["error"] = False
+		except:
+			context["error"] = True
 		return context
 
 class ReinvitePrivateView(FormView):

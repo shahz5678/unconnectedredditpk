@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Link, Vote, Photo, PhotoVote, PhotoComment, PhotoStream, ChatInbox, ChatPic, ChatPicMessage, UserProfile, \
 UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen, UserFan, \
-Salat, SalatInvite
+Salat, SalatInvite, Logout
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 #these will appear in the admin panel
@@ -40,6 +40,9 @@ admin.site.register(HellBanList, HellBanListAdmin)
 
 class GroupInviteAdmin(admin.ModelAdmin): pass
 admin.site.register(GroupInvite, GroupInviteAdmin)
+
+class LogoutAdmin(admin.ModelAdmin): pass
+admin.site.register(Logout, LogoutAdmin)
 
 class GroupSeenAdmin(admin.ModelAdmin): pass
 admin.site.register(GroupSeen, GroupSeenAdmin)

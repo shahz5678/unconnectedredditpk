@@ -13,6 +13,8 @@ class MobileDetectionMiddleware(object):
         is_tablet = False
         is_phone = False
         is_feature_phone = False
+        is_android_phone = False
+        is_iphone = False
 
         user_agent = request.META.get("HTTP_USER_AGENT")
         http_accept = request.META.get("HTTP_ACCEPT")
@@ -20,6 +22,8 @@ class MobileDetectionMiddleware(object):
             agent = mdetect.UAgentInfo(userAgent=user_agent, httpAccept=http_accept)
             is_tablet = agent.detectTierTablet()
             is_phone = agent.detectTierIphone()
+            is_android_phone = agent.detectAndroidPhone()
+            is_iphone = agent.detectIphone()
             is_feature_phone = agent.detectSymbianOS() or agent.detectOperaMobile() \
             or agent.detectWapWml() or agent.detectMidpCapable() or agent.detectTierOtherPhones() 
             is_mobile = is_tablet or is_phone or agent.detectMobileLong()
@@ -28,3 +32,5 @@ class MobileDetectionMiddleware(object):
         request.is_phone = is_phone
         request.is_feature_phone = is_feature_phone
         request.is_mobile = is_mobile
+        request.is_android_phone = is_android_phone
+        request.is_iphone = is_iphone

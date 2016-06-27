@@ -7,14 +7,16 @@
 {% if authorized %}
 
     {% if from_photos %}
-        {% if from_photos == '1' %}
+        {% if from_photos == '1' and photostream_pk %}
         <a href="{% url 'see_photo_pk' photostream_pk %}">
-        {% elif from_photos == '2' %}
+        {% elif from_photos == '2' and photostream_pk  %}
         <a href="{% url 'see_best_photo_pk' photostream_pk %}">
-        {% elif from_photos == '3' %}
+        {% elif from_photos == '3' and photostream_pk  %}
         <a href="{% url 'user_profile_photo' username photo.id %}">
-        {% elif from_photos == '4' %}
+        {% elif from_photos == '4' and photostream_pk  %}
         <a href="{% url 'unseen_activity' username %}#section0">
+        {% else %}
+        <a href="{% url 'home' %}#section0">
         {% endif %}
     {% else %}
     <a href="{% url 'home' %}#section0">

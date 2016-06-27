@@ -2566,11 +2566,14 @@ class PhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
-		on_fbs = self.request.META.get('X-IORG-FBS')
+		try:
+			on_fbs = self.request.META.get('X-IORG-FBS')
+		except:
+			on_fbs = False
 		if on_fbs:
 			context["on_fbs"] = True
 		else:
-			context["ob_fbs"] = False
+			context["on_fbs"] = False
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 			context["is_android_phone"] = False

@@ -65,7 +65,7 @@ class OverwriteStorage(Storage):
 			image = small_content.file		
 			image = Image.open(image)
 			small_image = image.resize(size, Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70)
+			small_image.save(thumbnail,'JPEG',quality=70, optimize=True, progressive=True)
 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 			small_content.file = img
 			small_content.open()
@@ -89,7 +89,7 @@ class OverwriteStorage(Storage):
 			wpercent = (height/float(image.size[1]))
 			bsize = int((float(image.size[0])*float(wpercent)))
 			small_image = image.resize((bsize,height), PIL.Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70)
+			small_image.save(thumbnail,'JPEG',quality=70, optimize=True, progressive=True)
 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 			small_content.file = img
 			small_content.open()

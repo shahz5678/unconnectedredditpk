@@ -86,7 +86,7 @@ def MakeThumbnail(filee):
 	thumbnailString = StringIO.StringIO()
 	#if img.mode != 'RGB':
 	#    img = img.convert("RGB")
-	img.save(thumbnailString, 'JPEG')
+	img.save(thumbnailString, 'JPEG', optimize=True, progressive=True)
 	newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
 	return newFile
 

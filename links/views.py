@@ -4198,8 +4198,8 @@ class WelcomeMessageView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			pk = self.request.session["welcome_pk"]
 			try:
+				pk = self.request.session["welcome_pk"]
 				context["target_user"] = User.objects.get(id=pk)
 				context["authorized"] = True
 				context["option"] = self.kwargs["option"]

@@ -2365,11 +2365,15 @@ def comment_chat_pk(request, pk=None, *args, **kwargs):
 def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': 'pk'}
-		return render(request, 'penalty_commentpk.html', context)
+		if request.user.is_authenticated():
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
+		else:
+			context = {'pk': '10'}
+			return render(request, 'penalty_commentpk.html', context)
 	else:
 		if pk.isdigit():
 			request.session["photo_id"] = pk

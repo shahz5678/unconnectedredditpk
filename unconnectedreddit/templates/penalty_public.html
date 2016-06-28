@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye nahi ho sakta!</h2>
-<a href="{% url 'public_group' unique %}"><< wapis</a>
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans hi nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
+<a href="{% url 'public_group' unique %}">< wapis</a>
 </div>
+<br><br><br>
 {% endblock %}

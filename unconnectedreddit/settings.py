@@ -88,7 +88,7 @@ STATIC_ROOT = 'staticfiles'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '//damadamstatic.azureedge.net/'#'/static/'
+STATIC_URL = '/static/'#'//damadamstatic.azureedge.net/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (

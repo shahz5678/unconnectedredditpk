@@ -4,6 +4,7 @@
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% load thumbedge %}
+{% load photoedge %}
 {% block content %}
 <div class="margin">
 	{% if notification %}
@@ -211,7 +212,7 @@
 			    {% if link.which_photostream.cover.image_file %}
 			    <a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">[barri photo]</div></a><br>
 			    <a href="{% url 'see_photo_pk' link.which_photostream.cover_id %}#section0">
-			    <img style="width:100%;max-width:400px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url }}"></img></a>
+			    <img style="width:100%;max-width:400px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url|photoedge }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

@@ -54,7 +54,8 @@ class OverwriteStorage(Storage):
 			name,
 			content_str,
 			x_ms_blob_type='BlockBlob',
-			x_ms_blob_content_type=content_type
+			x_ms_blob_content_type=content_type,
+			x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
 		)
 		content.close()
 		if "avatars" in name: #creating and saving thumbnail

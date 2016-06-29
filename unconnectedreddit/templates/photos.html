@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load thumbnail %}
 {% load photoedge %}
+{% load thumbedge %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% block content %}
@@ -16,9 +16,9 @@
 		<br>
 		{% else %}
 		{% if parent.submitter.userprofile.avatar %}
-			<img src="{{ parent.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ parent.submitter.userprofile.avatar.url|thumbedge }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
 		<span style="color:dimgrey;"><bdi>{{ parent.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.description|truncatechars:40 }}{% endemoticons %}</span>
 	
@@ -38,7 +38,7 @@
 		:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ freshest_unseen_comment.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi>
 		</span>
 			<p style="margin-top:.5em;"></p>
-			<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></a>&nbsp;&nbsp;
+			<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7.5em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></a>&nbsp;&nbsp;
 			<a href="{% url 'x_notif' parent_pk user.id 0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
 		</div>
 		<p style="margin-top:.5em;"></p>
@@ -50,7 +50,7 @@
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#2DB92D;">
 		<a href="{% url 'profile' parent.inviter.username %}#section0">
 		{% if parent.inviter.userprofile.avatar %}
-		<img src="{{ parent.inviter.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.inviter.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22">
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
@@ -80,12 +80,12 @@
 		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		{% elif parent.vote_score < -1 %}
 		{% if parent.image_file %}
-	        <img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+	        <img src="{{ parent.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 	    {% else %}
 	        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 	    {% endif %}
 		{% else %}
-		<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+		<img src="{{ parent.image_file.url|thumbedge }}" style="border:1px solid lightgrey"></img>
 		{% endif %}
 		<span style="color:grey;">{% emoticons %}{{ parent.caption|truncatechars:30 }}{% endemoticons %}</span>
 		<p style="margin-top:.3em;"></p>
@@ -108,12 +108,12 @@
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		{% elif parent.vote_score < -1 %}
 			{% if parent.image_file %}
-			<img src="{{ parent.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			<img src="{{ parent.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.image_file.url|thumbnail }}" style="border:1px solid lightgrey"></img>
+			<img src="{{ parent.image_file.url|thumbedge }}" style="border:1px solid lightgrey"></img>
 		{% endif %}
 		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
 		<p style="margin-top:.3em;"></p>
@@ -160,11 +160,11 @@
 	
 	<a href="{% url 'profile' picstream.cover.owner.username %}#section0">
 	{% if picstream.cover.owner.userprofile.avatar and user == picstream.cover.owner %}
-		<img style="border: 1px solid #00B800;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<img style="border: 1px solid #00B800;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
 	{% elif picstream.cover.owner.userprofile.avatar %}
-		<img style="border: 1px solid #A9A9A9;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<img style="border: 1px solid #A9A9A9;" src="{{ picstream.cover.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
 	{% else %}
-		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 	{% endif %}
 	</a>
 	<a href="{% url 'comment_pk' picstream.cover_id picstream.id '1' %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ picstream.cover.caption }}{% endemoticons %}</bdi></b>
@@ -242,8 +242,7 @@
 				<a href="{% url 'photostream_vote' picstream.id 0 0 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5em;">bakwas</button></a><br>
 				{% endif %}
 
-
-			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.35em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a><br>
+			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a><br>
 		
 {% endfor %}
 {% endif %}

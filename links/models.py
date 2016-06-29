@@ -76,7 +76,8 @@ class OverwriteStorage(Storage):
 				small_image_name,
 				stream,
 				x_ms_blob_type='BlockBlob',
-				x_ms_blob_content_type=content_type
+				x_ms_blob_content_type=content_type,
+				x_ms_blob_cache_control ='public, max-age=604800, s-maxage=604800' #cache in the browser and on the edge for 7 days
 			)
 			small_content.close()
 		elif "photos" in name:
@@ -100,7 +101,8 @@ class OverwriteStorage(Storage):
 				small_image_name,
 				stream,
 				x_ms_blob_type='BlockBlob',
-				x_ms_blob_content_type=content_type
+				x_ms_blob_content_type=content_type,
+				x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
 			)
 			small_content.close()
 		else: 

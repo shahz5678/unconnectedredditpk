@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load thumbnail %}
+{% load photoedge %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% block content %}
@@ -200,14 +201,14 @@
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif picstream.cover.vote_score < -1 %}
 				{% if picstream.cover.image_file %}
-				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
+				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url|photoedge }}"></img>
 				{% else %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% else %}
 				{% if picstream.cover.image_file %}
 				
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url }}"></img>
+				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ picstream.cover.image_file.url|photoedge }}"></img>
 				{% else %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
@@ -246,7 +247,7 @@
 				{% endif %}
 
 
-			<a href="{% url 'photo_share' picstream.cover_id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
+			<a href="{% url 'photo_share' picstream.cover_id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 
 		
 {% endfor %}

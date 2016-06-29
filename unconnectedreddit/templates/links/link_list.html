@@ -164,9 +164,6 @@
 {% for link in object_list %}
 		
 	{% if forloop.counter == 4 %}
-		{% if user.username == 'mhb11' %}
-		<img src="//damadamstatic.azureedge.net/static/img/sms-button.png" height="30" width="30" ><br>
-		{% endif %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}

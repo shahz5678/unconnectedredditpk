@@ -164,6 +164,9 @@
 {% for link in object_list %}
 		
 	{% if forloop.counter == 4 %}
+		{% if user.username == 'mhb11' %}
+		<img src="//damadamstatic.azureedge.net/static/img/sms-button.png" height="30" width="30" ><br>
+		{% endif %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
@@ -209,7 +212,7 @@
 			    {% endif %}
 			{% else %}
 			    {% if link.which_photostream.cover.image_file %}
-			    <a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">(barri photo ?)</div></a><br>
+			    <a href="{% url 'bari_photo_help' link.which_photostream.cover_id %}#section0"><div style="font-size:80%;color:grey;margin-bottom:-1em;">[barri photo]</div></a><br>
 			    <a href="{% url 'see_photo_pk' link.which_photostream.cover_id %}#section0">
 			    <img style="width:100%;max-width:400px;border:1px solid blue;" src="{{ link.which_photostream.cover.image_file.url }}"></img></a>
 			    {% else %}
@@ -479,6 +482,7 @@
     <div class="fb-ad" data-placementid="1758220174446684_1758235171111851" data-format="320x50" data-testmode="false"></div>
 <br><br>
 {% endif %}
+<br>
 {% endblock %}
 
 

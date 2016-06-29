@@ -52,7 +52,7 @@ def square_image(img):
 	return img
 
 def restyle_image(image):
-	width = 265
+	width = 300
 	#height = 38
 	wpercent = (width/float(image.size[0]))
 	hsize = int((float(image.size[1])*float(wpercent)))
@@ -82,7 +82,7 @@ def MakeThumbnail(filee):
 	enhancer2 = enhancer2.enhance(1.07)
 	enhancer3 = ImageEnhance.Color(enhancer2)
 	img = enhancer3.enhance(1.15)
-	img.thumbnail((265, 265))
+	img.thumbnail((300, 300))
 	thumbnailString = StringIO.StringIO()
 	#if img.mode != 'RGB':
 	#    img = img.convert("RGB")
@@ -111,7 +111,7 @@ def clean_image_file_with_hash(image, hashes): # where self is the form
 			return (0,-1)
 		image = Image.open(image)
 		avghash = compute_avg_hash(image)
-		index = uploaded_recently(avghash, hashes)
+		index = -1#uploaded_recently(avghash, hashes)
 		if index == -1:
 			image = MakeThumbnail(image)
 			return image, avghash

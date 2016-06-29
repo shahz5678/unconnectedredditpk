@@ -111,7 +111,7 @@ def clean_image_file_with_hash(image, hashes): # where self is the form
 			return (0,-1)
 		image = Image.open(image)
 		avghash = compute_avg_hash(image)
-		index = -1#uploaded_recently(avghash, hashes)
+		index = uploaded_recently(avghash, hashes)
 		if index == -1:
 			image = MakeThumbnail(image)
 			return image, avghash

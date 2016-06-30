@@ -329,6 +329,7 @@ class Link(models.Model):
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	which_photostream = models.ForeignKey('links.PhotoStream', null=True, blank=True)
 	reply_count = models.IntegerField(default=0)
+	net_votes = models.IntegerField(default=0) #only counts votes, for censorship purposes
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
 	image_file = models.ImageField("Photo charhao:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )

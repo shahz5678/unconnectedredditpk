@@ -5321,7 +5321,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 						return redirect("score_help")
 					else:
 						link.submitter.userprofile.score = link.submitter.userprofile.score + 3
-						link.net_votes = link.net_votes + 1
+						#link.net_votes = link.net_votes + 1
 						num = random.randint(1,4)
 						if num > 2: # don't always reduce hot_score, give jhappees some love
 							cooldown.hot_score = cooldown.hot_score - 1
@@ -5337,7 +5337,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.net_votes = link.net_votes + 1
+						#link.net_votes = link.net_votes + 1
 						cooldown.hot_score = cooldown.hot_score - 3
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 				elif value == 0:
@@ -5349,7 +5349,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.net_votes = link.net_votes - 1
+						#link.net_votes = link.net_votes - 1
 						cooldown.hot_score = cooldown.hot_score - 1
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -1
@@ -5362,7 +5362,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.net_votes = link.net_votes - 1
+						#link.net_votes = link.net_votes - 1
 						cooldown.hot_score = cooldown.hot_score - 3
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -2
@@ -5372,7 +5372,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				try:
 					Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
 					cooldown.save()
-					link.save()
+					#link.save()
 					link.submitter.userprofile.save()
 				except:#if vote object can't be created, just redirect the user, no harm done
 					return redirect("link_create_pk")

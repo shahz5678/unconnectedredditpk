@@ -4981,29 +4981,6 @@ def photo_vote(request, user_id=None, pk=None, val=None, slug=None, *args, **kwa
 		else:
 			return redirect("user_profile_photo", slug, pk)
 
-def update_cooldown(obj):
-	#time_now = datetime.utcnow().replace(tzinfo=utc)
-	time_now = timezone.now()
-	#print time_now
-	time_passed = obj.time_of_casting
-	#print time_passed
-	difference = time_now - time_passed
-	#print difference.total_seconds()
-	difference_in_mins = difference.total_seconds() / 60
-	#print difference_in_mins
-	interval = int(difference_in_mins / 6) # control the interval length from here
-	#print "interval: %s" % interval
-	obj.hot_score = obj.hot_score + interval
-	if obj.hot_score > 10:
-		obj.hot_score = 10
-	return obj
-
-def find_time(obj):
-	time_passed = obj.time_of_casting
-	target_time = time_passed + timedelta(minutes=6) # control the interval length from here
-	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
-	return difference
-
 @ratelimit(rate='1/s')
 def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -5272,6 +5249,29 @@ class FanTutorialView(FormView):
 				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
 			return redirect("top_photo")
 
+def update_cooldown(obj):
+	#time_now = datetime.utcnow().replace(tzinfo=utc)
+	time_now = timezone.now()
+	#print time_now
+	time_passed = obj.time_of_casting
+	#print time_passed
+	difference = time_now - time_passed
+	#print difference.total_seconds()
+	difference_in_mins = difference.total_seconds() / 60
+	#print difference_in_mins
+	interval = int(difference_in_mins / 4) # control the interval length from here
+	#print "interval: %s" % interval
+	obj.hot_score = obj.hot_score + interval
+	if obj.hot_score > 10:
+		obj.hot_score = 10
+	return obj
+
+def find_time(obj):
+	time_passed = obj.time_of_casting
+	target_time = time_passed + timedelta(minutes=4) # control the interval length from here
+	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
+	return difference
+
 @ratelimit(rate='1/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	#PERIODS = (1,5*1,10*1,)
@@ -5321,8 +5321,12 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 						return redirect("score_help")
 					else:
 						link.submitter.userprofile.score = link.submitter.userprofile.score + 3
-						link.submitter.userprofile.save()
-						cooldown.hot_score = cooldown.hot_score - 1
+						link.net_votes = link.net_votes + 1
+						num = random.randint(1,4)
+						if num > 2: # don't always reduce hot_score, give jhappees some love
+							cooldown.hot_score = cooldown.hot_score - 1
+						else:
+							pass
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 				elif value == 2:
 					if request.user_banned or request.user.username not in FEMALES:
@@ -5333,7 +5337,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.submitter.userprofile.save()
+						link.net_votes = link.net_votes + 1
 						cooldown.hot_score = cooldown.hot_score - 3
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 				elif value == 0:
@@ -5345,7 +5349,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.submitter.userprofile.save()
+						link.net_votes = link.net_votes - 1
 						cooldown.hot_score = cooldown.hot_score - 1
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -1
@@ -5358,7 +5362,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
 								link.submitter.userprofile.score = random.randint(10,71) #assigning random score to banned user
-						link.submitter.userprofile.save()
+						link.net_votes = link.net_votes - 1
 						cooldown.hot_score = cooldown.hot_score - 3
 						cooldown.time_of_casting = timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 					value = -2
@@ -5368,6 +5372,8 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 				try:
 					Vote.objects.create(voter=request.user, link=link, value=value) #add the up or down vote in the DB.
 					cooldown.save()
+					link.save()
+					link.submitter.userprofile.save()
 				except:#if vote object can't be created, just redirect the user, no harm done
 					return redirect("link_create_pk")
 				try:

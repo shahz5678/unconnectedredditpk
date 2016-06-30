@@ -26,7 +26,7 @@ ON_AZURE = os.environ.get('ON_AZURE')
 #git push origin master	
 
 if ON_HEROKU == '1' or ON_AZURE == '1':
-	DEBUG=False
+	DEBUG=True
 else:
 	DEBUG=True
 

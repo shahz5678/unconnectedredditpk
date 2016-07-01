@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe yahan likhne ki ijazat miley gi <b style="color:#229ec3;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+	<span style="color:grey;font-size:90%;">Aesi baatein likho jo logoon ko pasand aien<br><br></span>
+	<a href="{% url 'home' %}#section0" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
+
+</div>
+{% endblock %}

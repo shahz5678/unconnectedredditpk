@@ -66,7 +66,7 @@ class OverwriteStorage(Storage):
 			image = small_content.file		
 			image = Image.open(image)
 			small_image = image.resize(size, Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70, optimize=True, progressive=True)
+			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 			small_content.file = img
 			small_content.open()
@@ -91,7 +91,7 @@ class OverwriteStorage(Storage):
 			wpercent = (height/float(image.size[1]))
 			bsize = int((float(image.size[0])*float(wpercent)))
 			small_image = image.resize((bsize,height), PIL.Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70, optimize=True, progressive=True)
+			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 			small_content.file = img
 			small_content.open()
@@ -596,6 +596,23 @@ class UserProfile(models.Model):
 
 	def __unicode__(self):
 		return u"%s's profile" % self.user
+
+# class AbusePulse(models.Model):
+# 	username = models.TextField(validators=[MaxLengthValidator(500)])
+# 	latest_sentence = models.TextField(validators=[MaxLengthValidator(500)])
+# 	second_latest_sentence = models.TextField(validators=[MaxLengthValidator(500)])
+# 	third_latest_sentence = models.TextField(validators=[MaxLengthValidator(500)])
+# 	which_punishment = models.CharField(max_length=3)
+# 	created_at = models.DateTimeField(auto_now_add=True)
+# 	time_remaining = models.DateTimeField()
+# 	latest_netvote = models.IntegerField(default=0)
+# 	second_latest_netvote = models.IntegerField(default=0)
+# 	third_latest_netvote = models.IntegerField(default=0)
+# 	latest_sentence_id = models.IntegerField(default=0)
+# 	second_latest_sentence_id = models.IntegerField(default=0)
+# 	third_latest_sentence_id = models.IntegerField(default=0)
+# 	which_user = models.ForeignKey(User)
+# 	score = models.IntegerField(default=0)
 
 class Publicreply(models.Model):
 	submitted_by = models.ForeignKey(User)

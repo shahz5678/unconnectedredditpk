@@ -94,10 +94,43 @@
     {% if forloop.counter != 1 %}
     <hr size=1 COLOR="ORANGE">
     {% endif %}
+    {% if comment.abuse %}
+        {% if authenticated and viewed_at %}
+        {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
+            <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% endif %}
+        {% endif %}
+        <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+        {% if comment.submitted_by.userprofile.avatar %}
+            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        {% else %}
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+        {% endif %}
+    {{ comment.submitted_by.username }}</a>
+        <span style="font-size:70%;">
+            {% if comment.submitted_by.userprofile.score %}
+                {% if comment.submitted_by.userprofile.score < 0 %}
+                    <span style="color:#18A018;">(1)</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% endif %}
+            {% endif %}
+        </span>
+
+        {% for person in verified %}
+            {% if person == comment.submitted_by.username %}
+            <span style="color:deeppink;"><b>*</b></span>
+            {% endif %}
+        {% endfor %}
+        
+        <span style="color:grey;font-size:90%;">ke tabsrey ko <b>{{ photo.owner }}</b> ne hide kr dia</span>
+
+    {% else %}
+
     {% if authenticated and viewed_at %}
-    {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
-    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-    {% endif %}
+        {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
+        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% endif %}
     {% endif %}
     <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
     	{% if comment.submitted_by.userprofile.avatar %}
@@ -134,7 +167,20 @@
         &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
         {% else %}
         {% endif %}
-    </span><br>
+    </span>
+    {% if user == photo.owner %}
+    &nbsp;
+    {% if photostream_pk and from_photos %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
+    {% elif photostream_pk %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk %}">
+    {% else %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk %}">
+    {% endif %}
+    <button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
+    {% endif %}
+    <br>
+    {% endif %}
     </td></tr>
     {% endfor %}
     </table>

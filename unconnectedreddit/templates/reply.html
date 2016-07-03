@@ -44,7 +44,7 @@
     	{% csrf_token %}
     	
         <span style="font-size:90%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Jawab likho:</b></span>{{ form.description }}
-    <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK" id="id_submit">
+    <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
     </form>
 
 {% else %}
@@ -53,14 +53,18 @@
 
 {% if parent.reply_count == 0 %}
 {% elif parent.reply_count < 26 %}
-    <hr size=1 COLOR="#3cb7dd"><span style="font-size:90%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{{ parent.reply_count }}</b> Jawab:</span><br>
+    <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{{ parent.reply_count }}</b> Jawab:</span><br>
 {% else %}
-    <hr size=1 COLOR="#3cb7dd"><span style="font-size:90%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichley <b>25</b> jawab:</span><br>
+    <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichley <b>25</b> jawab:</span><br>
 {% endif %}
+
 <table>
 {% for reply in replies %}
 <tr><td>
-<span class="numbers" style="font-size:50%;color:#229ec3;">
+{% if forloop.counter != 1 %}
+<hr size=1 COLOR="#3cb7dd">
+{% endif %}
+<span class="numbers" style="font-size:60%;color:#229ec3;">
     	{{ forloop.counter }}.
     </span>
     <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
@@ -88,7 +92,7 @@
                     <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
                 {% endif %}
             {% endif %}
-         <span style="color:grey;font-size:90%;">ne ghalat baat ki, isko report kar diya gaya</span>
+         <span style="color:grey;font-size:90%;">ki baat ko <b>{{ parent.submitter }}</b> ne hide kr dya</span>
     {% else %}
         {% if authenticated and viewed_at %}
         {% if reply.submitted_on > viewed_at and reply.submitted_by != user %}
@@ -126,10 +130,10 @@
         {% endif %}
     </span>
     {% if user == parent.submitter %}
-    <a href="{% url 'reportreply_pk' pk=reply.pk num=reply.answer_to.pk %}"><span style="font-size:65%;">(report)</span></a>
+    &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
     {% endif %}
     {% if user != reply.submitted_by %}
-    <a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><span style="font-size:65%;">(mehfil)</span></a>
+    &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#3cb7dd;border-color:#229ec3;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
     {% endif %}
 {% endif %}
 	<br>
@@ -137,10 +141,10 @@
 {% endfor %}
 </table>
 <p style="margin-top:0.5em;"></p>
-<hr size=1>
+<hr size=1 COLOR="#3cb7dd">
 <p style="margin-top:-0.9em;"></p>
-<hr size=1>
-<span style="font-size:80%;color:dimgrey;"><b>Shakal banaey ke liye uskay aagey likhay harf type karo:<br></b><span style="font-size:95%;">(poori list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
+<hr size=1 COLOR="#3cb7dd">
+<span style="font-size:80%;color:dimgrey;"><b>Shakal banane ke liye uskay agey likhe harf type karo:<br></b><span style="font-size:95%;">(full list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
 {% if forloop.counter in random %}

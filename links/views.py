@@ -793,7 +793,7 @@ class ReportcommentView(FormView):
 					photo_id = self.request.POST.get("photo_pk")
 					photostream_id = self.request.POST.get("photostream_pk")
 					from_photos = self.request.POST.get("from_photos")
-					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id).exists() and \
+					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
 					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
 						comment = get_object_or_404(PhotoComment, pk=comment_id)
 						comment.abuse = True

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block content %}
 {% load cache %}
 {% load emoticons_tags %}
@@ -13,6 +14,7 @@
   <span style="font-size:100%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Kuch likho:</b></span><br>{{ form.description }}<br>
   <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK">
 </form>
+
 {% if user.userprofile.score and user.userprofile.score < 8 %}
 <span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzra?</i></span><br>
 {% endif %}

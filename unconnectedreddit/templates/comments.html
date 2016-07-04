@@ -5,15 +5,14 @@
 {% block content %}
 <div class="margin">
 {% if authorized %}
-
     {% if from_photos %}
         {% if from_photos == '1' and photostream_pk %}
         <a href="{% url 'see_photo_pk' photostream_pk %}">
         {% elif from_photos == '2' and photostream_pk  %}
         <a href="{% url 'see_best_photo_pk' photostream_pk %}">
-        {% elif from_photos == '3' and photostream_pk  %}
+        {% elif from_photos == '3'  %}
         <a href="{% url 'user_profile_photo' username photo.id %}">
-        {% elif from_photos == '4' and photostream_pk  %}
+        {% elif from_photos == '4' %}
         <a href="{% url 'unseen_activity' username %}#section0">
         {% else %}
         <a href="{% url 'home' %}#section0">
@@ -168,17 +167,7 @@
         {% else %}
         {% endif %}
     </span>
-    {% if user == photo.owner %}
-    &nbsp;
-    {% if photostream_pk and from_photos %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
-    {% elif photostream_pk %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk %}">
-    {% else %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk %}">
-    {% endif %}
-    <button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
-    {% endif %}
+    
     <br>
     {% endif %}
     </td></tr>

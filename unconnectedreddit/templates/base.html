@@ -30,7 +30,7 @@
     <!-- ****** faviconit.com favicons ****** -->
     
   <title>Damadam.pk</title>
- 
+        
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
         
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -138,22 +138,20 @@
 <div style="text-align: center;">
 <span style="color:grey;font-size:80%;">|</span><a href="{%url 'privacy_policy' %}" style="font-size:70%;">&nbsp;&nbsp;Privacy Policy&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'about' %}" style="font-size:70%;">&nbsp;&nbsp;About Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'contact' %}" style="font-size:70%;">&nbsp;&nbsp;Contact Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span>
 </div>
-<script>
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId      : '1758220174446684',
-      xfbml      : true,
-      version    : 'v2.6'
-    });
-  };
 
-  (function(d, s, id){
-     var js, fjs = d.getElementsByTagName(s)[0];
-     if (d.getElementById(id)) {return;}
-     js = d.createElement(s); js.id = id;
-     js.src = "//connect.facebook.net/en_US/sdk.js";
-     fjs.parentNode.insertBefore(js, fjs);
-   }(document, 'script', 'facebook-jssdk'));
+
+<script type="text/javascript">
+function downloadJSAtOnload() {
+var element = document.createElement("script");
+element.src = "defer.js";
+document.body.appendChild(element);
+}
+if (window.addEventListener)
+window.addEventListener("load", downloadJSAtOnload, false);
+else if (window.attachEvent)
+window.attachEvent("onload", downloadJSAtOnload);
+else window.onload = downloadJSAtOnload;
 </script>
+
 </body>
 </html>

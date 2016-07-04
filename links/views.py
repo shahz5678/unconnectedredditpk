@@ -696,7 +696,7 @@ class MehfilView(FormView):
 				else:
 					return redirect("reply_pk", pk=link_id)
 			except:
-				return redirect("profile", target_user.username)
+				return redirect("reply_pk", pk=link_id)
 
 class SalatRankingView(ListView):
 	template_name = "salat_ranking.html"

@@ -13,11 +13,11 @@ from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
-from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks
+from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite, TotalFanAndPhotos, Logout
+SalatInvite, TotalFanAndPhotos, Logout, Report
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -36,7 +36,8 @@ RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicFo
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
-TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
+ReportcommentForm, MehfilCommentForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -72,6 +73,88 @@ def valid_passcode(user,num):
 			return False
 		else:
 			return True
+
+# def check_link_abuse(count, links):
+# 	#links is a list
+# 	#count is the number of objects in that list
+# 	forbidden = False
+# 	time_remaining = None
+# 	punishment = None
+# 	if count == 0: #all first time users go through this
+# 		return forbidden, time_remaining, punishment
+# 	else:
+# 		time_now = timezone.now()
+# 		difference = time_now - links[0][1]
+# 		seconds = difference.total_seconds()
+# 		if seconds < 4:
+# 			forbidden = True
+# 			time_remaining = None
+# 			punishment = None
+# 		elif count == 1:
+# 			if links[0][0] < -2 and seconds < (60*5): # only banning for 5 mins
+# 				forbidden = True
+# 				time_remaining = time_now + timedelta(seconds = (60*5-seconds))
+# 				punishment = '1'
+# 			else:
+# 				pass
+# 		elif count == 2:
+# 			gap2 = links[0][1] - links[1][1] 
+# 			seconds2 = gap.total_seconds()
+# 			if seconds < (60 * 120) and seconds2 < (60 * 120): # if the gap between the two is less than 2 hrs
+# 				if links[0][0] < -2 and links[1][0] < -2 and seconds < (60 * 30): # banning for 30 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds = (60*30-seconds))
+# 					punishment = '2a'
+# 				elif ((links[0][0] < -1 and links[1][0] < -2) or (links[0][0] < -2 and links[1][0] < -1)) and seconds < (60*22): #banning for 22 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*22-seconds))
+# 					punishment = '2b'
+# 				elif links[0][0] < -1 and links[1][0] < -1 and seconds < (60 * 15): # banning for 15 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*15-seconds))
+# 					punishment = '2c'
+# 				elif (links[0][0] < 1 and links[1][0] < 1) and ((links[0][0] + links[1][0]) < -3) and seconds < (60*10): #banning for 10 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*10-seconds))
+# 					punishment = '2d'
+# 				else:
+# 					pass
+# 			else:
+# 				pass
+# 		elif count == 3:
+# 			gap2 = links[0][1] - links[1][1]
+# 			seconds2 = gap2.total_seconds()
+# 			gap3 = links[1][1] - links[2][1]
+# 			seconds3 = gap3.total_seconds()
+# 			if seconds < (60 * 120) and seconds2 < (60 * 120) and seconds3 < (60 * 120): # all posts were within 2 hrs of eachother
+# 				if links[0][0] < -2 and links[1][0] < -2 and links[2][0] < -2 and seconds < (60*50*2): #banning for 100 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*50*2-seconds))
+# 					punishment = '3a'
+# 				elif links[0][0] < -1 and links[1][0] < -1 and links[2][0] < -1 and seconds < (60*60): #banning for 60 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*60-seconds))
+# 					punishment = '3b'
+# 				elif ((links[0][0]+links[1][0]+links[2][0]) < -6) and seconds < (60*45): #banning for 45 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*45-seconds))
+# 					punishment = '3c'
+# 				elif ((links[0][0]+links[1][0]+links[2][0]) < -4) and seconds < (60*20): #banning for 20 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*20))
+# 					punishment = '3d'
+# 				elif ((links[0][0]+links[1][0]+links[2][0]) < -2) and seconds < (60*10): #banning for 10 mins
+# 					forbidden = True
+# 					time_remaining = time_now + timedelta(seconds=(60*10))
+# 					punishment = '3e'
+# 				else:
+# 					pass
+# 			else:
+# 				pass
+# 		else:
+# 			pass
+# 		return forbidden, time_remaining, punishment	
+# 	return forbidden, time_remaining, punishment
 
 def check_photo_abuse(count, photos):
 	#photos is a list
@@ -554,6 +637,14 @@ class LogoutReconfirmView(FormView):
 			else:
 				return redirect("score_help")
 
+def mehfil_help(request, pk=None, num=None, *args, **kwargs):
+	if pk.isdigit() and num.isdigit():
+		request.session['user_pk'] = pk
+		request.session['link_id'] = num
+		return redirect("mehfil_help")
+	else:
+		return redirect("score_help")
+
 class MehfilView(FormView):
 	form_class = MehfilForm
 	template_name = "mehfil_help.html"
@@ -574,6 +665,7 @@ class MehfilView(FormView):
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
+			user = self.request.user
 			report = self.request.POST.get("decision")
 			target = self.request.session['user_pk']
 			link_id = self.request.session['link_id']
@@ -581,11 +673,30 @@ class MehfilView(FormView):
 			self.request.session['user_pk'] = None
 			try:
 				if report == 'Haan':
-					return redirect("direct_message", pk=target)
+					if user.userprofile.score < 500:
+						context = {'pk': link_id}
+						return render(self.request, 'penalty_linkmehfil.html', context)
+					else:
+						user.userprofile.score = user.userprofile.score - 500
+						target_user = User.objects.get(id=target)
+						invitee = target_user.username
+						topic = invitee+" se gupshup"
+						unique = uuid.uuid4()
+						try:
+							group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
+							user.userprofile.save()
+							reply_list = []
+							seen_list = []
+							reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
+							reply_list.append(Reply(text='aap ke baal bachey theek hain?', which_group_id=group.id, writer=user))
+							Reply.objects.bulk_create(reply_list)
+							return redirect("private_group", slug=unique)
+						except:
+							redirect("reply_pk", pk=link_id)
 				else:
 					return redirect("reply_pk", pk=link_id)
 			except:
-				return redirect("profile", self.request.user.username)
+				return redirect("profile", target_user.username)
 
 class SalatRankingView(ListView):
 	template_name = "salat_ranking.html"
@@ -631,14 +742,123 @@ class SalatSuccessView(ListView):
 		return context
 
 @ratelimit(rate='1/s')
+def reportcomment_pk(request, pk=None, num=None, photostream=None, from_photos=None,*args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		try:
+			deduction = 5 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk':'pk'}
+			return render(request, 'penalty_reportcomment.html', context)
+		except:
+			context = {'pk':'pk'}
+			return render(request, 'penalty_reportcomment.html', context)
+	else:
+		if pk.isdigit() and num.isdigit():
+			request.session["reportcomment_pk"] = pk
+			request.session["photonum_pk"] = num
+			if photostream:
+				request.session["phstream_pk"] = photostream
+			else:
+				request.session["phstream_pk"] = -1
+			if from_photos:
+				request.session["from_photos"] = from_photos
+			else:
+				request.session["from_photos"] = -1
+			return redirect("reportcomment")
+		else:
+			return redirect("")
+
+class ReportcommentView(FormView):
+	form_class = ReportcommentForm
+	template_name = "report_comment.html"
+
+	def get_context_data(self, **kwargs):
+		context=super(ReportcommentView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			try:
+				context["authorized"] = True
+				context["comment_pk"] = self.request.session["reportcomment_pk"]
+				context["photo_pk"] = self.request.session["photonum_pk"]
+				context["photostream_pk"] = self.request.session["phstream_pk"]
+				context["from_photos"] = self.request.session["from_photos"]
+			except:
+				context["authorized"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			if not self.request.user_banned:
+				rprt = self.request.POST.get("report")
+				if rprt == 'Haan':
+					comment_id = self.request.POST.get("comment_pk")
+					photo_id = self.request.POST.get("photo_pk")
+					photostream_id = self.request.POST.get("photostream_pk")
+					from_photos = self.request.POST.get("from_photos")
+					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id).exists() and \
+					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
+						comment = get_object_or_404(PhotoComment, pk=comment_id)
+						comment.abuse = True
+						comment.submitted_by.userprofile.score = comment.submitted_by.userprofile.score - 3
+						comment.submitted_by.userprofile.save()
+						comment.save()
+						self.request.session["reportcomment_pk"] = None
+						self.request.session["photonum_pk"] = None
+						self.request.session["phstream_pk"] = None
+						self.request.session["from_photos"] = None
+						pk = comment.submitted_by_id
+						ident = self.request.user.id
+						if pk != ident:
+							report.delay(target_id=pk, reporter_id=ident, report_origin='7', which_photocomment_id=comment_id, which_photo_id=photo_id)
+						if str(photostream_id) == '-1': 
+							photostream_id='0'
+						if str(from_photos) == '-1':
+							from_photos='0'
+						return redirect("comment_pk", pk=photo_id, stream_id=photostream_id ,from_photos=from_photos)
+						# elif str(photostream_id) != '-1':
+						# 	return redirect("comment_pk", pk=photo_id, stream_id=photostream_id)
+						# else:
+						# 	return redirect("comment_pk", pk=photo_id)
+					else:
+						self.request.user.userprofile.score = self.request.user.userprofile.score -3
+						self.request.user.userprofile.save()
+						return redirect("see_photo")
+				else:
+					photo_id = self.request.POST.get("photo_pk")
+					photostream_id = self.request.POST.get("photostream_pk")
+					from_photos = self.request.POST.get("from_photos")
+					self.request.session["reportcomment_pk"] = None
+					self.request.session["photonum_pk"] = None
+					self.request.session["phstream_pk"] = None
+					self.request.session["from_photos"] = None
+					if str(photostream_id) == '-1': 
+						photostream_id='0'
+					if str(from_photos) == '-1':
+						from_photos='0'
+					return redirect("comment_pk", pk=photo_id, stream_id=photostream_id ,from_photos=from_photos)
+					# elif str(photostream_id) != '-1':
+					# 	return redirect("comment_pk", pk=photo_id, stream_id=photostream_id)
+					# else:
+					# 	return redirect("comment_pk", pk= photo_id)
+			else:
+				return redirect("score_help")
+
+
+
+@ratelimit(rate='1/s')
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 5 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': 'pk'}
-		return render(request, 'penalty_reportreply.html', context)
+		try:
+			deduction = 5 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_reportreply.html', context)
+		except:
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_reportreply.html', context)
 	else:
 		if pk.isdigit() and num.isdigit():
 			request.session["report_pk"] = pk
@@ -2268,11 +2488,15 @@ class PhotoScoreView(FormView):
 def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': 'pk'}
-		return render(request, 'penalty_photocomment.html', context)
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_photocomment.html', context)
+		except:
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_photocomment.html', context)
 	else:
 		if pk.isdigit():
 			request.session["photo_id"] = pk
@@ -2331,11 +2555,15 @@ class PhotoReplyView(FormView):
 def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': 'pk'}
-		return render(request, 'penalty_commentpk.html', context)
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
+		except:
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
 	else:
 		if pk.isdigit() and user_id.isdigit() and from_photos.isdigit():
 			request.session["photo_id"] = pk
@@ -2348,11 +2576,15 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 def comment_chat_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': 'pk'}
-		return render(request, 'penalty_commentpk.html', context)
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
+		except:
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
 	else:
 		if pk.isdigit():
 			request.session["photo_id"] = pk
@@ -2365,13 +2597,13 @@ def comment_chat_pk(request, pk=None, *args, **kwargs):
 def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		if request.user.is_authenticated():
+		try:
 			deduction = 3 * -1
 			request.user.userprofile.score = request.user.userprofile.score + deduction
 			request.user.userprofile.save()
 			context = {'pk': 'pk'}
 			return render(request, 'penalty_commentpk.html', context)
-		else:
+		except:
 			context = {'pk': '10'}
 			return render(request, 'penalty_commentpk.html', context)
 	else:
@@ -2395,11 +2627,12 @@ class CommentView(CreateView):
 		try:
 			pk = self.request.session["photo_id"]
 			context["photo"] = Photo.objects.select_related('owner').get(id=pk)
-			comments = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk).order_by('-id')[:25]
+			comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
+			context["count"] = comms.count()
+			comments = comms.order_by('-id')[:25]
 			context["comments"] = comments
 			context["verified"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
-			context["count"] = PhotoComment.objects.filter(which_photo_id=pk).count()
 			context["authorized"] = True
 		except:
 			context["authorized"] = False
@@ -3909,11 +4142,15 @@ class OutsiderGroupView(CreateView):
 def public_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 2 * -2
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': slug}
-		return render(request, 'penalty_public.html', context)
+		if request.user.is_authenticated():
+			deduction = 2 * -2
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': slug}
+			return render(request, 'penalty_public.html', context)
+		else:
+			context = {'unique': slug}
+			return render(request, 'penalty_public.html', context)
 	else:
 		if valid_uuid(slug):
 			request.session["public_uuid"] = slug
@@ -4017,11 +4254,15 @@ def private_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
-		deduction = 1 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': slug}
-		return render(request, 'penalty.html', context)
+		if request.user.is_authenticated():
+			deduction = 1 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': slug}
+			return render(request, 'penalty.html', context)
+		else:
+			context = {'unique': slug}
+			return render(request, 'penalty.html', context)
 	else:
 		if valid_uuid(slug):
 			request.session['unique_id'] = slug
@@ -4162,11 +4403,15 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 def welcome_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 1 * -10
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': pk}
-		return render(request, 'penalty_welcome.html', context)
+		if request.user.is_authenticated():
+			deduction = 1 * -10
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': pk}
+			return render(request, 'penalty_welcome.html', context)
+		else:
+			context = {'unique': pk}
+			return render(request, 'penalty_welcome.html', context)
 	else:
 		if pk.isdigit():
 			request.session["welcome_pk"] = pk
@@ -4209,23 +4454,107 @@ class WelcomeMessageView(CreateView):
 				context["option"] = None
 		return context
 
-def mehfil_help(request, pk=None, num=None, *args, **kwargs):
+def mehfilcomment_pk(request, pk=None, num=None, photostream=None, from_photos=None, *args, **kwargs):
 	if pk.isdigit() and num.isdigit():
-		request.session['user_pk'] = pk
-		request.session['link_id'] = num
-		return redirect("mehfil_help")
+		request.session['mehfilcomment_pk'] = pk
+		request.session['mehfilphoto_pk'] = num
+		if photostream:
+			request.session['mehfilphotostream_pk'] = photostream
+		else:
+			request.session['mehfilphotostream_pk'] = -1
+		if from_photos:
+			request.session['mehfilfrom_photos'] = from_photos
+		else:
+			request.session['mehfilfrom_photos'] = -1
+		return redirect("mehfilcomment_help")
 	else:
 		return redirect("score_help")
+
+class MehfilCommentView(FormView):
+	form_class = MehfilCommentForm
+	template_name = "mehfilcomment_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(MehfilCommentView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			try:
+				target_id = self.request.session['mehfilcomment_pk']
+				photo_id = self.request.session['mehfilphoto_pk']
+				photostream_id = self.request.session['mehfilphotostream_pk']
+				from_photos = self.request.session['mehfilfrom_photos']
+				context["target"] = User.objects.get(id=target_id)
+				context["photo_id"] = photo_id
+				context["photostream_id"] = photostream_id
+				context["from_photos"] = from_photos
+			except:
+				context["target"] = None
+				context["photo_id"] = None
+				context["photostream_id"] = None
+				context["from_photos"] = None
+				return context
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			user = self.request.user
+			report = self.request.POST.get("decision")
+			target_id = self.request.POST.get("target_id")
+			photo_id = self.request.POST.get("photo_id")
+			photostream_id = self.request.POST.get("photostream_id")
+			from_photos = self.request.POST.get("from_photos")
+			self.request.session['mehfilcomment_pk'] = None
+			self.request.session['mehfilphoto_pk'] = None
+			self.request.session['mehfilphotostream_pk'] = None
+			self.request.session['mehfilfrom_photos'] = None
+			if report == 'Haan':
+				if user.userprofile.score < 500:
+					if str(photostream_id) == '-1': 
+						photostream_id = '0'
+					if str(from_photos) == '-1':
+						from_photos = '0'
+					context = {'pk': photo_id, 'stream_id': photostream_id, 'from_photos':from_photos}
+					return render(self.request, 'penalty_mehfil.html', context)
+				else:
+					user.userprofile.score = user.userprofile.score - 500
+					target = User.objects.get(id=target_id)
+					invitee = target.username
+					topic = invitee+" se gupshup"
+					unique = uuid.uuid4()
+					try:
+						group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
+						user.userprofile.save()
+						reply_list = []
+						seen_list = []
+						reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
+						reply_list.append(Reply(text='aap ke baal bachey theek hain?', which_group_id=group.id, writer=user))
+						Reply.objects.bulk_create(reply_list)
+						return redirect("private_group", slug=unique)
+					except:
+						redirect("comment_pk", pk=photo_id)
+			else:
+				if str(photostream_id) == '-1': 
+					photostream_id = '0'
+				if str(from_photos) == '-1':
+					from_photos = '0'
+				return redirect("comment_pk", pk=photo_id, stream_id=photostream_id, from_photos=from_photos)
+				# elif str(photostream_id) != '-1':
+				# 	return redirect("comment_pk", pk=photo_id, stream_id=photostream_id)
+				# else:
+				# 	return redirect("comment_pk", pk=photo_id)
 
 @ratelimit(rate='1/s')
 def reply_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'pk': pk}
-		return render(request, 'penalty_publicreply.html', context)
+		if request.user.is_authenticated():
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': pk}
+			return render(request, 'penalty_publicreply.html', context)
+		else:
+			context = {'pk': pk}
+			return render(request, 'penalty_publicreply.html', context)
 	else:
 		if pk.isdigit():
 			request.session["link_pk"] = pk
@@ -4306,6 +4635,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 				timestring = reply.submitted_on
 				answer_to.reply_count = answer_to.reply_count + 1
+				answer_to.latest_reply = reply
 				answer_to.save()
 				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 				if answer_to.submitter_id not in all_reply_ids:
@@ -4339,7 +4669,7 @@ class UnseenActivityView(ListView):
 		.exclude(which_link__reply_count__lt=1)\
 		.exclude(which_photo__comment_count__lt=1)\
 		.exclude(type_of_object='1')\
-		.order_by('seen','-updated_at')
+		.order_by('-updated_at')
 		return all_subscribed_links
 
 	def get_context_data(self, **kwargs):
@@ -4430,11 +4760,15 @@ class UserSettingsEditView(UpdateView):
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 2 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': 'ID'}
-		return render(request, 'penalty_linkcreate.html', context)
+		try:
+			deduction = 2 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': 'ID'}
+			return render(request, 'penalty_linkcreate.html', context)
+		except:
+			context = {'unique': 'ID'}
+			return render(request, 'penalty_linkcreate.html', context)
 	else:
 		try:
 			score = User.objects.get(pk=request.user.id).userprofile.score
@@ -4468,7 +4802,7 @@ class LinkCreateView(CreateView):
 		if self.request.user.is_authenticated():
 			context["official"] = FEMALES
 			context["allowed"] = ALLOWED
-			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52		
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
@@ -4477,6 +4811,22 @@ class LinkCreateView(CreateView):
 		except:
 			return redirect("profile", slug=self.request.user.username)
 		self.request.session["link_create_token"] = None
+		# links = Link.objects.filter(submitter=self.request.user).order_by('-id').values_list('net_votes', 'submitted_on', 'description', 'id')[:3]
+		# forbidden, time_remaining, punishment = check_link_abuse(links.count(), links)
+		# if not time_remaining and forbidden:
+		# 	#user is trying to flood
+		# 	pass
+		# 	#context = {'pk': 'pk'}
+		# 	#return render(self.request, 'penalty_flood.html', context)
+		# elif time_remaining and forbidden:
+		# 	#user has a bad history
+		# 	AbusePulse.objects.create(which_user=self.request.user, username=self.request.user.username, score=self.request.user.userprofile.score, latest_sentence=links[0][2], \
+		# 		second_latest_sentence=links[1][2], third_latest_sentence=links[2][2], latest_netvote=links[0][0], second_latest_netvote=links[1][0], \
+		# 		third_latest_netvote=links[2][0], latest_sentence_id=links[0][3], second_latest_sentence_id=links[1][3], third_latest_sentence_id=links[2][3], \
+		# 		which_punishment=punishment, time_remaining=time_remaining)
+		# 	#context = {'time_remaining': time_remaining}
+		# 	#return render(self.request, 'penalty_link_abuse.html', context)
+		# else:
 		try:
 			if valid_uuid(str(token)):
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
@@ -4715,8 +5065,8 @@ class ReportView(FormView):
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			if not self.request.user_banned:
-				report = self.request.POST.get("report")
-				if report == 'Haan':
+				rprt = self.request.POST.get("report")
+				if rprt == 'Haan':
 					reply_id = self.request.POST.get("reply")
 					link_id = self.request.POST.get("link")
 					if Publicreply.objects.filter(pk=reply_id,answer_to=link_id).exists() and \
@@ -4728,6 +5078,10 @@ class ReportView(FormView):
 						reply.save()
 						self.request.session["report_pk"] = None
 						self.request.session["linkreport_pk"] = None
+						pk = reply.submitted_by_id
+						ident = self.request.user.id
+						if pk != ident:
+							report.delay(target_id=pk, reporter_id=ident, report_origin='2', which_publicreply_id=reply_id)
 						return redirect("reply_pk", pk=reply.answer_to.id)
 					else:
 						self.request.user.userprofile.score = self.request.user.userprofile.score -3
@@ -5374,6 +5728,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 					cooldown.save()
 					link.save()
 					link.submitter.userprofile.save()
+					report.delay(target_id=link.submitter_id, reporter_id=request.user.id, report_origin='1', which_link_id=link.id)
 				except:#if vote object can't be created, just redirect the user, no harm done
 					return redirect("link_create_pk")
 				try:

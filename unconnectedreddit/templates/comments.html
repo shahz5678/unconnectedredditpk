@@ -167,7 +167,37 @@
         {% else %}
         {% endif %}
     </span>
-    
+    {% if authenticated and user == photo.owner %}
+    &nbsp;
+    {% if photostream_pk and from_photos %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
+    {% elif photostream_pk %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk %}">
+    {% elif from_photos == '4' %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream='0' from_photos='4' %}">
+    {% elif from_photos == '3' %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream='0' from_photos='3' %}">
+    {% else %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk %}">
+    {% endif %}
+    <button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
+    {% endif %}
+
+    {% if authenticated and user != comment.submitted_by %}
+    &nbsp;
+    {% if photostream_pk and from_photos %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
+    {% elif photostream_pk %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream=photostream_pk %}">
+    {% elif from_photos == '4' %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream='0' from_photos='4' %}">
+    {% elif from_photos == '3' %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream='0' from_photos='3' %}">
+    {% else %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk %}">
+    {% endif %}
+    <button style="font-weight:bold;color:white;background-color:#ff9933;border-color:#ff8000;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
+    {% endif %}
     <br>
     {% endif %}
     </td></tr>

@@ -671,32 +671,29 @@ class MehfilView(FormView):
 			link_id = self.request.session['link_id']
 			self.request.session['link_id'] = None
 			self.request.session['user_pk'] = None
-			try:
-				if report == 'Haan':
-					if user.userprofile.score < 500:
-						context = {'pk': link_id}
-						return render(self.request, 'penalty_linkmehfil.html', context)
-					else:
-						user.userprofile.score = user.userprofile.score - 500
-						target_user = User.objects.get(id=target)
-						invitee = target_user.username
-						topic = invitee+" se gupshup"
-						unique = uuid.uuid4()
-						try:
-							group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
-							user.userprofile.save()
-							reply_list = []
-							seen_list = []
-							reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
-							reply_list.append(Reply(text='aap ke baal bachey theek hain?', which_group_id=group.id, writer=user))
-							Reply.objects.bulk_create(reply_list)
-							return redirect("private_group", slug=unique)
-						except:
-							redirect("reply_pk", pk=link_id)
+			if link_id and report == 'Haan':
+				if user.userprofile.score < 500:
+					context = {'pk': link_id}
+					return render(self.request, 'penalty_linkmehfil.html', context)
 				else:
-					return redirect("reply_pk", pk=link_id)
-			except:
-				return redirect("reply_pk", pk=link_id)
+					user.userprofile.score = user.userprofile.score - 500
+					target_user = User.objects.get(id=target)
+					invitee = target_user.username
+					topic = invitee+" se gupshup"
+					unique = uuid.uuid4()
+					try:
+						group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
+						user.userprofile.save()
+						reply_list = []
+						seen_list = []
+						reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
+						reply_list.append(Reply(text='aap ke baal bachey theek hain?', which_group_id=group.id, writer=user))
+						Reply.objects.bulk_create(reply_list)
+						return redirect("private_group", slug=unique)
+					except:
+						redirect("reply_pk", pk=link_id)
+			else:
+				return redirect("home")
 
 class SalatRankingView(ListView):
 	template_name = "salat_ranking.html"
@@ -5069,7 +5066,7 @@ class ReportView(FormView):
 				if rprt == 'Haan':
 					reply_id = self.request.POST.get("reply")
 					link_id = self.request.POST.get("link")
-					if Publicreply.objects.filter(pk=reply_id,answer_to=link_id).exists() and \
+					if Publicreply.objects.filter(pk=reply_id,answer_to=link_id, abuse=False).exists() and \
 					Link.objects.filter(pk=link_id,submitter=self.request.user).exists():
 						reply = get_object_or_404(Publicreply, pk=reply_id)
 						reply.abuse = True

@@ -256,6 +256,28 @@ CATEGS = (
 ('9', 'Khareedna Baichna')
 	)
 
+ORIGINS = (
+('1','Chupair'),
+('2','Publicreply'),
+('3','Nickname'),
+('4','Profile'),
+('5','Mehfilkick'),
+('6','Mehfilreport'),
+('7','Photocomment'),
+('8','Photovote')
+	)
+
+# REASONS = (
+# ('1','Bad language'),
+# ('2','Hacker'),
+# ('3','Threatening'),
+# ('4','Impersonation'),
+# ('5','Hurtful'),
+# ('6','Liar'),
+# ('7','Temper'),
+# ('8','Ill mannered')
+# 	)
+
 DEVICE = (
 ('1','Feature'),
 ('2','Smartphone'),
@@ -437,6 +459,7 @@ class PhotoComment(models.Model):
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	image_comment = models.ImageField(upload_to=upload_photocomment_to_location, storage=OverwriteStorage())
 	has_image = models.BooleanField(default=False)
+	abuse = models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return u"%s commented on a photo, saying: %s" % (self.submitted_by, self.text)
@@ -596,6 +619,19 @@ class UserProfile(models.Model):
 
 	def __unicode__(self):
 		return u"%s's profile" % self.user
+
+class Report(models.Model):
+	reporter = models.ForeignKey(User, related_name='reporter')
+	target = models.ForeignKey(User, related_name ='target')
+	report_origin = models.CharField(db_index=True, choices=ORIGINS, default=1, max_length=20)
+	report_reason = models.TextField(blank=True, validators=[MaxLengthValidator(500)])
+	reported_at = models.DateTimeField(db_index=True, auto_now_add=True)
+	which_link = models.ForeignKey(Link, null=True, blank=True)
+	which_publicreply = models.ForeignKey('links.Publicreply', null=True, blank=True)
+	which_photo = models.ForeignKey(Photo, null=True, blank=True)
+	which_photocomment = models.ForeignKey(PhotoComment, null=True, blank=True)
+	which_group = models.ForeignKey(Group, null=True, blank=True)
+	which_reply = models.ForeignKey(Reply, null=True, blank=True)
 
 # class AbusePulse(models.Model):
 # 	username = models.TextField(validators=[MaxLengthValidator(500)])

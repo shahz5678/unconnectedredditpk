@@ -2,15 +2,18 @@
 {% block content %}
 <div class="margin">
 {% if target %}
-	<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Private mehfil mein logg zaati chat kartey hain</h2>
-	<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum <b>{{ target.username }}</b> ke saath private mehfil banana chahtey ho?</span>
+	<b style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);font-size:110%;">Private mehfil mein log zaati chat karte hain</b><br>
+	<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kiya tum <b>{{ target.username }}</b> ke sath private mehfil banana chahte ho?</span><br>
+	<span style="font-size:90%;color:#999999;">Qeemat: <b>500 points</b></span>
+	<br><br>
 	<form action="{% url 'mehfil_help' %}" method="POST">
 	{% csrf_token %}
-	<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
-	<span style="color:grey;">-</span>&nbsp;<input class="voting" type="submit" name="decision" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"><br>
+	<input class="voting" type="submit" name="decision" style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;" value="Haan"><br>
+	<input class="voting" type="submit" name="decision" style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;" value="Nahi"><br>
 	</form>
 {% else %}
-	<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Yeh mehfil is terah nahi chalti!</h2>
+	<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Is waqt mehfil ka mood kharab hai!</h2>
 {% endif %}
+<br><br>
 </div>
 {% endblock %}

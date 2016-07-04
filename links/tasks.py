@@ -6,7 +6,7 @@ from django.db.models import Count, Q
 import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos
+from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -106,6 +106,18 @@ def publicreply_tasks(user_id, description):
 	user.userprofile.previous_retort = description
 	user.userprofile.score = user.userprofile.score + 2
 	user.userprofile.save()
+
+@celery_app1.task(name='tasks.report')
+def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None):
+	if report_origin == '1':
+		#origin:chupair
+		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
+	elif report_origin == '2':
+		#origin:publicreply
+		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Publicreply', report_origin=report_origin, which_publicreply_id=which_publicreply_id)
+	elif report_origin == '7':
+		#origin:photocomment
+		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
 	
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):

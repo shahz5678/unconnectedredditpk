@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-Pehlay <a href="{% url 'register_walkthrough' %}#section0">account bnao</a>, phir tabsra kr sako ge.
+Yar pehle <a href="{% url 'register_walkthrough' %}#section0"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:7.7em;font-size:90%;border-radius:4px;"><b>account bnao</b></button></a> phir tabsra krna{% emoticons %} ;){% endemoticons %}
 
 </div>
 {% endblock %}

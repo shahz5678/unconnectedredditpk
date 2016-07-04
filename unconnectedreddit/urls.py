@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
+from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
 from django.views.generic.base import TemplateView
@@ -8,7 +9,8 @@ from links.views import cross_notif, vote, cross_comment_notif, photostream_vote
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
-salat_tutorial_init, salat_notification, cross_salat_notif
+salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk
+
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -24,7 +26,7 @@ OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkD
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
-SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -49,6 +51,10 @@ urlpatterns = patterns('',
 	url(r'^closed_group/help/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
+	url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
+	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/(?P<from_photos>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
 	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
 	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
@@ -72,8 +78,8 @@ urlpatterns = patterns('',
 	url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
 	url(r'^comment/(?P<from_photos>\d+)/$', CommentView.as_view(), name='comment'), #from_photos is an optional variable
-	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_chat_pk/(?P<pk>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
+	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/$', comment_pk, name='comment_pk'), #stream is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/(?P<from_photos>\d+)/$', comment_pk, name='comment_pk'), #from_photos is an optional variable
 	url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
@@ -185,10 +191,14 @@ urlpatterns = patterns('',
 	url(r'^group_list/$', auth(GroupListView.as_view()), name='group_list'),
 	url(r'^group_type/$', auth(GroupTypeView.as_view()), name='group_type'),
 	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
+	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^report/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
+	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
+	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)$', auth(reportcomment_pk), name='reportcomment_pk'),
+	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/(?P<from_photos>\d+)$', auth(reportcomment_pk), name='reportcomment_pk'),
 	url(r'^appoint/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^appoint/(?P<pk>\d+)/(?P<app>\d+)/$', auth(appoint_pk), name='appoint_pk'),
-	url(r'^report/$', auth(ReportView.as_view()), name="report"),
+	url(r'^report_comment/$', auth(ReportcommentView.as_view()), name="reportcomment"),
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),

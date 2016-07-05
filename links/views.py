@@ -44,6 +44,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from math import log
 from urllib import quote
 from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 import datetime
 from datetime import datetime, timedelta
 from datetime import time as time_object
@@ -4241,6 +4242,22 @@ class PublicGroupView(CreateView):
 				self.request.user.userprofile.save()
 				#print "image: %s" % f.image
 				if f.image:
+					try:
+						on_fbs = self.request.META.get('X-IORG-FBS')
+					except:
+						on_fbs = False
+					if on_fbs:
+						if f.image.size > 200000:
+							context = {'pk':'pk'}
+							return render(self.request,'big_photo_fbs.html',context)
+						else:
+							pass
+					else:
+						if f.image.size > 10000000:
+							context = {'pk':'pk'}
+							return render(self.request,'big_photo_regular.html',context)
+						else:
+							pass
 					image_file = clean_image_file(f.image)
 					if image_file:
 						f.image = image_file
@@ -4389,6 +4406,22 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				self.request.user.userprofile.save()
 				#print "image: %s" % f.image
 				if f.image:
+					try:
+						on_fbs = self.request.META.get('X-IORG-FBS')
+					except:
+						on_fbs = False
+					if on_fbs:
+						if f.image.size > 200000:
+							context = {'pk':'pk'}
+							return render(self.request,'big_photo_fbs.html',context)
+						else:
+							pass
+					else:
+						if f.image.size > 10000000:
+							context = {'pk':'pk'}
+							return render(self.request,'big_photo_regular.html',context)
+						else:
+							pass
 					image_file = clean_image_file(f.image)
 					if image_file:
 						f.image = image_file
@@ -4878,11 +4911,11 @@ class LinkCreateView(CreateView):
 				except:
 					pass
 				f.submitter.userprofile.previous_retort = f.description
-				if f.image_file:
-					image_file = clean_image_file(f.image_file)
-					if image_file:
-						f.image_file = image_file
-					else: f.image_file = None
+				# if f.image_file:
+				# 	image_file = clean_image_file(f.image_file)
+				# 	if image_file:
+				# 		f.image_file = image_file
+				# 	else: f.image_file = None
 				f.save()
 				f.submitter.userprofile.save()
 				PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2', which_link=f)

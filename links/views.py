@@ -3348,8 +3348,24 @@ class UploadPhotoView(CreateView):
 			except:
 				PhotoCooldown.objects.create(which_user=user, time_of_uploading=time_now)
 			if f.image_file:
-				#fetch last 200 photos
-				recent_photos = Photo.objects.order_by('-id')[:200]
+				try:
+					on_fbs = self.request.META.get('X-IORG-FBS')
+				except:
+					on_fbs = False
+				if on_fbs:
+					if f.image_file.size > 200000:
+						context = {'pk':'pk'}
+						return render(self.request,'big_photo_fbs.html',context)
+					else:
+						pass
+				else:
+					if f.image_file.size > 10000000:
+						context = {'pk':'pk'}
+						return render(self.request,'big_photo_regular.html',context)
+					else:
+						pass
+				#fetch last 300 photos
+				recent_photos = Photo.objects.order_by('-id')[:300]
 				recent_hashes = [photo.avg_hash for photo in recent_photos]
 				image_file, avghash = clean_image_file_with_hash(f.image_file, recent_hashes)
 				if isinstance(avghash,int):

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin"> 
+
+	<b style="color:#404040;font-size:100%;">Damadam ke sath Eid manao yar!</b><br>
+	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<span style="color:green;">1)</span> Eid ke moqay pr Damadam ke liye khaas selfies lo<br>
+	<span style="color:green;">2)</span> Selfies mein Damadam ke friends ko Eid Mubarik kaho<br>
+	<span style="color:green;">3)</span> Selfie Damadam pe lagao, takey hazaroon log dekh sakien<br>
+	</span>
+	<form action="{% url 'fan_tutorial' %}" method="POST">
+	{% csrf_token %}
+	<input class="button" style="color:white;background-color:#2DB92D;border:solid 1px #179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:6.4em;white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="samajh gaya"><br>
+	<input class="button" style="color:white;background-color:#FF1A1A;border:solid 1px #cc0000;width:6.4em;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="nahi samjha"><br>
+	</form>
+	<hr size=1 COLOR="#ff9933">
+	Damadam users <a href=""><b>Sit</b></a> aur <a href=""><b>Blade</b></a> ne dekho kitni zabrdast Eid Selfies lagaien:<br><br>
+	Sit ki Eid Selfie:
+	<img src="//damadamphotos.azureedge.net/2693f6b6-98e6-4868-962c-1592aa017ccb.jpg" style=""><br><br>
+	Blade ki Eid Selfie:
+	<img src="//damadamphotos.azureedge.net/a86c78ee-ce08-45ad-9c49-f1f91c24f493.jpg" style=""><br><br>
+
+</div>
+{% endblock %}

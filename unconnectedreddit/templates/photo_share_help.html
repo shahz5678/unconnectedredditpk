@@ -16,10 +16,12 @@
 	<a href="{% url 'see_best_photo_pk' ident %}">
 	{% elif loc == '3' %}
 	<a href="{% url 'user_profile_photo' username ident %}">
+	{% elif loc == '5' %}
+    <a href="{% url 'see_special_photo_pk' ident %}">
 	{% else %}
 	<a href="{% url 'see_photo' %}#section1">
 	{% endif %}
-	<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>< wapis</b></button></a>
+	<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>wapis</b></button></a>
 
 	<hr size=1 COLOR="#ff9933">
 	<span style="color:#404040;font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">

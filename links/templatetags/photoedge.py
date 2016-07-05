@@ -11,8 +11,8 @@ def cdnize_target_url(url):
 	elif 'damadam.blob.core.windows.net/pictures/mehfils' in url:
 	 	url = string.replace(url, "damadam.blob.core.windows.net/pictures/mehfils", "damadammehfil.azureedge.net")
 	 	return url
-	# elif 'photos' in url:
-	# 	url = string.replace(url, "photos", "thumbnails")
-	# 	return url
+	elif 'damadam.blob.core.windows.net/pictures/avatars' in url:
+		url = string.replace(url, "damadam.blob.core.windows.net/pictures/avatars", "damadamavatar.azureedge.net")
+		return url
 	else:
 		return url

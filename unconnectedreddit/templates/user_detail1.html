@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load photoedge %}
 {% block content %}
 <div class="margin">
 
@@ -17,7 +18,7 @@
 {% endif %}
 <b style="color:#404040;">Profile photo:</b>
 {% if subject.userprofile.avatar %}
-<img src="{{ subject.userprofile.avatar.url }}" alt="no photo" class ="info"></img>
+<img src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo" class ="info"></img>
 {% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
 {% endif %}
@@ -80,7 +81,7 @@
 
 	</button>
 	</a><br>
-	<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+	<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url|photoedge }}"></img>
 	<br>
 
 				<a href="{% url 'photostream_izzat' photo.id %}">

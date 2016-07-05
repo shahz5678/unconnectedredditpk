@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load thumbedge %}
+{% load photoedge %}
 {% block content %}
 <div class="margin">
 
@@ -21,7 +22,7 @@
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ group.owner.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -98,7 +99,7 @@
                 <span style="color:red;font-size:90%;">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                    <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
                     {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
@@ -152,7 +153,7 @@
             {% endfor %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
-            <img style="width:100%;max-width:400px;" src="{{ reply.image.url }}"></img><br>
+            <img style="width:100%;max-width:400px;" src="{{ reply.image.url|photoedge }}"></img><br>
             {% endif %}
 
                 {% if time < 51 %}
@@ -165,7 +166,7 @@
 
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
             {% endif %}

@@ -294,8 +294,8 @@
 		</button></a>
 		<br>
 		{% if can_vote and link.submitter != user and link.which_photostream.cover_id not in photo_voted %}
-		<a href="{% url 'photostream_vote' link.which_photostream_id 1 link.id %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">mazedar</button></a><br>
-		<a href="{% url 'photostream_vote' link.which_photostream_id 0 link.id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">bakwas</button></a>
+		<a href="{% url 'photostream_vote' link.which_photostream_id 1 link.id %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5.5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">zabrdast</button></a><br>
+		<a href="{% url 'photostream_vote' link.which_photostream_id 0 link.id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5.5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">boring</button></a>
 		{% endif %}
 		</p>
 
@@ -312,7 +312,7 @@
 						{% else %}
 							{{ photo_vote.voter.username }}
 						{% endif %}</a>
-							</b> ko photo bilkul <b>bakwas</b> lagi<br></span>
+							</b> ko photo bilkul <b>boring</b> lagi<br></span>
 					{% elif photo_vote.value == 1 %}
 						<span style="color:green;font-size:80%;"><b><a href="{% url 'profile' photo_vote.voter.username %}#section0">
 						{% if photo_vote.voter.username in checked %}
@@ -320,7 +320,7 @@
 						{% else %}
 							{{ photo_vote.voter.username }}
 						{% endif %}</a>
-							</b> ko photo buhut <b>mazedar</b> lagi<br></span>
+							</b> ko photo buhut <b>zabrdast</b> lagi<br></span>
 					{% else %}
 					{% endif %}
 				{% endif %}

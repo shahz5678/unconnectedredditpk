@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import PIL
 from PIL import Image, ImageFile, ImageEnhance
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO
 import math
 from user_sessions.models import Session
@@ -92,10 +93,6 @@ def MakeThumbnail(filee):
 
 def clean_image_file(image): # where self is the form
 	if image:
-		#print image
-		if image.size > 1000000:
-			#raise ValidationError("File buhut barri hai, doosri try karo")
-			return 0
 		image = Image.open(image)
 		#print "inside clean_image_file"
 		image = MakeThumbnail(image)
@@ -106,9 +103,6 @@ def clean_image_file(image): # where self is the form
 
 def clean_image_file_with_hash(image, hashes): # where self is the form
 	if image:
-		if image.size > 1000000:
-			#raise ValidationError("File buhut barri hai, doosri try karo")
-			return (0,-1)
 		image = Image.open(image)
 		avghash = compute_avg_hash(image)
 		index = uploaded_recently(avghash, hashes)

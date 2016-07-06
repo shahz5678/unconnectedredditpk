@@ -2624,7 +2624,8 @@ class CommentView(CreateView):
 		context = super(CommentView, self).get_context_data(**kwargs)
 		try:
 			pk = self.request.session["photo_id"]
-			context["photo"] = Photo.objects.select_related('owner').get(id=pk)
+			photo = Photo.objects.select_related('owner').get(id=pk)
+			context["photo"] = photo
 			comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
 			context["count"] = comms.count()
 			comments = comms.order_by('-id')[:25]
@@ -2687,17 +2688,31 @@ class CommentView(CreateView):
 					pass
 			except:
 				context["from_photos"] = False
-			if comments.exists():
-				try:
-					unseen_notification = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False)
-					context["viewed_at"] = unseen_notification.updated_at#.update(viewed_at=time_now)
-					unseen_notification.seen = True
-					unseen_notification.save()
-				except:
-					context["viewed_at"] = None
+			if comments:
+				if PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='0', which_photo=photo, seen=False).exists():
+					context["unseen"] = True
+					PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='0', which_photo=photo, seen=False).update(seen=True, updated_at=timezone.now())
+					try:
+						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
+					except:
+						context["comment_time"] = None
+				else:
+					context["unseen"] = False
+					context["comment_time"] = None
+			else:
+				context["unseen"] = False
+				context["comment_time"] = None
+				# try:
+				# 	unseen_notification = PhotoObjectSubscription.objects.get(viewer=self.request.user, which_photo_id=pk, seen=False)
+				# 	context["viewed_at"] = unseen_notification.updated_at#.update(viewed_at=time_now)
+				# 	unseen_notification.seen = True
+				# 	unseen_notification.save()
+				# except:
+				# 	context["viewed_at"] = None
 		else:
 			context["authenticated"] = False
 		return context
+
 
 	def form_valid(self, form):
 		if self.request.user.is_authenticated():
@@ -4954,15 +4969,22 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
 			context["replies"] = replies
 			if self.request.user_banned:
-				context["viewed_at"] = None
+				context["unseen"] = False
+				context["reply_time"] = None
+			elif replies:
+				if PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='2', which_link=link, seen=False).exists():
+					context["unseen"] = True
+					PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='2', which_link=link, seen=False).update(seen=True, updated_at=timezone.now())
+					try:
+						context["reply_time"] = max(reply.submitted_on for reply in replies if reply.submitted_by == self.request.user)
+					except:
+						context["reply_time"] = None
+				else:
+					context["unseen"] = False
+					context["reply_time"] = None
 			else:
-				try:
-					linkobj = PhotoObjectSubscription.objects.get(viewer=self.request.user, type_of_object='2', which_link=link, seen=False)
-					context["viewed_at"] = linkobj.updated_at
-					linkobj.seen = True
-					linkobj.save()
-				except:
-					context["viewed_at"] = None
+				context["unseen"] = False
+				context["reply_time"] = None
 			return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database

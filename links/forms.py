@@ -78,9 +78,9 @@ def MakeThumbnail(filee):
 	if img.mode != 'RGB':
 		img = img.convert("RGB")
 	enhancer = ImageEnhance.Brightness(img)
-	enhancer = enhancer.enhance(1.2)
+	enhancer = enhancer.enhance(1.10)
 	enhancer2 = ImageEnhance.Contrast(enhancer)
-	enhancer2 = enhancer2.enhance(1.07)
+	enhancer2 = enhancer2.enhance(1.03)
 	enhancer3 = ImageEnhance.Color(enhancer2)
 	img = enhancer3.enhance(1.15)
 	img.thumbnail((300, 300))
@@ -554,6 +554,10 @@ class LogoutPenaltyForm(forms.Form):
 		pass
 
 class ReinvitePrivateForm(forms.Form):
+	class Meta:
+		pass
+
+class SpecialPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
 

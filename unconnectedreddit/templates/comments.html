@@ -97,7 +97,9 @@
     {% endif %}
     {% if comment.abuse %}
         {% if authenticated and viewed_at %}
-        {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
+        {% if not comment_time %}
+            <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% elif comment.submitted_on > comment_time %}
             <b style="color:orange;font-size:80%">(new)</b>&nbsp;
         {% endif %}
         {% endif %}
@@ -128,8 +130,10 @@
 
     {% else %}
 
-    {% if authenticated and viewed_at %}
-        {% if comment.submitted_on > viewed_at and comment.submitted_by != user %}
+    {% if authenticated and unseen %}
+        {% if not comment_time %}
+        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        {% elif comment.submitted_on > comment_time %}
         <b style="color:orange;font-size:80%">(new)</b>&nbsp;
         {% endif %}
     {% endif %}

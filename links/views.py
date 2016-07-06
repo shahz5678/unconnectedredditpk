@@ -37,7 +37,7 @@ GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, Hi
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
 TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
-ReportcommentForm, MehfilCommentForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -2659,6 +2659,12 @@ class CommentView(CreateView):
 					context["username"] = username
 				except:
 					context["from_photos"] = False
+			elif from_photos == '5':
+				context["from_photos"] = '5'
+				try:
+					context["photostream_pk"] = self.request.session["related_photostream_id"]
+				except:
+					context["from_photos"] = False
 			else:
 				pass
 		except:
@@ -2707,7 +2713,7 @@ class CommentView(CreateView):
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("profile", slug=user.username)
-			if from_photos == '1' or from_photos == '2':
+			if from_photos == '1' or from_photos == '2' or from_photos == '5':
 				try:
 					stream_id = self.request.session["related_photostream_id"]
 					self.request.session["related_photostream_id"] = None
@@ -2774,6 +2780,309 @@ class CommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
+@ratelimit(rate='1/s')
+def see_special_photo_pk(request,pk=None,*args,**kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_special.html', context)
+		except:
+			context = {'pk': '10'}
+			return render(request, 'penalty_special.html', context)
+	else:
+		if pk.isdigit():
+			request.session["target_special_photo_id"] = pk
+			return redirect("see_special_photo")
+		else:
+			return redirect("see_special_photo")
+
+@ratelimit(rate='1/s')
+def special_photo(request, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_special.html', context)
+		except:
+			context = {'pk': '10'}
+			return render(request, 'penalty_special.html', context)
+	else:
+		if request.user.is_authenticated() and request.user.userprofile.score > 29:
+			try:
+				seen_special_photo_option = TutorialFlag.objects.get(user=request.user).seen_special_photo_option
+				if seen_special_photo_option:
+					request.session["ftue_special_photo_option"] = False
+					return redirect("see_special_photo")
+				else:
+					request.session["ftue_special_photo_option"] = True
+					return redirect("special_photo_tutorial")
+			except:
+				TutorialFlag.objects.create(user=request.user)
+				request.session["ftue_special_photo_option"] = True
+				return redirect("special_photo_tutorial")
+		else:
+			return redirect("see_special_photo")
+
+class SpecialPhotoTutorialView(FormView):
+	form_class = SpecialPhotoTutorialForm
+	template_name = "special_photo_tutorial.html"
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			try:
+				choice = self.request.POST.get("choice")
+				if choice == 'samajh gaya':
+					flag = TutorialFlag.objects.filter(user=self.request.user).update(seen_special_photo_option=True)
+					self.request.session["ftue_special_photo_option"] = None
+					return redirect("see_special_photo")
+				else:
+					return redirect("see_photo")
+			except:
+				TutorialFlag.objects.filter(user=self.request.user).update(seen_special_photo_option=True)
+				return redirect("see_special_photo")
+		else:
+			TutorialFlag.objects.filter(user=self.request.user).update(seen_special_photo_option=True)
+			return redirect("see_special_photo")
+
+
+class SpecialPhotoView(ListView):
+	model = Photo
+	template_name = "special_photos.html"
+	paginate_by = 10 #i.e. 10 pages in total with a query-set of 200 objects
+
+	def get_queryset(self):
+		if self.request.is_feature_phone:
+			queryset = Photo.objects.select_related('owner__userprofile', 'cover__latest_comment__submitted_by', 'second_latest_comment__submitted_by').filter(category='7').order_by('-id')[:200]
+		else:
+			queryset = Photo.objects.select_related('owner__userprofile', 'cover__latest_comment__submitted_by', 'second_latest_comment__submitted_by').filter(category='7').order_by('-id')[:200]
+		return queryset
+
+	def get_context_data(self, **kwargs):
+		context = super(SpecialPhotoView, self).get_context_data(**kwargs)
+		context["girls"] = FEMALES
+		context["authenticated"] = False
+		context["can_vote"] = False
+		context["score"] = None
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+			user = self.request.user
+			context["score"] = user.userprofile.score
+			context["voted"] = []
+			if not self.request.user_banned:
+				if self.request.user.userprofile.score > 9:
+					context["can_vote"] = True
+				else:
+					context["can_vote"] = False
+				photos_in_page = [photo.id for photo in context["object_list"]]
+				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
+				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
+				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+				if not is_link and not is_photo and not is_groupreply and not is_salat:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif not freshest_reply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				elif is_salat:
+					now = datetime.utcnow()+timedelta(hours=5)
+					current_minute = now.hour * 60 + now.minute
+					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					salat_invite = freshest_reply
+					context["type_of_object"] = '4'
+					context["notification"] = 1
+					context["first_time_user"] = False
+					context["banned"] = False
+					context["parent"] = salat_invite
+					context["namaz"] = namaz 
+					context["freshest_unseen_comment"] = 1				
+				elif is_photo:
+					if object_type == '1':
+						#i.e. it's a photo a fan ought to see!
+						photo = Photo.objects.get(id=freshest_reply)
+						context["freshest_unseen_comment"] = None
+						context["type_of_object"] = '1'
+						context["notification"] = 1
+						context["parent"] = photo
+						context["parent_pk"] = freshest_reply
+						context["first_time_user"] = False
+						context["banned"] = False
+					elif object_type == '0':
+						context["freshest_unseen_comment"] = freshest_reply
+						context["type_of_object"] = '0'
+						context["notification"] = 1
+						context["parent"] = freshest_reply.which_photo
+						context["parent_pk"] = freshest_reply.which_photo_id
+						context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
+						context["first_time_user"] = False
+						context["banned"] = False
+					else:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+						context["banned"] = False
+					return context
+				elif is_link:
+					context["type_of_object"] = '2'
+					context["banned"] = False
+					if freshest_reply:
+						parent_link = freshest_reply.answer_to
+						parent_link_writer = parent_link.submitter
+						parent_link_writer_username = parent_link_writer.username
+						#print parent_link_writer_username
+						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+						#print WELCOME_MESSAGE1
+						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+					else:
+						parent_link_writer = User()
+						#parent_link.submitter = 0
+						WELCOME_MESSAGES = []
+					try:
+						context["freshest_unseen_comment"] = freshest_reply
+						context["notification"] = 1
+						context["parent"] = parent_link
+						context["parent_pk"] = parent_link.pk
+						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
+							#print "first time user"
+							context["first_time_user"] = True
+						else:
+							#print "not first time user"
+							context["first_time_user"] = False
+					except:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+					return context
+				elif is_groupreply:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["type_of_object"] = '1'
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+					return context
+				else:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["banned"] = False
+					context["first_time_user"] = False
+					return context
+			else:
+				context["notification"] = 0
+				context["banned"] = True
+				context["can_vote"] = False
+				context["first_time_user"] = False
+				context["type_of_object"] = None
+				context["freshest_unseen_comment"] = []
+				context["parent"] = []
+				context["parent_pk"] = 0
+				return context
+		return context
+
+	def get(self, request, *args, **kwargs):
+		self.object_list = self.get_queryset()
+		allow_empty = self.get_allow_empty()
+		if not allow_empty:
+			# When pagination is enabled and object_list is a queryset,
+			# it's better to do a cheap query than to load the unpaginated
+			# queryset in memory.
+			if (self.get_paginate_by(self.object_list) is not None
+				and hasattr(self.object_list, 'exists')):
+				is_empty = not self.object_list.exists()
+			else:
+				is_empty = len(self.object_list) == 0
+			if is_empty:
+				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+						% {'class_name': self.__class__.__name__})
+		context = self.get_context_data(object_list=self.object_list)
+		try:
+			target_id = self.request.session["target_special_photo_id"]
+			self.request.session["target_special_photo_id"] = None
+		except:
+			target_id = None
+		if target_id:
+			try:
+				index = list(photo.id for photo in self.object_list).index(int(target_id))
+			except:
+				index = None
+			if 0 <= index <= 9:
+				addendum = '#section'+str(index+1)
+			elif 10 <= index <= 19:
+				addendum = '?page=2#section'+str(index+1-10)
+			elif 20 <= index <= 29:
+				addendum = '?page=3#section'+str(index+1-20)
+			elif 30 <= index <= 39:
+				addendum = '?page=4#section'+str(index+1-30)
+			elif 40 <= index <= 49:
+				addendum = '?page=5#section'+str(index+1-40)
+			elif 50 <= index <= 59:
+				addendum = '?page=6#section'+str(index+1-50)
+			elif 60 <= index <= 69:
+				addendum = '?page=7#section'+str(index+1-60)
+			elif 70 <= index <= 79:
+				addendum = '?page=8#section'+str(index+1-70)
+			elif 80 <= index <= 89:
+				addendum = '?page=9#section'+str(index+1-80)
+			elif 90 <= index <= 99:
+				addendum = '?page=10#section'+str(index+1-90)
+			elif 100 <= index <= 109:
+				addendum = '?page=11#section'+str(index+1-100)
+			elif 110 <= index <= 119:
+				addendum = '?page=12#section'+str(index+1-110)
+			elif 120 <= index <= 129:
+				addendum = '?page=13#section'+str(index+1-120)
+			elif 130 <= index <= 139:
+				addendum = '?page=14#section'+str(index+1-130)
+			elif 140 <= index <= 149:
+				addendum = '?page=15#section'+str(index+1-140)
+			elif 150 <= index <= 159:
+				addendum = '?page=16#section'+str(index+1-150)
+			elif 160 <= index <= 169:
+				addendum = '?page=17#section'+str(index+1-160)
+			elif 170 <= index <= 179:
+				addendum = '?page=18#section'+str(index+1-170)
+			elif 180 <= index <= 189:
+				addendum = '?page=19#section'+str(index+1-180)
+			elif 190 <= index <= 199:
+				addendum = '?page=20#section'+str(index+1-190)
+			else:
+				addendum = '#section0'		
+			return HttpResponseRedirect(addendum)
+		else:
+			return self.render_to_response(context)
+
 def see_photo_pk(request,pk=None,*args,**kwargs):
 	if pk.isdigit():
 		request.session["target_photo_id"] = pk
@@ -2784,7 +3093,7 @@ def see_photo_pk(request,pk=None,*args,**kwargs):
 class PhotoView(ListView):
 	model = Photo
 	template_name = "photos.html"
-	paginate_by = 10 #i.e. 20 pages in total with a query-set of 200 objects
+	paginate_by = 10 #i.e. 10 pages in total with a query-set of 200 objects
 
 	def get_queryset(self):
 		if self.request.is_feature_phone:
@@ -3300,6 +3609,11 @@ class UploadPhotoView(CreateView):
 				context["forbidden"] = forbidden
 				context["time_remaining"] = time_remaining
 			else:
+				try:
+					opt = self.kwargs["opt"]
+					context["opt"] = opt
+				except:
+					context["opt"] = None
 				vote_score_positive = True
 				number_of_photos = 0
 				for photo in photos:
@@ -3397,7 +3711,11 @@ class UploadPhotoView(CreateView):
 				else:
 					device = '3'
 				invisible_score = set_rank()
-				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
+				opt = self.request.POST.get("opt")
+				if opt == '7':
+					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score, category='7')
+				else:
+					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
 				try:
 					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 					aggregate_object.total_photos = aggregate_object.total_photos + 1
@@ -3427,7 +3745,10 @@ class UploadPhotoView(CreateView):
 				photo.which_stream.add(stream) #m2m field, thus 'append' a stream to the "which_stream" attribute
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
-				return redirect("see_photo")
+				if opt == '7':
+					return redirect("see_special_photo")
+				else:
+					return redirect("see_photo")
 			else:
 				context = {'photo': 'photo'}
 				return render(self.request, 'big_photo.html', context)
@@ -5240,6 +5561,8 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 		return redirect("home")
 	elif from_home == '2':
 		return redirect("see_best_photo")
+	elif from_home == '5':
+		return redirect("see_special_photo")
 	else:
 		return redirect("see_photo")
 
@@ -5249,6 +5572,8 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwar
 		return redirect("home")
 	elif from_home == '2':
 		return redirect("see_best_photo")
+	elif from_home == '5':
+		return redirect("see_special_photo")
 	else:
 		return redirect("see_photo")
 
@@ -5256,6 +5581,10 @@ def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True)
 	if from_home == '1':
 		return redirect("home")
+	elif from_home == '2':
+		return redirect("see_best_photo")
+	elif from_home == '5':
+		return redirect("see_special_photo")
 	else:
 		return redirect("see_photo")
 
@@ -5393,18 +5722,24 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 		return render(request, 'penalty_photovote.html', context)
 	else:
 		if pk.isdigit() and val.isdigit():
-			#print pk
-			stream = PhotoStream.objects.get(id=pk)
-			ident = stream.cover_id
-			if PhotoVote.objects.filter(voter=request.user, photo_id=ident).exists() or request.user == stream.cover.owner:
-				#already voted or is owner of photo, abort
-				return redirect("see_photo_pk", pk)
+			if from_best == '5':
+				ident = pk
+				photo = Photo.objects.get(id=ident)
+			else:
+				stream = PhotoStream.objects.get(id=pk)
+				ident = stream.cover_id
+				photo = Photo.objects.get(id=ident)
+			if PhotoVote.objects.filter(voter=request.user, photo_id=ident).exists() or request.user == photo.owner:
+				if from_best == '5':
+					return redirect("see_photo_pk", ident)
+				else:
+					return redirect("see_photo_pk", ident)
 			else:
 				if val == '1':
 						if request.user_banned:
 							return redirect("score_help")
 						else:
-							photo = Photo.objects.get(id=ident)
+							# photo = Photo.objects.get(id=ident)
 							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=1)
 							photo.visible_score = photo.visible_score + 1
 							photo.vote_score = photo.vote_score + 1
@@ -5416,7 +5751,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 						if request.user_banned:
 							return redirect("score_help")
 						else:
-							photo = Photo.objects.get(id=ident)
+							# photo = Photo.objects.get(id=ident)
 							PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=-1)
 							photo.visible_score = photo.visible_score - 1
 							photo.vote_score = photo.vote_score -1
@@ -5426,24 +5761,30 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 							photo.save()
 				else:
 					if from_best == '1':
-						return redirect("see_best_photo_pk", pk)
+						return redirect("see_best_photo_pk", ident)
 					elif from_best == '0':
-						return redirect("see_photo_pk", pk)
+						return redirect("see_photo_pk", ident)
+					elif from_best == '5':
+						return redirect("see_special_photo_pk", ident)
 					else:
 						request.session['target_id'] = int(from_best)
 						return redirect("home")
 				if from_best == '1':
-					return redirect("see_best_photo_pk", pk)
+					return redirect("see_best_photo_pk", ident)
 				elif from_best == '0':
-					return redirect("see_photo_pk", pk)
+					return redirect("see_photo_pk", ident)
+				elif from_best == '5':
+					return redirect("see_special_photo_pk", ident)
 				else:
 					request.session['target_id'] = int(from_best)
 					return redirect("home")
 		else:
 			if from_best == '1':
-				return redirect("see_best_photo_pk", pk)
+				return redirect("see_best_photo_pk", ident)
 			elif from_best == '0':
-				return redirect("see_photo_pk", pk)
+				return redirect("see_photo_pk", ident)
+			elif from_best == '5':
+				return redirect("see_special_photo_pk", ident)
 			else:
 				request.session['target_id'] = int(from_best)
 				return redirect("home")

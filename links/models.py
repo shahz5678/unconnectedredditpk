@@ -689,6 +689,7 @@ class TutorialFlag(models.Model):
 	seen_photo_option = models.BooleanField(default=False)
 	seen_fan_option = models.BooleanField(default=False)
 	seen_salat_option = models.BooleanField(default=False)
+	seen_special_photo_option = models.BooleanField(default=False)
 
 class UserSettings(models.Model):
 	user = models.OneToOneField(User, unique=True)

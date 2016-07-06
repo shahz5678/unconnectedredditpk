@@ -144,7 +144,7 @@
 
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<a href="{% url 'see_photo' %}#section0"><span style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</span></a><span style="color:orange;">|</span><a href="{% url 'see_special_photo' %}#section0" style="font-size:78%;"><b>&nbsp;&nbsp;Eid selfies&nbsp;&nbsp;</b></a><span style="color:orange;">|</span><a href="{% url 'see_best_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Best photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+	<a href="{% url 'see_photo' %}#section0"><span style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</span></a><span style="color:orange;">|</span><a href="{% url 'special_photo' %}#section0" style="font-size:78%;"><b>&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/sitara_sm.jpg" alt="no pic" height="11" width="10">&nbsp;&nbsp;Eid selfies&nbsp;&nbsp;</b></a><span style="color:orange;">|</span><a href="{% url 'see_best_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Best photos&nbsp;&nbsp;</a>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#ff9933"></p>
@@ -176,18 +176,9 @@
 	tabsra kro
 	{% endif %}</button>
 	
-	{% if photo.device == '1' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif photo.device == '2' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif photo.device == '4' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif photo.device == '5' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif photo.device == '3' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-		{% else %}
-		{% endif %}</a>
+	&nbsp;<img src="{{ STATIC_URL }}img/sitara.jpg" alt="no pic" height="16" width="15">
+
+	</a>
 	<br>
 	
 

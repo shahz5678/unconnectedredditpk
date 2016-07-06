@@ -72,7 +72,7 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 	if photo.owner_id not in all_commenter_ids:	
 		all_commenter_ids.append(photo.owner_id)
-	PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, type_of_object='0', which_photo_id=photo_id).update(seen=False)			
+	PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, type_of_object='0', which_photo_id=photo_id).update(seen=False, updated_at=timeobj)			
 	exists = PhotoObjectSubscription.objects.filter(viewer_id=user_id, type_of_object='0', which_photo_id=photo_id).update(updated_at=timeobj, seen=True)
 	if not exists:
 		PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, type_of_object='0',updated_at=timeobj)

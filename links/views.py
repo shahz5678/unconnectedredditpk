@@ -1520,7 +1520,7 @@ class LinkDeleteView(DeleteView):
 
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
 	if is_notif:
-		PhotoObjectSubscription.objects.filter(viewer_id=request.user.id, type_of_object='1', which_photo_id=photo_pk).update(seen=True)
+		PhotoObjectSubscription.objects.filter(viewer_id=request.user.id, type_of_object='1', which_photo_id=photo_pk).update(seen=True, updated_at=timezone.now())
 	if photo_pk:
 		request.session["photograph_id"] = photo_pk
 		return redirect("profile", slug)
@@ -5001,16 +5001,19 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					device = '3'
 				reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 				timestring = reply.submitted_on
+				# print timestring
 				answer_to.reply_count = answer_to.reply_count + 1
 				answer_to.latest_reply = reply
 				answer_to.save()
 				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 				if answer_to.submitter_id not in all_reply_ids:
 					all_reply_ids.append(answer_to.submitter_id)
-				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False)
+				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False, updated_at=timestring)
 				exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=timestring, seen=True)
+				# print exists
 				if not exists: #i.e. could not be updated
 					PhotoObjectSubscription.objects.create(viewer=user, type_of_object='2', which_link=answer_to, updated_at=timestring)
+					# print timestring
 				publicreply_tasks.delay(user.id, description)
 				try:
 					return redirect("reply_pk", pk=pk)
@@ -5549,14 +5552,14 @@ class WelcomeReplyView(FormView):
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 					if parent.submitter_id not in all_reply_ids:	
 						all_reply_ids.append(parent.submitter_id)
-					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=parent).update(seen=False)			
+					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=parent).update(seen=False, updated_at=reply.submitted_on)			
 					PhotoObjectSubscription.objects.create(viewer=self.request.user, updated_at=reply.submitted_on, type_of_object='2', which_link=parent)
 					return redirect("home")
 				else:
 					return redirect("score_help")
 
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer_id=usr, type_of_object=object_type, which_photo_id=pk).update(seen=True)
+	PhotoObjectSubscription.objects.filter(viewer_id=usr, type_of_object=object_type, which_photo_id=pk).update(seen=True, updated_at=timezone.now())
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':
@@ -5567,7 +5570,7 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 		return redirect("see_photo")
 
 def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='4', which_salat_id=pk).update(seen=True)
+	PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='4', which_salat_id=pk).update(seen=True, updated_at=timezone.now())
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':
@@ -5578,7 +5581,7 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwar
 		return redirect("see_photo")
 
 def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True)
+	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True, updated_at=timezone.now())
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':

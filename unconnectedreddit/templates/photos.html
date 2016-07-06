@@ -102,7 +102,7 @@
 		<hr size=1>
 	{% elif type_of_object == '1' %}
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
-		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
+		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne new photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
 		{% if parent.vote_score < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
@@ -247,9 +247,7 @@
 				<a href="{% url 'photostream_vote' picstream.id 0 0 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5.5em;">boring</button></a><br>
 				{% endif %}
 
-		
 			<a href="{% url 'photo_share' picstream.cover_id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a><br>
-		
 
 		
 {% endfor %}

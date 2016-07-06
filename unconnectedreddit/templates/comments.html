@@ -14,6 +14,8 @@
         <a href="{% url 'user_profile_photo' username photo.id %}">
         {% elif from_photos == '4' %}
         <a href="{% url 'unseen_activity' username %}#section0">
+        {% elif from_photos == '5' %}
+        <a href="{% url 'see_special_photo_pk' photo.id %}#section0">
         {% else %}
         <a href="{% url 'home' %}#section0">
         {% endif %}

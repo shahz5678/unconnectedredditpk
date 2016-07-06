@@ -9,8 +9,7 @@ from links.views import cross_notif, vote, cross_comment_notif, photostream_vote
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
-salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk
-
+salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -26,7 +25,8 @@ OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkD
 ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
-SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
+SpecialPhotoView, SpecialPhotoTutorialView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -95,16 +95,21 @@ urlpatterns = patterns('',
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
+	url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
+	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
+	url(r'^special/$', special_photo, name='special_photo'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
 	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
+	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
 	url(r'^best_photo_pk/(?P<pk>\d+)/$', see_best_photo_pk, name='see_best_photo_pk'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
+	url(r'^upload_photo/(?P<opt>\d+)/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^kuch/likho/$', auth(LinkCreateView.as_view()), name='link_create'),
 	url(r'^link/create/$', auth(link_create_pk), name='link_create_pk'),

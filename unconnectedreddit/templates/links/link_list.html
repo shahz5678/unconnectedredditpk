@@ -112,7 +112,7 @@
 				<span style="color:#ff8000;font-size:90%;"><b>home</b> ki chat:</span>
 	{% elif type_of_object == '1' %}
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#ff8000;">
-		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne naee photo lagai:</span><p style="margin-top:.3em;"></p>
+		<span style="color:#ff8000;font-size:90%;"><b>{{ parent.owner }}</b> ne new photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
 		{% if parent.vote_score < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>

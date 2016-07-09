@@ -5,7 +5,8 @@ ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, Gro
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import PIL
-from PIL import Image, ImageFile, ImageEnhance
+# import ExifTags
+from PIL import Image, ImageFile, ImageEnhance, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO
 import math
@@ -60,17 +61,19 @@ def restyle_image(image):
 	image_resized = image.resize((width,hsize), PIL.Image.ANTIALIAS)
 	return image_resized
 
-'''
-def square_image(img):
-	if the image is taller than it is wide, square it off. determine
-	which pieces to cut off based on the entropy pieces."""
-	x,y = img.size
-	while y > x:
-		slice_height = min(y - x, 10)
-		img = img.crop((0,30,x,y-30))
-		x,y = img.size
-	return img
-'''
+def reorient_image(image):
+	try:
+		image_exif = image._getexif()
+		image_orientation = image_exif[274]
+		if image_orientation == 3:
+			image = image.transpose(Image.ROTATE_180)
+		if image_orientation == 6:
+			image = image.transpose(Image.ROTATE_270)
+		if image_orientation == 8:
+			image = image.transpose(Image.ROTATE_90)
+		return image
+	except:
+		return image
 
 def MakeThumbnail(filee):
 	img = filee
@@ -85,8 +88,6 @@ def MakeThumbnail(filee):
 	img = enhancer3.enhance(1.15)
 	img.thumbnail((300, 300))
 	thumbnailString = StringIO.StringIO()
-	#if img.mode != 'RGB':
-	#    img = img.convert("RGB")
 	img.save(thumbnailString, 'JPEG', optimize=True)
 	newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
 	return newFile
@@ -94,7 +95,7 @@ def MakeThumbnail(filee):
 def clean_image_file(image): # where self is the form
 	if image:
 		image = Image.open(image)
-		#print "inside clean_image_file"
+		image = reorient_image(image)
 		image = MakeThumbnail(image)
 		#print "thumbnailed image is %s" % image.size
 		return image
@@ -104,6 +105,7 @@ def clean_image_file(image): # where self is the form
 def clean_image_file_with_hash(image, hashes): # where self is the form
 	if image:
 		image = Image.open(image)
+		image = reorient_image(image)
 		avghash = compute_avg_hash(image)
 		index = uploaded_recently(avghash, hashes)
 		if index == -1:
@@ -554,6 +556,14 @@ class LogoutPenaltyForm(forms.Form):
 		pass
 
 class ReinvitePrivateForm(forms.Form):
+	class Meta:
+		pass
+
+class ReportNicknameForm(forms.Form):
+	class Meta:
+		pass
+
+class ReportProfileForm(forms.Form):
 	class Meta:
 		pass
 

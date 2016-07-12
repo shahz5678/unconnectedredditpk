@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% block content %}
-{% load cache %}
-{% cache 60 online_kon_fragment %}
     <div class="margin">
     <a href="{% url 'top_photo' %}#section0" style="color:#9900cc;font-size:65%;"><b>high photo score</b></a>&nbsp;<span style="font-size:70%;">|</span>
     <a href="{% url 'top' %}#section0" style="color:#2eb82e;font-size:65%;"><b>high chat score</b></a>&nbsp;<span style="font-size:70%;">|</span>
@@ -35,5 +33,4 @@
         </ol>
         <span style="font-size:85%;">Nickname forun online kon par nazar nahi aa jata, thora time lagta hai</span>
     </div>
-{% endcache %}
 {% endblock %}

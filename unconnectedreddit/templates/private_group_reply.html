@@ -4,45 +4,72 @@
 {% load photoedge %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
+<div class="margin" style="color:#404040;">
 
 {% if switching %}
-    <span style="color:#404040;"><b>Ye mehfil tum se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
+    <span><b>Ye mehfil tum se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
     Hum isey pakarne ki koshish krein ge</span><br><br>
     <a href="{% url 'group_page' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    <b style="color:green;font-size:110%;">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}" style="font-size:70%;">(change)</a>
+    <a href="{% url 'leave_private_group' pk=group.id unique=group.unique private=1 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
+    <b style="font-size:110%;color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}" style="font-size:70%;"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:1em;"><b>change</b></button></a>
     <br>
     <span style="font-size:85%;">
-    <b>members:</b>
+    <b style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">members:</b>
     {% if not members %}
     <a href="{% url 'profile' slug=group.owner.username %}#section0">{{ group.owner }}</a>
     {% else %}
         {% for member in members %}
-        <a href="{% url 'profile' slug=member.username %}#section0">{{ member.username }}</a>,&nbsp;
+        <a href="{% url 'profile' slug=member %}#section0">{{ member }}</a>,&nbsp;
         {% endfor %}
     {% endif %}
     </span>
-    <br><a href="{% url 'closed_invite_type' %}#section0" style="font-size:70%;">(invite karo)</a>
+    {% if banned %}
+        <br>
+        <hr size=1 COLOR="#2DB92D">
+        <span style="color:#ff8000;">Tum mehfil mein likh sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <br>
+        {% if ban_type == '1' %}
+        <span style="font-size:90%;color:#179b36;">Aesa kuch na kro jis se log tang hon</span>
+         <hr size=1 COLOR="#2DB92D">
+
+        {% elif ban_type == '2' %}
+        <span style="font-size:90%;color:#179b36;">Aese kuch na kro jis se mahol kharab ho</span>
+         <hr size=1 COLOR="#2DB92D">
+
+        {% else %}
+        <span style="font-size:90%;color:#179b36;">Aesa kuch na kro jo logoon ko bura lage</span>
+         <hr size=1 COLOR="#2DB92D">
+
+        {% endif %}
+    {% else %}
+    <a href="{% url 'closed_invite_type' %}#section0" style="font-size:70%;"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;"><b>invite</b></button></a>
     <a name="sectionJ"></a> 
-    <hr size=1>
+    <hr size=1 COLOR="#2DB92D">
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data">
     	{% csrf_token %}
     	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
-        <span style="color:green;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
-        <span style="color:grey;font-size:80%;"><i><b>1 mb</b> se barri pic nahi lag sakti</i></span><br>
+       <span style="font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Photo:</b>&nbsp;</span>{{ form.image }}<br>
+        {% if not on_fbs %}
+        <span style="color:grey;font-size:80%;"><i><b>10 mb</b> se barri pic nahi lagti</i></span><br>
+        {% else %}
+        <span style="color:grey;font-size:80%;"><i><b>200 kb</b> se barri pic nahi lagti</i></span><br>
+        {% endif %}
         <span style="color:red;font-size:80%;">{{ form.errors }}</span>
-        <br><span style="color:green;font-size:90%;">Likho:</span>{{ form.text }}
+        <br><span style="font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Likho:</b></span>{{ form.text }}
+            {% if warned %}
+            <span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> tumhare khilaf reports a rahi hain, ehtiat kro yar!</span>
+            {% endif %}
         <br>
-    <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;" type="submit" value="OK" id="id_submit">
+    <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK" id="id_submit">
     </form>
-
+    {% endif %}
     <p style="margin-top:.2em;"></p>
     <a name="sectionJ"></a> 
-    <span style="font-size:90%;">
+    <span style="font-size:95%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">
     {% if replies|length < 25 %}
-        <b>{{ replies|length }} baatien:</b><br>
+        <b>{{ replies|length }}</b> baatien:<br>
     {% else %}
         <b>Pichli 25 baatien:</b><br>
     {% endif %}
@@ -79,6 +106,64 @@
                 </a>
                     ne&nbsp;<a href="{% url 'profile' slug=reply.text %}#section0"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
                 </span>
+            {% elif reply.category == '6' %}
+                {% if time < 41 %}
+                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                {% elif time < 91 %}
+                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                {% endif %}
+
+                    {% if reply not in seenreplies %}
+                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% endif %}
+                
+                <span style="color:green;font-size:90%;">
+                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                    {% if writer.userprofile.avatar %}
+                    <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                    {% else %}
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                    {% endif %}
+                {{ writer }}
+                    {% for person in ensured %}
+                    {% if person == writer.username %}
+                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+                    {% endif %}
+                    {% endfor %}
+                </a>
+                    ne&nbsp;mehfil&nbsp;ko&nbsp;chore&nbsp;diya
+                </span>
+            {% elif reply.category == '7' %}
+                {% if time < 41 %}
+                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                {% elif time < 91 %}
+                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                {% endif %}
+
+                    {% if reply not in seenreplies %}
+                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% endif %}
+                
+                <span style="color:green;font-size:90%;">
+                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                    {% if writer.userprofile.avatar %}
+                    <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                    {% else %}
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                    {% endif %}
+                {{ writer }}
+                    {% for person in ensured %}
+                    {% if person == writer.username %}
+                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+                    {% endif %}
+                    {% endfor %}
+                </a>
+                    ne&nbsp;mehfil&nbsp;ko&nbsp;join&nbsp;nahi&nbsp;kia
+                </span>
             {% elif reply.category = '4' %}
                 {% if time < 41 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -87,7 +172,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-                <span style="color:green;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                <span style="color:#179b36;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
                 {% if reply.image %}
                 <img style="width:100%;max-width:400px;" src="{{ reply.image.url|photoedge }}"></img><br>
@@ -146,13 +231,16 @@
         {% else %}
         {% endif %}
             </span>
-        
-    	<br>
+        {% if user != reply.writer and user.userprofile.score > 120 %}
+            &nbsp;<a href="{% url 'reprofile' reply.writer_id unique 1 group.id reply.writer.username %}"><button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:4.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">report</button></a>
+    	{% endif %}
+        <hr size=1 COLOR="#2DB92D">
         </td></tr>
     {% endfor %}
 
     </table>
- <hr size=1><span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
+<span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
 {% endif %}
 </div>
+<br><br>
 {% endblock %}

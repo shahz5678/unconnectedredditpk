@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin" style="color:#404040;">
+{% if nick %}
+<span style="color:#229ec3;"><b>{{ nick }}</b></span> ke barey mein kya batana chahte ho?
+<form action="{% url 'report_feedback' pk=pk nick=nick uuid=uuid private=private scr=scr %}" method="POST">
+{% csrf_token %}
+<input type="hidden" name="nick" class="hidden_id" value="{{ nick }}">
+<input type="hidden" name="pk" class="hidden_id" value="{{ pk }}">
+<input type="hidden" name="uuid" class="hidden_id" value="{{ uuid }}">
+<input type="hidden" name="private" class="hidden_id" value="{{ private }}">
+<input type="hidden" name="scr" class="hidden_id" value="{{ scr }}">
+<br>{{ form.description }}<br>
+<br><input type="submit" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:2.7em;" name="haan" value="OK"><br>
+</form>
+{% else %}
+<b>Damadam ki yad daasht chali gaii! Tum kon ho?!</b>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

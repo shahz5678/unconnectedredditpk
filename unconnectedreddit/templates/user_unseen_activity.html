@@ -9,65 +9,132 @@
 {% for linksubscription in object_list %}
 <!-- link submitter, photo submitter or group submitter -->
 {% if linksubscription.type_of_object == '2' %}
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}">
 {% if linksubscription.which_link.submitter.userprofile.avatar %}
 <img src="{{ linksubscription.which_link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 {% else %}
 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 {% endif %}
-<a href="{% url 'profile' linksubscription.which_link.submitter.username %}">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_link.description }}{% endemoticons %}</span>
 {% if linksubscription.seen %}
-<span style="color:gray;font-size:75%;">, jawab aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</span><br>
+<span style="color:#808080;font-size:95%;">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#808080;font-size:95%;">{% emoticons %}{{ linksubscription.which_link.description|truncatechars:40 }}{% endemoticons %}</span></span>
+<br>
+<span style="color:#808080;font-size:75%;"><br>jawab aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}:</span>
+<br>
+	<span style="color:#808080;font-size:100%;">
+	{% if linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar %}
+	<img src="{{ linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+	{% else %}
+	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+	{% endif %}
+{{ linksubscription.which_link.latest_reply.submitted_by }}: {{ linksubscription.which_link.latest_reply.description|truncatechars:40 }}</span>
+<br>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border:solid 1px #999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;"><b>
+{{ linksubscription.which_link.reply_count }}</b> jawab
+</button></a>
+<hr size=1 COLOR="#cccccc">
 {% else %}
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:#229ec3;font-size:75%;">, <b>neya jawab</b> aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</a><br>
-{% endif %}<br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;"><b>
+<span style="color:#229ec3;font-size:95%;">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#229ec3;font-size:95%;">{% emoticons %}{{ linksubscription.which_link.description|truncatechars:40 }}{% endemoticons %}</span></span>
+<br><a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:#229ec3;font-size:75%;"><br>new jawab aya <b>{{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</b>:</a><br>
+<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'reply_pk' linksubscription.which_link_id %}">	
+	{% if linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar %}
+	<img src="{{ linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic" style="border:1px solid #229ec3"></img>
+	{% else %}
+	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" style="border:1px solid #229ec3"></img>
+	{% endif %}
+{{ linksubscription.which_link.latest_reply.submitted_by }}</a>: {{ linksubscription.which_link.latest_reply.description }}</span><br>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;"><b>
 {{ linksubscription.which_link.reply_count }}</b> jawab
 </button></a>
 <hr size=1 COLOR="#3cb7dd">
-{% elif linksubscription.type_of_object == '0' %}
+{% endif %}
 
+
+{% elif linksubscription.type_of_object == '0' %}
+		{% if linksubscription.seen %}
 		    {% if linksubscription.which_photo.vote_score < -7 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		    {% elif linksubscription.which_photo.vote_score < -2 %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(50%);border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid lightgrey;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% endif %}
+	    {% else %}
+	    	{% if linksubscription.which_photo.vote_score < -7 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+		    {% elif linksubscription.which_photo.vote_score < -2 %}
+			    {% if linksubscription.which_photo.image_file %}
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(50%);border:1px solid #ff9933;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% else %}
+			    {% if linksubscription.which_photo.image_file %}
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #ff9933;width:auto;"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+			    {% endif %}
+		    {% endif %}
+		{% endif %}
+
 		    <br>
+	    
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}" style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
 	{% if linksubscription.which_photo.owner.userprofile.avatar %}
 	<img src="{{ linksubscription.which_photo.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
 
-	<a href="{% url 'profile' linksubscription.which_photo.owner.username %}">{{ linksubscription.which_photo.owner }}</a>:
-		    
-	<span style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_photo.caption }}{% endemoticons %}</span>
-
 	{% if linksubscription.seen %}
-	<span style="color:gray;font-size:75%;">, tabsra hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</span><br>
-	{% else %}
-	<a href="{% url 'comment_profile_pk' linksubscription.which_photo_id linksubscription.which_photo.owner_id 4 %}" style="color:#ff8000;font-size:75%;">, <b>neya tabsra</b> hua {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</a><br>
-	{% endif %}<br>
-
-
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">
+	{{ linksubscription.which_photo.owner }}</a>:
+		    
+	<span style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_photo.caption|truncatechars:40 }}{% endemoticons %}</span><br>
+	<br><span style="color:#808080;font-size:75%;">tabsra aya {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}:</span><br>
+	<span style="color:#808080;font-size:100%;">
+		{% if linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar %}
+		<img src="{{ linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		{% endif %}
+	{{ linksubscription.which_photo.latest_comment.submitted_by }}: {{ linksubscription.which_photo.latest_comment.text }}</span><br>
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
 		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}
 		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
+	<hr size=1 COLOR="#cccccc">
+	{% else %}
+	<span style="color:#ff8000;font-size:95%;">{{ linksubscription.which_photo.owner }}</a></span><span style="color:#ff8000;font-size:95%;">:
+	{% emoticons %}{{ linksubscription.which_photo.caption|truncatechars:40 }}{% endemoticons %}</span><br>
+	<a href="{% url 'comment_profile_pk' linksubscription.which_photo_id linksubscription.which_photo.owner_id 4 %}" style="color:#ff8000;font-size:75%;"><br>new tabsra hua <b>{{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</b>:</a><br>
+		<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}">
+		{% if linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar %}
+		<img src="{{ linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic" style="border:1px solid #ff8000"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" style="border:1px solid #ff8000"></img>
+		{% endif %}
+	{{ linksubscription.which_photo.latest_comment.submitted_by }}</a>: {{ linksubscription.which_photo.latest_comment.text }}</span><br>
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;">
+	{% if linksubscription.which_photo.comment_count > 1 %}
+		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
+		{% elif linksubscription.which_photo.comment_count == 1 %}
+		<b>1</b> tabsra
+		{% else %}tabsra kro
+		{% endif %}</button></a>
+	<hr size=1 COLOR="#ff9933">
+	{% endif %}
 
-<hr size=1 COLOR="#ff9933">
+
 {% endif %}
 {% endfor %}
 

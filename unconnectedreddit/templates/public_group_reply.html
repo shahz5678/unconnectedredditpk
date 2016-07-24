@@ -60,7 +60,7 @@
 	    <a href="{% url 'change_rules' %}" style="font-size:70%;">(qanoon change karo)</a>
 	    {% endif %}
     <a name="sectionJ"></a> 
-    <hr size=1>
+    <hr size=1 COLOR="#ac39ac">
 
     <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -70,7 +70,7 @@
         {% endif %}
         <span style="color:red;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
         <br>
-    <input class="button" style="color:#1947D1;background-color:white;border:solid 1px orange;margin-bottom:0.1em;" type="submit" value="OK" id="id_submit">
+    <input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;" type="submit" value="OK" id="id_submit">
     </form>
         
 	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>{% if user == group.owner %}<span style="font-size:70%;">|</span>
@@ -81,9 +81,9 @@
         {% endif %}
     <p style="margin-top:.2em;"></p>
 	    {% if replies|length < 25 %}
-	        <b style="font-size:90%;">{{ replies|length }} Baatien:</b><br>
+	        <b style="font-size:90%;color:#6a517b;">{{ replies|length }} Baatien:</b><br>
 	    {% else %}
-	        <b style="font-size:90%;">Pichli 25 Baatien:</b><br>
+	        <b style="font-size:90%;color:#6a517b;">Pichli 25 Baatien:</b><br>
 	    {% endif %}
     <table>
 	    {% for reply,writer,time in replies %}
@@ -96,7 +96,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-                <span style="color:red;font-size:90%;">
+                <span style="color:#765989;font-size:90%;">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {% if writer.userprofile.avatar %}
                     <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
@@ -110,7 +110,7 @@
                     {% endif %}
                     {% endfor %}
                 </a>
-                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;mehfil&nbsp;se&nbsp;nikal&nbsp;diya
+                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;mehfil&nbsp;se&nbsp;<b>nikal</b>&nbsp;<b>dia</b>
                 </span>
         {% elif reply.category == '3' %}
                 {% if time < 51 %}
@@ -203,16 +203,18 @@
         {% endif %}
             </span>
             {% if user == group.owner %}
-                <a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><span style="font-size:65%;">(kick)</span></a>
+                &nbsp;<a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;font-size:65%;"><b>kick</b></button></a>
             {% else %}
-                <a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><span style="font-size:65%;">(report)</span></a>
+                &nbsp;<a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;font-size:65%;"><b>report</b></button></a>
             {% endif %}
             <br>
         {% endif %}
+        <hr size=1 COLOR="#ac39ac">
         </td></tr>
         {% endfor %}
     </table>
- <hr size=1><span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
+<span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
     {% endif %}
     </div>
+    <br><br>
 {% endblock %}

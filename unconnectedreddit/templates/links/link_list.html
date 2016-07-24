@@ -138,21 +138,26 @@
 				<span style="color:#ff8000;font-size:90%;"><b>home</b> ki chat:</span>
 		{% endif %}
 	{% else %}
+			<table>
+			<tr><td>
 			{% if authenticated %}
-				{% if random == 1 %}
-					<span style="color:#ff8000;font-size:90%;"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
-				{% elif random == 2 %}
-					<span style="color:#179b36;font-size:90%;"><b>Namaziyun</b> ki list <a href="{% url 'salat_ranking' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border-color:#179b36;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span>
+				{% if random < 3 %}
+					<span style="color:#ff8000;font-size:90%;"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
 				{% else %}
 					{% if username == newest_user.username %}
-					
+					<span style="color:#ff8000;font-size:90%;"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;text-align: center;"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
 					{% else %}
-					<span style="color:#229ec3;font-size:90%;"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;"><b>mithai bhejo</b></button></a></span>
+						{% if score > 120 %}
+						<a href="{% url 'repnick' newest_user.id %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.5em;border-radius:4px;">X</button></a>
+						{% endif %}
+					<span style="color:#229ec3;font-size:90%;"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
 					{% endif %}
 				{% endif %}
 			{% else %}
 				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Account bana</u></a> kr yahan chat karo:</span>
 			{% endif %}
+			</td></tr>
+			</table>
 	{% endif %}
 		<p style="margin-top:.5em;">
 		{% if is_paginated %}
@@ -164,10 +169,6 @@
 
 {% for link in object_list %}
 		
-	{% if forloop.counter == 4 and authenticated and score > 29 %}
-	<span style="color:#ff8000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Waqt a gaya hai <a href="{% url 'special_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6.2em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;"><b>Eid Selfies</b></button></a> lagane ka!</span>
-	<hr size=1 COLOR="#ff9933" style="margin-top:1em;margin-bottom:1em;">
-	{% endif %}
 		
 	{% if forloop.counter == 8 %}
 		{% if not show_current and not show_next %}
@@ -300,7 +301,7 @@
 		<br>
 		{% if can_vote and link.submitter != user and link.which_photostream.cover_id not in photo_voted %}
 		<a href="{% url 'photostream_vote' link.which_photostream_id 1 link.id %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5.5em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">zabrdast</button></a><br>
-		<a href="{% url 'photostream_vote' link.which_photostream_id 0 link.id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5.5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">boring</button></a>
+		<a href="{% url 'photostream_vote' link.which_photostream_id 0 link.id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5.5em;white-space:nowrap;font-size:90%;margin-top:0.5em;border-radius:4px;text-align: center;">bekaar</button></a>
 		{% endif %}
 		</p>
 
@@ -317,7 +318,7 @@
 						{% else %}
 							{{ photo_vote.voter.username }}
 						{% endif %}</a>
-							</b> ko photo bilkul <b>boring</b> lagi<br></span>
+							</b> ko photo bilkul <b>bekaar</b> lagi<br></span>
 					{% elif photo_vote.value == 1 %}
 						<span style="color:green;font-size:80%;"><b><a href="{% url 'profile' photo_vote.voter.username %}#section0">
 						{% if photo_vote.voter.username in checked %}

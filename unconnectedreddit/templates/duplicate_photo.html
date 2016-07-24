@@ -3,7 +3,7 @@
 {% load humanize %}
 {% block content %}
 <div class="margin">
-<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;"><b>Is jesi photo kuch waqt pehlay charhai ja chuki hai:</b><br>
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.1);color:#ff8000;font-size:100%;"><b>Is jesi photo kuch waqt pehlay charhai ja chuki hai:</b><br>
 {% if photo.vote_score < -8 %}
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 {% elif photo.vote_score < -3 %}
@@ -27,6 +27,6 @@
         {% endfor %}
 ne&nbsp;lagai, {{ photo.upload_time|naturaltime }}</span>
 <br><br>Tum kuch neya charhao!<br><br></span>
-<a href="{% url 'upload_photo' %}" style="font-size:90%;"><b><< wapis</b></a>
+<a href="{% url 'upload_photo' %}" style="font-size:90%;"><button style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;">wapis</button></a>
 </div>
 {% endblock %}

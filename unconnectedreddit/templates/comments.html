@@ -70,16 +70,29 @@
     {% else %}
     <span style="color:#a6a6a6;font-size:80%;">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
     {% endif %}
+    {% if banned %}
 
+        <br><hr size=1 COLOR="#ff8000">
+        <span style="color:#404040;">Tum tabsra kr sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <br>
+        <span style="font-size:90%;color:#ff8000;">Aesa tabsra na likho jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
+        <hr size=1 COLOR="#ff8000">
+        <br>
+
+    {% else %}
 <br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}
     <input type="hidden" id="id_link" name="from_photos" class="hidden_id" value="{{ from_photos }}">
     {{ form.errors }}
     {{ form.text }}
+        {% if warned %}
+        <br><span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
+        {% endif %}
     <br>
     <input class="button" style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
     </form>
+    {% endif %}
 {% if count > 0 %}
     {% if count > 25 %}
       <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Pichley <b>25</b> tabsrey:</span><br>

@@ -3,158 +3,169 @@
 {% load emoticons_tags %}
 {% load thumbnail %}
 {% block content %}
-<div class="margin">
+<div class="margin" style="color:#404040;">
 {% if error %}
     <span style="color:orange;"><b>Ye jumla mojood nahi!</b></span>
 {% else %}
-<a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
-{% if authenticated and score > 25 %}
-    {% if parent.submitter.userprofile.score < 0 %}
-        <span style="color:#18A018;font-size:88%;">(1)</span>
-    {% else %}
-        <span style="color:#18A018;font-size:88%;">({{ parent.submitter.userprofile.score }})</span>
-    {% endif %}
-{% endif %}
-
-{% for person in ensured %}
-    {% if person == parent.submitter.username %}
-        
-        <span style="font-size:140%;color:deeppink;"><b>*</b></span>
-    {% endif %}
-{% endfor %}
-:&nbsp;<bdi style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span style="color:grey;font-size:80%"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
-{% if parent.device == '1' %}
-<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
-{% elif parent.device == '2' %}
-<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
-{% elif parent.device == '4' %}
-<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
-{% elif parent.device == '5' %}
-<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
-{% elif parent.device == '3' %}
-<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
-{% else %}
-{% endif %}
-</span><br>
-<a name="sectionJ"></a> 
-
-{% if score > -10 %}
-    <br>
-    <form action="{% url 'reply' %}" method="POST">
-    	{% csrf_token %}
-    	
-        <span style="font-size:90%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Jawab likho:</b></span>{{ form.description }}
-    <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
-    </form>
-
-{% else %}
-    <i style="color:red;">Tumhara score itna nahi ke tum jawab de sako</i>
-{% endif %}
-
-{% if parent.reply_count == 0 %}
-{% elif parent.reply_count < 26 %}
-    <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{{ parent.reply_count }}</b> Jawab:</span><br>
-{% else %}
-    <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichley <b>25</b> jawab:</span><br>
-{% endif %}
-
-<table>
-{% for reply in replies %}
-<tr><td>
-{% if forloop.counter != 1 %}
-<hr size=1 COLOR="#3cb7dd">
-{% endif %}
-<span class="numbers" style="font-size:60%;color:#229ec3;">
-    	{{ forloop.counter }}.
-    </span>
-    <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
-    {% if reply.submitted_by.userprofile.avatar %}
-        
-        <img src="{{ reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-        
-    {% else %}
-        
-        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-        
-    {% endif %}
-    </a>
-    {% if reply.abuse %}
-        {% if authenticated and unseen %}
-            {% if not reply_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-            {% elif reply.submitted_on > reply_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-            {% endif %}
+    <a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
+    {% if authenticated and score > 25 %}
+        {% if parent.submitter.userprofile.score < 0 %}
+            <span style="color:#18A018;font-size:88%;">(1)</span>
+        {% else %}
+            <span style="color:#18A018;font-size:88%;">({{ parent.submitter.userprofile.score }})</span>
         {% endif %}
-        <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}"><bdi>{{ reply.submitted_by }}</bdi></a></span>
-            {% if authenticated and score > 25 %}  
-                {% if reply.submitted_by.userprofile.score < 0 %}
-                    <span style="color:#18A018;font-size:80%;">(1)</span>
-                {% else %}
-                    <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+    {% endif %}
+
+    {% for person in ensured %}
+        {% if person == parent.submitter.username %}
+            
+            <span style="font-size:140%;color:deeppink;"><b>*</b></span>
+        {% endif %}
+    {% endfor %}
+    :&nbsp;<bdi style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span style="color:grey;font-size:80%"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
+    {% if parent.device == '1' %}
+    <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+    {% elif parent.device == '2' %}
+    <a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+    {% elif parent.device == '4' %}
+    <a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+    {% elif parent.device == '5' %}
+    <a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+    {% elif parent.device == '3' %}
+    <a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+    {% else %}
+    {% endif %}
+    </span><br>
+    <a name="sectionJ"></a> 
+
+
+    {% if score < -9 %}
+        <b style="color:orange;"><b>Tumhara score itna nahi ke jawab de sko</b>
+        <br><br>
+    {% elif banned %}
+        <br><hr size=1 COLOR="#3cb7dd">
+        <span style="color:#cc0000;">Tum jawab de sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <br>
+        <span style="font-size:90%;color:#1f8cad;">Aese jawab na likho jo logoon ko burre lagein</span>
+         <hr size=1 COLOR="#3cb7dd">
+        <br>
+    {% else %}
+        <br>
+        <form action="{% url 'reply' %}" method="POST">
+        	{% csrf_token %}
+        	
+            <span style="font-size:90%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Jawab likho:</b></span>{{ form.description }}
+            {% if warned %}
+            <span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> aisa jawab na likho jo dil dukhai</span><br>
+            {% endif %}
+        <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
+        </form>
+    {% endif %}
+
+    {% if parent.reply_count == 0 %}
+    {% elif parent.reply_count < 26 %}
+        <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{{ parent.reply_count }}</b> jawab:</span><br>
+    {% else %}
+        <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichle <b>25</b> jawab:</span><br>
+    {% endif %}
+
+    <table>
+    {% for reply in replies %}
+    <tr><td>
+    {% if forloop.counter != 1 %}
+    <hr size=1 COLOR="#3cb7dd">
+    {% endif %}
+    <span class="numbers" style="font-size:60%;color:#229ec3;">
+        	{{ forloop.counter }}.
+        </span>
+        <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
+        {% if reply.submitted_by.userprofile.avatar %}
+            
+            <img src="{{ reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            
+        {% else %}
+            
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+            
+        {% endif %}
+        </a>
+        {% if reply.abuse %}
+            {% if authenticated and unseen %}
+                {% if not reply_time %}
+                    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                {% elif reply.submitted_on > reply_time %}
+                    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
                 {% endif %}
             {% endif %}
-         <span style="color:grey;font-size:90%;">ki baat ko <b>{{ parent.submitter }}</b> ne hide kr dya</span>
-    {% else %}
-        {% if authenticated and unseen %}
-            {% if not reply_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-            {% elif reply.submitted_on > reply_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-            {% endif %}
-        {% endif %}
-	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;"><bdi>{{ reply.submitted_by }}</bdi></a>
-        <span style="font-size:80%;">
-            {% if authenticated and score > 25 %}
-                {% if reply.submitted_by.userprofile.score < 0 %}
-                    <span style="color:#18A018;">(1)</span>
-                {% else %}
-                    <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
+            <span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.submitted_by %}"><bdi>{{ reply.submitted_by }}</bdi></a></span>
+                {% if authenticated and score > 25 %}  
+                    {% if reply.submitted_by.userprofile.score < 0 %}
+                        <span style="color:#18A018;font-size:80%;">(1)</span>
+                    {% else %}
+                        <span style="color:#18A018;font-size:80%;">({{ reply.submitted_by.userprofile.score }})</span>
+                    {% endif %}
                 {% endif %}
+             <span style="color:grey;font-size:90%;">ki baat ko <b>{{ parent.submitter }}</b> ne hide kr dya</span>
+        {% else %}
+            {% if authenticated and unseen %}
+                {% if not reply_time %}
+                    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                {% elif reply.submitted_on > reply_time %}
+                    <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                {% endif %}
+            {% endif %}
+    	   <a href="{% url 'profile' slug=reply.submitted_by %}" style="font-size:90%;"><bdi>{{ reply.submitted_by }}</bdi></a>
+            <span style="font-size:80%;">
+                {% if authenticated and score > 25 %}
+                    {% if reply.submitted_by.userprofile.score < 0 %}
+                        <span style="color:#18A018;">(1)</span>
+                    {% else %}
+                        <span style="color:#18A018;">({{ reply.submitted_by.userprofile.score }})</span>
+                    {% endif %}
+                {% endif %}
+            </span>
+        	{% for person in ensured %}
+                {% if person == reply.submitted_by.username %}
+                	
+                    <span style="font-size:140%;color:deeppink;"><b>*</b></span>
+                {% endif %}
+            {% endfor %}:&nbsp;<bdi style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
+        <span style="color:grey;font-size:80%"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
+            {% if reply.device == '1' %}
+            <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+            {% elif reply.device == '2' %}
+            <a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+            {% elif reply.device == '4' %}
+            <a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+            {% elif reply.device == '5' %}
+            <a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+            {% elif reply.device == '3' %}
+            <a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+            {% else %}
             {% endif %}
         </span>
-    	{% for person in ensured %}
-            {% if person == reply.submitted_by.username %}
-            	
-                <span style="font-size:140%;color:deeppink;"><b>*</b></span>
-            {% endif %}
-        {% endfor %}:&nbsp;<bdi style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
-    <span style="color:grey;font-size:80%"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
-        {% if reply.device == '1' %}
-        <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
-        {% elif reply.device == '2' %}
-        <a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
-        {% elif reply.device == '4' %}
-        <a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
-        {% elif reply.device == '5' %}
-        <a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
-        {% elif reply.device == '3' %}
-        <a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
-        {% else %}
+        {% if user == parent.submitter %}
+        &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
         {% endif %}
-    </span>
-    {% if user == parent.submitter %}
-    &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
+        {% if user != reply.submitted_by %}
+        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#3cb7dd;border-color:#229ec3;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
+        {% endif %}
     {% endif %}
-    {% if user != reply.submitted_by %}
-    &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><button style="font-weight:bold;color:white;background-color:#3cb7dd;border-color:#229ec3;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
+    	<br>
+        </td></tr>
+    {% endfor %}
+    </table>
+    <p style="margin-top:0.5em;"></p>
+    <hr size=1 COLOR="#3cb7dd">
+    <p style="margin-top:-0.9em;"></p>
+    <hr size=1 COLOR="#3cb7dd">
+    <span style="font-size:80%;color:dimgrey;"><b>Shakal banane ke liye uskay agey likhe harf type karo:<br></b><span style="font-size:95%;">(full list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
+    {% emoticons_index as emoticons_list %}
+    {% for emoticons in emoticons_list %}
+    {% if forloop.counter in random %}
+    <p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
     {% endif %}
-{% endif %}
-	<br>
-    </td></tr>
-{% endfor %}
-</table>
-<p style="margin-top:0.5em;"></p>
-<hr size=1 COLOR="#3cb7dd">
-<p style="margin-top:-0.9em;"></p>
-<hr size=1 COLOR="#3cb7dd">
-<span style="font-size:80%;color:dimgrey;"><b>Shakal banane ke liye uskay agey likhe harf type karo:<br></b><span style="font-size:95%;">(full list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
-{% emoticons_index as emoticons_list %}
-{% for emoticons in emoticons_list %}
-{% if forloop.counter in random %}
-<p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
-{% endif %}
-{% endfor %}
-{% endif %}
+    {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}

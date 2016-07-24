@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin">
+<div class="margin" style="color:#404040;">
 {% if authorized %}
 {% if appoint == '1' %}
 
-	<h2>Kiya <span style="color:blue;">{{ candidate.username }}</span> ko afsar bana diya jaye?</h2>
+	<h2>Kiya <span style="color:#229ec3;">{{ candidate.username }}</span> ko afsar bana diya jaye?</h2>
 	<form method="POST" action="{% url 'appoint' %}">
 	{% csrf_token %}
-	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="haan" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
+	<input type="submit" name="haan" style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;" value="Haan"><br>
 	</form>
 {% else %}
-	<h2>Kiya <span style="color:blue;">{{ candidate.username }}</span> ko hata diya jaye?</h2>
+	<h2>Kiya <span style="color:#229ec3;">{{ candidate.username }}</span> ko hata diya jaye?</h2>
 	<form method="POST" action="{% url 'appoint' %}">
 	{% csrf_token %}
-	<span class="numbers"><b style="color:lightgrey;">&bullet;</b></span><input class="voting" type="submit" name="haan" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Haan"><br>
+	<input type="submit" name="haan" style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;" value="Haan"><br>
 	</form>
 {% endif %}
-	<span class="numbers"><b style="color:lightgrey;">&bullet;</b><a href="{% url 'owner_group_online_kon' %}"></span><input class="voting" type="submit" style="font:arial;color:blue;background-color:white;border:none;font-size:100%;margin-bottom:0.2em;" value="Nahi"></a>
+	<a href="{% url 'owner_group_online_kon' %}"><button style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;">Nahi</button></a>
 {% else %}
-<b style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Tum ye nahi kar saktey!</b>
+<b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Tum ye nahi kar sakte!</b>
 {% endif %}
 </div>
 {% endblock %}

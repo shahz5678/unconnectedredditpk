@@ -9,7 +9,8 @@ from links.views import cross_notif, vote, cross_comment_notif, photostream_vote
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
-salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo
+salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
+repnick, reprofile, rep, leave_private_group, left_private_group
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -26,7 +27,7 @@ ScoreHelpView, UserSettingsEditView, HelpView, UnseenActivityView, WhoseOnlineVi
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
-SpecialPhotoView, SpecialPhotoTutorialView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -97,7 +98,7 @@ urlpatterns = patterns('',
 	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
 	url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
 	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
-	url(r'^special/$', special_photo, name='special_photo'),
+	#url(r'^special/$', special_photo, name='special_photo'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
 	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
@@ -106,6 +107,8 @@ urlpatterns = patterns('',
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
 	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
 	url(r'^best_photo_pk/(?P<pk>\d+)/$', see_best_photo_pk, name='see_best_photo_pk'),
+	url(r'^rep/(?P<num>\d+)/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<priv>\d+)/(?P<scr>\d+)/$', auth(rep), name='rep'),
+	url(r'^repback/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<private>\d+)/(?P<scr>\d+)/$', auth(ReportFeedbackView.as_view()), name='report_feedback'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
@@ -119,6 +122,8 @@ urlpatterns = patterns('',
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
+	url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
+	url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
 	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
@@ -162,7 +167,8 @@ urlpatterns = patterns('',
 	#url(r'^user_inbox_help/$', UserInboxHelpView.as_view(), name='user_inbox_help'),
 	url(r'^photo_share/(?P<pk>\d+)/(?P<loc>\d+)/$', PhotoShareView.as_view(), name='photo_share'),
 	url(r'^photo_share/(?P<pk>\d+)/(?P<loc>\d+)/(?P<slug>[\w.@+-]+)/$', PhotoShareView.as_view(), name='photo_share'),
-	#url(r'^pshare/(?P<pk>\d+)/$', photo_share_pk, name='photo_share_pk'),
+	url(r'^lvpg/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(leave_private_group), name='leave_private_group'),
+	url(r'^leftgroup/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(left_private_group), name='left_private_group'),
 	url(r'^user_SMS/(?P<fbs>\d+)/(?P<num>[\w.@+-]+)/$', UserSMSView.as_view(), name='user_SMS'),
 	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),
 	url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy_policy'),
@@ -207,6 +213,8 @@ urlpatterns = patterns('',
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),
+	url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
+	url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
 	#url(r'^kick/$', auth(KickView.as_view()), name='kick'),
 )

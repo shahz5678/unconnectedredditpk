@@ -2,11 +2,12 @@ import os
 from unconnectedreddit import celery_app1
 import time
 from django.core.cache import get_cache, cache
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report
+from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
+UserProfile
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -64,6 +65,17 @@ def salat_streaks():
     })
 	cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 
+@celery_app1.task(name='tasks.photo_upload_tasks')
+def photo_upload_tasks(user_id, photo_id, timestring, stream_id, device):
+	photo = Photo.objects.get(id=photo_id)
+	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
+	update = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
+	if not update:
+		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
+	PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, updated_at=timeobj)#
+	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
+	Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):
 	user = User.objects.get(id=user_id)
@@ -92,23 +104,13 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, description):
 	user = User.objects.get(id=user_id)
-	#link = Link.objects.get(id=answer_to_id)
-	#timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
-	#all_reply_ids = list(set(Publicreply.objects.filter(answer_to_id=answer_to_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-	#if link.submitter_id not in all_reply_ids:
-	#	all_reply_ids.append(link.submitter_id)
-	#PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link_id=answer_to_id).update(seen=False)
-	#exists = PhotoObjectSubscription.objects.filter(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id).update(updated_at=timeobj, seen=True)
-	#if not exists: #i.e. could not be updated
-	#	PhotoObjectSubscription.objects.create(viewer_id=user_id, type_of_object='2', which_link_id=answer_to_id, updated_at=timeobj)
-	#link.latest_reply_id=reply_id
-	#link.save()
-	user.userprofile.previous_retort = description
-	user.userprofile.score = user.userprofile.score + 2
-	user.userprofile.save()
+	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2, previous_retort=description)
+	# user.userprofile.previous_retort = description
+	# user.userprofile.score = user.userprofile.score + 2
+	# user.userprofile.save()
 
 @celery_app1.task(name='tasks.report')
-def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None):
+def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
 	if report_origin == '1':
 		#origin:chupair
 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
@@ -118,6 +120,39 @@ def report(reporter_id, target_id, report_origin=None, report_reason=None, which
 	elif report_origin == '7':
 		#origin:photocomment
 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
+	elif report_origin == '3':
+		#origin:nickname
+		userprofile = UserProfile.objects.get(user_id=reporter_id)
+		target = User.objects.get(id=target_id)
+		latest_user = User.objects.latest('id')
+		userprofile.score = userprofile.score - 10
+		userprofile.save()
+		if int(latest_user.id) - int(target_id) < 50:
+			Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason=target.username, report_origin=report_origin)
+		else:
+			# i.e. do nothing if it's an old id
+			pass
+	elif report_origin == '4':
+		#origin:profile
+		if report_reason == '1':
+			reason = 'gali di'
+		elif report_reason == '2':
+			reason = 'dhamki di'
+		elif report_reason == '3':
+			reason = 'fake profile'
+		elif report_reason == '4':
+			reason = 'gandi baat'
+		elif report_reason == '5':
+			reason = 'password manga'
+		elif report_reason == '6':
+			reason = 'firqa wariyat'
+		elif report_reason == '7':
+			reason = 'gandi photo'
+		elif report_reason == '8':
+			reason = 'fake admin'
+		else:
+			reason = report_reason
+		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 	
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, timestring):

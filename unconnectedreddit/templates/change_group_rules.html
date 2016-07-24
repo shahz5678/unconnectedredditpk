@@ -2,25 +2,26 @@
 {% block content %}
 
 
-<div class="margin">
+<div class="margin" style="color:#404040;">
 {% if unauthorized %}
 
-<span style="font-size:90%;color:red;"><b>Sirf mehfil ka malik ya kaam kar sakta hai!</b></span>
+<span style="font-size:90%;color:red;"><b>Sirf mehfil ka malik ye kaam kar sakta hai!</b></span>
 
 {% else %}
-<span>Is mehfil ka neya qanoon keya rakhna hai?</span><br>
+<span>Is mehfil ka new qanoon keya rakhna hai?</span><br>
 
 {% if group.private == '1' %}
-<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">wapis</button></a>
 {% elif group.private == '0' %}
-<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">wapis</button></a>
 {% else %}
-<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">wapis</button></a>
 {% endif %}
+<br><br>
 <form method="post" action="">
 {% csrf_token %}
 <span style="color:red;">{{ form.rules.errors }}</span>
-<b>{{ form.rules.label_tag }}</b>{{ form.rules }}
+<b>New Qanoon:</b>{{ form.rules }}
 <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="OK">
 </form>
 {% endif %}

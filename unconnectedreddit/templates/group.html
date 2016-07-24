@@ -9,7 +9,7 @@
 <a href="{% url 'group_list' %}#section0" style="font-size:65%;color:red;"><b>mashoor mehfilein</b></a><span style="font-size:70%;"> |</span>
 <a href="{% url 'group_help' %}#section0" style="font-size:65%;"><b>mehfil kiya hai?</b></a>
 <br><br>
-	<b>Mehfil</b> se tum kisi ke bhi saath private mein pics wali chat kar saktey ho. <a href="{% url 'group_type' %}">Naee mehfil banao</a>, aur shuru ho jao.
+	<b>Mehfil</b> mein dostoon ke sath pics wali chat ki ja sakti hai. <a href="{% url 'group_type' %}">Naee mehfil banao</a>, aur shuru ho jao.
 {% else %}
 <b>Tumhari mehfilein:</b><br><br>
 <a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>naee banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
@@ -20,37 +20,143 @@
 	{% if reply.0.category == '1' %}
 
 
-		{% if reply.0.which_group.private == '1' %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;<b style="color:teal;font-size:80%">(invite)</b>&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne tumhe </span><a href="{% url 'private_group' reply.0.which_group.unique %}"><span style="color:green;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:100 }}{% endemoticons %}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
-		{% elif reply.0.which_group.private == '0' %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;<b style="color:teal;font-size:80%">(invite)</b>&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne tumhe </span><a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span style="color:red;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:100 }}{% endemoticons %}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
+		{% if reply.0.which_group.private == '1' and reply.0.writer != user %}
+			
+			<span style="color:dimgrey;font-size:150%;">.</span>
+			<b style="color:teal;font-size:80%">(invite)</b>
+			{% if reply.0.writer.userprofile.avatar %}
+				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			{% endif %}
+
+			<span style="color:grey;font-size:90%;">
+				<a href="{% url 'profile' slug=reply.0.writer.username %}">
+				{{ reply.0.writer }}
+				</a>
+			{% for person in verified %}
+				{% if person == reply.0.writer.username %}
+					<span style="font-size:120%;color:deeppink;">
+					<b>*</b>
+					</span>
+				{% endif %}
+			{% endfor %} ne tumhe
+			</span>
+
+			<a href="{% url 'private_group' reply.0.which_group.unique %}">
+			<span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			</a>
+			<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
+			<p><hr size=1 COLOR="#2DB92D"></p>
+		{% elif reply.0.which_group.private == '1' and reply.0.writer == user %}
+
+			<span style="color:dimgrey;font-size:150%;">.</span>
+			
+			{% if reply.0.writer.userprofile.avatar %}
+				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			{% endif %}
+
+			<span style="color:grey;font-size:90%;">
+				<a href="{% url 'profile' slug=reply.0.writer.username %}">
+				{{ reply.0.writer }}
+				</a>
+			{% for person in verified %}
+				{% if person == reply.0.writer.username %}
+					<span style="font-size:120%;color:deeppink;">
+					<b>*</b>
+					</span>
+				{% endif %}
+			{% endfor %} ne
+			</span>
+
+			<a href="{% url 'private_group' reply.0.which_group.unique %}">
+			<span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			</a>
+			<span style="color:grey;font-size:90%;">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
+			<p><hr size=1 COLOR="#2DB92D"></p>
+		{% elif reply.0.which_group.private == '0' and reply.0.writer != user %}
+
+			<span style="color:dimgrey;font-size:150%;">.</span>
+			<b style="color:teal;font-size:80%">(invite)</b>
+			{% if reply.0.writer.userprofile.avatar %}
+				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			{% endif %}
+			
+			<span style="color:grey;font-size:90%;">
+				<a href="{% url 'profile' slug=reply.0.writer.username %}">
+				{{ reply.0.writer }}
+				</a>
+			{% for person in verified %}
+				{% if person == reply.0.writer.username %}
+					<span style="font-size:120%;color:deeppink;">
+					<b>*</b>
+					</span>
+				{% endif %}
+			{% endfor %} ne tumhe
+			</span>
+
+			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
+			<span style="color:red;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			</a>
+			<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
+			<p><hr size=1 COLOR="#ac39ac"></p>
+		{% elif reply.0.which_group.private == '0' and reply.0.writer == user %}
+
+			<span style="color:dimgrey;font-size:150%;">.</span>
+			{% if reply.0.writer.userprofile.avatar %}
+				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			{% endif %}
+			
+			<span style="color:grey;font-size:90%;">
+				<a href="{% url 'profile' slug=reply.0.writer.username %}">
+				{{ reply.0.writer }}
+				</a>
+			{% for person in verified %}
+				{% if person == reply.0.writer.username %}
+					<span style="font-size:120%;color:deeppink;">
+					<b>*</b>
+					</span>
+				{% endif %}
+			{% endfor %} ne
+			</span>
+
+			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
+			<span style="color:red;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			</a>
+			<span style="color:grey;font-size:90%;">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
+			<p><hr size=1 COLOR="#ac39ac"></p>
+
 		{% else %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;<b style="color:teal;font-size:80%">(invite)</b>&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne tumhe </span><a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:100 }}{% endemoticons %}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
 		{% endif %}
 
 	{% else %}
 
 	{% if reply.0.which_group.private == '1' %}
 
-		<span style="color:dimgrey;font-size:150%;">.</span>{% if not reply.1 %}<b style="color:orange;font-size:80%">&nbsp;(new)</b>{% endif %}&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'private_group' reply.0.which_group.unique %}"><span style="color:green;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:100 }}{% endemoticons %}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
-
+		<span style="color:dimgrey;font-size:150%;">.</span>{% if not reply.1 %}<b style="color:orange;font-size:80%">&nbsp;(new)</b>{% endif %}&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'private_group' reply.0.which_group.unique %}"><span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
+		<p><hr size=1 COLOR="#2DB92D"></p>
 		{% elif reply.0.which_group.private == '0' %}
 
-		<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span style="color:red;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:100 }}{% endemoticons %}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
-
+		<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span style="color:red;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
+		<p><hr size=1 COLOR="#ac39ac"></p>
 		{% else %}
 
 		{% if reply.0.writer.username == 'unregistered_bhoot' %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><span style="color:purple;">mehmaan</span> ne</span>&nbsp;<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{{ reply.0.which_group.topic|truncatechars:100 }}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
+			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><span style="color:purple;">mehmaan</span> ne</span>&nbsp;<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{{ reply.0.which_group.topic|truncatechars:80 }}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
 		{% else %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{{ reply.0.which_group.topic|truncatechars:100 }}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
+			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{{ reply.0.which_group.topic|truncatechars:80 }}</span></a>&nbsp;<span style="color:grey;font-size:90%;">mein likha, {{ reply.0.submitted_on|naturaltime }}</span></a><br>
 		{% endif %}
 
 	{% endif %}
 
 {% endif %}
 
-<p style="color:gray"><hr size=1></p>
 {% endfor %}
 {% endif %}
 </div>

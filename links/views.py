@@ -955,10 +955,11 @@ class MehfilView(FormView):
 						user.userprofile.save()
 						reply_list = []
 						seen_list = []
-						reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
-						reply_list.append(Reply(text='Aur g kia haal hai?', which_group_id=group.id, writer=user))
-						Reply.objects.bulk_create(reply_list)
+						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
+						#reply_list.append(Reply(text='Aur g kia haal hai?', which_group_id=group.id, writer=user))
+						#Reply.objects.bulk_create(reply_list)
 						add_group_member(group.id, user.username)
+						add_group_invite(target, group.id,reply.id)
 						add_user_group(user.id, group.id)
 						return redirect("private_group", slug=unique)
 					except:
@@ -1975,10 +1976,11 @@ class DirectMessageCreateView(FormView):
 				self.request.user.userprofile.save()
 				reply_list=[]
 				seen_list=[]
-				reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=self.request.user))
-				reply_list.append(Reply(text='aur g kia haal hai?', which_group_id=group.id, writer=self.request.user))
-				Reply.objects.bulk_create(reply_list)
+				reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=self.request.user)
+				#reply_list.append(Reply(text='aur g kia haal hai?', which_group_id=group.id, writer=self.request.user))
+				#Reply.objects.bulk_create(reply_list)
 				add_group_member(group.id, self.request.user.username)
+				add_group_invite(pk, group.id,reply.id)
 				add_user_group(self.request.user.id, group.id)
 				return redirect("private_group", slug=unique)
 			except:
@@ -5206,10 +5208,11 @@ class MehfilCommentView(FormView):
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-500)
 						reply_list = []
 						seen_list = []
-						reply_list.append(Reply(text=invitee, category='1', which_group_id=group.id, writer=user))
-						reply_list.append(Reply(text='Aur g kia haal hai?', which_group_id=group.id, writer=user))
-						Reply.objects.bulk_create(reply_list)
+						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
+						# reply_list.append(Reply(text='Aur g kia haal hai?', which_group_id=group.id, writer=user))
+						# Reply.objects.bulk_create(reply_list)
 						add_group_member(group.id, user.username)
+						add_group_invite(target_id, group.id,reply.id)
 						add_user_group(user.id, group.id)
 						return redirect("private_group", slug=unique)
 					except:

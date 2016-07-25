@@ -321,6 +321,8 @@ REPLIES = (
 ('3','Report'),
 ('4','Topic_Change'),
 ('5','Rules_Change'),
+('6','Left'),
+('7','Unaccepted Invite'),
 	)
 
 '''

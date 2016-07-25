@@ -1,5 +1,7 @@
 from django import forms
+import time
 from django.forms import Textarea
+from .redismodules import already_exists
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
 from django.contrib.auth.models import User
@@ -14,14 +16,14 @@ from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
 #from django.core.files.base import ContentFile
 
-def uploaded_recently(avghash, hash_list):
-	try:
-		hash_list=list(hash_list)
-		index = hash_list.index(avghash)
-		return index
-	except:
-		index = -1 
-		return index
+# def uploaded_recently(avghash, hash_list):
+# 	try:
+# 		hash_list=list(hash_list)
+# 		index = hash_list.index(avghash)
+# 		return index
+# 	except:
+# 		index = -1 
+# 		return index
 
 def compute_avg_hash(image):
 	small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
@@ -31,27 +33,27 @@ def compute_avg_hash(image):
 	photo_hash = int(bits, 2).__format__('16x').upper()
 	return photo_hash
 
-def image_entropy(img):
-	"""calculate the entropy of an image"""
-	hist = img.histogram()
-	hist_size = sum(hist)
-	hist = [float(h) / hist_size for h in hist]
-	return -sum([p * math.log(p, 2) for p in hist if p != 0])
+# def image_entropy(img):
+# 	"""calculate the entropy of an image"""
+# 	hist = img.histogram()
+# 	hist_size = sum(hist)
+# 	hist = [float(h) / hist_size for h in hist]
+# 	return -sum([p * math.log(p, 2) for p in hist if p != 0])
 
-#cuts 80% from the bottom, 20% from the top
-def square_image(img):
-	"""if the image is taller than it is wide, square it off. determine
-	which pieces to cut off based on the entropy pieces."""
-	x,y = img.size
-	while y > x:
-		#slice 10px at a time until square
-		slice_height = min(y - x, 20) #ensure image cropping is done with precision
-		img = img.crop((0, 0, x, y - slice_height)) #cut from the bottom
-		x,y = img.size
-		slice_height = min(y - x, 5)
-		img = img.crop((0, slice_height, x, y)) #cut from the top
-		x,y = img.size
-	return img
+# #cuts 80% from the bottom, 20% from the top
+# def square_image(img):
+# 	"""if the image is taller than it is wide, square it off. determine
+# 	which pieces to cut off based on the entropy pieces."""
+# 	x,y = img.size
+# 	while y > x:
+# 		#slice 10px at a time until square
+# 		slice_height = min(y - x, 20) #ensure image cropping is done with precision
+# 		img = img.crop((0, 0, x, y - slice_height)) #cut from the bottom
+# 		x,y = img.size
+# 		slice_height = min(y - x, 5)
+# 		img = img.crop((0, slice_height, x, y)) #cut from the top
+# 		x,y = img.size
+# 	return img
 
 def restyle_image(image):
 	width = 300
@@ -83,7 +85,7 @@ def MakeThumbnail(filee):
 	enhancer = ImageEnhance.Brightness(img)
 	enhancer = enhancer.enhance(1.10)
 	enhancer2 = ImageEnhance.Contrast(enhancer)
-	enhancer2 = enhancer2.enhance(1.03)
+	enhancer2 = enhancer2.enhance(1.04)
 	enhancer3 = ImageEnhance.Color(enhancer2)
 	img = enhancer3.enhance(1.15)
 	img.thumbnail((300, 300))
@@ -102,18 +104,17 @@ def clean_image_file(image): # where self is the form
 	else:
 		return 0
 
-def clean_image_file_with_hash(image, hashes): # where self is the form
+def clean_image_file_with_hash(image):#, hashes): # where self is the form
 	if image:
 		image = Image.open(image)
 		image = reorient_image(image)
 		avghash = compute_avg_hash(image)
-		index = uploaded_recently(avghash, hashes)
-		if index == -1:
-			image = MakeThumbnail(image)
-			return image, avghash
+		exists = already_exists(avghash)
+		if exists:
+			return image, avghash, exists
 		else:
-			# return without futher processing
-			return image, index
+			image = MakeThumbnail(image)
+			return image, avghash, None
 	else:
 		return (0,-1)
 
@@ -263,6 +264,11 @@ class UserSMSForm(forms.Form):
 	class Meta:
 		pass
 
+class ReportFeedbackForm(forms.Form):
+	description = forms.CharField(max_length=250)
+	class Meta:
+		fields = ("description",)
+
 class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
@@ -291,7 +297,7 @@ class ChangeOutsideGroupTopicForm(forms.ModelForm):
 		fields = ("topic",)
 
 class ChangePrivateGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	topic = forms.CharField(label='New Topic:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
 		model = Group
 		fields = ("topic",)

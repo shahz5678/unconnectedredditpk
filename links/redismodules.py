@@ -15,6 +15,35 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#####################Home page chatting objects#####################
+
+def all_unfiltered_posts():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("unfilteredposts:1000", 0, -1)
+
+def all_filtered_posts():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("filteredposts:1000", 0, -1)
+	
+def add_unfiltered_post(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("unfilteredposts:1000", link_id)
+	my_server.ltrim("unfilteredposts:1000", 0, 119)
+
+def add_filtered_post(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("filteredposts:1000", link_id)
+	my_server.ltrim("filteredposts:1000", 0, 119)
+	# if my_server.llen("homeposts:1000") == 1001:
+	# 	target_id = my_server.rpop("homeposts:1000") #remove the right-most link_id from the list, and return it
+	# 	my_server.delete("lobj:"+str(target_id)) #delete the hash associated with this link_id
+
+# def add_home_link_object(link_id, description, submitter, submitted_on, device, which_photostream, reply_count, net_votes, cagtegory, image_file, latest_reply):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hash_name = "lobj:"+str(link_id)
+
+# def edit_home_link_object(link_id):
+
 #####################maintaining group membership#####################
 
 #for each user, keep a list of groups they have been invited to, and list of groups they are a member of

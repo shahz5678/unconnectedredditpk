@@ -27,7 +27,7 @@ from .redismodules import insert_hash, document_link_abuse, posting_allowed, doc
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
-all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post
+all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -4025,6 +4025,7 @@ class UploadPhotoView(CreateView):
 				insert_hash(photo.id, photo.avg_hash)
 				time = photo.upload_time
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)#
+				add_photo(stream.id)
 				timestring = time.isoformat()
 				if self.request.user_banned:
 					banned = '1'

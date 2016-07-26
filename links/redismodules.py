@@ -15,7 +15,25 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
-#####################Home page chatting objects#####################
+#####################List objects#####################
+
+def add_photo_to_best(photostream_id, score):
+	my_server = redis.Redis(connection_pool=POOL)
+	try:
+		size = my_server.zcard("bestphotos:1000")
+		limit = 1000
+		if size < 1001:
+			my_server.zadd("bestphotos:1000", photostream_id, score)
+		else:
+		   my_server.zremrangebyrank("bestphotos:1000", 0, 10)
+		   my_server.zadd("bestphotos:1000", photostream_id, score)
+	except:
+		my_server.zadd("bestphotos:1000", photostream_id, score)
+
+def add_photo(photostream_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("photos:1000", photostream_id)
+	my_server.ltrim("photos:1000", 0, 999)
 
 def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -28,12 +46,12 @@ def all_filtered_posts():
 def add_unfiltered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("unfilteredposts:1000", link_id)
-	#my_server.ltrim("unfilteredposts:1000", 0, 119)
+	my_server.ltrim("unfilteredposts:1000", 0, 999)
 
 def add_filtered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("filteredposts:1000", link_id)
-	#my_server.ltrim("filteredposts:1000", 0, 119)
+	my_server.ltrim("filteredposts:1000", 0, 999)
 	# if my_server.llen("homeposts:1000") == 1001:
 	# 	target_id = my_server.rpop("homeposts:1000") #remove the right-most link_id from the list, and return it
 	# 	my_server.delete("lobj:"+str(target_id)) #delete the hash associated with this link_id

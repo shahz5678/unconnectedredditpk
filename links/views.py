@@ -1369,17 +1369,13 @@ class LinkListView(ListView):
 
 	def get_queryset(self):
 		if self.request.user_banned:#if user is hell-banned
-			if self.request.user.username == 'mhb11':
-				return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_unfiltered_posts()).order_by('-id')
-			else:
-				return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id')[:120]
+			#return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id')[:120]
+			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_unfiltered_posts()).order_by('-id')
 		else:#if user is not hell-banned
-			if self.request.user.username == 'mhb11':
-				links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_filtered_posts()).order_by('-id')
-				return links
-			else:
-				global condemned
-				return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id').exclude(submitter_id__in=condemned)[:120]
+			# global condemned
+			# return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id').exclude(submitter_id__in=condemned)[:120]
+			links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_filtered_posts()).order_by('-id')
+			return links
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)

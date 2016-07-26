@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
 UserProfile
+from links.redismodules import add_filtered_post, add_unfiltered_post
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -66,7 +67,7 @@ def salat_streaks():
 	cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.photo_upload_tasks')
-def photo_upload_tasks(user_id, photo_id, timestring, stream_id, device):
+def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device):
 	photo = Photo.objects.get(id=photo_id)
 	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
 	update = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
@@ -74,7 +75,12 @@ def photo_upload_tasks(user_id, photo_id, timestring, stream_id, device):
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, updated_at=timeobj)#
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+	link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+	if banned == '1':
+		add_unfiltered_post(link.id)
+	else:
+		add_filtered_post(link.id)
+		add_unfiltered_post(link.id)
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):

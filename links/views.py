@@ -26,7 +26,8 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from .redismodules import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
-check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed
+check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
+all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -1369,9 +1370,12 @@ class LinkListView(ListView):
 	def get_queryset(self):
 		if self.request.user_banned:#if user is hell-banned
 			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id')[:120]
+			# return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_unfiltered_posts()).order_by('-id')
 		else:#if user is not hell-banned
 			global condemned
 			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id').exclude(submitter_id__in=condemned)[:120]
+			# links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_filtered_posts()).order_by('-id')
+			# return links
 
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
@@ -2038,11 +2042,16 @@ class OpenGroupCreateView(CreateView):
 				pass
 			f.owner.userprofile.previous_retort = f.topic
 			f.owner.userprofile.score = f.owner.userprofile.score - 5000
+			f.owner.userprofile.save()
 			f.save()
 			reply = Reply.objects.create(text='mein ne new mehfil shuru kar di',which_group=f,writer=self.request.user)
 			GroupTraffic.objects.create(visitor=self.request.user, which_group=f)
-			Link.objects.create(submitter=self.request.user, description=f.topic, cagtegory='2', url=unique)
-			f.owner.userprofile.save()
+			link = Link.objects.create(submitter=self.request.user, description=f.topic, cagtegory='2', url=unique)
+			if self.request.user_banned:
+				add_unfiltered_post(link.id)
+			else:
+				add_filtered_post(link.id)
+				add_unfiltered_post(link.id)
 			add_group_member(f.id, self.request.user.username)
 			add_user_group(self.request.user.id, f.id)
 			try: 
@@ -4017,7 +4026,11 @@ class UploadPhotoView(CreateView):
 				time = photo.upload_time
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)#
 				timestring = time.isoformat()
-				photo_upload_tasks.delay(user.id,photo.id, timestring, stream.id, device)
+				if self.request.user_banned:
+					banned = '1'
+				else:
+					banned = '0'
+				photo_upload_tasks.delay(banned, user.id,photo.id, timestring, stream.id, device)
 				bulk_create_notifications.delay(user.id, photo.id, timestring)				
 				photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
 				if opt == '7':
@@ -5582,6 +5595,11 @@ class LinkCreateView(CreateView):
 						pass
 					f.submitter.userprofile.previous_retort = f.description
 					f.save()
+					if self.request.user_banned:
+						add_unfiltered_post(f.id)
+					else:
+						add_filtered_post(f.id)
+						add_unfiltered_post(f.id)
 					f.submitter.userprofile.save()
 					PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2', which_link=f)
 					return super(CreateView, self).form_valid(form)
@@ -5859,7 +5877,8 @@ class WelcomeReplyView(FormView):
 						else:
 							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)						
-					#print "PARENT IS: %s" % parent
+						add_filtered_post(parent.id)
+						add_unfiltered_post(parent.id)
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
@@ -5988,12 +6007,16 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				except:
 					if value == 1:
 						link = Link.objects.create(description='mein idher hu', submitter=target)
+						add_filtered_post(link.id)
+						add_unfiltered_post(link.id)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score + 3
 						target.userprofile.save()
 						return redirect("home")
 					elif value == -1:
 						link = Link.objects.create(description='mein idher hu', submitter=target)
+						add_filtered_post(link.id)
+						add_unfiltered_post(link.id)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:
@@ -6420,7 +6443,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 							UserProfile.objects.filter(user=link.submitter).update(score=F('score')+50)
 						#link.net_votes = link.net_votes + 1
 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
-						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-3, time_of_casting=timezone.now())
+						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
 				elif value == 0:
 					if request.user_banned:
 						return redirect("score_help")

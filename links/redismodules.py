@@ -1,5 +1,6 @@
 import redis
 import time
+from random import randint
 
 POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
 
@@ -17,6 +18,10 @@ THREE_MINS = 3*60
 
 #####################List objects#####################
 
+def all_best_photos():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange("bestphotos:1000", 0, -1, withscores=True)
+
 def add_photo_to_best(photostream_id, score):
 	my_server = redis.Redis(connection_pool=POOL)
 	try:
@@ -30,10 +35,16 @@ def add_photo_to_best(photostream_id, score):
 	except:
 		my_server.zadd("bestphotos:1000", photostream_id, score)
 
+def all_photos():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("photos:1000", 0, -1)
+
 def add_photo(photostream_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("photos:1000", photostream_id)
-	my_server.ltrim("photos:1000", 0, 999)
+	rand = randint(0,9)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("photos:1000", 0, 999)
 
 def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -46,12 +57,16 @@ def all_filtered_posts():
 def add_unfiltered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("unfilteredposts:1000", link_id)
-	my_server.ltrim("unfilteredposts:1000", 0, 999)
+	rand = randint(0,9)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("unfilteredposts:1000", 0, 999)
 
 def add_filtered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("filteredposts:1000", link_id)
-	my_server.ltrim("filteredposts:1000", 0, 999)
+	rand = randint(0,9)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("filteredposts:1000", 0, 999)
 	# if my_server.llen("homeposts:1000") == 1001:
 	# 	target_id = my_server.rpop("homeposts:1000") #remove the right-most link_id from the list, and return it
 	# 	my_server.delete("lobj:"+str(target_id)) #delete the hash associated with this link_id

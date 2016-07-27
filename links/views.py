@@ -27,7 +27,7 @@ from .redismodules import insert_hash, document_link_abuse, posting_allowed, doc
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
-all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo
+all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -3408,14 +3408,10 @@ def see_photo_pk(request,pk=None,*args,**kwargs):
 class PhotoView(ListView):
 	model = Photo
 	template_name = "photos.html"
-	paginate_by = 10 #i.e. 10 pages in total with a query-set of 200 objects
+	paginate_by = 10
 
 	def get_queryset(self):
-		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
-		else:
-			queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
-			# queryset = PhotoStream.objects.order_by('-show_time').prefetch_related('photo_set')[:200]
+		queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').filter(id__in=all_photos()).order_by('-id')
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -3667,15 +3663,21 @@ def see_best_photo_pk(request,pk=None,*args,**kwargs):
 class BestPhotoView(ListView):
 	model = Photo
 	template_name = "best_photos.html"
-	paginate_by = 10 #i.e. 20 pages in total with a query-set of 200 objects
+	paginate_by = 10
 
 	def get_queryset(self):
-		if self.request.is_feature_phone:
-			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
-		else:
-			queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
-			# queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').exclude(cover__vote_score__lte=-8).order_by('-cover__invisible_score').prefetch_related('photo_set')[:200]
+		queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
 		return queryset
+		# sorted_set = dict(all_best_photos())
+		# ids = sorted_set.keys()
+		# queryset = PhotoStream.objects.filter(id__in=ids).exclude(cover__vote_score__lte=-3)
+		# dictionary = dict(sorted_set)
+		# for key, value in dictionary:
+		# 	obj = queryset.get(id=key)
+		# 	value = obj
+		# print dictionary
+		# result = dictionary.values()
+		# return result
 
 	def get_context_data(self, **kwargs):
 		context = super(BestPhotoView, self).get_context_data(**kwargs)

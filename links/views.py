@@ -2408,10 +2408,10 @@ class GroupPageView(ListView):
 		replies = []
 		user = self.request.user
 		invite_reply_ids = get_active_invites(user.id) #contains all current invites
-		# group_ids = get_user_groups(user.id)
-		# replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
-		groups = Group.objects.filter(Q(owner=user)|Q(reply__writer=user)).distinct().values_list('id', flat=True)# get this from the members set (redis)
-		replies = Reply.objects.filter(which_group__in=groups).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
+		group_ids = get_user_groups(user.id)
+		replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
+		# groups = Group.objects.filter(Q(owner=user)|Q(reply__writer=user)).distinct().values_list('id', flat=True)# get this from the members set (redis)
+		# replies = Reply.objects.filter(which_group__in=groups).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
 		invite_reply_ids |= set(replies) #doing union of two sets
 		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=invite_reply_ids).order_by('-id')[:60]
 		seen_for = {groupseen.which_reply_id: groupseen for groupseen in GroupSeen.objects.filter(seen_user=user)}
@@ -3668,16 +3668,14 @@ class BestPhotoView(ListView):
 	def get_queryset(self):
 		queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
 		return queryset
-		# sorted_set = dict(all_best_photos())
-		# ids = sorted_set.keys()
-		# queryset = PhotoStream.objects.filter(id__in=ids).exclude(cover__vote_score__lte=-3)
-		# dictionary = dict(sorted_set)
-		# for key, value in dictionary:
-		# 	obj = queryset.get(id=key)
-		# 	value = obj
-		# print dictionary
-		# result = dictionary.values()
-		# return result
+		# sorted_dictionary = dict(all_best_photos())
+		# ids = sorted_dictionary.keys()
+		# queryset = Photo.objects.filter(id__in=ids).exclude(vote_score__lte=-3)
+		# print sorted_dictionary
+		# for obj in queryset:
+		# 	print obj.pk
+		# sorted(queryset, key=lambda item: sorted_dictionary.get(item.pk, ''), reverse = True)
+		# return queryset
 
 	def get_context_data(self, **kwargs):
 		context = super(BestPhotoView, self).get_context_data(**kwargs)
@@ -3700,6 +3698,8 @@ class BestPhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
+				#print context["object_list"]
+				#photos_in_page = [photo.id for photo in context["object_list"]]
 				photos_in_page = context["object_list"].values_list('cover',flat=True)#[picstream.cover_id for picstream in context["object_list"]]
 				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
 				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)

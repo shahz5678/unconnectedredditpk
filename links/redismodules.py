@@ -71,6 +71,20 @@ def add_filtered_post(link_id):
 	# 	target_id = my_server.rpop("homeposts:1000") #remove the right-most link_id from the list, and return it
 	# 	my_server.delete("lobj:"+str(target_id)) #delete the hash associated with this link_id
 
+def add_to_unfiltered_homelist(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("unfilteredhomelist:1000", link_id)
+	rand = randint(0,4)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("unfilteredhomelist:1000", 0, 999)
+
+def add_to_filtered_homelist(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("filteredhomelist:1000", link_id)
+	rand = randint(0,4)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("filteredposts:1000", 0, 999)
+
 # def add_home_link_object(link_id, description, submitter, submitted_on, device, which_photostream, reply_count, net_votes, cagtegory, image_file, latest_reply):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	hash_name = "lobj:"+str(link_id)

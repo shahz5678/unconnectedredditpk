@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
 UserProfile
-from links.redismodules import add_filtered_post, add_unfiltered_post
+from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_to_unfiltered_homelist, add_to_filtered_homelist
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -17,6 +17,9 @@ from django.contrib.auth.models import User
 def rank_all_photos():
 	for photo in Photo.objects.order_by('-id')[:400]:
 		photo.set_rank()
+	# for photo in Photo.objects.filter(id__in=all_photos()).order_by('-id'):
+	# 	score = photo.set_rank()
+	# 	add_photo_to_best(photo.id, score)
 
 #@shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
@@ -78,9 +81,12 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device)
 	link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
 	if banned == '1':
 		add_unfiltered_post(link.id)
+		add_to_unfiltered_homelist(link.id)
 	else:
 		add_filtered_post(link.id)
+		add_to_filtered_homelist(link.id)
 		add_unfiltered_post(link.id)
+		add_to_unfiltered_homelist(link.id)
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):

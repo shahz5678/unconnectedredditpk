@@ -343,6 +343,12 @@ class ChangeGroupRulesForm(forms.ModelForm):
 		model = Group
 		fields = ("rules",)
 
+class UnseenActivityForm(forms.Form):
+	comment = forms.CharField(max_length=250)
+	group_reply = forms.CharField(max_length=500)
+	class Meta:
+		fields = ("comment", "group_reply", )
+
 class CrossNotifForm(forms.Form):
 	class Meta:
 		pass
@@ -472,10 +478,6 @@ class TopPhotoForm(forms.Form):
 class TopForm(forms.Form):
 	class Meta:
 		model = User
-
-class UnseenActivityForm(forms.ModelForm): #creates a form for Link
-	class Meta:
-		model = Link
 
 class OwnerGroupOnlineKonForm(forms.ModelForm):
 	class Meta:

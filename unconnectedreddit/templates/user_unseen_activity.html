@@ -4,9 +4,9 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-{% if object_list %}
+{% if page.object_list %}
 <span style="color:color:#404040;font-size:85%;">Latest <b style="color:#229ec3;">jawab</b> aur <b style="color:#ff8000;">tabsrey</b> ye hain:</span><p></p>
-{% for linksubscription in object_list %}
+{% for linksubscription in page.object_list %}
 <!-- link submitter, photo submitter or group submitter -->
 {% if linksubscription.type_of_object == '2' %}
 <a href="{% url 'reply_pk' linksubscription.which_link_id %}">
@@ -26,11 +26,18 @@
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
-{{ linksubscription.which_link.latest_reply.submitted_by }}: {{ linksubscription.which_link.latest_reply.description|truncatechars:40 }}</span>
+{{ linksubscription.which_link.latest_reply.submitted_by }}: {% emoticons %}{{ linksubscription.which_link.latest_reply.description|truncatechars:40 }}{% endemoticons %}</span>
 <br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border:solid 1px #999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;"><b>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border:solid 1px #999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
 {{ linksubscription.which_link.reply_count }}</b> jawab
 </button></a>
+<br><b style="color:#999999;font-size:90%;">Likho:</b>
+	<form method="post" action="{% url 'unseen_reply' pk=linksubscription.which_link_id %}">
+	{% csrf_token %}
+	<input type="hidden" name="group_reply" value="1">
+	{{ form.comment }}
+	<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+	</form>
 <hr size=1 COLOR="#cccccc">
 {% else %}
 <span style="color:#229ec3;font-size:95%;">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#229ec3;font-size:95%;">{% emoticons %}{{ linksubscription.which_link.description|truncatechars:40 }}{% endemoticons %}</span></span>
@@ -41,10 +48,17 @@
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" style="border:1px solid #229ec3"></img>
 	{% endif %}
-{{ linksubscription.which_link.latest_reply.submitted_by }}</a>: {{ linksubscription.which_link.latest_reply.description }}</span><br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;"><b>
+{{ linksubscription.which_link.latest_reply.submitted_by }}</a>: {% emoticons %}{{ linksubscription.which_link.latest_reply.description }}{% endemoticons %}</span><br>
+<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
 {{ linksubscription.which_link.reply_count }}</b> jawab
 </button></a>
+<br><b style="color:#229ec3;font-size:90%;">Likho:</b>
+	<form method="post" action="{% url 'unseen_reply' pk=linksubscription.which_link_id %}">
+	{% csrf_token %}
+	<input type="hidden" name="group_reply" value="1">
+	{{ form.comment }}
+	<br><input class="button" style="background-color:#3cb7dd;border-color:#229ec3;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+	</form>
 <hr size=1 COLOR="#3cb7dd">
 {% endif %}
 
@@ -104,14 +118,21 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}
-	{{ linksubscription.which_photo.latest_comment.submitted_by }}: {{ linksubscription.which_photo.latest_comment.text }}</span><br>
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;">
+	{{ linksubscription.which_photo.latest_comment.submitted_by }}: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
 		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}
 		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
+	<br><b style="color:#999999;font-size:90%;">Likho:</b>
+		<form method="post" action="{% url 'unseen_comment' pk=linksubscription.which_photo_id %}">
+		{% csrf_token %}
+		<input type="hidden" name="group_reply" value="1">
+		{{ form.comment }}
+		<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+		</form>
 	<hr size=1 COLOR="#cccccc">
 	{% else %}
 	<span style="color:#ff8000;font-size:95%;">{{ linksubscription.which_photo.owner }}</a></span><span style="color:#ff8000;font-size:95%;">:
@@ -123,14 +144,21 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" style="border:1px solid #ff8000"></img>
 		{% endif %}
-	{{ linksubscription.which_photo.latest_comment.submitted_by }}</a>: {{ linksubscription.which_photo.latest_comment.text }}</span><br>
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;">
+	{{ linksubscription.which_photo.latest_comment.submitted_by }}</a>: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
+	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
 		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}
 		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
+	<br><b style="color:#ff9933;font-size:90%;">Likho:</b>
+		<form method="post" action="{% url 'unseen_comment' pk=linksubscription.which_photo_id %}">
+		{% csrf_token %}
+		<input type="hidden" name="group_reply" value="1">
+		{{ form.comment }}
+		<br><input class="button" style="background-color:#ff9933;border-color:#ff8000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+		</form>
 	<hr size=1 COLOR="#ff9933">
 	{% endif %}
 
@@ -141,19 +169,16 @@
 {% else %}
 <span style="color:#404040;">Is waqt yahan kuch nahi hai</span>
 {% endif %}
-</div>
-{% endblock %}
 
-{% block pagination %}
-{% if is_paginated %}
-<div class="pagination">
-	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
-    {% endif %}
+	<br><div class="pagination" style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
 </div>
-{% endif %}
+<br><br>
 {% endblock %}

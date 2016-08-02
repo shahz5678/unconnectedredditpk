@@ -5271,16 +5271,16 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					device = '5'
 				else:
 					device = '3'
-			photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
-			Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
-			photo = Photo.objects.get(id=pk)
-			exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists()
-			# photo.comment_count = photo.comment_count + 1
-			# photo.save()
-			time = photocomment.submitted_on
-			timestring = time.isoformat()
-			photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)
-			return redirect("unseen_activity", request.user.username)
+				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+				Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
+				photo = Photo.objects.get(id=pk)
+				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists()
+				time = photocomment.submitted_on
+				timestring = time.isoformat()
+				photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)
+				return redirect("unseen_activity", request.user.username)
+			else:
+				return redirect("unseen_activity", request.user.username)
 		else:
 			return redirect("score_help")	
 

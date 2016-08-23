@@ -16,6 +16,19 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#####################Video objects#####################
+
+def all_videos():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("videos:1000", 0, -1)
+
+def add_video(video_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("videos:1000", video_id)
+	rand = randint(0,9)
+	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+		my_server.ltrim("videos:1000", 0, 999)
+
 #####################List objects#####################
 
 def all_best_photos():

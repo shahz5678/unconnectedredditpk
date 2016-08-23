@@ -10,7 +10,7 @@ comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo,
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
 salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
-repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity
+repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -27,7 +27,8 @@ ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, RegisterHelpView
 ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, \
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
-SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, \
+VideoCommentView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -79,8 +80,10 @@ urlpatterns = patterns('',
 	# url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
+	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
 	url(r'^comment/(?P<from_photos>\d+)/$', CommentView.as_view(), name='comment'), #from_photos is an optional variable
 	url(r'^comment_chat_pk/(?P<pk>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
+	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/$', comment_pk, name='comment_pk'), #stream is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/(?P<from_photos>\d+)/$', comment_pk, name='comment_pk'), #from_photos is an optional variable
@@ -97,6 +100,7 @@ urlpatterns = patterns('',
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
+	url(r'^videos/$', VideoView.as_view(), name='see_video'),
 	url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
 	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
 	#url(r'^special/$', special_photo, name='special_photo'),
@@ -114,6 +118,7 @@ urlpatterns = patterns('',
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
 	url(r'^upload_photo/(?P<opt>\d+)/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
+	url(r'^upload_video/$', auth(UploadVideoView.as_view()), name='upload_video'),
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^kuch/likho/$', auth(LinkCreateView.as_view()), name='link_create'),
 	url(r'^link/create/$', auth(link_create_pk), name='link_create_pk'),

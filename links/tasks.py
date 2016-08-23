@@ -7,8 +7,9 @@ import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
 from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
-UserProfile
-from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos
+UserProfile, Video
+from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video
+from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
@@ -110,6 +111,23 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	photo.save()
 	user.userprofile.save()
 
+@celery_app1.task(name='tasks.video_tasks')
+def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
+	user = User.objects.get(id=user_id)
+	video = Video.objects.get(id=video_id)
+	video.second_latest_comment = video.latest_comment
+	video.latest_comment_id = videocomment_id
+	video.comment_count = count
+	user.userprofile.previous_retort = text
+	if user_id != video.owner_id and not it_exists:
+		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+		video.owner.userprofile.media_score = video.owner.userprofile.media_score + 2 #giving media score to the video poster
+		video.owner.userprofile.score = video.owner.userprofile.score + 2 # giving score to the video poster
+		video.visible_score = video.visible_score + 2
+		video.owner.userprofile.save()
+	video.save()
+	user.userprofile.save()	
+
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, description):
 	user = User.objects.get(id=user_id)
@@ -172,3 +190,20 @@ def bulk_create_notifications(user_id, photo_id, timestring):
 		for fan in fans:
 			fan_list.append(PhotoObjectSubscription(viewer_id=fan, which_photo_id=photo_id, updated_at=timeobj, seen=False, type_of_object='1'))
 		PhotoObjectSubscription.objects.bulk_create(fan_list)
+
+@celery_app1.task(name='tasks.video_upload_tasks')
+def video_upload_tasks(video_name, video_id, user_id):
+	lst = uploadvid(video_name)
+	small_thumb = lst[0]
+	low_res_thumb = lst[1]
+	high_res_thumb = lst[2]
+	low_res_video = lst[3]
+	high_res_video = lst[4]
+	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, high_res_thumb=high_res_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
+	print low_res_video
+	print high_res_video
+	if video:
+		add_video(video_id)
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
+	else:
+		pass

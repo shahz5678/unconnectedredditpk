@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Preset xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="1.0" xmlns="http://www.windowsazure.com/media/encoding/Preset/2014/03">
+  <Encoding>
+    <H264Video>
+      <KeyFrameInterval>00:00:02</KeyFrameInterval>
+      <H264Layers>
+         <H264Layer>
+          <Bitrate>3400</Bitrate>
+          <Width>1280</Width>
+          <Height>720</Height>
+          <FrameRate>0/1</FrameRate>
+          <Profile>Auto</Profile>
+          <Level>auto</Level>
+          <BFrames>3</BFrames>
+          <ReferenceFrames>3</ReferenceFrames>
+          <Slices>0</Slices>
+          <AdaptiveBFrame>true</AdaptiveBFrame>
+          <EntropyMode>Cabac</EntropyMode>
+          <BufferWindow>00:00:05</BufferWindow>
+          <MaxBitrate>3400</MaxBitrate>
+        </H264Layer>
+        <H264Layer>
+          <Bitrate>400</Bitrate>
+          <Width>320</Width>
+          <Height>180</Height>
+          <FrameRate>0/1</FrameRate>
+          <Profile>Auto</Profile>
+          <Level>auto</Level>
+          <BFrames>3</BFrames>
+          <ReferenceFrames>3</ReferenceFrames>
+          <Slices>0</Slices>
+          <AdaptiveBFrame>true</AdaptiveBFrame>
+          <EntropyMode>Cabac</EntropyMode>
+          <BufferWindow>00:00:05</BufferWindow>
+          <MaxBitrate>400</MaxBitrate>
+        </H264Layer>
+      </H264Layers>
+      <Chapters />
+    </H264Video>
+    <AACAudio>
+      <Profile>AACLC</Profile>
+      <Channels>2</Channels>
+      <SamplingRate>48000</SamplingRate>
+      <Bitrate>128</Bitrate>
+    </AACAudio>
+    <JpgImage Start="{Best}">
+      <JpgLayers>
+        <JpgLayer>
+          <Width>1280</Width>
+          <Height>720</Height>
+          <Quality>90</Quality>
+        </JpgLayer>
+        <JpgLayer>
+          <Width>320</Width>
+          <Height>180</Height>
+          <Quality>90</Quality>
+        </JpgLayer>
+        <JpgLayer>
+          <Width>114</Width>
+          <Height>64</Height>
+          <Quality>90</Quality>
+        </JpgLayer>
+      </JpgLayers>
+    </JpgImage>
+  </Encoding>
+  <Outputs>
+    <Output FileName="{Basename}_{Width}x{Height}_{VideoBitrate}.mp4">
+      <MP4Format />
+    </Output>
+    <Output FileName="{Basename}_{Height}_{Index}{Extension}">
+      <JpgFormat />
+    </Output>
+  </Outputs>
+</Preset>

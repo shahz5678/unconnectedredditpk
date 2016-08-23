@@ -1,0 +1,17 @@
+{    
+    "config": {
+    "secure-http": false
+     },
+    "require": {
+        "php": "^5.5 || ^7.0",
+        "pear-pear.php.net/mail_mimedecode": "*",
+        "microsoft/windowsazure": "*"
+    },  
+    "repositories": [
+    {
+        "type": "pear",
+        "url": "http://pear.php.net"
+    }
+    ],    
+    "minimum-stability": "dev"
+}

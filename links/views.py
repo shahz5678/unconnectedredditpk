@@ -1,23 +1,27 @@
 # Create your views here.
-import re, urlmarker, StringIO
-import urlparse
-from collections import OrderedDict
+import re, urlmarker, StringIO, urlparse#, sys
+# from itertools import chain
+# from hachoir_core.cmd_line import unicodeFilename
+# from hachoir_metadata import extractMetadata
+# from hachoir_parser import createParser
+from collections import OrderedDict, defaultdict
 from operator import attrgetter
 from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
-from collections import defaultdict
 from django.db import connection
 from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
-from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks
+from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
+video_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite, TotalFanAndPhotos, Logout, Report
+SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment
+from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
@@ -28,7 +32,8 @@ from .redismodules import insert_hash, document_link_abuse, posting_allowed, doc
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
-all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best
+all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
+all_videos, add_video
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -43,7 +48,8 @@ GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, Hi
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
 TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
-ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UnseenActivityForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UnseenActivityForm, \
+UploadVideoForm, VideoCommentForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -2884,6 +2890,95 @@ def comment_chat_pk(request, pk=None, *args, **kwargs):
 			return redirect("see_photo")
 
 @ratelimit(rate='1/s')
+def videocomment_pk(request, pk=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_videocommentpk.html', context)
+		except:
+			context = {'pk': '10'}
+			return render(request, 'penalty_videocommentpk.html', context)
+	else:
+		if pk.isdigit():
+			request.session["video_pk"] = pk
+			return redirect("video_comment")
+		else:
+			return redirect("home")
+
+class VideoCommentView(CreateView):
+	model = VideoComment
+	form_class = VideoCommentForm
+	template_name = "video_comments.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(VideoCommentView, self).get_context_data(**kwargs)
+		try:
+			context["verified"] = FEMALES
+			pk = self.request.session["video_pk"]
+			video = Video.objects.select_related('owner').get(id=pk)
+			context["video"] = video
+			comms = VideoComment.objects.select_related('submitted_by__userprofile').filter(which_video_id=pk)
+			context["count"] = comms.count()
+			comments = comms.order_by('-id')[:25]
+			context["comments"] = comments
+		except:
+			context["video"] = None
+		return context
+
+	def form_valid(self, form):
+		if self.request.user.is_authenticated():
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			user = self.request.user
+			text = self.request.POST.get("text")
+			try:
+				pk = self.request.session["video_pk"]
+				self.request.session["video_pk"] = None
+				which_video = Video.objects.get(id=pk)
+			except:
+				user.userprofile.score = user.userprofile.score - 3
+				user.userprofile.save()
+				return redirect("profile", slug=user.username)
+			score = fuzz.ratio(text, user.userprofile.previous_retort)
+			if score > 86:
+				try:
+					return redirect("videocomment_pk", pk=pk)
+				except:
+					user.userprofile.score = user.userprofile.score - 3
+					user.userprofile.save()
+					return redirect("profile", slug=user.username)
+			else:
+				if self.request.user_banned:
+					return redirect("see_video")
+				else:
+					exists = VideoComment.objects.filter(which_video=which_video, submitted_by=user).exists()
+					which_video.comment_count = which_video.comment_count + 1
+					if self.request.is_feature_phone:
+						device = '1'
+					elif self.request.is_phone:
+						device = '2'
+					elif self.request.is_tablet:
+						device = '4'
+					elif self.request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					videocomment = VideoComment.objects.create(submitted_by=user, which_video=which_video, text=text,device=device)
+					time = videocomment.submitted_on
+					timestring = time.isoformat()
+					video_tasks.delay(self.request.user.id, pk, timestring, videocomment.id, which_video.comment_count, text, exists)
+					try:
+						return redirect("videocomment_pk", pk=pk)
+					except:
+						return redirect("profile", slug=user.username)
+		else:
+			context = {'pk': 'pk'}
+			return render(self.request, 'auth_commentpk.html', context)
+
+@ratelimit(rate='1/s')
 def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3410,6 +3505,16 @@ def see_photo_pk(request,pk=None,*args,**kwargs):
 	else:
 		return redirect("see_photo")
 
+class VideoView(ListView):
+	model = Video
+	#queryset = Video.objects.filter(id__in=all_videos()).order_by('-id')
+	paginate_by = 10
+	template_name = "videos.html"
+
+	def get_queryset(self):
+		queryset = Video.objects.select_related('owner__userprofile', 'latest_comment__submitted_by', 'second_latest_comment__submitted_by').filter(id__in=all_videos()).order_by('-id')
+		return queryset
+
 class PhotoView(ListView):
 	model = Photo
 	template_name = "photos.html"
@@ -3916,6 +4021,122 @@ def set_rank():
 	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
 	invisible_score = round(sign * order + secs / 45000, 8)
 	return invisible_score
+
+class UploadVideoView(FormView):
+	# model = Video
+	form_class = UploadVideoForm
+	template_name = "upload_video.html"
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			# form = UnseenActivityForm(request.POST, request.FILES)
+			caption = self.request.POST.get("caption")
+			video = self.request.FILES['video_file']
+			if self.request.is_feature_phone:
+				device = '1'
+			elif self.request.is_phone:
+				device = '2'
+			elif self.request.is_tablet:
+				device = '4'
+			elif self.request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			video = Video.objects.create(owner=self.request.user, video_file=video, device=device, comment_count=0, caption=caption)
+			video_upload_tasks.delay(video.video_file.name, video.id, self.request.user.id)
+		context = {'pk':'pk'}
+		return render(self.request,'video_upload.html',context)
+		#return redirect("see_video")
+		# f = form.save(commit=False)
+		# user = self.request.user
+		# if user.userprofile.score < 3:#
+		# 	context = {'score': '3'}
+		# 	return render(self.request, 'score_photo.html', context)
+		# else:
+		# 	#time_now = datetime.utcnow().replace(tzinfo=utc)
+		# 	photos = list(Photo.objects.filter(owner=self.request.user).order_by('-id').\
+		# 	values_list('vote_score', 'visible_score', 'upload_time', 'caption')[:5])#
+		# 	forbidden, time_remaining = check_photo_abuse(len(photos), photos)
+		# 	if forbidden:
+		# 		context={'time_remaining': time_remaining}
+		# 		return render(self.request, 'forbidden_photo.html', context)
+		# 	time_now = timezone.now()
+		# 	try:
+		# 		difference = time_now - photos[0][2]
+		# 		seconds = difference.total_seconds()
+		# 		if seconds < 60:
+		# 			context = {'time': round((60 - seconds),0)}
+		# 			return render(self.request, 'error_photo.html', context)
+		# 	except:
+		# 		pass
+		# 	if f.image_file:
+		# 		try:
+		# 			on_fbs = self.request.META.get('X-IORG-FBS')
+		# 		except:
+		# 			on_fbs = False
+		# 		if on_fbs:
+		# 			if f.image_file.size > 200000:
+		# 				context = {'pk':'pk'}
+		# 				return render(self.request,'big_photo_fbs.html',context)
+		# 			else:
+		# 				pass
+		# 		else:
+		# 			if f.image_file.size > 10000000:
+		# 				context = {'pk':'pk'}
+		# 				return render(self.request,'big_photo_regular.html',context)
+		# 			else:
+		# 				pass
+		# 		image_file, avghash, pk = clean_image_file_with_hash(f.image_file)#, recent_hashes)
+		# 		if isinstance(pk,float):
+		# 			try:
+		# 				photo = Photo.objects.get(id=int(pk))
+		# 				context = {'photo': photo, 'females': FEMALES}
+		# 				return render(self.request, 'duplicate_photo.html', context)
+		# 			except:
+		# 				f.image_file = None
+		# 		else:
+		# 			if image_file:
+		# 				f.image_file = image_file
+		# 			else:
+		# 				f.image_file = None
+		# 	else:
+		# 		f.image_file = None
+		# 	if f.image_file:
+		# 		if self.request.is_feature_phone:
+		# 			device = '1'
+		# 		elif self.request.is_phone:
+		# 			device = '2'
+		# 		elif self.request.is_tablet:
+		# 			device = '4'
+		# 		elif self.request.is_mobile:
+		# 			device = '5'
+		# 		else:
+		# 			device = '3'
+		# 		invisible_score = set_rank()
+		# 		opt = self.request.POST.get("opt")
+		# 		if opt == '7':
+		# 			photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score, category='7')
+		# 		else:# the statement below incurs a cost. Can it be made an asynchronous task?
+		# 			photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
+		# 		insert_hash(photo.id, photo.avg_hash)
+		# 		time = photo.upload_time
+		# 		stream = PhotoStream.objects.create(cover = photo, show_time = time)#
+		# 		add_photo(stream.id)
+		# 		timestring = time.isoformat()
+		# 		if self.request.user_banned:
+		# 			banned = '1'
+		# 		else:
+		# 			banned = '0'
+		# 		photo_upload_tasks.delay(banned, user.id,photo.id, timestring, stream.id, device)
+		# 		bulk_create_notifications.delay(user.id, photo.id, timestring)				
+		# 		photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
+		# 		if opt == '7':
+		# 			return redirect("see_special_photo")
+		# 		else:
+		# 			return redirect("see_photo")
+		# 	else:
+		# 		context = {'photo': 'photo'}
+		# 		return render(self.request, 'big_photo.html', context)
 
 class UploadPhotoView(CreateView):
 	model = Photo

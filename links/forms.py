@@ -3,7 +3,7 @@ import time
 from django.forms import Textarea
 from .redismodules import already_exists
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
-ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain
+ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import PIL
@@ -217,6 +217,13 @@ class CommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2}))
 	class Meta:
 		model = PhotoComment
+		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
+		fields = ("text",)
+
+class VideoCommentForm(forms.ModelForm):
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2}))
+	class Meta:
+		model = VideoComment
 		exclude = ("which_photo", "device", "submitted_by", "submitted_on",)
 		fields = ("text",)
 
@@ -323,6 +330,12 @@ class UploadPhotoForm(forms.ModelForm):
 		model = Photo
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
 		fields = ("image_file","caption",)
+
+class UploadVideoForm(forms.Form):
+	video_file = forms.FileField()
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
+	class Meta:
+		fields = ("video_file", "caption",)
 
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')

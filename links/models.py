@@ -3,235 +3,13 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.core.urlresolvers import reverse
 from django_extensions.db.fields import RandomCharField
-# from django.utils import timezone
-from datetime import datetime#, timedelta
+from datetime import datetime
 from math import log
 from django.core.validators import MaxLengthValidator, MaxValueValidator, URLValidator
-# from django.core.files.uploadedfile import InMemoryUploadedFile
-# import PIL
-# from PIL import Image
 from django.conf import settings
-# from django.core.files.storage import Storage
-# from azure.storage.blob import BlobService
 from imagestorage import OverwriteStorage, upload_to_location, upload_pic_to_location, upload_chatpic_to_location, upload_avatar_to_location, \
 upload_photo_to_location, upload_photocomment_to_location
-
-# accountName = 'damadam'
-# accountKey = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-
-# class OverwriteStorage(Storage):
-# 	container = 'pictures'#settings.AZURE_STORAGE.get('CONTAINER')
-# 	account_name = accountName
-# 	account_key = accountKey
-# 	#cdn_host = settings.AZURE_STORAGE.get('CDN_HOST')
-# 	def __init__(self, account_name=None, account_key=None, container=None):
-
-# 		if account_name is not None:
-# 			self.account_name = account_name
-
-# 		if account_key is not None:
-# 			self.account_key = account_key
-
-# 		if container is not None:
-# 			self.container = container
-# 	def __getstate__(self):
-# 		return dict(
-# 			account_name=self.account_name,
-# 			account_key=self.account_key,
-# 			container=self.container
-# 		)
-# 	def _save(self,name,content):
-# 		blob_service = BlobService(account_name=accountName, account_key=accountKey)
-# 		import mimetypes
-# 		small_content = content
-# 		content.open()
-# 		content_type = None
-# 		if hasattr(content.file, 'content_type'):
-# 			content_type = content.file.content_type
-# 		else:
-# 			content_type = mimetypes.guess_type(name)[0]
-# 		content_str = content.read()
-# 		blob_service.put_blob(
-# 			'pictures',
-# 			name,
-# 			content_str,
-# 			x_ms_blob_type='BlockBlob',
-# 			x_ms_blob_content_type=content_type,
-# 			x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
-# 		)
-# 		content.close()
-# 		if "avatars" in name: #creating and saving thumbnail
-# 			small_image_name = name
-# 			small_image_name = string.replace(small_image_name, "avatars", "thumbnails")
-# 			thumbnail = StringIO.StringIO()
-# 			size = 22, 22
-# 			image = small_content.file		
-# 			image = Image.open(image)
-# 			small_image = image.resize(size, Image.ANTIALIAS)
-# 			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
-# 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
-# 			small_content.file = img
-# 			small_content.open()
-# 			stream = small_content.read()
-# 			blob_service.put_blob(
-# 				'pictures',
-# 				small_image_name,
-# 				stream,
-# 				x_ms_blob_type='BlockBlob',
-# 				x_ms_blob_content_type=content_type,
-# 				x_ms_blob_cache_control ='public, max-age=604800, s-maxage=604800' #cache in the browser and on the edge for 7 days
-# 			)
-# 			small_content.close()
-# 		elif "photos" in name:
-# 			small_image_name = name
-# 			small_image_name = string.replace(small_image_name, "photos", "thumbnails")
-# 			thumbnail = StringIO.StringIO()
-# 			#size = 40, 40
-# 			height = 38
-# 			image = small_content.file		
-# 			image = Image.open(image)
-# 			wpercent = (height/float(image.size[1]))
-# 			bsize = int((float(image.size[0])*float(wpercent)))
-# 			small_image = image.resize((bsize,height), PIL.Image.ANTIALIAS)
-# 			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
-# 			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
-# 			small_content.file = img
-# 			small_content.open()
-# 			stream = small_content.read()
-# 			blob_service.put_blob(
-# 				'pictures',
-# 				small_image_name,
-# 				stream,
-# 				x_ms_blob_type='BlockBlob',
-# 				x_ms_blob_content_type=content_type,
-# 				x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
-# 			)
-# 			small_content.close()
-# 		else: 
-# 			pass
-# 		return name
-# 	def get_available_name(self,name):
-# 		#print "exiting get_available_name"
-# 		return name
-# 	def _get_service(self):
-# 		if not hasattr(self, '_blob_service'):
-# 			self._blob_service = BlobService(
-# 				account_name=self.account_name,
-# 				account_key=self.account_key,
-# 				protocol='http'
-# 			)
-# 		#print "exiting _get_service"    
-# 		return self._blob_service
-# 	def _open(self, name, mode='rb'):
-# 		"""
-# 		Return the AzureStorageFile.
-# 		"""
-# 		from django.core.files.base import ContentFile
-# 		contents = self._get_service().get_blob(self.container, name)
-# 		#print "exiting _open"
-# 		return ContentFile(contents)
-# 	def _get_properties(self, name):
-# 		#print "exiting _get_properties"
-# 		return self._get_service().get_blob_properties(
-# 			self.container,
-# 			name
-# 		)
-# 	def _get_container_url(self):
-# 		if not hasattr(self, '_container_url'):
-# 			base_url = 'http://{host}/{container}'
-# 			#if self.cdn_host:
-# 			#    base_url = self.cdn_host
-# 			self._container_url = base_url.format({
-# 				#'protocol': 'http',
-# 				'host': self._get_service()._get_host(),
-# 				'container': self.container,
-# 			})
-# 		#print "exiting _get_container_url"
-# 		return self._container_url
-# 	def url(self, name):
-# 		"""
-# 		Returns the URL where the contents of the file referenced by name can
-# 		be accessed.
-# 		"""
-# 		url = '%s/%s/%s' % ('//damadam.blob.core.windows.net','pictures', name)
-# 		return url
-
-# def upload_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1]
-# 		filename = "%s.%s" % (uuid.uuid4(), ext)
-# 		instance.title = blocks[0]
-# 		return os.path.join('links/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_pic_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1]
-# 		filename = "%s.%s" % (uuid.uuid4(), ext)
-# 		instance.title = blocks[0]
-# 		return os.path.join('mehfils/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_chatpic_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1]
-# 		filename = "%s.%s" % (uuid.uuid4(), ext)
-# 		instance.title = blocks[0]
-# 		return os.path.join('picschat/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_avatar_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1] #whether jpg or png
-# 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-# 		instance.title = blocks[0]
-# 		return os.path.join('avatars/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_photo_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1] #whether jpg or png
-# 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-# 		instance.title = blocks[0]
-# 		return os.path.join('photos/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_photocomment_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1] #whether jpg or png
-# 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-# 		instance.title = blocks[0]
-# 		return os.path.join('photos/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
-
-# def upload_video_to_location(instance, filename):
-# 	try:
-# 		blocks = filename.split('.') 
-# 		ext = blocks[-1] #whether jpg or png
-# 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-# 		instance.title = blocks[0]
-# 		return os.path.join('videos/', filename)
-# 	except Exception as e:
-# 		print '%s (%s)' % (e.message, type(e))
-# 		return 0
+from videostorage import OverwriteVideoStorage, upload_video_to_location
 
 PHOTOS = (
 ('1','Islam'),
@@ -280,16 +58,16 @@ ORIGINS = (
 ('8','Photovote')
 	)
 
-# REASONS = (
-# ('1','Bad language'),
-# ('2','Hacker'),
-# ('3','Threatening'),
-# ('4','Impersonation'),
-# ('5','Hurtful'),
-# ('6','Liar'),
-# ('7','Temper'),
-# ('8','Ill mannered')
-# 	)
+VIDEOS = (
+('1','Funny'),
+('2','Celebs'),
+('3','Ads'),
+('4','Personal'),
+('5','Religious'),
+('6','Song'),
+('7','Animals'),
+('8','Babies')
+	)
 
 DEVICE = (
 ('1','Feature'),
@@ -337,19 +115,6 @@ REPLIES = (
 ('6','Left'),
 ('7','Unaccepted Invite'),
 	)
-
-'''
-class Privatemsg(models.Model):
-	to_user = models.ForeignKey(User)
-	link = models.ForeignKey(Link)
-	seen = models.BooleanField(default=False)
-
-class Relationship(models.Model):
-	status = models.CharField("Status", choices=STATUS, default=1, max_length=25)
-	userone = models.ForeignKey(User, related_name='relationship_userone')
-	usertwo = models.ForeignKey(User, related_name='relationship_usertwo')
-	initiator = models.ForeignKey(User) #in case follow relationship has to be built
-'''
 
 class LinkVoteCountManager(models.Manager): #this class is derived from model manager
 	pass
@@ -481,23 +246,40 @@ class PhotoComment(models.Model):
 	def __unicode__(self):
 		return u"%s commented on a photo, saying: %s" % (self.submitted_by, self.text)
 
-# class Video(models.Model):
-# 	owner = models.ForeignKey(User)
-# 	thumb_url = models.TextField(validators=[URLValidator()], null=True, default=None)
-# 	video_file = models.FileField(upload_to=upload_video_to_location, storage=OverwriteStorage())
-# 	streaming_url = models.TextField(validators=[URLValidator()], null=True, default=None)
-# 	category = models.CharField(choices=VIDEOS, default='1', max_length=11)
-# 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-# 	is_public = models.BooleanField(default=True) #in case user wants to upload private photos too
-# 	caption = models.CharField("Privacy:", max_length=100, null=True, default=None)
-# 	vote_score = models.IntegerField(default=0) #only counts vote score, for censorship purposes
-# 	visible_score = models.IntegerField(default=0)
-# 	invisible_score = models.FloatField(default=0.0) #for use when time-decay is factored in
-# 	comment_count = models.IntegerField()
-# 	upload_time = models.DateTimeField(auto_now_add=True, db_index=True)
+class Video(models.Model):
+	owner = models.ForeignKey(User)
+	small_thumb = models.TextField(validators=[URLValidator()], null=True, default=None)
+	low_res_thumb = models.TextField(validators=[URLValidator()], null=True, default=None)
+	high_res_thumb = models.TextField(validators=[URLValidator()], null=True, default=None)
+	low_res_video = models.TextField(validators=[URLValidator()], null=True, default=None)
+	high_res_video = models.TextField(validators=[URLValidator()], null=True, default=None) 
+	video_file = models.FileField(upload_to=upload_video_to_location, storage=OverwriteVideoStorage())
+	category = models.CharField(choices=VIDEOS, default='1', max_length=11)
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
+	is_public = models.BooleanField(default=True) #in case user wants to upload private videos too
+	processed = models.BooleanField(default=False) #waiting for video to finish processing
+	caption = models.CharField("Privacy:", max_length=100, null=True, default=None)
+	vote_score = models.IntegerField(default=0) #only counts vote score, for censorship purposes
+	visible_score = models.IntegerField(default=0)
+	invisible_score = models.FloatField(default=0.0) #for use when time-decay is factored in
+	comment_count = models.IntegerField()
+	upload_time = models.DateTimeField(auto_now_add=True, db_index=True)
+	latest_comment = models.ForeignKey('links.VideoComment', blank=True, null=True, on_delete=models.CASCADE, related_name="latest")
+	second_latest_comment = models.ForeignKey('links.VideoComment', blank=True, null=True, on_delete=models.CASCADE, related_name="second_latest")
 	
-# 	def __unicode__(self):
-# 		return u"%s uploaded a video" % self.owner
+	def __unicode__(self):
+		return u"%s uploaded a video" % self.owner
+
+class VideoComment(models.Model):
+	which_video = models.ForeignKey(Video)
+	text = models.TextField(validators=[MaxLengthValidator(250)])
+	device = models.CharField(choices=DEVICE, default='1', max_length=10)
+	submitted_by = models.ForeignKey(User)
+	submitted_on = models.DateTimeField(auto_now_add=True)
+	abuse = models.BooleanField(default=False)
+
+	def __unicode__(self):
+		return u"%s commented on a video, saying: %s" % (self.submitted_by, self.text)
 
 class Group(models.Model):
 	topic = models.TextField("Topic dalo:", validators=[MaxLengthValidator(200)], default='Damadam ki aik karari si mehfil...', null=True)

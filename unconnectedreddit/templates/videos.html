@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% load thumbedge %}
+{% block content %}
+<div class="margin">
+<a href="{% url 'upload_video' %}#section0"><button style="border-color:#0b63c1;background-color:#59A5F5;font-size:90%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:7em;"><b>New Video Charhao</b></button></a>
+<br><br><hr size=1 COLOR="#59A5F5"><br>
+<table>
+
+	{% for vid in object_list %}
+
+	<tr><td>
+	<a name="section{{ forloop.counter }}"></a>
+	<a href="{% url 'profile' vid.owner %}#section0">
+		{% if vid.owner.userprofile.avatar %}
+			<img src="{{ vid.owner.userprofile.avatar.url|thumbedge }}" width="22" height="22" alt="no pic"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		{% endif %}
+	</a>
+	<a href="{% url 'videocomment_pk' vid.id %}" style="font-size:110%;color:#1947D1;">
+	<b style="color:#404040;"><bdi>{% emoticons %}{{ vid.caption }}{% endemoticons %}</bdi></b>
+	<button style="border-color:#0b63c1;background-color:#59A5F5;font-size:85%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;margin-bottom:0.1em;">
+	{% if vid.comment_count > 1 %}
+	<b>{{ vid.comment_count }}</b> tabsrey
+	{% elif vid.comment_count == 1 %}
+	<b>1</b> tabsra
+	{% else %}
+	tabsra kro
+	{% endif %}</button>
+		{% if vid.device == '1' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+		{% elif vid.device == '2' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+		{% elif vid.device == '4' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+		{% elif vid.device == '5' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+		{% elif vid.device == '3' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+		{% else %}
+		{% endif %}
+	</a>
+	<br>
+	    <video width="500" height="350" controls autoplay>
+	    <source src="{{ vid.low_res_video }}" type='video/mp4; codecs="mp4v.20.8, samr"'>
+	    	<a href="{{ vid.low_res_video }}">
+ 				<img src="https://a2ua.com/404/404-005.jpg" title="Your browser does not support the video tag">
+			 </a>
+	    <p style="color:#404040;">Ye browser is video ko nahi chala pa raha {% emoticons %}:({% endemoticons %}</p>
+	    </video>
+	    <br>
+
+	    	<a href="{% url 'videocomment_pk' vid.id %}">
+			{% if vid.latest_comment and vid.second_latest_comment %}
+			<div style="background-color:#e7f2fe;width:100%;max-width:500px;">
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}</span><br>
+			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span><br>
+			</div>
+			{% elif vid.latest_comment %}
+			<div style="background-color:#e7f2fe;width:100%;max-width:500px;">
+			<span style="color:#1947D1;font-size:97%;">
+			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}<br>
+			</span>
+			</div>
+			{% else %}
+			{% endif %}
+			</a>
+
+	    <br>
+	<hr size=1 COLOR="#59A5F5"><br>
+	</td></tr>
+
+	{% endfor %}
+
+</table>
+
+</div>
+
+<script>
+var videos = document.querySelectorAll('video');
+for (var i = 0; i < videos.length; i++) {
+	(function () { // Added this -Bilal
+    var v = videos[i];
+    console.log('index= ' +i);
+    var sources = v.querySelectorAll('source'),
+        lastsource = sources[sources.length-1];
+    lastsource.addEventListener('error', function(ev) {
+        var d = document.createElement('div');
+        d.innerHTML = v.innerHTML;
+        console.log(v);
+        v.parentNode.replaceChild(d, v);
+    }, false);  
+     }()); // Added this -Bilal
+}
+</script>
+
+<br><br>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div><br>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% load thumbnail %}
+{% block content %}
+<div class="margin">
+{% if video %}
+	<a href="{% url 'see_video' %}#section0">
+	{% if video.vote_score < -2 %}
+		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+	{% elif video.vote_score < -1 %}
+		{% if video.small_thumb %}
+            <img src="{{ video.small_thumb }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+        {% else %}
+            <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+        {% endif %}
+	{% else %}
+		{% if video.small_thumb %}
+            <img src="{{ video.small_thumb }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+        {% else %}
+            <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+        {% endif %}
+	{% endif %}
+	</a>
+	<span style="color:#404040;font-size:90%;">{{ video.caption|truncatechars:30 }}</span>
+	<br><span style="color:#a6a6a6;font-size:80%;">video by <a href="{% url 'profile' video.owner %}#section0">{{ video.owner }}</a></span><br>
+
+	<br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#0b63c1;">Tabsra likho:</b>
+	<form action="{% url 'video_comment' %}" method="POST">
+	{% csrf_token %}
+    {{ form.errors }}
+    {{ form.text }}
+    <br>
+    <input class="button" style="border-color:#0b63c1;background-color:#59A5F5;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
+    </form>
+
+    {% if count > 0 %}
+      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#0b63c1;">
+      {% if count > 25 %}
+      Pichley <b>25</b> tabsrey:</span><br>
+      {% elif count == 1 %}
+      <b>1</b> tabsra:</span><br>
+      {% else %}
+      <b>{{ count }}</b> tabsrey:</span><br>
+      {% endif %}
+    {% endif %}
+
+	    <table>
+	    {% for comment in comments %}
+	    <tr><td>
+	    {% if forloop.counter != 1 %}
+	    <hr size=1 COLOR="#59A5F5">
+	    {% endif %}
+
+	     <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+        {% if comment.submitted_by.userprofile.avatar %}
+            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        {% else %}
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+        {% endif %}
+    	{{ comment.submitted_by.username }}</a>
+    	<span style="font-size:70%;">
+            {% if comment.submitted_by.userprofile.score %}
+                {% if comment.submitted_by.userprofile.score < 0 %}
+                    <span style="color:#18A018;">(1)</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                {% endif %}
+            {% endif %}
+        </span>
+        {% for person in verified %}
+            {% if person == comment.submitted_by.username %}
+            <span style="color:deeppink;"><b>*</b></span>
+            {% endif %}
+        {% endfor %}:&nbsp;<bdi style="color:#404040;">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span style="font-size:73%;color:gray;"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+    	
+    	{% if comment.device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif comment.device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif comment.device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif comment.device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif comment.device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}
+    	
+    	</span>
+    	{% endfor %}
+    	</td></tr>
+    	</table>
+{% else %}
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye is terah nahi chalta!</h2>
+{% endif %}
+
+
+</div>
+{% endblock %}

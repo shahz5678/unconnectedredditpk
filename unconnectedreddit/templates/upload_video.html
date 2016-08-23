@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+	<form action="{% url 'upload_video' %}" method="POST" enctype="multipart/form-data">
+	{% csrf_token %}
+	{{ form.video_file.errors }}
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#0b63c1;"><b>Video</b> ka intikhab kro:</span><br>
+	{{ form.video_file }}<br><br>
+	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#0b63c1;">Video pr <b>kuch likho</b>:</span>
+	<br>{{ form.caption }}<br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Likh kr <b>OK</b> dabao</i></span><br>
+	<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border-color:#0b63c1;color:white;border-radius:4px;" type="submit" value="OK" id="id_submit"><br>
+	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Video ki qeemat: <b>5</b> points</i></span>
+	</form>
+
+</div>
+<br><br>
+{% endblock %}

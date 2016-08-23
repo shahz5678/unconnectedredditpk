@@ -44,10 +44,7 @@
         <meta name="author" content="hb">
         <meta name="keywords" content="damadam, chat, friends, boys, girls">
 
-<!-- <FRAMESET border=0 rows="100%,*" frameborder="no" marginleft=0 margintop=0 marginright=0 marginbottom=0>
-<frame src="http://www.damadam.pk" scrolling=auto frameborder="no" border=0 noresize>
-<frame topmargin="0" marginwidth=0 scrolling=no marginheight=0 frameborder="no" border=0 noresize>
-</FRAMESET> -->
+
 
         {% google_analytics %}
 </head>
@@ -107,7 +104,6 @@
     
 {% else %}
     <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
-    
     <a href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>New Account Bnao</b></a> <span style="color:white;">|</span>
     <a href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;">Purana Account Chlao</a>
 {% endif %}</p>

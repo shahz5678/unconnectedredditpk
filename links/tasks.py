@@ -200,8 +200,6 @@ def video_upload_tasks(video_name, video_id, user_id):
 	low_res_video = lst[3]
 	high_res_video = lst[4]
 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, high_res_thumb=high_res_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
-	print low_res_video
-	print high_res_video
 	if video:
 		add_video(video_id)
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)

@@ -1,7 +1,7 @@
 import subprocess
 def uploadvid(video):
 	#print video
-	proc = subprocess.Popen("php vodworkflow_drm_playready_widevine.php videos " \
+	proc = subprocess.Popen("/usr/bin/php vodworkflow_drm_playready_widevine.php videos " \
 		+str(video), shell=True, stdout=subprocess.PIPE, cwd='/home/hassan/Desktop/unconnectedredditpk/links/azurevids/')
 	base_uri = ''
 	acc_comp = ''

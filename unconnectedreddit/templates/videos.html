@@ -45,10 +45,6 @@
 	<br>
 	    <video width="500" height="350" controls autoplay>
 	    <source src="{{ vid.low_res_video }}" type='video/mp4; codecs="mp4v.20.8, samr"'>
-	    	<a href="{{ vid.low_res_video }}">
- 				<img src="https://a2ua.com/404/404-005.jpg" title="Your browser does not support the video tag">
-			 </a>
-	    <p style="color:#404040;">Ye browser is video ko nahi chala pa raha {% emoticons %}:({% endemoticons %}</p>
 	    </video>
 	    <br>
 
@@ -79,23 +75,7 @@
 
 </div>
 
-<script>
-var videos = document.querySelectorAll('video');
-for (var i = 0; i < videos.length; i++) {
-	(function () { // Added this -Bilal
-    var v = videos[i];
-    console.log('index= ' +i);
-    var sources = v.querySelectorAll('source'),
-        lastsource = sources[sources.length-1];
-    lastsource.addEventListener('error', function(ev) {
-        var d = document.createElement('div');
-        d.innerHTML = v.innerHTML;
-        console.log(v);
-        v.parentNode.replaceChild(d, v);
-    }, false);  
-     }()); // Added this -Bilal
-}
-</script>
+
 
 <br><br>
 {% endblock %}

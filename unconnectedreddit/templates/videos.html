@@ -43,9 +43,18 @@
 		{% endif %}
 	</a>
 	<br>
-	    <video width="500" height="350" controls autoplay>
-	    <source src="{{ vid.low_res_video }}" type='video/mp4; codecs="mp4v.20.8, samr"'>
-	    </video>
+
+  <video id="my-video" class="video-js" controls preload="auto" width="500" height="350"
+  poster="{{ vid.low_res_thumb }}" data-setup="{}">
+    <source src="{{ vid.low_res_video }}" type='video/mp4'>
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a web browser that
+      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+  </video>
+
+  <script src="http://vjs.zencdn.net/5.8.8/video.js"></script>
+
 	    <br>
 
 	    	<a href="{% url 'videocomment_pk' vid.id %}">

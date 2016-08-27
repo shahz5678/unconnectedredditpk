@@ -5,11 +5,10 @@ def uploadvid(video):
 		+str(video), shell=True, stdout=subprocess.PIPE, cwd='/home/hassan/Desktop/unconnectedredditpk/links/azurevids/')
 	base_uri = ''
 	acc_comp = ''
+	streaming_url = ''
 	list = ['b_64_000001.jpg',
 	'b_180_000001.jpg',
-	'b_720_000001.jpg',
-	'b_320x180_400.mp4',
-	'b_1280x720_3400.mp4' ]
+	'b_720_000001.jpg' ]
 	while True:
 	  line = proc.stdout.readline()
 	  if line != '':
@@ -18,7 +17,11 @@ def uploadvid(video):
 	    	base_uri = line[10:].rstrip()
 	    if line.startswith('ACC COMP:'):
 	    	acc_comp = line[10:].rstrip()
-	    print line.rstrip()
+	    if line.startswith('Streaming URL:'):
+	    	streaming_url = line[15:].rstrip()
+	    # print line.rstrip()
 	  else:
 	    break
-	return [base_uri +'/'+s+acc_comp for s in list]
+	a = [base_uri +'/'+s+acc_comp  for s in list]
+	a.insert(3,streaming_url)
+	return a

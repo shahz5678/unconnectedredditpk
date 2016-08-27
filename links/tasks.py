@@ -194,17 +194,9 @@ def bulk_create_notifications(user_id, photo_id, timestring):
 @celery_app1.task(name='tasks.video_upload_tasks')
 def video_upload_tasks(video_name, video_id, user_id):
 	lst = uploadvid(video_name)
-	# ['https://damadamvids.blob.core.windows.net/asset-932ba811-bfff-4cc8-a76c-a9b4bd520cb6/b_64_000001.jpg?sv=2012-02-12&sr=c&si=501a7591-f615-4a5d-9f01-8489e1107113&sig=7k%2Bq9TgnfN6Z0tQ55BijakWmJG1fpHBmhx3qYhURbts%3D&st=2016-08-26T16%3A19%3A27Z&se=2016-09-25T16%3A19%3A27Z', 
-	#  'https://damadamvids.blob.core.windows.net/asset-932ba811-bfff-4cc8-a76c-a9b4bd520cb6/b_180_000001.jpg?sv=2012-02-12&sr=c&si=501a7591-f615-4a5d-9f01-8489e1107113&sig=7k%2Bq9TgnfN6Z0tQ55BijakWmJG1fpHBmhx3qYhURbts%3D&st=2016-08-26T16%3A19%3A27Z&se=2016-09-25T16%3A19%3A27Z', 
-	#  'https://damadamvids.blob.core.windows.net/asset-932ba811-bfff-4cc8-a76c-a9b4bd520cb6/b_720_000001.jpg?sv=2012-02-12&sr=c&si=501a7591-f615-4a5d-9f01-8489e1107113&sig=7k%2Bq9TgnfN6Z0tQ55BijakWmJG1fpHBmhx3qYhURbts%3D&st=2016-08-26T16%3A19%3A27Z&se=2016-09-25T16%3A19%3A27Z', 
-	#  'http://damadamvids.streaming.mediaservices.windows.net/c79ba112-b767-4a8a-83ed-371406da44f4/b.ism/manifest']
-	#small_thumb = lst[0]
 	small_thumb = "//"+lst[0].partition('://')[2]
-	#low_res_thumb = lst[1]
 	low_res_thumb = "//"+lst[1].partition('://')[2]
-	#high_res_thumb = lst[2]
 	high_res_thumb = "//"+lst[2].partition('://')[2]
-	#video_manifest = lst[3]
 	video_manifest = "//"+lst[3].partition('://')[2]
 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, high_res_thumb=high_res_thumb, video_manifest=video_manifest, processed=True)
 	if video:

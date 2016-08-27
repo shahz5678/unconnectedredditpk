@@ -44,28 +44,23 @@
 	</a>
 	<br>
 
-  <video id="my-video" class="video-js" controls preload="auto" width="500" height="350"
-  poster="{{ vid.low_res_thumb }}" data-setup="{}">
-    <source src="{{ vid.low_res_video }}" type='video/mp4'>
-    <p class="vjs-no-js">
-      To view this video please enable JavaScript, and consider upgrading to a web browser that
-      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+	<video id="vid{{ forloop.counter }}" class="azuremediaplayer amp-default-skin amp-big-play-centered" autoplay controls width="640" height="400" poster="{{ vid.high_res_thumb }}" data-setup='{"logo": { "enabled": false },"language":"ur","nativeControlsForTouch": false}'>
+    <source src="{{ vid.video_manifest }}" type="application/vnd.ms-sstr+xml" />
+    <p class="amp-no-js">
+        To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
     </p>
-  </video>
+	</video>
 
-  <script src="http://vjs.zencdn.net/5.8.8/video.js"></script>
-
-	    <br>
 
 	    	<a href="{% url 'videocomment_pk' vid.id %}">
 			{% if vid.latest_comment and vid.second_latest_comment %}
-			<div style="background-color:#e7f2fe;width:100%;max-width:500px;">
+			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
 			<span style="color:#1947D1;font-size:97%;">
 			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}</span><br>
 			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span><br>
 			</div>
 			{% elif vid.latest_comment %}
-			<div style="background-color:#e7f2fe;width:100%;max-width:500px;">
+			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
 			<span style="color:#1947D1;font-size:97%;">
 			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}<br>
 			</span>

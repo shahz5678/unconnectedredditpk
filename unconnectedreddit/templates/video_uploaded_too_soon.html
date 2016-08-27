@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Tum ne abhi toh video charhai hai! <b style="color:#0b63c1;">{{ time_remaining }}</b> ke bad dobara charhana {% emoticons %}:){% endemoticons %}</h2>
+<a href="{% url 'see_video' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border:solid 1px #0b63c1;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;">wapis</button></a>
+</div>
+<br><br><br>
+{% endblock %}

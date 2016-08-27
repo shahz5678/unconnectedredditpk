@@ -332,116 +332,116 @@ function createCommonTypeContentKey($restProxy, $encodedAsset) {
     return $contentKey;
 }
 
-function addOpenAuthorizationPolicy($restProxy, $contentKey) {
-    // 4.1 Create ContentKeyAuthorizationPolicyRestriction (Open)
-    $restriction = new ContentKeyAuthorizationPolicyRestriction();
-    $restriction->setName('ContentKey Authorization Policy Restriction');
-    $restriction->setKeyRestrictionType(ContentKeyRestrictionType::OPEN);
+// function addOpenAuthorizationPolicy($restProxy, $contentKey) {
+//     // 4.1 Create ContentKeyAuthorizationPolicyRestriction (Open)
+//     $restriction = new ContentKeyAuthorizationPolicyRestriction();
+//     $restriction->setName('ContentKey Authorization Policy Restriction');
+//     $restriction->setKeyRestrictionType(ContentKeyRestrictionType::OPEN);
 
-    // 4.2 Configure PlayReady and Widevine license templates.
-    $playReadyLicenseTemplate = configurePlayReadyLicenseTemplate();
-    $widevineLicenseTemplate = configureWidevineLicenseTemplate();
+//     // 4.2 Configure PlayReady and Widevine license templates.
+//     $playReadyLicenseTemplate = configurePlayReadyLicenseTemplate();
+//     $widevineLicenseTemplate = configureWidevineLicenseTemplate();
 
-    // 4.3 Create ContentKeyAuthorizationPolicyOption (PlayReady)
-    $playReadyOption = new ContentKeyAuthorizationPolicyOption();
-    $playReadyOption->setName('PlayReady Authorization Policy Option');
-    $playReadyOption->setKeyDeliveryType(ContentKeyDeliveryType::PLAYREADY_LICENSE);
-    $playReadyOption->setRestrictions(array($restriction));
-    $playReadyOption->setKeyDeliveryConfiguration($playReadyLicenseTemplate);
-    $playReadyOption = $restProxy->createContentKeyAuthorizationPolicyOption($playReadyOption);
+//     // 4.3 Create ContentKeyAuthorizationPolicyOption (PlayReady)
+//     $playReadyOption = new ContentKeyAuthorizationPolicyOption();
+//     $playReadyOption->setName('PlayReady Authorization Policy Option');
+//     $playReadyOption->setKeyDeliveryType(ContentKeyDeliveryType::PLAYREADY_LICENSE);
+//     $playReadyOption->setRestrictions(array($restriction));
+//     $playReadyOption->setKeyDeliveryConfiguration($playReadyLicenseTemplate);
+//     $playReadyOption = $restProxy->createContentKeyAuthorizationPolicyOption($playReadyOption);
 
-    // 4.4 Create ContentKeyAuthorizationPolicyOption (Widevine)
-    $widevineOption = new ContentKeyAuthorizationPolicyOption();
-    $widevineOption->setName('Widevine Authorization Policy Option');
-    $widevineOption->setKeyDeliveryType(ContentKeyDeliveryType::WIDEVINE);
-    $widevineOption->setRestrictions(array($restriction));
-    $widevineOption->setKeyDeliveryConfiguration($widevineLicenseTemplate);
-    $widevineOption = $restProxy->createContentKeyAuthorizationPolicyOption($widevineOption);
+//     // 4.4 Create ContentKeyAuthorizationPolicyOption (Widevine)
+//     $widevineOption = new ContentKeyAuthorizationPolicyOption();
+//     $widevineOption->setName('Widevine Authorization Policy Option');
+//     $widevineOption->setKeyDeliveryType(ContentKeyDeliveryType::WIDEVINE);
+//     $widevineOption->setRestrictions(array($restriction));
+//     $widevineOption->setKeyDeliveryConfiguration($widevineLicenseTemplate);
+//     $widevineOption = $restProxy->createContentKeyAuthorizationPolicyOption($widevineOption);
 
-    // 4.5 Create ContentKeyAuthorizationPolicy
-    $ckapolicy = new ContentKeyAuthorizationPolicy();
-    $ckapolicy->setName('ContentKey Authorization Policy');
-    $ckapolicy = $restProxy->createContentKeyAuthorizationPolicy($ckapolicy);
+//     // 4.5 Create ContentKeyAuthorizationPolicy
+//     $ckapolicy = new ContentKeyAuthorizationPolicy();
+//     $ckapolicy->setName('ContentKey Authorization Policy');
+//     $ckapolicy = $restProxy->createContentKeyAuthorizationPolicy($ckapolicy);
 
-    // 4.6 Link the ContentKeyAuthorizationPolicyOption to the ContentKeyAuthorizationPolicy
-    $restProxy->linkOptionToContentKeyAuthorizationPolicy($playReadyOption, $ckapolicy);
-    $restProxy->linkOptionToContentKeyAuthorizationPolicy($widevineOption, $ckapolicy);
+//     // 4.6 Link the ContentKeyAuthorizationPolicyOption to the ContentKeyAuthorizationPolicy
+//     $restProxy->linkOptionToContentKeyAuthorizationPolicy($playReadyOption, $ckapolicy);
+//     $restProxy->linkOptionToContentKeyAuthorizationPolicy($widevineOption, $ckapolicy);
 
-    // 4.7 Associate the ContentKeyAuthorizationPolicy with the ContentKey
-    $contentKey->setAuthorizationPolicyId($ckapolicy->getId());
-    $restProxy->updateContentKey($contentKey);
+//     // 4.7 Associate the ContentKeyAuthorizationPolicy with the ContentKey
+//     $contentKey->setAuthorizationPolicyId($ckapolicy->getId());
+//     $restProxy->updateContentKey($contentKey);
 
-    print "Added Content Key Authorization Policy: name={$ckapolicy->getName()} id={$ckapolicy->getId()}\r\n";
-}
+//     print "Added Content Key Authorization Policy: name={$ckapolicy->getName()} id={$ckapolicy->getId()}\r\n";
+// }
 
-function addTokenRestrictedAuthorizationPolicy($restProxy, $contentKey, $tokenType) {
-    // 4.1 Create ContentKeyAuthorizationPolicyRestriction (Token Restricted)
-    $tokenRestriction = generateTokenRequirements($tokenType);
-    $restriction = new ContentKeyAuthorizationPolicyRestriction();
-    $restriction->setName('ContentKey Authorization Policy Restriction');
-    $restriction->setKeyRestrictionType(ContentKeyRestrictionType::TOKEN_RESTRICTED);
-    $restriction->setRequirements($tokenRestriction);
+// function addTokenRestrictedAuthorizationPolicy($restProxy, $contentKey, $tokenType) {
+//     // 4.1 Create ContentKeyAuthorizationPolicyRestriction (Token Restricted)
+//     $tokenRestriction = generateTokenRequirements($tokenType);
+//     $restriction = new ContentKeyAuthorizationPolicyRestriction();
+//     $restriction->setName('ContentKey Authorization Policy Restriction');
+//     $restriction->setKeyRestrictionType(ContentKeyRestrictionType::TOKEN_RESTRICTED);
+//     $restriction->setRequirements($tokenRestriction);
 
-    // 4.2 Configure PlayReady and Widevine license templates.
-    $playReadyLicenseTemplate = configurePlayReadyLicenseTemplate();
-    $widevineLicenseTemplate = configureWidevineLicenseTemplate();
+//     // 4.2 Configure PlayReady and Widevine license templates.
+//     $playReadyLicenseTemplate = configurePlayReadyLicenseTemplate();
+//     $widevineLicenseTemplate = configureWidevineLicenseTemplate();
 
-    // 4.3 Create ContentKeyAuthorizationPolicyOption (PlayReady)
-    $playReadyOption = new ContentKeyAuthorizationPolicyOption();
-    $playReadyOption->setName('PlayReady Authorization Policy Option');
-    $playReadyOption->setKeyDeliveryType(ContentKeyDeliveryType::PLAYREADY_LICENSE);
-    $playReadyOption->setRestrictions(array($restriction));
-    $playReadyOption->setKeyDeliveryConfiguration($playReadyLicenseTemplate);
-    $playReadyOption = $restProxy->createContentKeyAuthorizationPolicyOption($playReadyOption);
+//     // 4.3 Create ContentKeyAuthorizationPolicyOption (PlayReady)
+//     $playReadyOption = new ContentKeyAuthorizationPolicyOption();
+//     $playReadyOption->setName('PlayReady Authorization Policy Option');
+//     $playReadyOption->setKeyDeliveryType(ContentKeyDeliveryType::PLAYREADY_LICENSE);
+//     $playReadyOption->setRestrictions(array($restriction));
+//     $playReadyOption->setKeyDeliveryConfiguration($playReadyLicenseTemplate);
+//     $playReadyOption = $restProxy->createContentKeyAuthorizationPolicyOption($playReadyOption);
 
-    // 4.4 Create ContentKeyAuthorizationPolicyOption (Widevine)
-    $widevineOption = new ContentKeyAuthorizationPolicyOption();
-    $widevineOption->setName('Widevine Authorization Policy Option');
-    $widevineOption->setKeyDeliveryType(ContentKeyDeliveryType::WIDEVINE);
-    $widevineOption->setRestrictions(array($restriction));
-    $widevineOption->setKeyDeliveryConfiguration($widevineLicenseTemplate);
-    $widevineOption = $restProxy->createContentKeyAuthorizationPolicyOption($widevineOption);
+//     // 4.4 Create ContentKeyAuthorizationPolicyOption (Widevine)
+//     $widevineOption = new ContentKeyAuthorizationPolicyOption();
+//     $widevineOption->setName('Widevine Authorization Policy Option');
+//     $widevineOption->setKeyDeliveryType(ContentKeyDeliveryType::WIDEVINE);
+//     $widevineOption->setRestrictions(array($restriction));
+//     $widevineOption->setKeyDeliveryConfiguration($widevineLicenseTemplate);
+//     $widevineOption = $restProxy->createContentKeyAuthorizationPolicyOption($widevineOption);
 
-    // 4.5 Create ContentKeyAuthorizationPolicy
-    $ckapolicy = new ContentKeyAuthorizationPolicy();
-    $ckapolicy->setName('ContentKey Authorization Policy');
-    $ckapolicy = $restProxy->createContentKeyAuthorizationPolicy($ckapolicy);
+//     // 4.5 Create ContentKeyAuthorizationPolicy
+//     $ckapolicy = new ContentKeyAuthorizationPolicy();
+//     $ckapolicy->setName('ContentKey Authorization Policy');
+//     $ckapolicy = $restProxy->createContentKeyAuthorizationPolicy($ckapolicy);
 
-    // 4.6 Link the ContentKeyAuthorizationPolicyOption to the ContentKeyAuthorizationPolicy
-    $restProxy->linkOptionToContentKeyAuthorizationPolicy($playReadyOption, $ckapolicy);
-    $restProxy->linkOptionToContentKeyAuthorizationPolicy($widevineOption, $ckapolicy);
+//     // 4.6 Link the ContentKeyAuthorizationPolicyOption to the ContentKeyAuthorizationPolicy
+//     $restProxy->linkOptionToContentKeyAuthorizationPolicy($playReadyOption, $ckapolicy);
+//     $restProxy->linkOptionToContentKeyAuthorizationPolicy($widevineOption, $ckapolicy);
 
-    // 4.7 Associate the ContentKeyAuthorizationPolicy with the ContentKey
-    $contentKey->setAuthorizationPolicyId($ckapolicy->getId());
-    $restProxy->updateContentKey($contentKey);
+//     // 4.7 Associate the ContentKeyAuthorizationPolicy with the ContentKey
+//     $contentKey->setAuthorizationPolicyId($ckapolicy->getId());
+//     $restProxy->updateContentKey($contentKey);
 
-    print "Added Content Key Authorization Policy: name={$ckapolicy->getName()} id={$ckapolicy->getId()}\r\n";
-    return $tokenRestriction;
-}
+//     print "Added Content Key Authorization Policy: name={$ckapolicy->getName()} id={$ckapolicy->getId()}\r\n";
+//     return $tokenRestriction;
+// }
 
-function createAssetDeliveryPolicy($restProxy, $encodedAsset, $contentKey) {
-    // 5.1 Get the acquisition URL
-    $acquisitionUrl = $restProxy->getKeyDeliveryUrl($contentKey, ContentKeyDeliveryType::PLAYREADY_LICENSE);
-    $widevineURl = $restProxy->getKeyDeliveryUrl($contentKey, ContentKeyDeliveryType::WIDEVINE);
+// function createAssetDeliveryPolicy($restProxy, $encodedAsset, $contentKey) {
+//     // 5.1 Get the acquisition URL
+//     $acquisitionUrl = $restProxy->getKeyDeliveryUrl($contentKey, ContentKeyDeliveryType::PLAYREADY_LICENSE);
+//     $widevineURl = $restProxy->getKeyDeliveryUrl($contentKey, ContentKeyDeliveryType::WIDEVINE);
 
-    // 5.2 Generate the AssetDeliveryPolicy Configuration Key
-    $configuration = array(AssetDeliveryPolicyConfigurationKey::PLAYREADY_LICENSE_ACQUISITION_URL => $acquisitionUrl, AssetDeliveryPolicyConfigurationKey::WIDEVINE_LICENSE_ACQUISITION_URL => $widevineURl);  
-    $confJson = AssetDeliveryPolicyConfigurationKey::stringifyAssetDeliveryPolicyConfiguartionKey($configuration);
+//     // 5.2 Generate the AssetDeliveryPolicy Configuration Key
+//     $configuration = array(AssetDeliveryPolicyConfigurationKey::PLAYREADY_LICENSE_ACQUISITION_URL => $acquisitionUrl, AssetDeliveryPolicyConfigurationKey::WIDEVINE_LICENSE_ACQUISITION_URL => $widevineURl);  
+//     $confJson = AssetDeliveryPolicyConfigurationKey::stringifyAssetDeliveryPolicyConfiguartionKey($configuration);
 
-    // 5.3 Create the AssetDeliveryPolicy
-    $adpolicy = new AssetDeliveryPolicy();
-    $adpolicy->setName('Asset Delivery Policy');
-    $adpolicy->setAssetDeliveryProtocol(AssetDeliveryProtocol::DASH);
-    $adpolicy->setAssetDeliveryPolicyType(AssetDeliveryPolicyType::DYNAMIC_COMMON_ENCRYPTION);
-    $adpolicy->setAssetDeliveryConfiguration($confJson);
+//     // 5.3 Create the AssetDeliveryPolicy
+//     $adpolicy = new AssetDeliveryPolicy();
+//     $adpolicy->setName('Asset Delivery Policy');
+//     $adpolicy->setAssetDeliveryProtocol(AssetDeliveryProtocol::DASH);
+//     $adpolicy->setAssetDeliveryPolicyType(AssetDeliveryPolicyType::DYNAMIC_COMMON_ENCRYPTION);
+//     $adpolicy->setAssetDeliveryConfiguration($confJson);
 
-    $adpolicy = $restProxy->createAssetDeliveryPolicy($adpolicy);
+//     $adpolicy = $restProxy->createAssetDeliveryPolicy($adpolicy);
 
-    // 5.4 Link the AssetDeliveryPolicy to the Asset
-    $restProxy->linkDeliveryPolicyToAsset($encodedAsset, $adpolicy->getId());
+//     // 5.4 Link the AssetDeliveryPolicy to the Asset
+//     $restProxy->linkDeliveryPolicyToAsset($encodedAsset, $adpolicy->getId());
 
-    print "Added Asset Delivery Policy: name={$adpolicy->getName()} id={$adpolicy->getId()}\r\n";
-}
+//     print "Added Asset Delivery Policy: name={$adpolicy->getName()} id={$adpolicy->getId()}\r\n";
+// }
 
 function publishEncodedAsset($restProxy, $encodedAsset) {
     // 6.1 Get the .ISM AssetFile
@@ -486,91 +486,91 @@ function publishEncodedAsset($restProxy, $encodedAsset) {
     print "Streaming URL: {$stremingUrl}\r\n";
 }
 
-function configurePlayReadyLicenseTemplate() {
-    // The following code configures PlayReady License Template using PHP classes
-    // and returns the XML string.
+// function configurePlayReadyLicenseTemplate() {
+//     // The following code configures PlayReady License Template using PHP classes
+//     // and returns the XML string.
 
-    //The PlayReadyLicenseResponseTemplate class represents the template for the response sent back to the end user.
-    //It contains a field for a custom data string between the license server and the application
-    //(may be useful for custom app logic) as well as a list of one or more license templates.
-    $responseTemplate = new PlayReadyLicenseResponseTemplate();
+//     //The PlayReadyLicenseResponseTemplate class represents the template for the response sent back to the end user.
+//     //It contains a field for a custom data string between the license server and the application
+//     //(may be useful for custom app logic) as well as a list of one or more license templates.
+//     $responseTemplate = new PlayReadyLicenseResponseTemplate();
 
-    // The PlayReadyLicenseTemplate class represents a license template for creating PlayReady licenses
-    // to be returned to the end users.
-    //It contains the data on the content key in the license and any rights or restrictions to be
-    //enforced by the PlayReady DRM runtime when using the content key.
-    $licenseTemplate = new PlayReadyLicenseTemplate();
+//     // The PlayReadyLicenseTemplate class represents a license template for creating PlayReady licenses
+//     // to be returned to the end users.
+//     //It contains the data on the content key in the license and any rights or restrictions to be
+//     //enforced by the PlayReady DRM runtime when using the content key.
+//     $licenseTemplate = new PlayReadyLicenseTemplate();
 
-    //Configure whether the license is persistent (saved in persistent storage on the client)
-    //or non-persistent (only held in memory while the player is using the license).
-    $licenseTemplate->setLicenseType(PlayReadyLicenseType::NON_PERSISTENT);
+//     //Configure whether the license is persistent (saved in persistent storage on the client)
+//     //or non-persistent (only held in memory while the player is using the license).
+//     $licenseTemplate->setLicenseType(PlayReadyLicenseType::NON_PERSISTENT);
 
-    // AllowTestDevices controls whether test devices can use the license or not.
-    // If true, the MinimumSecurityLevel property of the license
-    // is set to 150.  If false (the default), the MinimumSecurityLevel property of the license is set to 2000.
-    $licenseTemplate->setAllowTestDevices(true);
+//     // AllowTestDevices controls whether test devices can use the license or not.
+//     // If true, the MinimumSecurityLevel property of the license
+//     // is set to 150.  If false (the default), the MinimumSecurityLevel property of the license is set to 2000.
+//     $licenseTemplate->setAllowTestDevices(true);
 
-    // You can also configure the Play Right in the PlayReady license by using the PlayReadyPlayRight class.
-    // It grants the user the ability to playback the content subject to the zero or more restrictions
-    // configured in the license and on the PlayRight itself (for playback specific policy).
-    // Much of the policy on the PlayRight has to do with output restrictions
-    // which control the types of outputs that the content can be played over and
-    // any restrictions that must be put in place when using a given output.
-    // For example, if the DigitalVideoOnlyContentRestriction is enabled,
-    //then the DRM runtime will only allow the video to be displayed over digital outputs
-    //(analog video outputs won�t be allowed to pass the content).
+//     // You can also configure the Play Right in the PlayReady license by using the PlayReadyPlayRight class.
+//     // It grants the user the ability to playback the content subject to the zero or more restrictions
+//     // configured in the license and on the PlayRight itself (for playback specific policy).
+//     // Much of the policy on the PlayRight has to do with output restrictions
+//     // which control the types of outputs that the content can be played over and
+//     // any restrictions that must be put in place when using a given output.
+//     // For example, if the DigitalVideoOnlyContentRestriction is enabled,
+//     //then the DRM runtime will only allow the video to be displayed over digital outputs
+//     //(analog video outputs won�t be allowed to pass the content).
 
-    //IMPORTANT: These types of restrictions can be very powerful but can also affect the consumer experience.
-    // If the output protections are configured too restrictive,
-    // the content might be unplayable on some clients. For more information, see the PlayReady Compliance Rules document.
+//     //IMPORTANT: These types of restrictions can be very powerful but can also affect the consumer experience.
+//     // If the output protections are configured too restrictive,
+//     // the content might be unplayable on some clients. For more information, see the PlayReady Compliance Rules document.
 
-    // For example:
-    //$licenseTemplate->getPlayRight()->setAgcAndColorStripeRestriction(new AgcAndColorStripeRestriction(1));
+//     // For example:
+//     //$licenseTemplate->getPlayRight()->setAgcAndColorStripeRestriction(new AgcAndColorStripeRestriction(1));
 
-    $responseTemplate->setLicenseTemplates(array($licenseTemplate));
+//     $responseTemplate->setLicenseTemplates(array($licenseTemplate));
 
-    return MediaServicesLicenseTemplateSerializer::serialize($responseTemplate);
-}
+//     return MediaServicesLicenseTemplateSerializer::serialize($responseTemplate);
+// }
 
-function configureWidevineLicenseTemplate() {
-    $template = new WidevineMessage();
-    $template->allowed_track_types = AllowedTrackTypes::SD_HD;
-    $contentKeySpecs = new ContentKeySpecs();
-    $contentKeySpecs->required_output_protection = new RequiredOutputProtection();
-    $contentKeySpecs->required_output_protection->hdcp = Hdcp::HDCP_NONE;
-    $contentKeySpecs->security_level = 1;
-    $contentKeySpecs->track_type = "SD";
-    $template->content_key_specs = array($contentKeySpecs);
-    $policyOverrides  = new \stdClass();
-    $policyOverrides->can_play = true;
-    $policyOverrides->can_persist = true;
-    $policyOverrides->can_renew = false;
-    $template->policy_overrides = $policyOverrides;
+// function configureWidevineLicenseTemplate() {
+//     $template = new WidevineMessage();
+//     $template->allowed_track_types = AllowedTrackTypes::SD_HD;
+//     $contentKeySpecs = new ContentKeySpecs();
+//     $contentKeySpecs->required_output_protection = new RequiredOutputProtection();
+//     $contentKeySpecs->required_output_protection->hdcp = Hdcp::HDCP_NONE;
+//     $contentKeySpecs->security_level = 1;
+//     $contentKeySpecs->track_type = "SD";
+//     $template->content_key_specs = array($contentKeySpecs);
+//     $policyOverrides  = new \stdClass();
+//     $policyOverrides->can_play = true;
+//     $policyOverrides->can_persist = true;
+//     $policyOverrides->can_renew = false;
+//     $template->policy_overrides = $policyOverrides;
 
-    return WidevineMessageSerializer::serialize($template);
-}
+//     return WidevineMessageSerializer::serialize($template);
+// }
 
-function generateTokenRequirements($tokenType) {
-    $template = new TokenRestrictionTemplate($tokenType);
+// function generateTokenRequirements($tokenType) {
+//     $template = new TokenRestrictionTemplate($tokenType);
 
-    $template->setPrimaryVerificationKey(new SymmetricVerificationKey());
-    $template->setAudience("urn:contoso");
-    $template->setIssuer("https://sts.contoso.com");
-    $claims = array();
-    $claims[] = new TokenClaim(TokenClaim::CONTENT_KEY_ID_CLAIM_TYPE);
-    $template->setRequiredClaims($claims);
+//     $template->setPrimaryVerificationKey(new SymmetricVerificationKey());
+//     $template->setAudience("urn:contoso");
+//     $template->setIssuer("https://sts.contoso.com");
+//     $claims = array();
+//     $claims[] = new TokenClaim(TokenClaim::CONTENT_KEY_ID_CLAIM_TYPE);
+//     $template->setRequiredClaims($claims);
 
-    return TokenRestrictionTemplateSerializer::serialize($template);
-}
+//     return TokenRestrictionTemplateSerializer::serialize($template);
+// }
 
-function generateTestToken($tokenTemplateString, $contentKey) {
-    $template = TokenRestrictionTemplateSerializer::deserialize($tokenTemplateString);
-    $contentKeyUUID = substr($contentKey->getId(), strlen("nb:kid:UUID:"));
-    $expiration = strtotime("+12 hour");
-    $token = TokenRestrictionTemplateSerializer::generateTestToken($template, null, $contentKeyUUID, $expiration);
+// function generateTestToken($tokenTemplateString, $contentKey) {
+//     $template = TokenRestrictionTemplateSerializer::deserialize($tokenTemplateString);
+//     $contentKeyUUID = substr($contentKey->getId(), strlen("nb:kid:UUID:"));
+//     $expiration = strtotime("+12 hour");
+//     $token = TokenRestrictionTemplateSerializer::generateTestToken($template, null, $contentKeyUUID, $expiration);
 
-    print "Token Type {$template->getTokenType()}\r\nBearer={$token}\r\n";
-}
+//     print "Token Type {$template->getTokenType()}\r\nBearer={$token}\r\n";
+// }
 
 function endsWith($haystack, $needle) {
     $length = strlen($needle);

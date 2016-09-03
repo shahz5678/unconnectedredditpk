@@ -137,6 +137,10 @@ print 'y';
       $restProxy->deleteLocator($sasLocator);
     $restProxy->deleteAccessPolicy($accessPolicy);
 
+
+// ALL TIS CODE WAS TO DOWNLOAD THE COPIED FILE, AND THEN GET ITS DIMENSION. 
+//  2 sept 2016
+
 // // 1.3. create an Access Policy with Write permissions
 // $accessPolicy = new AccessPolicy('dwnldAccessPolicy');
 // $accessPolicy->setDurationInMinutes(60 * 24 * 30);
@@ -150,8 +154,55 @@ print 'y';
 
 
 
-// $url = $sasLocator->getBaseUri() . '/bilal.mp4' . $sasLocator->getContentAccessComponent();
+// $url = $sasLocator->getBaseUri() . '/b.mp4' . $sasLocator->getContentAccessComponent();
+// print "fuck yeah";
 // print $url;
+// $remotefilename = $url;
+
+// if ($fp_remote = fopen($remotefilename, 'r')) {
+//     echo 'conn opened'; 
+//     $localtempfilename = tempnam('/home/xerox/abc', 'whateva').'.mp4';
+//     if ($fp_local = fopen($localtempfilename, 'wb')) {
+//         $fileOk = false;
+//         $count = 0;
+//         $countExpiry = 8;
+//         while ($buffer = fread($fp_remote, 8192)) {
+//             $count++;
+//             fwrite($fp_local, $buffer);
+//             if ($count >= $countExpiry) {
+//                 fflush($fp_local);
+//                 $getID3 = new getID3;
+//                 $ThisFileInfo = $getID3->analyze($localtempfilename);
+//                 if ($ThisFileInfo["error"]){
+//                     print "problem encouterd";
+//                     $countExpiry += 1000;
+//                 } else {
+//                     $fileOk = true;
+//                  break;}
+//             }
+//         }
+//         fclose($fp_local);
+        
+//         $getID3 = new getID3;
+//         // copy ( $localtempfilename, $localtempfilename.'_copied.mp4' );
+//             if (!$fileOk) {
+//                 // symlink( $localtempfilename, $localtempfilename.'_copied.mp4' );
+//                 clearstatcache();
+//                 $ThisFileInfo = $getID3->analyze($localtempfilename);
+//             }
+//         // Delete temporary file
+//         unlink($localtempfilename);
+//         fclose($fp_remote);
+//         // var_dump($ThisFileInfo);
+//     }
+    
+// }
+// $height = $ThisFileInfo['video']['resolution_y'];
+
+// print 'height ';
+
+// print $height;
+
 // $filename = tempnam('/tmp','getid3');
 // if (file_put_contents($filename, file_get_contents($url, false, null, 0, 300000))) {
 //     $file = $getID3->analyze($filename);
@@ -255,15 +306,15 @@ function encodeToAdaptiveBitrateMP4Set($restProxy, $asset) {
 
     $task = new Task($taskBody, $mediaProcessor->getId(), TaskOptions::NONE);
     // if ($height > 720)
-    //  $task->setConfiguration(file_get_contents('1080.xml'));
+    //  $task->setConfiguration(file_get_contents('phptests/1080_custom.xml'));
     // elseif ($height > 540)
-    //  $task->setConfiguration(file_get_contents('720.xml'));
+    //  $task->setConfiguration(file_get_contents('phptests/720_custom.xml'));
     // elseif ($height > 360)
-    //  $task->setConfiguration(file_get_contents('540.xml'));
+    //  $task->setConfiguration(file_get_contents('phptests/540_custom.xml'));
     // elseif ($height > 180)
-    //  $task->setConfiguration(file_get_contents('360.xml'));
+    //  $task->setConfiguration(file_get_contents('phptests/360_custom.xml'));
     // else
-        $task->setConfiguration(file_get_contents('custom.xml'));
+        $task->setConfiguration(file_get_contents('360_custom.xml'));
    
 
 
@@ -481,9 +532,10 @@ function publishEncodedAsset($restProxy, $encodedAsset) {
     $locator = $restProxy->createLocator($locator);
 
     // 6.4 Create a Smooth Streaming base URL
-    $stremingUrl = $locator->getPath() . $manifestFile->getName() . "/manifest";
+    //  dont need streaming url as of 2 september 2016.
+    // $stremingUrl = $locator->getPath() . $manifestFile->getName() . "/manifest";
 
-    print "Streaming URL: {$stremingUrl}\r\n";
+    // print "Streaming URL: {$stremingUrl}\r\n";
 }
 
 // function configurePlayReadyLicenseTemplate() {

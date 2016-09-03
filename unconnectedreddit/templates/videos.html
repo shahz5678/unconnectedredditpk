@@ -45,11 +45,12 @@
 	<br>
 
 		<video poster="{{ vid.low_res_thumb }}" controls>
-        <source src="{{ vid.low_res_video }}" type="video/mp4" onerror="errorHandler(error)">
+        
+        	<source onerror="errorHandler(error)" src="{{ vid.low_res_video }}" type="video/mp4">
             <a href="{{ vid.low_res_video }}">
                 <img src="{{ vid.low_res_thumb }}" title="Is video ko download kro">
              <br><b>Download</b>
-             </a>
+            </a>
         </video>
 
 
@@ -71,12 +72,12 @@
 			</a>
 	    <br>
 	    	<a href="{% url 'video_izzat' vid.id %}">
-	    	{% if vid.vote_score > 1 %}
-			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.vote_score }}</b>&nbsp;points</button>
-			{% elif vid.vote_score == 1 %}
+	    	{% if vid.visible_score > 1 %}
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
+			{% elif vid.visible_score == 1 %}
 			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>1</b>&nbsp;point</button>
 			{% else %}
-			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.vote_score }}</b>&nbsp;points</button>
+			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
 			{% endif %}
 			<br>
 			</a>
@@ -99,7 +100,7 @@
                 var d = document.createElement('div');
                 d.innerHTML = v.innerHTML;
                 // console.log("hello")
-                console.log(d.innerHTML);
+                //console.log(d.innerHTML);
                 v.parentNode.replaceChild(d, v);
             }, false);
         }());

@@ -428,6 +428,10 @@ class ChainPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
 
+class VideoScoreForm(forms.Form):
+	class Meta:
+		pass
+
 class PhotoScoreForm(forms.Form):
 	class Meta:
 		pass

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<a href="{% url 'see_photo_pk' key %}">
+{% if video.vote_score < -2 %}
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+{% elif video.vote_score < -1 %}
+    {% if video.small_thumb %}
+        <img src="{{ photo.small_thumb }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+    {% else %}
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    {% endif %}
+{% else %}
+	{% if video.small_thumb %}
+    	<img src="{{ video.small_thumb }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    {% else %}
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    {% endif %}
+{% endif %}</a>
+<span style="color:#a6a6a6;font-size:90%;">{{ video.caption|truncatechars:30 }}</span>
+<br><br>
+{% if content %}
+{% for voter,vote in votes %}
+	<b style="color:#bfbfbf;">.</b>
+	{% if vote == 1 %}
+		<a href="{% url 'profile' voter.username %}"><b>{{ voter }}</b>			
+		    {% for person in girls %}
+		    {% if person == voter.username %}
+		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		</a><span style="color:green;font-size:90%;">{% emoticons %} ko ye video <b>barri zabrdast</b> lagi :d{% endemoticons %}</span>
+	{% elif vote == 0 %}
+		<a href="{% url 'profile' voter.username %}"><b>{{ voter }}</b>
+		    {% for person in girls %}
+		    {% if person == voter.username %}
+		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
+		    {% endif %}
+		    {% endfor %}
+		</a><span style="color:red;font-size:90%;">{% emoticons %} ko ye video <b>shadeed bekaar</b> lagi :@{% endemoticons %}</span>
+	{% else %}
+	{% endif %}
+	<br>
+{% endfor %}
+{% else %}
+{% if authenticated %}
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is video ko kisi ne <b style="color:#2DB92D;">zabrdast</b> ya <b style="color:#FF1A1A;">bekaar</b> kehney ke qabil nahi samjha</span><br>
+	{% if visible_score > 0 %}
+	<span style="color:grey; font-size:95%;"><i>iske tamam points tabsroon se aye hain</i></span><br>
+	{% endif %}
+{% else %}
+<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;font-size:100%;">Is video pe voting nahi hui</span><br>
+{% endif %}
+{% endif %}
+<a href="{% url 'see_video' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border:solid 1px #0b63c1;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;">wapis</button></a></span><br>
+
+</div>
+{% endblock %}

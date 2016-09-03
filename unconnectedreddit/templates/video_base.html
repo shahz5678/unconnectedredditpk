@@ -1,0 +1,154 @@
+
+{% load google_analytics %}
+<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"> -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <!-- ****** faviconit.com favicons ****** -->
+    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
+    <link rel="icon" sizes="16x16 32x32 64x64" href="{{ STATIC_URL }}img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="196x196" href="{{ STATIC_URL }}img/favicon-192.png">
+    <link rel="icon" type="image/png" sizes="160x160" href="{{ STATIC_URL }}img/favicon-160.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ STATIC_URL }}img/favicon-96.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ STATIC_URL }}img/favicon-64.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ STATIC_URL }}img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ STATIC_URL }}img/favicon-16.png">
+    <link rel="apple-touch-icon" href="{{ STATIC_URL }}img/favicon-57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}img/favicon-114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}img/favicon-72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ STATIC_URL }}img/favicon-144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="{{ STATIC_URL }}img/favicon-60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ STATIC_URL }}img/favicon-120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ STATIC_URL }}img/favicon-76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ STATIC_URL }}img/favicon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_URL }}img/favicon-180.png">
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+    <meta name="msapplication-TileImage" content="{{ STATIC_URL }}img/favicon-144.png">
+    <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
+    <!-- ****** faviconit.com favicons ****** -->
+    
+  <title>Damadam.pk</title>
+        
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/main2.css">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/video.css">
+
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+       <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Free chat with new friends, on any mobile phone, old or new. Muft chat karo aur nae dost banao!">
+        <meta property="og:title" content="Damadam">
+        <meta property="og:description" content="Muft chat karo aur nae dost banao">
+        <meta property="og:image" content="{{ STATIC_URL }}img/favicon-192.png">
+        <meta name="author" content="hb">
+        <meta name="keywords" content="damadam, chat, friends, boys, girls">
+
+
+
+        {% google_analytics %}
+</head>
+<body>
+{% load verified %}
+<h1 style="text-shadow:0 0 0.7px white;"></h1>
+<h5 style="text-shadow:0 0 0.1px white;padding-top:0.3em;">Damadam - muft chat aur photos</h5>
+<div class="navbar">
+<p>
+    
+    <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a> <span style="color:white;">|</span>
+
+{% if user.is_authenticated %}
+    
+    {% if user.userprofile.score and user.userprofile.score > 14 %}
+    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
+    {% else %}
+    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
+    {% endif %}
+    <span style="color:white;">|</span>
+    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
+        {% if user.userprofile.score and user.userprofile.score > 40 %}
+            <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Jawab</a> <span style="color:white;">|</span>
+            <a class="sharing" href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>
+            <span style="color:white;">|</span>
+        {% elif user.userprofile.score and user.userprofile.score > 14 %}
+            <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumharey Jawab</a> <span style="color:white;">|</span>
+        {% else %}
+        {% endif %} 
+    <a href="{% url 'online_kon' %}#section0" style="text-shadow:0 0 0.1px #886081;">Online Kon</a>
+        {% if user.userprofile.score and user.userprofile.score < 10 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>Damadam Help</b></a>
+        {% elif user.userprofile.score and user.userprofile.score < 15 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Damadam Help</a>
+        {% elif user.userprofile.score and user.userprofile.score < 41 %}
+            <span style="color:white;">|</span>
+            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
+        {% else %}
+        {% endif %}
+    <span style="color:white;">|</span>
+    <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;"><bdi>Profile</bdi></a>
+        {% if user.userprofile.score > 0 %}
+            <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
+        {% else %}
+            <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">(1)</span>
+        {% endif %}
+
+    {% load verified %}
+    {% check_user_is_verified as is_verified %}
+    {% if is_verified %}
+    <span style="color:white;">|</span>
+    <a href="{% url 'bahirniklo' %}">Logout</a>
+    {% endif %}
+
+    
+{% else %}
+    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
+    <a href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>New Account Bnao</b></a> <span style="color:white;">|</span>
+    <a href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;">Purana Account Chlao</a>
+{% endif %}</p>
+<a name="section0"></a>
+</div>
+<div class="container"></div>
+{% block content %}
+{% endblock %}
+<div class="foot">
+
+<div id="bolded">
+<ul>
+    <li>
+        {% block pagination %}
+        {% endblock %}
+    </li>
+</ul>
+</div>
+{% if user.is_authenticated %}
+<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px blue;">Kuch Likho </a><span style="color:grey;">|</span>
+<a class="foot2" href="{% url 'logout_penalty' %}#section0" style="text-shadow:0 0 0.1px blue;">Bahir Niklo </a><span style="color:grey;">|</span>
+{% else %}
+<span style="color:grey;">|</span> <a class="foot2" href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Neya Account </a><span style="color:grey;">|</span>  <a class="foot2" href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Purana Account </a></a><span style="color:grey;">|</span>
+{% endif %}
+
+</div>
+<hr size=1>
+<div style="text-align: center;">
+<span style="color:grey;font-size:80%;">|</span><a href="{%url 'privacy_policy' %}" style="font-size:70%;">&nbsp;&nbsp;Privacy Policy&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'about' %}" style="font-size:70%;">&nbsp;&nbsp;About Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'contact' %}" style="font-size:70%;">&nbsp;&nbsp;Contact Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span>
+</div>
+
+
+<script type="text/javascript">
+function downloadJSAtOnload() {
+var element = document.createElement("script");
+element.src = "{{ STATIC_URL }}js/defer.js";
+document.body.appendChild(element);
+}
+if (window.addEventListener)
+window.addEventListener("load", downloadJSAtOnload, false);
+else if (window.attachEvent)
+window.attachEvent("onload", downloadJSAtOnload);
+else window.onload = downloadJSAtOnload;
+</script>
+
+</body>
+</html>

@@ -18,6 +18,50 @@ THREE_MINS = 3*60
 
 #####################Video objects#####################
 
+def get_video_votes(video_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+	return my_server.zrange(sorted_set, 0, -1, withscores=True)
+
+def voted_for_video(video_id, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+	already_exists = my_server.zscore(sorted_set, user_id)
+	if already_exists != 0 and already_exists != 1:
+		return False
+	else:
+		return True
+
+def add_vote_to_video(video_id, user_id, value):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+	already_exists = my_server.zscore(sorted_set, user_id)
+	if already_exists != 0 and already_exists != 1:
+		#add the vote
+		my_server.zadd(sorted_set, user_id, value)
+		#update last vote time
+		hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
+		current_time = time.time()
+		mapping = {'t':current_time}
+		my_server.hmset(hash_name, mapping)
+		return True
+	else:
+		return False
+
+def video_uploaded_too_soon(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+	most_recent_time = my_server.hget(hash_name, 't') # get the most recent video upload time
+	current_time = time.time()
+	if most_recent_time and (current_time - float(most_recent_time)) < 300.0:
+		# the next video is being uploaded too soon, so don't allow them to upload it
+		seconds_to_go = 300.0-(current_time-float(most_recent_time))
+		return True, seconds_to_go
+	else:
+		mapping = {'usr':user_id, 't':current_time}
+		my_server.hmset(hash_name, mapping)
+		return False, 0
+
 def all_videos():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("videos:1000", 0, -1)

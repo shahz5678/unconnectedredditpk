@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "video_base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
 {% load thumbedge %}
@@ -44,12 +44,13 @@
 	</a>
 	<br>
 
-	<video id="vid{{ forloop.counter }}" class="azuremediaplayer amp-default-skin amp-big-play-centered" autoplay controls width="640" height="400" poster="{{ vid.high_res_thumb }}" data-setup='{"logo": { "enabled": false },"language":"ur","nativeControlsForTouch": false}'>
-    <source src="{{ vid.video_manifest }}" type="application/vnd.ms-sstr+xml" />
-    <p class="amp-no-js">
-        To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-	</video>
+		<video poster="{{ vid.low_res_thumb }}" controls>
+        <source src="{{ vid.low_res_video }}" type="video/mp4" onerror="errorHandler(error)">
+            <a href="{{ vid.low_res_video }}">
+                <img src="{{ vid.low_res_thumb }}" title="Is video ko download kro">
+             <br><b>Download</b>
+             </a>
+        </video>
 
 
 	    	<a href="{% url 'videocomment_pk' vid.id %}">
@@ -57,23 +58,53 @@
 			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
 			<span style="color:#1947D1;font-size:97%;">
 			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}</span><br>
-			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span><br>
+			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span>
 			</div>
 			{% elif vid.latest_comment %}
 			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
 			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}<br>
+			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}
 			</span>
 			</div>
 			{% else %}
 			{% endif %}
 			</a>
-
 	    <br>
+	    	<a href="{% url 'video_izzat' vid.id %}">
+	    	{% if vid.vote_score > 1 %}
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.vote_score }}</b>&nbsp;points</button>
+			{% elif vid.vote_score == 1 %}
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>1</b>&nbsp;point</button>
+			{% else %}
+			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.vote_score }}</b>&nbsp;points</button>
+			{% endif %}
+			<br>
+			</a>
+		{% if can_vote and vid.id not in voted and vid.owner != user %}
+	    <a href="{% url 'video_vote' vid.id 1 user.id %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5.5em;">zabrdast</button></a><br>
+	    <a href="{% url 'video_vote' vid.id 0 user.id %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5.5em;">bekaar</button></a>
+	    {% endif %}
 	<hr size=1 COLOR="#59A5F5"><br>
 	</td></tr>
 
 	{% endfor %}
+<script>
+    var videos = document.querySelectorAll('video');
+    for (var i = 0; i < videos.length; i++) {
+        (function() {
+            var v = videos[i];
+            var s = v.querySelector('source');
+                //console.log(source);
+            s.addEventListener('error', function(ev) {
+                var d = document.createElement('div');
+                d.innerHTML = v.innerHTML;
+                // console.log("hello")
+                console.log(d.innerHTML);
+                v.parentNode.replaceChild(d, v);
+            }, false);
+        }());
+    }
+</script>
 
 </table>
 

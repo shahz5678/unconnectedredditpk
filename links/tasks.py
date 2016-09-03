@@ -194,11 +194,11 @@ def bulk_create_notifications(user_id, photo_id, timestring):
 @celery_app1.task(name='tasks.video_upload_tasks')
 def video_upload_tasks(video_name, video_id, user_id):
 	lst = uploadvid(video_name)
-	small_thumb = "//"+lst[0].partition('://')[2]
-	low_res_thumb = "//"+lst[1].partition('://')[2]
-	high_res_thumb = "//"+lst[2].partition('://')[2]
-	video_manifest = "//"+lst[3].partition('://')[2]
-	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, high_res_thumb=high_res_thumb, video_manifest=video_manifest, processed=True)
+	low_res_thumb = "//"+lst[0].partition('://')[2]
+	small_thumb = "//"+lst[1].partition('://')[2]
+	low_res_video = "//"+lst[2].partition('://')[2]
+	high_res_video = "//"+lst[3].partition('://')[2]
+	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
 	if video:
 		add_video(video_id)
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)

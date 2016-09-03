@@ -111,6 +111,11 @@ def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_
 	photo.save()
 	user.userprofile.save()
 
+@celery_app1.task(name='tasks.video_vote_tasks')
+def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
+	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
+	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
+
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
 	user = User.objects.get(id=user_id)

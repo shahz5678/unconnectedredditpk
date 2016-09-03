@@ -16,7 +16,7 @@ from verified import FEMALES
 from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
-video_tasks
+video_tasks, video_vote_tasks
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
@@ -2984,7 +2984,7 @@ class VideoCommentView(CreateView):
 					return redirect("see_video")
 				else:
 					exists = VideoComment.objects.filter(which_video=which_video, submitted_by=user).exists()
-					which_video.comment_count = which_video.comment_count + 1
+					comments = which_video.comment_count + 1
 					if self.request.is_feature_phone:
 						device = '1'
 					elif self.request.is_phone:
@@ -2998,7 +2998,7 @@ class VideoCommentView(CreateView):
 					videocomment = VideoComment.objects.create(submitted_by=user, which_video=which_video, text=text,device=device)
 					time = videocomment.submitted_on
 					timestring = time.isoformat()
-					video_tasks.delay(self.request.user.id, pk, timestring, videocomment.id, which_video.comment_count, text, exists)
+					video_tasks.delay(self.request.user.id, pk, timestring, videocomment.id, comments, text, exists)
 					try:
 						return redirect("videocomment_pk", pk=pk)
 					except:
@@ -3006,6 +3006,15 @@ class VideoCommentView(CreateView):
 		else:
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
+
+
+				##### photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+				# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
+				# photo = Photo.objects.get(id=pk)
+				# exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists()
+				##### time = photocomment.submitted_on
+				##### timestring = time.isoformat()
+				##### photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)
 
 @ratelimit(rate='1/s')
 def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
@@ -6414,20 +6423,31 @@ def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
 		request.user.userprofile.save()
 		context = {'unique': pk}
 		return render(request, 'penalty_videovote.html', context)
-	elif request.user.id == usr:
-		context = {'unique': pk}
-		return render(request, 'already_videovoted.html', context)
 	else:
-		added = add_vote_to_video(pk, request.user.id, val)
-		if added:
-			if int(val) > 0:
-				Video.objects.filter(id=pk).update(vote_score=F('vote_score')+1)
-			else:
-				Video.objects.filter(id=pk).update(vote_score=F('vote_score')-1)
-			return redirect("see_video")
-		else:
+		video = Video.objects.get(id=pk)
+		ident = video.owner.id
+		if request.user.id == ident: #can't vote your own video
 			context = {'unique': pk}
 			return render(request, 'already_videovoted.html', context)
+		else:
+			added = add_vote_to_video(pk, request.user.id, val)
+			if added:
+				if int(val) > 0:
+					vote_score_increase = 1
+					visible_score_increase = 1
+					media_score_increase = 1
+					score_increase = 1
+					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+				else:
+					vote_score_increase = -1
+					visible_score_increase = -1
+					media_score_increase = -1
+					score_increase = -1
+					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+				return redirect("see_video")
+			else:
+				context = {'unique': pk}
+				return render(request, 'already_videovoted.html', context)
 
 def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)

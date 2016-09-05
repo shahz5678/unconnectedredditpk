@@ -4068,7 +4068,7 @@ class UploadPhotoView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(UploadPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
 			number_of_photos = photos.count()
 			forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 			if forbidden:
@@ -4087,10 +4087,10 @@ class UploadPhotoView(CreateView):
 					for photo in photos:
 						if photo[0] < 0: #can't post BIG photo in home if even 1 previous photo had negative score
 							post_big_photo_in_home = False
-				total_visible_score = sum(photo[0] for photo in photos)
+				total_visible_score = sum(photo[2] for photo in photos)
 				now = timezone.now()
 				# print post_big_photo_in_home
-				# print total_visible_score
+				#print total_visible_score
 				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
 				if hotuser:
 					pass
@@ -4109,8 +4109,7 @@ class UploadPhotoView(CreateView):
 			return render(self.request, 'score_photo.html', context)
 		else:
 			#time_now = datetime.utcnow().replace(tzinfo=utc)
-			photos = list(Photo.objects.filter(owner=self.request.user).order_by('-id').\
-			values_list('vote_score','upload_time')[:5])#
+			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
 			forbidden, time_remaining = check_photo_abuse(len(photos), photos)
 			if forbidden:
 				context={'time_remaining': time_remaining}

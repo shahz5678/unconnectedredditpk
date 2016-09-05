@@ -205,7 +205,7 @@
 		</div>
 	{% elif link.cagtegory == '6' %}
 	<div style="margin-top:-1em;padding-top:1em;">
-		{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 4 %}
+		{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 9 %}
 	    	{% if link.which_photostream.cover.vote_score < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.which_photostream.cover.vote_score < -1 %}
@@ -246,7 +246,7 @@
 		    	<span style="font-size:120%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
-		    {% if not link.submitter.hotuser.allowed or not link.submitter.hotuser.hot_score > 4 %}
+		    {% if not link.submitter.hotuser.allowed or not link.submitter.hotuser.hot_score > 9 %}
 		    <a href="{% url 'see_photo_pk' link.which_photostream_id %}">
 		    {% if link.which_photostream.cover.vote_score < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
@@ -285,7 +285,7 @@
 	{% endif %}
 		</span>
 		<p style="margin-top:.5em;">
-	{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 4 %}
+	{% if link.submitter.hotuser.allowed and link.submitter.hotuser.hot_score > 9 %}
 		<a href="{% url 'comment_pk' pk=link.which_photostream.cover_id %}">
 	{% else %}
 		<a href="{% url 'comment_chat_pk' pk=link.which_photostream.cover_id %}">

@@ -7,8 +7,8 @@ import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
 from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
-UserProfile, Video
-from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video
+UserProfile, Video, HotUser
+from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -79,12 +79,14 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device)
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, updated_at=timeobj)#
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
-	if banned == '1':
-		add_unfiltered_post(link.id)
-	else:
-		add_filtered_post(link.id)
-		add_unfiltered_post(link.id)
+	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
+	if hotuser.allowed and hotuser.hot_score > 4:
+		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+		if banned == '1':
+			add_unfiltered_post(link.id)
+		else:
+			add_filtered_post(link.id)
+			add_unfiltered_post(link.id)
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):
@@ -206,6 +208,7 @@ def video_upload_tasks(video_name, video_id, user_id):
 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
 	if video:
 		add_video(video_id)
+		save_recent_video(user_id, video_id)
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 	else:
 		pass

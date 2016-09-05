@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin">
+
+	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe video lagane ki ijazat miley gi <b style="color:#0b63c1;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+	<span style="color:grey;font-size:90%;">Aesi video lagao jo log pasand karein aur bar bar dekhain<br><br></span>
+	<a href="{% url 'see_video' %}#section0" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border-color:#0b63c1;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
+
+</div>
+{% endblock %}

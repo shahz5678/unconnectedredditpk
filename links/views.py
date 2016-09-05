@@ -17,6 +17,7 @@ from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
 video_tasks, video_vote_tasks
+from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
 GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
@@ -33,7 +34,8 @@ publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyb
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
-all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes
+all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
+get_recent_photos, get_recent_videos
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -112,88 +114,6 @@ def add_to_ban(user_id):
 	else:
 		HellBanList.objects.create(condemned_id=user_id)
 		UserProfile.objects.filter(user_id=user_id).update(score=random.randint(10,71))
-
-def check_photo_abuse(count, photos):
-	#photos is a list
-	#count is the number of objects in that list
-	if count == 0:
-		forbidden = False
-		time_remaining = None
-		return forbidden, time_remaining
-	else:
-		#time_now = datetime.utcnow().replace(tzinfo=utc)			
-		time_now = timezone.now()
-		difference = time_now - photos[0][2]
-		seconds = difference.total_seconds()
-		#print "seconds: %s:" % seconds
-		if count == 1:
-			if photos[0][0] < -2 and seconds < (60*60*6):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
-				return forbidden, time_remaining
-		if count == 2:
-			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and seconds < (60*60*6):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
-				return forbidden, time_remaining
-		if count == 3:
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and seconds < (60*60*6):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
-				return forbidden, time_remaining
-		if count == 4:
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and seconds < (60*60*144):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and seconds < (60*60*6):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
-				return forbidden, time_remaining
-		if count == 5:
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and photos[4][0] < -2 and seconds < (60*60*288):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*288-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and photos[3][0] < -2 and seconds < (60*60*144):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*144-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and photos[2][0] < -2 and seconds < (60*60*72):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*72-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and photos[1][0] < -2 and seconds < (60*60*24):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*24-seconds))
-				return forbidden, time_remaining
-			if photos[0][0] < -2 and seconds < (60*60*6):
-				forbidden = True
-				time_remaining = time_now + timedelta(seconds = (60*60*6-seconds))
-				return forbidden, time_remaining
-		forbidden = False
-		time_remaining = None
-		return forbidden, time_remaining
 
 def valid_uuid(uuid):
 	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
@@ -4085,17 +4005,29 @@ class UploadVideoView(FormView):
 	form_class = UploadVideoForm
 	template_name = "upload_video.html"
 
+	def get_context_data(self, **kwargs):
+		context = super(UploadVideoView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+			number_of_videos = videos.count()
+			forbidden, time_remaining = check_video_abuse(number_of_videos, videos)
+			print videos
+			print number_of_videos
+			if forbidden:
+				context["score"] = None
+				context["forbidden"] = True
+				context["time_remaining"] = time_remaining
+			else:
+				context["score"] = self.request.user.userprofile.score
+				context["forbidden"] = False
+				context["time_remaining"] = None
+		return context
+
 	def form_valid(self, form):
 		if self.request.method == 'POST':
 			status, seconds_to_go = video_uploaded_too_soon(self.request.user.id)
 			if status:
 				m, s = divmod(seconds_to_go, 60)
-				# h, m = divmod(m, 60)
-				# d, h = divmod(h, 24)
-				# if d and h and m:
-				# 	context["time_remaining"] = "%s days, %s hours and %s minutes" % (int(d), int(h), int(m))
-				# elif h and m:
-				# 	context["time_remaining"] = "%s hours and %s minutes" % (int(h), int(m))
 				if m and s:
 					context = {"time_remaining":"%s minutes and %s seconds" % (int(m), int(s))}
 				elif s:
@@ -4104,6 +4036,11 @@ class UploadVideoView(FormView):
 					context= {"time_remaining": 0}
 				return render(self.request,'video_uploaded_too_soon.html',context)
 			else:
+				videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+				forbidden, time_remaining = check_video_abuse(videos.count(), videos)
+				if forbidden:
+					context = {'time_remaining':time_remaining}
+					return render(self.request,'forbidden_video.html',context)
 				caption = self.request.POST.get("caption")
 				video = self.request.FILES['video_file']
 				if self.request.is_feature_phone:
@@ -4131,8 +4068,9 @@ class UploadPhotoView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(UploadPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			photos = Photo.objects.filter(owner=self.request.user).order_by('-id').values_list('vote_score', 'visible_score', 'upload_time')[:5]
-			forbidden, time_remaining = check_photo_abuse(photos.count(), photos)
+			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+			number_of_photos = photos.count()
+			forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 			if forbidden:
 				context["forbidden"] = forbidden
 				context["time_remaining"] = time_remaining
@@ -4142,22 +4080,22 @@ class UploadPhotoView(CreateView):
 					context["opt"] = opt
 				except:
 					context["opt"] = None
-				vote_score_positive = True
-				number_of_photos = 0
-				for photo in photos:
-					number_of_photos = number_of_photos + 1
-					if photo[0] < 0:
-						vote_score_positive = False
-				if vote_score_positive and number_of_photos < 5:
-					vote_score_positive = False
-				total_visible_score = sum(photo[1] for photo in photos)
-				#now = datetime.utcnow().replace(tzinfo=utc)
+				post_big_photo_in_home = True
+				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
+					post_big_photo_in_home = False
+				else:
+					for photo in photos:
+						if photo[0] < 0: #can't post BIG photo in home if even 1 previous photo had negative score
+							post_big_photo_in_home = False
+				total_visible_score = sum(photo[0] for photo in photos)
 				now = timezone.now()
-				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+				# print post_big_photo_in_home
+				# print total_visible_score
+				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
 				if hotuser:
 					pass
 				else:
-					HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=vote_score_positive)
+					HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
 				context["score"] = self.request.user.userprofile.score
 				return context
 			return context
@@ -4172,14 +4110,14 @@ class UploadPhotoView(CreateView):
 		else:
 			#time_now = datetime.utcnow().replace(tzinfo=utc)
 			photos = list(Photo.objects.filter(owner=self.request.user).order_by('-id').\
-			values_list('vote_score', 'visible_score', 'upload_time', 'caption')[:5])#
+			values_list('vote_score','upload_time')[:5])#
 			forbidden, time_remaining = check_photo_abuse(len(photos), photos)
 			if forbidden:
 				context={'time_remaining': time_remaining}
 				return render(self.request, 'forbidden_photo.html', context)
 			time_now = timezone.now()
 			try:
-				difference = time_now - photos[0][2]
+				difference = time_now - photos[0][1]
 				seconds = difference.total_seconds()
 				if seconds < 60:
 					context = {'time': round((60 - seconds),0)}
@@ -4239,6 +4177,7 @@ class UploadPhotoView(CreateView):
 				time = photo.upload_time
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)#
 				add_photo(stream.id)
+				save_recent_photo(user.id, photo.id)
 				timestring = time.isoformat()
 				if self.request.user_banned:
 					banned = '1'
@@ -5480,7 +5419,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
 				Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
 				photo = Photo.objects.get(id=pk)
-				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists()
+				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
 				time = photocomment.submitted_on
 				timestring = time.isoformat()
 				photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)

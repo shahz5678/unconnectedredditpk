@@ -16,8 +16,28 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#####################Photo objects#####################
+
+def get_recent_photos(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("phts:"+str(user_id), 0, -1)
+
+def save_recent_photo(user_id, photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("phts:"+str(user_id), photo_id)
+	my_server.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos
+
 #####################Video objects#####################
 
+def get_recent_videos(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("vids:"+str(user_id), 0, -1)
+
+def save_recent_video(user_id, video_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("vids:"+str(user_id), video_id)
+	my_server.ltrim("vids:"+str(user_id), 0, 4) # save the most recent 5 vids
+	
 def get_video_votes(video_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'

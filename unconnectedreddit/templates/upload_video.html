@@ -2,7 +2,17 @@
 {% load humanize %}
 {% block content %}
 <div class="margin">
+{% if forbidden %}
 
+	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe video lagane ki ijazat miley gi <b style="color:#0b63c1;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+	<span style="color:grey;font-size:90%;">Aesi video lagao jo log pasand karein aur bar bar dekhain<br><br></span>
+	<a href="{% url 'see_video' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border-color:#0b63c1;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
+
+{% elif score < 100 %}
+
+<span style="color:#404040; font-size:95%;">Video upload ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
+
+{% else %}
 	<form action="{% url 'upload_video' %}" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{ form.video_file.errors }}
@@ -14,7 +24,7 @@
 	<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#59A5F5;border-color:#0b63c1;color:white;border-radius:4px;" type="submit" value="OK" id="id_submit"><br>
 	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Video ki qeemat: <b>5</b> points</i></span>
 	</form>
-
+{% endif %}
 </div>
 <br><br>
 {% endblock %}

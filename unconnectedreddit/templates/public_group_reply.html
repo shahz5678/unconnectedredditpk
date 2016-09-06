@@ -187,7 +187,7 @@
                 {% if person == writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}:&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
+            {% endfor %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
             <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}
         {% if reply.device == '1' %}
         <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>

@@ -100,7 +100,7 @@
 
 		    <br>
 	    
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}" style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}" style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
 	{% if linksubscription.which_photo.owner.userprofile.avatar %}
 	<img src="{{ linksubscription.which_photo.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
@@ -119,7 +119,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}
 	{{ linksubscription.which_photo.latest_comment.submitted_by }}: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
+	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=user.id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
 		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}
@@ -137,15 +137,15 @@
 	{% else %}
 	<span style="color:#ff8000;font-size:95%;">{{ linksubscription.which_photo.owner }}</a></span><span style="color:#ff8000;font-size:95%;">:
 	{% emoticons %}{{ linksubscription.which_photo.caption|truncatechars:40 }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_profile_pk' linksubscription.which_photo_id linksubscription.which_photo.owner_id 4 %}" style="color:#ff8000;font-size:75%;"><br>new tabsra hua <b>{{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</b>:</a><br>
-		<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}">
+	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}" style="color:#ff8000;font-size:75%;"><br>new tabsra hua <b>{{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</b>:</a><br>
+		<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}">
 		{% if linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar %}
 		<img src="{{ linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic" style="border:1px solid #ff8000"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" style="border:1px solid #ff8000"></img>
 		{% endif %}
 	{{ linksubscription.which_photo.latest_comment.submitted_by }}</a>: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_profile_pk' pk=linksubscription.which_photo_id user_id=linksubscription.which_photo.owner_id from_photos=4 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
+	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
 	{% if linksubscription.which_photo.comment_count > 1 %}
 		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
 		{% elif linksubscription.which_photo.comment_count == 1 %}

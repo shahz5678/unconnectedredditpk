@@ -16,7 +16,7 @@ from verified import FEMALES
 from allowed import ALLOWED
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
-video_tasks, video_vote_tasks
+video_tasks, video_vote_tasks, photo_vote_tasks
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
@@ -35,7 +35,7 @@ private_group_posting_allowed, add_group_member, get_group_members, remove_group
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos
+get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -939,7 +939,7 @@ class SalatSuccessView(ListView):
 		return context
 
 @ratelimit(rate='1/s')
-def reportcomment_pk(request, pk=None, num=None, photostream=None, from_photos=None,*args, **kwargs):
+def reportcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		try:
@@ -952,21 +952,18 @@ def reportcomment_pk(request, pk=None, num=None, photostream=None, from_photos=N
 			context = {'pk':'pk'}
 			return render(request, 'penalty_reportcomment.html', context)
 	else:
-		if pk.isdigit() and num.isdigit():
-			request.session["reportcomment_pk"] = pk
-			request.session["photonum_pk"] = num
-			if photostream:
-				request.session["phstream_pk"] = photostream
-			else:
-				request.session["phstream_pk"] = -1
-			if from_photos:
-				request.session["from_photos"] = from_photos
-			else:
-				request.session["from_photos"] = -1
-			return redirect("reportcomment")
+		request.session["reportcomment_pk"] = pk
+		request.session["photonum_pk"] = num
+		if origin:
+			request.session["origin"] = origin
 		else:
-			return redirect("")
-
+			request.session["origin"] = None
+		if slug:
+			request.session["origin_profile"] = slug
+		else:
+			request.session["origin_profile"] = None
+		return redirect("reportcomment")
+		
 class ReportcommentView(FormView):
 	form_class = ReportcommentForm
 	template_name = "report_comment.html"
@@ -978,8 +975,8 @@ class ReportcommentView(FormView):
 				context["authorized"] = True
 				context["comment_pk"] = self.request.session["reportcomment_pk"]
 				context["photo_pk"] = self.request.session["photonum_pk"]
-				context["photostream_pk"] = self.request.session["phstream_pk"]
-				context["from_photos"] = self.request.session["from_photos"]
+				context["origin"] = self.request.session["origin"]
+				context["origin_profile"] = self.request.session["origin_profile"]
 			except:
 				context["authorized"] = False
 		return context
@@ -989,10 +986,14 @@ class ReportcommentView(FormView):
 			if not self.request.user_banned:
 				rprt = self.request.POST.get("report")
 				if rprt == 'Haan':
-					comment_id = self.request.POST.get("comment_pk")
-					photo_id = self.request.POST.get("photo_pk")
-					photostream_id = self.request.POST.get("photostream_pk")
-					from_photos = self.request.POST.get("from_photos")
+					comment_id = self.request.session["reportcomment_pk"]
+					photo_id = self.request.session["photonum_pk"]
+					slug = self.request.session["origin_profile"]
+					origin = self.request.session["origin"]
+					# comment_id = self.request.POST.get("comment_pk")
+					# photo_id = self.request.POST.get("photo_pk")
+					# origin = self.request.POST.get("origin")
+					# slug = self.request.session["origin_profile"]
 					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
 					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
 						comment = get_object_or_404(PhotoComment, pk=comment_id)
@@ -1002,35 +1003,37 @@ class ReportcommentView(FormView):
 						comment.submitted_by.userprofile.save()
 						self.request.session["reportcomment_pk"] = None
 						self.request.session["photonum_pk"] = None
-						self.request.session["phstream_pk"] = None
-						self.request.session["from_photos"] = None
+						self.request.session["origin_profile"] = None
+						self.request.session["origin"] = None
 						pk = comment.submitted_by_id
 						ident = self.request.user.id
 						if pk != ident:
 							document_comment_abuse(pk)
-							#report.delay(target_id=pk, reporter_id=ident, report_origin='7', which_photocomment_id=comment_id, which_photo_id=photo_id)
-						if str(photostream_id) == '-1': 
-							photostream_id='0'
-						if str(from_photos) == '-1':
-							from_photos='0'
-						return redirect("comment_pk", pk=photo_id, stream_id=photostream_id ,from_photos=from_photos)
+						if slug:
+							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+						else:
+							return redirect("comment_pk", pk=photo_id, origin=origin)
 					else:
 						self.request.user.userprofile.score = self.request.user.userprofile.score -3
 						self.request.user.userprofile.save()
 						return redirect("see_photo")
 				else:
-					photo_id = self.request.POST.get("photo_pk")
-					photostream_id = self.request.POST.get("photostream_pk")
-					from_photos = self.request.POST.get("from_photos")
+					#i.e. user clicked "Nahi"
+					# photo_id = self.request.POST.get("photo_pk")
+					# origin = self.request.POST.get("origin")
+					# slug = self.request.POST.get["origin_profile")
+					comment_pk = self.request.session["reportcomment_pk"]
+					photo_id = self.request.session["photonum_pk"]
+					origin = self.request.session["origin"]
+					slug = self.request.session["origin_profile"]
 					self.request.session["reportcomment_pk"] = None
 					self.request.session["photonum_pk"] = None
-					self.request.session["phstream_pk"] = None
-					self.request.session["from_photos"] = None
-					if str(photostream_id) == '-1': 
-						photostream_id='0'
-					if str(from_photos) == '-1':
-						from_photos='0'
-					return redirect("comment_pk", pk=photo_id, stream_id=photostream_id ,from_photos=from_photos)
+					self.request.session["origin"] = None
+					self.request.session["origin_profile"] = None
+					if slug is not None:
+						return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+					else:
+						return redirect("comment_pk", pk=photo_id, origin=origin)
 			else:
 				return redirect("score_help")
 
@@ -1296,12 +1299,11 @@ class LinkListView(ListView):
 
 	def get_queryset(self):
 		if self.request.user_banned:#if user is hell-banned
-			#return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id')[:120]
-			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_unfiltered_posts()).order_by('-id')
+			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser')\
+			.filter(id__in=all_unfiltered_posts()).order_by('-id')
 		else:#if user is not hell-banned
-			# global condemned
-			# return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').order_by('-id').exclude(submitter_id__in=condemned)[:120]
-			links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser').filter(id__in=all_filtered_posts()).order_by('-id')
+			links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser')\
+			.filter(id__in=all_filtered_posts()).order_by('-id')
 			return links
 
 	def get_context_data(self, **kwargs):
@@ -1391,20 +1393,24 @@ class LinkListView(ListView):
 			context["voted"] = voted #voted is used to check which links the user has already voted on
 			##################################
 			photos_in_page = [link.which_photostream.cover_id for link in context["object_list"] if link.which_photostream is not None]
-			photo_votes_in_page = PhotoVote.objects.select_related('voter__userprofile').filter(photo_id__in=photos_in_page)
-			photo_voted = photo_votes_in_page.filter(voter=user)
-			photo_voted = photo_voted.values_list('photo_id', flat=True)
-			context["photo_voted"] = photo_voted 
+			photo_ids = [photo for photo in photos_in_page if voted_for_photo(photo, user.username)]
+			context["photo_voted"] = photo_ids
+			voters_and_votes = {}
+			for key in photos_in_page:
+				#creating a dictionary of lists, of the type {photo_id:(username,vote_value),}
+				voters_and_votes[key]=get_photo_votes(key)
+			context["votes"] = voters_and_votes
+			#photo_votes_in_page = PhotoVote.objects.select_related('voter__userprofile').filter(photo_id__in=photos_in_page)
 			##################################
 			global condemned
 			if self.request.user_banned:
 				context["vote_cluster"] = votes_in_page # all votes in the page
-				context["photo_vote_cluster"] = photo_votes_in_page # all photo votes in the page
+				#context["photo_vote_cluster"] = photo_votes_in_page # all photo votes in the page
 				context["notification"] = 0 #hell banned users will never see notifications
 				context["sender"] = 0 #hell banned users will never see notifications
 			else:
 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
-				context["photo_vote_cluster"] = photo_votes_in_page.exclude(voter_id__in=condemned)
+				#context["photo_vote_cluster"] = photo_votes_in_page.exclude(voter_id__in=condemned)
 				###############################################################################################################
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				#print object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat
@@ -1523,7 +1529,7 @@ class LinkListView(ListView):
 			target_id = None
 		if target_id:
 			try:
-				index = list(link.id for link in self.object_list).index(target_id)
+				index = list(link.id for link in self.object_list).index(int(target_id))
 			except:
 				index = None
 			if 0 <= index <= 19:
@@ -1721,6 +1727,10 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 	else:
 		return redirect("profile", slug)
 
+def profile_pk(request, slug=None, key=None, *args, **kwargs):
+	request.session["photograph_id"] = key
+	return redirect("profile", slug)
+
 class UserProfilePhotosView(ListView):
 	model = Photo
 	template_name = "user_detail1.html"
@@ -1728,13 +1738,22 @@ class UserProfilePhotosView(ListView):
 
 	def get_queryset(self):
 		slug = self.kwargs["slug"]
-		user = User.objects.get(username=slug)
-		return Photo.objects.select_related('owner__userprofile').filter(owner=user).order_by('-upload_time')
+		try:
+			user = User.objects.get(username=slug)
+			return Photo.objects.select_related('owner__userprofile').filter(owner=user).order_by('-upload_time')
+		except:
+			return []
 
 	def get_context_data(self, **kwargs):
 		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
 		slug = self.kwargs["slug"]
-		subject = User.objects.get(username=slug)
+		context["slug"] = slug
+		context["error"] = False
+ 		try:
+			subject = User.objects.get(username=slug)
+		except:
+			context["error"] = True
+			return context
 		star_id = subject.id
 		context["subject"] = subject
 		context["star_id"] = star_id
@@ -1748,7 +1767,6 @@ class UserProfilePhotosView(ListView):
 			context["recent_fans"] = UserFan.objects.filter(star_id=star_id, fanning_time__gte=now).count()
 		except:
 			context["recent_fans"] = 0
-		context["slug"] = slug
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
@@ -1757,9 +1775,15 @@ class UserProfilePhotosView(ListView):
 			context["score"] = score
 			if score > 9 and not self.request.user_banned:
 				context["can_vote"] = True
-			photos_in_page = [photo.id for photo in context["object_list"]]
-			vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
-			context["voted"] = vote_cluster.filter(voter=self.request.user).values_list('photo_id', flat=True)
+			# photos_in_page = [photo.id for photo in context["object_list"]]
+			# photo_ids = [photo for photo in photos_in_page if voted_for_photo(photo, user.username)]
+			# context["photo_voted"] = photo_ids
+			# voters_and_votes = {}
+			# for key in photos_in_page:
+			# 	#creating a dictionary of lists, of the type {photo_id:(username,vote_value),}
+			# 	voters_and_votes[key]=get_photo_votes(key)
+			# context["votes"] = voters_and_votes
+			context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, username)]
 			if UserFan.objects.filter(fan=self.request.user,star_id=star_id).exists():
 				context["not_fan"] = False
 			else:
@@ -2544,7 +2568,7 @@ def upload_photo_reply_pk(request, pk=None, *args, **kwargs):
 		request.session["reply_photo_id"] = pk
 		try:
 			seen_chain = TutorialFlag.objects.get(user=request.user).seen_chain
-			print seen_chain
+			#print seen_chain
 			if seen_chain:
 				return redirect("upload_photo_reply")
 			else:
@@ -2690,11 +2714,12 @@ class VideoScoreView(FormView):
 			context["authenticated"] = False
 		video = Video.objects.get(id=key)
 		context["video"] = video
-		users_and_votes = get_video_votes(key)
-		user_ids = (user_id for user_id, vote in users_and_votes) #generator object instead of full-fledged list
-		user_objs = User.objects.filter(id__in=user_ids)
-		ids_to_votes = dict(users_and_votes)
-		context["votes"] = [(user, ids_to_votes[str(user.id)]) for user in user_objs]
+		usernames_and_votes = get_video_votes(key)
+		context["votes"] = usernames_and_votes
+		# user_ids = (user_id for user_id, vote in users_and_votes) #generator object instead of full-fledged list
+		# user_objs = User.objects.filter(id__in=user_ids)
+		# ids_to_votes = dict(users_and_votes)
+		# context["votes"] = [(user, ids_to_votes[str(user.id)]) for user in user_objs]
 		if context["votes"]:
 			context["content"] = True
 			context["visible_score"] = video.visible_score 
@@ -2712,20 +2737,29 @@ class PhotoScoreView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(PhotoScoreView, self).get_context_data(**kwargs)
 		key = self.kwargs["pk"]
+		context["origin"] = self.kwargs["origin"]
 		context["key"] = key
+		if context["origin"] == '3':
+			#if originating from user profile
+			context["slug"] = self.kwargs["slug"]
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 		else:
 			context["authenticated"] = False
-		cover_photo = PhotoStream.objects.select_related('cover').get(id=key)
-		context["photo"] = cover_photo.cover
-		context["votes"] = PhotoVote.objects.select_related('voter__userprofile').filter(photo=cover_photo.cover).order_by('-id')
+		cover_photo = Photo.objects.get(id=key)
+		context["photo"] = cover_photo
+		usernames_and_votes = get_photo_votes(key)
+		context["votes"] = usernames_and_votes
+		# user_ids = (user_id for user_id, vote in users_and_votes)
+		# user_objs = User.objects.filter(id__in=user_ids)
+		# ids_to_votes = dict(users_and_votes)
+		# context["votes"] = [(user, ids_to_votes[str(user.id)]) for user in user_objs]
 		if context["votes"]:
 			context["content"] = True
-			context["visible_score"] = cover_photo.cover.visible_score 
+			context["visible_score"] = cover_photo.visible_score 
 		else:
 			context["content"] = False
-			context["visible_score"] = cover_photo.cover.visible_score
+			context["visible_score"] = cover_photo.visible_score
 		context["girls"] = FEMALES
 		return context
 
@@ -2818,27 +2852,6 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 			return redirect("see_photo")
 
 @ratelimit(rate='1/s')
-def comment_chat_pk(request, pk=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-		except:
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-	else:
-		if pk.isdigit():
-			request.session["photo_id"] = pk
-			request.session["first_time"] = True
-			return redirect("comment")
-		else:
-			return redirect("see_photo")
-
-@ratelimit(rate='1/s')
 def videocomment_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -2927,17 +2940,28 @@ class VideoCommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-
-				##### photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
-				# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
-				# photo = Photo.objects.get(id=pk)
-				# exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists()
-				##### time = photocomment.submitted_on
-				##### timestring = time.isoformat()
-				##### photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)
+@ratelimit(rate='1/s')
+def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		try:
+			deduction = 3 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
+		except:
+			context = {'pk': 'pk'}
+			return render(request, 'penalty_commentpk.html', context)
+	else:
+		try:
+			request.session["first_time"] = True
+			return redirect("comment_pk",pk,'6',ident)
+		except:
+			return redirect("see_photo")
 
 @ratelimit(rate='1/s')
-def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwargs):
+def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		try:
@@ -2952,9 +2976,12 @@ def comment_pk(request, pk=None, stream_id=None, from_photos=None, *args, **kwar
 	else:
 		if pk.isdigit():
 			request.session["photo_id"] = pk
-			request.session["related_photostream_id"] = stream_id
-			if from_photos:
-				return redirect("comment", from_photos)
+			if ident:
+				request.session["user_ident"] = ident
+			else:
+				request.session["user_ident"] = None
+			if origin:
+				return redirect("comment", origin)
 			else:
 				return redirect("comment")
 		else:
@@ -2984,37 +3011,39 @@ class CommentView(CreateView):
 			context["count"] = None
 			return context
 		try:
-			from_photos=self.kwargs["from_photos"]
-			if from_photos == '1':
-				context["from_photos"] = '1'
+			origin=self.kwargs["origin"]
+			if origin == '1':
+				#print origin
+				context["origin"] = '1'
+				context["photo_id"] = pk
+			elif origin == '2':
+				context["origin"] = '2'
+				context["photo_id"] = pk
+			elif origin == '3':
+				context["origin"] = '3'
 				try:
-					context["photostream_pk"] = self.request.session["related_photostream_id"]
-				except:
-					context["from_photos"] = False
-			elif from_photos == '2':
-				context["from_photos"] = '2'
-				try:
-					context["photostream_pk"] = self.request.session["related_photostream_id"]
-				except:
-					context["from_photos"] = False
-			elif from_photos == '3':
-				context["from_photos"] = '3'
-				try:
-					star_user_id = self.request.session["star_user_id"]
+					star_user_id = self.request.session["user_ident"]
 					username = User.objects.get(id=star_user_id).username
 					context["username"] = username
 				except:
-					context["from_photos"] = False
-			elif from_photos == '5':
-				context["from_photos"] = '5'
-				try:
-					context["photostream_pk"] = self.request.session["related_photostream_id"]
-				except:
-					context["from_photos"] = False
+					context["origin"] = '1'
+			elif origin == '5':
+				context["origin"] = '5'
+				context["photo_id"] = pk
+			elif origin == '6':
+				context["origin"] = '6'
+				link_ident = self.request.session["user_ident"]
+				if link_ident:
+					#if originating from a specific link
+					context["link_ident"] = self.request.session["user_ident"]
+					self.request.session['target_id'] = self.request.session["user_ident"] #mislabled - actually contains link_id
+				else:
+					#if originating from a notification
+					self.request.session['target_id'] = None
 			else:
 				pass
 		except:
-			context["from_photos"] = False
+			context["origin"] = '1'
 		try:
 			is_first = self.request.session["first_time"]
 			self.request.session["first_time"] = False
@@ -3044,15 +3073,17 @@ class CommentView(CreateView):
 				context["time_remaining"] = None
 			context["authenticated"] = True
 			try:
-				if from_photos == '4':
-					context["from_photos"] = '4'
-					star_user_id = self.request.session["star_user_id"]
+				if origin == '4':
+					#i.e. user originiated from unseen_activity
+					context["origin"] = '4'
+					star_user_id = self.request.session["user_ident"]
+					context["slug_id"] = star_user_id
 					username = User.objects.get(id=star_user_id).username
 					context["username"] = username
 				else:
 					pass
 			except:
-				context["from_photos"] = False
+				context["origin"] = '1'
 			if comments:
 				if PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='0', which_photo=photo, seen=False).exists():
 					context["unseen"] = True
@@ -3077,7 +3108,9 @@ class CommentView(CreateView):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user = self.request.user
 			text = self.request.POST.get("text")
-			from_photos = self.request.POST.get("from_photos")
+			origin = self.request.POST.get("origin")
+			star_user_id = None
+			link_id = None
 			try:
 				pk = self.request.session["photo_id"]
 				self.request.session["photo_id"] = None
@@ -3086,25 +3119,16 @@ class CommentView(CreateView):
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("profile", slug=user.username)
-			if from_photos == '1' or from_photos == '2' or from_photos == '5':
+			if origin == '3' or origin == '4':
 				try:
-					stream_id = self.request.session["related_photostream_id"]
-					self.request.session["related_photostream_id"] = None
-					star_user_id = None
+					star_user_id = self.request.session["user_ident"]
+					self.request.session["user_ident"] = None
 				except:
-					stream_id = None
 					star_user_id = None
-			elif from_photos == '3' or from_photos == '4':
-				try:
-					star_user_id = self.request.session["star_user_id"]
-					self.request.session["star_user_id"] = None
-					stream_id = None
-				except:
-					stream_id = None
-					star_user_id = None
-			else:
-				stream_id = None
-				star_user_id = None
+			elif origin == '6':
+				link_id = self.request.session["user_ident"]
+				self.request.session["user_ident"] = None
+				self.request.session["target_id"] = link_id				
 			score = fuzz.ratio(text, user.userprofile.previous_retort)
 			if score > 86:
 				try:
@@ -3133,22 +3157,17 @@ class CommentView(CreateView):
 					time = photocomment.submitted_on
 					timestring = time.isoformat()
 					photo_tasks.delay(self.request.user.id, which_photo.id, timestring, photocomment.id, which_photo.comment_count, text, exists)
-					try:
-						if pk and stream_id and from_photos:
-							#fires if user from photos or best photos
-							return redirect("comment_pk", pk=pk, stream_id=stream_id, from_photos=from_photos)
-						elif pk and star_user_id and from_photos:
-							#fires if user from profile
-							return redirect("comment_profile_pk", pk=pk, user_id=star_user_id, from_photos=from_photos)
-						elif pk:
-							#fires if user from chat
-							return redirect("comment_pk", pk=pk)
-						else:
-							return redirect("profile", user.username)
-					except:
-						user.userprofile.score = user.userprofile.score - 3
-						user.userprofile.save()
-						return redirect("profile", slug=user.username)
+					if pk and origin and link_id:
+						return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
+					elif pk and origin and star_user_id:
+						return redirect("comment_pk",pk=pk,origin=origin, ident=star_user_id)
+					elif pk and origin:
+						return redirect("comment_pk",pk=pk,origin=origin)
+					elif pk:
+						#fires if user from chat
+						return redirect("comment_pk", pk=pk)
+					else:
+						return redirect("see_photo")
 		else:
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
@@ -3489,8 +3508,8 @@ class VideoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				videos_in_page = [video.id for video in context["object_list"]]
-				context["voted"] = [video.id for video in context["object_list"] if voted_for_video(video.id, user.id)]
+				#videos_in_page = [video.id for video in context["object_list"]]
+				context["voted"] = [video.id for video in context["object_list"] if voted_for_video(video.id, user.username)]
 		return context
 
 class PhotoView(ListView):
@@ -3499,7 +3518,7 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = PhotoStream.objects.select_related('cover__owner__userprofile','cover__latest_comment__submitted_by','cover__second_latest_comment__submitted_by').order_by('-show_time')[:200]
+		queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').order_by('-upload_time')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -3538,9 +3557,7 @@ class PhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				photos_in_page = [picstream.cover_id for picstream in context["object_list"]]
-				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
-				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
+				context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -3692,7 +3709,7 @@ class PhotoView(ListView):
 			target_id = None
 		if target_id:
 			try:
-				index = list(photostream.id for photostream in self.object_list).index(int(target_id))
+				index = list(photo.id for photo in self.object_list).index(int(target_id))
 			except:
 				index = None
 			if 0 <= index <= 9:
@@ -3754,7 +3771,7 @@ class BestPhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = PhotoStream.objects.exclude(cover__vote_score__lte=-3).order_by('-cover__invisible_score')[:200]
+		queryset = Photo.objects.exclude(vote_score__lte=-3).order_by('-invisible_score')[:200]
 		return queryset
 		# sorted_dictionary = dict(all_best_photos())
 		# ids = sorted_dictionary.keys()
@@ -3786,11 +3803,7 @@ class BestPhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				#print context["object_list"]
-				#photos_in_page = [photo.id for photo in context["object_list"]]
-				photos_in_page = context["object_list"].values_list('cover',flat=True)#[picstream.cover_id for picstream in context["object_list"]]
-				vote_cluster = PhotoVote.objects.filter(photo_id__in=photos_in_page)
-				context["voted"] = vote_cluster.filter(voter=user).values_list('photo_id', flat=True)
+				context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -3939,7 +3952,7 @@ class BestPhotoView(ListView):
 			target_id = None
 		if target_id:
 			try:
-				index = list(photostream.id for photostream in self.object_list).index(int(target_id))
+				index = list(photo.id for photo in self.object_list).index(int(target_id))
 			except:
 				index = None
 			if 0 <= index <= 9:
@@ -4011,8 +4024,8 @@ class UploadVideoView(FormView):
 			videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
 			number_of_videos = videos.count()
 			forbidden, time_remaining = check_video_abuse(number_of_videos, videos)
-			print videos
-			print number_of_videos
+			# print videos
+			# print number_of_videos
 			if forbidden:
 				context["score"] = None
 				context["forbidden"] = True
@@ -4173,10 +4186,10 @@ class UploadPhotoView(CreateView):
 				else:# the statement below incurs a cost. Can it be made an asynchronous task?
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
 				insert_hash(photo.id, photo.avg_hash)
+				add_photo(photo.id)
+				save_recent_photo(user.id, photo.id)
 				time = photo.upload_time
 				stream = PhotoStream.objects.create(cover = photo, show_time = time)#
-				add_photo(stream.id)
-				save_recent_photo(user.id, photo.id)
 				timestring = time.isoformat()
 				if self.request.user_banned:
 					banned = '1'
@@ -5303,18 +5316,18 @@ class WelcomeMessageView(CreateView):
 				context["option"] = None
 		return context
 
-def mehfilcomment_pk(request, pk=None, num=None, photostream=None, from_photos=None, *args, **kwargs):
+def mehfilcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
 	if pk.isdigit() and num.isdigit():
 		request.session['mehfilcomment_pk'] = pk
 		request.session['mehfilphoto_pk'] = num
-		if photostream:
-			request.session['mehfilphotostream_pk'] = photostream
+		if origin:
+			request.session['mehfilfrom_photos'] = origin
 		else:
-			request.session['mehfilphotostream_pk'] = -1
-		if from_photos:
-			request.session['mehfilfrom_photos'] = from_photos
+			request.session['mehfilfrom_photos'] = None
+		if slug:
+			request.session['mehfil_slug'] = slug
 		else:
-			request.session['mehfilfrom_photos'] = -1
+			request.session['mehfil_slug'] = None
 		return redirect("mehfilcomment_help")
 	else:
 		return redirect("score_help")
@@ -5329,17 +5342,15 @@ class MehfilCommentView(FormView):
 			try:
 				target_id = self.request.session['mehfilcomment_pk']
 				photo_id = self.request.session['mehfilphoto_pk']
-				photostream_id = self.request.session['mehfilphotostream_pk']
-				from_photos = self.request.session['mehfilfrom_photos']
+				origin = self.request.session['mehfilfrom_photos']
+				slug = self.request.session['mehfil_slug']
 				context["target"] = User.objects.get(id=target_id)
 				context["photo_id"] = photo_id
-				context["photostream_id"] = photostream_id
-				context["from_photos"] = from_photos
+				context["origin"] = origin
 			except:
 				context["target"] = None
 				context["photo_id"] = None
-				context["photostream_id"] = None
-				context["from_photos"] = None
+				context["origin"] = None
 				return context
 		return context
 
@@ -5347,21 +5358,16 @@ class MehfilCommentView(FormView):
 		if self.request.method == 'POST':
 			user = self.request.user
 			report = self.request.POST.get("decision")
-			target_id = self.request.POST.get("target_id")
-			photo_id = self.request.POST.get("photo_id")
-			photostream_id = self.request.POST.get("photostream_id")
-			from_photos = self.request.POST.get("from_photos")
+			target_id = self.request.session['mehfilcomment_pk']
+			photo_id = self.request.session['mehfilphoto_pk']
+			origin = self.request.session['mehfilfrom_photos']
+			slug = self.request.session['mehfil_slug']
 			self.request.session['mehfilcomment_pk'] = None
 			self.request.session['mehfilphoto_pk'] = None
-			self.request.session['mehfilphotostream_pk'] = None
 			self.request.session['mehfilfrom_photos'] = None
 			if report == 'Haan':
 				if user.userprofile.score < 500:
-					if str(photostream_id) == '-1': 
-						photostream_id = '0'
-					if str(from_photos) == '-1':
-						from_photos = '0'
-					context = {'pk': photo_id, 'stream_id': photostream_id, 'from_photos':from_photos}
+					context = {'pk': photo_id, 'origin':origin}
 					return render(self.request, 'penalty_mehfil.html', context)
 				else:
 					target = User.objects.get(id=target_id)
@@ -5381,11 +5387,10 @@ class MehfilCommentView(FormView):
 					except:
 						redirect("comment_pk", pk=photo_id)
 			else:
-				if str(photostream_id) == '-1': 
-					photostream_id = '0'
-				if str(from_photos) == '-1':
-					from_photos = '0'
-				return redirect("comment_pk", pk=photo_id, stream_id=photostream_id, from_photos=from_photos)
+				if slug:
+					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+				else:
+					return redirect("comment_pk", pk=photo_id, origin=origin)
 
 @ratelimit(rate='1/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
@@ -6309,7 +6314,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 			return redirect("link_create_pk")
 
 @ratelimit(rate='1/s')
-def photo_vote(request, user_id=None, pk=None, val=None, slug=None, *args, **kwargs):
+def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		deduction = 3 * -1
@@ -6319,37 +6324,46 @@ def photo_vote(request, user_id=None, pk=None, val=None, slug=None, *args, **kwa
 		context = {'unique': pk}
 		return render(request, 'penalty_photovote.html', context)
 	else:
-		if pk.isdigit() and val.isdigit() and user_id.isdigit():
-			try:
-				photo = Photo.objects.get(id=pk)
-			except:
-				return redirect("profile", slug)
-			if photo.owner == request.user or request.user_banned or PhotoVote.objects.filter(voter=request.user, photo_id=pk).exists():
-				return redirect("profile", slug)
-			else:
-				if val == '1':
-					PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=1)
-					photo.visible_score = photo.visible_score + 1
-					photo.vote_score = photo.vote_score + 1
-					photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 1
-					photo.owner.userprofile.score = photo.owner.userprofile.score + 1
-					photo.owner.userprofile.save()
-					photo.save()
-					# cooldown.hot_score = cooldown.hot_score - 1
-					# cooldown.time_of_casting = datetime.utcnow().replace(tzinfo=utc)
-				elif val == '0':
-					PhotoVote.objects.create(voter=request.user, photo=photo, photo_owner=photo.owner, value=-1)
-					photo.vote_score = photo.vote_score - 1 
-					photo.visible_score = photo.visible_score - 1
-					photo.owner.userprofile.media_score = photo.owner.userprofile.media_score - 1
-					photo.owner.userprofile.score = photo.owner.userprofile.score - 1
-					photo.owner.userprofile.save()
-					photo.save()
-				else:
-					return redirect("user_profile_photo", slug, pk)
-				return redirect("user_profile_photo", slug, pk)
+		photo = Photo.objects.get(id=pk)
+		ident = photo.owner.id
+		if request.user.id == ident: #can't vote your own video
+			context = {'unique': pk}
+			return render(request, 'already_photovoted.html', context)
 		else:
-			return redirect("user_profile_photo", slug, pk)
+			added = add_vote_to_photo(pk, request.user.username, val)
+			if added:
+				if int(val) > 0:
+					vote_score_increase = 1
+					visible_score_increase = 1
+					media_score_increase = 1
+					score_increase = 1
+					photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+				else:
+					vote_score_increase = -1
+					visible_score_increase = -1
+					media_score_increase = -1
+					score_increase = -1
+					photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+				if origin == '1':
+					# originated from taza photos page
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+				elif origin == '2':
+					# originated from best photos page
+					request.session["target_best_photo_id"] = pk
+					return redirect("see_best_photo")
+				elif origin == '3':
+					request.session["target_id"] = slug #link id was passed through accompanying slug
+					return redirect("home")
+				elif origin == '4':
+					request.session["photograph_id"] = pk
+					return redirect("profile", slug)
+				else:
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+			else:
+				context = {'unique': pk}
+				return render(request, 'already_photovoted.html', context)
 
 @ratelimit(rate='1/s')
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
@@ -6368,7 +6382,7 @@ def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
 			context = {'unique': pk}
 			return render(request, 'already_videovoted.html', context)
 		else:
-			added = add_vote_to_video(pk, request.user.id, val)
+			added = add_vote_to_video(pk, request.user.username, val)
 			if added:
 				if int(val) > 0:
 					vote_score_increase = 1

@@ -27,6 +27,36 @@ def save_recent_photo(user_id, photo_id):
 	my_server.lpush("phts:"+str(user_id), photo_id)
 	my_server.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos
 
+def get_photo_votes(photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted video'
+	return my_server.zrange(sorted_set, 0, -1, withscores=True)
+
+def voted_for_photo(photo_id, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted video'
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists != 0 and already_exists != 1:
+		return False
+	else:
+		return True
+
+def add_vote_to_photo(photo_id, username, value):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists != 0 and already_exists != 1:
+		#add the vote
+		my_server.zadd(sorted_set, username, value)
+		#update last vote time for performing maintenance later
+		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
+		current_time = time.time()
+		mapping = {'t':current_time}
+		my_server.hmset(hash_name, mapping)
+		return True
+	else:
+		return False
+
 #####################Video objects#####################
 
 def get_recent_videos(user_id):
@@ -43,22 +73,22 @@ def get_video_votes(video_id):
 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
-def voted_for_video(video_id, user_id):
+def voted_for_video(video_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
-	already_exists = my_server.zscore(sorted_set, user_id)
+	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
 		return False
 	else:
 		return True
 
-def add_vote_to_video(video_id, user_id, value):
+def add_vote_to_video(video_id, username, value):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
-	already_exists = my_server.zscore(sorted_set, user_id)
+	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
 		#add the vote
-		my_server.zadd(sorted_set, user_id, value)
+		my_server.zadd(sorted_set, username, value)
 		#update last vote time
 		hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
 		current_time = time.time()
@@ -99,26 +129,26 @@ def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zrange("bestphotos:1000", 0, -1, withscores=True)
 
-def add_photo_to_best(photostream_id, score):
+def add_photo_to_best(photo_id, score):
 	my_server = redis.Redis(connection_pool=POOL)
 	try:
 		size = my_server.zcard("bestphotos:1000")
 		limit = 1000
 		if size < 1001:
-			my_server.zadd("bestphotos:1000", photostream_id, score)
+			my_server.zadd("bestphotos:1000", photo_id, score)
 		else:
 		   my_server.zremrangebyrank("bestphotos:1000", 0, 10)
-		   my_server.zadd("bestphotos:1000", photostream_id, score)
+		   my_server.zadd("bestphotos:1000", photo_id, score)
 	except:
-		my_server.zadd("bestphotos:1000", photostream_id, score)
+		my_server.zadd("bestphotos:1000", photo_id, score)
 
 def all_photos():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("photos:1000", 0, -1)
 
-def add_photo(photostream_id):
+def add_photo(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("photos:1000", photostream_id)
+	my_server.lpush("photos:1000", photo_id)
 	rand = randint(0,9)
 	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
 		my_server.ltrim("photos:1000", 0, 999)

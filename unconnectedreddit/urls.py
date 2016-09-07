@@ -11,7 +11,7 @@ reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group,
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
 salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
 repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
-video_vote
+video_vote, profile_pk
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -43,6 +43,7 @@ urlpatterns = patterns('',
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),#r'^[\w.@+-]+$'
+	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/(?P<is_notif>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='user_profile'),#r'^[\w.@+-]+$'
@@ -55,9 +56,10 @@ urlpatterns = patterns('',
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
 	url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
-	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/(?P<from_photos>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	#url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	#url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
 	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
 	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
@@ -81,14 +83,14 @@ urlpatterns = patterns('',
 	# url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
+	url(r'^comment/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
+	url(r'^comment_chat_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
 	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
-	url(r'^comment/(?P<from_photos>\d+)/$', CommentView.as_view(), name='comment'), #from_photos is an optional variable
-	url(r'^comment_chat_pk/(?P<pk>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
 	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
-	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/$', comment_pk, name='comment_pk'), #stream is an optional variable
-	url(r'^comment_pk/(?P<pk>\d+)/(?P<stream_id>\d+)/(?P<from_photos>\d+)/$', comment_pk, name='comment_pk'), #from_photos is an optional variable
-	url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
+	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
+	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
+	#url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
@@ -128,7 +130,8 @@ urlpatterns = patterns('',
 	url(r'^photo_option_seekho/$', auth(PhotoOptionTutorialView.as_view()), name='photo_option_tutorial'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
-	url(r'^izzat_ya_bezati/(?P<pk>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
+	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
+	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
 	url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
 	url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
@@ -189,7 +192,8 @@ urlpatterns = patterns('',
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
-	url(r'^phstote/(?P<user_id>\d+)/(?P<pk>\d+)/(?P<val>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
+	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
+	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),
@@ -215,9 +219,9 @@ urlpatterns = patterns('',
 	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^report/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/(?P<from_photos>\d+)$', auth(reportcomment_pk), name='reportcomment_pk'),
+	#url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
+	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
+	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
 	url(r'^appoint/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^appoint/(?P<pk>\d+)/(?P<app>\d+)/$', auth(appoint_pk), name='appoint_pk'),
 	url(r'^report_comment/$', auth(ReportcommentView.as_view()), name="reportcomment"),

@@ -5,32 +5,42 @@
 {% block content %}
 <div class="margin">
 {% if authorized %}
-    {% if from_photos %}
-        {% if from_photos == '1' and photostream_pk %}
-        <a href="{% url 'see_photo_pk' photostream_pk %}">
-        {% elif from_photos == '2' and photostream_pk  %}
-        <a href="{% url 'see_best_photo_pk' photostream_pk %}">
-        {% elif from_photos == '3'  %}
+    {% if origin %}
+        {% if origin == '1' %}
+            {% if photo_id %}
+            <a href="{% url 'see_photo_pk' photo_id %}">
+            {% else %}
+            <a href="{% url 'see_photo' %}#section0">
+            {% endif %}
+        {% elif origin == '2' %}
+            {% if photo_id %}
+            <a href="{% url 'see_best_photo_pk' photo_id %}">
+            {% else %}
+            <a href="{% url 'see_best_photo' %}#section0">
+            {% endif %}
+        {% elif origin == '3'  %}
         <a href="{% url 'user_profile_photo' username photo.id %}">
-        {% elif from_photos == '4' %}
+        {% elif origin == '4' %}
         <a href="{% url 'unseen_activity' username %}#section0">
-        {% elif from_photos == '5' %}
+        {% elif origin == '5' %}
         <a href="{% url 'see_special_photo_pk' photo.id %}#section0">
-        {% else %}
+        {% elif origin == '6' %}
         <a href="{% url 'home' %}#section0">
+        {% else %}
+        <a href="{% url 'see_photo' %}#section0">
         {% endif %}
     {% else %}
-    <a href="{% url 'home' %}#section0">
+        <a href="{% url 'see_photo' %}#section0">
     {% endif %}
 
     {% if photo.vote_score < -2 %}
-        {% if not from_photos and is_first %}
+        {% if not origin and is_first %}
             <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
         {% endif %}
     {% elif photo.vote_score < -1 %}
-        {% if not from_photos and is_first %}
+        {% if not origin and is_first %}
             {% if photo.image_file %}
                 <img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>
             {% else %}
@@ -44,7 +54,7 @@
             {% endif %}
         {% endif %}
     {% else %}
-        {% if not from_photos and is_first %}
+        {% if not origin and is_first %}
             {% if photo.image_file %}
                 <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>
             {% else %}
@@ -59,13 +69,13 @@
         {% endif %}
     {% endif %}</a>
     
-    {% if from_photos or not is_first %}
+    {% if origin or not is_first %}
     <span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
     {% else %}
     <br><span style="color:#404040;font-size:100%;"><b>{{ photo.caption }}</b></span>
     {% endif %}
 
-    {% if from_photos or not is_first %}
+    {% if origin or not is_first %}
     <br><span style="color:#a6a6a6;font-size:80%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
     {% else %}
     <span style="color:#a6a6a6;font-size:80%;">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
@@ -83,7 +93,7 @@
 <br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
 	{% csrf_token %}
-    <input type="hidden" id="id_link" name="from_photos" class="hidden_id" value="{{ from_photos }}">
+    <input type="hidden" id="id_link" name="origin" class="hidden_id" value="{{ origin }}">
     {{ form.errors }}
     {{ form.text }}
         {% if warned %}
@@ -188,32 +198,37 @@
     </span>
     {% if authenticated and user == photo.owner %}
     &nbsp;
-    {% if photostream_pk and from_photos %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
-    {% elif photostream_pk %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream=photostream_pk %}">
-    {% elif from_photos == '4' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream='0' from_photos='4' %}">
-    {% elif from_photos == '3' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk photostream='0' from_photos='3' %}">
-    {% else %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk %}">
+    {% if origin == '3' %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=photo.owner_id %}">
+    {% elif origin == '4' %}
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=slug_id %}">
+    {% elif origin == '6' %}
+        {% if link_ident %}
+        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=link_ident %}">
+        {% else %}
+        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
+        {% endif %}
+    {% else %} 
+    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
     {% endif %}
+
     <button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
     {% endif %}
 
     {% if authenticated and user != comment.submitted_by %}
     &nbsp;
-    {% if photostream_pk and from_photos %}
-    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream=photostream_pk from_photos=from_photos %}">
-    {% elif photostream_pk %}
-    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream=photostream_pk %}">
-    {% elif from_photos == '4' %}
-    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream='0' from_photos='4' %}">
-    {% elif from_photos == '3' %}
-    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk photostream='0' from_photos='3' %}">
+    {% if origin == '3' %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=photo.owner_id %}">
+    {% elif origin == '4' %}
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=slug_id %}">   
+    {% elif origin == '6' %}
+        {% if link_ident %}
+        <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=link_ident %}">
+        {% else %}
+        <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin %}">
+        {% endif %}
     {% else %}
-    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk %}">
+    <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin %}">
     {% endif %}
     <button style="font-weight:bold;color:white;background-color:#ff9933;border-color:#ff8000;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
     {% endif %}

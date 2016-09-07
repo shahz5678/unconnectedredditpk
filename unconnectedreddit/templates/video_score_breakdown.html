@@ -25,17 +25,17 @@
 {% for voter,vote in votes %}
 	<b style="color:#bfbfbf;">.</b>
 	{% if vote == 1 %}
-		<a href="{% url 'profile' voter.username %}"><b>{{ voter }}</b>			
+		<a href="{% url 'profile' voter %}"><b>{{ voter }}</b>			
 		    {% for person in girls %}
-		    {% if person == voter.username %}
+		    {% if person == voter %}
 		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
 		</a><span style="color:green;font-size:90%;">{% emoticons %} ko ye video <b>barri zabrdast</b> lagi :d{% endemoticons %}</span>
 	{% elif vote == 0 %}
-		<a href="{% url 'profile' voter.username %}"><b>{{ voter }}</b>
+		<a href="{% url 'profile' voter %}"><b>{{ voter }}</b>
 		    {% for person in girls %}
-		    {% if person == voter.username %}
+		    {% if person == voter %}
 		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}

@@ -14,13 +14,16 @@ from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 
-# @celery_app1.task(name='tasks.rank_all_photos')
-# def rank_all_photos():
-# 	for photo in Photo.objects.order_by('-id')[:400]:
-# 		photo.set_rank()
-
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
+	pass
+
+@celery_app1.task(name='tasks.rank_all_photos1')
+def rank_all_photos1():
+	pass
+
+@celery_app1.task(name='tasks.rank_photos')
+def rank_photos():
 	for photo in Photo.objects.filter(id__in=all_photos()):
 		score = photo.set_rank()
 		add_photo_to_best(photo.id, score)

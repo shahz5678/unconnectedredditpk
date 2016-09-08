@@ -24,7 +24,7 @@ def rank_all_photos():
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
-	for photo in Photo.objects.filter(id__in=all_photos()).order_by('-id'):
+	for photo in Photo.objects.filter(id__in=all_photos()):
 		score = photo.set_rank()
 		add_photo_to_best(photo.id, score)
 

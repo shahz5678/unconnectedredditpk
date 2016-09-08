@@ -174,6 +174,7 @@
                 {% endif %}
                 <span style="color:#179b36;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
+        
                 {% if reply.image %}
                 <img style="width:100%;max-width:400px;" src="{{ reply.image.url|photoedge }}"></img><br>
                 {% endif %}
@@ -184,10 +185,12 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            {% if reply not in seenreplies %}
-            <b style="color:orange;font-size:80%">(new)</b>
-            {% endif %}
             
+            <b style="color:orange;font-size:80%">
+            {% if reply not in seenreplies %}
+            (new)
+            {% endif %}
+            </b>
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
                 <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
@@ -214,10 +217,10 @@
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
             {% endfor %}</span>
-            <span>:&nbsp;</span>
+            <span>:</span>&nbsp;
             <bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-
-            {% endif %}
+        
+        {% endif %}
             
             <span style="color:grey;font-size:65%">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
         {% if reply.device == '1' %}

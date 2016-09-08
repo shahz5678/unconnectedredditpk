@@ -44,40 +44,46 @@
 	</a>
 	<br>
 
+		{% if vid.vote_score < -2 %}
+		<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png">
+		{% else %}
+		
 		<video poster="{{ vid.low_res_thumb }}" controls>
         
-        	<source onerror="errorHandler(error)" src="{{ vid.low_res_video }}" type="video/mp4">
+        	<source src="{{ vid.low_res_video }}" type="video/mp4">
             <a href="{{ vid.low_res_video }}">
                 <img src="{{ vid.low_res_thumb }}" title="Is video ko download kro">
              <br><b>Download</b>
             </a>
         </video>
 
+        {% endif %}
+
 
 	    	<a href="{% url 'videocomment_pk' vid.id %}">
-			{% if vid.latest_comment and vid.second_latest_comment %}
-			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
-			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}</span><br>
-			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span>
-			</div>
-			{% elif vid.latest_comment %}
-			<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
-			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}
-			</span>
-			</div>
-			{% else %}
-			{% endif %}
+				{% if vid.latest_comment and vid.second_latest_comment %}
+				<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
+				<span style="color:#1947D1;font-size:97%;">
+				<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}</span><br>
+				<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ vid.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.second_latest_comment.text|truncatechars:60 }}{% endemoticons %}</span>
+				</div>
+				{% elif vid.latest_comment %}
+				<div style="background-color:#e7f2fe;width:100%;max-width:640px;">
+				<span style="color:#1947D1;font-size:97%;">
+				<span style="color:#ffe8cc;">.</span>{{ vid.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ vid.latest_comment.text|truncatechars:50 }}{% endemoticons %}
+				</span>
+				</div>
+				{% else %}
+				<br>
+				{% endif %}
 			</a>
-	    <br>
 	    	<a href="{% url 'video_izzat' vid.id %}">
 	    	{% if vid.visible_score > 1 %}
-			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:1em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
 			{% elif vid.visible_score == 1 %}
-			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>1</b>&nbsp;point</button>
+			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:1em;white-space:nowrap;"><b>1</b>&nbsp;point</button>
 			{% else %}
-			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
+			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:1em;white-space:nowrap;"><b>{{ vid.visible_score }}</b>&nbsp;points</button>
 			{% endif %}
 			<br>
 			</a>
@@ -89,29 +95,11 @@
 	</td></tr>
 
 	{% endfor %}
-<script>
-    var videos = document.querySelectorAll('video');
-    for (var i = 0; i < videos.length; i++) {
-        (function() {
-            var v = videos[i];
-            var s = v.querySelector('source');
-                //console.log(source);
-            s.addEventListener('error', function(ev) {
-                var d = document.createElement('div');
-                d.innerHTML = v.innerHTML;
-                // console.log("hello")
-                //console.log(d.innerHTML);
-                v.parentNode.replaceChild(d, v);
-            }, false);
-        }());
-    }
-</script>
+
 
 </table>
 
 </div>
-
-
 
 <br><br>
 {% endblock %}

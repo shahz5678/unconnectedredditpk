@@ -213,9 +213,9 @@ class Photo(models.Model):
 		epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
 		secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
 		self.invisible_score = round(sign * order + secs / 45000, 8)
-		#score = self.invisible_score
-		self.save() # this persists the invisible_score in the database
-		#return score
+		score = self.invisible_score
+		#self.save() # this persists the invisible_score in the database
+		return score
 		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 
 
 class PhotoVote(models.Model):

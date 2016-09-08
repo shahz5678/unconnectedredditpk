@@ -319,8 +319,8 @@ from datetime import timedelta
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 CELERYBEAT_SCHEDULE = {
-	'tasks.rank_all_photos': {
-		'task': 'tasks.rank_all_photos',
+	'tasks.rank_photos': {
+		'task': 'tasks.rank_photos',
 		'schedule': timedelta(seconds=45),
 	},
 	'tasks.whoseonline': {

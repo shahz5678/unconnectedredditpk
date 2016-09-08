@@ -1088,8 +1088,8 @@ class PhotoDetailView(DetailView):
 		try:
 			pk = self.kwargs["pk"]
 			photo = Photo.objects.get(id=pk)
-			stream_id = PhotoStream.objects.get(cover_id=photo.id).id
-			context["stream_id"] = stream_id
+			#stream_id = PhotoStream.objects.get(cover_id=photo.id).id
+			context["photo_id"] = pk
 			context["photo"] = photo
 			context["own_photo"] = False
 		except:
@@ -3518,7 +3518,7 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.select_related('owner__userprofile').order_by('-upload_time')[:200]
+		queryset = Photo.objects.select_related('owner').order_by('-upload_time')[:200]
 		                         #select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by')
 		return queryset
 

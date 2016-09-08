@@ -3518,7 +3518,7 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_photos).order_by('-id')
+		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_photos()).order_by('-id')
 		#queryset = Photo.objects.select_related('owner').order_by('-upload_time')[:200]
 		                         #select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by')
 		# Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser')\

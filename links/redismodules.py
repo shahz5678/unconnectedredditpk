@@ -127,7 +127,7 @@ def add_video(video_id):
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("bestphotos:1000", 0, -1, withscores=True)
+	return my_server.zrange("bestphotos:1000", 0, -1, withscores=False)
 
 def add_photo_to_best(photo_id, score):
 	my_server = redis.Redis(connection_pool=POOL)

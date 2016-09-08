@@ -208,14 +208,13 @@
                 {% endif %}
 
             </span>
-
+            <span>
         	{% for person in ensured %}
                 {% if person == writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}
-            :
-            &nbsp;
+            {% endfor %}</span>
+            <span>:&nbsp;</span>
             <bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
 
             {% endif %}

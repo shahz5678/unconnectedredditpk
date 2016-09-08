@@ -4091,11 +4091,11 @@ class UploadPhotoView(CreateView):
 				context["forbidden"] = forbidden
 				context["time_remaining"] = time_remaining
 			else:
-				try:
-					opt = self.kwargs["opt"]
-					context["opt"] = opt
-				except:
-					context["opt"] = None
+				# try:
+				# 	opt = self.kwargs["opt"]
+				# 	context["opt"] = opt
+				# except:
+				# 	context["opt"] = None
 				post_big_photo_in_home = True
 				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 					post_big_photo_in_home = False
@@ -4183,11 +4183,11 @@ class UploadPhotoView(CreateView):
 				else:
 					device = '3'
 				invisible_score = set_rank()
-				opt = self.request.POST.get("opt")
-				if opt == '7':
-					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score, category='7')
-				else:# the statement below incurs a cost. Can it be made an asynchronous task?
-					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
+				#opt = self.request.POST.get("opt")
+				#if opt == '7':
+				#	photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score, category='7')
+				#else:# the statement below incurs a cost. Can it be made an asynchronous task?
+				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
 				insert_hash(photo.id, photo.avg_hash)
 				add_photo(photo.id)
 				save_recent_photo(user.id, photo.id)
@@ -4201,10 +4201,10 @@ class UploadPhotoView(CreateView):
 				photo_upload_tasks.delay(banned, user.id,photo.id, timestring, stream.id, device)
 				bulk_create_notifications.delay(user.id, photo.id, timestring)				
 				photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
-				if opt == '7':
-					return redirect("see_special_photo")
-				else:
-					return redirect("see_photo")
+				# if opt == '7':
+				# 	return redirect("see_special_photo")
+				# else:
+				return redirect("see_photo")
 			else:
 				context = {'photo': 'photo'}
 				return render(self.request, 'big_photo.html', context)

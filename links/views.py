@@ -3772,7 +3772,9 @@ class BestPhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.exclude(vote_score__lte=-3).order_by('-invisible_score')[:200]
+		#queryset = Photo.objects.exclude(vote_score__lte=-3).order_by('-invisible_score')[:200]
+		#print all_best_photos()
+		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).order_by('-id')
 		return queryset
 		# sorted_dictionary = dict(all_best_photos())
 		# ids = sorted_dictionary.keys()

@@ -144,7 +144,7 @@
 {% for photo in object_list %}
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<a href="{% url 'see_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span style="color:orange;">|</span><span style="font-size:78%;color:blue;"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+	<a href="{% url 'see_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span style="color:orange;">|</span><span style="font-size:78%;color:blue;"><b>&nbsp;&nbsp;Top photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#ff9933"></p>
@@ -203,7 +203,7 @@
 
 	<br>
 	
-
+	{{ photo.invisible_score }}<br>
 			{% if photo.vote_score < -2 %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vote_score < -1 %}
@@ -256,6 +256,8 @@
 
 			<a href="{% url 'photo_share' photo.id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
 
+
+		
 {% endfor %}
 {% endif %}
 </div>

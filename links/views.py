@@ -3041,7 +3041,7 @@ class CommentView(CreateView):
 					#if originating from a notification
 					self.request.session['target_id'] = None
 			else:
-				pass
+				context["origin"] = '1'
 		except:
 			context["origin"] = '1'
 		try:

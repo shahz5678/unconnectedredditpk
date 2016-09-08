@@ -321,10 +321,6 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=30),
-	},
-	'tasks.rank_all_photos1': {
-		'task': 'tasks.rank_all_photos1',
 		'schedule': timedelta(seconds=45),
 	},
 	'tasks.whoseonline': {

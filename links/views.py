@@ -3518,8 +3518,8 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_photos()).order_by('-id')
-		#queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').order_by('-upload_time')[:210]
+		queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').filter(id__in=all_photos()).order_by('-id')
+		#queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').order_by('-upload_time')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):

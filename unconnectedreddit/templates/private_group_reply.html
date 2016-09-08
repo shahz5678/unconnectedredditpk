@@ -213,7 +213,10 @@
                 {% if person == writer.username %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                 {% endif %}
-            {% endfor %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
+            {% endfor %}
+            :
+            &nbsp;
+            <bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
 
             {% endif %}
             

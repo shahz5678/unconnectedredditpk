@@ -360,13 +360,11 @@
 		    	<span style="color:#18A018;">({{ link.submitter.userprofile.score }})</span>
 			{% endif %}
 		{% endif %}
-		</span>
-
-		    {% for person in checked %}
+		</span>{% for person in checked %}
 		    {% if person == link.submitter.username %}
-		    	<span style="font-size:150%;color:deeppink;"><b>*</b></span>
+		    	<span style="font-size:120%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
-		    {% endfor %}</a>:
+		    {% endfor %}:</a>
     	<span style="color:#404040; font-size:115%; line-height:1.8;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><bdi>{% emoticons %}{{ link.description }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter }}"></a> 
 		<span style="font-size:75%;color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi>

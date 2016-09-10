@@ -202,8 +202,13 @@
             
             <span style="font-size:70%;">
 
+                {% if writer.userprofile.score %}
+                    {% if writer.userprofile.score < 0 %}
+                        <span style="color:#18A018;">(1)</span>
+                    {% else %}
                         <span style="color:#18A018;">({{ writer.userprofile.score }})</span>
-                    
+                    {% endif %}
+                {% endif %}
 
             </span>
             <span>

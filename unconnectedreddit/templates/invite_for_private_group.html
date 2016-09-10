@@ -9,12 +9,6 @@
 <span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
 
-{% if user.username == 'Shireen' %}
-{% for visitor in visitors0 %}
-{{ visitor.username }}<br>
-{% endfor %}
-{% endif %}
-
 {% for visitor in visitors %}
 {% if visitor.userprofile.score > 0 and visitor != user %}
 

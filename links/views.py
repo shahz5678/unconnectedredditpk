@@ -2223,7 +2223,7 @@ class InternalSalatInviteView(ListView):
 class InviteUsersToGroupView(FormView):
 	model = Session
 	template_name = "invite_for_groups.html"
-	paginate_by = 70
+	#paginate_by = 70
 	form_class = InviteForm
 	
 	def get_context_data(self, **kwargs):

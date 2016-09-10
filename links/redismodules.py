@@ -230,7 +230,7 @@ def add_to_filtered_homelist(link_id):
 def is_member_of_group(group_id, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ug:"+str(user_id) #ug is user's groups
-	if my_server.sismember(set_name, user_id):
+	if my_server.sismember(set_name, group_id):
 		return True
 	else:
 		return False

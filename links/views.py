@@ -2238,8 +2238,9 @@ class InviteUsersToGroupView(FormView):
 			context["unique"] = unique
 			group = Group.objects.get(unique=unique)
 			context["group"] = group
+			context ["visitors"] = []
 			if self.request.user_banned:
-				context ["visitors"] = [] # there are no visitors to invite for hellbanned users
+				pass # there are no visitors to invite for hellbanned users
 			else:	
 				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 						'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
@@ -2247,11 +2248,12 @@ class InviteUsersToGroupView(FormView):
 				users = cache_mem.get('online_users')
 				global condemned
 				users_purified = [user for user in users if user.pk not in condemned]
-				user_ids = [user.id for user in users_purified]
-				online_invited_replied_users = \
-				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
-				#only invite those 'online' users, who have 'not written' in the group or 'not been invited' to it before
-				context ["visitors"] = online_invited_replied_users
+				#print users_purified
+				non_invited_online_users = [user for user in users_purified if not check_group_invite(user.id, group.id)] #i.e. ensure not invited to this group
+				#print non_invited_online_users
+				non_invited_non_member_online_users = [user for user in non_invited_online_users if not is_member_of_group(group.id, user.id)]
+				#print "%s is member of this group? %s" % (self.request.user, is_member_of_group(group.id, self.request.user.id))
+				context ["visitors"] = non_invited_non_member_online_users
 			#######################
 		return context
 

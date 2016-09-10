@@ -16,6 +16,15 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+def add_publicreply_to_link(publicreply_id, link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("pr:"+str(link_id), publicreply_id) #'pr' is public reply
+	my_server.ltrim("pr:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
+	hash_name = "lpr:"+str(link_id) #lpr is 'last public reply' time
+	current_time = time.time()
+	mapping = {'t':current_time}
+	my_server.hmset(hash_name, mapping)
+
 #####################Photo objects#####################
 
 def get_recent_photos(user_id):

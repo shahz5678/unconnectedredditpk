@@ -35,7 +35,7 @@ private_group_posting_allowed, add_group_member, get_group_members, remove_group
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo
+get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -2246,6 +2246,7 @@ class InviteUsersToGroupView(FormView):
 				user_ids = [user.id for user in users_purified]
 				online_invited_replied_users = \
 				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
+				#only invite those online users who have not written in the group or been invited to it before
 				context ["visitors"] = online_invited_replied_users
 			#######################
 		return context
@@ -5486,6 +5487,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					device = '3'
 				parent = Link.objects.get(id=pk)
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
+				add_publicreply_to_link(reply.id, parent.id)
 				timestring = reply.submitted_on
 				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
@@ -5624,9 +5626,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 					timestring = reply.submitted_on
 					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
-					# answer_to.reply_count = answer_to.reply_count + 1
-					# answer_to.latest_reply = reply
-					# answer_to.save()
+					add_publicreply_to_link(reply.id, answer_to.id)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 					if answer_to.submitter_id not in all_reply_ids:
 						all_reply_ids.append(answer_to.submitter_id)
@@ -6187,6 +6187,7 @@ class WelcomeReplyView(FormView):
 						return redirect("score_help")
 					parent.latest_reply = reply
 					parent.save()
+					add_publicreply_to_link(reply.id, parent.id)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 					if parent.submitter_id not in all_reply_ids:	
 						all_reply_ids.append(parent.submitter_id)

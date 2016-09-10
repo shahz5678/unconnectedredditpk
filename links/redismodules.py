@@ -16,10 +16,17 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#####################Publicreplies#####################
+
+def get_publicreplies(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("pr:"+str(link_id), 0, -1)
+
 def add_publicreply_to_link(publicreply_id, link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("pr:"+str(link_id), publicreply_id) #'pr' is public reply
 	my_server.ltrim("pr:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
+	# use the following to delete out-dated publicreply redis lists
 	hash_name = "lpr:"+str(link_id) #lpr is 'last public reply' time
 	current_time = time.time()
 	mapping = {'t':current_time}
@@ -220,6 +227,14 @@ def add_to_filtered_homelist(link_id):
 #for each user, keep a list of groups they have been invited to, and list of groups they are a member of
 #after 1 week of pushing this update, change group_page to solely a list of groups a person was invited to, or was a member of!
 
+def is_member_of_group(group_id, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ug:"+str(user_id) #ug is user's groups
+	if my_server.sismember(set_name, user_id):
+		return True
+	else:
+		return False
+
 def remove_user_group(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ug:"+str(user_id) #ug is user's groups
@@ -237,7 +252,7 @@ def add_user_group(user_id, group_id):
 
 def get_active_invites(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	unsorted_set = "pir:"+str(user_id) #pir is 'private invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
+	unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 	return my_server.smembers(unsorted_set)
 
 def remove_group_invite(user_id, group_id):
@@ -249,7 +264,7 @@ def remove_group_invite(user_id, group_id):
 
 def check_group_invite(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private group' - this stores the group_id a user has already been invited to - limited to 500 invites
+	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
 	already_exists = my_server.zscore(sorted_set, group_id)
 	if not already_exists:
 		return False
@@ -258,10 +273,10 @@ def check_group_invite(user_id, group_id):
 
 def add_group_invite(user_id, group_id, invite_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private group' - this stores the group_id a user has already been invited to - limited to 500 invites
+	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
 	already_exists = my_server.zscore(sorted_set, group_id)
 	if not already_exists:
-		unsorted_set = "pir:"+str(user_id) #pir is 'private invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
+		unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 		hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
 		size = my_server.zcard(sorted_set)
 		limit = 100

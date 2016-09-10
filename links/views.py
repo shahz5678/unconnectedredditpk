@@ -35,7 +35,7 @@ private_group_posting_allowed, add_group_member, get_group_members, remove_group
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link
+get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link, get_publicreplies
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -2057,7 +2057,7 @@ def invite_private(request, slug=None, *args, **kwargs):
 class InviteUsersToPrivateGroupView(FormView):
 	model = Session
 	template_name = "invite_for_private_group.html"
-	paginate_by = 70
+	#paginate_by = 70
 	form_class = InvitePrivateForm
 
 	def get_context_data(self, **kwargs):
@@ -2080,9 +2080,13 @@ class InviteUsersToPrivateGroupView(FormView):
 					global condemned
 					users_purified = [user for user in users if user.pk not in condemned]
 					user_ids = [user.id for user in users_purified]
+					#non_invited_user_ids = [user.id for user in users_purified if not check_group_invite(user.id, group.id)] #i.e. ensure not invited to this group
+					#remove already member ids
+					online_invited_replied_users0 = User.objects.filter(id__in=user_ids).exclude(Q(invitee__which_group=group),Q(reply__which_group=group)).distinct()
 					online_invited_replied_users = \
 					User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
 					context ["visitors"] = online_invited_replied_users
+					context["visitors0"] = online_invited_replied_users0
 			except:
 				context["authorized"] = False
 		return context				
@@ -2246,7 +2250,7 @@ class InviteUsersToGroupView(FormView):
 				user_ids = [user.id for user in users_purified]
 				online_invited_replied_users = \
 				User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
-				#only invite those online users who have not written in the group or been invited to it before
+				#only invite those 'online' users, who have 'not written' in the group or 'not been invited' to it before
 				context ["visitors"] = online_invited_replied_users
 			#######################
 		return context

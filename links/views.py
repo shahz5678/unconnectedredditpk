@@ -2082,11 +2082,10 @@ class InviteUsersToPrivateGroupView(FormView):
 					user_ids = [user.id for user in users_purified]
 					#non_invited_user_ids = [user.id for user in users_purified if not check_group_invite(user.id, group.id)] #i.e. ensure not invited to this group
 					#remove already member ids
-					#online_invited_replied_users0 = User.objects.filter(id__in=user_ids).exclude(Q(invitee__which_group=group),Q(reply__which_group=group)).distinct()
-					online_invited_replied_users = \
-					User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
+					online_invited_replied_users0 = User.objects.filter(id__in=user_ids).exclude(Q(invitee__which_group=group)|Q(reply__which_group=group)).distinct()
+					online_invited_replied_users = User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
 					context ["visitors"] = online_invited_replied_users
-					#context["visitors0"] = online_invited_replied_users0
+					context["visitors0"] = online_invited_replied_users0
 			except:
 				context["authorized"] = False
 		return context				

@@ -31,7 +31,7 @@ def rank_photos():
 #@shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user').prefetch_related('user__userprofile')
+	unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user')#.prefetch_related('user__userprofile')
 	users = [session.user for session in unique_user_sessions]
 	users = [user for user in users if user is not None]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{

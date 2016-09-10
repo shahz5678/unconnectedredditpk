@@ -47,18 +47,18 @@
 		{% if vid.vote_score < -2 %}
 		<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png">
 		{% else %}
-		
+		<div style="width:99%; padding-bottom:0px;">
 		<video poster="{{ vid.low_res_thumb }}" controls>
         
-        	<source src="{{ vid.low_res_video }}" type="video/mp4">
+        	<source onerror="errorHandler(this,event)" src="{{ vid.low_res_video }}" type="video/mp4">
             <a href="{{ vid.low_res_video }}">
                 <img src="{{ vid.low_res_thumb }}" title="Is video ko download kro">
              <br><b>Download</b>
             </a>
         </video>
+        </div>
 
         {% endif %}
-
 
 	    	<a href="{% url 'videocomment_pk' vid.id %}">
 				{% if vid.latest_comment and vid.second_latest_comment %}

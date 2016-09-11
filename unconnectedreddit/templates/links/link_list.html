@@ -188,8 +188,8 @@
 	{% endif %}
 
 	{% if link.cagtegory == '2' %}
-		<div style="background-color:#F6CEF5;margin-top:-1em;padding-top:1em;">
-		<span style="font-size:80%;color:red;"><b>(new) </b></span><a href="{% url 'profile' slug=link.submitter %}#section0">
+		<div style="background-color:#f9e6ff;margin-top:-1em;padding-top:1em;">
+		<span style="font-size:80%;color:#765989;"><b>(new) </b></span><a href="{% url 'profile' slug=link.submitter %}#section0">
 		{% if link.submitter.userprofile.avatar %}
 			<img src="{{ link.submitter.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
 			{% else %}
@@ -201,7 +201,7 @@
 		    	<span style="font-size:130%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		    {% endfor %}
-		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki new <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group' slug=link.url %}" style="color:red;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
+		</a><span style="font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"> ki new <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group' slug=link.url %}" style="color:#765989;text-shadow: 0 0 0px rgba(0,0,0,0.3)"><u>{{ link.description }}</u></a></span><span style="font-size:75%;font-family:'arial';color:gray;"><bdi>, {{ link.submitted_on|naturaltime }}</bdi></span>
 		<p style="color:gray"><hr size=1></p>
 		</div>
 	{% elif link.cagtegory == '6' %}

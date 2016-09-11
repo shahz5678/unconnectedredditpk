@@ -5,15 +5,15 @@
 {% block content %}
 <div class="margin">
 {% if not object_list %}
-<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>naee mehfil banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'group_list' %}#section0" style="font-size:65%;color:red;"><b>mashoor mehfilein</b></a><span style="font-size:70%;"> |</span>
+<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>new mehfil</b></a>&nbsp;<span style="font-size:70%;">|</span>
+<a href="{% url 'group_list' %}#section0" style="font-size:65%;"><b>mashoor mehfilein</b></a><span style="font-size:70%;"> |</span>
 <a href="{% url 'group_help' %}#section0" style="font-size:65%;"><b>mehfil kiya hai?</b></a>
 <br><br>
 	<b>Mehfil</b> mein dostoon ke sath pics wali chat ki ja sakti hai. <a href="{% url 'group_type' %}">Naee mehfil banao</a>, aur shuru ho jao.
 {% else %}
 <b>Tumhari mehfilein:</b><br><br>
-<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>naee banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'group_list' %}#section0" style="font-size:65%;color:red;"><b>mashoor mehfilein</b></a>
+<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>new mehfil</b></a>&nbsp;<span style="font-size:70%;">|</span>
+<a href="{% url 'group_list' %}#section0" style="font-size:65%;"><b>mashoor mehfilein</b></a>
 <br><br>
 {% for reply in object_list %}
 

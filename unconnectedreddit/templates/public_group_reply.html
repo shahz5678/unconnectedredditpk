@@ -18,7 +18,7 @@
     <br><br><br>
 {% else %}
     
-		Topic:&nbsp;<span style="color:red;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
+		Topic:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
@@ -54,7 +54,7 @@
     
 
 	    {% if group.rules %}
-	    <span style="font-size:80%;">Qanoon:&nbsp;<span style="color:red;"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
+	    <span style="font-size:80%;">Qanoon:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
 	    {% endif %}
 	    {% if user == group.owner %}
 	    <a href="{% url 'change_rules' %}" style="font-size:70%;">(qanoon change karo)</a>
@@ -65,10 +65,10 @@
     <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
-        <br><span style="color:red;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
+        <br><span style="color:#765989;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
         <span style="color:grey;font-size:80%;"><i>1 mb se barri pic nahi lag sakti</i></span><br>
         {% endif %}
-        <span style="color:red;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
+        <span style="color:#765989;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
         <br>
     <input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;" type="submit" value="OK" id="id_submit">
     </form>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Kia is mehfil ko chorna chahte ho? {% emoticons %}|-){% endemoticons %}</h2>
+&nbsp;<a href="{% url 'left_public_group' pk unique private %}"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">Haan</button></a><br>
+&nbsp;<a href="{% url 'public_group' unique %}"><button style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;">Nahi</button></a>
+</div>
+<br><br><br>
+{% endblock %}

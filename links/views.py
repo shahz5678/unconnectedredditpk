@@ -35,7 +35,8 @@ private_group_posting_allowed, add_group_member, get_group_members, remove_group
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link, is_member_of_group
+get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link, is_member_of_group, \
+first_time_refresher, add_refresher
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -5075,6 +5076,50 @@ class PublicGroupView(CreateView):
 				return redirect("public_group", slug=pk)
 
 @ratelimit(rate='1/s')
+def first_time_public_refresh(request, unique=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
+	if was_limited:
+		if request.user.is_authenticated():
+			deduction = 1 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': unique}
+			return render(request, 'public_mehfil_refresh_penalty.html', context)
+		else:
+			context = {'unique': 'none'}
+			return render(request, 'public_mehfil_refresh_penalty.html', context)
+	else:
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			context = {'unique': unique}
+			return render(request, 'public_mehfil_refresh.html', context)
+		else:
+			return redirect("public_group", unique)
+
+@ratelimit(rate='1/s')
+def first_time_refresh(request, unique=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
+	if was_limited:
+		if request.user.is_authenticated():
+			deduction = 1 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			context = {'unique': unique}
+			return render(request, 'mehfil_refresh_penalty.html', context)
+		else:
+			context = {'unique': 'none'}
+			return render(request, 'mehfil_refresh_penalty.html', context)
+	else:
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			context = {'unique': unique}
+			return render(request, 'mehfil_refresh.html', context)
+		else:
+			return redirect("private_group", unique)
+
+@ratelimit(rate='1/s')
 def private_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
@@ -5095,7 +5140,6 @@ def private_group(request, slug=None, *args, **kwargs):
 		else:
 			return redirect("score_help")
 		return redirect("private_group_reply")
-	
 
 class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Reply

@@ -11,7 +11,7 @@ reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group,
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
 salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
 repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
-video_vote, profile_pk
+video_vote, profile_pk, first_time_refresh, first_time_public_refresh
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -128,6 +128,8 @@ urlpatterns = patterns('',
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
 	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
 	url(r'^photo_option_seekho/$', auth(PhotoOptionTutorialView.as_view()), name='photo_option_tutorial'),
+	url(r'^ftr/(?P<unique>[\w.@+-]+)/$', auth(first_time_refresh), name='first_time_refresh'),
+	url(r'^ftpr/(?P<unique>[\w.@+-]+)/$', auth(first_time_public_refresh), name='first_time_public_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),

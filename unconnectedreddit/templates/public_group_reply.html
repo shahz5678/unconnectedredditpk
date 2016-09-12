@@ -17,8 +17,8 @@
     <a href="{% url 'group_page' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    
-		Topic:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
+    <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
+		&nbsp;<span style="color:#404040;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
 		<span style="color:grey;font-size:80%;">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
@@ -52,21 +52,22 @@
 	    <a href="{% url 'change_topic' %}" style="font-size:70%;">(topic change karo)</a><br>
 	    {% endif %}
     
-
+        <div style="margin-top:0.5em;">
 	    {% if group.rules %}
-	    <span style="font-size:80%;">Qanoon:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
+	    <span style="font-size:80%;color:#404040;">Rules:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
 	    {% endif %}
 	    {% if user == group.owner %}
 	    <a href="{% url 'change_rules' %}" style="font-size:70%;">(qanoon change karo)</a>
 	    {% endif %}
+        </div>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
-
+    <br>
     <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
-        <br><span style="color:#765989;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
-        <span style="color:grey;font-size:80%;"><i>1 mb se barri pic nahi lag sakti</i></span><br>
+        <span style="color:#765989;font-size:90%;">Photo:&nbsp;</span>{{ form.image }}<br>
+        <span style="color:grey;font-size:80%;"><i><b>200 KB</b> se barri pic nahi lagti</i></span><br><br>
         {% endif %}
         <span style="color:#765989;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
 

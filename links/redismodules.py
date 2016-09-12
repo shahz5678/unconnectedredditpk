@@ -16,6 +16,24 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#######################Tutorials#######################
+
+#mehfil refresh button: '1'
+
+#was it a first-time interaction with the refresh button in mehfils?
+def first_time_refresher(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id) #first time user experiences set
+	if my_server.sismember(set_name, '1'):
+		return False #user is not a first-timer
+	else:
+		return True #user is a first-timer
+
+def add_refresher(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '1')
+
 #####################Publicreplies#####################
 
 def get_publicreplies(link_id):

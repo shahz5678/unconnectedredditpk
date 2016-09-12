@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+<a href="{% url 'public_group' unique %}"><img src="{{ STATIC_URL }}img/rfrsh1.png" style="margin-right:0.6em;" alt="no pic" height="26" width="26"></a>
+<span style="color:#404040;font-size:100%;">Ye button daba kr mehfil mein dostoon ke new jawab dekhe ja sakte hain!</span>
+<br><br>
+<a href="{% url 'public_group' unique %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;color:white;border-radius:4px;width:6.5em;">samajh lia</button></a>
+</div>
+{% endblock %}

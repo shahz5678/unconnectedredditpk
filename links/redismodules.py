@@ -311,7 +311,7 @@ def add_group_invite(user_id, group_id, invite_id):
 
 def check_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "pgm:"+str(group_id) #pgm is private_group_members
+	set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 	if my_server.sismember(set_name, username):
 		return True
 	else:
@@ -319,7 +319,7 @@ def check_group_member(group_id, username):
 
 def remove_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "pgm:"+str(group_id) #pgm is private_group_members
+	set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 	if my_server.exists(set_name):
 		if my_server.sismember(set_name, username):
 			my_server.srem(set_name, username)

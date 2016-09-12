@@ -47,7 +47,7 @@
     <a href="{% url 'closed_invite_type' %}#section0" style="font-size:70%;"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;"><b>invite</b></button></a>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#2DB92D">
-    <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
     	{% csrf_token %}
     	<input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
        <span style="font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Photo:</b>&nbsp;</span>{{ form.image }}<br>
@@ -61,8 +61,12 @@
             {% if warned %}
             <span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> tumhare khilaf reports a rahi hain, ehtiat kro yar!</span>
             {% endif %}
-        <br>
-    <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK" id="id_submit">
+
+    <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-right:2.1em;" type="submit" value="OK" id="id_submit">
+    </form>
+    <form action="{% url 'first_time_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
+        {% csrf_token %}
+        <input class="button" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 26px 26px; width:26px;height:26px;background-repeat: no-repeat;background-position: center; border-color:#f9a653;color:#f9c153;text-shadow:none;" type="submit" value=".">
     </form>
     {% endif %}
     <p style="margin-top:.2em;"></p>

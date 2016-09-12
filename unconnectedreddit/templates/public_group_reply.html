@@ -62,17 +62,21 @@
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
 
-    <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
         <br><span style="color:#765989;font-size:90%;">Tasveer:&nbsp;</span>{{ form.image }}<br>
         <span style="color:grey;font-size:80%;"><i>1 mb se barri pic nahi lag sakti</i></span><br>
         {% endif %}
         <span style="color:#765989;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
-        <br>
-    <input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;" type="submit" value="OK" id="id_submit">
+
+    <input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;margin-right:2.1em;" type="submit" value="OK" id="id_submit">
     </form>
-        <br>
+    <form action="{% url 'first_time_public_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
+        {% csrf_token %}
+        <input class="button" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 26px 26px; width:26px;height:26px;background-repeat: no-repeat;background-position: center; border-color:#f9a653;color:#f9c153;text-shadow:none;" type="submit" value=".">
+    </form>
+        <br><br>
 	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>{% if user == group.owner %}<span style="font-size:70%;">|</span>
         <a href="{% url 'owner_group_online_kon' %}" style="font-size:65%;"><b>afsar banao</b></a>
         {%else %}

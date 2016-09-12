@@ -802,6 +802,46 @@ class ReportNicknameView(FormView):
 			else:
 				return redirect("home")
 
+def leave_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
+	if Group.objects.get(id=pk).owner == request.user:
+		context={'unique':unique, 'pk':pk, 'private':private}
+		return render(request, 'delete_public_group.html', context)
+	else:
+		context={'unique':unique, 'pk':pk, 'private':private}
+		return render(request, 'leave_public_group.html', context)
+
+def left_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
+	if request.is_feature_phone:
+		device = '1'
+	elif request.is_phone:
+		device = '2'
+	elif request.is_tablet:
+		device = '4'
+	elif request.is_mobile:
+		device = '5'
+	else:
+		device = '3'
+	if check_group_member(pk, request.user.username):
+		remove_group_member(pk, request.user.username)
+		remove_user_group(request.user.id, pk)
+	elif check_group_invite(request.user.id, pk):
+		remove_group_invite(request.user.id, pk)
+	else:
+		pass
+	return redirect("group_page")
+
+def del_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
+	if Group.objects.get(id=pk).owner == request.user:
+		GroupTraffic.objects.filter(which_group_id=pk).delete()
+		GroupBanList.objects.filter(which_group_id=pk).delete()
+		GroupCaptain.objects.filter(which_group_id=pk).delete()
+		GroupInvite.objects.filter(which_group_id=pk).delete()
+		Group.objects.get(id=pk).delete()
+		return redirect("group_page")
+	else:
+		context={'private':'0','unique':unique}
+		return render(request,'penalty_groupbanned.html', context)
+
 def leave_private_group(request, pk=None, unique=None, private=None, *args, **kwargs):
 	context={'unique':unique, 'pk':pk, 'private':private}
 	return render(request, 'leave_private_group.html', context)

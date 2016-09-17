@@ -556,6 +556,10 @@ class LogoutHelpForm(forms.Form):
 	class Meta:
 		pass
 
+class FacesHelpForm(forms.Form):
+	class Meta:
+		pass
+
 class EmoticonsHelpForm(forms.Form):
 	class Meta:
 		pass

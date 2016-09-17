@@ -38,12 +38,18 @@ def add_refresher(user_id):
 
 def get_publicreplies(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("pr:"+str(link_id), 0, -1)
+	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
+	return [p.split(":")[0] for p in publicreply_writer_pairs]
 
-def add_publicreply_to_link(publicreply_id, link_id):
+def get_replywriters(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("pr:"+str(link_id), publicreply_id) #'pr' is public reply
-	my_server.ltrim("pr:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
+	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
+	return set(w.split(":")[1] for w in publicreply_writer_pairs)
+
+def add_publicreply_to_link(publicreply_id, writer_id, link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("prw:"+str(link_id), str(publicreply_id)+":"+str(writer_id)) #'pr' is 'public reply & writer'
+	my_server.ltrim("prw:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
 	# use the following to delete out-dated publicreply redis lists
 	hash_name = "lpr:"+str(link_id) #lpr is 'last public reply' time
 	current_time = time.time()

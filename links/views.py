@@ -5659,7 +5659,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
 			#replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(id__in=get_publicreplies(self.request.session["link_pk"])).order_by('-id')
-			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')
+			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
 			context["replies"] = replies
 			if self.request.user_banned:
 				context["unseen"] = False

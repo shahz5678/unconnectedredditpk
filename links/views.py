@@ -52,7 +52,7 @@ WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyF
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
 TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UnseenActivityForm, \
-UploadVideoForm, VideoCommentForm, VideoScoreForm #, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -466,6 +466,10 @@ class VoteOrProfileView(FormView):
 				context["vote_id"] = vote_id
 				context["link_submitter_id"] = link_submitter_id
 		return context
+
+class FacesHelpView(FormView):
+	form_class = FacesHelpForm
+	template_name = "faces.html"
 
 class EmoticonsHelpView(FormView):
 	form_class = EmoticonsHelpForm

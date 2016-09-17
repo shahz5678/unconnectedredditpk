@@ -29,7 +29,7 @@ ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPri
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
 SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, \
-VideoCommentView, VideoScoreView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+VideoCommentView, VideoScoreView, FacesHelpView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
 
 admin.autodiscover()
 
@@ -169,6 +169,7 @@ urlpatterns = patterns('',
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
 	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
+	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),
 	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
 	#url(r'^link/delete/(?P<pk>\d+)/$', auth(LinkDeleteView.as_view()), name='link_delete'),
 	url(r'^pic_expiry/(?P<slug>[\w.@+-]+)/$', PicExpiryView.as_view(), name='pic_expiry'),

@@ -7,7 +7,7 @@ ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, Gro
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import PIL
-# import ExifTags
+from detect_porn import detect
 from PIL import Image, ImageFile, ImageEnhance, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO
@@ -32,28 +32,6 @@ def compute_avg_hash(image):
 	bits = "".join(map(lambda pixel: '1' if pixel > avg else '0', pixels)) #turning the image into string of 0s and 1s
 	photo_hash = int(bits, 2).__format__('16x').upper()
 	return photo_hash
-
-# def image_entropy(img):
-# 	"""calculate the entropy of an image"""
-# 	hist = img.histogram()
-# 	hist_size = sum(hist)
-# 	hist = [float(h) / hist_size for h in hist]
-# 	return -sum([p * math.log(p, 2) for p in hist if p != 0])
-
-# #cuts 80% from the bottom, 20% from the top
-# def square_image(img):
-# 	"""if the image is taller than it is wide, square it off. determine
-# 	which pieces to cut off based on the entropy pieces."""
-# 	x,y = img.size
-# 	while y > x:
-# 		#slice 10px at a time until square
-# 		slice_height = min(y - x, 20) #ensure image cropping is done with precision
-# 		img = img.crop((0, 0, x, y - slice_height)) #cut from the bottom
-# 		x,y = img.size
-# 		slice_height = min(y - x, 5)
-# 		img = img.crop((0, slice_height, x, y)) #cut from the top
-# 		x,y = img.size
-# 	return img
 
 def restyle_image(image):
 	width = 300
@@ -104,11 +82,25 @@ def clean_image_file(image): # where self is the form
 	else:
 		return 0
 
+# def main(name):
+#     image = Image.open(name)
+#     ycbcr_image = Image.new('RGB', image.size, 'black')
+#     ycbcr, pixels = get_ycbcr(image), ycbcr_image.load()
+
+#     for i in range(0, image.size[0]):
+#         for j in range(0, image.size[1]):
+#             pixels[i, j] = tuple(map(int, ycbcr[i * image.size[1] + j]))
+
+#     ycbcr_image.show()
+
 def clean_image_file_with_hash(image):#, hashes): # where self is the form
 	if image:
+		# print image
 		image = Image.open(image)
-		image = reorient_image(image)
-		avghash = compute_avg_hash(image)
+		# is_porn, rating = detect(image) #check if it's probably porn
+		# print is_porn, rating
+		image = reorient_image(image) #so that it appears the right side up
+		avghash = compute_avg_hash(image) #to ensure a duplicate image hasn't been posted before
 		exists = already_exists(avghash)
 		if exists:
 			return image, avghash, exists

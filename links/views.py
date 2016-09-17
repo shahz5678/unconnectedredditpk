@@ -36,7 +36,7 @@ check_group_invite, remove_group_invite, get_active_invites, add_user_group, get
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, add_publicreply_to_link, is_member_of_group, \
-first_time_refresher, add_refresher
+first_time_refresher, add_refresher, get_publicreplies
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -5547,6 +5547,7 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page}
 	return render(request, 'user_unseen_activity.html', context)
 
+#called when replying from unseen_activity
 @ratelimit(rate='1/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -5577,9 +5578,10 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					device = '3'
 				parent = Link.objects.get(id=pk)
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
-				add_publicreply_to_link(reply.id, parent.id)
+				add_publicreply_to_link(reply.id, request.user.id, pk)
 				timestring = reply.submitted_on
 				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
+				#all_reply_ids = get_publicreplies(pk)
 				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 				if parent.submitter_id not in all_reply_ids:
 					all_reply_ids.append(parent.submitter_id)
@@ -5656,7 +5658,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
-			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
+			#replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(id__in=get_publicreplies(self.request.session["link_pk"])).order_by('-id')
+			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')
 			context["replies"] = replies
 			if self.request.user_banned:
 				context["unseen"] = False
@@ -5716,8 +5719,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 					timestring = reply.submitted_on
 					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
-					add_publicreply_to_link(reply.id, answer_to.id)
+					add_publicreply_to_link(reply.id, user.id, pk)
+					# all_publicreplies = get_publicreplies(pk)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+					#print all_reply_ids
+					#print all_reply_ids2
 					if answer_to.submitter_id not in all_reply_ids:
 						all_reply_ids.append(answer_to.submitter_id)
 					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False, updated_at=timestring)
@@ -6277,7 +6283,8 @@ class WelcomeReplyView(FormView):
 						return redirect("score_help")
 					parent.latest_reply = reply
 					parent.save()
-					add_publicreply_to_link(reply.id, parent.id)
+					add_publicreply_to_link(reply.id, self.request.user.id, parent.id)
+					# all_publicreplies = get_publicreplies(parent.id)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
 					if parent.submitter_id not in all_reply_ids:	
 						all_reply_ids.append(parent.submitter_id)

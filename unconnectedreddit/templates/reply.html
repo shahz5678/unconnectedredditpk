@@ -63,10 +63,10 @@
     {% endif %}
 
     {% if parent.reply_count == 0 %}
-    {% elif parent.reply_count < 26 %}
+    {% elif parent.reply_count < 51 %}
         <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>{{ parent.reply_count }}</b> jawab:</span><br>
     {% else %}
-        <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichle <b>25</b> jawab:</span><br>
+        <span style="font-size:95%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Pichle <b>50</b> jawab:</span><br>
     {% endif %}
 
     <table>
@@ -159,7 +159,7 @@
     <hr size=1 COLOR="#3cb7dd">
     <p style="margin-top:-0.9em;"></p>
     <hr size=1 COLOR="#3cb7dd">
-    <span style="font-size:80%;color:dimgrey;"><b>Shakal banane ke liye uskay agey likhe harf type karo:<br></b><span style="font-size:95%;">(full list <a href="{% url 'emoticons_help' %}">ye hai</a>)</span></span>
+    <span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:<br></b><span style="font-size:95%;">(full list <a href="{% url 'faces' %}">ye hai</a>)</span></span>
     {% emoticons_index as emoticons_list %}
     {% for emoticons in emoticons_list %}
     {% if forloop.counter in random %}

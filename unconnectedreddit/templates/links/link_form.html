@@ -26,14 +26,15 @@
 	{% endif %}
 	<br>
 	<hr size=1>
-	<span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:<br></b><span style="font-size:95%;">(full list <a href="{% url 'faces' %}">ye hai</a>)</span></span>
+	<span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
+	<span style="font-size:75%;color:dimgrey;"><b>.</b> zarur dalna&nbsp;</span><span style="font-size:90%;">|</span>&nbsp;<a href="{% url 'faces' %}" style="font-size:75%;">faces full list</a>
 
 	{% emoticons_index as emoticons_list %}
 
 	{% for emoticons in emoticons_list %}
 	{% if forloop.counter in random %}
 	
-	<p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
+	<p>{{ emoticons.0|emoticons }}    <b>{{ emoticons.0 }}</b></p>
 	{% endif %}
 	{% endfor %}
 {% endif %}

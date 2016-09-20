@@ -471,6 +471,14 @@ class FacesHelpView(FormView):
 	form_class = FacesHelpForm
 	template_name = "faces.html"
 
+	def get_context_data(self, **kwargs):
+		context = super(FacesHelpView, self).get_context_data(**kwargs)
+		if self.request.is_feature_phone:
+			context["is_feature_phone"] = True
+		else:
+			context["is_feature_phone"] = False
+		return context
+
 class EmoticonsHelpView(FormView):
 	form_class = EmoticonsHelpForm
 	template_name = "emoticons_help.html"
@@ -478,7 +486,7 @@ class EmoticonsHelpView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(EmoticonsHelpView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 		return context
 
 class LogoutHelpView(FormView):
@@ -3055,7 +3063,7 @@ class CommentView(CreateView):
 			comments = comms.order_by('-id')[:25]
 			context["comments"] = comments
 			context["verified"] = FEMALES
-			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 			context["authorized"] = True
 		except:
 			context["authorized"] = False
@@ -5661,7 +5669,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["error"] = False
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
-			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52
+			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 			#replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(id__in=get_publicreplies(self.request.session["link_pk"])).order_by('-id')
 			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
 			context["replies"] = replies
@@ -5895,7 +5903,7 @@ class LinkCreateView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkCreateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["random"] = random.sample(xrange(1,52),10) #select 10 random emoticons out of 52		
+			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188		
 			banned, time_remaining, warned = posting_allowed(self.request.user.id)
 			context["banned"] = banned
 			context["warned"] = warned

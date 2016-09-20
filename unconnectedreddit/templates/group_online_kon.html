@@ -23,9 +23,9 @@ Yahan ye log pichley 10 min mein nazar aye:<br>
     </span>
 	<a href="{% url 'profile' slug=traffic.visitor.username %}">
 	{% if traffic.visitor.userprofile.avatar %}
-		<img src="{{ traffic.visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<img src="{{ traffic.visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
 	{{ traffic.visitor.username }}
 	</a>

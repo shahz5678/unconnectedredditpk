@@ -34,7 +34,7 @@
 	{% for emoticons in emoticons_list %}
 	{% if forloop.counter in random %}
 	
-	<p>{{ emoticons.0|emoticons }}    <b>{{ emoticons.0 }}</b></p>
+	<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b style="color:#404040;">{{ emoticons.0 }}</b></p>
 	{% endif %}
 	{% endfor %}
 {% endif %}

@@ -27,11 +27,12 @@
 	<br>
 	<hr size=1>
 	<span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:<br></b><span style="font-size:95%;">(full list <a href="{% url 'faces' %}">ye hai</a>)</span></span>
-
+	<br>
 	{% emoticons_index as emoticons_list %}
 
 	{% for emoticons in emoticons_list %}
 	{% if forloop.counter in random %}
+	{{ emoticons }}
 	<p>{{ emoticons.0|emoticons }}    {{ emoticons.0 }}</p>
 	{% endif %}
 	{% endfor %}

@@ -44,7 +44,8 @@ def get_publicreplies(link_id):
 def get_replywriters(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
-	return set(w.split(":")[1] for w in publicreply_writer_pairs)
+	#return set(w.split(":")[1] for w in publicreply_writer_pairs)
+	return {item.partition(":")[2] for item in publicreply_writer_pairs}
 
 def add_publicreply_to_link(publicreply_id, writer_id, link_id):
 	my_server = redis.Redis(connection_pool=POOL)

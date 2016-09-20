@@ -10,9 +10,9 @@
                 <li style="color:grey;">
                         <a href="{% url 'profile' slug=visitor.username %}#section0">
                         {% if visitor.userprofile.avatar %}
-                            <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                            <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
                         {% else %}
-                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                         {% endif %}
                         {{ visitor.username }}
                         </a>

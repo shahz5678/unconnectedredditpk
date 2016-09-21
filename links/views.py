@@ -5924,6 +5924,10 @@ class LinkCreateView(CreateView):
 			banned, time_remaining, warned = posting_allowed(self.request.user.id)
 			context["banned"] = banned
 			context["warned"] = warned
+			if self.request.is_feature_phone:
+				context["feature_phone"] = True
+			else:
+				context["feature_phone"] = False
 			if banned:
 				m, s = divmod(time_remaining, 60)
 				h, m = divmod(m, 60)

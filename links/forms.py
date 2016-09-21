@@ -354,6 +354,10 @@ class UnseenActivityForm(forms.Form):
 	class Meta:
 		fields = ("comment", "group_reply", )
 
+class FacesPagesForm(forms.Form):
+	class Meta:
+		pass
+
 class CrossNotifForm(forms.Form):
 	class Meta:
 		pass

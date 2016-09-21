@@ -69,13 +69,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		    {% elif linksubscription.which_photo.vote_score < -1 %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" width="{{ linksubscription.which_photo.image_file.width }}" height="{{ linksubscription.which_photo.image_file.height }}" style="filter:brightness(30%);border:1px solid #cccccc;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(30%);border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" width="{{ linksubscription.which_photo.image_file.width }}" height="{{ linksubscription.which_photo.image_file.height }}" style="border:1px solid #cccccc;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
@@ -85,13 +85,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		    {% elif linksubscription.which_photo.vote_score < -1 %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" width="{{ linksubscription.which_photo.image_file.width }}" height="{{ linksubscription.which_photo.image_file.height }}" style="filter:brightness(30%);border:1px solid #ff9933;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(30%);border:1px solid #ff9933;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" width="{{ linksubscription.which_photo.image_file.width }}" height="{{ linksubscription.which_photo.image_file.height }}" style="border:1px solid #ff9933;width:auto;"></img>
+			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #ff9933;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}

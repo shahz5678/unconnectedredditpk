@@ -5759,11 +5759,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					timestring = reply.submitted_on
 					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 					add_publicreply_to_link(reply.id, user.id, pk)
-					# all_publicreplies = get_publicreplies(pk)
-					all_reply_ids = get_replywriters(pk)
-					#all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+					all_publicreplies = get_publicreplies(pk)
+					#all_reply_ids = get_replywriters(pk)
+					all_reply_ids = list(set(Publicreply.objects.filter(id__in=all_publicreplies).order_by('-id').values_list('submitted_by', flat=True)))
 					if answer_to.submitter_id not in all_reply_ids:
-						all_reply_ids.add(answer_to.submitter_id)
+						all_reply_ids.append(answer_to.submitter_id)
 					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False, updated_at=timestring)
 					exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=timestring, seen=True)
 					if not exists: #i.e. could not be updated

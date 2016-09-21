@@ -39,7 +39,7 @@ def add_refresher(user_id):
 def get_publicreplies(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
-	return (p.split(":")[0] for p in publicreply_writer_pairs)
+	return [p.split(":")[0] for p in publicreply_writer_pairs]
 
 def get_replywriters(link_id):
 	my_server = redis.Redis(connection_pool=POOL)

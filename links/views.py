@@ -14,6 +14,7 @@ from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from allowed import ALLOWED
+from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
 video_tasks, video_vote_tasks, photo_vote_tasks
@@ -51,8 +52,8 @@ GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, Hi
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
 TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
-ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UnseenActivityForm, \
-UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
+UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -466,6 +467,22 @@ class VoteOrProfileView(FormView):
 				context["vote_id"] = vote_id
 				context["link_submitter_id"] = link_submitter_id
 		return context
+
+def faces_pages(request, *args, **kwargs):
+	form = FacesPagesForm()
+	oblist = EMOTICONS_LIST
+	paginator = Paginator(oblist, 16)
+	page = request.GET.get('page', '1')
+	try:
+		page = paginator.page(page)
+	except PageNotAnInteger:
+		# If page is not an integer, deliver first page.
+		page = paginator.page(1)
+	except EmptyPage:
+		# If page is out of range (e.g. 9999), deliver last page of results.
+		page = paginator.page(paginator.num_pages)
+	context = {'object_list': oblist, 'form':form, 'page':page}
+	return render(request, 'faces_pages.html', context)
 
 class FacesHelpView(FormView):
 	form_class = FacesHelpForm

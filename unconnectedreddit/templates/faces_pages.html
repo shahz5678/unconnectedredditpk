@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<table style="border-collapse: collapse;">
+	{% for emoji in page.object_list %}
+	<tr><td style="border: 1px solid #d9d9d9; background: #F3F3F3;padding-top:0.3em;padding-bottom:0.3em;">
+	&nbsp;{% emoticons %}{{ emoji.0.0 }}{% endemoticons %}&nbsp;&nbsp;<b style="color:#404040;font-size:95%;">{{ emoji.0.0 }}&nbsp;</b><br>
+	</td></tr>
+	{% endfor %}
+</table>
+<br><br>
+
+
+<br><div class="pagination" style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+
+
+</div>
+{% endblock %}

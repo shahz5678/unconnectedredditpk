@@ -5611,7 +5611,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					device = '3'
 				parent = Link.objects.get(id=pk)
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
-				add_publicreply_to_link(reply.id, request.user.id, pk)
+				#add_publicreply_to_link(reply.id, request.user.id, pk)
 				timestring = reply.submitted_on
 				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 				#all_reply_ids = get_publicreplies(pk)
@@ -5758,7 +5758,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 					timestring = reply.submitted_on
 					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
-					add_publicreply_to_link(reply.id, user.id, pk)
+					#add_publicreply_to_link(reply.id, user.id, pk)
 					#all_publicreplies = get_publicreplies(pk)
 					#all_reply_ids = get_replywriters(pk)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
@@ -6325,7 +6325,7 @@ class WelcomeReplyView(FormView):
 						return redirect("score_help")
 					parent.latest_reply = reply
 					parent.save()
-					add_publicreply_to_link(reply.id, self.request.user.id, parent.id)
+					#add_publicreply_to_link(reply.id, self.request.user.id, parent.id)
 					# all_publicreplies = get_publicreplies(parent.id)
 					#all_reply_ids = get_replywriters(parent.id)
 					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))

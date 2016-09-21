@@ -160,7 +160,7 @@
     <p style="margin-top:-0.9em;"></p>
     <hr size=1 COLOR="#3cb7dd">
     <span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-    <span style="font-size:75%;color:dimgrey;"><b>.</b> zarur dalna&nbsp;</span><span style="font-size:90%;">|</span>&nbsp;<a href="{% url 'faces' %}" style="font-size:75%;">faces full list</a>
+    <span style="font-size:75%;color:dimgrey;"><b>.</b> zarur likhna&nbsp;</span><span style="font-size:90%;">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" style="font-size:75%;">{% else %}<a href="{% url 'faces' %}" style="font-size:75%;">{% endif %}faces full list</a>
     {% emoticons_index as emoticons_list %}
     {% for emoticons in emoticons_list %}
     {% if forloop.counter in random %}

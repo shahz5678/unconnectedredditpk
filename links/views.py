@@ -3071,6 +3071,10 @@ class CommentView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
+		if self.request.is_feature_phone:
+			context["feature_phone"] = True
+		else:
+			context["feature_phone"] = False
 		try:
 			pk = self.request.session["photo_id"]
 			photo = Photo.objects.select_related('owner').get(id=pk)
@@ -5653,6 +5657,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 	def get_context_data(self, **kwargs):
 		context = super(PublicreplyView, self).get_context_data(**kwargs)
 		context["authenticated"] = False
+		if self.request.is_feature_phone:
+			context["feature_phone"] = True
+		else:
+			context["feature_phone"] = False
 		if self.request.user.is_authenticated():
 			banned, time_remaining, warned = publicreply_allowed(self.request.user.id)			
 			context["banned"] = banned

@@ -5,17 +5,17 @@
 <div class="margin">
 {% if num == 1 %}
 	{% if type == 'ban' %} 
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#179b36;">zabardast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor%}</span>
+		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#179b36;">zabardast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor %}</span>
 	{% else %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor%}</span>
+		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor %}</span>
 	{% endif %}
 		<span style="color:#404040;font-size:100%;"><br><br>Is ko photos pr vote krne se kitne waqt ke liye ban krna hai?
 		</span><br>
 {% else %}
 	{% if type == 'ban' %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#179b36;">zabrdast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor%}</span>
+		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#179b36;">zabrdast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor %}</span>
 	{% else %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor%}</span>
+		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor %}</span>
 	{% endif %}
 		<span style="color:#404040;font-size:100%;"><br><br>In sb ko photos pr vote krne se kitne waqt ke liye ban krna hai?
 		</span><br>

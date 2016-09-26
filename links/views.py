@@ -1,9 +1,5 @@
 # Create your views here.
-import re, urlmarker, StringIO, urlparse, requests#, sys
-# from itertools import chain
-# from hachoir_core.cmd_line import unicodeFilename
-# from hachoir_metadata import extractMetadata
-# from hachoir_parser import createParser
+import re, urlmarker, StringIO, urlparse, requests, random, string, uuid#, sys
 from collections import OrderedDict, defaultdict
 from operator import attrgetter
 from django.utils.decorators import method_decorator
@@ -37,7 +33,8 @@ check_group_invite, remove_group_invite, get_active_invites, add_user_group, get
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, is_member_of_group, first_time_refresher, \
-add_refresher
+add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
+check_photo_upload_ban, check_photo_vote_ban, can_photo_vote
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -68,13 +65,8 @@ from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
-import random, string
-import uuid
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
-#from throttle.decorators import throttle
-#from django.utils.translation import ugettext_lazy as _
-#from registration.backends.simple.views import RegistrationView
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
@@ -4165,35 +4157,43 @@ class UploadPhotoView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(UploadPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
-			number_of_photos = photos.count()
-			forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
-			if forbidden:
-				context["forbidden"] = forbidden
-				context["time_remaining"] = time_remaining
-			else:
-				# try:
-				# 	opt = self.kwargs["opt"]
-				# 	context["opt"] = opt
-				# except:
-				# 	context["opt"] = None
-				post_big_photo_in_home = True
-				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
-					post_big_photo_in_home = False
+			banned, time_remaining = check_photo_upload_ban(self.request.user.id)
+			if banned:
+				context["forbidden"] = True
+				if time_remaining == '-1':
+					to_go = time_remaining
 				else:
-					for photo in photos:
-						if photo[0] < 0: #can't post BIG photo in home if even 1 previous photo had negative score
-							post_big_photo_in_home = False
-				total_visible_score = sum(photo[2] for photo in photos)
-				now = timezone.now()
-				# print post_big_photo_in_home
-				#print total_visible_score
-				hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
-				if hotuser:
-					pass
+					to_go = timezone.now()+timedelta(seconds=time_remaining)
+				context["time_remaining"] = to_go
+			else: 
+				photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
+				number_of_photos = photos.count()
+				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
+				if forbidden:
+					context["forbidden"] = forbidden
+					context["time_remaining"] = time_remaining
 				else:
-					HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
-				context["score"] = self.request.user.userprofile.score
+					# try:
+					# 	opt = self.kwargs["opt"]
+					# 	context["opt"] = opt
+					# except:
+					# 	context["opt"] = None
+					post_big_photo_in_home = True
+					if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
+						post_big_photo_in_home = False
+					else:
+						for photo in photos:
+							if photo[0] < 0: #can't post BIG photo in home if even 1 previous photo had negative score
+								post_big_photo_in_home = False
+					total_visible_score = sum(photo[2] for photo in photos)
+					now = timezone.now()
+					hotuser = HotUser.objects.filter(which_user=self.request.user).update(hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
+					if hotuser:
+						pass
+					else:
+						HotUser.objects.create(which_user=self.request.user, hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
+					context["score"] = self.request.user.userprofile.score
+					return context
 				return context
 			return context
 		return context
@@ -4205,12 +4205,20 @@ class UploadPhotoView(CreateView):
 			context = {'score': '3'}
 			return render(self.request, 'score_photo.html', context)
 		else:
-			#time_now = datetime.utcnow().replace(tzinfo=utc)
-			photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
-			forbidden, time_remaining = check_photo_abuse(len(photos), photos)
-			if forbidden:
-				context={'time_remaining': time_remaining}
+			banned, time_remaining = check_photo_upload_ban(self.request.user.id)
+			if banned:
+				if time_remaining == '-1':
+					to_go = time_remaining
+				else:
+					to_go = timezone.now()+timedelta(seconds=time_remaining)
+				context={'time_remaining': to_go}
 				return render(self.request, 'forbidden_photo.html', context)
+			else:
+				photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
+				forbidden, time_remaining = check_photo_abuse(len(photos), photos)
+				if forbidden:
+					context={'time_remaining': time_remaining}
+					return render(self.request, 'forbidden_photo.html', context)
 			time_now = timezone.now()
 			try:
 				difference = time_now - photos[0][1]
@@ -6457,6 +6465,20 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 		else:
 			return redirect("link_create_pk")
 
+def process_photo_vote(pk, ident, val):
+	if int(val) > 0:
+		vote_score_increase = 1
+		visible_score_increase = 1
+		media_score_increase = 1
+		score_increase = 1
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+	else:
+		vote_score_increase = -1
+		visible_score_increase = -1
+		media_score_increase = -1
+		score_increase = -1
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+
 @ratelimit(rate='1/s')
 def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -6469,25 +6491,68 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 		return render(request, 'penalty_photovote.html', context)
 	else:
 		photo = Photo.objects.get(id=pk)
-		ident = photo.owner.id
+		ident = photo.owner_id
+		vote_score = photo.vote_score
+		banned_from_voting,time_remaining = check_photo_vote_ban(request.user.id)
 		if request.user.id == ident: #can't vote your own video
 			context = {'unique': pk}
 			return render(request, 'already_photovoted.html', context)
+		elif banned_from_voting:
+			if time_remaining == '-1':
+				to_go = time_remaining
+			else:
+				to_go = timezone.now()+timedelta(seconds=time_remaining)
+			context = {'time_remaining':to_go,'origin':origin, 'pk':pk, 'slug':slug}
+			return render(request, 'photovote_disallowed.html', context)
 		else:
+			defender = in_defenders(request.user.id)
+			if not defender:
+				can_vote, time_remaining = can_photo_vote(request.user.id)
+				if not can_vote:
+					time_remaining = timezone.now()+timedelta(seconds=time_remaining)
+					context={'time_remaining':time_remaining, 'origin':origin, 'pk':pk, 'slug':slug}
+					return render(request, 'photovote_cooldown.html', context)
 			added = add_vote_to_photo(pk, request.user.username, val)
 			if added:
-				if int(val) > 0:
-					vote_score_increase = 1
-					visible_score_increase = 1
-					media_score_increase = 1
-					score_increase = 1
-					photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+				if defender:
+				#this person can kick extra butt; she's a defender!
+					# ensure correct link_id is passed forward if origin is 'home'
+					if origin == '3':
+						link_id = slug
+					else:
+						link_id = '0'
+					uname = photo.owner.username
+					if first_time_photo_defender(request.user.id):
+						#show the tutorial
+						context = {'photo_id':pk,'uname':uname, 'ident':ident, 'origin':origin, 'link_id':link_id, \
+						'val':int(val)}
+						return render(request, 'photo_defender_tutorial.html', context)
+					else:
+						# print val
+						# print vote_score
+						if int(val) == 1 and vote_score < -2:
+							# i.e. the photo is a candidate to be unbanned
+							context = {'pk':pk, 'photo_owner':uname, 'ident':ident,'photo_url':photo.image_file.url,'origin':origin, 'link_id':link_id}
+							return render(request, 'resurrect_photo.html',context)
+						elif int(val) == 0 and vote_score > -3:
+							# i.e. the photo is a candidate to be banned
+							# ensure if user is already banned, the defender can see that information on her screen
+							banned, time_remaining = check_photo_upload_ban(ident)
+							if banned:
+								if time_remaining == '-1':
+									to_go = '-1'
+								else:
+									to_go = timezone.now()+timedelta(seconds=time_remaining)
+							else:
+								to_go = '0'
+							# remove the photo and ban the person from photo-uploading and photo-voting 
+							context = {'photo_id': pk, 'photo_owner':uname, 'owner_id':ident, 'val':int(val),\
+							'photo_url':photo.image_file.url, 'origin': origin, 'link_id':link_id, 'already_banned':to_go}
+							return render(request, 'ban_photo.html', context)
+						else:
+							process_photo_vote(pk, ident, int(val))
 				else:
-					vote_score_increase = -1
-					visible_score_increase = -1
-					media_score_increase = -1
-					score_increase = -1
-					photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+					process_photo_vote(pk, ident, int(val))
 				if origin == '1':
 					# originated from taza photos page
 					request.session["target_photo_id"] = pk
@@ -6497,7 +6562,7 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 					request.session["target_best_photo_id"] = pk
 					return redirect("see_best_photo")
 				elif origin == '3':
-					request.session["target_id"] = slug #link id was passed through accompanying slug
+					request.session["target_id"] = slug
 					return redirect("home")
 				elif origin == '4':
 					request.session["photograph_id"] = pk
@@ -6508,6 +6573,187 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 			else:
 				context = {'unique': pk}
 				return render(request, 'already_photovoted.html', context)
+
+@ratelimit(rate='1/s')
+def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, origin=None,link_id=None, val=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'pk': 'pk'}
+		return render(request, 'penalty_defender.html', context)
+	else:
+		if in_defenders(request.user.id):
+			if duration == '1':
+				#i.e. ban for 24 hrs
+				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				add_to_photo_upload_ban(ident, '1') #to impede from adding more photos
+				add_to_photo_vote_ban(ident, '1') #to impede from voting on other photos
+			elif duration == '2':
+				#i.e. ban for 1 week
+				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				add_to_photo_upload_ban(ident, '7') #to impede from adding more photos
+				add_to_photo_vote_ban(ident, '7') #to impede from voting on other photos
+			elif duration == '3':
+				#i.e. ban forever
+				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				add_to_photo_upload_ban(ident, '-1') #to impede from adding more photos
+				add_to_photo_vote_ban(ident, '-1') #to impede from voting on other photos
+			else:
+				#the person changed their mind, so don't ban the photo, just regularly downvote it
+				process_photo_vote(pk, ident, val)
+				if origin == '1':
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+				elif origin == '2':
+					request.session["target_best_photo_id"] = pk
+					return redirect("see_best_photo")
+				elif origin == '3':
+					request.session["target_id"] = link_id
+					return redirect("home")
+				elif origin == '4':
+					request.session["photograph_id"] = pk
+					return redirect("profile", uname)
+				else:
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+			photovote_usernames_and_values = get_photo_votes(pk)
+			uname_list = [k for (k,v) in photovote_usernames_and_values if int(v) > 0 ] #extract all usernames who upvoted this filth!
+			if uname_list:
+				#i.e. this kicks in if the photo has been voted
+				number_of_voters = len(uname_list)
+				request.session["target_unames"] = uname_list
+				context = {'pk':pk, 'owner_name': uname,'unames':uname_list, 'origin':origin, 'link_id':link_id,\
+				 'num':number_of_voters, 'type':'ban'}
+				return render(request, 'ban_photo_voter.html',context)
+			else:
+				#i.e. if the photo has not garnered any votes
+				if origin == '1':
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+				elif origin == '2':
+					request.session["target_best_photo_id"] = pk
+					return redirect("see_best_photo")
+				elif origin == '3':
+					request.session["target_id"] = link_id
+					return redirect("home")
+				elif origin == '4':
+					request.session["photograph_id"] = pk
+					return redirect("profile", uname)
+				else:
+					request.session["target_photo_id"] = pk
+					return redirect("see_photo")
+		else:
+			context = {'pk': 'pk'}
+			return render(request, 'not_defender.html', context)
+
+def redirect_ban_or_resurrect_page(request, pk=None, uname=None, ident=None, origin=None, link_id=None, val=None, *args, **kwargs):
+	photo = Photo.objects.get(id=pk)
+	photo_url = photo.image_file.url
+	score = photo.vote_score
+	add_photo_defender_tutorial(request.user.id)
+	# print val
+	# print score
+	if int(val) == 0 and score > -3:
+		#photo is to be banned
+		banned, time_remaining = check_photo_upload_ban(ident)
+		if banned:
+			if time_remaining == '-1':
+				to_go = '-1'
+			else:
+				to_go = timezone.now()+timedelta(seconds=time_remaining)
+		else:
+			to_go = '0'
+		context = {'photo_id': pk, 'photo_owner':uname, 'owner_id':ident, 'photo_url':photo_url, 'origin': origin, 'link_id':link_id, \
+		'val':val, 'already_banned':to_go}
+		return render(request, 'ban_photo.html', context)
+	elif int(val) == 1 and score < -2:
+		#photo is to be unbanned
+		context = {'pk':pk, 'photo_owner':uname, 'ident':ident,'photo_url':photo_url,'origin':origin, 'link_id':link_id}
+		return render(request, 'resurrect_photo.html',context)
+	else:
+		#photo is neither to be banned or unbanned
+		if origin == '1':
+			request.session["target_photo_id"] = pk
+			return redirect("see_photo")
+		elif origin == '2':
+			request.session["target_best_photo_id"] = pk
+			return redirect("see_best_photo")
+		elif origin == '3':
+			request.session["target_id"] = link_id
+			return redirect("home")
+		elif origin == '4':
+			request.session["photograph_id"] = pk
+			return redirect("profile", uname)
+		else:
+			request.session["target_photo_id"] = pk
+			return redirect("see_photo")
+
+def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=None, link_id=None, *args, **kwargs):
+	if dec == '1' and in_defenders(request.user.id):
+		#ressurect photo
+		Photo.objects.filter(id=pk).update(vote_score=0, visible_score=0)
+		photovote_usernames_and_values = get_photo_votes(pk)
+		uname_list = [k for (k,v) in photovote_usernames_and_values if int(v) == 0 ] #extract all usernames who downvoted this gem!
+		#print uname_list
+		if uname_list:
+			#i.e. this kicks in if the photo has been voted
+			number_of_voters = len(uname_list)
+			request.session["target_unames"] = uname_list
+			context = {'pk':pk, 'owner_name': uname,'unames':uname_list, 'origin':origin, 'link_id':link_id,\
+			 'num':number_of_voters,'type':'unban'}
+			return render(request, 'ban_photo_voter.html',context)
+	else:
+		#don't resurrect photo, just return with a simple upvote
+		process_photo_vote(pk, ident, 1)
+	if origin == '1':
+		request.session["target_photo_id"] = pk
+		return redirect("see_photo")
+	elif origin == '2':
+		request.session["target_best_photo_id"] = pk
+		return redirect("see_best_photo")
+	elif origin == '3':
+		request.session["target_id"] = link_id
+		return redirect("home")
+	elif origin == '4':
+		request.session["photograph_id"] = pk
+		return redirect("profile", owner_name)
+	else:
+		request.session["target_photo_id"] = pk
+		return redirect("see_photo")
+
+def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=None, link_id = None, *args, **kwargs):
+	uname_list = request.session["target_unames"]
+	request.session["target_unames"] = None
+	targets = User.objects.filter(username__in=uname_list).values_list('id',flat=True)
+	if duration == '1':
+		for target in targets:
+			add_to_photo_vote_ban(target, '0.1')
+	elif duration == '2':
+		for target in targets:
+			add_to_photo_vote_ban(target, '3')
+	elif duration == '3':
+		for target in targets:
+			add_to_photo_vote_ban(target, '7')
+	elif duration == '4':
+		for target in targets:
+			add_to_photo_vote_ban(target, '-1')
+	else:
+		pass
+	if origin == '1':
+		request.session["target_photo_id"] = pk
+		return redirect("see_photo")
+	elif origin == '2':
+		request.session["target_best_photo_id"] = pk
+		return redirect("see_best_photo")
+	elif origin == '3':
+		request.session["target_id"] = link_id
+		return redirect("home")
+	elif origin == '4':
+		request.session["photograph_id"] = pk
+		return redirect("profile", owner_name)
+	else:
+		request.session["target_photo_id"] = pk
+		return redirect("see_photo")
+
 
 @ratelimit(rate='1/s')
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):

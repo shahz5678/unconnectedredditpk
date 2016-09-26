@@ -207,7 +207,6 @@
 				{% endif %}
 			{% else %}
 				{% if photo.image_file %}
-				
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url|photoedge }}"></img>
 				{% else %}
 				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
@@ -246,7 +245,6 @@
 				<a href="{% url 'photo_vote' photo.id 1 1 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5.5em;">zabrdast</button></a><br>
 				<a href="{% url 'photo_vote' photo.id 0 1 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5.5em;">bekaar</button></a><br>
 				{% endif %}
-
 
 			<a href="{% url 'photo_share' photo.id 1 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a><br>
 

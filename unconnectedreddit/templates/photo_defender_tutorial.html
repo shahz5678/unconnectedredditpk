@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin"> 
 
-	<b style="color:#404040;font-size:100%;">Mubarik ho, tum photos ke admin ban gaye!</b><br><br>
+	<b style="color:#404040;font-size:100%;">{% emoticons %}.g3.g3 Mubarik ho! Tum photos ke admin ban gaye! .g3.g3{% endemoticons %}</b><br><br>
 	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
 	<span style="color:green;">1)</span> Agr kisi photo lagane waley ko ban krna ho, toh <b style="color:#FF1A1A;">bekaar</b> dabao, woh ban ho jaye ga<br>
-	<span style="color:green;">2)</span> Lekin sirf tab ban ho ga agr pehle si hi uski photo awam ne ban na kr di ho<br>
-	<span style="color:green;">3)</span> Agr kisi banned photo ko bahal krna ho, toh <b style="color:#2DB92D;"></b>zabrdast dabao, woh photo bahal ho jaye gi<br>
-	<span style="color:green;">4)</span> Lekin woh tamam log jinhoon ne photo ko bekaar kaha, unki vote krne ki power kuch waqt ke liye khatam ho jaye gi<br>
+	<span style="color:green;">2)</span> Lekin sirf tab ban ho ga agr pehle se hi uski photo awam ne ban na kr di ho<br>
+	<span style="color:green;">3)</span> Agr kisi banned photo ko bahal krna ho, toh <b style="color:#2DB92D;">zabrdast</b> dabao, woh bahal ho jaye gi<br>
+	<span style="color:green;">4)</span> Woh log jinhoon ne photo ko ban kiya, unki vote krne ki power kuch waqt ke liye khatam ho jaye gi<br>
 	</span>
 	<br>
-	<a href="{% url 'redirect_photo_ban_page' photo_id uname ident origin link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:6.5em;">samajh lia</button></a>
+	<a href="{% url 'redirect_ban_or_resurrect_page' photo_id uname ident origin link_id val %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:6.5em;">samajh lia</button></a>
 
 </div>
 {% endblock %}

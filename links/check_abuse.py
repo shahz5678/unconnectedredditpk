@@ -206,6 +206,9 @@ def check_video_abuse(count, videos):
 			elif videos[4][0] < -2 and time_diff(time_now, videos[4][1]) < (60*60*24):
 				forbidden = True
 				time_remaining = time_now + timedelta(seconds = (60*60*24-time_diff(time_now, videos[4][1])))
+			else:
+				forbidden = False
+				time_remaining = None
 			return forbidden, time_remaining
 		else:
 			pass

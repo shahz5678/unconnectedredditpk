@@ -16,9 +16,9 @@
 		<br>
 		{% else %}
 		{% if parent.submitter.userprofile.avatar %}
-			<img src="{{ parent.submitter.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+			<img src="{{ parent.submitter.userprofile.avatar.url|thumbedge }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
 		<span style="color:dimgrey;"><bdi>{{ parent.submitter.username }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.description|truncatechars:40 }}{% endemoticons %}</span>
 	
@@ -255,7 +255,6 @@
 
 
 			<a href="{% url 'photo_share' photo.id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
-
 
 
 		

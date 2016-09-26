@@ -2,8 +2,12 @@
 {% load humanize %}
 {% block content %}
 <div class="margin">
-{% if forbidden %}
-	<span style="font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi <b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
+{% if forbidden and time_remaining == '-1' %}
+	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"><b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b></span><br><br>
+	<span style="color:grey;font-size:90%;">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
+	<a href="{% url 'see_photo' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
+{% elif forbidden %}
+	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
 	<span style="color:grey;font-size:90%;">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
 	<a href="{% url 'see_photo' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
 {% elif score < 30 %}

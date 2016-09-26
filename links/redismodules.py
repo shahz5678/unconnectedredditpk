@@ -4,10 +4,13 @@ from random import randint
 
 POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
 
+INTERVAL_SIZE = 4*60
+
 GRP_TGR = 700
 
 ONE_WEEK = 7*24*60*60
 FOUR_DAYS = 4*24*60*60
+THREE_DAYS = 3*24*60*60
 ONE_DAY = 24*60*60
 TWELVE_HOURS = 12*60*60
 SIX_HOURS = 6*60*60
@@ -16,9 +19,121 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#######################Defenders#######################
+
+def in_defenders(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "defenders" # set of all Damadam defenders
+	if my_server.sismember(set_name, user_id):
+		return True
+	else:
+		return False
+
+def ban_time_remaining(ban_time, ban_type):
+	current_time = time.time()
+	time_difference = current_time - float(ban_time)
+	if ban_type == '0.1':
+		if time_difference < THREE_HOURS:
+			time_remaining = (float(ban_time)+THREE_HOURS)-current_time
+			return True, time_remaining
+		else:
+			return False, None
+	elif ban_type == '1':
+		if time_difference < ONE_DAY:
+			time_remaining = (float(ban_time)+ONE_DAY)-current_time
+			return True, time_remaining
+		else:
+			return False, None
+	elif ban_type == '3':
+		if time_difference < THREE_DAYS:
+			time_remaining = (float(ban_time)+THREE_DAYS)-current_time
+			return True, time_remaining
+		else:
+			return False, None
+	elif ban_type == '7':
+		if time_difference < ONE_WEEK:
+			time_remaining = (float(ban_time)+ONE_WEEK)-current_time
+			return True, time_remaining
+		else:
+			return False, None
+
+def check_photo_vote_ban(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pvb:"+str(user_id) #pub is 'photo upload ban'
+	hash_contents = my_server.hgetall(hash_name)
+	if hash_contents:
+		ban_type = hash_contents["b"]
+		if ban_type == '-1':
+			#this person is banned forever
+			return True, '-1'
+		elif ban_type == '0.1':
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)			
+		elif ban_type == '1':
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)
+		elif ban_type == '3':
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)		
+		elif ban_type == '7':	
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)
+		else:
+			return False, None
+	else:
+		return False, None
+
+def check_photo_upload_ban(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+	hash_contents = my_server.hgetall(hash_name)
+	if hash_contents:
+		ban_type = hash_contents["b"]
+		if ban_type == '-1':
+			return True, '-1'
+		elif ban_type == '1':
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)
+		elif ban_type == '7':
+			ban_time = hash_contents["t"]
+			return ban_time_remaining(ban_time, ban_type)
+		else:
+			return False, None
+	else:
+		return False, None
+
+def add_to_photo_upload_ban(user_id, ban_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+	current_time = time.time()
+	mapping = {'t':current_time, 'b':ban_type}
+	my_server.hmset(hash_name, mapping)
+
+def add_to_photo_vote_ban(user_id, ban_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
+	current_time = time.time()
+	last_ban_type = my_server.hget(hash_name, 'b') # don't over-ride if this person was photo banned for a longer time previously
+	if last_ban_type == '-1':
+		#this person is already banned forever (e.g. if he got banned when putting up a nude photo of himself), so let the ban be
+		pass
+	else:
+		mapping = {'t':current_time, 'b':ban_type}
+		my_server.hmset(hash_name, mapping)
+
 #######################Tutorials#######################
 
 #mehfil refresh button: '1'
+#photo defender:        '2'
+
+#was it a first-time experience with defending photos?
+def first_time_photo_defender(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name, '2'):
+		return False
+	else:
+		return True
 
 #was it a first-time interaction with the refresh button in mehfils?
 def first_time_refresher(user_id):
@@ -29,6 +144,11 @@ def first_time_refresher(user_id):
 	else:
 		return True #user is a first-timer
 
+def add_photo_defender_tutorial(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '2')
+
 def add_refresher(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
@@ -36,26 +156,28 @@ def add_refresher(user_id):
 
 #####################Publicreplies#####################
 
-def get_publicreplies(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
-	return [p.split(":")[0] for p in publicreply_writer_pairs]
+#This failed in providing a performance boost - thus was deprecated
 
-def get_replywriters(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
-	#return set(w.split(":")[1] for w in publicreply_writer_pairs)
-	return {item.partition(":")[2] for item in publicreply_writer_pairs}
+# def get_publicreplies(link_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
+# 	return (p.split(":")[0] for p in publicreply_writer_pairs)
 
-def add_publicreply_to_link(publicreply_id, writer_id, link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("prw:"+str(link_id), str(publicreply_id)+":"+str(writer_id)) #'pr' is 'public reply & writer'
-	my_server.ltrim("prw:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
-	# use the following to delete out-dated publicreply redis lists
-	hash_name = "lpr:"+str(link_id) #lpr is 'last public reply' time
-	current_time = time.time()
-	mapping = {'t':current_time}
-	my_server.hmset(hash_name, mapping)
+# def get_replywriters(link_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	publicreply_writer_pairs = my_server.lrange("prw:"+str(link_id), 0, -1)
+# 	#return set(w.split(":")[1] for w in publicreply_writer_pairs)
+# 	return {item.partition(":")[2] for item in publicreply_writer_pairs}
+
+# def add_publicreply_to_link(publicreply_id, writer_id, link_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("prw:"+str(link_id), str(publicreply_id)+":"+str(writer_id)) #'pr' is 'public reply & writer'
+# 	my_server.ltrim("prw:"+str(link_id), 0, 49) # save the most recent 50 publicreplies
+# 	# use the following to delete out-dated publicreply redis lists
+# 	hash_name = "lpr:"+str(link_id) #lpr is 'last public reply' time
+# 	current_time = time.time()
+# 	mapping = {'t':current_time}
+# 	my_server.hmset(hash_name, mapping)
 
 #####################Photo objects#####################
 
@@ -70,12 +192,12 @@ def save_recent_photo(user_id, photo_id):
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id) #vv is 'voted video'
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
 def voted_for_photo(photo_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id) #vv is 'voted video'
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
 	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
 		return False
@@ -97,6 +219,43 @@ def add_vote_to_photo(photo_id, username, value):
 		return True
 	else:
 		return False
+
+def can_photo_vote(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
+	list_len = my_server.llen(photo_vote_list)
+	if list_len >= 5:
+		last_vote_time = my_server.lrange(photo_vote_list, 0, 0)
+		time_diff = time.time() - float(last_vote_time[0])
+		intervals = int(time_diff/INTERVAL_SIZE)
+		if intervals == 0:
+			#the user has to wait, he/she can't push more votes
+			return False, (INTERVAL_SIZE - time_diff)
+		elif intervals == 1:
+			my_server.rpop(photo_vote_list)
+			my_server.lpush(photo_vote_list,time.time())
+			return True, None
+		elif intervals == 2:
+			my_server.ltrim(photo_vote_list, 3, 4)
+			my_server.lpush(photo_vote_list,time.time())
+			return True, None
+		elif intervals == 3:
+			my_server.ltrim(photo_vote_list, 2, 4)
+			my_server.lpush(photo_vote_list,time.time())
+			return True, None
+		elif intervals == 4:
+			my_server.ltrim(photo_vote_list, 1, 4)
+			my_server.lpush(photo_vote_list,time.time())
+			return True, None
+		elif intervals >= 5:
+			my_server.ltrim(photo_vote_list, 0, 4)
+			my_server.lpush(photo_vote_list,time.time())
+			return True, None
+		else:
+			return True, None
+	else:
+		my_server.lpush(photo_vote_list,time.time())
+		return True, None
 
 #####################Video objects#####################
 

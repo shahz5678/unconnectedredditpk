@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load thumbedge %}
+{% block content %}
+<div class="margin"> 
+
+	&nbsp;<img src="{{ photo_url|thumbedge }}" alt="no pic">
+	&nbsp;<span style="color:#404040;font-size:100%;">Ye photo <a href="{% url 'profile' photo_owner %}#section0">{{ photo_owner }}</a> ne charhai hai. Kya is photo ko bahal kr diya jaye?
+	</span><br>
+	&nbsp;<a href="{% url 'resurrect_photo' pk ident '1' origin link_id %}"><button style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:4.2em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">Haan</button></a><br>
+	&nbsp;<a href="{% url 'resurrect_photo' pk ident '0' origin link_id %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:4.2em;font-size:90%;margin-top:0.7em;border-radius:4px;text-align: center;">Nahi</button></a><br>
+
+</div>
+{% endblock %}

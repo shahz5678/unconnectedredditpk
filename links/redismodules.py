@@ -19,6 +19,22 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+#######################Whose Online#######################
+
+def get_whose_online():
+	my_server = redis.Redis(connection_pool=POOL)
+	list_name = "whose_online"
+	return my_server.lrange(list_name, 0, -1)
+
+def add_to_whose_online(user_id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	list_name = "whose_online"
+	if user_id_list:
+		my_server.delete(list_name)
+		my_server.lpush(list_name, *user_id_list)
+	else:
+		pass
+
 #######################Defenders#######################
 
 def in_defenders(user_id):

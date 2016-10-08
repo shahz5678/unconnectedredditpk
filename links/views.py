@@ -1745,7 +1745,7 @@ class GroupOnlineKonView(ListView):
 class OnlineKonView(ListView):
 	model = Session
 	template_name = "online_kon.html"
-	paginate_by = 100
+	# paginate_by = 100
 
 	def get_queryset(self):
 		user_ids = get_whose_online()

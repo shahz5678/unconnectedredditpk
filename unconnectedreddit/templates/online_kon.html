@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% load emoticons_tags %}
+{% load cache %}
 {% block content %}
     <div class="margin">
     <a href="{% url 'top_photo' %}#section0" style="color:#9900cc;font-size:65%;"><b>high photo score</b></a>&nbsp;<span style="font-size:70%;">|</span>
@@ -10,6 +11,7 @@
             <br>
             <span style="color:#404040;">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}<br>Hum isko theek krne ki kosh kr rahe hain!</span>
         {% else %}
+        {% cache 7 onlinekon %}
         <ol>
             {% for visitor in object_list %}
                 <li style="color:grey;">
@@ -37,6 +39,7 @@
             {% endfor %}
         </ol>
         <span style="font-size:85%;">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+        {% endcache %}
         {% endif %}
     </div><br><br>
 {% endblock %}

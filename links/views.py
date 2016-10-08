@@ -34,7 +34,7 @@ all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, is_member_of_group, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
-check_photo_upload_ban, check_photo_vote_ban, can_photo_vote
+check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, get_whose_online
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -1748,21 +1748,32 @@ class OnlineKonView(ListView):
 	#paginate_by = 75
 
 	def get_queryset(self):
-		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-		})
-		users = cache_mem.get('online_users')
-		if self.request.user_banned:
-			return users
-		else:
-			global condemned
-			users_purified = [user for user in users if user.pk not in condemned]
-			return users_purified
+		user_ids = get_whose_online()
+		#print user_ids
+		try:
+			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
+		except:
+			queryset = None
+		return queryset
+		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		# 	'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		# })
+		# users = cache_mem.get('online_users')
+		# if self.request.user_banned:
+		# 	return users
+		# else:
+		# 	global condemned
+		# 	users_purified = [user for user in users if user.pk not in condemned]
+		# 	return users_purified
 
 
 	def get_context_data(self, **kwargs):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
+			if not context["object_list"]:
+				context["whose_online"] = False
+			else:
+				context["whose_online"] = True
 			context["legit"] = FEMALES
 		return context
 

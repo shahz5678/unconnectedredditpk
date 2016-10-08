@@ -2137,28 +2137,28 @@ class InviteUsersToPrivateGroupView(FormView):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["legit"] = FEMALES
-			# try:	
-			unique = self.request.session["private_uuid"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["authorized"] = True
-			context["group"] = group
-			context ["visitors"] = []
-			if self.request.user_banned:
-				pass # there are no visitors to invite for hellbanned users
-			else:
-				user_ids = get_whose_online()
-				global condemned
-				users_purified = [pk for pk in user_ids if pk not in condemned]
-				#print users_purified
-				non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
-				#print non_invited_online_ids
-				non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
-				#print non_invited_non_member_online_ids
-				context["visitors"] = User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
-				#print context["visitors"]
-			# except:
-			# 	context["authorized"] = False
+			try:	
+				unique = self.request.session["private_uuid"]
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["authorized"] = True
+				context["group"] = group
+				context ["visitors"] = []
+				if self.request.user_banned:
+					pass # there are no visitors to invite for hellbanned users
+				else:
+					user_ids = get_whose_online()
+					global condemned
+					users_purified = [pk for pk in user_ids if pk not in condemned]
+					#print users_purified
+					non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+					#print non_invited_online_ids
+					non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+					#print non_invited_non_member_online_ids
+					context["visitors"] = User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
+					#print context["visitors"]
+			except:
+				context["authorized"] = False
 		return context				
 
 	def form_valid(self, form):

@@ -12,9 +12,13 @@
         {% else %}
         <ol>
             {% for visitor in object_list %}
-                <li style="color:grey;">
+                <span style="color:grey;font-size:90%;">{{forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=visitor.username %}#section0">
-
+                        {% if visitor.userprofile.avatar %}
+                            <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+                        {% else %}
+                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+                        {% endif %}
                         {{ visitor.username }}
                         </a>
                         {% for person in legit %}
@@ -29,10 +33,26 @@
                                 <span style="color:#18A018;font-size:75%;">({{ visitor.userprofile.score }})</span>
                             {% endif %}
                         {% endif %}
-                </li>
+                <br>
             {% endfor %}
         </ol>
         <span style="font-size:85%;">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
         {% endif %}
     </div><br><br>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div><br>
+<br>
+{% endif %}
+<br>
 {% endblock %}

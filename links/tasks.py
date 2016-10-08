@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
 UserProfile, Video, HotUser
-from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video
+from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
+add_to_whose_online
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -31,13 +32,18 @@ def rank_photos():
 #@shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user').prefetch_related('user__userprofile')
-	users = [session.user for session in unique_user_sessions]
-	users = [user for user in users if user is not None]
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-        })
-	cache_mem.set('online_users', users)  # expiring in 120 seconds
+	user_ids = Session.objects.filter(user__isnull=False).filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).\
+	values_list('user_id', flat=True).distinct('user')
+	add_to_whose_online(user_ids)
+	# unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user').prefetch_related('user__userprofile')
+	# #unique_user_sessions are session objects, e.g. [<Session_Deferred_expire_date_ip_last_activity_session_data_user_agent: Session_Deferred_expire_date_ip_last_activity_session_data_user_agent object>, <Session_Deferred_expire_date_ip_last_activity_session_data_user_agent: Session_Deferred_expire_date_ip_last_activity_session_data_user_agent object>]
+	# users = [session.user for session in unique_user_sessions]
+	# users = [user for user in users if user is not None] #these are user objects, e.g. [<User: mhb11>, <User: gori>]
+	# print users 
+	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+ #            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+ #        })
+	# cache_mem.set('online_users', users)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.fans')
 def fans():

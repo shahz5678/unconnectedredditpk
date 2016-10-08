@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% load thumbnail %}
+{% load emoticons_tags %}
 {% block content %}
     <div class="margin">
     <a href="{% url 'top_photo' %}#section0" style="color:#9900cc;font-size:65%;"><b>high photo score</b></a>&nbsp;<span style="font-size:70%;">|</span>
     <a href="{% url 'top' %}#section0" style="color:#2eb82e;font-size:65%;"><b>high chat score</b></a>&nbsp;<span style="font-size:70%;">|</span>
     <a href="{% url 'verified' %}#section0" style="font-size:65%;color:deeppink;"><b>verified girls</b></a><br>
+        {% if not whose_online %}
+            <br>
+            <span style="color:#404040;">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}<br>Hum isko theek krne ki kosh kr rahe hain!</span>
+        {% else %}
         <ol>
             {% for visitor in object_list %}
                 <li style="color:grey;">
@@ -31,6 +36,7 @@
                 </li>
             {% endfor %}
         </ol>
-        <span style="font-size:85%;">Nickname forun online kon par nazar nahi aa jata, thora time lagta hai</span>
-    </div>
+        <span style="font-size:85%;">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+        {% endif %}
+    </div><br><br>
 {% endblock %}

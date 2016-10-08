@@ -2130,38 +2130,35 @@ def invite_private(request, slug=None, *args, **kwargs):
 class InviteUsersToPrivateGroupView(FormView):
 	model = Session
 	template_name = "invite_for_private_group.html"
-	#paginate_by = 70
+	#paginate_by = 100
 	form_class = InvitePrivateForm
 
 	def get_context_data(self, **kwargs):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["legit"] = FEMALES
-			try:	
-				unique = self.request.session["private_uuid"]
-				context["unique"] = unique
-				group = Group.objects.get(unique=unique)
-				context["authorized"] = True
-				context["group"] = group
-				context ["visitors"] = []
-				if self.request.user_banned:
-					pass # there are no visitors to invite for hellbanned users
-				else:
-					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-							'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-						})
-					users = cache_mem.get('online_users')
-					global condemned
-					users_purified = [user for user in users if user.pk not in condemned]
-					#user_ids = [user.id for user in users_purified]
-					non_invited_online_users = [user for user in users_purified if not check_group_invite(user.id, group.id)] #i.e. ensure not invited to this group
-					non_invited_non_member_online_users = [user for user in non_invited_online_users if not is_member_of_group(group.id, user.id)]
-					#online_invited_replied_users = User.objects.filter(id__in=user_ids).exclude(Q(invitee__which_group=group)|Q(reply__which_group=group)).distinct()
-					#online_invited_replied_users = User.objects.filter(~Q(invitee__which_group=group),~Q(reply__which_group=group),id__in=user_ids).distinct()
-					#context ["visitors"] = online_invited_replied_users
-					context["visitors"] = non_invited_non_member_online_users
-			except:
-				context["authorized"] = False
+			# try:	
+			unique = self.request.session["private_uuid"]
+			context["unique"] = unique
+			group = Group.objects.get(unique=unique)
+			context["authorized"] = True
+			context["group"] = group
+			context ["visitors"] = []
+			if self.request.user_banned:
+				pass # there are no visitors to invite for hellbanned users
+			else:
+				user_ids = get_whose_online()
+				global condemned
+				users_purified = [pk for pk in user_ids if pk not in condemned]
+				#print users_purified
+				non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+				#print non_invited_online_ids
+				non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				#print non_invited_non_member_online_ids
+				context["visitors"] = User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
+				#print context["visitors"]
+			# except:
+			# 	context["authorized"] = False
 		return context				
 
 	def form_valid(self, form):

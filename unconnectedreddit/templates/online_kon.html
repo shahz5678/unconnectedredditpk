@@ -11,6 +11,7 @@
             <span style="color:#404040;">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}<br>Hum isko theek krne ki kosh kr rahe hain!</span>
         {% else %}
         <ol>
+            <span style="color:grey;font-size:80%;"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br>
             {% for visitor in object_list %}
                 <span style="color:grey;font-size:90%;">{{forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=visitor.username %}#section0">

@@ -12,6 +12,7 @@
         {% else %}
         <ol>
             {% for visitor in object_list %}
+                <span style="color:#404040;font-size:85%;">Total: {{ object_list|length }}</span><br><br>
                 <span style="color:grey;font-size:90%;">{{forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=visitor.username %}#section0">
                         {% if visitor.userprofile.avatar %}

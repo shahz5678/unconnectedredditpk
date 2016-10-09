@@ -9,11 +9,11 @@
 <span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
 <br>
-{% for visitor in visitors %}
+<span style="color:grey;font-size:80%;"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
+{% for visitor in object_list %}
 {% if visitor.userprofile.score > 0 and visitor != user %}
+	<span style="color:grey;font-size:90%;">{{ forloop.counter0|add:page_obj.start_index }}. </span>
 
-	<form action="{% url 'invite' %}" method="POST" >
-	{% csrf_token %}
 	<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor.pk }}">
 		{% if visitor.userprofile.avatar %}
 	        <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
@@ -27,11 +27,27 @@
 		        <span style="font-size:200%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
 		{% endfor %}	
-		<input class="voting" type="submit" id="id_valup" name="invite" style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;" value="invite"><br>
-	</form>
+		<a href="{% url 'process_public_group_invite' unique visitor.pk %}"><button style="color:white;background-color:#2FC12F;border:none;text-shadow:0 0 0px white;font-size:100%;margin-bottom:0.2em;">invite</button></a><br>
+
 
 {% endif %}
 {% endfor %}
 
 </div>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div><br>
+<br>
+{% endif %}
+<br>
 {% endblock %}

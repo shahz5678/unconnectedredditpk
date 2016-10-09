@@ -12,7 +12,8 @@ fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list
 salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
 repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
-faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite
+faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
+process_public_group_invite
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -150,6 +151,7 @@ urlpatterns = patterns('',
 	url(r'^group/invite/$', auth(InviteUsersToGroupView.as_view()), name='invite'),
 	url(r'^privatemehfil/invite/$', auth(InviteUsersToPrivateGroupView.as_view()), name='invite_private_group'),
 	url(r'^privmef/invite/(?P<uuid>[\w.@+-]+)/(?P<pk>\d+)/$', auth(process_private_group_invite), name='process_private_group_invite'),
+	url(r'^pubmef/invite/(?P<uuid>[\w.@+-]+)/(?P<pk>\d+)/$', auth(process_public_group_invite), name='process_public_group_invite'),
 	url(r'^privateinvite/(?P<slug>[\w.@+-]+)/$', auth(invite_private), name='invite_private'),
 	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/(?P<name>[\w.@+-]+)/$', auth(SmsInviteView.as_view()), name='sms_invite'),
 	url(r'^bahir/invite/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),

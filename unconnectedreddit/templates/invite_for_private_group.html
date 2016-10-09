@@ -8,11 +8,11 @@
 {% else %}
 <span style="font-size:90%;font-family:arial;"><a href="{% url 'public_group' unique %}">{{ group.topic }}</a> mein invite karo: </span><br>
 {% endif %}
-
-
+<br>
+<span style="color:grey;font-size:80%;"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
 {% for visitor in object_list %}
 {% if visitor.userprofile.score > 0 and visitor != user %}
-
+		<span style="color:grey;font-size:90%;">{{ forloop.counter0|add:page_obj.start_index }}. </span>
 		{% if visitor.userprofile.avatar %}
 	        <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	    {% else %}

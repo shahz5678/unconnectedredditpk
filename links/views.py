@@ -2127,11 +2127,51 @@ def invite_private(request, slug=None, *args, **kwargs):
 	else:
 		return redirect("score_help")
 
-class InviteUsersToPrivateGroupView(FormView):
+def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
+	if request.user_banned:
+		return redirect("group_page")
+	else:
+		try:
+			group = Group.objects.get(unique=uuid)
+			group_id = group.id
+		except:
+			group_id = -1
+		if group_id > -1:
+			# if GroupInvite.objects.filter(which_group_id=group_id, invitee_id=invitee).exists() or \
+			# Reply.objects.filter(which_group_id=group_id, writer_id=invitee).exists():
+			# 	return redirect("reinvite_private_help")
+			invitee = User.objects.get(id=pk)
+			if check_group_invite(pk, group_id) or check_group_member(group_id, invitee.username):
+				return redirect("reinvite_private_help")
+			else:#this person ought to be sent an invite
+				#send a notification to this person to check out the group
+				#GroupInvite.objects.create(inviter= request.user,which_group_id=group_id,invitee_id=pk)#remove this later
+				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
+				add_group_invite(pk, group_id,reply.id)
+				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
+		request.session["private_uuid"] = None
+		return redirect("invite_private", slug=uuid)
+
+class InviteUsersToPrivateGroupView(ListView):
 	model = Session
 	template_name = "invite_for_private_group.html"
-	#paginate_by = 100
-	form_class = InvitePrivateForm
+	paginate_by = 100
+	#form_class = InvitePrivateForm
+
+	def get_queryset(self):
+		if self.request.user_banned:
+			return []
+		else:
+			user_ids = get_whose_online()
+			global condemned
+			try:
+				group = Group.objects.get(unique=self.request.session["private_uuid"])
+				users_purified = [pk for pk in user_ids if pk not in condemned]
+				non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+				non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
+			except:
+				return []
 
 	def get_context_data(self, **kwargs):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
@@ -2143,51 +2183,51 @@ class InviteUsersToPrivateGroupView(FormView):
 				group = Group.objects.get(unique=unique)
 				context["authorized"] = True
 				context["group"] = group
-				context ["visitors"] = []
-				if self.request.user_banned:
-					pass # there are no visitors to invite for hellbanned users
-				else:
-					user_ids = get_whose_online()
-					global condemned
-					users_purified = [pk for pk in user_ids if pk not in condemned]
-					#print users_purified
-					non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
-					#print non_invited_online_ids
-					non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
-					#print non_invited_non_member_online_ids
-					context["visitors"] = User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
-					#print context["visitors"]
+				# context ["visitors"] = []
+				# if self.request.user_banned:
+				# 	pass # there are no visitors to invite for hellbanned users
+				# else:
+				# 	user_ids = get_whose_online()
+				# 	global condemned
+				# 	users_purified = [pk for pk in user_ids if pk not in condemned]
+				# 	#print users_purified
+				# 	non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+				# 	#print non_invited_online_ids
+				# 	non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				# 	#print non_invited_non_member_online_ids
+				# 	context["visitors"] = User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
+				# 	#print context["visitors"]
 			except:
 				context["authorized"] = False
 		return context				
 
-	def form_valid(self, form):
-		uuid = self.request.session["private_uuid"]
-		if self.request.user_banned:
-			return redirect("group_page")
-		else:
-			if self.request.method == 'POST':
-				try:
-					group = Group.objects.get(unique=uuid)
-					invitee = self.request.POST.get('invitee')
-					group_id = group.id
-				except:
-					group_id = -1
-				if group_id > -1:
-					# if GroupInvite.objects.filter(which_group_id=group_id, invitee_id=invitee).exists() or \
-					# Reply.objects.filter(which_group_id=group_id, writer_id=invitee).exists():
-					# 	return redirect("reinvite_private_help")
-					invitee = User.objects.get(id=invitee)
-					if check_group_invite(invitee.id, group_id) or check_group_member(group_id, invitee.username):
-						return redirect("reinvite_private_help")
-					else:#this person ought to be sent an invite
-						#send a notification to this person to check out the group
-						GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee.id)#remove this later
-						reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=self.request.user)
-						add_group_invite(invitee.id, group_id,reply.id)
-						GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
-			self.request.session["private_uuid"] = None
-			return redirect("invite_private", slug=uuid)
+	# def form_valid(self, form):
+	# 	uuid = self.request.session["private_uuid"]
+	# 	if self.request.user_banned:
+	# 		return redirect("group_page")
+	# 	else:
+	# 		if self.request.method == 'POST':
+	# 			try:
+	# 				group = Group.objects.get(unique=uuid)
+	# 				invitee = self.request.POST.get('invitee')
+	# 				group_id = group.id
+	# 			except:
+	# 				group_id = -1
+	# 			if group_id > -1:
+	# 				# if GroupInvite.objects.filter(which_group_id=group_id, invitee_id=invitee).exists() or \
+	# 				# Reply.objects.filter(which_group_id=group_id, writer_id=invitee).exists():
+	# 				# 	return redirect("reinvite_private_help")
+	# 				invitee = User.objects.get(id=invitee)
+	# 				if check_group_invite(invitee.id, group_id) or check_group_member(group_id, invitee.username):
+	# 					return redirect("reinvite_private_help")
+	# 				else:#this person ought to be sent an invite
+	# 					#send a notification to this person to check out the group
+	# 					GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee.id)#remove this later
+	# 					reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=self.request.user)
+	# 					add_group_invite(invitee.id, group_id,reply.id)
+	# 					GroupSeen.objects.create(seen_user=self.request.user, which_reply=reply)
+	# 		self.request.session["private_uuid"] = None
+	# 		return redirect("invite_private", slug=uuid)
 
 class ExternalSalatInviteView(FormView):
 	template_name = "salat_sms.html"

@@ -51,24 +51,9 @@
 		{% elif reply.0.which_group.private == '1' and reply.0.writer == user %}
 
 			<span style="color:dimgrey;font-size:150%;">.</span>
-			
-			{% if reply.0.writer.userprofile.avatar %}
-				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-			{% else %}
-				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-			{% endif %}
 
 			<span style="color:grey;font-size:90%;">
-				<a href="{% url 'profile' slug=reply.0.writer.username %}">
-				{{ reply.0.writer }}
-				</a>
-			{% for person in verified %}
-				{% if person == reply.0.writer.username %}
-					<span style="font-size:120%;color:deeppink;">
-					<b>*</b>
-					</span>
-				{% endif %}
-			{% endfor %} ne
+			Tum ne
 			</span>
 
 			<a href="{% url 'private_group' reply.0.which_group.unique %}">
@@ -107,23 +92,9 @@
 		{% elif reply.0.which_group.private == '0' and reply.0.writer == user %}
 
 			<span style="color:dimgrey;font-size:150%;">.</span>
-			{% if reply.0.writer.userprofile.avatar %}
-				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-			{% else %}
-				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-			{% endif %}
 			
 			<span style="color:grey;font-size:90%;">
-				<a href="{% url 'profile' slug=reply.0.writer.username %}">
-				{{ reply.0.writer }}
-				</a>
-			{% for person in verified %}
-				{% if person == reply.0.writer.username %}
-					<span style="font-size:120%;color:deeppink;">
-					<b>*</b>
-					</span>
-				{% endif %}
-			{% endfor %} ne
+			Tum ne
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">

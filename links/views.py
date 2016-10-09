@@ -2267,16 +2267,22 @@ class InternalSalatInviteView(ListView):
 	template_name = "internal_salat_invite.html"
 
 	def get_queryset(self):
-		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-				'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-			})
-		users = cache_mem.get('online_users')
-		if self.request.user_banned:
-			return users
-		else:
-			global condemned
-			users_purified = [user for user in users if user.pk not in condemned]
-			return users_purified
+		user_ids = get_whose_online()
+		try:
+			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
+		except:
+			queryset = None
+		return queryset
+		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		# 		'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+		# 	})
+		# users = cache_mem.get('online_users')
+		# if self.request.user_banned:
+		# 	return users
+		# else:
+		# 	global condemned
+		# 	users_purified = [user for user in users if user.pk not in condemned]
+		# 	return users_purified
 
 	def get_context_data(self, **kwargs):
 		context = super(InternalSalatInviteView, self).get_context_data(**kwargs)
@@ -2291,7 +2297,8 @@ class InternalSalatInviteView(ListView):
 				context["user_list"] = None
 				context["unauthorized"] = True #it's not time for any namaz!
 				return context
-			user_ids = [user.id for user in context["object_list"]]
+			# user_ids = [user.id for user in context["object_list"]]
+			user_ids = get_whose_online()
 			if namaz:
 				context["namaz"] = namaz
 				context["unauthorized"] = False

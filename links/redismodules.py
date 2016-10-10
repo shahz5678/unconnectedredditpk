@@ -2,6 +2,44 @@ import redis
 import time
 from random import randint
 
+##########
+# perceptual_hash_set
+# filteredhomelist:1000
+# unfilteredhomelist:1000
+# filteredposts:1000
+# unfilteredposts:1000
+# photos:1000
+# bestphotos:1000
+# videos:1000
+# set_name = "defenders" # set of all Damadam defenders
+# list_name = "whose_online"
+###########
+# hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
+# set_name = "ftux:"+str(user_id)
+# hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
+# hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
+# sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
+# hash_name = "lah:"+str(user_id)
+# hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
+# hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
+# hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
+# set_name = "nas:"+str(target_id) #nas is 'nick abuse set', it contains IDs of people who reported this person
+# hash_name = "pah:"+str(user_id) #pah is 'publicreply abuse hash', it contains latest integrity value
+# hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash', it contains latest integrity value
+# hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
+# photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
+# list_name = "phts:"+str(user_id)
+# hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
+# hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+# set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
+# unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
+# hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+# set_name = "ug:"+str(user_id) #ug is user's groups
+# sorted_set = "vp:"+str(photo_id)
+# sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+# list_name = "vids:"+str(user_id)
+##########
+
 POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
 
 INTERVAL_SIZE = 4*60
@@ -208,12 +246,12 @@ def save_recent_photo(user_id, photo_id):
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
+	sorted_set = "vp:"+str(photo_id)
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
 def voted_for_photo(photo_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
+	sorted_set = "vp:"+str(photo_id)
 	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
 		return False
@@ -415,12 +453,6 @@ def add_to_filtered_homelist(link_id):
 	rand = randint(0,9)
 	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
 		my_server.ltrim("filteredhomelist:1000", 0, 999)
-
-# def add_home_link_object(link_id, description, submitter, submitted_on, device, which_photostream, reply_count, net_votes, cagtegory, image_file, latest_reply):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "lobj:"+str(link_id)
-
-# def edit_home_link_object(link_id):
 
 #####################maintaining group membership#####################
 
@@ -1059,7 +1091,6 @@ def document_publicreply_abuse(user_id):
 def document_nick_abuse(target_id, reporter_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
-	#hash_contents = my_server.hgetall(hash_name)
 	set_name = "nas:"+str(target_id) #nas is 'nick abuse set', it contains IDs of people who reported this person
 	set_exists = my_server.scard(set_name) #returns 0 if nothing exists
 	if set_exists:

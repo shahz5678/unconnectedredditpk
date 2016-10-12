@@ -3124,7 +3124,7 @@ class CommentView(CreateView):
 					try:
 						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
 					except:
-						print "first ever comment"
+						#print "first ever comment"
 						context["comment_time"] = None #i.e. it's the first every comment
 				else:
 					context["unseen"] = False

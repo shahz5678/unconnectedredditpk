@@ -1,15 +1,13 @@
-import os
+import os, time, datetime
 from unconnectedreddit import celery_app1
-import time
 from django.core.cache import get_cache, cache
 from django.db.models import Count, Q, F
-import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from links.models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
+from .models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
 UserProfile, Video, HotUser
-from links.redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
-add_to_whose_online
+from .redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
+add_to_whose_online, add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -35,15 +33,6 @@ def whoseonline():
 	user_ids = Session.objects.filter(user__isnull=False).filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).\
 	values_list('user_id', flat=True).distinct('user')
 	add_to_whose_online(user_ids)
-	# unique_user_sessions = Session.objects.filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).only('user').distinct('user').prefetch_related('user__userprofile')
-	# #unique_user_sessions are session objects, e.g. [<Session_Deferred_expire_date_ip_last_activity_session_data_user_agent: Session_Deferred_expire_date_ip_last_activity_session_data_user_agent object>, <Session_Deferred_expire_date_ip_last_activity_session_data_user_agent: Session_Deferred_expire_date_ip_last_activity_session_data_user_agent object>]
-	# users = [session.user for session in unique_user_sessions]
-	# users = [user for user in users if user is not None] #these are user objects, e.g. [<User: mhb11>, <User: gori>]
-	# print users 
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
- #            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
- #        })
-	# cache_mem.set('online_users', users)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.fans')
 def fans():
@@ -85,6 +74,7 @@ def salat_streaks():
 @celery_app1.task(name='tasks.photo_upload_tasks')
 def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device):
 	photo = Photo.objects.get(id=photo_id)
+	user = User.objects.get(id=user_id)
 	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
 	update = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
 	if not update:
@@ -94,11 +84,25 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device)
 	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
 	if hotuser.allowed and hotuser.hot_score > 4:
 		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+		photo_link_mapping(photo_id, link.id)
+		try:
+			av_url = user.userprofile.avatar.url
+		except:
+			av_url = None
+		add_home_link(link_pk=link.id, categ='6', nick=user.username, av_url=av_url, desc=photo.caption, awld='1', hot_sc=hotuser.hot_score, \
+			img_url=photo.image_file.url, v_sc=photo.vote_score, ph_pk=photo_id, ph_cc=photo.comment_count, scr=user.userprofile.score, \
+			cc=0, writer_pk=user_id, device=device)
 		if banned == '1':
 			add_unfiltered_post(link.id)
 		else:
 			add_filtered_post(link.id)
 			add_unfiltered_post(link.id)
+
+@celery_app1.task(name='tasks.queue_for_deletion')
+def queue_for_deletion(link_id_list):
+	llen = add_to_deletion_queue(link_id_list)
+	if llen > 200:
+		delete_queue()
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):
@@ -154,7 +158,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, description):
-	user = User.objects.get(id=user_id)
+	# user = User.objects.get(id=user_id)
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2, previous_retort=description)
 	# user.userprofile.previous_retort = description
 	# user.userprofile.score = user.userprofile.score + 2

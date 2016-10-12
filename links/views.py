@@ -34,7 +34,7 @@ all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, is_member_of_group, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
-check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, get_whose_online
+check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, get_whose_online, add_home_link, update_cc_in_home_link, update_cc_in_home_photo
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -1451,7 +1451,7 @@ class LinkListView(ListView):
 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
 			votes_in_page = Vote.objects.select_related('voter__userprofile').filter(link_id__in=links_in_page)
 			voted = votes_in_page.filter(voter=user) #all votes the user cast
-			voted = voted.values_list('link_id', flat=True) #link ids of all votes the user voted on
+			voted = voted.values_list('link_id', flat=True) #link ids of all links the user voted on
 			context["voted"] = voted #voted is used to check which links the user has already voted on
 			##################################
 			photos_in_page = [link.which_photostream.cover_id for link in context["object_list"] if link.which_photostream is not None]
@@ -1782,6 +1782,7 @@ class LinkDeleteView(DeleteView):
 
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
 	if is_notif:
+		# sending notification to fans
 		PhotoObjectSubscription.objects.filter(viewer_id=request.user.id, type_of_object='1', which_photo_id=photo_pk).update(seen=True, updated_at=timezone.now())
 	if photo_pk:
 		request.session["photograph_id"] = photo_pk
@@ -2061,14 +2062,17 @@ class OpenGroupCreateView(CreateView):
 			reply = Reply.objects.create(text='mein ne new mehfil shuru kar di',which_group=f,writer=self.request.user)
 			GroupTraffic.objects.create(visitor=self.request.user, which_group=f)
 			link = Link.objects.create(submitter=self.request.user, description=f.topic, cagtegory='2', url=unique)
+			try:
+				av_url = f.owner.userprofile.avatar.url
+			except:
+				av_url = None
+			add_home_link(link_pk=link.id, categ='2', nick=f.owner.username, av_url=av_url, desc=f.topic, \
+				scr=f.owner.userprofile.score, cc=1, writer_pk=f.owner.id, device='1')
 			if self.request.user_banned:
 				add_unfiltered_post(link.id)
-				#add_to_unfiltered_homelist(link.id)
 			else:
 				add_filtered_post(link.id)
-				#add_to_filtered_homelist(link.id)
 				add_unfiltered_post(link.id)
-				#add_to_unfiltered_homelist(link.id)
 			add_group_member(f.id, self.request.user.username)
 			add_user_group(self.request.user.id, f.id)
 			try: 
@@ -2338,10 +2342,6 @@ class GroupListView(ListView):
 		new_traff = GroupTraffic.objects.filter(time__gte=date,which_group__private='0').distinct('visitor','which_group').values_list('id',flat=True)
 		trendingGrp_ids = GroupTraffic.objects.filter(id__in=new_traff).values('which_group').annotate(total=Count('which_group')).order_by('-total')
 		trendingGrps = [Group.objects.select_related('owner').filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
-		#trendids = [grp['which_group'] for grp in trendingGrp_ids]
-		#nonTrendingGrps = Group.objects.filter(private='0').exclude(id__in=trendids).extra(select={"views":0})
-		#allGrps = trendingGrps.append(nonTrendingGrps)
-		#return allGrps
 		return trendingGrps
 
 class VerifiedView(ListView):
@@ -2753,10 +2753,6 @@ class VideoScoreView(FormView):
 		context["video"] = video
 		usernames_and_votes = get_video_votes(key)
 		context["votes"] = usernames_and_votes
-		# user_ids = (user_id for user_id, vote in users_and_votes) #generator object instead of full-fledged list
-		# user_objs = User.objects.filter(id__in=user_ids)
-		# ids_to_votes = dict(users_and_votes)
-		# context["votes"] = [(user, ids_to_votes[str(user.id)]) for user in user_objs]
 		if context["votes"]:
 			context["content"] = True
 			context["visible_score"] = video.visible_score 
@@ -3128,7 +3124,8 @@ class CommentView(CreateView):
 					try:
 						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
 					except:
-						context["comment_time"] = None
+						print "first ever comment"
+						context["comment_time"] = None #i.e. it's the first every comment
 				else:
 					context["unseen"] = False
 					context["comment_time"] = None
@@ -3180,6 +3177,7 @@ class CommentView(CreateView):
 				else:
 					exists = PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists()
 					which_photo.comment_count = which_photo.comment_count + 1
+					update_cc_in_home_photo(which_photo.id)
 					if self.request.is_feature_phone:
 						device = '1'
 					elif self.request.is_phone:
@@ -5521,6 +5519,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					device = '3'
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
 				Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
+				update_cc_in_home_photo(pk)
 				photo = Photo.objects.get(id=pk)
 				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
 				time = photocomment.submitted_on
@@ -5539,7 +5538,7 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	.exclude(which_photo__comment_count__lt=1)\
 	.exclude(type_of_object='1')\
 	.order_by('-updated_at')
-	paginator = Paginator(oblist, 20)
+	paginator = Paginator(oblist, 20) #give it a list of objects and number of objects to show per page, it does the rest
 	page = request.GET.get('page', '1')
 	try:
 		page = paginator.page(page)
@@ -5585,6 +5584,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
 				#add_publicreply_to_link(reply.id, request.user.id, pk)
 				timestring = reply.submitted_on
+				update_cc_in_home_link(parent_id)
 				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 				#all_reply_ids = get_publicreplies(pk)
 				#all_reply_ids = get_replywriters(pk)
@@ -5729,6 +5729,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 						device = '3'
 					reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
 					timestring = reply.submitted_on
+					update_cc_in_home_link(answer_to.id)
 					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 					#add_publicreply_to_link(reply.id, user.id, pk)
 					#all_publicreplies = get_publicreplies(pk)
@@ -5747,39 +5748,11 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 						UserProfile.objects.filter(user=user).update(score=F('score')-2)
 						return redirect("profile", slug=user.username)
 
-	def get_success_url(self): #which URL to go back once settings are saved?
-		try: 
-			return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-		except:
-			return redirect("home")#, pk= reply.answer_to.id)
-
-# class UnseenActivityView(FormView, MultipleObjectMixin):
-# 	#model = PhotoObjectSubscription
-# 	#slug_field = "username"
-# 	form_class = UnseenActivityForm
-# 	template_name = "user_unseen_activity.html"
-# 	paginate_by = 20
-
-# 	def get_queryset(self):
-# 		all_subscribed_links = PhotoObjectSubscription.objects.select_related('which_link__submitter__userprofile','which_photo__owner__userprofile', 'which_link__latest_reply__submitted_by__userprofile', 'which_photo__latest_comment__submitted_by__userprofile').filter(viewer=self.request.user)\
-# 		.exclude(which_link__reply_count__lt=1)\
-# 		.exclude(which_photo__comment_count__lt=1)\
-# 		.exclude(type_of_object='1')\
-# 		.order_by('-updated_at')
-# 		return all_subscribed_links
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(UnseenActivityView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			# all_subscribed_links = PhotoObjectSubscription.objects.select_related('which_link__submitter__userprofile','which_photo__owner__userprofile', 'which_link__latest_reply__submitted_by__userprofile', 'which_photo__latest_comment__submitted_by__userprofile').filter(viewer=self.request.user)\
-# 			# .exclude(which_link__reply_count__lt=1)\
-# 			# .exclude(which_photo__comment_count__lt=1)\
-# 			# .exclude(type_of_object='1')\
-# 			# .order_by('-updated_at')
-# 			# context["object_list"] = all_subscribed_links
-# 			context["verify"] = FEMALES
-# 			return context
-# 		return context
+	# def get_success_url(self): #which URL to go back once settings are saved?
+	# 	try: 
+	# 		return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
+	# 	except:
+	# 		return redirect("home")#, pk= reply.answer_to.id)
 
 class UserActivityView(ListView):
 	model = Link
@@ -5973,14 +5946,17 @@ class LinkCreateView(CreateView):
 						pass
 					f.submitter.userprofile.previous_retort = f.description
 					f.save()
+					try:
+						av_url = user.userprofile.avatar.url
+					except:
+						av_url = None
+					add_home_link(link_pk=f.id, categ='1', nick=user.username, av_url=av_url, desc=f.description, \
+						scr=f.submitter.userprofile.score, cc=0, writer_pk=user.id, device=f.device)
 					if self.request.user_banned:
 						add_unfiltered_post(f.id)
-						#add_to_unfiltered_homelist(f.id)
 					else:
 						add_filtered_post(f.id)
-						#add_to_filtered_homelist(f.id)
 						add_unfiltered_post(f.id)
-						#add_to_unfiltered_homelist(f.id)
 					f.submitter.userprofile.save()
 					PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2', which_link=f)
 					return super(CreateView, self).form_valid(form)
@@ -6247,25 +6223,37 @@ class WelcomeReplyView(FormView):
 						parent.reply_count = parent.reply_count + 1
 					else:
 						num = random.randint(1,5)
+						try:
+							av_url = target.userprofile.avatar.url
+						except:
+							av_url = None
 						if num == 1:
 							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1, device=device)
+							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='I am new', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 2:
 							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1, device=device)
+							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='Salam, Im new', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 3:
 							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1, device=device)
+							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='mein new hun', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 4:
 							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1, device=device)
+							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='hi every1', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						else:
 							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)
+							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='damadam mast qalander', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)						
 						add_filtered_post(parent.id)
-						#add_to_filtered_homelist(parent.id)
 						add_unfiltered_post(parent.id)
-						#add_to_unfiltered_homelist(parent.id)
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
@@ -6397,20 +6385,28 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 				except:
 					if value == 1:
 						link = Link.objects.create(description='mein idher hu', submitter=target)
+						try:
+							av_url = target.userprofile.avatar.url
+						except:
+							av_url = None
+						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device='1')
 						add_filtered_post(link.id)
-						#add_to_filtered_homelist(link.id)
 						add_unfiltered_post(link.id)
-						#add_to_unfiltered_homelist(link.id)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score + 3
 						target.userprofile.save()
 						return redirect("home")
 					elif value == -1:
 						link = Link.objects.create(description='mein idher hu', submitter=target)
+						try:
+							av_url = target.userprofile.avatar.url
+						except:
+							av_url = None
+						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
+								scr=target.userprofile.score, cc=1, writer_pk=target.id, device='1')
 						add_filtered_post(link.id)
-						#add_to_filtered_homelist(link.id)
 						add_unfiltered_post(link.id)
-						#add_to_unfiltered_homelist(link.id)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:

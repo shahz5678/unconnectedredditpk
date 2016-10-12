@@ -5584,7 +5584,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
 				#add_publicreply_to_link(reply.id, request.user.id, pk)
 				timestring = reply.submitted_on
-				update_cc_in_home_link(parent_id)
+				update_cc_in_home_link(parent.id)
 				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
 				#all_reply_ids = get_publicreplies(pk)
 				#all_reply_ids = get_replywriters(pk)

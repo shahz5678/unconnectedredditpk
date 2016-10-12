@@ -422,14 +422,14 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
 	if categ == '1':
 		# this is a typical link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk}
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk}
 	elif categ == '6':
 		# this is a photo-containing link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk, \
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
 		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc}
 	elif categ == '2':
 		# this announces public mehfil creation on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk, \
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
 		'm':meh_url}
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)

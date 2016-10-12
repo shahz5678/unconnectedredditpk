@@ -115,11 +115,11 @@
     {% endif %}
     {% if comment.abuse %}
         {% if authenticated and viewed_at %}
-        {% if not comment_time %}
-            <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-        {% elif comment.submitted_on > comment_time %}
-            <b style="color:orange;font-size:80%">(new)</b>&nbsp;
-        {% endif %}
+            {% if not comment_time %}
+                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+            {% elif comment.submitted_on > comment_time %}
+                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+            {% endif %}
         {% endif %}
         <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
         {% if comment.submitted_by.userprofile.avatar %}

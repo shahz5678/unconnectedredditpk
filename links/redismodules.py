@@ -1,8 +1,9 @@
 import redis
 import time
 from random import randint
+import tasks
 
-##########
+##########Redis Namespace##########
 # perceptual_hash_set
 # filteredhomelist:1000
 # unfilteredhomelist:1000
@@ -20,6 +21,7 @@ from random import randint
 # hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
 # sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
 # hash_name = "lah:"+str(user_id)
+# hash_name = "lk:"+str(link_pk) #lk is 'link'
 # hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 # hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
 # hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
@@ -29,6 +31,7 @@ from random import randint
 # hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 # photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
 # list_name = "phts:"+str(user_id)
+# hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 # hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 # hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 # set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
@@ -40,7 +43,7 @@ from random import randint
 # list_name = "vids:"+str(user_id)
 ##########
 
-POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
+POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)# change connection from TCP port to UNIX socket
 
 INTERVAL_SIZE = 4*60
 
@@ -265,6 +268,7 @@ def add_vote_to_photo(photo_id, username, value):
 	if already_exists != 0 and already_exists != 1:
 		#add the vote
 		my_server.zadd(sorted_set, username, value)
+		update_vsc_in_photo(photo_id,value)
 		#update last vote time for performing maintenance later
 		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 		current_time = time.time()
@@ -377,7 +381,60 @@ def add_video(video_id):
 	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
 		my_server.ltrim("videos:1000", 0, 999)
 
-#####################List objects#####################
+#####################Link objects#####################
+
+
+def photo_link_mapping(photo_pk, link_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+	mapping = {'l':link_pk}
+	my_server.hmset(hash_name,mapping)
+
+def update_cc_in_home_photo(photo_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	link_pk = my_server.hget("plm:"+str(photo_pk), 'l') # get the link id
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	if my_server.exists(hash_name):
+		my_server.hincrby(hash_name, "pc", amount=1)
+
+def update_cc_in_home_link(link_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	if my_server.exists(hash_name):
+		my_server.hincrby(hash_name, "cc", amount=1)
+
+def update_vsc_in_photo(photo_pk, amnt):
+	my_server = redis.Redis(connection_pool=POOL)
+	link_pk = my_server.hget("plm:"+str(photo_pk), 'l') # get the link id
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	if amnt == '1':
+		amnt = 1
+	else:
+		amnt = -1
+	if my_server.exists(hash_name):
+		my_server.hincrby(hash_name,"v",amount=amnt)
+
+def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
+	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
+	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	time_now = time.time()
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	if categ == '1':
+		# this is a typical link on home
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk}
+	elif categ == '6':
+		# this is a photo-containing link on home
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk, \
+		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc}
+	elif categ == '2':
+		# this announces public mehfil creation on home
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'c':cc, 'dv':device, 'w':writer_pk, \
+		'm':meh_url}
+	# add the info in a hash
+	my_server.hmset(hash_name, mapping)
+	# add the link_id in a list
+	# trim the list
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -403,9 +460,7 @@ def all_photos():
 def add_photo(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("photos:1000", photo_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("photos:1000", 0, 999)
+	my_server.ltrim("photos:1000", 0, 999)
 
 def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -414,45 +469,37 @@ def all_unfiltered_posts():
 def all_filtered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("filteredposts:1000", 0, -1)
-	
-def add_unfiltered_post(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("unfilteredposts:1000", link_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("unfilteredposts:1000", 0, 999)
 
 def add_filtered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("filteredposts:1000", link_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("filteredposts:1000", 0, 999)
-	# if my_server.llen("homeposts:1000") == 1001:
-	# 	target_id = my_server.rpop("homeposts:1000") #remove the right-most link_id from the list, and return it
-	# 	my_server.delete("lobj:"+str(target_id)) #delete the hash associated with this link_id
+	my_server.ltrim("filteredposts:1000", 0, 999)
 
-def unfiltered_homelist():
+def add_unfiltered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("unfilteredhomelist:1000", 0, -1)
+	my_server.lpush("unfilteredposts:1000", link_id)
+	extras = my_server.lrange("unfilteredposts:1000", 1000, -1)
+	my_server.ltrim("unfilteredposts:1000", 0, 999)
+	#print extras
+	if extras:
+		#print "inside"
+		tasks.queue_for_deletion.delay(extras)
+	
+def add_to_deletion_queue(link_id_list):
+	#this delays deletion of hashes formed by 'add_home_link'
+	my_server = redis.Redis(connection_pool=POOL)
+	#print link_id_list
+	my_server.lpush("deletionqueue:200", *link_id_list)
+	return my_server.llen("deletionqueue:200")
 
-def filtered_homelist():
+def delete_queue():
+	#this deletes hashes formed by 'add_home_link'
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("filteredhomelist:1000", 0, -1)
-
-def add_to_unfiltered_homelist(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("unfilteredhomelist:1000", link_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("unfilteredhomelist:1000", 0, 999)
-
-def add_to_filtered_homelist(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("filteredhomelist:1000", link_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("filteredhomelist:1000", 0, 999)
+	hashes = my_server.lrange("deletionqueue:200", 0, -1)
+	for link_id in hashes:
+		hash_name = "lk"+str(link_id)
+		my_server.delete(hash_name)
+	my_server.delete("deletionqueue:200")
 
 #####################maintaining group membership#####################
 

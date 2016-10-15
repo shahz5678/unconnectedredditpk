@@ -38,6 +38,7 @@ import tasks
 # unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 # hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
 # set_name = "ug:"+str(user_id) #ug is user's groups
+# sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
 # sorted_set = "vp:"+str(photo_id)
 # sorted_set = "vv:"+str(video_id) #vv is 'voted video'
 # list_name = "vids:"+str(user_id)
@@ -383,6 +384,20 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
+def retrieve_home_links(link_id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	list_of_dictionaries = []
+	photo_ids = []
+	non_photo_link_ids = []
+	for link_id in link_id_list:
+		hash_name = "lk:"+str(link_id)
+		hash_contents = my_server.hgetall(hash_name)
+		list_of_dictionaries.append(hash_contents)
+		try:
+			photo_ids.append(hash_contents['ph_pk'])
+		except:
+			non_photo_link_ids.append(link_id)
+	return photo_ids, non_photo_link_ids, list_of_dictionaries
 
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -418,23 +433,33 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	time_now = time.time()
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
 	if categ == '1':
 		# this is a typical link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk}
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, 't':time.time() }
 	elif categ == '6':
 		# this is a photo-containing link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc}
+		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time() }
 	elif categ == '2':
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		'm':meh_url}
+		'm':meh_url, 't':time.time() }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 	# add the link_id in a list
 	# trim the list
+
+def add_vote_to_home_link(link_pk, value, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
+		#add the vote
+		my_server.zadd(sorted_set, username, value)
+		return True
+	else:
+		return False
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)

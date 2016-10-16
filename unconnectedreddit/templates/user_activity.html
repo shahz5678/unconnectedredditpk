@@ -84,12 +84,12 @@
 				{% endif %}
 			{% endif %}
 			{% if vote.value == 2 %}
-				<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter_id %}#section0">
+				<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
 							</a></b> ne barri jhappi di <b>(+50)</b><br></span>
 			{% endif %}
 			{% if vote.value == -2 %}
-				<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_profile' pk=vote.voter_id id=vote.id num=link.submitter_id %}#section0">
+				<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
 							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
 							</a></b> ne nani yad kara di <b>(-50)</b><br></span>
 			{% endif %}	

@@ -636,9 +636,13 @@ class LoginWalkthroughForm(forms.Form):
 	class Meta:
 		pass
 
-class VoteOrProfileForm(forms.Form):
+class VoteOrProfForm(forms.Form):
 	class Meta:
 		pass
+
+# class VoteOrProfileForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class OpenInviteTypeForm(forms.Form):
 	class Meta:

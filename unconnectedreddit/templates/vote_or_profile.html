@@ -3,26 +3,26 @@
 <div class="margin">
 
 {% if self == 2 %}
-<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
-<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho<br><br>
-<a href="{% url 'home' %}#section0">< wapis</a>
+<b style="color:grey;">- </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
+<b style="color:grey;">- </b>{{ subject.username }} ki <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho<br><br>
+<a href="{% url 'home' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
 
 {% elif self == 1 %}
-<b style="color:grey;">. </b>apni <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho</a><br>
-<b style="color:grey;">. </b>apni <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho</a><br><br>
-<a href="{% url 'home' %}#section0">< wapis</a>
+<b style="color:grey;">- </b>apni <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho</a><br>
+<b style="color:grey;">- </b>apni <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho</a><br><br>
+<a href="{% url 'home' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
 
 {% elif self == -1 %}
-<b>Yahan kuch nahi hai...</b><br><br>
-<a href="{% url 'home' %}#section0">< wapis</a>
+<b style="color:#404040;">Yahan kuch nahi hai...</b><br><br>
+<a href="{% url 'home' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
 
 {% else %}
 
-	<b style="color:grey;">. </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
-	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 1 %}#section0"><b style="color:green;">jhappee</b></a> do<br>
-	<b style="color:grey;">. </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 0 %}#section0"><b style="color:red;">chupair</b></a> maro<br>
-	<span style="color:grey;font-size:83%;">agr koi kisi dusray damadamer ko begher wajah chupair maar raha ho toh yahan se usko chupair maro</span><br><br>
-<a href="{% url 'home' %}#section0">< wapis</a>
+	<b style="color:grey;">- </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
+	<b style="color:grey;">- </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 1 %}#section0"><b style="color:green;">jhappee</b></a> do<br>
+	<b style="color:grey;">- </b>{{ subject.username }} ko <a href="{% url 'vote_on_vote' vote_id subject.pk link_submitter_id 0 %}#section0"><b style="color:red;">chupair</b></a> maro<br>
+	<br>
+<a href="{% url 'home' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
 
 {% endif %}
 </div>

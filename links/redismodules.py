@@ -258,8 +258,10 @@ def voted_for_photo(photo_id, username):
 	sorted_set = "vp:"+str(photo_id)
 	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
+		# i.e. does not already exist
 		return False
 	else:
+		# i.e. already exists
 		return True
 
 def add_vote_to_photo(photo_id, username, value):
@@ -394,7 +396,7 @@ def retrieve_home_links(link_id_list):
 		hash_contents = my_server.hgetall(hash_name)
 		list_of_dictionaries.append(hash_contents)
 		try:
-			photo_ids.append(hash_contents['ph_pk'])
+			photo_ids.append(hash_contents['pi'])
 		except:
 			non_photo_link_ids.append(link_id)
 	return photo_ids, non_photo_link_ids, list_of_dictionaries
@@ -450,16 +452,27 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	# add the link_id in a list
 	# trim the list
 
+def voted_for_link(link_id, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "v:"+str(link_id)
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists:
+		return True
+	else:
+		return False
+
+def get_home_link_votes(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "v:"+str(link_id)
+	return my_server.zrange(sorted_set, 0, -1, withscores=True)
+
 def add_vote_to_home_link(link_pk, value, username):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
 	already_exists = my_server.zscore(sorted_set, username)
-	if already_exists != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
+	if not already_exists:# != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
 		#add the vote
 		my_server.zadd(sorted_set, username, value)
-		return True
-	else:
-		return False
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)

@@ -225,6 +225,7 @@ def video_upload_tasks(video_name, video_id, user_id):
 	low_res_thumb = "//"+lst[0].partition('://')[2]
 	small_thumb = "//"+lst[1].partition('://')[2]
 	low_res_video = "//"+lst[2].partition('://')[2]
+	#print low_res_video
 	high_res_video = "//"+lst[3].partition('://')[2]
 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
 	if video:

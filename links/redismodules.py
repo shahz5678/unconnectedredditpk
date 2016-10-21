@@ -536,7 +536,9 @@ def delete_queue():
 	hashes = my_server.lrange("deletionqueue:200", 0, -1)
 	for link_id in hashes:
 		hash_name = "lk"+str(link_id)
+		sorted_set = "v:"+str(link_id)
 		my_server.delete(hash_name)
+		my_server.delete(sorted_set)
 	my_server.delete("deletionqueue:200")
 
 #####################maintaining group membership#####################

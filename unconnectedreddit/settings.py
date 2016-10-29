@@ -88,8 +88,8 @@ STATIC_ROOT = 'staticfiles'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-#STATIC_URL = '/static/'
-STATIC_URL = '//damadamstatic.azureedge.net/'
+STATIC_URL = '/static/'
+#STATIC_URL = '//damadamstatic.azureedge.net/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -235,7 +235,7 @@ LOGGING = {
 import dj_database_url
 if ON_HEROKU == '1':
 # Parse database configuration from $DATABASE_URL
-	print "ON_HEROKU!"
+	#print "ON_HEROKU!"
 	DATABASES = {
 	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 	}
@@ -247,11 +247,19 @@ if ON_HEROKU == '1':
 	AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
 	AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
 elif ON_AZURE == '1':
-	print "ON_AZURE!"
-	DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@40.114.247.165:5432/damadam'
+	#print "ON_AZURE!"
 	DATABASES = {
-	'default': dj_database_url.config(default=DATABASE_URL)
+	'default': {
+		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+		'NAME': 'damadam',                      # Or path to database file if using sqlite3.
+		'USER': 'mhb11',
+		'PASSWORD': 'asdasdASFDA234',
+		'HOST': '/var/run/postgresql',
 	}
+	# DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@40.114.247.165:5432/damadam'
+	# DATABASES = {
+	# 'default': dj_database_url.config(default=DATABASE_URL)
+	# }
 	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
 	AZURE_ACCOUNT_NAME = 'damadam'
 	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
@@ -282,8 +290,8 @@ else:
 		# The following settings are not used with sqlite3:
 		'USER': 'hassan',
 		'PASSWORD': 'asdasdASFDA234',
-		'HOST': 'localhost',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-		'PORT': '',                      # Set to empty string for default.
+		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+		'PORT': '6432',                      # Set to empty string for default.
 	}
 }
 

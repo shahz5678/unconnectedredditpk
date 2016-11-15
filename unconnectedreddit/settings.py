@@ -261,7 +261,7 @@ elif ON_AZURE == '1':
 		'NAME': 'damadam',                      # Or path to database file if using sqlite3.
 		'USER': 'mhb11',
 		'PASSWORD': 'asdasdASFDA234',
-		'HOST': 'localhost',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
 		'PORT': '6432',
 	}
 }

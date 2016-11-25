@@ -75,23 +75,30 @@ THREE_MINS = 3*60
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 
-# def retrieve_unseen_activity(viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
-# 	if my_server.zcard(sorted_set):
-# 		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
-# 		list_of_dictionaries = []
-# 		for notification in hashes:
-# 			notification = my_server.hgetall(notification)
-# 			# print notification
-# 			parent_object = my_server.hgetall(notification['c'])
-# 			# print parent_object
-# 			combined = dict(parent_object,**notification) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-# 			list_of_dictionaries.append(combined)
-# 		print list_of_dictionaries
-# 		return list_of_dictionaries
-# 	else:
-# 		return []
+def retrieve_unseen_activity(viewer_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
+	if my_server.zcard(sorted_set):
+		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
+		list_of_dictionaries = []
+		pipeline1 = my_server.pipeline()
+		pipeline2 = my_server.pipeline()
+		for notification in hashes:
+			notification = pipeline1.hgetall(notification)
+		result1 = pipeline1.execute()
+		# print result1
+		for notification in result1:
+			parent_object = pipeline2.hgetall(notification['c'])
+		result2 = pipeline2.execute()
+		# print result2
+		for i in range(len(hashes)):
+			combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+			list_of_dictionaries.append(combined)
+		# print list_of_dictionaries
+		return list_of_dictionaries
+	else:
+		return []
+
 # 		'''
 # 		retrieve unfiltered sorted_set
 # 		retrieve hashes, append results and return (same as for linklistview) 
@@ -110,34 +117,45 @@ def bulk_create_notifications(viewer_id_list=None, photo_id=None, seen=None, tim
 	my_server = redis.Redis(connection_pool=POOL)
 	#bulk create notifications for all the users in user_id_list, attached to photo_id
 
-# def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
-# 	unseen_activity=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# updated_at = time.time()
-# 	for viewer_id in viewer_id_list:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-# 		if my_server.exists(hash_name):	
-# 			my_server.hset(hash_name, "s", seen) #updating 'seen'
-# 			if updated_at:
-# 				my_server.hset(hash_name, "u", updated_at)
-# 			if single_notif is not None:
-# 				sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# 				if single_notif:
-# 					try:
-# 						my_server.zadd(sorted_set, hash_name, updated_at)
-# 					except:
-# 						my_server.zadd(sorted_set, hash_name, time.time())
-# 				else:
-# 					my_server.zrem(sorted_set, hash_name)
-# 			if unseen_activity is not None:
-# 				sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# 				if unseen_activity:
-# 					try:
-# 						my_server.zadd(sorted_set, hash_name, updated_at)
-# 					except:
-# 						my_server.zadd(sorted_set, hash_name, time.time())
-# 				else:
-# 					my_server.zrem(sorted_set, hash_name)
+def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
+	unseen_activity=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	# updated_at = time.time()
+	pipeline1 = my_server.pipeline()
+	for viewer_id in viewer_id_list:
+		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
+		pipeline1.exists(hash_name)	
+	result1 = pipeline1.execute()
+	count = 0
+	pipeline2 = my_server.pipeline()
+	for exist in result1:
+		hash_name = "np:"+str(viewer_id_list[count])+":"+str(object_type)+":"+str(object_id)
+		if exist:
+			pipeline2.hset(hash_name, "s", seen) #updating 'seen'
+			if updated_at:
+				# print hash_name
+				# print updated_at
+				pipeline2.hset(hash_name, "u", updated_at)
+			if single_notif is not None:
+				sorted_set = "sn:"+str(viewer_id_list[count]) #'sn' is single notification, for user with viewer_id
+				if single_notif:
+					try:
+						pipeline2.zadd(sorted_set, hash_name, updated_at)
+					except:
+						pipeline2.zadd(sorted_set, hash_name, time.time())
+				else:
+					pipeline2.zrem(sorted_set, hash_name)
+			if unseen_activity is not None:
+				sorted_set = "ua:"+str(viewer_id_list[count]) #'ua' is unseen activity, for user with viewer_id
+				if unseen_activity:
+					try:
+						pipeline2.zadd(sorted_set, hash_name, updated_at)
+					except:
+						pipeline2.zadd(sorted_set, hash_name, time.time())
+				else:
+					pipeline2.zrem(sorted_set, hash_name)
+		count += 1
+	pipeline2.execute()
 
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
 	single_notif=None):
@@ -600,20 +618,25 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
-# def retrieve_home_links(link_id_list):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	list_of_dictionaries = []
-# 	photo_ids = []
-# 	non_photo_link_ids = []
-# 	for link_id in link_id_list:
-# 		hash_name = "lk:"+str(link_id)
-# 		hash_contents = my_server.hgetall(hash_name)#
-# 		list_of_dictionaries.append(hash_contents)
-# 		try:
-# 			photo_ids.append(hash_contents['pi'])
-# 		except:
-# 			non_photo_link_ids.append(link_id)
-# 	return photo_ids, non_photo_link_ids, list_of_dictionaries
+def retrieve_home_links(link_id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	list_of_dictionaries = []
+	photo_ids = []
+	non_photo_link_ids = []
+	pipeline1 = my_server.pipeline()
+	for link_id in link_id_list:
+		hash_name = "lk:"+str(link_id)
+		pipeline1.hgetall(hash_name)#
+	result1 = pipeline1.execute()
+	count = 0
+	for hash_contents in result1:
+		list_of_dictionaries.append(hash_contents)
+		try:
+			photo_ids.append(hash_contents['pi'])
+		except:
+			non_photo_link_ids.append(link_id_list[count])
+		count += 1
+	return photo_ids, non_photo_link_ids, list_of_dictionaries
 
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -741,26 +764,37 @@ def add_to_deletion_queue(link_id_list):
 	my_server.lpush("deletionqueue:200", *link_id_list)
 	return my_server.llen("deletionqueue:200")
 
-# def delete_queue():
-# 	#this deletes hashes formed by 'add_home_link'
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hashes = my_server.lrange("deletionqueue:200", 0, -1)
-# 	#print hashes
-# 	for link_id in hashes:
-# 		hash_name = "lk:"+str(link_id)
-# 		sorted_set = "v:"+str(link_id)
-# 		my_server.delete(hash_name)
-# 		my_server.delete(sorted_set)
-# 	my_server.delete("deletionqueue:200")
+def delete_queue():
+	#this deletes hashes formed by 'add_home_link'
+	my_server = redis.Redis(connection_pool=POOL)
+	hashes = my_server.lrange("deletionqueue:200", 0, -1)
+	# print hashes
+	pipeline1 = my_server.pipeline()
+	for link_id in hashes:
+		hash_name = "lk:"+str(link_id)
+		sorted_set = "v:"+str(link_id)
+		pipeline1.delete(hash_name)
+		pipeline1.delete(sorted_set)
+	pipeline1.execute()
+	# print "deleted"
+	my_server.delete("deletionqueue:200")
 
-# def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	replies_list = []
-# 	for reply in group_replies:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
-# 		is_seen = my_server.hget(hash_name,'s')
-# 		replies_list.append((reply,is_seen))
-# 	return replies_list
+
+
+def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	replies_list = []
+	for reply in group_replies:
+		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
+		pipeline1.hget(hash_name,'s')
+	result1 = pipeline1.execute()
+	count = 0
+	for is_seen in result1:
+		replies_list.append((group_replies[count],is_seen))
+		count += 1
+	return replies_list
+
 
 #####################maintaining group membership#####################
 

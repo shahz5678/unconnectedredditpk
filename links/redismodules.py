@@ -117,34 +117,45 @@ def bulk_create_notifications(viewer_id_list=None, photo_id=None, seen=None, tim
 	my_server = redis.Redis(connection_pool=POOL)
 	#bulk create notifications for all the users in user_id_list, attached to photo_id
 
-# def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
-# 	unseen_activity=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# updated_at = time.time()
-# 	for viewer_id in viewer_id_list:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-# 		if my_server.exists(hash_name):	
-# 			my_server.hset(hash_name, "s", seen) #updating 'seen'
-# 			if updated_at:
-# 				my_server.hset(hash_name, "u", updated_at)
-# 			if single_notif is not None:
-# 				sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# 				if single_notif:
-# 					try:
-# 						my_server.zadd(sorted_set, hash_name, updated_at)
-# 					except:
-# 						my_server.zadd(sorted_set, hash_name, time.time())
-# 				else:
-# 					my_server.zrem(sorted_set, hash_name)
-# 			if unseen_activity is not None:
-# 				sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# 				if unseen_activity:
-# 					try:
-# 						my_server.zadd(sorted_set, hash_name, updated_at)
-# 					except:
-# 						my_server.zadd(sorted_set, hash_name, time.time())
-# 				else:
-# 					my_server.zrem(sorted_set, hash_name)
+def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
+	unseen_activity=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	# updated_at = time.time()
+	pipeline1 = my_server.pipeline()
+	for viewer_id in viewer_id_list:
+		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
+		pipeline1.exists(hash_name)	
+	result1 = pipeline1.execute()
+	count = 0
+	pipeline2 = my_server.pipeline()
+	for exist in result1:
+		hash_name = "np:"+str(viewer_id_list[count])+":"+str(object_type)+":"+str(object_id)
+		if exist:
+			pipeline2.hset(hash_name, "s", seen) #updating 'seen'
+			if updated_at:
+				# print hash_name
+				# print updated_at
+				pipeline2.hset(hash_name, "u", updated_at)
+			if single_notif is not None:
+				sorted_set = "sn:"+str(viewer_id_list[count]) #'sn' is single notification, for user with viewer_id
+				if single_notif:
+					try:
+						pipeline2.zadd(sorted_set, hash_name, updated_at)
+					except:
+						pipeline2.zadd(sorted_set, hash_name, time.time())
+				else:
+					pipeline2.zrem(sorted_set, hash_name)
+			if unseen_activity is not None:
+				sorted_set = "ua:"+str(viewer_id_list[count]) #'ua' is unseen activity, for user with viewer_id
+				if unseen_activity:
+					try:
+						pipeline2.zadd(sorted_set, hash_name, updated_at)
+					except:
+						pipeline2.zadd(sorted_set, hash_name, time.time())
+				else:
+					pipeline2.zrem(sorted_set, hash_name)
+		count += 1
+	pipeline2.execute()
 
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
 	single_notif=None):

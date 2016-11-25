@@ -75,23 +75,30 @@ THREE_MINS = 3*60
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 
-# def retrieve_unseen_activity(viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
-# 	if my_server.zcard(sorted_set):
-# 		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
-# 		list_of_dictionaries = []
-# 		for notification in hashes:
-# 			notification = my_server.hgetall(notification)
-# 			# print notification
-# 			parent_object = my_server.hgetall(notification['c'])
-# 			# print parent_object
-# 			combined = dict(parent_object,**notification) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-# 			list_of_dictionaries.append(combined)
-# 		print list_of_dictionaries
-# 		return list_of_dictionaries
-# 	else:
-# 		return []
+def retrieve_unseen_activity(viewer_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
+	if my_server.zcard(sorted_set):
+		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
+		list_of_dictionaries = []
+		pipeline1 = my_server.pipeline()
+		pipeline2 = my_server.pipeline()
+		for notification in hashes:
+			notification = pipeline1.hgetall(notification)
+		result1 = pipeline1.execute()
+		# print result1
+		for notification in result1:
+			parent_object = pipeline2.hgetall(notification['c'])
+		result2 = pipeline2.execute()
+		# print result2
+		for i in range(len(hashes)):
+			combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+			list_of_dictionaries.append(combined)
+		# print list_of_dictionaries
+		return list_of_dictionaries
+	else:
+		return []
+
 # 		'''
 # 		retrieve unfiltered sorted_set
 # 		retrieve hashes, append results and return (same as for linklistview) 

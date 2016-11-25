@@ -75,24 +75,33 @@ THREE_MINS = 3*60
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 
-def retrieve_unseen_activity(viewer_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
-	if my_server.zcard(sorted_set):
-		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
-		list_of_dictionaries = []
-		for notification in hashes:
-			notification = my_server.hgetall(notification)
-			parent_object = my_server.hgetall(notification['c'])
-			combined = dict(parent_object,**notification) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-			list_of_dictionaries.append(combined)
-		return list_of_dictionaries
-	else:
-		return []
-		'''
-		retrieve unfiltered sorted_set
-		retrieve hashes, append results and return (same as for linklistview) 
-		'''
+# def retrieve_unseen_activity(viewer_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
+# 	if my_server.zcard(sorted_set):
+# 		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
+# 		list_of_dictionaries = []
+# 		for notification in hashes:
+# 			notification = my_server.hgetall(notification)
+# 			# print notification
+# 			parent_object = my_server.hgetall(notification['c'])
+# 			# print parent_object
+# 			combined = dict(parent_object,**notification) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+# 			list_of_dictionaries.append(combined)
+# 		print list_of_dictionaries
+# 		return list_of_dictionaries
+# 	else:
+# 		return []
+# 		'''
+# 		retrieve unfiltered sorted_set
+# 		retrieve hashes, append results and return (same as for linklistview) 
+# 		'''
+
+# def get_seen_from_notification(viewer_id=None, object_id=None, object_type=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
+# 	seen = my_server.hget(hash_name, 's')
+# 	return seen
 
 def bulk_update_salat_notifications(viewer_id=None, starting_time=None, seen=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -101,40 +110,41 @@ def bulk_create_notifications(viewer_id_list=None, photo_id=None, seen=None, tim
 	my_server = redis.Redis(connection_pool=POOL)
 	#bulk create notifications for all the users in user_id_list, attached to photo_id
 
-def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
-	unseen_activity=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	# updated_at = time.time()
-	for viewer_id in viewer_id_list:
-		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-		if my_server.exists(hash_name):	
-			my_server.hset(hash_name, "s", seen) #updating 'seen'
-			if updated_at:
-				my_server.hset(hash_name, "u", updated_at)
-			if single_notif is not None:
-				sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-				if single_notif:
-					try:
-						my_server.zadd(sorted_set, hash_name, updated_at)
-					except:
-						my_server.zadd(sorted_set, hash_name, time.time())
-				else:
-					my_server.zrem(sorted_set, hash_name)
-			if unseen_activity is not None:
-				sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-				if unseen_activity:
-					try:
-						my_server.zadd(sorted_set, hash_name, updated_at)
-					except:
-						my_server.zadd(sorted_set, hash_name, time.time())
-				else:
-					my_server.zrem(sorted_set, hash_name)
+# def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
+# 	unseen_activity=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# updated_at = time.time()
+# 	for viewer_id in viewer_id_list:
+# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
+# 		if my_server.exists(hash_name):	
+# 			my_server.hset(hash_name, "s", seen) #updating 'seen'
+# 			if updated_at:
+# 				my_server.hset(hash_name, "u", updated_at)
+# 			if single_notif is not None:
+# 				sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
+# 				if single_notif:
+# 					try:
+# 						my_server.zadd(sorted_set, hash_name, updated_at)
+# 					except:
+# 						my_server.zadd(sorted_set, hash_name, time.time())
+# 				else:
+# 					my_server.zrem(sorted_set, hash_name)
+# 			if unseen_activity is not None:
+# 				sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
+# 				if unseen_activity:
+# 					try:
+# 						my_server.zadd(sorted_set, hash_name, updated_at)
+# 					except:
+# 						my_server.zadd(sorted_set, hash_name, time.time())
+# 				else:
+# 					my_server.zrem(sorted_set, hash_name)
 
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
 	single_notif=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-	# updated_at = time.time()
+	# print "notification hash name: %s" % hash_name
+	# print "parent obj hash name: %s" % composite_id
 	if my_server.exists(hash_name):
 		my_server.hset(hash_name, "s", seen) #updating 'seen'
 		if updated_at:
@@ -172,12 +182,9 @@ def create_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 	if my_server.exists(hash_name):
 		return False
 	else:
-		if object_type == '2' or object_type == '0':
+		if object_type == '2' or object_type == '0' or object_type == '3':
 			# notification for a link object or photo object
 			mapping = { 's':seen,'u':updated_at,'c':composite_id }
-		elif object_type == '3':
-			# notification for a group object, created via a group_reply
-			mapping = {}
 		elif object_type == '4':
 			# notification for salat invite, created when invited for salat
 			mapping = {}
@@ -200,16 +207,17 @@ def create_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 		my_server.hincrby(composite_id, 'n', amount=1)
 		return True
 
-def update_object(object_id=None, object_type=None, lr_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
-	res_count=None, vote_score=None,reply_photourl=None):
+def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
+	res_count=None, vote_score=None,reply_photourl=None, object_desc=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
+	# print hash_name
 	if object_type == '2':
-		mapping={'lrti':lr_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count}
-	elif object_type == '0':
-		mapping={'lrti':lr_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'v':vote_score}
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count}
 	elif object_type == '3':
-		mapping={'lrti':lr_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl}
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'od':object_desc}
+	elif object_type == '0':
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'v':vote_score}
 	my_server.hmset(hash_name, mapping)
 
 def create_object(object_id=None, object_type=None, object_owner_avurl=None,object_owner_id=None,object_owner_name=None,\
@@ -217,6 +225,7 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc
+	# print hash_name
 	if my_server.exists(hash_name):
 		return False
 	else:
@@ -227,8 +236,8 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 			'r':res_count}
 		elif object_type == '3':
 			#creating group chat object
-			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_description,'lrti':lt_res_time,\
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrti':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug}
+			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug}
 		elif object_type == '0':
 			#creating photo object
 			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'r':res_count,'v':vote_score,'od':object_desc, \
@@ -246,10 +255,16 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 		my_server.hmset(hash_name, mapping)
 		return True
 
-# def notification_already_exists(viewer_id=None, object_id=None, object_type=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' is notification payload, contains notification data
-# 	return my_server.exists(hash_name)
+def remove_group_notification(user_id,group_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	unseen_activity = "ua:"+str(user_id)
+	single_notif = "sn:"+str(user_id)
+	notification = "np:"+str(user_id)+":3:"+str(group_id)
+	# remove from relevant sorted sets, then remove the notification hash
+	my_server.zrem(unseen_activity,notification)
+	my_server.zrem(single_notif,notification)
+	my_server.delete(notification)
+
 
 def clean_expired_hash():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -585,20 +600,20 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
-def retrieve_home_links(link_id_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	list_of_dictionaries = []
-	photo_ids = []
-	non_photo_link_ids = []
-	for link_id in link_id_list:
-		hash_name = "lk:"+str(link_id)
-		hash_contents = my_server.hgetall(hash_name)#
-		list_of_dictionaries.append(hash_contents)
-		try:
-			photo_ids.append(hash_contents['pi'])
-		except:
-			non_photo_link_ids.append(link_id)
-	return photo_ids, non_photo_link_ids, list_of_dictionaries
+# def retrieve_home_links(link_id_list):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	list_of_dictionaries = []
+# 	photo_ids = []
+# 	non_photo_link_ids = []
+# 	for link_id in link_id_list:
+# 		hash_name = "lk:"+str(link_id)
+# 		hash_contents = my_server.hgetall(hash_name)#
+# 		list_of_dictionaries.append(hash_contents)
+# 		try:
+# 			photo_ids.append(hash_contents['pi'])
+# 		except:
+# 			non_photo_link_ids.append(link_id)
+# 	return photo_ids, non_photo_link_ids, list_of_dictionaries
 
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -716,6 +731,7 @@ def add_unfiltered_post(link_id):
 	my_server.lpush("unfilteredposts:1000", link_id)
 	extras = my_server.lrange("unfilteredposts:1000", 1000, -1)
 	my_server.ltrim("unfilteredposts:1000", 0, 999)
+	# print extras
 	if extras:
 		tasks.queue_for_deletion.delay(extras)
 	
@@ -725,16 +741,26 @@ def add_to_deletion_queue(link_id_list):
 	my_server.lpush("deletionqueue:200", *link_id_list)
 	return my_server.llen("deletionqueue:200")
 
-def delete_queue():
-	#this deletes hashes formed by 'add_home_link'
-	my_server = redis.Redis(connection_pool=POOL)
-	hashes = my_server.lrange("deletionqueue:200", 0, -1)
-	for link_id in hashes:
-		hash_name = "lk"+str(link_id)
-		sorted_set = "v:"+str(link_id)
-		my_server.delete(hash_name)
-		my_server.delete(sorted_set)
-	my_server.delete("deletionqueue:200")
+# def delete_queue():
+# 	#this deletes hashes formed by 'add_home_link'
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hashes = my_server.lrange("deletionqueue:200", 0, -1)
+# 	#print hashes
+# 	for link_id in hashes:
+# 		hash_name = "lk:"+str(link_id)
+# 		sorted_set = "v:"+str(link_id)
+# 		my_server.delete(hash_name)
+# 		my_server.delete(sorted_set)
+# 	my_server.delete("deletionqueue:200")
+
+# def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	replies_list = []
+# 	for reply in group_replies:
+# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
+# 		is_seen = my_server.hget(hash_name,'s')
+# 		replies_list.append((reply,is_seen))
+# 	return replies_list
 
 #####################maintaining group membership#####################
 
@@ -801,7 +827,7 @@ def add_group_invite(user_id, group_id, invite_id):
 			my_server.delete("giu:"+element[0]+str(user_id)) #remove the related hash
 			my_server.zremrangebyrank(sorted_set, 0, 0) #remove the element in question from the sorted set
 		my_server.zadd(sorted_set, group_id, time.time()) #where time.time() is the score, and group_id is the value
-		my_server.sadd(unsorted_set, invite_id)
+		my_server.sadd(unsorted_set, invite_id) #invited_id is the reply_id that carries the invite
 		mapping = {'grp':group_id, 'usr':user_id, 'ivt':invite_id}
 		my_server.hmset(hash_name, mapping)
 

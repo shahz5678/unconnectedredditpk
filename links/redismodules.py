@@ -759,17 +759,22 @@ def add_to_deletion_queue(link_id_list):
 	my_server.lpush("deletionqueue:200", *link_id_list)
 	return my_server.llen("deletionqueue:200")
 
-# def delete_queue():
-# 	#this deletes hashes formed by 'add_home_link'
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hashes = my_server.lrange("deletionqueue:200", 0, -1)
-# 	#print hashes
-# 	for link_id in hashes:
-# 		hash_name = "lk:"+str(link_id)
-# 		sorted_set = "v:"+str(link_id)
-# 		my_server.delete(hash_name)
-# 		my_server.delete(sorted_set)
-# 	my_server.delete("deletionqueue:200")
+def delete_queue():
+	#this deletes hashes formed by 'add_home_link'
+	my_server = redis.Redis(connection_pool=POOL)
+	hashes = my_server.lrange("deletionqueue:200", 0, -1)
+	# print hashes
+	pipeline1 = my_server.pipeline()
+	for link_id in hashes:
+		hash_name = "lk:"+str(link_id)
+		sorted_set = "v:"+str(link_id)
+		pipeline1.delete(hash_name)
+		pipeline1.delete(sorted_set)
+	pipeline1.execute()
+	# print "deleted"
+	my_server.delete("deletionqueue:200")
+
+
 
 def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 	my_server = redis.Redis(connection_pool=POOL)

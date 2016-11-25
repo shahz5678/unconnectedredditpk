@@ -771,14 +771,20 @@ def add_to_deletion_queue(link_id_list):
 # 		my_server.delete(sorted_set)
 # 	my_server.delete("deletionqueue:200")
 
-# def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	replies_list = []
-# 	for reply in group_replies:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
-# 		is_seen = my_server.hget(hash_name,'s')
-# 		replies_list.append((reply,is_seen))
-# 	return replies_list
+def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	replies_list = []
+	for reply in group_replies:
+		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
+		pipeline1.hget(hash_name,'s')
+	result1 = pipeline1.execute()
+	count = 0
+	for is_seen in result1:
+		replies_list.append((group_replies[count],is_seen))
+		count += 1
+	return replies_list
+
 
 #####################maintaining group membership#####################
 

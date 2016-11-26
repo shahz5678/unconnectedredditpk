@@ -1,51 +1,55 @@
 import redis, time, tasks
 from random import randint
-
+'''
 ##########Redis Namespace##########
-# perceptual_hash_set
-# filteredhomelist:1000
-# unfilteredhomelist:1000
-# filteredposts:1000
-# unfilteredposts:1000
-# photos:1000
-# bestphotos:1000
-# videos:1000
-# set_name = "defenders" # set of all Damadam defenders
-# list_name = "whose_online"
-###########
-# hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
-# set_name = "ftux:"+str(user_id)
-# hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
-# hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
-# sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
-# hash_name = "lah:"+str(user_id)
-# hash_name = "lk:"+str(link_pk) #lk is 'link'
-# hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
-# hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
-# hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
-# set_name = "nas:"+str(target_id) #nas is 'nick abuse set', it contains IDs of people who reported this person
-# hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' is notification payload, contains notification data
-# hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
-# hash_name = "pah:"+str(user_id) #pah is 'publicreply abuse hash', it contains latest integrity value
-# hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash', it contains latest integrity value
-# hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
-# photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
-# list_name = "phts:"+str(user_id)
-# hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
-# hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
-# hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
-# set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
-# unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
-# hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
-# sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# set_name = "ug:"+str(user_id) #ug is user's groups
-# sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
-# sorted_set = "vp:"+str(photo_id)
-# sorted_set = "vv:"+str(video_id) #vv is 'voted video'
-# list_name = "vids:"+str(user_id)
-##########
 
+perceptual_hash_set
+filteredhomelist:1000
+unfilteredhomelist:1000
+filteredposts:1000
+unfilteredposts:1000
+photos:1000
+bestphotos:1000
+videos:1000
+set_name = "defenders" # set of all Damadam defenders
+list_name = "whose_online"
+
+###########
+
+hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
+set_name = "ftux:"+str(user_id)
+hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
+hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
+sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
+hash_name = "lah:"+str(user_id)
+hash_name = "lk:"+str(link_pk) #lk is 'link'
+hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
+hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
+hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
+set_name = "nas:"+str(target_id) #nas is 'nick abuse set', it contains IDs of people who reported this person
+hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' is notification payload, contains notification data
+hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
+hash_name = "pah:"+str(user_id) #pah is 'publicreply abuse hash', it contains latest integrity value
+hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash', it contains latest integrity value
+hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
+photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
+list_name = "phts:"+str(user_id)
+hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
+hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
+unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
+hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
+sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
+set_name = "ug:"+str(user_id) #ug is user's groups
+sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
+sorted_set = "vp:"+str(photo_id)
+sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+list_name = "vids:"+str(user_id)
+
+##########
+'''
 POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)# change connection from TCP port to UNIX socket
 
 INTERVAL_SIZE = 4*60
@@ -63,14 +67,19 @@ ONE_HOUR = 60*60
 TEN_MINS = 10*60
 THREE_MINS = 3*60
 
+# 5,000,000,000 is most important priority wise
+PRIORITY={'priv_mehfil':5000000000,'home_jawan':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
+
 #######################Notifications#######################
 
-# OBJECT types:
-# 	link publicreply = '2'
-# 	photo comment = '0'
-# 	group chat = '3'
-# 	salat invites = '4'
-# 	photo upload = '1' #for fans only
+'''
+OBJECT types:
+	link publicreply = '2'
+	photo comment = '0'
+	group chat = '3'
+	salat invites = '4'
+	photo upload = '1' #for fans only
+'''
 
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -113,12 +122,27 @@ def retrieve_unseen_activity(viewer_id):
 def bulk_update_salat_notifications(viewer_id=None, starting_time=None, seen=None):
 	my_server = redis.Redis(connection_pool=POOL)
 
-def bulk_create_notifications(viewer_id_list=None, photo_id=None, seen=None, time=None):
+def bulk_create_photo_notifications(viewer_id_list=None,object_id=None,seen=None,updated_at=None,unseen_activity=None,\
+	single_notif=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	#bulk create notifications for all the users in user_id_list, attached to photo_id
+	for viewer_id in viewer_id_list:
+		notification = "np:"+str(viewer_id)+":0:"+str(object_id)
+		parent_object = "o:0:"+str(object_id) #points to the parent object this notification is related to
+		mapping = { 's':seen,'u':updated_at,'c':parent_object }
+		my_server.hmset(notification, mapping)
+		#updating unseen_acitivity sorted set, if warranted
+		if unseen_activity:
+			my_server.hincrby(parent_object, 'n', amount=1)
+			sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
+			my_server.zadd(sorted_set, notification, updated_at) #where updated_at is the score
+		#updating single_notif sorted set, if warranted
+		if single_notif:
+			sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
+			score = PRIORITY['photo_fan']+int(updated_at)
+			my_server.zadd(sorted_set, notification, score) #where updated_at is the score
 
 def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
-	unseen_activity=None):
+	unseen_activity=None, priority=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	# updated_at = time.time()
 	pipeline1 = my_server.pipeline()
@@ -138,27 +162,22 @@ def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=N
 				pipeline2.hset(hash_name, "u", updated_at)
 			if single_notif is not None:
 				sorted_set = "sn:"+str(viewer_id_list[count]) #'sn' is single notification, for user with viewer_id
+				score = PRIORITY[priority]+int(time.time())
 				if single_notif:
-					try:
-						pipeline2.zadd(sorted_set, hash_name, updated_at)
-					except:
-						pipeline2.zadd(sorted_set, hash_name, time.time())
+					pipeline2.zadd(sorted_set, hash_name, score)
 				else:
 					pipeline2.zrem(sorted_set, hash_name)
 			if unseen_activity is not None:
 				sorted_set = "ua:"+str(viewer_id_list[count]) #'ua' is unseen activity, for user with viewer_id
 				if unseen_activity:
-					try:
-						pipeline2.zadd(sorted_set, hash_name, updated_at)
-					except:
-						pipeline2.zadd(sorted_set, hash_name, time.time())
+					pipeline2.zadd(sorted_set, hash_name, time.time())
 				else:
 					pipeline2.zrem(sorted_set, hash_name)
 		count += 1
 	pipeline2.execute()
 
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
-	single_notif=None):
+	single_notif=None, priority=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
 	# print "notification hash name: %s" % hash_name
@@ -169,20 +188,15 @@ def update_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 			my_server.hset(hash_name, "u", updated_at) #updating 'updated_at' only if value is available
 		if single_notif is not None:
 			sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
+			score = PRIORITY[priority]+int(time.time())
 			if single_notif:
-				try:
-					my_server.zadd(sorted_set, hash_name, updated_at)
-				except:
-					my_server.zadd(sorted_set, hash_name, time.time())
+				my_server.zadd(sorted_set, hash_name, score)
 			else:
 				my_server.zrem(sorted_set, hash_name)
 		if unseen_activity is not None:
 			sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
 			if unseen_activity:
-				try:
-					my_server.zadd(sorted_set, hash_name, updated_at)
-				except:
-					my_server.zadd(sorted_set, hash_name, time.time())
+				my_server.zadd(sorted_set, hash_name, time.time())
 			else:	
 				my_server.zrem(sorted_set, hash_name)
 		return True
@@ -193,7 +207,7 @@ def update_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 	'''
 
 def create_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
-	single_notif=None):
+	single_notif=None, priority=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
 	composite_id = "o:"+str(object_type)+":"+str(object_id) #points to the parent object this notification is related to
@@ -220,7 +234,8 @@ def create_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 		#updating single_notif sorted set
 		if single_notif:
 			sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-			my_server.zadd(sorted_set, hash_name, updated_at) #where updated_at is the score
+			score = PRIORITY[priority]+int(updated_at)
+			my_server.zadd(sorted_set, hash_name, score) #where updated_at is the score
 		#increment number_of_subscribers in parent_object. This is equivalent to number of unseen_activities the reply shows up in!
 		my_server.hincrby(composite_id, 'n', amount=1)
 		return True
@@ -248,19 +263,18 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 		return False
 	else:
 		if object_type == '2':
-			#creating link object
+			#creating link object, with latest_response
 			mapping={'oi':object_id,'ot':object_type,'ooa':object_owner_avurl,'ooi':object_owner_id,'oon':object_owner_name,\
 			'od':object_desc,'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'w':is_welc,\
 			'r':res_count}
 		elif object_type == '3':
-			#creating group chat object
+			#creating group chat object, with latest_response
 			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
 			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug}
 		elif object_type == '0':
-			#creating photo object
-			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'r':res_count,'v':vote_score,'od':object_desc, \
-			'ooa':object_owner_avurl,'ooi':object_owner_id,'oon':object_owner_name,'lrti':lt_res_time,'lrtx':lt_res_text, \
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name}
+			#creating photo object (without latest_response)
+			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'od':object_desc, 'ooa':object_owner_avurl,\
+			'ooi':object_owner_id,'oon':object_owner_name}
 		elif object_type == '4':
 			#creating salat_invite object
 			mapping = {}
@@ -273,15 +287,21 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 		my_server.hmset(hash_name, mapping)
 		return True
 
-def remove_group_notification(user_id,group_id):
+def remove_group_notification(user_id=None,group_id=None,is_deleted=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	unseen_activity = "ua:"+str(user_id)
 	single_notif = "sn:"+str(user_id)
 	notification = "np:"+str(user_id)+":3:"+str(group_id)
-	# remove from relevant sorted sets, then remove the notification hash
+	parent_object = "o:3:"+str(group_id)
 	my_server.zrem(unseen_activity,notification)
 	my_server.zrem(single_notif,notification)
 	my_server.delete(notification)
+	if is_deleted:
+		my_server.delete(parent_object)
+	else:
+		num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
+		if num_subscribers < 1:
+			my_server.delete(parent_object)
 
 
 def clean_expired_hash():
@@ -485,16 +505,27 @@ def get_photo_votes(photo_id):
 	sorted_set = "vp:"+str(photo_id)
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
-def voted_for_photo(photo_id, username):
+def voted_for_photo(photo_qs,username):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id)
-	already_exists = my_server.zscore(sorted_set, username)
-	if already_exists != 0 and already_exists != 1:
-		# i.e. does not already exist
-		return False
-	else:
-		# i.e. already exists
-		return True
+	photos_voted = []
+	for photo in photo_qs:
+		sorted_set = "vp:"+str(photo.id)
+		already_exists = my_server.zscore(sorted_set, username)
+		if already_exists == 0 or already_exists == 1:
+			# i.e. upvote or downvote already exists, thus this photo.id counts!
+			photos_voted.append(photo.id)
+	return photos_voted
+
+# def voted_for_photo(photo_id, username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "vp:"+str(photo_id)
+# 	already_exists = my_server.zscore(sorted_set, username)
+# 	if already_exists != 0 and already_exists != 1:
+# 		# i.e. does not already exist
+# 		return False
+# 	else:
+# 		# i.e. already exists
+# 		return True
 
 def add_vote_to_photo(photo_id, username, value):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -9,44 +9,44 @@
 {% else %}
 Yahan ye log pichley 10 min mein nazar aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% endif %}
-{% for traffic in groupies %}
+{% for visitor,captain in groupies %}
 	<span class="numbers">
 	<b style="color:lightgrey;">
 	&bullet;
     </b>
     </span>
-	<a href="{% url 'profile' slug=traffic.visitor.username %}">
-	{% if traffic.visitor.userprofile.avatar %}
-		<img src="{{ traffic.visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+	<a href="{% url 'profile' slug=visitor.username %}">
+	{% if visitor.userprofile.avatar %}
+		<img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
-	{{ traffic.visitor.username }}
+	{{ visitor.username }}
 	</a>
-	{% if traffic.visitor.username in legit %}
+	{% if visitor.username in legit %}
 		<span style="color:deeppink;font-size:120%;"><b>*</b></span>
 	{% endif %}
-	{% if traffic.visitor in officers %}
+	{% if captain %}
 		<span style="color:orange;font-size:85%;"><b>(afsar)</b></span>
 	{% endif %}
-	{% if traffic.visitor == group.owner %}
+	{% if visitor == group.owner %}
 		<span style="color:red;font-size:85%;"><b>(admin)</b></span>
 	{% endif %}
 	<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;">< wapis</a><br><br>
+	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% endif %}
 {% endif %}
 </div>
@@ -57,11 +57,11 @@ Yahan ye log pichley 10 min mein nazar aye:<br>
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"><</b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"></b><bdi>wapis</bdi></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;">></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;"></b></a>
     {% endif %}
 </div>
 {% endif %}

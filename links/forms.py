@@ -73,6 +73,7 @@ def MakeThumbnail(filee):
 	return newFile
 
 def clean_image_file(image): # where self is the form
+	# print "here"
 	if image:
 		image = Image.open(image)
 		image = reorient_image(image)
@@ -262,6 +263,65 @@ class UserPhoneNumberForm(forms.ModelForm):
 class UserSMSForm(forms.Form):
 	class Meta:
 		pass
+
+class AdImageForm(forms.ModelForm):
+	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
+	class Meta:
+		model = ChatPic
+		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
+		fields = ("image",)
+
+	def __init__(self, *args, **kwargs):
+		super(AdImageForm, self).__init__(*args, **kwargs)
+		self.fields['image'].label='Upload'#["value"]='Upload'
+
+class AdImageYesNoForm(forms.Form):
+	class Meta:
+		pass
+
+class AdAddressYesNoForm(forms.Form):
+	class Meta:
+		pass
+
+class AdCallPrefForm(forms.Form):
+	class Meta:
+		pass
+
+class AdGenderChoiceForm(forms.Form):
+	class Meta:
+		pass
+
+class AdTitleYesNoForm(forms.Form):
+	class Meta:
+		pass
+
+class AdAddressForm(forms.Form):
+	address = forms.CharField(max_length=250)
+	class Meta:
+		fields = ("address",)
+
+class AdTitleForm(forms.Form):
+	title = forms.CharField(max_length=250)
+	class Meta:
+		fields = ("title",)
+
+class TestAdsForm(forms.Form):
+	class Meta:
+		pass		
+
+class TestReportForm(forms.Form):
+	class Meta:
+		pass
+
+class AdMobileNumForm(forms.Form):
+	mobile_number = forms.CharField(max_length=20)
+	class Meta:
+		fields = ("mobile_number",)
+
+class AdDescriptionForm(forms.Form):
+	description = forms.CharField(max_length=250)
+	class Meta:
+		fields = ("description",)
 
 class ReportFeedbackForm(forms.Form):
 	description = forms.CharField(max_length=250)

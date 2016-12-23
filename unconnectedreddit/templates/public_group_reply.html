@@ -30,11 +30,10 @@
     	<a href="{% url 'profile' slug=group.owner.username %}"><bdi>{{ group.owner }}</bdi></a>
     	</span>
 
-	    {% for person in ensured %}
-	        {% if person == group.owner.username %}
+	    {% if group.owner.username in ensured %}
 	            <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-	        {% endif %}
-	    {% endfor %}
+	    {% endif %}
+	    
 
 	    <span style="font-size:65%;">
 
@@ -109,11 +108,9 @@
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                     {{ writer }}
-                    {% for person in ensured %}
-                    {% if person == writer.username %}
+                    {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                     {% endif %}
-                    {% endfor %}
                 </a>
                     ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;mehfil&nbsp;se&nbsp;<b>nikal</b>&nbsp;<b>dia</b>
                 </span>
@@ -125,11 +122,9 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% for person in ensured %}
-                {% if person == writer.username %}
-                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}
-            {% endfor %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
+            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}
+                <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+            {% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
         {% elif reply.category == '4' %}
                 {% if time < 51 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -138,11 +133,9 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% for person in ensured %}
-                {% if person == writer.username %}
+            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>   {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}
-            {% endfor %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
+                {% endif %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% elif reply.category == '5' %}
                 {% if time < 51 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -151,11 +144,9 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% for person in ensured %}
-                {% if person == writer.username %}
-                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}
-            {% endfor %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
+            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}        
+               <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+            {% endif %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
             <img style="width:100%;max-width:400px;" src="{{ reply.image.url|photoedge }}"></img><br>
@@ -188,11 +179,9 @@
                     {% endif %}
                 {% endif %}
             </span>
-            {% for person in ensured %}
-                {% if person == writer.username %}
+                {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}
-            {% endfor %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
+                {% endif %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
             <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}
         {% if reply.device == '1' %}
         <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>

@@ -90,8 +90,12 @@
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
 
-                    {% if reply not in seenreplies %}
-                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% if unseen %}
+                        {% if not reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% elif reply.submitted_on > reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% endif %}
                     {% endif %}
                 
                 <span style="color:green;font-size:90%;">
@@ -102,11 +106,9 @@
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                 {{ writer }}
-                    {% for person in ensured %}
-                    {% if person == writer.username %}
+                    {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                     {% endif %}
-                    {% endfor %}
                 </a>
                     ne&nbsp;<a href="{% url 'profile' slug=reply.text %}#section0"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;invite&nbsp;kar&nbsp;diya
                 </span>
@@ -119,8 +121,12 @@
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
 
-                    {% if reply not in seenreplies %}
-                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% if unseen %}
+                        {% if not reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% elif reply.submitted_on > reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% endif %}
                     {% endif %}
                 
                 <span style="color:green;font-size:90%;">
@@ -131,11 +137,9 @@
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                 {{ writer }}
-                    {% for person in ensured %}
-                    {% if person == writer.username %}
+                    {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                     {% endif %}
-                    {% endfor %}
                 </a>
                     ne&nbsp;mehfil&nbsp;ko&nbsp;chore&nbsp;diya
                 </span>
@@ -148,8 +152,12 @@
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
 
-                    {% if reply not in seenreplies %}
-                    <b style="color:orange;font-size:80%">(new)</b>
+                    {% if unseen %}
+                        {% if not reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% elif reply.submitted_on > reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% endif %}
                     {% endif %}
                 
                 <span style="color:green;font-size:90%;">
@@ -160,11 +168,9 @@
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
                 {{ writer }}
-                    {% for person in ensured %}
-                    {% if person == writer.username %}
+                    {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
                     {% endif %}
-                    {% endfor %}
                 </a>
                     ne&nbsp;mehfil&nbsp;ko&nbsp;join&nbsp;nahi&nbsp;kia
                 </span>
@@ -176,7 +182,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-                <span style="color:#179b36;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% for person in ensured %}{% if person == writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                <span style="color:#179b36;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}#section0">{% if writer.userprofile.avatar %}<img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;{{ writer }}{% if writer.username in ensured %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
         
                 {% if reply.image %}
@@ -190,11 +196,14 @@
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
             
-            <b style="color:orange;font-size:80%">
-            {% if reply not in seenreplies %}
-            (new)
-            {% endif %}
-            </b>
+                    {% if unseen %}
+                    
+                        {% if not reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% elif reply.submitted_on > reply_time %}
+                        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                        {% endif %}
+                    {% endif %}
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
                 <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
@@ -216,11 +225,9 @@
 
             </span>
             <span>
-        	{% for person in ensured %}
-                {% if person == writer.username %}
+        	   {% if writer.username in ensured %}
                     <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}
-            {% endfor %}</span>
+                {% endif %}</span>
             <span>:</span>&nbsp;
             <bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
         

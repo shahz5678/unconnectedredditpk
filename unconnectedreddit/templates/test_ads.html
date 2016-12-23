@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+{% if ad_id and ad %}
+<span style="color:#1f8cad;">
+<b style="font-size:120%;">{{ title }}</b> <span style="font-size:90%;">(ad id = {{ ad_id }})</span><br>
+<b>{{ description }}</b>
+<br><br>
+Details:<br>
+{{ ad }}
+<br><br>
+Clicks: <b>{{ clicks }}</b>
+</span>
+<br><br>
+	{% if ad_id %}
+	<a href="{% url 'click_ad' ad_id %}"><button>Click Me!</button></a><br><br>
+	<a href="{% url 'suspend' ad_id %}"><button>Suspend!</button></a>
+	{% endif %}
+<hr color="teal">
+{% endif %}
+</div>
+<br><br><br>
+{% endblock %}

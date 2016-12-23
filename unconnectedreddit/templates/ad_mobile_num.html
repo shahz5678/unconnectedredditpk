@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+{% if authentic %}
+<span style="color:#1f8cad;">Customers rabta krne ke liye kis number pr call krien?</span>
+	
+	<form method="post" action="{% url 'ad_mobile_num' %}">
+		{% csrf_token %}
+		{{ form.mobile_number }}
+		<br>
+		<input class="button" style="background-color:#3cb7dd;border-color:#229ec3;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+	</form>
+{% else %}
+<span style="color:404040;">
+Damadam ka ishtihar lagane ka mood nahi! {% emoticons %}.c5.c6.c7.c8{% endemoticons %}
+</span>
+{% endif %}
+
+</div>
+<br><br><br>
+{% endblock %}

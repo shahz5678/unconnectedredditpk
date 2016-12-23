@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+{% if authentic %}
+<span style="color:#1f8cad;">Customers tumhare mobile pr kya kya kr sakte hain?</span><br><br>
+	
+	<form method="post" action="{% url 'ad_call_pref' %}">
+		{% csrf_token %}
+		<input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;width:7em;" type="submit" name="call" value="Sirf Call"><br>
+		<input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;width:7em;" type="submit" name="sms" value="Sirf SMS"><br>
+		<input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;width:7em;" type="submit" name="callsms" value="Dono kr lein">
+	</form>
+{% else %}
+<span style="color:404040;">
+Damadam ka ishtihar lagane ka mood nahi! {% emoticons %}.c5.c6.c7.c8{% endemoticons %}
+</span>
+{% endif %}
+
+</div>
+<br><br><br>
+{% endblock %}

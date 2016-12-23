@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+{% if authentic %}
+<span style="color:#1f8cad;">Ishtehar sirf pink star wali ladies ke liye chalana hai?</span>
+	
+	<form method="post" action="{% url 'ad_gender' %}">
+		{% csrf_token %}
+		<input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" name="yes" value="Haan"><br>
+		<input class="button" style="background-color:#bfbfbf;border-color:#a6a6a6;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" name="no" value="Nahi">
+	</form>
+{% else %}
+<span style="color:404040;">
+Damadam ka ishtihar lagane ka mood nahi! {% emoticons %}.c5.c6.c7.c8{% endemoticons %}
+</span>
+{% endif %}
+
+</div>
+<br><br><br>
+{% endblock %}

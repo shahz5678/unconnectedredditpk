@@ -15,29 +15,30 @@ Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 	<a href="{% url 'outsider_group' unique %}" style="font-size:80%;"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">wapis</button></a>
 	{% endif %}
 <br><br>
-{% for traffic, captain in groupies %}
+{% for group_user,captain in groupies %}
+
 		<span class="numbers">
 		<b style="color:lightgrey;font-size:130%;">
 		.
 	    </b>
 	    </span>
 
-		<a href="{% url 'profile' slug=traffic.visitor.username %}">
-		{% if person.userprofile.avatar %}
-			<img src="{{ traffic.visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<a href="{% url 'profile' slug=group_user.username %}">
+		{% if group_user.userprofile.avatar %}
+			<img src="{{ group_user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}
-		{{ traffic.visitor.username }}
+		{{ group_user.username }}
 		</a>
 
-		{% if traffic.visitor.username in legit %}
+		{% if group_user.username in legit %}
 		<span style="color:deeppink;font-size:120%;"><b>*</b></span>
 		{% endif %}
 
-		{% if traffic.visitor != group.owner %}
-			{% if captain == N %}<a href="{% url 'appoint_pk' pk=traffic.visitor.pk app=1 %}"> <button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:6.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.3em;font-size:90%;">afsar banao</button></a>
-			{% else %}<a href="{% url 'appoint_pk' pk=traffic.visitor.pk app=0 %}"> <button style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:6.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;margin-bottom:0.3em;">afsar hatao</button></a>
+		{% if group_user != group.owner %}
+			{% if captain == None %}<a href="{% url 'appoint_pk' pk=group_user.pk app=1 %}"> <button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:6.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.3em;font-size:90%;">afsar banao</button></a>
+			{% else %}<a href="{% url 'appoint_pk' pk=group_user.pk app=0 %}"> <button style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:6.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;margin-bottom:0.3em;">afsar hatao</button></a>
 			{% endif %}
 		{% endif %}
 	<br>
@@ -54,7 +55,5 @@ Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 <br><br>
 {% endif %}
 </div>
-
-
-
+																																
 {% endblock %}

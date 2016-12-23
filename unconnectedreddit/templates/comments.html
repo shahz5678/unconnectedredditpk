@@ -113,7 +113,7 @@
     {% if forloop.counter != 1 %}
     <hr size=1 COLOR="ORANGE">
     {% endif %}
-    {% if comment.abuse %}
+        {% if comment.abuse %}
         {% if authenticated and viewed_at %}
             {% if not comment_time %}
                 <b style="color:orange;font-size:80%">(new)</b>&nbsp;
@@ -138,11 +138,9 @@
             {% endif %}
         </span>
 
-        {% for person in verified %}
-            {% if person == comment.submitted_by.username %}
+        {% if comment.submitted_by.username in verified %}
             <span style="color:deeppink;"><b>*</b></span>
             {% endif %}
-        {% endfor %}
         
         <span style="color:grey;font-size:90%;">ke tabsrey ko <b>{{ photo.owner }}</b> ne hide kr dia</span>
 
@@ -172,11 +170,9 @@
             {% endif %}
         </span>
 
-    	{% for person in verified %}
-            {% if person == comment.submitted_by.username %}
+    	{% if comment.submitted_by.username in verified %}
             <span style="color:deeppink;"><b>*</b></span>
             {% endif %}
-        {% endfor %}
     :&nbsp;<bdi style="color:#404040;">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span style="font-size:73%;color:gray;"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
     	{% if comment.device == '1' %}
         &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>

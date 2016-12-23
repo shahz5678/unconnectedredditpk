@@ -1,97 +1,247 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load thumbnail %}
+{% load sub %}
+{% load thumbedge %}
+{% load photoedge %}
+{% load human_time %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 {% if page.object_list %}
-<span style="color:color:#404040;font-size:85%;">Latest <b style="color:#229ec3;">jawab</b> aur <b style="color:#ff8000;">tabsrey</b> ye hain:</span><p></p>
-{% for linksubscription in page.object_list %}
-<!-- link submitter, photo submitter or group submitter -->
-{% if linksubscription.type_of_object == '2' %}
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}">
-{% if linksubscription.which_link.submitter.userprofile.avatar %}
-<img src="{{ linksubscription.which_link.submitter.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
-{% else %}
-<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
-{% endif %}
-{% if linksubscription.seen %}
-<span style="color:#808080;font-size:95%;">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#808080;font-size:95%;">{% emoticons %}{{ linksubscription.which_link.description|truncatechars:40 }}{% endemoticons %}</span></span>
+<span style="color:#404040;font-size:90%;">Dekho matke mein kia hai:</span><p></p>
+{% for notif in page.object_list %}
+<span style="font-size:90%;display:inline-block;margin-bottom:0.5em;">
+	{% if notif.s == 'True' %}
+	<span style="color:#808080;">
+	{% elif notif.ot == '2' %}
+	<span style="color:#229ec3;">
+	{% elif notif.ot == '0' %}
+	<span style="color:#ff8000;">
+	{% elif notif.ot == '3' and notif.g == '1' %}
+	<span style="color:#179b36;">
+	{% elif notif.ot == '3' and notif.g == '0' %}
+	<span style="color:#765989;">
+	{% else %}
+	<span style="color:#ff8000;">
+	{% endif %}
+	{{ forloop.counter0|add:page.start_index }}.
+		{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
+		<img src="{{ STATIC_URL }}img/taza.png" width="35" height="35" alt="no pic">
+		{% endif %}
+	</span>
+</span>
 <br>
-<span style="color:#808080;font-size:75%;"><br>jawab aya {{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}:</span>
-<br>
-	<span style="color:#808080;font-size:100%;">
-	{% if linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar %}
-	<img src="{{ linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+{% if notif.ot == '2' %}
+<a href="{% url 'reply_pk' notif.oi %}">
+	{% if notif.ooa != 'None' %}
+	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
-{{ linksubscription.which_link.latest_reply.submitted_by }}: {% emoticons %}{{ linksubscription.which_link.latest_reply.description|truncatechars:40 }}{% endemoticons %}</span>
-<br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border:solid 1px #999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
-{{ linksubscription.which_link.reply_count }}</b> jawab
-</button></a>
-<br><b style="color:#999999;font-size:90%;">Likho:</b>
-	<form method="post" action="{% url 'unseen_reply' pk=linksubscription.which_link_id %}">
-	{% csrf_token %}
-	<input type="hidden" name="group_reply" value="1">
-	{{ form.comment }}
-	<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
-	</form>
-<hr size=1 COLOR="#cccccc">
+{% if notif.s == 'True' %}
+	<span style="color:#808080;font-size:95%;">{{ notif.oon }}</a>:&nbsp;<span style="color:#808080;font-size:95%;">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
+	<br>
+	<span style="color:#808080;font-size:75%;"><br>jawab aya {{ notif.lrti|human_time }}:</span>
+	<br>
+		<span style="color:#808080;font-size:100%;">
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		{% endif %}
+		{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+	<br>
+	<a href="{% url 'reply_pk' notif.oi %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border:solid 1px #999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
+	{{ notif.r|add:"0" }}</b> jawab
+	</button></a>
+	<br><b style="color:#999999;font-size:90%;">Likho:</b>
+		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
+		{% csrf_token %}
+		<input type="hidden" name="group_reply" value="1">
+		{{ form.comment }}
+		<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+		</form>
+	<hr size=1 COLOR="#cccccc">
 {% else %}
-<span style="color:#229ec3;font-size:95%;">{{ linksubscription.which_link.submitter }}</a>:&nbsp;<span style="color:#229ec3;font-size:95%;">{% emoticons %}{{ linksubscription.which_link.description|truncatechars:40 }}{% endemoticons %}</span></span>
-<br><a href="{% url 'reply_pk' linksubscription.which_link_id %}" style="color:#229ec3;font-size:75%;"><br>new jawab aya <b>{{ linksubscription.which_link.latest_reply.submitted_on|naturaltime }}</b>:</a><br>
-<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'reply_pk' linksubscription.which_link_id %}">	
-	{% if linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar %}
-	<img src="{{ linksubscription.which_link.latest_reply.submitted_by.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic" style="border:1px solid #229ec3"></img>
+<span style="color:#229ec3;font-size:95%;">{{ notif.oon }}</a>:&nbsp;<span style="color:#229ec3;font-size:95%;">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
+<br><a href="{% url 'reply_pk' notif.oi %}" style="color:#229ec3;font-size:75%;"><br>new jawab aya <b>{{ notif.lrti|human_time }}</b>:</a><br>
+<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'reply_pk' notif.oi %}">	
+	{% if notif.lrau != 'None' %}
+	<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" style="border:1px solid #229ec3"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" style="border:1px solid #229ec3"></img>
 	{% endif %}
-{{ linksubscription.which_link.latest_reply.submitted_by }}</a>: {% emoticons %}{{ linksubscription.which_link.latest_reply.description }}{% endemoticons %}</span><br>
-<a href="{% url 'reply_pk' linksubscription.which_link_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
-{{ linksubscription.which_link.reply_count }}</b> jawab
+{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+<a href="{% url 'reply_pk' notif.oi %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;"><b>
+{{ notif.r|add:"0" }}</b> jawab
 </button></a>
 <br><b style="color:#229ec3;font-size:90%;">Likho:</b>
-	<form method="post" action="{% url 'unseen_reply' pk=linksubscription.which_link_id %}">
+	<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 	{% csrf_token %}
 	<input type="hidden" name="group_reply" value="1">
 	{{ form.comment }}
-	<br><input class="button" style="background-color:#3cb7dd;border-color:#229ec3;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+	<br><input class="button" style="background-color:#3cb7dd;border-color:#229ec3;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
 	</form>
 <hr size=1 COLOR="#3cb7dd">
 {% endif %}
+<br>
+
+{% elif notif.ot == '3' %}
+	{% if notif.s == 'True' %}
+	{% if notif.g == '1' %}
+	<a href="{% url 'private_group' notif.l %}"><b style="color:#999999;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+	{% else %}
+	<a href="{% url 'public_group' notif.l %}"><b style="color:#999999;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+	{% endif %}
+	<br><br>
+	<span style="font-size:75%;color:#999999;">jawab aya {{ notif.lrti|human_time }}:</span>
+		<br>
+		{% if notif.rp != 'None' %}
+		<img src="{{ notif.rp|photoedge }}" style="border:1px solid #999999;width:auto;">
+		<br>
+		{% endif %}
+		
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		{% endif %}
+	
+		<span style="color:#999999;">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<br>
+
+		{% if notif.g == '1' %}
+		<a href="{% url 'private_group' notif.l %}"><button style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;margin-bottom:0.5em;">andr jao</button></a>
+		<br><b style="color:#999999;font-size:90%;">Likho:</b>
+			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="comment" value="1">
+				{{ form.group_reply }}
+				<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+			</form>
+		{% else %}
+		<a href="{% url 'public_group' notif.l %}"><button style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;margin-bottom:0.5em;">andr jao</button></a>
+		<br><b style="color:#999999;font-size:90%;">Likho:</b>
+			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="comment" value="1">
+				{{ form.group_reply }}
+				<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+			</form>
+			
+	{% endif %}
+	<hr size=1 COLOR="#cccccc">
+
+	{% else %}
+	
+		
+	
+		{% if notif.g == '1' %}
+
+		<a href="{% url 'private_group' notif.l %}"><b style="color:#179b36;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+		<br><br>
+
+		<span style="font-size:75%;color:#179b36;">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
+		<br>
+		{% if notif.rp != 'None' %}
+		<img src="{{ notif.rp|photoedge }}" style="border:1px solid #179b36;width:auto;">
+		<br>
+		{% endif %}
+
+		<a href="{% url 'private_group' notif.l %}">
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" style="border:1px solid #179b36"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		{% endif %}
+		
+		{{ notif.lrsn }}</a><span style="color:#404040;">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<br>
+
+		<a href="{% url 'private_group' notif.l %}"><button style="background-color:#2db92d;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;margin-bottom:0.5em;">andr jao</button></a>
+		<br><b style="color:#179b36;font-size:90%;">Likho:</b>
+			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="comment" value="1">
+				{{ form.group_reply }}
+				<br><input class="button" style="background-color:#2db92d;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+			</form>
+		<hr size=1 COLOR="#2DB92D">
+		{% else %}
+
+		<a href="{% url 'public_group' notif.l %}"><b style="color:#765989;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+		<br><br>
+
+		<span style="font-size:75%;color:#765989;">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
+		<br>
+		{% if notif.rp != 'None' %}
+		<img src="{{ notif.rp|photoedge }}" style="border:1px solid #765989;width:auto;">
+		<br>
+		{% endif %}
+
+		<a href="{% url 'public_group' notif.l %}">
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" style="border:1px solid #765989"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		{% endif %}
+		
+		{{ notif.lrsn }}</a><span style="color:#404040;">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<br>
+
+		<a href="{% url 'public_group' notif.l %}"><button style="background-color:#765989;border-color:#5d476c;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;margin-bottom:0.5em;">andr jao</button></a>
+		<br><b style="color:#765989;font-size:90%;">Likho:</b>
+			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="comment" value="1">
+				{{ form.group_reply }}
+				<br><input class="button" style="background-color:#765989;border-color:#5d476c;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+			</form>
+		<hr size=1 COLOR="#765989">
+		{% endif %}
+		
+		
+	{% endif %}
+<br>
 
 
-{% elif linksubscription.type_of_object == '0' %}
-		{% if linksubscription.seen %}
-		    {% if linksubscription.which_photo.vote_score < -2 %}
+{% elif notif.ot == '0' %}
+		{% if notif.s == 'True' %}
+			{% if notif.f == 'True' %}
+				<span style="color:#808080;font-size:90%;"><b>{{ notif.oon }}</b> ke fans ke liye:</span>
+				<br>
+			{% endif %}
+		    {% if notif.v|add:"0" < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-		    {% elif linksubscription.which_photo.vote_score < -1 %}
-			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(30%);border:1px solid #cccccc;width:auto;"></img>
+		    {% elif notif.v|add:"0" < -1 %}
+			    {% if notif.p != 'None' %}
+			    <img src="{{ notif.p|photoedge }}" style="filter:brightness(30%);border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
-			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #cccccc;width:auto;"></img>
+			    {% if notif.p != 'None' %}
+			    <img src="{{ notif.p|photoedge }}" style="border:1px solid #cccccc;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% endif %}
 	    {% else %}
-	    	{% if linksubscription.which_photo.vote_score < -2 %}
+	    	{% if notif.f == 'True' %}
+				<span style="color:#ff8000;font-size:90%;"><b>{{ notif.oon }}</b> ke fans ke liye:</span>
+				<br>
+			{% endif %}
+	    	{% if notif.v|add:"0" < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-		    {% elif linksubscription.which_photo.vote_score < -1 %}
-			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="filter:brightness(30%);border:1px solid #ff9933;width:auto;"></img>
+		    {% elif notif.v|add:"0" < -1 %}
+			    {% if notif.p != 'None' %}
+			    <img src="{{ notif.p|photoedge }}" style="filter:brightness(30%);border:1px solid #ff9933;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
-			    {% if linksubscription.which_photo.image_file %}
-			    <img src="{{ linksubscription.which_photo.image_file.url }}" style="border:1px solid #ff9933;width:auto;"></img>
+			    {% if notif.p != 'None' %}
+			    <img src="{{ notif.p|photoedge }}" style="border:1px solid #ff9933;width:auto;"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
@@ -100,75 +250,110 @@
 
 		    <br>
 	    
-	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}" style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	{% if linksubscription.which_photo.owner.userprofile.avatar %}
-	<img src="{{ linksubscription.which_photo.owner.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+	<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}" style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
+	{% if notif.ooa != 'None' %}
+	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
 
-	{% if linksubscription.seen %}
-	{{ linksubscription.which_photo.owner }}</a>:
+	{% if notif.s == 'True' %}
+	{{ notif.oon }}</a>:
 		    
-	<span style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ linksubscription.which_photo.caption|truncatechars:40 }}{% endemoticons %}</span><br>
-	<br><span style="color:#808080;font-size:75%;">tabsra aya {{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}:</span><br>
-	<span style="color:#808080;font-size:100%;">
-		{% if linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar %}
-		<img src="{{ linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+	<span style="color:#808080;font-size:95%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span><br>
+	{% if notif.nc != 'True' %}
+		<br><span style="color:#808080;font-size:75%;">tabsra aya {{ notif.lrti|human_time }}:</span><br>
+		<span style="color:#808080;font-size:100%;">
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
-	{{ linksubscription.which_photo.latest_comment.submitted_by }}: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=user.id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
-	{% if linksubscription.which_photo.comment_count > 1 %}
-		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
-		{% elif linksubscription.which_photo.comment_count == 1 %}
+		{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user.id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#b3b3b3;border-color:#999999;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
+		{% if notif.r|add:"0" > 1 %}
+		<b>{{ notif.r }}</b> tabsrey
+		{% elif notif.r|add:"0" == 1 %}
 		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
+	{% endif %}
 	<br><b style="color:#999999;font-size:90%;">Likho:</b>
-		<form method="post" action="{% url 'unseen_comment' pk=linksubscription.which_photo_id %}">
+		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
 		<input type="hidden" name="group_reply" value="1">
 		{{ form.comment }}
-		<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+		<br><input class="button" style="background-color:#b3b3b3;border-color:#999999;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
 		</form>
 	<hr size=1 COLOR="#cccccc">
 	{% else %}
-	<span style="color:#ff8000;font-size:95%;">{{ linksubscription.which_photo.owner }}</a></span><span style="color:#ff8000;font-size:95%;">:
-	{% emoticons %}{{ linksubscription.which_photo.caption|truncatechars:40 }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}" style="color:#ff8000;font-size:75%;"><br>new tabsra hua <b>{{ linksubscription.which_photo.latest_comment.submitted_on|naturaltime }}</b>:</a><br>
-		<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}">
-		{% if linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar %}
-		<img src="{{ linksubscription.which_photo.latest_comment.submitted_by.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic" style="border:1px solid #ff8000"></img>
+	<span style="color:#ff8000;font-size:95%;">{{ notif.oon }}</a></span><span style="color:#ff8000;font-size:95%;">:
+	{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span><br>
+	{% if notif.nc != 'True' %}
+		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}" style="color:#ff8000;font-size:75%;"><br>new tabsra hua <b>{{ notif.lrti|human_time }}</b>:</a><br>
+		<span style="color:#404040;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1)"><a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}">
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" style="border:1px solid #ff8000"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" style="border:1px solid #ff8000"></img>
 		{% endif %}
-	{{ linksubscription.which_photo.latest_comment.submitted_by }}</a>: {% emoticons %}{{ linksubscription.which_photo.latest_comment.text }}{% endemoticons %}</span><br>
-	<a href="{% url 'comment_pk' pk=linksubscription.which_photo_id origin=4 ident=linksubscription.which_photo.owner_id %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
-	{% if linksubscription.which_photo.comment_count > 1 %}
-		<b>{{ linksubscription.which_photo.comment_count }}</b> tabsrey
-		{% elif linksubscription.which_photo.comment_count == 1 %}
+		{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;margin-top:0.8em;margin-bottom:0.5em;">
+		{% if notif.r|add:"0" > 1 %}
+		<b>{{ notif.r }}</b> tabsrey
+		{% elif notif.r|add:"0" == 1 %}
 		<b>1</b> tabsra
 		{% else %}tabsra kro
 		{% endif %}</button></a>
+	{% endif %}
 	<br><b style="color:#ff9933;font-size:90%;">Likho:</b>
-		<form method="post" action="{% url 'unseen_comment' pk=linksubscription.which_photo_id %}">
+		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
 		<input type="hidden" name="group_reply" value="1">
 		{{ form.comment }}
-		<br><input class="button" style="background-color:#ff9933;border-color:#ff8000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
+		<br><input class="button" style="background-color:#ff9933;border-color:#ff8000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
 		</form>
 	<hr size=1 COLOR="#ff9933">
 	
 	{% endif %}
-
-
+<br>
+{% elif notif.ot == '1' %}
+	<span style="color:#ff8000;font-size:95%;">
+	{% if notif.t == '0' %}
+		Ye photo <img src="{{ notif.p|thumbedge }}" style="border:1px solid #ff9933;width:auto;"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki {% emoticons %}.k1.k2.k3.k4{% endemoticons %}
+		<a href="{% url 'unseen_help' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:auto;">?</button></a>
+	{% elif notif.t == '1' %}
+		Ye photo <img src="{{ notif.p|thumbedge }}" style="border:1px solid #ff9933;width:auto;"> tumhare <b>tamam fans</b> ke matke mein pohonch gayee {% emoticons %}.c1.c2.c3.c4{% endemoticons %}
+		<a href="{% url 'unseen_help' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:auto;">?</button></a>
+	{% else %}
+		{% if notif.l == '0' %}
+			Ye photo <img src="{{ notif.p|thumbedge }}" style="border:1px solid #ff9933;width:auto;"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki {% emoticons %}.k1.k2.k3.k4{% endemoticons %}
+			<a href="{% url 'unseen_help' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:auto;">?</button></a>
+		{% else %}
+			Ye photo <img src="{{ notif.p|thumbedge }}" style="border:1px solid #ff9933;width:auto;"> tumhare <b>{{ notif.v }} fans</b> mein se
+			<form method="post" action="{% url 'unseen_fans' %}" style="display:inline">
+				{% csrf_token %}
+				<input type="hidden" name="fan_list" value="{{ notif.r }}">
+				<input type="hidden" name="photo_url" value="{{ notif.p }}">
+				<input type="hidden" name="fan_num" value="{{ notif.l }}">
+				<input type="hidden" name="group_reply" value="1">
+				<input type="hidden" name="comment" value="1">
+				<input type="submit" style="border:none;background:none;margin-left:-0.5em;margin-right:-0.5em;" value="{{ notif.l }} fans">
+			</form>
+			ke matke mein pohonch gayee! Baqi <b>{{ notif.v|sub:notif.l }} fans</b> reh gaye {% emoticons %}.i5.i6.i7.i8{% endemoticons %}
+			<a href="{% url 'unseen_help' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:auto;">?</button></a>
+		{% endif %}
+	{% endif %}
+	<br><br>
+	<span style="font-size:90%;color:#808080;">{{ notif.u|human_time }}</span>
+	</span>
+	<hr size=1 COLOR="#ff9933">
+<br>
 {% endif %}
 {% endfor %}
 
 {% else %}
-<span style="color:#404040;">Is waqt yahan kuch nahi hai</span>
+<span style="color:#404040;">Gup shup lagao take matka bharna shuru ho!</span>
 {% endif %}
 
 	<br><div class="pagination" style="text-align: center;">

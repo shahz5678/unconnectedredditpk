@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.cache import cache_page
 from links.models import UserProfile
+from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from links.views import cross_notif, vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
@@ -13,13 +14,14 @@ salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, me
 repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
-process_public_group_invite
+process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
+suspend
 from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
 ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, \
-PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, \
-UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, \
+PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, \
+PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, \
 NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, \
 KickView, SmsReinviteView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, \
 DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, \
@@ -31,16 +33,20 @@ ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPri
 see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, \
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
 SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, \
-VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView #, UpvoteView, DownvoteView, MehfildecisionView CrossNotifView, OutsideMessageRecreateView,
+VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,\
+AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#, AdLocationChoiceView
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
+	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
 	url(r'^$', LinkListView.as_view(), name='home'),
 	url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
 	url(r'^bahirniklo/$', 'django.contrib.auth.views.logout_then_login', name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
+	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
 	url(r'^logout_reconfirm/$', LogoutReconfirmView.as_view(), name='logout_reconfirm'),
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
@@ -53,6 +59,24 @@ urlpatterns = patterns('',
 	#url(r'^vote_or_user/(?P<pk>\d+)/(?P<id>\d+)/(?P<num>\d+)/$', auth(VoteOrProfileView.as_view()), name='vote_or_profile'),#r'^[\w.@+-]+$'
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
+	url(r'^unseen_fans/$', auth(unseen_fans), name='unseen_fans'),
+	url(r'^api/ad/live/$', process_req, name='process_req'),
+	url(r'^api/ad/suspend/$', suspend_req, name='suspend_req'),
+	url(r'^api/ad/delete/$', delete_req, name='delete_req'),
+	url(r'^api/ad/resume/$', resume_req, name='resume_req'),
+	url(r'^make_ad/$', make_ad, name='make_ad'),
+	url(r'^ad_finalize/$', ad_finalize, name='ad_finalize'),
+	# url(r'^ad_location/$', AdLocationChoiceView.as_view(), name='ad_location'),
+	url(r'^ad_description/$', AdDescriptionView.as_view(), name='ad_description'),
+	url(r'^ad_mobile_num/$', AdMobileNumView.as_view(), name='ad_mobile_num'),
+	url(r'^ad_title/$', AdTitleView.as_view(), name='ad_title'),
+	url(r'^ad_call_pref/$', AdCallPrefView.as_view(), name='ad_call_pref'),
+	url(r'^ad_address/$', AdAddressView.as_view(), name='ad_address'),
+	url(r'^ad_address_yesno/$', AdAddressYesNoView.as_view(), name='ad_address_yesno'),
+	url(r'^ad_image_yesno/$', AdImageYesNoView.as_view(), name='ad_image_yesno'),
+	url(r'^ad_gender/$', AdGenderChoiceView.as_view(), name='ad_gender'),
+	url(r'^ad_image/$', AdImageView.as_view(), name='ad_image'),
+	url(r'^ad_title_yesno/$', AdTitleYesNoView.as_view(), name='ad_title_yesno'),
 	url(r'^accounts/', include('registration.backends.simple.urls')),
 	url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
 	url(r'^closed_group/help/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
@@ -85,6 +109,7 @@ urlpatterns = patterns('',
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
 	# url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
+	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
 	url(r'^comment/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
 	url(r'^comment_chat_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
@@ -95,6 +120,7 @@ urlpatterns = patterns('',
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
 	#url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
@@ -165,7 +191,7 @@ urlpatterns = patterns('',
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^notif_help/(?P<pk>\d+)/$', auth(NotifHelpView.as_view()), name='notif_help'),
 	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_salat_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
+	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
 	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
@@ -200,6 +226,7 @@ urlpatterns = patterns('',
 	url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy_policy'),
 	url(r'^about/$', AboutView.as_view(), name='about'),
 	url(r'^contact/$', ContactView.as_view(), name='contact'),
+	url(r'^nonfbs/(?P<id>\d+)/$', non_fbs_vid, name='non_fbs_vid'),
 	url(r'^caption/(?P<num>\d+)/(?P<slug>[\w.@+-]+)/(?P<err>\d+)/$', CaptionView.as_view(), name='caption'),
 	url(r'^bool_caption/(?P<num>\d+)/(?P<slug>[\w.@+-]+)/$', CaptionDecView.as_view(), name='captionview'),
 	url(r'^user_phonenumber/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/(?P<err>\d+)/(?P<id>\d+)/$', UserPhoneNumberView.as_view(), name='user_phonenumber'),
@@ -215,6 +242,7 @@ urlpatterns = patterns('',
 	url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),
 	url(r'^link/reply/$', auth(PublicreplyView.as_view()), name='reply'),
 	url(r'^link/(?P<pk>\d+)/$', auth(reply_pk), name='reply_pk'),
+	url(r'^ungroup/(?P<pk>\d+)/$', auth(unseen_group), name='unseen_group'),
 	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
 	url(r'^unphoto/(?P<pk>\d+)/$', auth(unseen_comment), name='unseen_comment'),
 	url(r'^mehfil/awami/$', auth(PublicGroupView.as_view()), name='public_group_reply'),

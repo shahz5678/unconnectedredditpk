@@ -1379,7 +1379,6 @@ class LinkListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES
-		# get_latest_online()
 		# calc_photo_quality_benchmark()
 		context["can_vote"] = False
 		context["authenticated"] = False
@@ -1764,8 +1763,11 @@ class OnlineKonView(ListView):
 	paginate_by = 100
 
 	def get_queryset(self):
-		user_ids = get_latest_online()#get_whose_online()
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+		})
 		try:
+			user_ids = cache_mem.get('online')
 			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
 		except:
 			queryset = []
@@ -2184,9 +2186,13 @@ class InviteUsersToPrivateGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			user_ids = get_latest_online()#get_whose_online()
+			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			})
+			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
+				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["private_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
@@ -2244,9 +2250,13 @@ class InviteUsersToGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			user_ids = get_latest_online()#get_whose_online()
+			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			})	
+			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
+				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["public_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
@@ -2305,8 +2315,12 @@ class InternalSalatInviteView(ListView):
 	template_name = "internal_salat_invite.html"
 
 	def get_queryset(self):
-		user_ids = get_latest_online()#get_whose_online()
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			})
+		# user_ids = get_latest_online()#get_whose_online()
 		try:
+			user_ids = cache_mem.get('online')
 			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
 		except:
 			queryset = None
@@ -2325,8 +2339,10 @@ class InternalSalatInviteView(ListView):
 				context["user_list"] = None
 				context["unauthorized"] = True #it's not time for any namaz!
 				return context
-			# user_ids = [user.id for user in context["object_list"]]
-			user_ids = get_latest_online()#get_whose_online()
+			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			})
+			user_ids = cache_mem.get('online')
 			if namaz:
 				context["namaz"] = namaz
 				context["unauthorized"] = False

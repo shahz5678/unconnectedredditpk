@@ -48,7 +48,7 @@ ALLOWED_HOSTS = ['*']
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'Asia/Oral'
+TIME_ZONE = 'UTC'#'Asia/Oral'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -126,10 +126,12 @@ MIDDLEWARE_CLASSES = (
  #   'debug_toolbar.middleware.DebugToolbarMiddleware',
 	'unconnectedreddit.middleware.XForwardedFor.XForwardedForMiddleware',
 	'user_sessions.middleware.SessionMiddleware',
+	# 'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
-	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
 	#'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
@@ -139,6 +141,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 SESSION_ENGINE = 'user_sessions.backends.db'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 #MOBI_DETECT_TABLET = True
 #MOBI_USER_AGENT_IGNORE_LIST = ['ipad', 'android', 'iphone',]
@@ -169,7 +172,7 @@ TEMPLATE_DIRS = (
 INSTALLED_APPS = (
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
-	#'django.contrib.sessions',
+	# 'django.contrib.sessions',
 	'user_sessions',
 	'django.contrib.sites',
 	'django.contrib.messages',
@@ -190,12 +193,31 @@ INSTALLED_APPS = (
 	'emoticons',
 	'django_extensions',
 	#'request',
-	#'debug_toolbar',
+	# 'debug_toolbar',
 	#'analytical',
 	#'django_whoshere',
 	# Uncomment the next line to enable admin documentation:
 	# 'django.contrib.admindocs',
 )
+
+CACHES = {
+	'default': {
+		'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
+		'LOCATION':'unix:/var/run/memcached/memcached.sock',
+		# 'LOCATION':'127.0.0.1:11211',
+	}
+}
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/2",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
+#         },
+#         "KEY_PREFIX": "example"
+#     }
+# }
 
 from django.core.urlresolvers import reverse_lazy
 
@@ -332,9 +354,21 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.rank_photos',
 		'schedule': timedelta(seconds=45),
 	},
+	'tasks.trim_whose_online': {
+		'task': 'tasks.trim_whose_online',
+		'schedule': timedelta(seconds=600),
+	},
+	'tasks.calc_photo_quality_benchmark': {
+		'task': 'tasks.calc_photo_quality_benchmark',
+		'schedule': timedelta(seconds=86400), # execute every day
+	},
+	'tasks.trim_top_group_rankings': {
+		'task': 'tasks.trim_top_group_rankings',
+		'schedule': timedelta(seconds=86400*7*2), # trim every two weeks
+	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',
-		'schedule': timedelta(seconds=60),  # execute every 60 seconds
+		'schedule': timedelta(seconds=11),  # execute every 11 seconds
 		'args': (),
 	},
 	'tasks.fans': {

@@ -10,7 +10,7 @@ from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publ
 Video, HotUser, PhotoStream
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
 add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members
 from links.azurevids.azurevids import uploadvid
@@ -177,12 +177,14 @@ def rank_photos():
 		score = photo.set_rank()
 		add_photo_to_best(photo.id, score)
 
-#@shared_task(name='tasks.whoseonline')
+# @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	pass
-	# user_ids = Session.objects.filter(user__isnull=False).filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).values_list('user_id', flat=True).distinct('user')
-	# add_to_whose_online(user_ids)
+	user_ids = get_latest_online()
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+		})
+	cache_mem.set('online', user_ids)
 
 @celery_app1.task(name='tasks.fans')
 def fans():

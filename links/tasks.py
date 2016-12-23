@@ -1,21 +1,171 @@
-import os, time, datetime
+import os, time, datetime#, math
+from collections import defaultdict, Counter
+from operator import itemgetter
 from unconnectedreddit import celery_app1
 from django.core.cache import get_cache, cache
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
-from .models import Photo, UserFan, PhotoObjectSubscription, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, \
-UserProfile, Video, HotUser
-from .redismodules import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
-add_to_whose_online, add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link
+from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
+Video, HotUser, PhotoStream
+from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
+bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications
+from .redis1 import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
+add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 
+VOTE_WEIGHT = 1.5 # used for calculating daily benchmark
+FLOOR_PERCENTILE = 0.5
+CEILING_PERCENTILE = 0.8 # (inclusive)
+MIN_FANS_TARGETED = 0.1 # 10%
+MAX_FANS_TARGETED = 0.95 # 95%
+
+def convert_to_epoch(time):
+	return (time-datetime(1970,1,1)).total_seconds()
+
+def fans_targeted(current_percentile):
+	overall_range = CEILING_PERCENTILE - FLOOR_PERCENTILE
+	current_range = current_percentile - FLOOR_PERCENTILE
+	proportion = (current_range*1.0)/overall_range
+	fans_targeted_delta = MAX_FANS_TARGETED - MIN_FANS_TARGETED
+	percentage_to_target = (proportion * fans_targeted_delta * 1.0) + MIN_FANS_TARGETED
+	return percentage_to_target
+
+def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
+	# fan_ids_list = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
+	num_of_fans_to_notify = len(fan_ids_list) * percentage_of_fans_to_notify
+	if num_of_fans_to_notify:
+		fan_ids_to_notify = get_active_fans(user_id,int(num_of_fans_to_notify))
+	if fan_ids_to_notify:
+		fan_ids_to_notify = map(int, fan_ids_to_notify)
+	# print "fan ids to notify: %s" % fan_ids_to_notify
+	# print "all fan ids: %s" % fan_ids_list
+	remaining_fan_ids = set(fan_ids_list) - set(fan_ids_to_notify)
+	# print "UA notifications generated for these ids: %s" % fan_ids_to_notify
+	# print "SN notifications generated for these ids: %s" % remaining_fan_ids
+	return remaining_fan_ids, fan_ids_to_notify
+
+@celery_app1.task(name='tasks.delete_notifications')
+def delete_notifications(user_id):
+	clean_expired_notifications(user_id)
+
+@celery_app1.task(name='tasks.calc_photo_quality_benchmark')
+def calc_photo_quality_benchmark():
+	two_days = datetime.utcnow()-timedelta(hours=24*1)
+	photos_score_list = Photo.objects.filter(upload_time__gte=two_days).annotate(unique_comments=Count('photocomment__submitted_by', distinct=True)).values_list('owner_id','vote_score','unique_comments')
+	# print photos_score_list
+	if photos_score_list:
+		photos_total_score_list= [ (k,(VOTE_WEIGHT*v1)+v2) for k,v1,v2 in photos_score_list]
+		total_photos = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
+		total_scores = defaultdict(int)
+		for key,val in photos_total_score_list:
+			total_scores[key] += val
+		uploader_scores = []
+		for key,val in total_scores.items():
+			uploader_scores.append(key)
+			uploader_scores.append(val/total_photos[key])
+		set_benchmark(uploader_scores)
+
+@celery_app1.task(name='tasks.bulk_create_notifications')
+def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, caption):
+	fan_ids_list = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
+	if fan_ids_list:
+		total_fans = len(fan_ids_list)
+		fans_notified_in_ua = 0
+		percentage_of_users_beaten = get_uploader_percentile(user_id)
+		# print percentage_of_users_beaten
+		if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
+			notify_in_ua = []
+			fans_notified_in_ua = 0
+			percentage_of_fans_to_notify = 0
+			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+				unseen_activity=False)
+			# print "Beat %s percent users" % (percentage_of_users_beaten*100)
+			# print "No fans to notify"
+		elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
+			percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
+			remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
+			bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
+				updated_at=epochtime,unseen_activity=True)
+			bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
+				updated_at=epochtime,unseen_activity=False)
+			fans_notified_in_ua = len(notify_in_ua)
+			# print "Beat %s percent users!" % (percentage_of_users_beaten*100)
+			# print "Notified %s percent fans!" % (percentage_of_fans_to_notify*100)
+			# print "UA notifications generated for these ids: %s" % notify_in_ua
+			# print "SN notifcations generated for these ids: %s" % remaining_ids
+		elif CEILING_PERCENTILE < percentage_of_users_beaten <= 1:
+			fans_notified_in_ua = len(fan_ids_list)
+			notify_in_ua = fan_ids_list
+			percentage_of_fans_to_notify = 1
+			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+				unseen_activity=True)
+			# print "Beat %s percent users!" % (percentage_of_users_beaten*100)
+			# print "ALL FANS NOTIFIED!"
+		else:
+			notify_in_ua = 0
+			fans_notified_in_ua = 0
+			percentage_of_fans_to_notify = 0
+			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+				unseen_activity=False)
+			# print "Beat %s percent users" % (percentage_of_users_beaten*100)
+			# print "no fans to notify (exception)"
+		# object and notification for self, that reports how many fans we reached out to!
+		create_object(object_id=photo_id, object_type='1',object_owner_id=user_id,photourl=photourl, vote_score=total_fans, \
+			slug=fans_notified_in_ua, res_count=notify_in_ua,is_thnks=percentage_of_fans_to_notify,object_owner_name=name, \
+			object_desc=caption)
+		create_notification(viewer_id=user_id,object_id=photo_id,object_type='1',seen=False, updated_at=epochtime,\
+			unseen_activity=True)
+
+@celery_app1.task(name='tasks.trim_top_group_rankings')
+def trim_top_group_rankings():
+	expire_top_groups()
+
+@celery_app1.task(name='tasks.trim_whose_online')
+def trim_whose_online():
+	expire_whose_online()
+
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	pass
+
+#used to calculate group ranking
+@celery_app1.task(name='tasks.public_group_vote_tasks')
+def public_group_vote_tasks(group_id,priority):
+	public_group_vote_incr(group_id,priority)
+
+@celery_app1.task(name='tasks.public_group_attendance_tasks')
+def public_group_attendance_tasks(group_id,user_id):
+	public_group_attendance(group_id,user_id)
+
+#bulk update others' notifications in groups
+@celery_app1.task(name='tasks.group_notification_tasks')
+def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
+	slug,image_url,priority,from_unseen):
+	if from_unseen:
+		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+	else:
+		created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
+			lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
+			group_privacy=priv,slug=slug)
+		if not created:
+			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+	all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
+	all_group_member_ids.remove(sender_id)
+	if all_group_member_ids:
+		bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
+			updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
+	updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+		unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+	if not updated:
+		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+			unseen_activity=True)
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
@@ -30,16 +180,16 @@ def rank_photos():
 #@shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	user_ids = Session.objects.filter(user__isnull=False).filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).\
-	values_list('user_id', flat=True).distinct('user')
-	add_to_whose_online(user_ids)
+	pass
+	# user_ids = Session.objects.filter(user__isnull=False).filter(last_activity__gte=(timezone.now()-timedelta(minutes=5))).values_list('user_id', flat=True).distinct('user')
+	# add_to_whose_online(user_ids)
 
 @celery_app1.task(name='tasks.fans')
 def fans():
 	object_list = TotalFanAndPhotos.objects.select_related('owner__userprofile').exclude(total_photos=0).order_by('-total_fans','-total_photos')[:100]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-            'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-        })
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+		})
 	cache_mem.set('fans', object_list)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.salat_streaks')
@@ -48,6 +198,7 @@ def salat_streaks():
 	current_minute = now.hour * 60 + now.minute
 	twelve_hrs_ago = now - timedelta(hours=12)
 	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	# print namaz
 	if namaz == 'Fajr':
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
@@ -66,24 +217,32 @@ def salat_streaks():
 	else:
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# print object_list
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-        'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
-    })
-	cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+	})
+	status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
+
+@celery_app1.task(name='tasks.queue_for_deletion')
+def queue_for_deletion(link_id_list):
+	llen = add_to_deletion_queue(link_id_list)
+	if llen > 200:
+		delete_queue()
 
 @celery_app1.task(name='tasks.photo_upload_tasks')
-def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device):
+def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 	photo = Photo.objects.get(id=photo_id)
 	user = User.objects.get(id=user_id)
 	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
-	update = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
-	if not update:
+	updated = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
+	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
-	PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, updated_at=timeobj)#
+	stream = PhotoStream.objects.create(cover_id = photo_id, show_time = timeobj)
+	photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
 	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
 	if hotuser.allowed and hotuser.hot_score > 4:
-		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream_id)#
+		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream.id)#
 		photo_link_mapping(photo_id, link.id)
 		try:
 			av_url = user.userprofile.avatar.url
@@ -98,29 +257,108 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, stream_id, device)
 			add_filtered_post(link.id)
 			add_unfiltered_post(link.id)
 
-@celery_app1.task(name='tasks.queue_for_deletion')
-def queue_for_deletion(link_id_list):
-	llen = add_to_deletion_queue(link_id_list)
-	if llen > 200:
-		delete_queue()
-
-@celery_app1.task(name='tasks.photo_tasks')
-def photo_tasks(user_id, photo_id, timestring, photocomment_id, count, text, it_exists):
+#same as photo_tasks, with a few omissions 
+@celery_app1.task(name='tasks.unseen_comment_tasks')
+def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):
 	user = User.objects.get(id=user_id)
-	photo = Photo.objects.get(id=photo_id)
-	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
-	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-	if photo.owner_id not in all_commenter_ids:	
-		all_commenter_ids.append(photo.owner_id)
-	PhotoObjectSubscription.objects.filter(viewer_id__in=all_commenter_ids, type_of_object='0', which_photo_id=photo_id).update(seen=False, updated_at=timeobj)			
-	exists = PhotoObjectSubscription.objects.filter(viewer_id=user_id, type_of_object='0', which_photo_id=photo_id).update(updated_at=timeobj, seen=True)
-	if not exists:
-		PhotoObjectSubscription.objects.create(viewer_id=user_id, which_photo_id=photo_id, type_of_object='0',updated_at=timeobj)
+	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
+	photo_owner_id = photo.owner_id
+	try:
+		owner_url = photo.owner.userprofile.avatar.url
+	except:
+		owner_url = None
+	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
+		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
+		values_list('submitted_by', flat=True)[:25]))
+	if photo_owner_id not in all_commenter_ids:
+		all_commenter_ids.append(photo_owner_id)
+	try:
+		all_commenter_ids.remove(user_id)
+	except:
+		pass
+	if all_commenter_ids:
+		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
+			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra') #only update if it existed
+	updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+		single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
+	if not updated:
+		create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+			unseen_activity=True)
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
-	photo.comment_count = count
+	photo.comment_count = count+1
 	user.userprofile.previous_retort = text
-	if user_id != photo.owner_id and not it_exists:
+	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
+		add_to_photo_owner_activity(photo_owner_id, user_id)
+	if user_id != photo_owner_id and not it_exists:
+		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+		photo.visible_score = photo.visible_score + 2
+		photo.owner.userprofile.save()
+	photo.save()
+	user.userprofile.save()
+
+@celery_app1.task(name='tasks.photo_tasks')
+def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):
+	user = User.objects.get(id=user_id)
+	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
+	photo_owner_id = photo.owner_id
+	try:
+		owner_url = photo.owner.userprofile.avatar.url
+	except:
+		owner_url = None
+	# created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,\
+	# 	object_owner_id=photo_id,object_owner_name=photo.owner.username,\
+	# 	object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
+	# 	lt_res_sub_name=commenter,lt_res_text=text,res_count=(photo.comment_count+1),\
+	# 	vote_score=photo.vote_score,photourl=photo.image_file.url)
+	# if not created:
+	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
+		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+	if photo_owner_id == user_id:
+		is_seen = True
+		unseen_activity = True
+		single_notif = None
+		same_writer = True
+	else:
+		is_seen = False
+		unseen_activity = True
+		single_notif = True
+		same_writer = False
+	created_for_parent = create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
+		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
+	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
+		values_list('submitted_by', flat=True)[:25]))
+	if photo_owner_id not in all_commenter_ids:
+		all_commenter_ids.append(photo_owner_id)
+	try:
+		all_commenter_ids.remove(user_id)
+	except:
+		pass
+	if created_for_parent and not same_writer:
+		try:
+			#remove answer_to.submitter_id from all_reply_ids so it doesn't get updated again in 'bulk update notifcations'
+			all_commenter_ids.remove(photo_owner_id)
+		except:
+			pass
+	if all_commenter_ids:
+		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
+			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra')
+	if not created_for_parent or not same_writer:
+		updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+			single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+				unseen_activity=True)
+	photo.second_latest_comment = photo.latest_comment
+	photo.latest_comment_id = photocomment_id
+	photo.comment_count = count+1
+	user.userprofile.previous_retort = text
+	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
+		add_to_photo_owner_activity(photo_owner_id, user_id)
+	if user_id != photo_owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
 		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
 		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
@@ -135,9 +373,13 @@ def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_incre
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 
 @celery_app1.task(name='tasks.photo_vote_tasks')
-def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
+def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id):
 	Photo.objects.filter(id=photo_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
+	v_scr = Photo.objects.get(id=photo_id).vote_score
+	update_object(object_id=photo_id,object_type='0',vote_score=v_scr, just_vote=True)
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
+	if UserFan.objects.filter(star=user_id,fan=voter_id).exists():
+		add_to_photo_owner_activity(user_id, voter_id)
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
@@ -157,12 +399,75 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	user.userprofile.save()	
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, description):
-	# user = User.objects.get(id=user_id)
+def publicreply_tasks(user_id, reply_id, link_id, description):
+	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2, previous_retort=description)
-	# user.userprofile.previous_retort = description
-	# user.userprofile.score = user.userprofile.score + 2
-	# user.userprofile.save()
+
+@celery_app1.task(name='tasks.publicreply_notification_tasks')
+def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\
+	reply_time,reply_poster_url,reply_poster_username,reply_desc,is_welc,reply_count,priority,from_unseen):
+	if from_unseen:
+		update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
+			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').\
+			values_list('submitted_by', flat=True)[:25]))
+		if link_submitter_id not in all_reply_ids:
+			all_reply_ids.append(link_submitter_id)
+		try:
+			all_reply_ids.remove(sender_id)
+		except:
+			pass
+		if all_reply_ids:
+			bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
+				updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
+		updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
+			updated_at=reply_time, single_notif=False, unseen_activity=True,priority='home_jawab', bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
+				updated_at=reply_time, unseen_activity=True)
+	else:
+		created = create_object(object_id=link_id, object_type='2', object_owner_avurl=link_submitter_url,\
+			object_owner_id=link_submitter_id,object_owner_name=link_submitter_username,object_desc=link_desc,lt_res_time=reply_time,\
+			lt_res_avurl=reply_poster_url,lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,is_welc=is_welc,\
+			res_count=reply_count)
+		if not created:
+			update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
+				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+		if link_submitter_id == sender_id:
+			is_seen = True
+			unseen_activity = True
+			single_notif = None
+			same_writer = True
+		else:
+			is_seen = False
+			unseen_activity = True
+			single_notif = True
+			same_writer = False
+		created_for_parent = create_notification(viewer_id=link_submitter_id, object_id=link_id, object_type='2', seen=is_seen,\
+				updated_at=reply_time, unseen_activity=unseen_activity, single_notif=single_notif,priority=priority)
+		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+		if link_submitter_id not in all_reply_ids:
+			all_reply_ids.append(link_submitter_id)
+		try:
+			all_reply_ids.remove(sender_id)
+		except:
+			pass
+		if created_for_parent and not same_writer:
+			try:
+				#remove link_submitter_id from all_reply_ids so it doesn't get updated again in 'bulk update notifcations'
+				all_reply_ids.remove(link_submitter_id)
+			except:
+				pass
+		if all_reply_ids:
+			bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
+				updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
+		#create or update notification for self, but not when it's the first-ever reply and that too, by parent obj owner, i.e. not(created_for_parent and same_writer) = (not created_for_parent or not same_writer) - logical operation
+		if not created_for_parent or not same_writer:
+			updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
+				single_notif=False, unseen_activity=True, priority=priority, bump_ua=True)
+			if not updated:
+				create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
+					unseen_activity=True)
 
 @celery_app1.task(name='tasks.report')
 def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
@@ -208,16 +513,6 @@ def report(reporter_id, target_id, report_origin=None, report_reason=None, which
 		else:
 			reason = report_reason
 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
-	
-@celery_app1.task(name='tasks.bulk_create_notifications')
-def bulk_create_notifications(user_id, photo_id, timestring):
-	fans = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
-	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
-	if fans:
-		fan_list = []
-		for fan in fans:
-			fan_list.append(PhotoObjectSubscription(viewer_id=fan, which_photo_id=photo_id, updated_at=timeobj, seen=False, type_of_object='1'))
-		PhotoObjectSubscription.objects.bulk_create(fan_list)
 
 @celery_app1.task(name='tasks.video_upload_tasks')
 def video_upload_tasks(video_name, video_id, user_id):

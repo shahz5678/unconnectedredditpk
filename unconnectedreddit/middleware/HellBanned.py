@@ -1,5 +1,3 @@
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "unconnectedreddit.settings")
 from links.models import HellBanList
 
 class HellBannedMiddleware(object):

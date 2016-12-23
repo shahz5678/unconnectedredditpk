@@ -1,7 +1,9 @@
 # Create your views here.
-import re, urlmarker, StringIO, urlparse, requests, random, string, uuid#, sys
+import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
-from operator import attrgetter
+from requests.auth import HTTPBasicAuth
+from operator import attrgetter,itemgetter
+from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
@@ -9,33 +11,39 @@ from django.db import connection
 from django.core.cache import get_cache, cache
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
-from allowed import ALLOWED
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
-from .tasks import bulk_create_notifications, photo_tasks, publicreply_tasks, report, photo_upload_tasks, video_upload_tasks, \
-video_tasks, video_vote_tasks, photo_vote_tasks
+from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
+video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
+VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, PhotoObjectSubscription, Publicreply, GroupBanList, HellBanList, \
-GroupCaptain, Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
+ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
+Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
 SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment
-from links.azurevids.azurevids import uploadvid
+#from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 # from django.views.generic.list import MultipleObjectMixin
-from .redismodules import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
+from .redis2 import get_latest_online, set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, \
+viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
+remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
+public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
+save_user_presence,get_latest_presence, get_replies_with_seen
+from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
+from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
 all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
 all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, is_member_of_group, first_time_refresher, \
+get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_check_group_membership, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
-check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, get_whose_online, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
-retrieve_home_links, add_vote_to_home_link
+check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
+retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -51,7 +59,10 @@ WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyF
 ClosedGroupCreateForm, OpenGroupCreateForm, PhotoOptionTutorialForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, \
 TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
-UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
+AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -59,9 +70,8 @@ from math import log, ceil
 from urllib import quote
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import datetime
+import datetime, time
 from datetime import datetime, timedelta
-from datetime import time as time_object
 from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -70,6 +80,10 @@ from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
+
+def convert_to_epoch(time):
+	#time = pytz.utc.localize(time)
+	return (time-datetime(1970,1,1)).total_seconds()
 
 def get_price(points):
 	if points < 120:
@@ -113,42 +127,39 @@ def add_to_ban(user_id):
 def valid_uuid(uuid):
 	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
 	match = regex.match(uuid)
-	#print bool(match)
 	return bool(match)
 
 def GetLatest(user):
 	try:
-		#now = datetime.utcnow().replace(tzinfo=utc)
-		now = timezone.now()
-		timestamp = now - timedelta(minutes=90)
-		latest_pos = PhotoObjectSubscription.objects.filter(viewer=user, seen=False).latest('updated_at')
-		# latest_pos = PhotoObjectSubscription.objects.select_related('which_link','which_photo','which_group','which_salat__inviter__userprofile').filter(viewer=user, seen=False).latest('updated_at')
-		# print latest_pos.type_of_object
-		if latest_pos.type_of_object == '0' and latest_pos.updated_at >= timestamp:
-			# photo = Photo.objects.get(id=latest_pos.which_photo)
-			latest_comment = PhotoComment.objects.select_related('submitted_by','which_photo').filter(which_photo=latest_pos.which_photo).latest('id')
-			try:
-				type_of_object = latest_pos.type_of_object
-			except:
-				type_of_object = None
-			return type_of_object, latest_comment, False, True, False, False
-		elif latest_pos.type_of_object == '2' and latest_pos.updated_at >= timestamp:
-			latest_reply = Publicreply.objects.select_related('answer_to__submitter__userprofile','submitted_by__userprofile').filter(answer_to=latest_pos.which_link).latest('id')
-			try:
-				type_of_object = latest_pos.type_of_object
-			except:
-				type_of_object = None
-			return type_of_object, latest_reply, True, False, False, False
-		elif latest_pos.type_of_object == '4':
-			#dont show this if the time for this is gone, or if the user has already prayed
+		notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
+		# print latest_notif
+		if latest_notif['ot'] == '3':
+			# group chat
+			return latest_notif['g'], latest_notif, False, False, True, False
+		elif latest_notif['ot'] == '2':
+			#home publicreply
+			return '2', latest_notif, True, False, False, False
+		elif latest_notif['ot'] == '0':
+			#photo comment
+			if latest_notif.get('f'):
+				if latest_notif['nc'] == 'True':
+					# photo notif for fans
+					return '1', latest_notif, False, True, False, False
+				else:
+					# photo comment received by fan
+					return '0', latest_notif, False, True, False, False	
+			else:
+				# photo comment received by non-fan
+				return '0', latest_notif, False, True, False, False
+		elif latest_notif['ot'] == '4':
+			# salat invites
 			time_now = datetime.utcnow()+timedelta(hours=5)
 			current_minute = time_now.hour * 60 + time_now.minute
-			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time \
+			= namaz_timings[current_minute]
 			if not namaz:
 				#time for namaz has gone
-				latest_pos.seen=True
-				latest_pos.updated_at=time_now
-				latest_pos.save()
+				delete_salat_notification(notif_name, hash_name, user.id)
 				return None, None, False, False, False, False
 			else:
 				starting_time = datetime.combine(time_now.today(), current_namaz_start_time)
@@ -158,25 +169,16 @@ def GetLatest(user):
 				except:
 					#latest_namaz does not exist
 					latest_namaz = None
-				if (starting_time <= latest_pos.which_salat.sent_at < ending_time) and not AlreadyPrayed(latest_namaz,time_now):
-					return latest_pos.type_of_object,latest_pos.which_salat, False, False, False, True
+				if (convert_to_epoch(starting_time) <= float(latest_notif['u']) < convert_to_epoch(ending_time)) and not \
+				AlreadyPrayed(latest_namaz,time_now):
+					# print "showing namaz notification"
+					return '4',latest_notif, False, False, False, True
 				else:
-					latest_pos.seen=True
-					latest_pos.updated_at=time_now
-					latest_pos.save()			
+					# print "didn't clear if statement, deleting namaz notification"
+					delete_salat_notification(notif_name, hash_name, user.id)			
 					return None, None, False, False, False, False
-		elif latest_pos.type_of_object == '1':
-			photo_id = latest_pos.which_photo_id
-			try:
-				type_of_object = latest_pos.type_of_object
-			except:
-				type_of_object = None
-			return type_of_object, photo_id, False, True, False, False
-		else:
-			latest = []
 	except:
-		latest = []
-	return None, latest, False, False, False, False
+		return None, None, False, False, False, False
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -594,7 +596,7 @@ class ReportFeedbackView(FormView):
 		except:
 			return redirect("profile", self.kwargs["nick"])
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def reprofile(request, pk=None, unique=None, private=None, grp=None, uname=None,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -665,7 +667,7 @@ class ReportProfileView(FormView):
 				context["pts"] = None
 		return context
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def rep(request, pk=None, num=None, nick=None, uuid=None, priv=None, scr=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	banned_self, ban_type_self, time_remaining_self, warned_self = private_group_posting_allowed(request.user.id)
@@ -734,7 +736,7 @@ def rep(request, pk=None, num=None, nick=None, uuid=None, priv=None, scr=None, *
 					context={'uuid':uuid, 'private':priv}
 					return render(request, 'penalty_nickdoublerep.html', context)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def repnick(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -846,11 +848,15 @@ def left_public_group(request, pk=None, unique=None, private=None, *args, **kwar
 		remove_group_invite(request.user.id, pk)
 	else:
 		pass
+	remove_group_notification(user_id=request.user.id,group_id=pk,is_deleted=False)
 	return redirect("group_page")
 
 def del_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
 	if Group.objects.get(id=pk).owner == request.user:
+		remove_group_notification(user_id=request.user.id,group_id=pk,is_deleted=True)
 		GroupTraffic.objects.filter(which_group_id=pk).delete()
+		del_from_rankings(pk)
+		del_attendance(pk)
 		GroupBanList.objects.filter(which_group_id=pk).delete()
 		GroupCaptain.objects.filter(which_group_id=pk).delete()
 		GroupInvite.objects.filter(which_group_id=pk).delete()
@@ -891,6 +897,7 @@ def left_private_group(request, pk=None, unique=None, private=None, *args, **kwa
 			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)
 		else:
 			pass
+		remove_group_notification(request.user.id,pk)
 		return redirect("group_page")
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -961,10 +968,14 @@ class SalatRankingView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('salat_streaks')
-		return users_fans
+		# print users_fans
+		if users_fans:
+			return users_fans
+		else:
+			return []
 
 	def get_context_data(self, **kwargs):
 		context=super(SalatRankingView, self).get_context_data(**kwargs)
@@ -979,10 +990,13 @@ class SalatSuccessView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('salat_streaks')
-		return users_fans
+		if users_fans:
+			return users_fans
+		else:
+			return []
 
 	def get_context_data(self, **kwargs):
 		context=super(SalatSuccessView, self).get_context_data(**kwargs)
@@ -997,7 +1011,7 @@ class SalatSuccessView(ListView):
 			context["girls"] = FEMALES
 		return context
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def reportcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -1096,7 +1110,7 @@ class ReportcommentView(FormView):
 			else:
 				return redirect("score_help")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -1273,7 +1287,6 @@ def AlreadyPrayed(salat, now):
 	minute_of_latest_salat = datetime_of_latest_salat.hour * 60 + datetime_of_latest_salat.minute 
 	time_of_latest_salat = datetime_of_latest_salat.time()
 	date_of_latest_salat = datetime_of_latest_salat.date()
-	# print date_now, date_of_latest_salat
 	if date_now != date_of_latest_salat:
 		#prayee has not already prayed, in fact they haven't logged any salat today
 		#but cater to edge cases and graceful failure
@@ -1298,7 +1311,6 @@ def AlreadyPrayed(salat, now):
 			else:
 				return True
 		elif salat_done != salat_to_do:
-			#print salat_done, salat_to_do
 			return False
 		else:
 			return True
@@ -1309,10 +1321,9 @@ def process_salat(request, offered=None, *args, **kwargs):
 	user = request.user
 	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	try:
-		starting_time = datetime.combine(now.today(), current_namaz_start_time)
+		starting_time = datetime.combine(now.today(), current_namaz_start_time) #i.e. current namaz start time
 	except:
 		redirect("home")
-	#print previous_namaz, next_namaz, namaz
 	if not namaz:
 		#it's not time for any namaz, ABORT
 		return redirect("home")
@@ -1330,7 +1341,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 		else:
 			return redirect("home")
 		try:
-			latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
+			latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when') #when did user pray most recently?
 			if AlreadyPrayed(latest_namaz, now):
 				return redirect("home")
 			else:
@@ -1349,7 +1360,9 @@ def process_salat(request, offered=None, *args, **kwargs):
 			user.userprofile.streak = 1
 			user.userprofile.save()
 		Salat.objects.create(prayee=user, timing=now, which_salat=salat)
-		PhotoObjectSubscription.objects.filter(viewer=user, seen=False, type_of_object='4',updated_at__gte=starting_time).update(seen=True, updated_at=now)
+		time = convert_to_epoch(starting_time)
+		epochtime = convert_to_epoch(now)
+		bulk_update_salat_notifications(viewer_id=user.id, starting_time=time, seen=True, updated_at=epochtime)
 		return redirect("salat_success", current_minute, now.weekday())
 
 class LinkListView(ListView):
@@ -1366,6 +1379,8 @@ class LinkListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(LinkListView, self).get_context_data(**kwargs)
 		context["checked"] = FEMALES
+		# get_latest_online()
+		# calc_photo_quality_benchmark()
 		context["can_vote"] = False
 		context["authenticated"] = False
 		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(context["object_list"])
@@ -1445,33 +1460,12 @@ class LinkListView(ListView):
 			context["score"] = score #own score
 			if score > 9:
 				context["can_vote"] = True #allowing user to vote
-			#votes_in_page = Vote.objects.select_related('voter__userprofile').filter(link_id__in=non_photo_link_ids)
-			# voted = votes_in_page.filter(voter=user) #all votes the user cast
-			# voted = voted.values_list('link_id', flat=True) #link ids of all links the user voted on
-			# context["voted"] = voted #voted is used to check which links the user has already voted on
-			##################################
-			# voted_photo_ids = [photo_id for photo_id in photo_ids if voted_for_photo(photo_id, user.username)]
-			# context["photo_voted"] = voted_photo_ids
-			# voters_and_votes = {}
-			# #print photo_ids
-			# for key in photo_ids:
-			# 	#constructing a dictionary of lists, of the type {photo_id:(username,vote_value),}
-			# 	voters_and_votes[key]=get_photo_votes(key)
-			# context["votes"] = voters_and_votes
-			#photo_votes_in_page = PhotoVote.objects.select_related('voter__userprofile').filter(photo_id__in=photos_in_page)
-			##################################
 			global condemned
 			if self.request.user_banned:
-				#context["vote_cluster"] = votes_in_page # all votes in the page
-				#context["photo_vote_cluster"] = photo_votes_in_page # all photo votes in the page
 				context["notification"] = 0 #hell banned users will never see notifications
 				context["sender"] = 0 #hell banned users will never see notifications
 			else:
-				#context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
-				#context["photo_vote_cluster"] = photo_votes_in_page.exclude(voter_id__in=condemned)
-				###############################################################################################################
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-				#print object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["latest_reply"] = []
 					context["notification"] = 0
@@ -1484,21 +1478,44 @@ class LinkListView(ListView):
 					context["parent"] = []
 					context["parent_pk"] = 0
 					context["first_time_user"] = False
+				elif is_groupreply:
+					if object_type == '1':
+						# private mehfil
+						context["type_of_object"] = '3a'
+						context["notification"] = 1
+						context["banned"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					elif object_type == '0':
+						# public mehfil
+						context["type_of_object"] = '3b'
+						context["notification"] = 1
+						context["banned"] = False
+						context["first_time_user"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					else:
+						context["latest_reply"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+						context["banned"] = False
 				elif is_salat:
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
-					context["first_time_user"] = False
+					try:
+						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+					except:
+						context["first_time_user"] = 0
 					context["banned"] = False
 					context["parent"] = salat_invite
 					context["namaz"] = namaz 
 				elif is_link:
 					context["type_of_object"] = '2'
 					if freshest_reply:
-						parent_link = freshest_reply.answer_to
-						parent_link_writer = parent_link.submitter
-						parent_link_writer_username = parent_link_writer.username
-						#print parent_link_writer_username
+						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
@@ -1512,18 +1529,15 @@ class LinkListView(ListView):
 						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
 					else:
 						parent_link_writer = User()
-						#parent_link.submitter = 0
 						WELCOME_MESSAGES = []
 					try:
 						context["latest_reply"] = freshest_reply
 						context["notification"] = 1
-						context["parent"] = parent_link
-						context["parent_pk"] = parent_link.pk
-						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
-							#print "first time user"
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
+						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
 							context["first_time_user"] = True
 						else:
-							#print "not first time user"
 							context["first_time_user"] = False
 					except:
 						context["latest_reply"] = []
@@ -1533,19 +1547,19 @@ class LinkListView(ListView):
 						context["first_time_user"] = False
 				elif is_photo:
 					if object_type == '1':
-						photo = Photo.objects.get(id=freshest_reply)
+						# photo = Photo.objects.get(id=freshest_reply)
 						context["type_of_object"] = '1'
 						context["notification"] = 1
-						context["parent"] = photo
-						context["parent_pk"] = freshest_reply
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
 						context["first_time_user"] = False
 						context["banned"] = False
 					elif object_type == '0':
 						context["latest_comment"] = freshest_reply
 						context["type_of_object"] = '0'
 						context["notification"] = 1
-						context["parent"] = freshest_reply.which_photo
-						context["parent_pk"] = freshest_reply.which_photo_id
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
 						context["first_time_user"] = False
 						context["banned"] = False						
 					else:
@@ -1555,8 +1569,6 @@ class LinkListView(ListView):
 						context["parent_pk"] = 0
 						context["first_time_user"] = False
 						context["banned"] = False
-					return context
-				elif is_groupreply:
 					return context
 				else:
 					return context
@@ -1608,265 +1620,6 @@ class LinkListView(ListView):
 		else:
 			return self.render_to_response(context)
 
-# class LinkListView(ListView):
-# 	model = Link
-# 	paginate_by = 20
-
-# 	def get_queryset(self):
-# 		if self.request.user_banned:
-# 			#if user is hell-banned
-# 			return Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser')\
-# 			.filter(id__in=all_unfiltered_posts()).order_by('-id')
-# 		else:
-# 			#if user is not hell-banned
-# 			links = Link.objects.select_related('submitter__userprofile','which_photostream__cover','submitter__hotuser')\
-# 			.filter(id__in=all_filtered_posts()).order_by('-id')
-# 			return links
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(LinkListView, self).get_context_data(**kwargs)
-# 		context["checked"] = FEMALES
-# 		context["can_vote"] = False
-# 		context["authenticated"] = False
-# 		#### Namaz feature #########################################################################################
-# 		now = datetime.utcnow()+timedelta(hours=5)
-# 		day = now.weekday()
-# 		current_minute = now.hour * 60 + now.minute
-# 		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-# 		context["next_namaz_start_time"] = next_namaz_start_time
-# 		if namaz == 'Zuhr' and day == 4: #4 is Friday
-# 			context["current_namaz"] = 'Jummah'
-# 		else:
-# 			context["current_namaz"] = namaz
-# 		if next_namaz == 'Zuhr' and day == 4:#4 if Friday
-# 			context["next_namaz"] = 'Jummah'	
-# 		else:
-# 			context["next_namaz"] = next_namaz
-# 		if not namaz and not next_namaz:
-# 			# do not show namaz element at all, some error may have occurred
-# 			context["show_current"] = False
-# 			context["show_next"] = False
-# 		elif not namaz:
-# 			if self.request.user.is_authenticated():
-# 				try:
-# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-# 					already_prayed = AlreadyPrayed(latest_salat, now)
-# 					if already_prayed == 2:
-# 						#if user skipped previous namaz, no need to show prompt
-# 						context["show_current"] = False
-# 						context["show_next"] = False
-# 					else:
-# 						context["show_current"] = False
-# 						context["show_next"] = True
-# 				except:
-# 					context["show_current"] = False
-# 					context["show_next"] = True
-# 			else:
-# 				context["show_current"] = False
-# 				context["show_next"] = True
-# 		else:
-# 			if self.request.user.is_authenticated():
-# 				try:
-# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-# 					already_prayed = AlreadyPrayed(latest_salat, now)
-# 					if already_prayed:
-# 						if already_prayed == 2:
-# 							context["show_current"] = False
-# 							context["show_next"] = False
-# 						else:
-# 							context["show_current"] = False
-# 							context["show_next"] = True
-# 					else:
-# 						#i.e. show the CURRENT namaz the user has to offer
-# 						context["show_current"] = True
-# 						context["show_next"] = False
-# 				except:
-# 					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
-# 					context["show_current"] = True
-# 					context["show_next"] = False
-# 			else:
-# 				context["show_current"] = True
-# 				context["show_next"] = False
-# 		################################################################################################################
-# 		if self.request.user.is_authenticated():
-# 			num = random.randint(1,4)
-# 			context["random"] = num #determines which message to show at header
-# 			if num > 2:
-# 				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
-# 			else:
-# 				context["newest_user"] = None
-# 			context["authenticated"] = True
-# 			user = self.request.user
-# 			context["ident"] = user.id #own user id
-# 			context["username"] = user.username #own username
-# 			score = user.userprofile.score
-# 			context["score"] = score #own score
-# 			if score > 9:
-# 				context["can_vote"] = True #allowing user to vote
-# 			links_in_page = [link.id for link in context["object_list"]]#getting ids of all links in page
-# 			votes_in_page = Vote.objects.select_related('voter__userprofile').filter(link_id__in=links_in_page)
-# 			voted = votes_in_page.filter(voter=user) #all votes the user cast
-# 			voted = voted.values_list('link_id', flat=True) #link ids of all links the user voted on
-# 			context["voted"] = voted #voted is used to check which links the user has already voted on
-# 			##################################
-# 			photos_in_page = [link.which_photostream.cover_id for link in context["object_list"] if link.which_photostream is not None]
-# 			photo_ids = [photo for photo in photos_in_page if voted_for_photo(photo, user.username)]
-# 			context["photo_voted"] = photo_ids
-# 			voters_and_votes = {}
-# 			for key in photos_in_page:
-# 				#creating a dictionary of lists, of the type {photo_id:(username,vote_value),}
-# 				voters_and_votes[key]=get_photo_votes(key)
-# 			context["votes"] = voters_and_votes
-# 			#photo_votes_in_page = PhotoVote.objects.select_related('voter__userprofile').filter(photo_id__in=photos_in_page)
-# 			##################################
-# 			global condemned
-# 			if self.request.user_banned:
-# 				context["vote_cluster"] = votes_in_page # all votes in the page
-# 				#context["photo_vote_cluster"] = photo_votes_in_page # all photo votes in the page
-# 				context["notification"] = 0 #hell banned users will never see notifications
-# 				context["sender"] = 0 #hell banned users will never see notifications
-# 			else:
-# 				context["vote_cluster"] = votes_in_page.exclude(voter_id__in=condemned) # all votes in the page, sans condemned
-# 				#context["photo_vote_cluster"] = photo_votes_in_page.exclude(voter_id__in=condemned)
-# 				###############################################################################################################
-# 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-# 				#print object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat
-# 				if not is_link and not is_photo and not is_groupreply and not is_salat:
-# 					context["latest_reply"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 				elif not freshest_reply:
-# 					context["latest_reply"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 				elif is_salat:
-# 					salat_invite = freshest_reply
-# 					context["type_of_object"] = '4'
-# 					context["notification"] = 1
-# 					context["first_time_user"] = False
-# 					context["banned"] = False
-# 					context["parent"] = salat_invite
-# 					context["namaz"] = namaz 
-# 				elif is_link:
-# 					context["type_of_object"] = '2'
-# 					if freshest_reply:
-# 						parent_link = freshest_reply.answer_to
-# 						parent_link_writer = parent_link.submitter
-# 						parent_link_writer_username = parent_link_writer.username
-# 						#print parent_link_writer_username
-# 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-# 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-# 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-# 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-# 						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-# 						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-# 						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-# 						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-# 						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-# 						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-# 						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-# 					else:
-# 						parent_link_writer = User()
-# 						#parent_link.submitter = 0
-# 						WELCOME_MESSAGES = []
-# 					try:
-# 						context["latest_reply"] = freshest_reply
-# 						context["notification"] = 1
-# 						context["parent"] = parent_link
-# 						context["parent_pk"] = parent_link.pk
-# 						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
-# 							#print "first time user"
-# 							context["first_time_user"] = True
-# 						else:
-# 							#print "not first time user"
-# 							context["first_time_user"] = False
-# 					except:
-# 						context["latest_reply"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 				elif is_photo:
-# 					if object_type == '1':
-# 						photo = Photo.objects.get(id=freshest_reply)
-# 						context["type_of_object"] = '1'
-# 						context["notification"] = 1
-# 						context["parent"] = photo
-# 						context["parent_pk"] = freshest_reply
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					elif object_type == '0':
-# 						context["latest_comment"] = freshest_reply
-# 						context["type_of_object"] = '0'
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply.which_photo
-# 						context["parent_pk"] = freshest_reply.which_photo_id
-# 						context["first_time_user"] = False
-# 						context["banned"] = False						
-# 					else:
-# 						context["latest_comment"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					return context
-# 				elif is_groupreply:
-# 					return context
-# 				else:
-# 					return context
-# 		else:
-# 			return context
-# 		return context
-
-# 	def get(self, request, *args, **kwargs):
-# 		self.object_list = self.get_queryset()
-# 		allow_empty = self.get_allow_empty()
-# 		if not allow_empty:
-# 			# When pagination is enabled and object_list is a queryset,
-# 			# it's better to do a cheap query than to load the unpaginated
-# 			# queryset in memory.
-# 			if (self.get_paginate_by(self.object_list) is not None
-# 				and hasattr(self.object_list, 'exists')):
-# 				is_empty = not self.object_list.exists()
-# 			else:
-# 				is_empty = len(self.object_list) == 0
-# 			if is_empty:
-# 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-# 						% {'class_name': self.__class__.__name__})
-# 		context = self.get_context_data(object_list=self.object_list)
-# 		try:
-# 			target_id = self.request.session['target_id']
-# 			self.request.session['target_id'] = None
-# 		except:
-# 			target_id = None
-# 		if target_id:
-# 			try:
-# 				index = list(link.id for link in self.object_list).index(int(target_id))
-# 			except:
-# 				index = None
-# 			if 0 <= index <= 19:
-# 				addendum = '#section'+str(index+1)
-# 			elif 20 <= index <= 39:
-# 				addendum = '?page=2#section'+str(index+1-20)
-# 			elif 40 <= index <= 59:
-# 				addendum = '?page=3#section'+str(index+1-40)
-# 			elif 60 <= index <= 79:
-# 				addendum = '?page=4#section'+str(index+1-60)
-# 			elif 80 <= index <= 99:
-# 				addendum = '?page=5#section'+str(index+1-80)
-# 			elif 100 <= index <= 119:
-# 				addendum = '?page=6#section'+str(index+1-100)
-# 			else:
-# 				addendum = '#section0'
-# 			return HttpResponseRedirect(addendum)
-# 		else:
-# 			return self.render_to_response(context)
-
 class LinkUpdateView(UpdateView):
 	model = Link
 	form_class = LinkForm
@@ -1913,7 +1666,6 @@ class AppointCaptainView(FormView):
 			group = Group.objects.get(unique=unique)
 			appoint = self.request.session["appoint_decision"]
 			self.request.session["appoint_decision"] = None
-			#print appoint
 			if appoint == '1' and group.owner == self.request.user and not \
 			GroupCaptain.objects.filter(which_user_id = candidate, which_group=group).exists():
 				GroupCaptain.objects.create(which_user_id=candidate,which_group=group)
@@ -1949,12 +1701,17 @@ class OwnerGroupOnlineKonView(ListView):
 				context["groupies"] = []
 				return context
 			if group.owner == self.request.user and group.private == '0':
-				total_traffic = GroupTraffic.objects.select_related('visitor__userprofile').filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
-				online_ids = total_traffic.values_list('visitor_id',flat=True)
-				captains = GroupCaptain.objects.filter(which_user_id__in=online_ids, which_group=group)
-				captains = {captain.which_user_id: captain for captain in captains}
-				helpers = [(traffic,captains.get(traffic.visitor.pk)) for traffic in total_traffic]
-				context["groupies"] = helpers
+				all_online_ids = get_attendance(group.id)
+				visitors = User.objects.select_related('userprofile').filter(id__in=all_online_ids)
+				captain_ids = GroupCaptain.objects.filter(which_user_id__in=all_online_ids, which_group=group).values_list("which_user_id",flat=True)
+				captains = {captain:captain for captain in captain_ids}
+				groupies = []
+				for visitor in visitors:
+					if visitor.id in captains.keys():
+						groupies.append((visitor,visitor.id))
+					else:
+						groupies.append((visitor,None))
+				context["groupies"] = groupies
 			else:
 				context["groupies"] = []
 				context["unauthorized"] = True
@@ -1981,19 +1738,23 @@ class GroupOnlineKonView(ListView):
 				context["group"] = None
 				context["unauthorized"] = True
 				context["groupies"] = []
-				context["officers"] = []
 				return context
 			if group.private == '0':
-				total_traffic = GroupTraffic.objects.select_related('visitor__userprofile').filter(which_group = group, time__gte=(timezone.now()-timedelta(minutes=15))).exclude(visitor_id__in=condemned).distinct('visitor')
-				total_traffic_ids = total_traffic.values_list('visitor_id', flat=True)
-				context["groupies"] = total_traffic 
-				captains = GroupCaptain.objects.filter(which_group=group, which_user__in=total_traffic_ids).values_list('which_user_id', flat=True)
-				context["officers"] = User.objects.filter(id__in=captains)
+				all_online_ids = get_attendance(group.id)
+				visitors = User.objects.select_related('userprofile').filter(id__in=all_online_ids)
+				captain_ids = GroupCaptain.objects.filter(which_group=group, which_user_id__in=all_online_ids).values_list('which_user_id', flat=True)
+				captains = {captain:captain for captain in captain_ids}
+				groupies = []
+				for visitor in visitors:
+					if visitor.id in captains.keys():
+						groupies.append((visitor,visitor.id))
+					else:
+						groupies.append((visitor,None))
+				context["groupies"] = groupies
 			else:
 				context["group"] = None
 				context["unauthorized"] = True
 				context["groupies"] = []
-				context["officers"] = []
 		return context
 
 #@cache_page(20)
@@ -2003,12 +1764,11 @@ class OnlineKonView(ListView):
 	paginate_by = 100
 
 	def get_queryset(self):
-		user_ids = get_whose_online()
-		#print user_ids
+		user_ids = get_latest_online()#get_whose_online()
 		try:
 			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
 		except:
-			queryset = None
+			queryset = []
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -2037,8 +1797,9 @@ class LinkDeleteView(DeleteView):
 
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
 	if is_notif:
-		# sending notification to fans
-		PhotoObjectSubscription.objects.filter(viewer_id=request.user.id, type_of_object='1', which_photo_id=photo_pk).update(seen=True, updated_at=timezone.now())
+		# clicking single notif, for fans
+		update_notification(viewer_id=request.user.id, object_id=photo_pk, object_type='0', seen=True, \
+			updated_at=time.time(), bump_ua=False, unseen_activity=True, single_notif=False)
 	if photo_pk:
 		request.session["photograph_id"] = photo_pk
 		return redirect("profile", slug)
@@ -2067,7 +1828,7 @@ class UserProfilePhotosView(ListView):
 		slug = self.kwargs["slug"]
 		context["slug"] = slug
 		context["error"] = False
- 		try:
+		try:
 			subject = User.objects.get(username=slug)
 		except:
 			context["error"] = True
@@ -2093,15 +1854,8 @@ class UserProfilePhotosView(ListView):
 			context["score"] = score
 			if score > 9 and not self.request.user_banned:
 				context["can_vote"] = True
-			# photos_in_page = [photo.id for photo in context["object_list"]]
-			# photo_ids = [photo for photo in photos_in_page if voted_for_photo(photo, user.username)]
-			# context["photo_voted"] = photo_ids
-			# voters_and_votes = {}
-			# for key in photos_in_page:
-			# 	#creating a dictionary of lists, of the type {photo_id:(username,vote_value),}
-			# 	voters_and_votes[key]=get_photo_votes(key)
-			# context["votes"] = voters_and_votes
-			context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, username)]
+			# context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, username)]
+			context["voted"] = voted_for_photo(context["object_list"],username)
 			if UserFan.objects.filter(fan=self.request.user,star_id=star_id).exists():
 				context["not_fan"] = False
 			else:
@@ -2267,7 +2021,8 @@ class ClosedGroupCreateView(CreateView):
 
 	def form_valid(self, form):
 		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		f.owner = self.request.user
+		user = self.request.user
+		f.owner = user
 		f.private = 1
 		unique = uuid.uuid4()
 		f.unique = unique
@@ -2281,8 +2036,17 @@ class ClosedGroupCreateView(CreateView):
 		f.owner.userprofile.previous_retort = f.topic
 		f.owner.userprofile.score = f.owner.userprofile.score - 500
 		f.save()
-		reply = Reply.objects.create(text='mein ne new mehfil shuru kar di',which_group=f,writer=self.request.user)
-		GroupSeen.objects.create(seen_user=self.request.user,which_reply=reply)
+		creation_text = 'mein ne new mehfil shuru kar di'
+		reply = Reply.objects.create(text=creation_text,which_group=f,writer=user)
+		reply_time = convert_to_epoch(reply.submitted_on)
+		try:
+			url = user.userprofile.avatar.url
+		except:
+			url = None
+		user_id = user.id
+		create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
+			lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique)
+		create_notification(viewer_id=user_id,object_id=f.id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
 		f.owner.userprofile.save()
 		add_group_member(f.id, self.request.user.username)
 		add_user_group(self.request.user.id, f.id)
@@ -2299,9 +2063,8 @@ class OpenGroupCreateView(CreateView):
 	def form_valid(self, form):
 		if self.request.user.userprofile.score > 4999:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			# if self.request.user_banned:
-			# 	return redirect("group_page") #errorbanning
-			f.owner = self.request.user
+			user = self.request.user
+			f.owner = user
 			f.private = 0
 			unique = uuid.uuid4()
 			f.unique = unique
@@ -2314,22 +2077,38 @@ class OpenGroupCreateView(CreateView):
 			f.owner.userprofile.score = f.owner.userprofile.score - 5000
 			f.owner.userprofile.save()
 			f.save()
-			reply = Reply.objects.create(text='mein ne new mehfil shuru kar di',which_group=f,writer=self.request.user)
-			GroupTraffic.objects.create(visitor=self.request.user, which_group=f)
-			link = Link.objects.create(submitter=self.request.user, description=f.topic, cagtegory='2', url=unique)
+			creation_text = 'mein ne new mehfil shuru kar di'
+			reply = Reply.objects.create(text=creation_text,which_group=f,writer=user)
+			reply_time = convert_to_epoch(reply.submitted_on)
+			try:
+				url = user.userprofile.avatar.url
+			except:
+				url = None
+			user_id = user.id
+			f_id = f.id
+			create_object(object_id=f_id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
+				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique)
+			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
+			public_group_vote_tasks.delay(group_id=f_id,priority=2)
+			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
+			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
 			try:
 				av_url = f.owner.userprofile.avatar.url
 			except:
 				av_url = None
 			add_home_link(link_pk=link.id, categ='2', nick=f.owner.username, av_url=av_url, desc=f.topic, \
-				scr=f.owner.userprofile.score, cc=1, writer_pk=f.owner.id, device='1')
+				scr=f.owner.userprofile.score, cc=1, writer_pk=f.owner.id, device='1', meh_url=unique)
 			if self.request.user_banned:
-				add_unfiltered_post(link.id)
+				extras = add_unfiltered_post(link.id)
+				if extras:
+					queue_for_deletion.delay(extras)
 			else:
 				add_filtered_post(link.id)
-				add_unfiltered_post(link.id)
-			add_group_member(f.id, self.request.user.username)
-			add_user_group(self.request.user.id, f.id)
+				extras = add_unfiltered_post(link.id)
+				if extras:
+					queue_for_deletion.delay(extras)
+			add_group_member(f_id, user.username)
+			add_user_group(user.id, f_id)
 			try: 
 				return redirect("invite", slug=unique)
 			except:
@@ -2405,13 +2184,15 @@ class InviteUsersToPrivateGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			user_ids = get_whose_online()
+			user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
 				group = Group.objects.get(unique=self.request.session["private_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
-				non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
-				non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
+				# non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
 				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
 			except:
 				return []
@@ -2419,6 +2200,7 @@ class InviteUsersToPrivateGroupView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
+			# print "hello"
 			context["legit"] = FEMALES
 			try:	
 				unique = self.request.session["private_uuid"]
@@ -2462,13 +2244,15 @@ class InviteUsersToGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			user_ids = get_whose_online()
+			user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
 				group = Group.objects.get(unique=self.request.session["public_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
-				non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
-				non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
+				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
+				# non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
+				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
 				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
 			except:
 				return []
@@ -2521,7 +2305,7 @@ class InternalSalatInviteView(ListView):
 	template_name = "internal_salat_invite.html"
 
 	def get_queryset(self):
-		user_ids = get_whose_online()
+		user_ids = get_latest_online()#get_whose_online()
 		try:
 			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
 		except:
@@ -2542,7 +2326,7 @@ class InternalSalatInviteView(ListView):
 				context["unauthorized"] = True #it's not time for any namaz!
 				return context
 			# user_ids = [user.id for user in context["object_list"]]
-			user_ids = get_whose_online()
+			user_ids = get_latest_online()#get_whose_online()
 			if namaz:
 				context["namaz"] = namaz
 				context["unauthorized"] = False
@@ -2592,12 +2376,24 @@ class GroupListView(ListView):
 	paginate_by = 25
 
 	def get_queryset(self):
-		allGrps = []
-		date = datetime.now()-timedelta(minutes=60)
-		new_traff = GroupTraffic.objects.filter(time__gte=date,which_group__private='0').distinct('visitor','which_group').values_list('id',flat=True)
-		trendingGrp_ids = GroupTraffic.objects.filter(id__in=new_traff).values('which_group').annotate(total=Count('which_group')).order_by('-total')
-		trendingGrps = [Group.objects.select_related('owner').filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
-		return trendingGrps
+		# allGrps = []
+		# date = datetime.now()-timedelta(minutes=60)
+		# new_traff = GroupTraffic.objects.filter(time__gte=date,which_group__private='0').distinct('visitor','which_group').values_list('id',flat=True)
+		# trendingGrp_ids = GroupTraffic.objects.filter(id__in=new_traff).values('which_group').annotate(total=Count('which_group')).order_by('-total')
+		# trendingGrps = [Group.objects.select_related('owner').filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
+		# return trendingGrps
+		trending_groups = []
+		group_ids_list = public_group_ranking()
+		group_ids_dict = dict(group_ids_list)
+		group_ids = map(itemgetter(0), group_ids_list)
+		groups = Group.objects.select_related('owner').filter(id__in=group_ids)
+		for group in groups:
+			group_id = str(group.id)
+			trending_groups.append((group,group_ids_dict[group_id]))
+		trending_groups.sort(key=itemgetter(1), reverse=True)
+		trending_groups = map(itemgetter(0), trending_groups)
+		# trending_groups = [group[0] for group in trending_groups]
+		return trending_groups
 
 class VerifiedView(ListView):
 	model = User
@@ -2617,7 +2413,7 @@ class TopPhotoView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': '127.0.0.1:11211', 'TIMEOUT': 120,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('fans')
 		return users_fans
@@ -2656,13 +2452,14 @@ class GroupPageView(ListView):
 		groups = []
 		replies = []
 		user = self.request.user
-		invite_reply_ids = get_active_invites(user.id) #contains all current invites
 		group_ids = get_user_groups(user.id)
-		replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).values_list('id__max', flat=True)
-		invite_reply_ids |= set(replies) #doing union of two sets
-		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=invite_reply_ids).order_by('-id')[:60]
-		seen_for = {groupseen.which_reply_id: groupseen for groupseen in GroupSeen.objects.filter(seen_user=user)}
-		replies = [(reply, seen_for.get(reply.pk))for reply in replies_qs]
+		replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).\
+			values_list('id__max', flat=True)
+		invite_reply_ids = get_active_invites(user.id) #contains all current invites
+		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids
+		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=invite_reply_ids).\
+			order_by('-id')[:60]
+		replies = get_replies_with_seen(group_replies=replies_qs,viewer_id=self.request.user.id,object_type='3')
 		return replies
 
 	def get_context_data(self, **kwargs):
@@ -2860,7 +2657,6 @@ def upload_photo_reply_pk(request, pk=None, *args, **kwargs):
 		request.session["reply_photo_id"] = pk
 		try:
 			seen_chain = TutorialFlag.objects.get(user=request.user).seen_chain
-			#print seen_chain
 			if seen_chain:
 				return redirect("upload_photo_reply")
 			else:
@@ -3047,7 +2843,7 @@ class PhotoScoreView(FormView):
 		context["girls"] = FEMALES
 		return context
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3114,7 +2910,7 @@ class PhotoReplyView(FormView):
 		except:
 			return redirect("see_photo")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3135,7 +2931,7 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 		else:
 			return redirect("see_photo")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def videocomment_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3162,8 +2958,16 @@ class VideoCommentView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(VideoCommentView, self).get_context_data(**kwargs)
+		context["verified"] = FEMALES
 		try:
-			context["verified"] = FEMALES
+			on_fbs = self.request.META.get('X-IORG-FBS')
+		except:
+			on_fbs = False
+		if on_fbs:
+			context["on_fbs"] = True
+		else:
+			context["on_fbs"] = False
+		try:
 			pk = self.request.session["video_pk"]
 			video = Video.objects.select_related('owner').get(id=pk)
 			context["video"] = video
@@ -3224,7 +3028,7 @@ class VideoCommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3244,7 +3048,7 @@ def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 		except:
 			return redirect("see_photo")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3301,7 +3105,6 @@ class CommentView(CreateView):
 		try:
 			origin=self.kwargs["origin"]
 			if origin == '1':
-				#print origin
 				context["origin"] = '1'
 				context["photo_id"] = pk
 			elif origin == '2':
@@ -3372,14 +3175,19 @@ class CommentView(CreateView):
 					pass
 			except:
 				context["origin"] = '1'
+			updated = update_notification(viewer_id=self.request.user.id, object_id=pk,object_type='0',seen=True,\
+					updated_at=time.time(),single_notif=False, unseen_activity=True,priority='photo_tabsra',\
+					bump_ua=False,no_comment=True)
 			if comments:
-				if PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='0', which_photo=photo, seen=False).exists():
+				# updated = update_notification(viewer_id=self.request.user.id, object_id=pk,object_type='0',seen=True,\
+				# 	updated_at=time.time(),single_notif=False, unseen_activity=True,priority='photo_tabsra',\
+				# 	bump_ua=False,no_comment=True)
+				if updated:
 					context["unseen"] = True
-					PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='0', which_photo=photo, seen=False).update(seen=True, updated_at=timezone.now())
 					try:
+						#finding latest time user herself commented
 						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
 					except:
-						#print "first ever comment"
 						context["comment_time"] = None #i.e. it's the first every comment
 				else:
 					context["unseen"] = False
@@ -3431,7 +3239,7 @@ class CommentView(CreateView):
 					return redirect("see_photo")
 				else:
 					exists = PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists()
-					which_photo.comment_count = which_photo.comment_count + 1
+					# which_photo.comment_count = which_photo.comment_count + 1
 					update_cc_in_home_photo(which_photo.id)
 					if self.request.is_feature_phone:
 						device = '1'
@@ -3444,9 +3252,13 @@ class CommentView(CreateView):
 					else:
 						device = '3'
 					photocomment = PhotoComment.objects.create(submitted_by=user, which_photo=which_photo, text=text,device=device)
-					time = photocomment.submitted_on
-					timestring = time.isoformat()
-					photo_tasks.delay(self.request.user.id, which_photo.id, timestring, photocomment.id, which_photo.comment_count, text, exists)
+					comment_time = convert_to_epoch(photocomment.submitted_on)
+					try:
+						url = user.userprofile.avatar.url
+					except:
+						url = None
+					photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
+						exists, user.username, url)
 					if pk and origin and link_id:
 						return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 					elif pk and origin and star_user_id:
@@ -3462,7 +3274,7 @@ class CommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def see_special_photo_pk(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3482,7 +3294,7 @@ def see_special_photo_pk(request,pk=None,*args,**kwargs):
 		else:
 			return redirect("see_special_photo")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def special_photo(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3629,9 +3441,7 @@ class SpecialPhotoView(ListView):
 						parent_link = freshest_reply.answer_to
 						parent_link_writer = parent_link.submitter
 						parent_link_writer_username = parent_link_writer.username
-						#print parent_link_writer_username
 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						#print WELCOME_MESSAGE1
 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
@@ -3652,10 +3462,8 @@ class SpecialPhotoView(ListView):
 						context["parent"] = parent_link
 						context["parent_pk"] = parent_link.pk
 						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
-							#print "first time user"
 							context["first_time_user"] = True
 						else:
-							#print "not first time user"
 							context["first_time_user"] = False
 					except:
 						context["freshest_unseen_comment"] = []
@@ -3772,6 +3580,13 @@ def see_photo_pk(request,pk=None,*args,**kwargs):
 	else:
 		return redirect("see_photo")
 
+def non_fbs_vid(request, pk=None, *args, **kwargs):
+	try:
+		on_fbs = self.request.META.get('X-IORG-FBS')
+	except:
+		on_fbs = False
+	return redirect("https://damadam.pk/"+"123")
+
 class VideoView(ListView):
 	model = Video
 	#queryset = Video.objects.filter(id__in=all_videos()).order_by('-id')
@@ -3788,6 +3603,14 @@ class VideoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
+		try:
+			on_fbs = self.request.META.get('X-IORG-FBS')
+		except:
+			on_fbs = False
+		if on_fbs:
+			context["on_fbs"] = True
+		else:
+			context["on_fbs"] = True
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			user = self.request.user
@@ -3799,7 +3622,8 @@ class VideoView(ListView):
 				else:
 					context["can_vote"] = False
 				#videos_in_page = [video.id for video in context["object_list"]]
-				context["voted"] = [video.id for video in context["object_list"] if voted_for_video(video.id, user.username)]
+				# context["voted"] = [video.id for video in context["object_list"] if voted_for_video(video.id, user.username)]
+				context["voted"] = voted_for_video(context["object_list"], user.username)
 		return context
 
 class PhotoView(ListView):
@@ -3808,7 +3632,7 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_photos()).order_by('-id')
+		queryset = Photo.objects.select_related('owner__userprofile','latest_comment','second_latest_comment').filter(id__in=all_photos()).order_by('-id')
 		#queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').order_by('-upload_time')[:200]
 		return queryset
 
@@ -3848,7 +3672,7 @@ class PhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
+				context["voted"] = voted_for_photo(context["object_list"],user.username)
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -3866,6 +3690,31 @@ class PhotoView(ListView):
 					context["first_time_user"] = False
 					context["banned"] = False
 					return context
+				elif is_groupreply:
+					# print freshest_reply
+					if object_type == '1':
+						# private mehfil
+						context["type_of_object"] = '3a'
+						context["notification"] = 1
+						context["banned"] = False
+						context["first_time_user"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					elif object_type == '0':
+						# public mehfil
+						context["type_of_object"] = '3b'
+						context["notification"] = 1
+						context["banned"] = False
+						context["first_time_user"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					else:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+						context["banned"] = False
 				elif is_salat:
 					now = datetime.utcnow()+timedelta(hours=5)
 					current_minute = now.hour * 60 + now.minute
@@ -3873,7 +3722,10 @@ class PhotoView(ListView):
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
-					context["first_time_user"] = False
+					try:
+						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+					except:
+						context["first_time_user"] = 0
 					context["banned"] = False
 					context["parent"] = salat_invite
 					context["namaz"] = namaz 
@@ -3881,21 +3733,21 @@ class PhotoView(ListView):
 				elif is_photo:
 					if object_type == '1':
 						#i.e. it's a photo a fan ought to see!
-						photo = Photo.objects.get(id=freshest_reply)
+						#photo = Photo.objects.get(id=freshest_reply)
 						context["freshest_unseen_comment"] = None
 						context["type_of_object"] = '1'
 						context["notification"] = 1
-						context["parent"] = photo
-						context["parent_pk"] = freshest_reply
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
 						context["first_time_user"] = False
 						context["banned"] = False
 					elif object_type == '0':
 						context["freshest_unseen_comment"] = freshest_reply
 						context["type_of_object"] = '0'
 						context["notification"] = 1
-						context["parent"] = freshest_reply.which_photo
-						context["parent_pk"] = freshest_reply.which_photo_id
-						context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
+						# context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
 						context["first_time_user"] = False
 						context["banned"] = False
 					else:
@@ -3910,12 +3762,10 @@ class PhotoView(ListView):
 					context["type_of_object"] = '2'
 					context["banned"] = False
 					if freshest_reply:
-						parent_link = freshest_reply.answer_to
-						parent_link_writer = parent_link.submitter
-						parent_link_writer_username = parent_link_writer.username
-						#print parent_link_writer_username
+						# parent_link = freshest_reply.answer_to
+						# parent_link_writer = parent_link.submitter
+						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						#print WELCOME_MESSAGE1
 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
@@ -3933,13 +3783,11 @@ class PhotoView(ListView):
 					try:
 						context["freshest_unseen_comment"] = freshest_reply
 						context["notification"] = 1
-						context["parent"] = parent_link
-						context["parent_pk"] = parent_link.pk
-						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
-							#print "first time user"
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
+						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
 							context["first_time_user"] = True
 						else:
-							#print "not first time user"
 							context["first_time_user"] = False
 					except:
 						context["freshest_unseen_comment"] = []
@@ -3947,15 +3795,6 @@ class PhotoView(ListView):
 						context["parent"] = []
 						context["parent_pk"] = 0
 						context["first_time_user"] = False
-					return context
-				elif is_groupreply:
-					context["freshest_unseen_comment"] = []
-					context["notification"] = 0
-					context["type_of_object"] = '1'
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-					context["banned"] = False
 					return context
 				else:
 					context["freshest_unseen_comment"] = []
@@ -4062,18 +3901,8 @@ class BestPhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		#queryset = Photo.objects.exclude(vote_score__lte=-3).order_by('-invisible_score')[:200]
-		#print all_best_photos()
 		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
 		return queryset
-		# sorted_dictionary = dict(all_best_photos())
-		# ids = sorted_dictionary.keys()
-		# queryset = Photo.objects.filter(id__in=ids).exclude(vote_score__lte=-3)
-		# print sorted_dictionary
-		# for obj in queryset:
-		# 	print obj.pk
-		# sorted(queryset, key=lambda item: sorted_dictionary.get(item.pk, ''), reverse = True)
-		# return queryset
 
 	def get_context_data(self, **kwargs):
 		context = super(BestPhotoView, self).get_context_data(**kwargs)
@@ -4081,7 +3910,6 @@ class BestPhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
-		#print self.request
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 		else:
@@ -4089,14 +3917,16 @@ class BestPhotoView(ListView):
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			user = self.request.user
+			context["ident"] = user.id
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			if not self.request.user_banned:
-				if self.request.user.userprofile.score > 9:
+				if user.userprofile.score > 9:
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
+				# context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
+				context["voted"] = voted_for_photo(context["object_list"],user.username)
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -4114,6 +3944,29 @@ class BestPhotoView(ListView):
 					context["first_time_user"] = False
 					context["banned"] = False
 					return context
+				elif is_groupreply:
+					if object_type == '1':
+						# private mehfil
+						context["type_of_object"] = '3a'
+						context["notification"] = 1
+						context["banned"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					elif object_type == '0':
+						# public mehfil
+						context["type_of_object"] = '3b'
+						context["notification"] = 1
+						context["banned"] = False
+						context["first_time_user"] = False
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi'] #group id
+					else:
+						context["freshest_unseen_comment"] = []
+						context["notification"] = 0
+						context["parent"] = []
+						context["parent_pk"] = 0
+						context["first_time_user"] = False
+						context["banned"] = False
 				elif is_salat:
 					now = datetime.utcnow()+timedelta(hours=5)
 					current_minute = now.hour * 60 + now.minute
@@ -4121,7 +3974,10 @@ class BestPhotoView(ListView):
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
-					context["first_time_user"] = False
+					try:
+						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+					except:
+						context["first_time_user"] = 0
 					context["banned"] = False
 					context["parent"] = salat_invite
 					context["namaz"] = namaz 
@@ -4129,21 +3985,21 @@ class BestPhotoView(ListView):
 				elif is_photo:
 					if object_type == '1':
 						#i.e. it's a photo a fan ought to see!
-						photo = Photo.objects.get(id=freshest_reply)
+						# photo = Photo.objects.get(id=freshest_reply)
 						context["freshest_unseen_comment"] = None
 						context["type_of_object"] = '1'
 						context["notification"] = 1
-						context["parent"] = photo
-						context["parent_pk"] = freshest_reply
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
 						context["first_time_user"] = False
 						context["banned"] = False
 					elif object_type == '0':
 						context["freshest_unseen_comment"] = freshest_reply
 						context["type_of_object"] = '0'
 						context["notification"] = 1
-						context["parent"] = freshest_reply.which_photo
-						context["parent_pk"] = freshest_reply.which_photo_id
-						context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
+						context["parent"] = freshest_reply#.which_photo
+						context["parent_pk"] = freshest_reply['oi']
+						# print context["parent_pk"]
 						context["first_time_user"] = False
 						context["banned"] = False
 					else:
@@ -4158,12 +4014,10 @@ class BestPhotoView(ListView):
 					context["type_of_object"] = '2'
 					context["banned"] = False
 					if freshest_reply:
-						parent_link = freshest_reply.answer_to
-						parent_link_writer = parent_link.submitter
-						parent_link_writer_username = parent_link_writer.username
-						#print parent_link_writer_username
+						# parent_link = freshest_reply.answer_to
+						# parent_link_writer = parent_link.submitter
+						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						#print WELCOME_MESSAGE1
 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
@@ -4181,13 +4035,11 @@ class BestPhotoView(ListView):
 					try:
 						context["freshest_unseen_comment"] = freshest_reply
 						context["notification"] = 1
-						context["parent"] = parent_link
-						context["parent_pk"] = parent_link.pk
-						if user==parent_link_writer and any(freshest_reply.description in s for s in WELCOME_MESSAGES):
-							#print "first time user"
+						context["parent"] = freshest_reply
+						context["parent_pk"] = freshest_reply['oi']
+						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
 							context["first_time_user"] = True
 						else:
-							#print "not first time user"
 							context["first_time_user"] = False
 					except:
 						context["freshest_unseen_comment"] = []
@@ -4195,15 +4047,6 @@ class BestPhotoView(ListView):
 						context["parent"] = []
 						context["parent_pk"] = 0
 						context["first_time_user"] = False
-					return context
-				elif is_groupreply:
-					context["freshest_unseen_comment"] = []
-					context["notification"] = 0
-					context["type_of_object"] = '1'
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-					context["banned"] = False
 					return context
 				else:
 					context["freshest_unseen_comment"] = []
@@ -4317,8 +4160,6 @@ class UploadVideoView(FormView):
 			videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
 			number_of_videos = videos.count()
 			forbidden, time_remaining = check_video_abuse(number_of_videos, videos)
-			# print videos
-			# print number_of_videos
 			if forbidden:
 				context["score"] = None
 				context["forbidden"] = True
@@ -4360,8 +4201,6 @@ class UploadVideoView(FormView):
 				else:
 					device = '3'
 				video = Video.objects.create(owner=self.request.user, video_file=video, device=device, comment_count=0, caption=caption)
-				#print video.video_file.name
-				#requests.get("http://40.114.247.165:8000/processVideo", data={'container':'videos', 'video':video.video_file.name })
 				video_upload_tasks.delay(video.video_file.name, video.id, self.request.user.id)
 				context = {'pk':'pk'}
 				return render(self.request,'video_upload.html',context)
@@ -4382,7 +4221,7 @@ class UploadPhotoView(CreateView):
 				else:
 					to_go = timezone.now()+timedelta(seconds=time_remaining)
 				context["time_remaining"] = to_go
-			else: 
+			else:
 				photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
 				number_of_photos = photos.count()
 				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
@@ -4390,11 +4229,6 @@ class UploadPhotoView(CreateView):
 					context["forbidden"] = forbidden
 					context["time_remaining"] = time_remaining
 				else:
-					# try:
-					# 	opt = self.kwargs["opt"]
-					# 	context["opt"] = opt
-					# except:
-					# 	context["opt"] = None
 					post_big_photo_in_home = True
 					if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 						post_big_photo_in_home = False
@@ -4431,8 +4265,18 @@ class UploadPhotoView(CreateView):
 				context={'time_remaining': to_go}
 				return render(self.request, 'forbidden_photo.html', context)
 			else:
-				photos = Photo.objects.filter(id__in=get_recent_photos(self.request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
-				forbidden, time_remaining = check_photo_abuse(len(photos), photos)
+				number_of_photos = 0
+				photos = []
+				total_score = 0
+				photo_ids = get_recent_photos(self.request.user.id)
+				photos_qs = Photo.objects.filter(id__in=photo_ids).order_by('-id').annotate(unique_comment_count=Count('photocomment__submitted_by', distinct=True))
+				for photo in photos_qs:
+					# print photo.vote_score
+					total_score += ((VOTE_WEIGHT*photo.vote_score) + photo.unique_comment_count)
+					photos.append((photo.vote_score, photo.upload_time, photo.visible_score)) #list of dictionaries
+					number_of_photos += 1
+				# print total_score
+				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 				if forbidden:
 					context={'time_remaining': time_remaining}
 					return render(self.request, 'forbidden_photo.html', context)
@@ -4489,27 +4333,33 @@ class UploadPhotoView(CreateView):
 				else:
 					device = '3'
 				invisible_score = set_rank()
-				#opt = self.request.POST.get("opt")
-				#if opt == '7':
-				#	photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score, category='7')
-				#else:# the statement below incurs a cost. Can it be made an asynchronous task?
-				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device, avg_hash=avghash, invisible_score=invisible_score)
-				insert_hash(photo.id, photo.avg_hash)
-				add_photo(photo.id)
-				save_recent_photo(user.id, photo.id)
+				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, \
+					device=device, avg_hash=avghash, invisible_score=invisible_score)
+				photo_id = photo.id
+				user_id = user.id
 				time = photo.upload_time
-				stream = PhotoStream.objects.create(cover = photo, show_time = time)#
+				epochtime = convert_to_epoch(time)
 				timestring = time.isoformat()
 				if self.request.user_banned:
 					banned = '1'
 				else:
 					banned = '0'
-				photo_upload_tasks.delay(banned, user.id,photo.id, timestring, stream.id, device)
-				bulk_create_notifications.delay(user.id, photo.id, timestring)				
-				photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
-				# if opt == '7':
-				# 	return redirect("see_special_photo")
-				# else:
+				photo_upload_tasks.delay(banned, user_id,photo_id, timestring, device)
+				insert_hash(photo_id, photo.avg_hash) #perceptual hash of the photo
+				add_photo(photo_id) #adding in photo feed
+				save_recent_photo(user_id, photo_id) #saving 5 recent ones
+				try:
+					owner_url = user.userprofile.avatar.url
+				except:
+					owner_url = None
+				name = user.username
+				create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=user_id,\
+					object_owner_name=name,object_desc=f.caption,photourl=photo.image_file.url,vote_score=0,res_count=0)
+				# create_notification(viewer_id=user_id, object_id=photo_id, object_type='0',seen=True,updated_at=epochtime,\
+				# 	unseen_activity=True)
+				if number_of_photos:
+					set_uploader_score(user_id, ((total_score*1.0)/number_of_photos)) #only from last 5 photos!
+				bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, f.caption)
 				return redirect("see_photo")
 			else:
 				context = {'photo': 'photo'}
@@ -4601,7 +4451,6 @@ class CaptionView(CreateView):
 				message = ChatPicMessage.objects.create(which_pic=which_pic, sender=user, caption=caption, expiry_interval=num)
 			else:
 				message = ChatPicMessage.objects.create(which_pic=which_pic, sender_id=1, caption=caption, expiry_interval=num)
-			#print "message id is: %s" % message.id
 			return redirect("user_phonenumber", slug=unique, num=num, err=0, id=message.id)
 
 class CaptionDecView(FormView):
@@ -5092,7 +4941,7 @@ class ChangeGroupTopicView(CreateView):
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def outsider_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5133,7 +4982,6 @@ class OutsiderGroupView(CreateView):
 					seen_replies=[]
 					latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
 					if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-						#print "inside"
 						less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
 						less_than_replies_ids = [reply.id for reply in less_than_replies]
 						more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
@@ -5147,10 +4995,8 @@ class OutsiderGroupView(CreateView):
 								#kicks in when a user jumps into the middle of a conversation.
 								insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
 								seen_replies.append(reply)
-								#print "inside"
 							else:
 								seen_replies.append(reply)
-								#print seen_replies
 						GroupSeen.objects.bulk_create(insert_list)
 						for reply in more_than_replies:
 							#####################################################
@@ -5194,7 +5040,6 @@ class OutsiderGroupView(CreateView):
 					self.request.user.userprofile.previous_retort = text
 					#self.request.user.userprofile.score = self.request.user.userprofile.score + 2
 					self.request.user.userprofile.save()
-					#print "image: %s" % f.image
 					if f.image:
 						image_file = clean_image_file(f.image)
 						if image_file:
@@ -5246,7 +5091,7 @@ class OutsiderGroupView(CreateView):
 				self.request.session["unique_outsider"] = None
 				return redirect("outsider_group", slug=unique)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def public_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5282,28 +5127,36 @@ class PublicGroupView(CreateView):
 				context["switching"] = True
 				context["group_banned"] = False
 				return context
-			#print self.request.path
 			if 'awami' in self.request.path and group.private == '0': 
+				group_id = group.id
 				context["switching"] = False
 				context["group"] = group
-				if GroupBanList.objects.filter(which_user_id=self.request.user.id,which_group_id=group.id).exists():
+				if GroupBanList.objects.filter(which_user_id=self.request.user.id,which_group_id=group_id).exists():
 					context["group_banned"]=True
 					return context#no need to process more
-				GroupTraffic.objects.create(visitor_id=self.request.user.id,which_group_id=group.id)#create DB call
+				if random.random() < 0.5:
+					#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
+					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
+				public_group_attendance_tasks.delay(group_id=group_id, user_id=self.request.user.id)
 				context["ensured"] = FEMALES
-				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group.id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
 				#time_now = datetime.utcnow().replace(tzinfo=utc)
 				time_now = timezone.now()
+				updated_at = convert_to_epoch(time_now)
 				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
 				most_recent = {}
 				for reply,user,time in writers_with_times:
 					most_recent[user] = min(most_recent.get(user,time),time)
 				replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
-				#print "REPLIES WITH MIN TIMES %s" % newList
 				context["replies"] = replies_writers_times
-				#context["replies"] = replies
+				context["unseen"] = False
+				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					members = get_group_members(group_id)
+					if self.request.user.username in members and context["replies"]:
+						update_notification(viewer_id=self.request.user.id, object_id=group_id, object_type='3', seen=True, \
+							updated_at=updated_at, single_notif=False, unseen_activity=True, priority='public_mehfil', \
+							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
 			else:
-				#print "outside"
 				context["switching"] = True
 				context["group_banned"] = False
 		return context
@@ -5366,17 +5219,34 @@ class PublicGroupView(CreateView):
 					device = '5'
 				else:
 					device = '3'
+				which_group_id = which_group.id
 				reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)#
-				add_group_member(which_group.id, self.request.user.username)
-				remove_group_invite(self.request.user.id, which_group.id)
-				add_user_group(self.request.user.id, which_group.id)
+				add_group_member(which_group_id, self.request.user.username)
+				remove_group_invite(self.request.user.id, which_group_id)
+				add_user_group(self.request.user.id, which_group_id)
+				reply_time = convert_to_epoch(reply.submitted_on)
+				try:
+					url=self.request.user.userprofile.avatar.url
+				except:
+					url=None
+				try:
+					image_url = reply.image.url
+				except:
+					image_url = None
+				if random.random() < 0.5:
+					#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
+					public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
+				public_group_attendance_tasks.delay(group_id=which_group_id, user_id=self.request.user.id)
+				group_notification_tasks.delay(group_id=which_group_id,sender_id=self.request.user.id,\
+					group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
+					poster_username=self.request.user.username,reply_text=text,priv=which_group.private,slug=which_group.unique,\
+					image_url=image_url,priority='public_mehfil',from_unseen=False)
 				self.request.session["public_uuid"] = None
 				return redirect("public_group", slug=pk)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def first_time_public_refresh(request, unique=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
 		if request.user.is_authenticated():
 			deduction = 1 * -1
@@ -5395,10 +5265,9 @@ def first_time_public_refresh(request, unique=None, *args, **kwargs):
 		else:
 			return redirect("public_group", unique)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def first_time_refresh(request, unique=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
 		if request.user.is_authenticated():
 			deduction = 1 * -1
@@ -5417,10 +5286,9 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 		else:
 			return redirect("private_group", unique)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def private_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
 		if request.user.is_authenticated():
 			deduction = 1 * -1
@@ -5489,60 +5357,30 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				except:
 					context["on_fbs"] = False
 				context["switching"] = False
-				GroupTraffic.objects.create(visitor=self.request.user,which_group=group)
 				context["ensured"] = FEMALES
-				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]#get DB call
-				#time_now = datetime.utcnow().replace(tzinfo=utc)
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]
 				time_now = timezone.now()
-				writers_with_times = [(reply,reply.writer,(time_now-reply.submitted_on).total_seconds()) for reply in replies]
-				most_recent = {}
-				for reply,user,time in writers_with_times:
-					most_recent[user] = min(most_recent.get(user,time),time)
-				replies_writers_times = [(reply,user,most_recent[user]) for reply,user, _ in writers_with_times]
-				#print "REPLIES WITH MIN TIMES %s" % newList
-				context["replies"] = replies_writers_times
-				#context["time"] = min_time
+				updated_at = convert_to_epoch(time_now)
+				save_user_presence(self.request.user.id,group.id,updated_at)
+				pres_dict = get_latest_presence(group.id,set(reply.writer_id for reply in replies))
+				context["replies"] = [(reply,reply.writer,pres_dict[reply.writer_id]) for reply in replies]
+				context["unseen"] = False
 				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
-					members = get_group_members(group.id)#User.objects.filter(reply__which_group=group).distinct()
-					context["members"] = members
-					own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
-					if own_reply: #user wrote a reply too (whether or not they are group admin)
-						seen_replies=[]
-						latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
-						#print latest_own_reply
-						if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-							less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-							#print less_than_replies
-							less_than_replies_ids = [reply.id for reply in less_than_replies]
-							more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-							#print more_than_replies
-							more_than_replies_ids = [reply.id for reply in more_than_replies]
-							#all seen objects of less than replies and more than replies
-							less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
-							more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
-							insert_list = []
-							for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-								if reply not in less_than_seen_replies:
-									#this case kicks in when a user jumps into the middle of a conversation
-									insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
-									seen_replies.append(reply)
-								else:
-									seen_replies.append(reply)
-							GroupSeen.objects.bulk_create(insert_list)
-							for reply in more_than_replies:
-								#####################################################
-								if reply in more_than_seen_replies:
-									seen_replies.append(reply)
-						context["seenreplies"] = seen_replies
-						object_list = []
-						for response in replies:
-							if response not in seen_replies:
-								#bulk creating seen objects for every unseen reply, for that particular user
-								object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-						GroupSeen.objects.bulk_create(object_list)
-					else: #user didn't create group, or replied. User is visiting
-						context["seenreplies"] = replies
-						#return context
+					members = get_group_members(group.id)
+					context["members"] = members #contains members' usernames
+					if self.request.user.username in members and replies:
+						# flip "unseen" notification here
+						context["unseen"] = True #i.e. the user is a member and replies exist; the prospect of unseen replies exists
+						update_notification(viewer_id=self.request.user.id, object_id=group.id, object_type='3', seen=True, \
+							updated_at=updated_at, single_notif=False, unseen_activity=True, priority='priv_mehfil',
+							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
+						try:
+							#finding latest time user herself replied
+							context["reply_time"] = max(reply.submitted_on for reply in replies if reply.writer == self.request.user)
+						except:
+							context["reply_time"] = None #i.e. it's the first reply in the last 25 replies (i.e. all were unseen)
+					else:
+						context["reply_time"] = None
 			else:
 				context["switching"] = True
 		return context
@@ -5561,7 +5399,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				return redirect("group_page")
 			else:
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-				text = f.text
+				text = f.text #text of the reply
 				score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
 				if score > 90:
 					return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
@@ -5569,7 +5407,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					self.request.user.userprofile.previous_retort = text
 					self.request.user.userprofile.score = self.request.user.userprofile.score + 1
 					self.request.user.userprofile.save()
-					#print "image: %s" % f.image
 					if f.image:
 						try:
 							on_fbs = self.request.META.get('X-IORG-FBS')
@@ -5605,15 +5442,29 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					else:
 						device = '3'
 					which_group = Group.objects.get(unique=self.request.POST.get("unique"))
-					reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)
-					GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
-					add_group_member(which_group.id, self.request.user.username)
-					remove_group_invite(self.request.user.id, which_group.id)
-					add_user_group(self.request.user.id, which_group.id)
+					which_group_id = which_group.id
+					reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
+						device=device)
+					add_group_member(which_group_id, self.request.user.username)
+					remove_group_invite(self.request.user.id, which_group_id)
+					add_user_group(self.request.user.id, which_group_id)
+					reply_time = convert_to_epoch(reply.submitted_on)
+					try:
+						url=self.request.user.userprofile.avatar.url
+					except:
+						url=None
+					try:
+						image_url = reply.image.url
+					except:
+						image_url = None
+					group_notification_tasks.delay(group_id=which_group_id,sender_id=self.request.user.id,\
+						group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
+						poster_username=self.request.user.username,reply_text=text,priv=which_group.private,\
+						slug=which_group.unique,image_url=image_url,priority='priv_mehfil',from_unseen=False)
 					self.request.session['unique_id'] = None
 					return redirect("private_group", reply.which_group.unique)
 	
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def welcome_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5744,7 +5595,57 @@ class MehfilCommentView(FormView):
 				else:
 					return redirect("comment_pk", pk=photo_id, origin=origin)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
+def unseen_group(request, pk=None, *args, **kwargs):
+	was_limited = getattr(request,'limits',False)
+	if was_limited:
+		deduction = 3 * -1
+		request.user.userprofile.score = request.user.userprofile.score + deduction
+		request.user.userprofile.save()
+		context = {'username':request.user.username}
+		return render(request,'penalty_unseengroupreply.html',context)
+	else:
+		if request.method == 'POST':
+			form = UnseenActivityForm(request.POST)
+			if form.is_valid():
+				description = request.POST.get("group_reply")
+				if request.is_feature_phone:
+					device = '1'
+				elif request.is_phone:
+					device = '2'
+				elif request.is_tablet:
+					device = '4'
+				elif request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				groupreply = Reply.objects.create(writer=request.user, which_group_id=pk, text=description,device=device)#,image='')
+				reply_time = convert_to_epoch(groupreply.submitted_on)
+				try:
+					url = request.user.userprofile.avatar.url
+				except:
+					url = None
+				try:
+					image_url = groupreply.image.url
+				except:
+					image_url = None
+				grp = Group.objects.get(id=pk)
+				if grp.private == '1':
+					priority='priv_mehfil'
+				else:
+					priority='public_mehfil'
+				group_notification_tasks.delay(group_id=pk,sender_id=request.user.id,\
+					group_owner_id=grp.owner.id,topic=grp.topic,reply_time=reply_time,poster_url=url,\
+					poster_username=request.user.username,reply_text=description,priv=grp.private,\
+					slug=grp.unique,image_url=image_url,priority=priority,from_unseen=True)
+				return redirect("unseen_activity", request.user.username)
+			else:
+				return redirect("unseen_activity", request.user.username)
+		else:
+			return redirect("score_help")
+
+#called when replying from unseen_activity
+@ratelimit(rate='2/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5773,13 +5674,17 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				else:
 					device = '3'
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
-				Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
+				# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
 				update_cc_in_home_photo(pk)
 				photo = Photo.objects.get(id=pk)
 				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
-				time = photocomment.submitted_on
-				timestring = time.isoformat()
-				photo_tasks.delay(request.user.id, pk, timestring, photocomment.id, photo.comment_count, description, exists)
+				comment_time = convert_to_epoch(photocomment.submitted_on)
+				try:
+					url = request.user.userprofile.avatar.url
+				except:
+					url = None
+				unseen_comment_tasks.delay(request.user.id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
+					request.user.username, url)
 				return redirect("unseen_activity", request.user.username)
 			else:
 				return redirect("unseen_activity", request.user.username)
@@ -5787,27 +5692,49 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			return redirect("score_help")	
 
 def unseen_activity(request, slug=None, *args, **kwargs):
-	form = UnseenActivityForm()
-	oblist = PhotoObjectSubscription.objects.select_related('which_link__submitter__userprofile','which_photo__owner__userprofile', 'which_link__latest_reply__submitted_by__userprofile', 'which_photo__latest_comment__submitted_by__userprofile').filter(viewer=request.user)\
-	.exclude(which_link__reply_count__lt=1)\
-	.exclude(which_photo__comment_count__lt=1)\
-	.exclude(type_of_object='1')\
-	.order_by('-updated_at')
-	paginator = Paginator(oblist, 20) #give it a list of objects and number of objects to show per page, it does the rest
-	page = request.GET.get('page', '1')
-	try:
-		page = paginator.page(page)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		page = paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		page = paginator.page(paginator.num_pages)
-	context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page}
-	return render(request, 'user_unseen_activity.html', context)
+	if first_time_inbox_visitor(request.user.id):
+		add_inbox(request.user.id)
+		context={'username':request.user.username}
+		return render(request, 'inbox_tutorial.html', context)
+	else:
+		form = UnseenActivityForm()
+		oblist = retrieve_unseen_activity(request.user.id) # this is a list of dictionaries
+		last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
+		paginator = Paginator(oblist, 20) #give it a list of objects and number of objects to show per page, it does the rest
+		page = request.GET.get('page', '1')
+		try:
+			page = paginator.page(page)
+		except PageNotAnInteger:
+			# If page is not an integer, deliver first page.
+			page = paginator.page(1)
+		except EmptyPage:
+			# If page is out of range (e.g. 9999), deliver last page of results.
+			page = paginator.page(paginator.num_pages)
+		context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page,'nickname':request.user.username,\
+		'last_visit_time':last_visit_time}
+		return render(request, 'user_unseen_activity.html', context)
+
+def unseen_help(request,*args,**kwargs):
+	context={'nickname':request.user.username}
+	return render(request,'photo_for_fans_help.html',context)
+
+def unseen_fans(request,pk=None,*args, **kwargs):
+	if request.method == 'POST':
+		form = UnseenActivityForm(request.POST)
+		if form.is_valid():
+			photo_url = request.POST.get("photo_url")
+			fan_num = request.POST.get("fan_num")
+			fan_list = request.POST.get("fan_list")
+			fan_list = fan_list[1:-1] #removing '[' and ']' from the result
+			fan_list = fan_list.split(", ") #tokenzing values from remaining string
+			fan_list = User.objects.select_related('userprofile').filter(id__in=fan_list)
+			context={'fan_list':fan_list,'photo_url':photo_url,'fan_num':fan_num,'nickname':request.user.username}
+			return render(request,'which_fans.html',context)
+	else:
+		return redirect("unseen_activity",request.user.username)
 
 #called when replying from unseen_activity
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5835,30 +5762,31 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					device = '5'
 				else:
 					device = '3'
-				parent = Link.objects.get(id=pk)
+				parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
-				#add_publicreply_to_link(reply.id, request.user.id, pk)
-				timestring = reply.submitted_on
-				update_cc_in_home_link(parent.id)
-				Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
-				#all_reply_ids = get_publicreplies(pk)
-				#all_reply_ids = get_replywriters(pk)
-				# print all_reply_ids
-				all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-				if parent.submitter_id not in all_reply_ids:
-					all_reply_ids.append(parent.submitter_id)
-				PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=parent).update(seen=False, updated_at=timestring)
-				exists = PhotoObjectSubscription.objects.filter(viewer=request.user, type_of_object='2', which_link=parent).update(updated_at=timestring, seen=True)
-				if not exists: #i.e. could not be updated
-					PhotoObjectSubscription.objects.create(viewer=request.user, type_of_object='2', which_link=parent, updated_at=timestring)
-				publicreply_tasks.delay(request.user.id, description)
+				reply_time = convert_to_epoch(reply.submitted_on)
+				amnt = update_cc_in_home_link(parent.id)
+				try:
+					url = request.user.userprofile.avatar.url
+				except:
+					url = None
+				try:
+					owner_url = parent.submitter.userprofile.avatar.url
+				except:
+					owner_url = None
+				publicreply_tasks.delay(request.user.id, reply.id, pk, description)
+				publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=request.user.id,\
+					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
+					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,\
+					reply_poster_username=request.user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
+					priority='home_jawab',from_unseen=True)
 				return redirect("unseen_activity", request.user.username)
 			else:
 				return redirect("score_help")				
 		else:
 			return redirect("score_help")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def reply_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5931,9 +5859,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				context["unseen"] = False
 				context["reply_time"] = None
 			elif replies:
-				if PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='2', which_link=link, seen=False).exists():
+				updated = update_notification(viewer_id=self.request.user.id, object_id=link.id, object_type='2', seen=True, \
+					updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
+				if updated:
 					context["unseen"] = True
-					PhotoObjectSubscription.objects.filter(viewer=self.request.user, type_of_object='2', which_link=link, seen=False).update(seen=True, updated_at=timezone.now())
 					try:
 						context["reply_time"] = max(reply.submitted_on for reply in replies if reply.submitted_by == self.request.user)
 					except:
@@ -5956,7 +5885,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			description = self.request.POST.get("description")
 			try:
-				answer_to = Link.objects.get(id=pk)
+				answer_to = Link.objects.select_related('submitter__userprofile').get(id=pk)
 			except:
 				UserProfile.objects.filter(user=self.request.user).update(score=F('score')-2)
 				return redirect("profile", slug=self.request.user.username)
@@ -5983,31 +5912,27 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					else:
 						device = '3'
 					reply= Publicreply.objects.create(submitted_by=user, answer_to=answer_to, description=description, category='1', device=device)
-					timestring = reply.submitted_on
-					update_cc_in_home_link(answer_to.id)
-					Link.objects.filter(id=pk).update(reply_count=F('reply_count')+1, latest_reply=reply)
-					#add_publicreply_to_link(reply.id, user.id, pk)
-					#all_publicreplies = get_publicreplies(pk)
-					#all_reply_ids = get_replywriters(pk)
-					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=answer_to).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-					if answer_to.submitter_id not in all_reply_ids:
-						all_reply_ids.append(answer_to.submitter_id)
-					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=answer_to).update(seen=False, updated_at=timestring)
-					exists = PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='2', which_link=answer_to).update(updated_at=timestring, seen=True)
-					if not exists: #i.e. could not be updated
-						PhotoObjectSubscription.objects.create(viewer=user, type_of_object='2', which_link=answer_to, updated_at=timestring)
-					publicreply_tasks.delay(user.id, description)
+					reply_time = convert_to_epoch(reply.submitted_on)
+					amnt = update_cc_in_home_link(pk) #updating comment count for home link
+					try:
+						url = user.userprofile.avatar.url
+					except:
+						url = None
+					try:
+						owner_url = answer_to.submitter.userprofile.avatar.url
+					except:
+						owner_url = None
+					publicreply_tasks.delay(user.id, reply.id, pk, description)
+					publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user.id,\
+						link_submitter_id=answer_to.submitter_id,link_submitter_username=answer_to.submitter.username,\
+						link_desc=answer_to.description,reply_time=reply_time,reply_poster_url=url,\
+						reply_poster_username=user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
+						priority='home_jawab',from_unseen=False)
 					try:
 						return redirect("reply_pk", pk=pk)
 					except:
 						UserProfile.objects.filter(user=user).update(score=F('score')-2)
 						return redirect("profile", slug=user.username)
-
-	# def get_success_url(self): #which URL to go back once settings are saved?
-	# 	try: 
-	# 		return redirect(self.request.META.get('HTTP_REFERER')+"#sectionJ")
-	# 	except:
-	# 		return redirect("home")#, pk= reply.answer_to.id)
 
 class UserActivityView(ListView):
 	model = Link
@@ -6085,7 +6010,7 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6208,12 +6133,15 @@ class LinkCreateView(CreateView):
 					add_home_link(link_pk=f.id, categ='1', nick=user.username, av_url=av_url, desc=f.description, \
 						scr=f.submitter.userprofile.score, cc=0, writer_pk=user.id, device=f.device)
 					if self.request.user_banned:
-						add_unfiltered_post(f.id)
+						extras = add_unfiltered_post(f.id)
+						if extras:
+							queue_for_deletion.delay(extras)
 					else:
 						add_filtered_post(f.id)
-						add_unfiltered_post(f.id)
+						extras = add_unfiltered_post(f.id)
+						if extras:
+							queue_for_deletion.delay(extras)
 					f.submitter.userprofile.save()
-					PhotoObjectSubscription.objects.create(viewer=user, updated_at=f.submitted_on, type_of_object='2', which_link=f)
 					return super(CreateView, self).form_valid(form)
 				else:
 					return redirect("score_help")
@@ -6225,7 +6153,7 @@ class LinkCreateView(CreateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def kick_pk(request, pk=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6295,23 +6223,28 @@ class KickView(FormView):
 						pk = self.request.session["kick_pk"]
 						self.request.session["kick_pk"] = None
 						culprit = User.objects.get(id=pk)
-						if GroupBanList.objects.filter(which_user=culprit, which_group=group).exists():# already kicked and banned
+						group_id = group.id
+						if GroupBanList.objects.filter(which_user=culprit, which_group_id=group_id).exists():# already kicked and banned
 							return redirect("public_group", slug=unique)
 						else:
-							GroupBanList.objects.create(which_user_id=pk,which_group_id=group.id)#placing the person in ban list
+							GroupBanList.objects.create(which_user_id=pk,which_group_id=group_id)#placing the person in ban list
 							try:
-								GroupCaptain.objects.get(which_user_id=pk, which_group=group).delete()
+								GroupCaptain.objects.get(which_user_id=pk, which_group_id=group_id).delete()
 							except:
 								pass
 							culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
 							culprit.userprofile.save()
+							remove_group_notification(user_id=pk,group_id=group_id,is_deleted=False) #removing culprit's matka notification
+							remove_group_member(group_id=group_id, username=culprit.username)
+							remove_user_group(user_id=pk, group_id=group_id)
 							text = culprit.username
-							reply = Reply.objects.create(text=text, which_group_id=group.id, writer=self.request.user, category='2')
+							reply = Reply.objects.create(text=text, which_group_id=group_id, writer=self.request.user, \
+								category='2')
 							return redirect("public_group", slug=unique)
 				else:
 					return redirect("score_help")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def groupreport_pk(request, slug=None, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6394,7 +6327,6 @@ class GroupReportView(FormView):
 					self.request.session["groupreport_pk"] = None
 					reply = get_object_or_404(Reply, pk=reply_id)
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists():
-						#print GroupCaptain.objects.filter(which_user=self.request.user, which_group=Group.objects.get(unique=unique)).exists()
 						return redirect("public_group", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
@@ -6473,42 +6405,40 @@ class WelcomeReplyView(FormView):
 						device = '3'
 					self.request.user.userprofile.score = self.request.user.userprofile.score + 1
 					self.request.user.userprofile.save()
+					try:
+						av_url = target.userprofile.avatar.url
+					except:
+						av_url = None
 					if Link.objects.filter(submitter=target).exists():
 						parent = Link.objects.filter(submitter=target).latest('id')
 						parent.reply_count = parent.reply_count + 1
+						update_cc_in_home_link(parent.id)
 					else:
 						num = random.randint(1,5)
-						try:
-							av_url = target.userprofile.avatar.url
-						except:
-							av_url = None
 						if num == 1:
 							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1, device=device)
 							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='I am new', \
 								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 2:
 							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1, device=device)
 							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='Salam, Im new', \
 								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 3:
 							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1, device=device)
 							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='mein new hun', \
 								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						elif num == 4:
 							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1, device=device)
 							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='hi every1', \
 								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)
 						else:
 							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)
 							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='damadam mast qalander', \
 								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-							PhotoObjectSubscription.objects.create(viewer=target, updated_at=parent.submitted_on, type_of_object='2', which_link=parent)						
 						add_filtered_post(parent.id)
-						add_unfiltered_post(parent.id)
+						extras = add_unfiltered_post(parent.id)
+						if extras:
+							queue_for_deletion.delay(ext)
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
@@ -6540,20 +6470,35 @@ class WelcomeReplyView(FormView):
 						return redirect("score_help")
 					parent.latest_reply = reply
 					parent.save()
-					#add_publicreply_to_link(reply.id, self.request.user.id, parent.id)
-					# all_publicreplies = get_publicreplies(parent.id)
-					#all_reply_ids = get_replywriters(parent.id)
-					all_reply_ids = list(set(Publicreply.objects.filter(answer_to=parent).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-					if parent.submitter_id not in all_reply_ids:	
-						all_reply_ids.append(parent.submitter_id)
-					PhotoObjectSubscription.objects.filter(viewer_id__in=all_reply_ids, type_of_object='2', which_link=parent).update(seen=False, updated_at=reply.submitted_on)			
-					PhotoObjectSubscription.objects.create(viewer=self.request.user, updated_at=reply.submitted_on, type_of_object='2', which_link=parent)
+					try:
+						url = self.request.user.userprofile.avatar.url
+					except:
+						url = None
+					time = convert_to_epoch(reply.submitted_on)
+					publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url,\
+						sender_id=self.request.user.id,link_submitter_id=pk,link_submitter_username=target.username,\
+						link_desc=parent.description,reply_time=time,reply_poster_url=url,\
+						reply_poster_username=self.request.user.username,reply_desc=reply.description,is_welc=False,\
+						reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
 					return redirect("home")
 				else:
 					return redirect("score_help")
 
+def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
+	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
+		bump_ua=False)
+	if from_home == '1':
+		return redirect("home")
+	elif from_home == '2':
+		return redirect("see_best_photo")
+	elif from_home == '5':
+		return redirect("see_special_photo")
+	else:
+		return redirect("see_photo")
+
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer_id=usr, type_of_object=object_type, which_photo_id=pk).update(seen=True)#, updated_at=timezone.now())
+	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
+		single_notif=False,bump_ua=False)
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':
@@ -6564,7 +6509,10 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 		return redirect("see_photo")
 
 def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer=user, type_of_object='4', which_salat_id=pk).update(seen=True, updated_at=timezone.now())
+	notif_name = "np:"+user+":"+pk.split(":",1)[1]
+	hash_name = pk
+	viewer_id = user
+	delete_salat_notification(notif_name,hash_name,viewer_id)
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':
@@ -6575,7 +6523,8 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwar
 		return redirect("see_photo")
 
 def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
-	PhotoObjectSubscription.objects.filter(viewer_id=user, type_of_object='2', which_link_id=pk).update(seen=True)#, updated_at=timezone.now())
+	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
+		single_notif=False, bump_ua=False)
 	if from_home == '1':
 		return redirect("home")
 	elif from_home == '2':
@@ -6585,7 +6534,7 @@ def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 	else:
 		return redirect("see_photo")
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6650,7 +6599,9 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
 								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1')
 						add_filtered_post(link.id)
-						add_unfiltered_post(link.id)
+						extras = add_unfiltered_post(link.id)
+						if extras:
+							queue_for_deletion.delay(extras)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						add_vote_to_home_link(link.id, value, request.user.username)
 						target.userprofile.score = target.userprofile.score + 3
@@ -6666,7 +6617,9 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
 								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1')
 						add_filtered_post(link.id)
-						add_unfiltered_post(link.id)
+						extras = add_unfiltered_post(link.id)
+						if extras:
+							queue_for_deletion.delay(extras)
 						Vote.objects.create(voter=request.user, link=link, value=value)
 						add_vote_to_home_link(link.id, value, request.user.username)
 						target.userprofile.score = target.userprofile.score - 3
@@ -6686,21 +6639,21 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 		else:
 			return redirect("link_create_pk")
 
-def process_photo_vote(pk, ident, val):
+def process_photo_vote(pk, ident, val, voter_id):
 	if int(val) > 0:
 		vote_score_increase = 1
 		visible_score_increase = 1
 		media_score_increase = 1
 		score_increase = 1
-		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
 	else:
 		vote_score_increase = -1
 		visible_score_increase = -1
 		media_score_increase = -1
 		score_increase = -1
-		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6727,6 +6680,7 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 			return render(request, 'photovote_disallowed.html', context)
 		else:
 			defender = in_defenders(request.user.id)
+			# print defender
 			if not defender:
 				can_vote, time_remaining = can_photo_vote(request.user.id)
 				if not can_vote:
@@ -6749,8 +6703,6 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 						'val':int(val)}
 						return render(request, 'photo_defender_tutorial.html', context)
 					else:
-						# print val
-						# print vote_score
 						if int(val) == 1 and vote_score < -2:
 							# i.e. the photo is a candidate to be unbanned
 							context = {'pk':pk, 'photo_owner':uname, 'ident':ident,'photo_url':photo.image_file.url,'origin':origin, 'link_id':link_id}
@@ -6771,9 +6723,9 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 							'photo_url':photo.image_file.url, 'origin': origin, 'link_id':link_id, 'already_banned':to_go}
 							return render(request, 'ban_photo.html', context)
 						else:
-							process_photo_vote(pk, ident, int(val))
+							process_photo_vote(pk, ident, int(val), request.user.id)
 				else:
-					process_photo_vote(pk, ident, int(val))
+					process_photo_vote(pk, ident, int(val), request.user.id)
 				if origin == '1':
 					# originated from taza photos page
 					request.session["target_photo_id"] = pk
@@ -6795,7 +6747,7 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 				context = {'unique': pk}
 				return render(request, 'already_photovoted.html', context)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, origin=None,link_id=None, val=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6806,21 +6758,24 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 			if duration == '1':
 				#i.e. ban for 24 hrs
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				update_object(object_id=pk,object_type='0',vote_score=-100)
 				add_to_photo_upload_ban(ident, '1') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '1') #to impede from voting on other photos
 			elif duration == '2':
 				#i.e. ban for 1 week
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				update_object(object_id=pk,object_type='0',vote_score=-100)
 				add_to_photo_upload_ban(ident, '7') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '7') #to impede from voting on other photos
 			elif duration == '3':
 				#i.e. ban forever
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
+				update_object(object_id=pk,object_type='0',vote_score=-100)
 				add_to_photo_upload_ban(ident, '-1') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '-1') #to impede from voting on other photos
 			else:
 				#the person changed their mind, so don't ban the photo, just regularly downvote it
-				process_photo_vote(pk, ident, val)
+				process_photo_vote(pk, ident, val, request.user.id)
 				if origin == '1':
 					request.session["target_photo_id"] = pk
 					return redirect("see_photo")
@@ -6871,8 +6826,6 @@ def redirect_ban_or_resurrect_page(request, pk=None, uname=None, ident=None, ori
 	photo_url = photo.image_file.url
 	score = photo.vote_score
 	add_photo_defender_tutorial(request.user.id)
-	# print val
-	# print score
 	if int(val) == 0 and score > -3:
 		#photo is to be banned
 		banned, time_remaining = check_photo_upload_ban(ident)
@@ -6912,9 +6865,9 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 	if dec == '1' and in_defenders(request.user.id):
 		#ressurect photo
 		Photo.objects.filter(id=pk).update(vote_score=0, visible_score=0)
+		update_object(object_id=pk,object_type='0',vote_score=0)
 		photovote_usernames_and_values = get_photo_votes(pk)
 		uname_list = [k for (k,v) in photovote_usernames_and_values if int(v) == 0 ] #extract all usernames who downvoted this gem!
-		#print uname_list
 		if uname_list:
 			#i.e. this kicks in if the photo has been voted
 			number_of_voters = len(uname_list)
@@ -6924,7 +6877,7 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 			return render(request, 'ban_photo_voter.html',context)
 	else:
 		#don't resurrect photo, just return with a simple upvote
-		process_photo_vote(pk, ident, 1)
+		process_photo_vote(pk, ident, 1, request.user.id)
 	if origin == '1':
 		request.session["target_photo_id"] = pk
 		return redirect("see_photo")
@@ -6946,17 +6899,13 @@ def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=N
 	request.session["target_unames"] = None
 	targets = User.objects.filter(username__in=uname_list).values_list('id',flat=True)
 	if duration == '1':
-		for target in targets:
-			add_to_photo_vote_ban(target, '0.1')
+			add_to_photo_vote_ban(targets, '0.1')
 	elif duration == '2':
-		for target in targets:
-			add_to_photo_vote_ban(target, '3')
+			add_to_photo_vote_ban(targets, '3')
 	elif duration == '3':
-		for target in targets:
-			add_to_photo_vote_ban(target, '7')
+			add_to_photo_vote_ban(targets, '7')
 	elif duration == '4':
-		for target in targets:
-			add_to_photo_vote_ban(target, '-1')
+			add_to_photo_vote_ban(targets, '-1')
 	else:
 		pass
 	if origin == '1':
@@ -6976,7 +6925,7 @@ def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=N
 		return redirect("see_photo")
 
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7092,6 +7041,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 
 def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
+	epochtime = convert_to_epoch(now)
 	current_minute = now.hour * 60 + now.minute
 	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	try:
@@ -7111,20 +7061,29 @@ def salat_notification(request, pk=None, *args, **kwargs):
 	else:
 		return redirect("internal_salat_invite")
 	try:
-		latest_namaz = LatestSalat.objects.filter(salatee_id=pk).latest('when')
+		latest_namaz = LatestSalat.objects.filter(salatee_id=pk).latest('when') #when did this person pray?
 	except:
 		#latest_namaz does not exist
 		latest_namaz = None
 	if pk.isdigit() and not SalatInvite.objects.filter(invitee_id=pk, which_salat=salat, sent_at__gte=starting_time).exists() and not AlreadyPrayed(latest_namaz,now):
 		salat_object = SalatInvite.objects.create(inviter=request.user, invitee_id=pk, which_salat=salat, sent_at=now)
-		PhotoObjectSubscription.objects.create(type_of_object='4',seen=False, viewer_id=pk, updated_at=now, which_salat=salat_object)
+		salat_object_id = salat_object.id
+		try:
+			owner_url = request.user.userprofile.avatar.url
+		except:
+			owner_url = None
+		create_object(object_id=salat_object_id,object_type='4',object_owner_name=request.user.username,\
+			object_owner_avurl=owner_url,object_desc=namaz, object_owner_id=request.user.id)
+		create_notification(object_id=salat_object_id,object_type='4',viewer_id=pk,seen=False,updated_at=epochtime,\
+			single_notif=True,priority='namaz_invite')
+		viewer_salat_notifications(viewer_id=pk,object_id=salat_object_id, time=epochtime)
 		return redirect("internal_salat_invite")
 	else:
 		user = User.objects.get(id=pk)
 		context = {'invitee':user, 'namaz':namaz}
 		return render(request, 'salat_invite_error.html', context)
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def fan(request, pk=None, from_profile=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7145,6 +7104,7 @@ def fan(request, pk=None, from_profile=None, *args, **kwargs):
 				return redirect("see_photo")
 			try:
 				UserFan.objects.get(fan=request.user, star=user).delete()
+				remove_from_photo_owner_activity(user.id, request.user.id)
 				try:
 					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 					aggregate_object.total_fans = aggregate_object.total_fans - 1
@@ -7164,6 +7124,7 @@ def fan(request, pk=None, from_profile=None, *args, **kwargs):
 					if seen_fan_option:
 						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
 							UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
+							add_to_photo_owner_activity(pk, request.user.id)
 							try:
 								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 								aggregate_object.total_fans = aggregate_object.total_fans + 1
@@ -7262,6 +7223,7 @@ class FanTutorialView(FormView):
 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
 							UserFan.objects.create(fan=self.request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
+							add_to_photo_owner_activity(user.id, self.request.user.id)
 							try:
 								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
 								aggregate_object.total_fans = aggregate_object.total_fans + 1
@@ -7294,15 +7256,10 @@ class FanTutorialView(FormView):
 def update_cooldown(obj):
 	#time_now = datetime.utcnow().replace(tzinfo=utc)
 	time_now = timezone.now()
-	#print time_now
 	time_passed = obj.time_of_casting
-	#print time_passed
 	difference = time_now - time_passed
-	#print difference.total_seconds()
 	difference_in_mins = difference.total_seconds() / 60
-	#print difference_in_mins
 	interval = int(difference_in_mins / 4) # control the interval length from here
-	#print "interval: %s" % interval
 	obj.hot_score = obj.hot_score + interval
 	if obj.hot_score > 10:
 		obj.hot_score = 10
@@ -7314,11 +7271,10 @@ def find_time(obj):
 	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
-@ratelimit(rate='1/s')
+@ratelimit(rate='2/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	#PERIODS = (1,5*1,10*1,)
 	was_limited = getattr(request, 'limits', False)
-	#print "The remote ip of the requester is: %s" % request.META.get('REMOTE_ADDR', None)
 	if was_limited:
 		deduction = 3 * -1
 		request.user.userprofile.score = request.user.userprofile.score + deduction
@@ -7332,15 +7288,12 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 			except:
 				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=timezone.now())
 			c_pk = cooldown.pk
-			#print "score before update: %s" % cooldown.hot_score
 			obj = update_cooldown(cooldown)
 			obj.save()
-			#print "score after update %s" % obj.hot_score
 			if int(obj.hot_score) < 1:
 				time_remaining = find_time(obj)
 				#time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
 				time_stamp = timezone.now() + time_remaining
-				#print "time_remaining: %s" % time_remaining
 				context = {'time_remaining': time_stamp}
 				return render(request, 'cooldown.html', context)
 			try:
@@ -7425,50 +7378,572 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 		else:
 			return redirect("link_create_pk")
 	
-def LinkAutoCreate(user, content):   
-	link = Link()
-	#content = content.replace('#',' ') 
-	link.description = content
-	link.submitter = user
-	#user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
-	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
-	unaware_submission = datetime.now().replace(tzinfo=None)
-	td = unaware_submission - epoch 
-	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
-	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
-	link.rank_score = round(0 * 0 + secs / 45000, 8)
-	link.with_votes = 0
-	link.category = '1' '''
-	try:
-		urls1 = re.findall(urlmarker.URL_REGEX,link.description)
-		if len(urls1)==0:
-			pass
-		elif len(urls1)==1:
-			name, image = read_image(urls1[0])
-			if image:
-				image_io = StringIO.StringIO()
-				image.save(image_io, format='JPEG')
-				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-				link.image_file = thumbnail
-		elif len(urls1)>=2:
-			name, image = read_image(urls1[0])
-			if image:
-				image_io = StringIO.StringIO()
-				image.save(image_io, format='JPEG')
-				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-				link.image_file = thumbnail
+# def LinkAutoCreate(user, content):   
+# 	link = Link()
+# 	#content = content.replace('#',' ') 
+# 	link.description = content
+# 	link.submitter = user
+# 	#user.userprofile.score = user.userprofile.score + 5 #adding score for content creation
+# 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+# 	unaware_submission = datetime.now().replace(tzinfo=None)
+# 	td = unaware_submission - epoch 
+# 	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+# 	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+# 	link.rank_score = round(0 * 0 + secs / 45000, 8)
+# 	link.with_votes = 0
+# 	link.category = '1' '''
+# 	try:
+# 		urls1 = re.findall(urlmarker.URL_REGEX,link.description)
+# 		if len(urls1)==0:
+# 			pass
+# 		elif len(urls1)==1:
+# 			name, image = read_image(urls1[0])
+# 			if image:
+# 				image_io = StringIO.StringIO()
+# 				image.save(image_io, format='JPEG')
+# 				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+# 				link.image_file = thumbnail
+# 		elif len(urls1)>=2:
+# 			name, image = read_image(urls1[0])
+# 			if image:
+# 				image_io = StringIO.StringIO()
+# 				image.save(image_io, format='JPEG')
+# 				thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+# 				link.image_file = thumbnail
+# 			else:
+# 				name, image = read_image(urls1[1])
+# 				if image:
+# 					image_io = StringIO.StringIO()
+# 					image.save(image_io, format='JPEG')
+# 					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
+# 					link.image_file = thumbnail
+# 		else:
+# 			pass
+# 	except Exception as e:
+# 		print '%s (%s)' % (e.message, type(e))	
+# 		pass			'''
+# 	link.save()
+# 	user.userprofile.previous_retort = content
+# 	user.userprofile.save()
+
+######################### Advertising #########################
+
+@ratelimit(rate='2/s')
+def make_ad(request,*args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'unique': 'pk'}
+		return render(request, 'make_ad_error.html', context)
+	else:
+		request.session["ad_description_token"] = uuid.uuid4()
+		return redirect("ad_description")
+
+class AdDescriptionView(FormView):
+	form_class = AdDescriptionForm
+	template_name = "ad_description.html"
+
+	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		user = self.request.user
+		try:
+			desc = self.request.session["ad_description"]
+			self.initial = {'description': desc} #initial needs to be passed a dictionary
+			return self.initial
+		except:
+			return self.initial
+
+	def get_context_data(self, **kwargs):
+		context = super(AdDescriptionView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_description_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			ad_description = self.request.POST.get("description")
+			self.request.session["ad_description"] = ad_description
+			self.request.session["ad_mobile_num_token"] = uuid.uuid4()
+			return redirect("ad_mobile_num")
+		else:
+			return redirect("home")
+
+class AdMobileNumView(FormView):
+	form_class = AdMobileNumForm
+	template_name = "ad_mobile_num.html"
+
+	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		user = self.request.user
+		try:
+			num = self.request.session["ad_mobile_num"]
+			self.initial = {'mobile_number': num} #initial needs to be passed a dictionary
+			return self.initial
+		except:
+			return self.initial
+
+	def get_context_data(self, **kwargs):
+		context = super(AdMobileNumView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_mobile_num_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			mobile_number = self.request.POST.get("mobile_number")
+			self.request.session["ad_mobile_num"] = mobile_number
+			self.request.session["ad_call_pref_token"] = uuid.uuid4()
+			return redirect("ad_call_pref")
+		else:
+			return redirect("home")
+
+class AdCallPrefView(FormView):
+	form_class = AdCallPrefForm
+	template_name = "ad_call_pref.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdCallPrefView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_call_pref_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False	
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			call = self.request.POST.get("call",None)
+			sms = self.request.POST.get("sms",None)
+			callsms = self.request.POST.get("callsms",None)
+			if call:
+				self.request.session["ad_call_pref"] = '0'
+			elif sms:
+				self.request.session["ad_call_pref"] = '1'
+			elif callsms:
+				self.request.session["ad_call_pref"] = '2'
 			else:
-				name, image = read_image(urls1[1])
-				if image:
-					image_io = StringIO.StringIO()
-					image.save(image_io, format='JPEG')
-					thumbnail = InMemoryUploadedFile(image_io, None, name, 'image/jpeg', image_io.len, None)
-					link.image_file = thumbnail
+				return redirect("home")
+			self.request.session["ad_title_yesno_token"] = uuid.uuid4()
+			return redirect("ad_title_yesno")
+		else:
+			return redirect("home")
+
+#'Yes' or 'No'
+class AdTitleYesNoView(FormView):
+	form_class = AdTitleYesNoForm
+	template_name = "ad_title_yesno.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdTitleYesNoView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_title_yesno_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			yes = self.request.POST.get("yes",None)
+			no = self.request.POST.get("no",None)
+			if yes:
+				self.request.session["ad_title_token"] = uuid.uuid4()
+				return redirect("ad_title")
+			elif no:
+				self.request.session["ad_image_yesno_token"] = uuid.uuid4()
+				return redirect("ad_image_yesno")
+			else:
+				return redirect("home")
+		else:
+			return redirect("home")
+
+class AdTitleView(FormView):
+	form_class = AdTitleForm
+	template_name = "ad_title.html"
+
+	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		user = self.request.user
+		try:
+			title = self.request.session["ad_title"]
+			self.initial = {'title': title} #initial needs to be passed a dictionary
+			return self.initial
+		except:
+			return self.initial
+
+	def get_context_data(self, **kwargs):
+		context = super(AdTitleView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_title_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			title = self.request.POST.get("title")
+			self.request.session["ad_title"] = title
+			self.request.session["ad_image_yesno_token"] = uuid.uuid4()
+			return redirect("ad_image_yesno")
+		else:
+			return redirect("home")
+
+#'Yes' or 'No'
+class AdImageYesNoView(FormView):
+	form_class = AdImageYesNoForm
+	template_name = "ad_image_yesno.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdImageYesNoView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_image_yesno_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			yes = self.request.POST.get("yes",None)
+			no = self.request.POST.get("no",None)
+			if yes:
+				self.request.session["ad_image_token"] = uuid.uuid4()
+				return redirect("ad_image")
+			elif no:
+				self.request.session["ad_gender_token"] = uuid.uuid4()
+				self.request.session["ad_image"] = None
+				return redirect("ad_gender")
+			else:
+				return redirect("home")
+		else:
+			return redirect("home")
+
+class AdImageView(CreateView):
+	model = ChatPic
+	form_class = AdImageForm
+	template_name = "ad_image.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdImageView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_image_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		f = form.save(commit=False)
+		if f.image_file:
+			try:
+				on_fbs = self.request.META.get('X-IORG-FBS')
+			except:
+				on_fbs = False
+			if on_fbs:
+				if f.image_file.size > 200000:
+					context = {'pk':'pk'}
+					return render(self.request,'big_photo_fbs.html',context)
+				else:
+					pass
+			else:
+				if f.image_file.size > 10000000:
+					context = {'pk':'pk'}
+					return render(self.request,'big_photo_regular.html',context)
+				else:
+					pass
+			image_file = clean_image_file(f.image)
+			if image_file:
+				f.image = image_file
+			else:
+				f.image = None
+		if f.image_file:
+			unique = uuid.uuid4()
+			if self.request.user.is_authenticated():
+				ad_image=ChatPic.objects.create(image=f.image, owner=request.user, times_sent=0, unique=unique)
+			else:
+				ad_image=ChatPic.objects.create(image=f.image, owner_id=1, times_sent=0, unique=unique)
+			self.request.session["ad_image"] = ad_image.image.url
+		else:
+			self.request.session["ad_image"] = None
+		self.request.session["ad_gender_token"] = uuid.uuid4()
+		return redirect("ad_gender")
+
+# class AdLinkURLView(FormView):
+# 	form_class = AdLinkURLForm
+# 	template_name = "ad_url.html"
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(AdLinkURLView, self).get_context_data(**kwargs)
+# 		if valid_uuid(str(self.request.session["ad_link_url_token"])):
+# 			context["authentic"] = True
+# 		else:
+# 			context["authentic"] = False
+# 		return context
+
+# 	def form_valid(self, form):
+
+class AdGenderChoiceView(FormView):
+	form_class = AdGenderChoiceForm
+	template_name = "ad_gender.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdGenderChoiceView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_gender_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			yes = self.request.POST.get("yes",None)
+			no = self.request.POST.get("no",None)
+			if yes:
+				self.request.session["ad_gender"] = True
+			elif no:
+				self.request.session["ad_gender"] = False
+			else:
+				return redirect("home")
+			self.request.session["ad_address_yesno_token"] = uuid.uuid4()
+			return redirect("ad_address_yesno")
+		else:
+			return redirect("home")
+
+#'Yes' or 'No'
+class AdAddressYesNoView(FormView):
+	form_class = AdAddressYesNoForm
+	template_name = "ad_address_yesno.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(AdAddressYesNoView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_address_yesno_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			yes = self.request.POST.get("yes",None)
+			no = self.request.POST.get("no",None)
+			if yes:
+				self.request.session["ad_address_token"] = uuid.uuid4()
+				return redirect("ad_address")
+			elif no:
+				self.request.session["ad_finalize_token"] = uuid.uuid4()
+				return redirect("ad_finalize")
+			else:
+				return redirect("home")
+		else:
+			return redirect("home")
+
+class AdAddressView(FormView):
+	form_class = AdAddressForm
+	template_name = "ad_address.html"
+
+	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		user = self.request.user
+		try:
+			address = self.request.session["ad_address"]
+			self.initial = {'address': address} #initial needs to be passed a dictionary
+			return self.initial
+		except:
+			return self.initial
+
+	def get_context_data(self, **kwargs):
+		context = super(AdAddressView, self).get_context_data(**kwargs)
+		if valid_uuid(str(self.request.session["ad_address_token"])):
+			context["authentic"] = True
+		else:
+			context["authentic"] = False
+		return context
+
+	def form_valid(self, form):
+		if self.request.method == 'POST':
+			address = self.request.POST.get("address")
+			self.request.session["ad_address"] = address
+			self.request.session["ad_finalize"] = uuid.uuid4()
+			return redirect("ad_finalize")
+		else:
+			return redirect("home")
+
+@ratelimit(rate='2/s')
+def ad_finalize(request,*args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'unique': 'pk'}
+		return render(request, 'make_ad_error.html', context)
+	else:
+		if valid_uuid(str(request.session["ad_finalize"])):
+			description = request.session["ad_description"]
+			# request.session["ad_description"] = None
+			mobnum = request.session["ad_mobile_num"]
+			# request.session["ad_mobile_num"] = None
+			callpref = request.session["ad_call_pref"]
+			# request.session["ad_call_pref"] = None
+			title = request.session["ad_title"]
+			# request.session["ad_title"] = None
+			image = request.session["ad_image"]
+			# request.session["ad_image"] = None
+			address = request.session["ad_address"]
+			# request.session["ad_address"] = None
+			gender_based = request.session["ad_gender"]
+			# request.session["ad_gender"] = None
+			locations = ['0','1','2','3','4', '5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20']
+			ad_url = 'http://damadam.pk/nick/ad/pin_code' # contains preview of advert that got submitted
+			if request.user.is_authenticated():
+				user_id = request.user.id
+			else:
+				user_id = None
+			data = {"description":description, "phone_number":mobnum,
+					"contact_preference":callpref, "title":title,
+					"image_url":image,"address":address,
+					"only_ladies":gender_based, "location":locations,
+					"app_code":"1","user_id":user_id,"ad_url":ad_url}
+			response = call_aasan_api(data,'create')
+			print response.json()
+			print response.text
+			return HttpResponse('Ad sent to aasanads')
+		else:
+			return redirect("home")
+###############################################################
+
+def suspend(request, ad_id, *args, **kwargs):
+	suspend_ad(str(ad_id))
+	return redirect("test_ad")
+
+class TestAdsView(FormView):
+	form_class = TestAdsForm
+	template_name = "test_ads.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(TestAdsView, self).get_context_data(**kwargs)
+		user_loc = get_user_loc(self.request.user)
+		ad,ad_id, clicks = get_ad(user_loc)
+		if ad and ad_id:
+			context["ad"] = ad
+			context["ad_id"] = ad_id
+			context["title"] = ad["ti"] 
+			context["description"] = ad["ds"]
+			context["clicks"] = clicks
+		else:
+			context["ad"] = None
+			context["ad_id"] = None
+			context["title"] = None
+			context["description"] = None
+		return context
+
+class TestReportView(FormView):
+	form_class = TestReportForm
+	template_name = "test_report.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(TestReportView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			running,historical = get_user_ads(self.request.user.id)
 		else:
 			pass
-	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))	
-		pass			'''
-	link.save()
-	user.userprofile.previous_retort = content
-	user.userprofile.save()
+		return context
+		'''
+		this only works for authenticated users. 
+		'''
+
+def click_ad(request, ad_id=None, *args,**kwargs):
+	store_click(ad_id, get_user_loc(request.user))
+	return redirect("test_ad")
+
+
+###############################################################
+
+
+# public.user_sessions_session_expire_date            | 3972 MB
+#  public.user_sessions_session                        | 1749 MB
+#  public.links_publicreply                            | 1552 MB
+#  public.user_sessions_session_user_id                | 1300 MB
+#  public.links_photocomment                           | 745 MB
+#  public.links_publicreply_answer_to_id               | 644 MB
+#  public.links_publicreply_submitted_by_id            | 614 MB
+#  public.links_photoobjectsubscription_which_photo_id | 574 MB
+#  public.links_link                                   | 530 MB
+#  public.links_photo_latest_comment_id                | 530 MB
+#  public.links_photoobjectsubscription_seen           | 492 MB
+#  public.links_publicreply_pkey                       | 489 MB
+#  public.links_grouptraffic_visitor_id                | 474 MB
+#  public.links_grouptraffic_which_group_id            | 464 MB
+#  public.links_photo_second_latest_comment_id         | 458 MB
+#  public.links_photoobjectsubscription_viewer_id      | 423 MB
+#  public.links_grouptraffic_pkey                      | 393 MB
+#  public.links_grouptraffic_time                      | 393 MB
+#  public.links_photoobjectsubscription_pkey           | 353 MB
+
+# Report run on 12/10/2016
+#              Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8204 MB | 6455 MB
+#  links_publicreply                | 3622 MB | 1901 MB
+#  links_photoobjectsubscription    | 2619 MB | 2250 MB
+#  links_photo                      | 1814 MB | 1489 MB
+#  links_grouptraffic               | 1784 MB | 1724 MB
+#  links_photocomment               | 1554 MB | 742 MB
+#  links_link                       | 787 MB  | 214 MB
+#  links_reply                      | 542 MB  | 411 MB
+#  links_groupseen                  | 454 MB  | 362 MB
+#  links_vote                       | 360 MB  | 233 MB
+#  links_seen                       | 351 MB  | 351 MB
+#  links_salatinvite                | 311 MB  | 226 MB
+#  links_groupinvite                | 164 MB  | 125 MB
+#  links_photo_which_stream         | 146 MB  | 98 MB
+#  links_photostream                | 139 MB  | 73 MB
+#  links_userprofile                | 119 MB  | 42 MB
+
+
+# Report run on 12/11/2016
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8214 MB | 6464 MB
+#  links_publicreply                | 3666 MB | 1923 MB
+#  links_photoobjectsubscription    | 2627 MB | 2251 MB
+#  links_photo                      | 1822 MB | 1497 MB
+#  links_grouptraffic               | 1756 MB | 1724 MB
+#  links_photocomment               | 1569 MB | 749 MB
+#  links_link                       | 795 MB  | 216 MB
+#  links_reply                      | 544 MB  | 413 MB
+#  links_groupseen                  | 454 MB  | 362 MB
+#  links_vote                       | 363 MB  | 235 MB
+#  links_seen                       | 351 MB  | 351 MB
+#  links_salatinvite                | 314 MB  | 228 MB
+#  links_groupinvite                | 164 MB  | 125 MB
+#  links_photo_which_stream         | 147 MB  | 99 MB
+#  links_photostream                | 140 MB  | 74 MB
+#  links_userprofile                | 119 MB  | 43 MB
+
+# Setting up new redis instance
+
+# sudo cp redis.conf /etc/redis/redis-2.conf
+# 	Inside the conf:
+# pidfile /var/run/redis/redis2-server.pid
+# port 6380
+# logfile /var/log/redis/redis2-server.log
+# dir /var/lib/redis2
+# port 0
+# unixsocket /var/run/redis/redis2.sock
+# unixsocketperm 775
+#	Outside the conf:
+#sudo mkdir /var/lib/redis2
+#sudo chown -R redis:redis /var/lib/redis2
+#	Create a cope of redis-server file at /etc/init.d
+# change DAEMON_ARGS, NAME, DESC, and PIDFILE
+# exit file and do:
+# sudo chmod 755 redis2-server
+# sudo update-rc.d redis2-server defaults
+# sudo /etc/init.d/redis2-server start
+# TO CONNECT TO REDIS CLI:
+# sudo redis-cli -s /var/run/redis/redis2.sock

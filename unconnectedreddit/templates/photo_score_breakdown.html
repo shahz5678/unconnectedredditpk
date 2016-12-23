@@ -32,19 +32,15 @@
 	<b style="color:#bfbfbf;">.</b>
 	{% if vote == 1 %}
 		<a href="{% url 'profile' voter %}"><b>{{ voter }}</b>			
-		    {% for person in girls %}
-		    {% if person == voter %}
+		    {% if voter in girls %}
 		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
-		    {% endfor %}
 		</a><span style="color:green;font-size:90%;">{% emoticons %} ko ye photo <b>barri zabrdast</b> lagi :d{% endemoticons %}</span>
 	{% elif vote == 0 %}
 		<a href="{% url 'profile' voter %}"><b>{{ voter }}</b>
-		    {% for person in girls %}
-		    {% if person == voter %}
+		    {% if voter in girls %}
 		    	<span style="font-size:125%;color:deeppink;"><b>*</b></span>
 		    {% endif %}
-		    {% endfor %}
 		</a><span style="color:red;font-size:90%;">{% emoticons %} ko ye photo <b>shadeed bekaar</b> lagi :@{% endemoticons %}</span>
 	{% else %}
 	{% endif %}

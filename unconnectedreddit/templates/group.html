@@ -111,8 +111,7 @@
 	{% if reply.0.which_group.private == '1' %}
 
 		<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
-		
-		{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)&nbsp;</b>{% endif %}
+		{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)&nbsp;</b>{% endif %}
 		
 		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
@@ -120,7 +119,7 @@
 		<a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>
 		{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
 
-		<a href="{% url 'private_group' reply.0.which_group.unique %}"><span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
+		<a href="{% url 'private_group' reply.0.which_group.unique %}"><b style="color:#179b36;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></a>&nbsp;
 
 		<span style="color:grey;font-size:90%;">mein likha:</span><span style="color:#404040;">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span style="color:grey;font-size:80%;">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
@@ -145,7 +144,7 @@
 		{% if reply.0.writer.username == 'unregistered_bhoot' %}
 			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
 
-			{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
+			{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
 
 			<span style="color:grey;font-size:90%;"><span style="color:purple;">mehmaan</span> ne</span>&nbsp;
 
@@ -155,7 +154,7 @@
 		{% else %}
 			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
 
-			{% if not reply.1 %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
+			{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
 
 			{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 

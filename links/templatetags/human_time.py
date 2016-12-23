@@ -1,13 +1,8 @@
 from django.template.defaulttags import register
-#from django.utils import timezone
-#from datetime import datetime, timedelta
-#from django.utils.timesince import timesince
 import time
 
 @register.filter(name='human_time')
 def human_time(value):
-	#to_go = timezone.now()+timedelta(seconds=time_remaining)
-	# now = datetime.now()
 	try:
 		diff = time.time() - float(value)
 	except:

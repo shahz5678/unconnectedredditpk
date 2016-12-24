@@ -241,7 +241,7 @@
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
 			<hr size=1 COLOR="#3cb7dd" class="imagemargin">
 		{% elif not show_current and show_next %}
-			<div class="namaz">{% if authenticated %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch deir baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="namazbutton"><b>record save krna</b></button></a>{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
+			<div class="namaz">{% if authenticated %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="namazbutton"><b>record save krna</b></button></a>{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
 			</div><hr size=1 COLOR="#3cb7dd">
 		{% else %}
 			<!-- nothing to show -->
@@ -249,7 +249,7 @@
 	{% endif %}
 	{% if link.c == '2' %}
 		<div class="new" >
-		<span style="font-size:80%;color:#765989;"><b>(new) </b></span><a href="{% url 'profile' slug=link.n %}#section0">
+		<a href="{% url 'profile' slug=link.n %}#section0">
 		{% if link.av != 'None' %}
 			<img src="{{ link.av|thumbedge }}" alt="no pic" width="22" height="22"></img>
 		{% else %}
@@ -261,7 +261,7 @@
 		    	<span class="pinkstar"><b>*</b></span>
 		    {% endif %}
 		    
-		</a><span class="newmehfil"> ki new <b>mehfil</b> mein gup lagao: <a href="{% url 'public_group' slug=link.m %}" class="newmehfil2" ><u>{{ link.de }}</u></a></span><span class="newmehfil3"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="newmehfil"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="tabsarakaro" style="background-color:#9971A5;border-color:#765989;">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="newmehfil2" ><u>{{ link.de }}</u></a></span><span class="newmehfil3"><bdi>, {{ link.t|human_time }}</bdi></span>
 		<p><hr size=1 COLOR="#3cb7dd"></p>
 		</div>
 	{% elif link.c == '6' %}

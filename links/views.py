@@ -1577,17 +1577,22 @@ class LinkListView(ListView):
 
 	def get(self, request, *args, **kwargs):
 		self.object_list = self.get_queryset()
-		allow_empty = self.get_allow_empty()
+		allow_empty = self.get_allow_empty() #Return a boolean specifying whether to display the page if no objects are available. If this method returns False and no objects are available, the view will raise a 404 instead of displaying an empty page. By default, this is True.
 		if not allow_empty:
+			# allow_empty is True by default in Django ListView, this this code never executes for us.
 			# When pagination is enabled and object_list is a queryset,
 			# it's better to do a cheap query than to load the unpaginated
 			# queryset in memory.
 			if (self.get_paginate_by(self.object_list) is not None
 				and hasattr(self.object_list, 'exists')):
+				# self.get_paginate_by(self.object_list) returns '20' in our case. It basically returns the number of items to paginate by, or None for no pagination. By default this simply returns the value of 'paginate_by'
+				# hasattr: The arguments are an object and a string. The result is 'True' if the string is the name of one of the object's attributes, False if not. 
 				is_empty = not self.object_list.exists()
 			else:
-				is_empty = len(self.object_list) == 0
+				#this always executes, since hasattr(self.object_list, 'exists') is always False in our case
+				is_empty = len(self.object_list) == 0 #is_empty is true or false, depending on the outcome
 			if is_empty:
+				# ensures empty list is just not displayed
 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
 						% {'class_name': self.__class__.__name__})
 		context = self.get_context_data(object_list=self.object_list)
@@ -1616,8 +1621,11 @@ class LinkListView(ListView):
 			else:
 				addendum = '#section0'
 			return HttpResponseRedirect(addendum)
+			#HttpResponseRedirect takes a single argument: the URL to which the user will be redirected. The first argument to the constructor is required – the path to redirect to. This can be a fully qualified URL (e.g. 'https://www.yahoo.com/search/'), an absolute path with no domain (e.g. '/search/'), or even a relative path (e.g. 'search/'). In that last case, the client browser will reconstruct the full URL itself according to the current path.
 		else:
 			return self.render_to_response(context)
+			# Combines a given template with a given context variable dictionary, and returns an HttpResponse object with that rendered text.
+			#I.e. just render the template normally, without redirecting to a specific anchor tag.
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -4351,6 +4359,7 @@ class UploadPhotoView(CreateView):
 				invisible_score = set_rank()
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, \
 					device=device, avg_hash=avghash, invisible_score=invisible_score)
+				main(f.image_file,f.caption)
 				photo_id = photo.id
 				user_id = user.id
 				time = photo.upload_time

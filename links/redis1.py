@@ -279,16 +279,16 @@ def voted_for_photo(photo_qs,username):
 		count += 1
 	return photos_voted
 
-# def voted_for_photo(photo_id, username):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "vp:"+str(photo_id)
-# 	already_exists = my_server.zscore(sorted_set, username)
-# 	if already_exists != 0 and already_exists != 1:
-# 		# i.e. does not already exist
-# 		return False
-# 	else:
-# 		# i.e. already exists
-# 		return True
+def voted_for_single_photo(photo_id, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vp:"+str(photo_id)
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists != 0 and already_exists != 1:
+		# i.e. does not already exist
+		return False
+	else:
+		# i.e. already exists
+		return True
 
 def add_vote_to_photo(photo_id, username, value):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -539,6 +539,18 @@ def add_photo_to_best(photo_id, score):
 		   my_server.zadd("bestphotos:1000", photo_id, score)
 	except:
 		my_server.zadd("bestphotos:1000", photo_id, score)
+
+def get_best_photo():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange("bestphotos:1000",-1,-1)[0]
+
+def get_previous_best_photo():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("best_photo")
+
+def set_best_photo(photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.set("best_photo",photo_id)
 
 def all_photos():
 	my_server = redis.Redis(connection_pool=POOL)

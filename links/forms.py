@@ -6,8 +6,8 @@ from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-import PIL
 from detect_porn import detect
+import PIL
 from PIL import Image, ImageFile, ImageEnhance, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO
@@ -407,6 +407,11 @@ class ChangeGroupRulesForm(forms.ModelForm):
 	class Meta:
 		model = Group
 		fields = ("rules",)
+
+class HomeListListForm(forms.Form):
+	reply = forms.CharField(max_length=250)
+	class Meta:
+		fields = ("reply",)
 
 class UnseenActivityForm(forms.Form):
 	comment = forms.CharField(max_length=250)

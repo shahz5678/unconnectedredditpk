@@ -61,7 +61,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeListListForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1365,267 +1365,546 @@ def process_salat(request, offered=None, *args, **kwargs):
 		bulk_update_salat_notifications(viewer_id=user.id, starting_time=time, seen=True, updated_at=epochtime)
 		return redirect("salat_success", current_minute, now.weekday())
 
-class LinkListView(ListView):
-	model = Link
-	paginate_by = 20
-	template_name = "link_list.html"
+def home_location(request, *args, **kwargs):
+	try:
+		link_id = request.session['target_id']
+		request.session['target_id'] = None
+	except:
+		link_id = 0
+	if request.user_banned:
+		oblist = all_unfiltered_posts()
+	else:
+		oblist = all_filtered_posts()
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)
+	request.session['home_photo_ids'] = photo_ids
+	request.session['home_non_photo_link_ids'] = non_photo_link_ids
+	request.session['home_list_of_dictionaries'] = list_of_dictionaries
+	try:
+		index = list(dictionary["l"] for dictionary in list_of_dictionaries).index(str(link_id))
+	except:
+		index = 0
+	if 0 <= index <= 19:
+		addendum = '#section'+str(index+1)
+	elif 20 <= index <= 39:
+		addendum = '?page=2#section'+str(index+1-20)
+	elif 40 <= index <= 59:
+		addendum = '?page=3#section'+str(index+1-40)
+	elif 60 <= index <= 79:
+		addendum = '?page=4#section'+str(index+1-60)
+	elif 80 <= index <= 99:
+		addendum = '?page=5#section'+str(index+1-80)
+	elif 100 <= index <= 119:
+		addendum = '?page=6#section'+str(index+1-100)
+	elif 120 <= index <= 139:
+		addendum = '?page=7#section'+str(index+1-120)
+	elif 140 <= index <= 159:
+		addendum = '?page=8#section'+str(index+1-140)
+	elif 160 <= index <= 179:
+		addendum = '?page=9#section'+str(index+1-160)
+	elif 180 <= index <= 199:
+		addendum = '?page=10#section'+str(index+1-180)
+	else:
+		addendum = '#section0'
+	url = reverse_lazy("home")+addendum
+	return redirect(url)
 
-	def get_queryset(self):
-		if self.request.user_banned:
-			return all_unfiltered_posts()
+def home_link_list(request, *args, **kwargs):
+	form = HomeListListForm()
+	context = {}
+	context["checked"] = FEMALES
+	context["form"] = form
+	context["can_vote"] = False
+	context["authenticated"] = False
+	try:
+		if request.session['home_photo_ids'] and request.session['home_non_photo_link_ids'] and request.session['home_list_of_dictionaries']:
+			# kicks in if user redirected from vote page
+			photo_ids = request.session['home_photo_ids']
+			non_photo_link_ids = request.session['home_non_photo_link_ids']
+			list_of_dictionaries = request.session['home_list_of_dictionaries']
+			request.session['home_photo_ids'] = None
+			request.session['home_non_photo_link_ids'] = None
+			request.session['home_list_of_dictionaries'] = None
 		else:
-			return all_filtered_posts()
-
-	def get_context_data(self, **kwargs):
-		context = super(LinkListView, self).get_context_data(**kwargs)
-		context["checked"] = FEMALES
-		# calc_photo_quality_benchmark()
-		context["can_vote"] = False
-		context["authenticated"] = False
-		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(context["object_list"])
-		context["links"] = list_of_dictionaries
-		###################### Namaz feature #######################################################################
-		now = datetime.utcnow()+timedelta(hours=5)
-		day = now.weekday()
-		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-		context["next_namaz_start_time"] = next_namaz_start_time
-		if namaz == 'Zuhr' and day == 4: #4 is Friday
-			context["current_namaz"] = 'Jummah'
+			# kicks in if person goes to next page by pressing aagey or wapis, or is coming in from another page (e.g. photos)
+			if request.user_banned:
+				oblist = all_unfiltered_posts()
+			else:
+				oblist = all_filtered_posts()
+			photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)	
+	except:
+		# kicks in if user is not logged in
+		if request.user_banned:
+			oblist = all_unfiltered_posts()
 		else:
-			context["current_namaz"] = namaz
-		if next_namaz == 'Zuhr' and day == 4:#4 if Friday
-			context["next_namaz"] = 'Jummah'	
+			oblist = all_filtered_posts()
+		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)
+		# ensures goes to 'else' above in next refresh, instead of hitting the expensive 'except' again and again
+		request.session['home_photo_ids'] = None
+		request.session['home_non_photo_link_ids'] = None
+		request.session['home_list_of_dictionaries'] = None
+	paginator = Paginator(list_of_dictionaries, 20) #give it a list of objects and number of objects to show per page, it does the rest
+	page = request.GET.get('page', '1')
+	try:
+		page = paginator.page(page)
+	except PageNotAnInteger:
+		# If page is not an integer, deliver first page.
+		page = paginator.page(1)
+	except EmptyPage:
+		# If page is out of range (e.g. 9999), deliver last page of results.
+		page = paginator.page(paginator.num_pages)
+	context["page"] = page
+	############################################ Namaz feature #############################################
+	now = datetime.utcnow()+timedelta(hours=5)
+	day = now.weekday()
+	current_minute = now.hour * 60 + now.minute
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	context["next_namaz_start_time"] = next_namaz_start_time
+	if namaz == 'Zuhr' and day == 4: #4 is Friday
+		context["current_namaz"] = 'Jummah'
+	else:
+		context["current_namaz"] = namaz
+	if next_namaz == 'Zuhr' and day == 4:#4 if Friday
+		context["next_namaz"] = 'Jummah'	
+	else:
+		context["next_namaz"] = next_namaz
+	if not namaz and not next_namaz:
+		# do not show namaz element at all, some error may have occurred
+		context["show_current"] = False
+		context["show_next"] = False
+	elif not namaz:
+		if request.user.is_authenticated():
+			try:
+				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
+				already_prayed = AlreadyPrayed(latest_salat, now)
+				if already_prayed == 2:
+					#if user skipped previous namaz, no need to show prompt
+					context["show_current"] = False
+					context["show_next"] = False
+				else:
+					context["show_current"] = False
+					context["show_next"] = True
+			except:
+				context["show_current"] = False
+				context["show_next"] = True
 		else:
-			context["next_namaz"] = next_namaz
-		if not namaz and not next_namaz:
-			# do not show namaz element at all, some error may have occurred
 			context["show_current"] = False
-			context["show_next"] = False
-		elif not namaz:
-			if self.request.user.is_authenticated():
-				try:
-					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-					already_prayed = AlreadyPrayed(latest_salat, now)
+			context["show_next"] = True
+	else:
+		if request.user.is_authenticated():
+			try:
+				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
+				already_prayed = AlreadyPrayed(latest_salat, now)
+				if already_prayed:
 					if already_prayed == 2:
-						#if user skipped previous namaz, no need to show prompt
 						context["show_current"] = False
 						context["show_next"] = False
 					else:
 						context["show_current"] = False
 						context["show_next"] = True
-				except:
-					context["show_current"] = False
-					context["show_next"] = True
-			else:
-				context["show_current"] = False
-				context["show_next"] = True
-		else:
-			if self.request.user.is_authenticated():
-				try:
-					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-					already_prayed = AlreadyPrayed(latest_salat, now)
-					if already_prayed:
-						if already_prayed == 2:
-							context["show_current"] = False
-							context["show_next"] = False
-						else:
-							context["show_current"] = False
-							context["show_next"] = True
-					else:
-						#i.e. show the CURRENT namaz the user has to offer
-						context["show_current"] = True
-						context["show_next"] = False
-				except:
-					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+				else:
+					#i.e. show the CURRENT namaz the user has to offer
 					context["show_current"] = True
 					context["show_next"] = False
-			else:
+			except:
+				#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
 				context["show_current"] = True
 				context["show_next"] = False
-		################################################################################################################
-		if self.request.user.is_authenticated():
-			num = random.randint(1,4)
-			context["random"] = num #determines which message to show at header
-			if num > 2:
-				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
-			else:
-				context["newest_user"] = None
-			context["authenticated"] = True
-			user = self.request.user
-			context["ident"] = user.id #own user id
-			context["username"] = user.username #own username
-			score = user.userprofile.score
-			context["score"] = score #own score
-			if score > 9:
-				context["can_vote"] = True #allowing user to vote
-			global condemned
-			if self.request.user_banned:
-				context["notification"] = 0 #hell banned users will never see notifications
-				context["sender"] = 0 #hell banned users will never see notifications
-			else:
-				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-				if not is_link and not is_photo and not is_groupreply and not is_salat:
-					context["latest_reply"] = []
-					context["notification"] = 0
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-				elif not freshest_reply:
-					context["latest_reply"] = []
-					context["notification"] = 0
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-				elif is_groupreply:
-					if object_type == '1':
-						# private mehfil
-						context["type_of_object"] = '3a'
-						context["notification"] = 1
-						context["banned"] = False
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi'] #group id
-					elif object_type == '0':
-						# public mehfil
-						context["type_of_object"] = '3b'
-						context["notification"] = 1
-						context["banned"] = False
-						context["first_time_user"] = False
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi'] #group id
-					else:
-						context["latest_reply"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-						context["banned"] = False
-				elif is_salat:
-					salat_invite = freshest_reply
-					context["type_of_object"] = '4'
+		else:
+			context["show_current"] = True
+			context["show_next"] = False
+	################################################################################################################
+	if request.user.is_authenticated():
+		num = random.randint(1,4)
+		context["random"] = num #determines which message to show at header
+		if num > 2:
+			context["newest_user"] = User.objects.latest('id') #for unauthenticated users
+		else:
+			context["newest_user"] = None
+		context["authenticated"] = True
+		user = request.user
+		context["ident"] = user.id #own user id
+		context["username"] = user.username #own username
+		score = user.userprofile.score
+		context["score"] = score #own score
+		if score > 9:
+			context["can_vote"] = True #allowing user to vote
+		global condemned
+		if request.user_banned:
+			context["notification"] = 0 #hell banned users will never see notifications
+			context["sender"] = 0 #hell banned users will never see notifications
+		else:
+			object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+			if not is_link and not is_photo and not is_groupreply and not is_salat:
+				context["latest_reply"] = []
+				context["notification"] = 0
+				context["parent"] = []
+				context["parent_pk"] = 0
+				context["first_time_user"] = False
+			elif not freshest_reply:
+				context["latest_reply"] = []
+				context["notification"] = 0
+				context["parent"] = []
+				context["parent_pk"] = 0
+				context["first_time_user"] = False
+			elif is_groupreply:
+				if object_type == '1':
+					# private mehfil
+					context["type_of_object"] = '3a'
 					context["notification"] = 1
-					try:
-						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-					except:
-						context["first_time_user"] = 0
 					context["banned"] = False
-					context["parent"] = salat_invite
-					context["namaz"] = namaz 
-				elif is_link:
-					context["type_of_object"] = '2'
-					if freshest_reply:
-						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
-						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-					else:
-						parent_link_writer = User()
-						WELCOME_MESSAGES = []
-					try:
-						context["latest_reply"] = freshest_reply
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']
-						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
-							context["first_time_user"] = True
-						else:
-							context["first_time_user"] = False
-					except:
-						context["latest_reply"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-				elif is_photo:
-					if object_type == '1':
-						# photo = Photo.objects.get(id=freshest_reply)
-						context["type_of_object"] = '1'
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']
-						context["first_time_user"] = False
-						context["banned"] = False
-					elif object_type == '0':
-						context["latest_comment"] = freshest_reply
-						context["type_of_object"] = '0'
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
-						context["first_time_user"] = False
-						context["banned"] = False						
-					else:
-						context["latest_comment"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-						context["banned"] = False
-					return context
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi'] #group id
+				elif object_type == '0':
+					# public mehfil
+					context["type_of_object"] = '3b'
+					context["notification"] = 1
+					context["banned"] = False
+					context["first_time_user"] = False
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi'] #group id
 				else:
-					return context
-		else:
-			return context
-		return context
+					context["latest_reply"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+			elif is_salat:
+				salat_invite = freshest_reply
+				context["type_of_object"] = '4'
+				context["notification"] = 1
+				try:
+					context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+				except:
+					context["first_time_user"] = 0
+				context["banned"] = False
+				context["parent"] = salat_invite
+				context["namaz"] = namaz 
+			elif is_link:
+				context["type_of_object"] = '2'
+				if freshest_reply:
+					parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
+					WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+					WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+					WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+					WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+					WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+					WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+					WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+					WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+					WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+					WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+					WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+				else:
+					parent_link_writer = User()
+					WELCOME_MESSAGES = []
+				try:
+					context["latest_reply"] = freshest_reply
+					context["notification"] = 1
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi']
+					if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
+						context["first_time_user"] = True
+					else:
+						context["first_time_user"] = False
+				except:
+					context["latest_reply"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+			elif is_photo:
+				if object_type == '1':
+					# photo = Photo.objects.get(id=freshest_reply)
+					context["type_of_object"] = '1'
+					context["notification"] = 1
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi']
+					context["first_time_user"] = False
+					context["banned"] = False
+				elif object_type == '0':
+					context["latest_comment"] = freshest_reply
+					context["type_of_object"] = '0'
+					context["notification"] = 1
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi']#.which_photo_id
+					context["first_time_user"] = False
+					context["banned"] = False						
+				else:
+					context["latest_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+				return render(request, 'link_list.html', context)
+			else:
+				return render(request, 'link_list.html', context)
+	else:
+		return render(request, 'link_list.html', context)
+	return render(request, 'link_list.html', context)
 
-	def get(self, request, *args, **kwargs):
-		self.object_list = self.get_queryset()
-		allow_empty = self.get_allow_empty() #Return a boolean specifying whether to display the page if no objects are available. If this method returns False and no objects are available, the view will raise a 404 instead of displaying an empty page. By default, this is True.
-		if not allow_empty:
-			# allow_empty is True by default in Django ListView, this this code never executes for us.
-			# When pagination is enabled and object_list is a queryset,
-			# it's better to do a cheap query than to load the unpaginated
-			# queryset in memory.
-			if (self.get_paginate_by(self.object_list) is not None
-				and hasattr(self.object_list, 'exists')):
-				# self.get_paginate_by(self.object_list) returns '20' in our case. It basically returns the number of items to paginate by, or None for no pagination. By default this simply returns the value of 'paginate_by'
-				# hasattr: The arguments are an object and a string. The result is 'True' if the string is the name of one of the object's attributes, False if not. 
-				is_empty = not self.object_list.exists()
-			else:
-				#this always executes, since hasattr(self.object_list, 'exists') is always False in our case
-				is_empty = len(self.object_list) == 0 #is_empty is true or false, depending on the outcome
-			if is_empty:
-				# ensures empty list is just not displayed
-				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-						% {'class_name': self.__class__.__name__})
-		context = self.get_context_data(object_list=self.object_list)
-		try:
-			target_id = self.request.session['target_id']
-			self.request.session['target_id'] = None
-		except:
-			target_id = None
-		if target_id:
-			try:
-				index = list(link_id for link_id in self.object_list).index(str(target_id))
-			except:
-				index = None
-			if 0 <= index <= 19:
-				addendum = '#section'+str(index+1)
-			elif 20 <= index <= 39:
-				addendum = '?page=2#section'+str(index+1-20)
-			elif 40 <= index <= 59:
-				addendum = '?page=3#section'+str(index+1-40)
-			elif 60 <= index <= 79:
-				addendum = '?page=4#section'+str(index+1-60)
-			elif 80 <= index <= 99:
-				addendum = '?page=5#section'+str(index+1-80)
-			elif 100 <= index <= 119:
-				addendum = '?page=6#section'+str(index+1-100)
-			else:
-				addendum = '#section0'
-			return HttpResponseRedirect(addendum)
-			#HttpResponseRedirect takes a single argument: the URL to which the user will be redirected. The first argument to the constructor is required – the path to redirect to. This can be a fully qualified URL (e.g. 'https://www.yahoo.com/search/'), an absolute path with no domain (e.g. '/search/'), or even a relative path (e.g. 'search/'). In that last case, the client browser will reconstruct the full URL itself according to the current path.
-		else:
-			return self.render_to_response(context)
-			# Combines a given template with a given context variable dictionary, and returns an HttpResponse object with that rendered text.
-			#I.e. just render the template normally, without redirecting to a specific anchor tag.
+
+# class LinkListView(ListView):
+# 	model = Link
+# 	paginate_by = 20
+# 	template_name = "link_list.html"
+
+# 	def get_queryset(self):
+# 		if self.request.user_banned:
+# 			return all_unfiltered_posts()
+# 		else:
+# 			return all_filtered_posts()
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(LinkListView, self).get_context_data(**kwargs)
+# 		context["checked"] = FEMALES
+# 		# calc_photo_quality_benchmark()
+# 		context["can_vote"] = False
+# 		context["authenticated"] = False
+# 		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(context["object_list"])
+# 		context["links"] = list_of_dictionaries
+# 		###################### Namaz feature #######################################################################
+# 		now = datetime.utcnow()+timedelta(hours=5)
+# 		day = now.weekday()
+# 		current_minute = now.hour * 60 + now.minute
+# 		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+# 		context["next_namaz_start_time"] = next_namaz_start_time
+# 		if namaz == 'Zuhr' and day == 4: #4 is Friday
+# 			context["current_namaz"] = 'Jummah'
+# 		else:
+# 			context["current_namaz"] = namaz
+# 		if next_namaz == 'Zuhr' and day == 4:#4 if Friday
+# 			context["next_namaz"] = 'Jummah'	
+# 		else:
+# 			context["next_namaz"] = next_namaz
+# 		if not namaz and not next_namaz:
+# 			# do not show namaz element at all, some error may have occurred
+# 			context["show_current"] = False
+# 			context["show_next"] = False
+# 		elif not namaz:
+# 			if self.request.user.is_authenticated():
+# 				try:
+# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
+# 					already_prayed = AlreadyPrayed(latest_salat, now)
+# 					if already_prayed == 2:
+# 						#if user skipped previous namaz, no need to show prompt
+# 						context["show_current"] = False
+# 						context["show_next"] = False
+# 					else:
+# 						context["show_current"] = False
+# 						context["show_next"] = True
+# 				except:
+# 					context["show_current"] = False
+# 					context["show_next"] = True
+# 			else:
+# 				context["show_current"] = False
+# 				context["show_next"] = True
+# 		else:
+# 			if self.request.user.is_authenticated():
+# 				try:
+# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
+# 					already_prayed = AlreadyPrayed(latest_salat, now)
+# 					if already_prayed:
+# 						if already_prayed == 2:
+# 							context["show_current"] = False
+# 							context["show_next"] = False
+# 						else:
+# 							context["show_current"] = False
+# 							context["show_next"] = True
+# 					else:
+# 						#i.e. show the CURRENT namaz the user has to offer
+# 						context["show_current"] = True
+# 						context["show_next"] = False
+# 				except:
+# 					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+# 					context["show_current"] = True
+# 					context["show_next"] = False
+# 			else:
+# 				context["show_current"] = True
+# 				context["show_next"] = False
+# 		################################################################################################################
+# 		if self.request.user.is_authenticated():
+# 			num = random.randint(1,4)
+# 			context["random"] = num #determines which message to show at header
+# 			if num > 2:
+# 				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
+# 			else:
+# 				context["newest_user"] = None
+# 			context["authenticated"] = True
+# 			user = self.request.user
+# 			context["ident"] = user.id #own user id
+# 			context["username"] = user.username #own username
+# 			score = user.userprofile.score
+# 			context["score"] = score #own score
+# 			if score > 9:
+# 				context["can_vote"] = True #allowing user to vote
+# 			global condemned
+# 			if self.request.user_banned:
+# 				context["notification"] = 0 #hell banned users will never see notifications
+# 				context["sender"] = 0 #hell banned users will never see notifications
+# 			else:
+# 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+# 				if not is_link and not is_photo and not is_groupreply and not is_salat:
+# 					context["latest_reply"] = []
+# 					context["notification"] = 0
+# 					context["parent"] = []
+# 					context["parent_pk"] = 0
+# 					context["first_time_user"] = False
+# 				elif not freshest_reply:
+# 					context["latest_reply"] = []
+# 					context["notification"] = 0
+# 					context["parent"] = []
+# 					context["parent_pk"] = 0
+# 					context["first_time_user"] = False
+# 				elif is_groupreply:
+# 					if object_type == '1':
+# 						# private mehfil
+# 						context["type_of_object"] = '3a'
+# 						context["notification"] = 1
+# 						context["banned"] = False
+# 						context["parent"] = freshest_reply
+# 						context["parent_pk"] = freshest_reply['oi'] #group id
+# 					elif object_type == '0':
+# 						# public mehfil
+# 						context["type_of_object"] = '3b'
+# 						context["notification"] = 1
+# 						context["banned"] = False
+# 						context["first_time_user"] = False
+# 						context["parent"] = freshest_reply
+# 						context["parent_pk"] = freshest_reply['oi'] #group id
+# 					else:
+# 						context["latest_reply"] = []
+# 						context["notification"] = 0
+# 						context["parent"] = []
+# 						context["parent_pk"] = 0
+# 						context["first_time_user"] = False
+# 						context["banned"] = False
+# 				elif is_salat:
+# 					salat_invite = freshest_reply
+# 					context["type_of_object"] = '4'
+# 					context["notification"] = 1
+# 					try:
+# 						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+# 					except:
+# 						context["first_time_user"] = 0
+# 					context["banned"] = False
+# 					context["parent"] = salat_invite
+# 					context["namaz"] = namaz 
+# 				elif is_link:
+# 					context["type_of_object"] = '2'
+# 					if freshest_reply:
+# 						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
+# 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+# 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+# 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+# 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+# 						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+# 						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+# 						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+# 						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+# 						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+# 						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+# 						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+# 					else:
+# 						parent_link_writer = User()
+# 						WELCOME_MESSAGES = []
+# 					try:
+# 						context["latest_reply"] = freshest_reply
+# 						context["notification"] = 1
+# 						context["parent"] = freshest_reply
+# 						context["parent_pk"] = freshest_reply['oi']
+# 						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
+# 							context["first_time_user"] = True
+# 						else:
+# 							context["first_time_user"] = False
+# 					except:
+# 						context["latest_reply"] = []
+# 						context["notification"] = 0
+# 						context["parent"] = []
+# 						context["parent_pk"] = 0
+# 						context["first_time_user"] = False
+# 				elif is_photo:
+# 					if object_type == '1':
+# 						# photo = Photo.objects.get(id=freshest_reply)
+# 						context["type_of_object"] = '1'
+# 						context["notification"] = 1
+# 						context["parent"] = freshest_reply
+# 						context["parent_pk"] = freshest_reply['oi']
+# 						context["first_time_user"] = False
+# 						context["banned"] = False
+# 					elif object_type == '0':
+# 						context["latest_comment"] = freshest_reply
+# 						context["type_of_object"] = '0'
+# 						context["notification"] = 1
+# 						context["parent"] = freshest_reply
+# 						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
+# 						context["first_time_user"] = False
+# 						context["banned"] = False						
+# 					else:
+# 						context["latest_comment"] = []
+# 						context["notification"] = 0
+# 						context["parent"] = []
+# 						context["parent_pk"] = 0
+# 						context["first_time_user"] = False
+# 						context["banned"] = False
+# 					return context
+# 				else:
+# 					return context
+# 		else:
+# 			return context
+# 		return context
+
+# 	def get(self, request, *args, **kwargs):
+# 		self.object_list = self.get_queryset()
+# 		allow_empty = self.get_allow_empty() #Return a boolean specifying whether to display the page if no objects are available. If this method returns False and no objects are available, the view will raise a 404 instead of displaying an empty page. By default, this is True.
+# 		if not allow_empty:
+# 			# allow_empty is True by default in Django ListView, this this code never executes for us.
+# 			# When pagination is enabled and object_list is a queryset,
+# 			# it's better to do a cheap query than to load the unpaginated
+# 			# queryset in memory.
+# 			if (self.get_paginate_by(self.object_list) is not None
+# 				and hasattr(self.object_list, 'exists')):
+# 				# self.get_paginate_by(self.object_list) returns '20' in our case. It basically returns the number of items to paginate by, or None for no pagination. By default this simply returns the value of 'paginate_by'
+# 				# hasattr: The arguments are an object and a string. The result is 'True' if the string is the name of one of the object's attributes, False if not. 
+# 				is_empty = not self.object_list.exists()
+# 			else:
+# 				#this always executes, since hasattr(self.object_list, 'exists') is always False in our case
+# 				is_empty = len(self.object_list) == 0 #is_empty is true or false, depending on the outcome
+# 			if is_empty:
+# 				# ensures empty list is just not displayed
+# 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+# 						% {'class_name': self.__class__.__name__})
+# 		context = self.get_context_data(object_list=self.object_list)
+# 		try:
+# 			target_id = self.request.session['target_id']
+# 			self.request.session['target_id'] = None
+# 		except:
+# 			target_id = None
+# 		if target_id:
+# 			try:
+# 				index = list(link_id for link_id in self.object_list).index(str(target_id))
+# 			except:
+# 				index = None
+# 			if 0 <= index <= 19:
+# 				addendum = '#section'+str(index+1)
+# 			elif 20 <= index <= 39:
+# 				addendum = '?page=2#section'+str(index+1-20)
+# 			elif 40 <= index <= 59:
+# 				addendum = '?page=3#section'+str(index+1-40)
+# 			elif 60 <= index <= 79:
+# 				addendum = '?page=4#section'+str(index+1-60)
+# 			elif 80 <= index <= 99:
+# 				addendum = '?page=5#section'+str(index+1-80)
+# 			elif 100 <= index <= 119:
+# 				addendum = '?page=6#section'+str(index+1-100)
+# 			else:
+# 				addendum = '#section0'
+# 			return HttpResponseRedirect(addendum)
+# 		else:
+# 			return self.render_to_response(context)
+# 			# Combines a given template with a given context variable dictionary, and returns an HttpResponse object with that rendered text.
+# 			#I.e. just render the template normally, without redirecting to a specific anchor tag.
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -1772,7 +2051,7 @@ class OnlineKonView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 		})
 		try:
 			user_ids = cache_mem.get('online')
@@ -2195,7 +2474,7 @@ class InviteUsersToPrivateGroupView(ListView):
 			return []
 		else:
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})
 			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
@@ -2259,7 +2538,7 @@ class InviteUsersToGroupView(ListView):
 			return []
 		else:
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})	
 			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
@@ -2324,7 +2603,7 @@ class InternalSalatInviteView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})
 		# user_ids = get_latest_online()#get_whose_online()
 		try:
@@ -2348,7 +2627,7 @@ class InternalSalatInviteView(ListView):
 				context["unauthorized"] = True #it's not time for any namaz!
 				return context
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})
 			user_ids = cache_mem.get('online')
 			if namaz:
@@ -4359,7 +4638,6 @@ class UploadPhotoView(CreateView):
 				invisible_score = set_rank()
 				photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, \
 					device=device, avg_hash=avghash, invisible_score=invisible_score)
-				main(f.image_file,f.caption)
 				photo_id = photo.id
 				user_id = user.id
 				time = photo.upload_time
@@ -6761,7 +7039,7 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 					return redirect("see_best_photo")
 				elif origin == '3':
 					request.session["target_id"] = slug
-					return redirect("home")
+					return redirect("home_loc")
 				elif origin == '4':
 					request.session["photograph_id"] = pk
 					return redirect("profile", slug)
@@ -6809,7 +7087,7 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 					return redirect("see_best_photo")
 				elif origin == '3':
 					request.session["target_id"] = link_id
-					return redirect("home")
+					return redirect("home_loc")
 				elif origin == '4':
 					request.session["photograph_id"] = pk
 					return redirect("profile", uname)
@@ -6835,7 +7113,7 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 					return redirect("see_best_photo")
 				elif origin == '3':
 					request.session["target_id"] = link_id
-					return redirect("home")
+					return redirect("home_loc")
 				elif origin == '4':
 					request.session["photograph_id"] = pk
 					return redirect("profile", uname)
@@ -6878,7 +7156,7 @@ def redirect_ban_or_resurrect_page(request, pk=None, uname=None, ident=None, ori
 			return redirect("see_best_photo")
 		elif origin == '3':
 			request.session["target_id"] = link_id
-			return redirect("home")
+			return redirect("home_loc")
 		elif origin == '4':
 			request.session["photograph_id"] = pk
 			return redirect("profile", uname)
@@ -6911,7 +7189,7 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 		return redirect("see_best_photo")
 	elif origin == '3':
 		request.session["target_id"] = link_id
-		return redirect("home")
+		return redirect("home_loc")
 	elif origin == '4':
 		request.session["photograph_id"] = pk
 		return redirect("profile", owner_name)
@@ -6941,7 +7219,7 @@ def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=N
 		return redirect("see_best_photo")
 	elif origin == '3':
 		request.session["target_id"] = link_id
-		return redirect("home")
+		return redirect("home_loc")
 	elif origin == '4':
 		request.session["photograph_id"] = pk
 		return redirect("profile", owner_name)
@@ -7043,7 +7321,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 						return redirect("see_special_photo_pk", ident)
 					else:
 						request.session['target_id'] = int(from_best)
-						return redirect("home")
+						return redirect("home_loc")
 				if from_best == '1':
 					return redirect("see_best_photo_pk", ident)
 				elif from_best == '0':
@@ -7052,7 +7330,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 					return redirect("see_special_photo_pk", ident)
 				else:
 					request.session['target_id'] = int(from_best)
-					return redirect("home")
+					return redirect("home_loc")
 		else:
 			if from_best == '1':
 				return redirect("see_best_photo_pk", ident)
@@ -7062,7 +7340,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 				return redirect("see_special_photo_pk", ident)
 			else:
 				request.session['target_id'] = int(from_best)
-				return redirect("home")
+				return redirect("home_loc")
 
 def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
@@ -7392,7 +7670,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 					return redirect("link_create_pk")
 				try:
 					request.session['target_id'] = link.id
-					return redirect("home")
+					return redirect("home_loc")
 				except:
 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
 			else:

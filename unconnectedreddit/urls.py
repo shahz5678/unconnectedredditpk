@@ -16,7 +16,7 @@ video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_pub
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
 suspend
-from links.views import LinkListView, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
+from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
 ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, \
@@ -34,7 +34,7 @@ see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, Pho
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
 SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, \
 VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,\
-AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#, AdLocationChoiceView
+AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView, home_location #LinkListView
 
 admin.autodiscover()
 
@@ -42,7 +42,9 @@ urlpatterns = patterns('',
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
-	url(r'^$', LinkListView.as_view(), name='home'),
+	# url(r'^$', LinkListView.as_view(), name='home'),
+	url(r'^redirect/$', auth(home_location), name='home_loc'),
+	url(r'^$', home_link_list, name='home'),
 	url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
 	url(r'^bahirniklo/$', 'django.contrib.auth.views.logout_then_login', name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),

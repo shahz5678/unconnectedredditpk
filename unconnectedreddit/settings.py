@@ -352,23 +352,27 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=45),
+		'schedule': timedelta(seconds=45), #execute every 45 seconds
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',
-		'schedule': timedelta(seconds=600),
+		'schedule': timedelta(seconds=10*60), #execute every 10 mins
+	},
+	'tasks.rank_all_photos': {
+		'task': 'tasks.rank_all_photos',
+		'schedule': timedelta(seconds=5*60), #execute every 5 mins
 	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',
-		'schedule': timedelta(seconds=86400), # execute every day
+		'schedule': timedelta(seconds=86400), # execute every 24 hours
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
-		'schedule': timedelta(seconds=86400*7*2), # trim every two weeks
+		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks
 	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',
-		'schedule': timedelta(seconds=11),  # execute every 11 seconds
+		'schedule': timedelta(seconds=25),  # execute every 25 seconds
 		'args': (),
 	},
 	'tasks.fans': {

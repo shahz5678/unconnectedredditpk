@@ -12,11 +12,13 @@ from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile,
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
-add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members
+add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, \
+get_previous_best_photo
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
+from facebook_api import photo_poster
 
 VOTE_WEIGHT = 1.5 # used for calculating daily benchmark
 FLOOR_PERCENTILE = 0.5
@@ -129,10 +131,6 @@ def trim_top_group_rankings():
 def trim_whose_online():
 	expire_whose_online()
 
-@celery_app1.task(name='tasks.rank_all_photos')
-def rank_all_photos():
-	pass
-
 #used to calculate group ranking
 @celery_app1.task(name='tasks.public_group_vote_tasks')
 def public_group_vote_tasks(group_id,priority):
@@ -167,6 +165,22 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
 
+@celery_app1.task(name='tasks.rank_all_photos')
+def rank_all_photos():
+	previous_best_photo_id = get_previous_best_photo()
+	current_best_photo_id = get_best_photo()
+	if previous_best_photo_id is not None:
+		if previous_best_photo_id == current_best_photo_id:
+			pass
+		else:
+			set_best_photo(current_best_photo_id)
+			photo = Photo.objects.get(id=current_best_photo_id)
+			photo_poster(photo.image_file, photo.caption)
+	else:
+		set_best_photo(current_best_photo_id)
+		photo = Photo.objects.get(id=current_best_photo_id)
+		photo_poster(photo.image_file, photo.caption)	
+
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	pass
@@ -182,7 +196,7 @@ def rank_photos():
 def whoseonline():
 	user_ids = get_latest_online()
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 15,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 		})
 	cache_mem.set('online', user_ids)
 

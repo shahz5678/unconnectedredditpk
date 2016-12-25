@@ -230,7 +230,9 @@
 		{% endif %}
 		</p>
 
-{% for link in links %}
+<!-- ################################################################################################# -->
+{% if page.object_list %}
+{% for link in page.object_list %}
 	
 	{% if forloop.counter == 8 %}
 		{% if not show_current and not show_next %}
@@ -405,7 +407,7 @@
 		{% endif %}
 		</span>{% if link.n in checked %}
 		    	<span class="pinkstar"><b>*</b></span>
-		    {% endif %}</a>:<a name=""></a>
+		    {% endif %}</a>:
     	<span class="emoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter }}"></a> 
 		<span class="time"><bdi>, {{ link.t|human_time }}</bdi>
@@ -459,23 +461,21 @@
 		<p><hr size=1 COLOR="#3cb7dd"></p>
 	{% endif %}
 {% endfor %}
-</div>
-</span>
-
-{% endblock %}
-
-{% block pagination %}
-{% if is_paginated %}
-<div class="pagination">
-	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="wapis"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="aagey"><bdi>aagey</bdi></button></a>
-    {% endif %}
-</div><br>
-<br><br>
+{% else %}
+<span style="color:#404040;">Ao gup lagain!</span>
 {% endif %}
-<br>
+
+
+<br><div class="pagination" style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+</div>
+<br><br>
 {% endblock %}
+

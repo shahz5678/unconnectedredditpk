@@ -2,7 +2,8 @@ import json, requests
 from requests.auth import HTTPBasicAuth
 
 # DOMAIN = 'http://10.50.202.114:8000'
-DOMAIN = 'http://aasaninternet.com:786'
+# DOMAIN = 'http://aasaninternet.com:786'
+DOMAIN = 'http://192.168.1.108:8000'
 
 SEND_SMS_URL = DOMAIN+'/api/ad/send_sms/'
 CREATE_URL = DOMAIN+'/api/ad/create/'
@@ -10,8 +11,11 @@ EXPIRE_URL = DOMAIN+'/api/ad/update/'
 UPDATE_URL = DOMAIN+'/api/ad/update/'
 HISTORY_URL = DOMAIN+'/api/ad/history/'
 
-USERNAME = 'admin'
-PASSWORD = 'aasanads'
+# USERNAME = 'admin'
+# PASSWORD = 'aasanads'
+
+USERNAME = 'fahad'
+PASSWORD = 'Pakistan1!'
 
 CONNECT_TIMEOUT = 5#0.01
 READ_TIMEOUT = 5

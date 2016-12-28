@@ -1,0 +1,556 @@
+/*
+
+Section 1 is html styling: name components as they are defined in html code i.e. html,body etc.;
+
+Section 2 is text formatting: 
+
+Section 3 is Button formatting. Naming a class for a Button is also a combination of size and color
+*/
+
+<style>
+
+/*=================================================
+S1: Html styling
+==================================================*/ 
+    html{
+    width:100%;
+    background-color:#FFFFFF;
+    font-family: arial;
+    height:100%;
+    margin-left: 0px;
+    max-width:100%;
+    }
+
+    body{
+    width:100%;
+    font-family: arial;
+    font: arial;
+    margin-left: 0px;
+    max-width:100%;
+    margin-top: 0em;
+    }
+
+    a {
+
+    color: blue;
+    text-decoration: none;
+    }
+
+   button, input[type="button"], input[type="reset"], input[type="submit"]
+    {
+    cursor: pointer;
+    -webkit-appearance: button;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    border: solid 1px #20538D;
+    text-align: center;
+   
+    }
+    
+    .header {
+    background-color: #1CB841;
+    font-family: arial;
+    font-weight: lighter;
+    letter-spacing: 1px;
+    width: 100%;
+    color: #FFF;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    }
+
+    /* navigation bar*/
+
+
+    ul.navbar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #ff9933;
+    font-size: 90%;
+    text-align: center;
+    }
+
+    ul.navbar li {
+        margin: auto;
+        display: inline-block;
+        border-right: 1px solid #ffb366;
+    }
+
+    ul.navbar li:first-child {
+        border-left: 1px solid #ffb366;
+    }
+
+    ul.navbar li a {
+        display: inline-block;
+        color: white;
+        text-align: center;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 1.5px;
+        padding-bottom: 1.5px;
+        text-decoration: none;
+    }
+
+    ul.navbar li a:hover {
+        background-color: #e67300;
+    }
+
+    /*font san serif*/ .fss{font-family:sans-serif;}
+
+    .emoji-table{
+
+    border: 1px solid #d9d9d9; 
+    background: #F3F3F3;
+    padding-top:0.3em;
+    padding-bottom:0.3em;
+}
+
+/*background color cream*/ 
+.bgc{
+    background-color:#FFFFE0;
+}
+
+ .margin{
+    margin-left:3px;
+    margin-right:10px;
+    padding: 10px;
+    border-radius:6px;
+    padding-top:0px;
+    padding-bottom:5px;
+    width: 90%;
+    }
+
+    
+
+/*=================================================
+S2 Text formatiing: Headings and Captions etc.
+
+font size 65% is named cxs,
+font size 80% grey text will be class = "cs cgy", 
+==================================================*/ 
+
+
+    /*caption extra small*/
+    .cxs{
+        font-size:65%;
+    }
+
+    /*caption small*/
+    .cs{ 
+        font-size:85%;
+    }
+
+    /*caption medium*/
+    .cm{
+        font-size: 100%
+    }
+
+    /*caption large*/
+    .cl{
+        font-size:107%;
+    }
+
+    /*caption extra large*/
+    .cxl{
+        font-size:130%;
+    }
+
+
+    /*color black : big_photo_regular*/
+    .clb
+    {
+        color:#404040;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+
+    }
+    /*color red : big_photo*/
+    .cr
+    {
+        color:red;"
+    }
+
+    /*color green*/
+   .cg{
+        color:#179b36;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        margin-bottom:0.5em;
+    }
+
+    /*color grey*/
+    .cgy{
+        color:grey;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        margin-bottom:0.5em;
+    }
+
+
+    /* color background yellow : caption_form */
+    .clbgy{
+        background-color:#FFFFE0;
+    }
+
+    /*color teal for namaz caption*/
+    .ct{
+    color:#1f8cad;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    padding-bottom:0.4em;
+    }
+
+/*color purple for main nav bar*/
+    .cp {
+
+        
+        color:#765989;
+
+    }
+
+      /*color orange for photo related alert*/
+    .co{
+   text-shadow: 0 0 0.3px rgba(0,0,0,0.1);
+   color:#ff9933;
+    }
+
+    /*color lightgrey */      
+    .clg{
+        color:lightgrey;
+    }
+/* white caption */
+.clw {
+    color:white;
+}
+/* pink caption */
+.clp {
+
+    color:#a22a2a;
+}
+/* caption blue */
+.cb {
+    color:#1947D1;
+}
+
+.ct {
+
+    color:#229ec3;
+}
+
+/*color lightgrey */                        .clg{color:lightgrey;}
+/*color caption deeppink*/                  .cdp{color:deeppink;}
+/*color background yellow : caption_form */ .clbgy{background-color:#FFFFE0;}
+
+/*=================================================
+Buttons
+==================================================*/ 
+    /*button to cross out jawab or notification
+
+    9.7em namaz [record save krna]  [extra large]
+    1.7em notification cross [X]    [extra small]
+    7.7em authorize [account bnao]  [large]
+    6.2em ban red [1 week]          [large]
+    6.2em ban orange [ Forever ]    [large]
+    
+
+    4.5em->5em aagay [all medium]
+    4.5em->5em wapis
+    4em->5em wapis orange
+    4em->5em wapis blue
+    5em->5em jhappi
+    5em->5em chapair
+    4em->5em haan 
+    4em->5em nahi
+    5em->5em Zabardast
+    5em->5em Bekar
+
+    ==============
+    color
+    ==============
+
+    red 
+    orange
+    green
+    purple
+    blue
+    blue text with gold bg
+
+
+
+    */
+
+    /*for all buttons*/
+    .btn{ 
+        border-radius:4px;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        color: white;
+        padding-left:2px;
+        padding-right:2px;
+    }
+
+
+    /*button extra small: font size for this will be the class 'cs' a.k.a caption small */
+    .bxs
+    {
+         width:1.7em;
+    }
+
+    /*button small*/
+    .bs{
+         width:5em;
+    }
+
+
+    /*button medium*/
+    .bm{
+         width:6.2em;
+    }
+
+    /*button large*/
+    .bl
+    {
+         width:7.7em;
+    }
+
+    /*button extra large*/
+    .bxl
+    {
+         width:9.7em;
+    }
+
+
+
+
+ 
+
+
+/*button color red*/
+.bcr
+{
+    background-color:#FF1A1A;
+    border-color:#cc0000;
+}
+
+/*button color green*/
+.bcg{
+    background-color:#1CB841;
+    border-color:green;
+}
+
+/*button color orange*/
+.bco{
+    border-color: #ff8000;
+    background: #ff9933;
+}
+
+/*button color blue*/
+.bcb{
+    background-color:#59A5F5;
+    border-color:#0b63c1;
+}
+
+/*button color purple*/
+.bcp{ 
+    background-color:#9971a5;
+    border-color:#765989;
+}
+
+/*snapchat feature - convert to orange button
+share photo feature
+button color golden
+*/
+.bcgd
+{
+    color:#1947D1;
+    background-color:gold;
+    border:solid;
+    border-color:gold;
+}
+
+/*button color grey*/
+.bcgy{ 
+   background-color:#bfbfbf;
+   border-color:#a6a6a6;
+}
+
+/*button color teal*/ 
+.bct{ 
+    background-color:#3cb7dd;
+    border-color:#229ec3;
+}
+
+/*button color cream*/ 
+
+.bcc {
+    background-color:#FFEFD5;
+    border:solid 1px orange;
+}
+
+/*background color cream*/                  .bgc{background-color:#FFFFE0;}
+/*background color lightgreen*/             .bglg{background-color:#EDFFEE;}
+/*background color light orange*/           .bglo{background-color:#ffe8cc;}
+
+
+.nw { white-space: nowrap;}
+
+/*=======================================*/
+
+
+/*=================================================
+End Buttons
+==================================================*/ 
+
+    
+
+
+
+
+    .pinkstar {
+
+    font-size:110%;
+    color:deeppink;
+    }
+
+/*=================================================
+Photos
+==================================================*/ 
+
+.pht {
+
+    width:100%;max-width:400px;
+    margin-bottom:0.3em;border:1px solid lightgrey
+
+}
+
+.bright{
+    filter:brightness(30%);
+    -webkit-filter: brightness(0.3);
+}
+
+.pht-pnt {
+    margin-bottom:-1em;
+    margin-top:0.3em;"
+}
+
+/*=================================================
+Divs
+==================================================*/ 
+
+
+
+
+/* div back grounds*/
+
+
+.div {
+
+    margin-top:0.5em;padding-top:0.5em;padding-bottom:0.5em;
+}
+
+.box {
+
+    margin-top:0.5em;padding-top:0.5em;padding-bottom:0.5em;
+}
+
+/* background color light blue*/
+.dbb{
+
+    background-color:#e7f2fe;
+}
+
+/* backgound color light yellow*/
+
+.dby {
+background-color:lightyellow;
+border:solid;border-width:1px;
+border-color:#ff9933;
+border-radius: 4px;
+}
+
+/* backgound color light purple*/
+.dbp {
+
+    background-color:#faebeb;
+    border:solid;border-width:1px;
+    border-color:#9971a5;
+    border-radius: 4px;
+}
+
+/* backgound color light green*/
+.dbg {
+
+    background-color:#e9fced;
+    border:solid;border-width:1px;
+    border-color:#1CB841;
+    border-radius: 4px;
+}
+
+/* backgound color light teal*/
+.dbt {
+
+    background-color:#e9f7fb;
+    border:solid;border-width:1px;
+    border-color:#3cb7dd;
+    border-radius: 4px;
+}
+
+/*=================================================
+MARGINS
+==================================================*/ 
+
+/*margin*/          .margin{margin-left:3px;margin-right:10px;padding: 10px;border-radius:6px;padding-top:0px;padding-bottom:5px;width:90%;}
+/*margin auto*/     .ma{margin:auto;}
+/*margin left*/     .ml{margin-left:2em;}
+/*margin top*/      .mt{margin-top:0.2em;}
+/*margin bottom*/   .mb{margin-bottom:0.5em;}
+
+/*--ZERO MARGINS--*/
+/*margin zero*/     .mz{margin:0em;}
+/*margin bot zero*/ .mbz{margin-bottom:0em;}
+/*margin top zero*/ .mtz{margin-top:0em;}
+/*margin left zero*/.mlz{margin-left:0em;}
+/*margin right zero*/.mrz{margin-right:0em;}
+
+/*--SMALL MARGINS--*/
+/*margin small*/     .ms{margin:0.5em;}
+/*margin bot small*/ .mbs{margin-bottom:0.5em;}
+/*margin top small*/ .mts{margin-top:0.5em;}
+/*margin left small*/.mls{margin-left:0.5em;}
+/*margin right small*/.mrs{margin-right:0.5em;}
+
+/*--ZERO LARGE--*/
+/*margin large*/     .ml{margin:1em;}
+/*margin bot large*/ .mbl{margin-bottom:1em;}
+/*margin top large*/ .mtl{margin-top:1em;}
+/*margin left large*/.mll{margin-left:1em;}
+/*margin right large*/.mrl{margin-right:1em;}
+
+
+
+/*margin auto*/     .ma{margin:auto;}
+/*margin left*/     .ml{margin-left:2em;}
+/*margin top*/      .mt{margin-top:0.2em;}
+/*margin bottom*/   .mb{margin-bottom:0.5em;}
+
+/*========*/
+
+/*font san serif*/      .fss{font-family:sans-serif;}
+
+
+
+/*===============================================================================================================*/
+/*caption shadow*/  .csw{text-shadow: 0 0 0.3px rgba(0,0,0,0.3);margin-bottom:0.5em;}
+/*===============================================================================================================*/
+/*pink star*/       .pkstr{font-size:110%;color:deeppink;}
+
+/*button with colored text*/.btnc{border-radius:4px; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);margin-bottom:0.5em;margin-top:1em;text-align: center;white-space: nowrap;padding-left:2px;padding-right:2px;}
+
+/*image border blue*/   .ibb{border:1px solid blue;width:auto;}
+/*image border orange*/ .ibo{border:1px solid #ff8000;width:auto;}
+/*image border grey*/   .ibg{border:1px solid lightgrey;width:auto;}
+/*image border green*/  .ibgn{border:1px solid green;width:auto;}
+/*image border purple*/ .ibp{border:1px solid #765989;width:auto;}
+/*image width*/ .iw{width:100%;max-width:400px;margin-bottom:0.3em;}
+/*image width*/ .iw2{width:100%;max-width:400px;margin-top:-0.3em;}
+/*filter brightness 50%*/.fbh{filter:brightness(50%);-webkit-filter: brightness(0.5);}
+/*filter brightness 30%*/.fbl{filter:brightness(30%);-webkit-filter: brightness(0.3);}

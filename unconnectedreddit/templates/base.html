@@ -51,96 +51,36 @@
 <body>
 {% load count %}
 {% check_notif_count as notif_count %}
-<h5 style="text-shadow:0 0 0.1px white;padding-top:0.3em;">Damadam - muft chat aur photos</h5>
-<div class="navbar">
-<p>
-    
-    <a href="/" style="text-shadow:0 0 0.1px #886081;">Home</a> <span style="color:white;">|</span>
+<div class="header cxl">Tumhara apna Damadam</div>
+<ul class="navbar">
 
 {% if user.is_authenticated %}
-    
-    {% if user.userprofile.score and user.userprofile.score > 14 %}
-    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
-    {% else %}
-    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
-    {% endif %}
-    <span style="color:white;">|</span>
-    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a>
-    <span style="color:white;">|</span>
-    {% if user.userprofile.score and user.userprofile.score > 40 %}
-        <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Matka
-        {% if notif_count > 0 %}
-        <span style="color:red;">({{ notif_count }})
-        {% endif %}
-        </a> <span style="color:white;">|</span>
-        <a class="sharing" href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>
-        <span style="color:white;">|</span>
-    {% elif user.userprofile.score and user.userprofile.score > 14 %}
-        <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Tumhara Matka
-        {% if notif_count > 0 %}
-        <span style="color:red;">({{ notif_count }})
-        {% endif %}
-        </a> <span style="color:white;">|</span>
-    {% else %}
-    {% endif %} 
-    <a href="{% url 'online_kon' %}#section0" style="text-shadow:0 0 0.1px #886081;">Online Kon</a>
-        {% if user.userprofile.score and user.userprofile.score < 10 %}
-            <span style="color:white;">|</span>
-            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>Damadam Help</b></a>
-        {% elif user.userprofile.score and user.userprofile.score < 15 %}
-            <span style="color:white;">|</span>
-            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Damadam Help</a>
-        {% elif user.userprofile.score and user.userprofile.score < 41 %}
-            <span style="color:white;">|</span>
-            <a href="{% url 'help' %}#section0" style="text-shadow:0 0 0.1px #886081;">Help</a>
-        {% else %}
-        {% endif %}
-    <span style="color:white;">|</span>
-    <a href="{% url 'profile' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;"><bdi>Profile</bdi></a>
-        {% if user.userprofile.score > 0 %}
-            <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">({{ user.userprofile.score }})</span>
-        {% else %}
-            <span style="color:green;font-size:90%;text-shadow:0 0 0.1px #2FC12F;">(1)</span>
-        {% endif %}
-
-    {% load verified %}
-    {% check_user_is_verified as is_verified %}
-    {% if is_verified %}
-    <span style="color:white;">|</span>
-    <a href="{% url 'bahirniklo' %}">Logout</a>
-    {% endif %}
+    <!-- bunched HTML removes spaces between <li> elements -->
+    <li><a href="/">Home</a></li>{% if user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Likho</a></li>{% else %}<li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Kuch Likho</a></li>{% endif %}<li><a href="{% url 'see_photo' %}">Photos</a></li>{% if user.userprofile.score and user.userprofile.score > 40 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% elif user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Tumhara Matka{% if notif_count > 0 %}<span style="color:blue ;">({{ notif_count }}){% endif %}</a></span>{% else %}{% endif %}<li><a href="{% url 'online_kon' %}#section0">Online Kon</a></li>{% if user.userprofile.score and user.userprofile.score < 10 %}<li><a href="{% url 'help' %}#section0"><b>Damadam Help</b></a></li>{% elif user.userprofile.score and user.userprofile.score < 15 %}<li><a href="{% url 'help' %}#section0">Damadam Help</a></li>{% elif user.userprofile.score and user.userprofile.score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% else %}{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if user.userprofile.score > 0 %}<span style="color:green;font-size:90%;"> ({{ user.userprofile.score }})</span>{% else %}<span style="color:green;font-size:90%;">(1)</span>{% endif %}</a></li>{% load verified %}{% check_user_is_verified as is_verified %}{% if is_verified %}<li><a href="{% url 'bahirniklo' %}">Logout</a></li>{% endif %}
     
 {% else %}
-    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
-    <a href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>New Account Bnao</b></a> <span style="color:white;">|</span>
-    <a href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;">Purana Account Chlao</a>
-{% endif %}</p>
+    <li><a href="/">Home</a></li><li><a href="{% url 'see_photo' %}">Photos</a></li><li><a href="{% url 'register_walkthrough' %}#section0"><b>New Account Bnao</b></a></li><li><a href="{% url 'login_walkthrough' %}#section0">Purana Account Chlao</a></li>
+{% endif %}
+</ul>
+
 <a name="section0"></a>
-</div>
-<div class="container"></div>
+<div class="mbl"></div>
 {% block content %}
 {% endblock %}
-<div class="foot">
+
 
 
         {% block pagination %}
         {% endblock %}
-
-<span style="color:grey;">|</span><a class="foot2" href="/"> Home </a>
+<ul class="navbar">
 {% if user.is_authenticated %}
-<span style="color:grey;">|</span>
-<a href="{% url 'see_photo' %}" class="foot2"> Photos </a><span style="color:grey;">|</span>
-<a class="foot2" href="{% url 'link_create_pk' %}#section0" class="foot2"> Likho </a><span style="color:grey;">|</span>
-<a class="foot2" href="{% url 'logout_penalty' %}#section0" class="foot2"> Bahir Niklo </a><span style="color:grey;">|</span>
+<li><a href="/">Home</a></li><li><a href="{% url 'see_photo' %}">Photos</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'logout_penalty' %}#section0">Bahir Niklo</a></li>
 {% else %}
-<span style="color:grey;">|</span> <a class="foot2" href="{% url 'register_walkthrough' %}#section0"> Neya Account </a>
-<span style="color:grey;">|</span> <a class="foot2" href="{% url 'login_walkthrough' %}#section0"> Purana Account </a>
-<span style="color:grey;">|</span>
+<li><a href="/">Home</a></li><li><a href="{% url 'register_walkthrough' %}#section0">New Account</a></li><li><a href="{% url 'login_walkthrough' %}#section0">Purana Account</a></li>
 {% endif %}
+</ul>
 
-</div>
-<hr size=1>
-<div style="text-align: center;">
+<div class="mts">
 <span style="color:grey;font-size:80%;">|</span><a href="{%url 'privacy_policy' %}" style="font-size:70%;">&nbsp;&nbsp;Privacy Policy&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'about' %}" style="font-size:70%;">&nbsp;&nbsp;About Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'contact' %}" style="font-size:70%;">&nbsp;&nbsp;Contact Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span>
 </div>
 

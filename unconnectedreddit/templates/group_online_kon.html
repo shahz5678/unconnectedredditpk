@@ -3,24 +3,19 @@
 {% block content %}
 
 
-<div class="margin">
+<div class="margin clb">
 {% if unauthorized %}
-<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);"><b>Tumhe ye dekhne ki ijazat nahi</b></span>
+<span class="clb"><b>Tumhe ye dekhne ki ijazat nahi</b>
 {% else %}
-Yahan ye log pichley 10 min mein nazar aye:<br>
+Yahan ye log pichle 10 min mein nazr aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" class="cs"><button class="btn bcg bm cs mtl">wapis</button></a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" class="cs"><button class="btn bcp bm cs mtl">wapis</button></a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% endif %}
 {% for visitor,captain in groupies %}
-	<span class="numbers">
-	<b style="color:lightgrey;">
-	&bullet;
-    </b>
-    </span>
+	<b class="clg">.</b>
 	<a href="{% url 'profile' slug=visitor.username %}">
 	{% if visitor.userprofile.avatar %}
 		<img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
@@ -30,23 +25,22 @@ Yahan ye log pichley 10 min mein nazar aye:<br>
 	{{ visitor.username }}
 	</a>
 	{% if visitor.username in legit %}
-		<span style="color:deeppink;font-size:120%;"><b>*</b></span>
+		<span class="pkstr"><b>*</b></span>
 	{% endif %}
 	{% if captain %}
-		<span style="color:orange;font-size:85%;"><b>(afsar)</b></span>
+		<span class="cgy cs"><b>(afsar)</b></span>
 	{% endif %}
 	{% if visitor == group.owner %}
-		<span style="color:red;font-size:85%;"><b>(admin)</b></span>
+		<span class="cg cs"><b>(admin)</b></span>
 	{% endif %}
 	<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
+	<a href="{% url 'private_group' slug=unique %}" class="cs"><button class="btn bcg bm cs mbl">wapis</button></a><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
+	<a href="{% url 'public_group' slug=unique %}" class="cs"><button class="btn bcp bm cs mbl">wapis</button></a><br><br>
 	{% else %}
-	<a href="{% url 'outsider_group' slug=unique %}" style="font-size:80%;"><b>wapis</b></a><br><br>
 	{% endif %}
 {% endif %}
 </div>
@@ -55,14 +49,15 @@ Yahan ye log pichley 10 min mein nazar aye:<br>
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination">
+<div class="pagination" style="text-align: center;">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><b style="color:red;text-shadow:0 0 0px red;"></b><bdi>wapis</bdi></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><bdi>aagey</bdi><b style="color:green;text-shadow:0 0 0px green;"></b></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" class="fss"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
 {% endif %}
+<br><br>
 {% endblock %}

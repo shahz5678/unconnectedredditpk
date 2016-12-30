@@ -5,15 +5,15 @@
 {% block content %}
 <div class="margin">
 {% if not object_list %}
-<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>new mehfil</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'group_list' %}#section0" style="font-size:65%;"><b>mashoor mehfilein</b></a><span style="font-size:70%;"> |</span>
-<a href="{% url 'group_help' %}#section0" style="font-size:65%;"><b>mehfil kiya hai?</b></a>
+<a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
+<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a><span class="cs"> |</span>
+<a href="{% url 'group_help' %}#section0" class="cxs"><b>mehfil kiya hai?</b></a>
 <br><br>
 	<b>Mehfil</b> mein doston ke sath pics wali chat ki ja sakti hai. <a href="{% url 'group_type' %}">New mehfil banao</a>, aur shuru ho jao.
 {% else %}
 <b>Tumhari mehfilein:</b><br><br>
-<a href="{% url 'group_type' %}#section0" style="font-size:65%;"><b>new mehfil</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'group_list' %}#section0" style="font-size:65%;"><b>mashoor mehfilein</b></a>
+<a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
+<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a>
 <br><br>
 {% for reply in object_list %}
 
@@ -22,21 +22,21 @@
 
 		{% if reply.0.which_group.private == '1' and reply.0.writer != user %}
 			
-			<span style="color:dimgrey;font-size:150%;">.</span>
-			<b style="color:teal;font-size:80%">(invite)</b>
+			<span class="cxl cgy">.</span>
+			<b class="cs ct">(invite)</b>
 			{% if reply.0.writer.userprofile.avatar %}
 				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
 
-			<span style="color:grey;font-size:90%;">
+			<span class="cs cgy">
 				<a href="{% url 'profile' slug=reply.0.writer.username %}">
 				{{ reply.0.writer }}
 				</a>
 			{% for person in verified %}
 				{% if person == reply.0.writer.username %}
-					<span style="font-size:120%;color:deeppink;">
+					<span class="pkstr">
 					<b>*</b>
 					</span>
 				{% endif %}
@@ -44,40 +44,40 @@
 			</span>
 
 			<a href="{% url 'private_group' reply.0.which_group.unique %}">
-			<span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<span class="cg"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
-			<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy cm">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#2DB92D"></p>
 		{% elif reply.0.which_group.private == '1' and reply.0.writer == user %}
 
-			<span style="color:dimgrey;font-size:150%;">.</span>
+			<span class="cgy cxl">.</span>
 
-			<span style="color:grey;font-size:90%;">
+			<span class="cgy cm">
 			Tum ne
 			</span>
 
 			<a href="{% url 'private_group' reply.0.which_group.unique %}">
-			<span style="color:#179b36;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<span class="cg"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
-			<span style="color:grey;font-size:90%;">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy cm">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#2DB92D"></p>
 		{% elif reply.0.which_group.private == '0' and reply.0.writer != user %}
 
-			<span style="color:dimgrey;font-size:150%;">.</span>
-			<b style="color:teal;font-size:80%">(invite)</b>
+			<span class="cgy cxl">.</span>
+			<b class="ct cs">(invite)</b>
 			{% if reply.0.writer.userprofile.avatar %}
 				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
 			
-			<span style="color:grey;font-size:90%;">
+			<span class="cgy cm">
 				<a href="{% url 'profile' slug=reply.0.writer.username %}">
 				{{ reply.0.writer }}
 				</a>
 			{% for person in verified %}
 				{% if person == reply.0.writer.username %}
-					<span style="font-size:120%;color:deeppink;">
+					<span class="pkstr">
 					<b>*</b>
 					</span>
 				{% endif %}
@@ -85,22 +85,22 @@
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
-			<span style="color:#765989;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<span class="cp"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
-			<span style="color:grey;font-size:90%;">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy cm">mein bulaya, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#ac39ac"></p>
 		{% elif reply.0.which_group.private == '0' and reply.0.writer == user %}
 
-			<span style="color:dimgrey;font-size:150%;">.</span>
+			<span class="cgy cxl">.</span>
 			
-			<span style="color:grey;font-size:90%;">
+			<span class="cgy cm">
 			Tum ne
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
-			<span style="color:#765989;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<span class="cp"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
-			<span style="color:grey;font-size:90%;">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy cm">mein invite kia, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#ac39ac"></p>
 
 		{% else %}
@@ -110,59 +110,59 @@
 
 	{% if reply.0.which_group.private == '1' %}
 
-		<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
-		{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)&nbsp;</b>{% endif %}
+		<span class="cgy cxl">.</span>&nbsp;
+		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
 		
 		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span style="color:grey;font-size:90%;">
+		<span class="cgy cm">
 		<a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>
-		{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+		{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
 
-		<a href="{% url 'private_group' reply.0.which_group.unique %}"><b style="color:#179b36;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></a>&nbsp;
+		<a href="{% url 'private_group' reply.0.which_group.unique %}"><b class="cg">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></a>&nbsp;
 
-		<span style="color:grey;font-size:90%;">mein likha:</span><span style="color:#404040;">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span style="color:grey;font-size:80%;">, {{ reply.0.submitted_on|naturaltime }}</span><br>
+		<span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#2DB92D"></p>
 		
 	{% elif reply.0.which_group.private == '0' %}
 
-		<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
+		<span class="cgy cxl">.</span>&nbsp;
 
 		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+		<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
 
-		<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span style="color:#765989;"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
+		<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span class="cp"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
-		<span style="color:grey;font-size:90%;">mein likha:</span><span style="color:#404040;">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span style="color:grey;font-size:80%;">, {{ reply.0.submitted_on|naturaltime }}</span><br>
+		<span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#ac39ac"></p>
 	
 	{% else %}
 
 		{% if reply.0.writer.username == 'unregistered_bhoot' %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
+			<span class="cgy cxl">.</span>&nbsp;
 
-			{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
+			{% if reply.1 == 'False' %}<b class="co cs">(new)</b>{% endif %}&nbsp;
 
-			<span style="color:grey;font-size:90%;"><span style="color:purple;">mehmaan</span> ne</span>&nbsp;
+			<span class="cgy cm"><span class="cp">mehmaan</span> ne</span>&nbsp;
 
-			<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</span></a>&nbsp;
+			<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span class="cp">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</span></a>&nbsp;
 
-			<span style="color:grey;font-size:90%;">mein likha:</span><span style="color:#404040;">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span style="color:grey;font-size:80%;">, {{ reply.0.submitted_on|naturaltime }}</span><br>
+			<span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		{% else %}
-			<span style="color:dimgrey;font-size:150%;">.</span>&nbsp;
+			<span class="cgy cxl">.</span>&nbsp;
 
-			{% if reply.1 == 'False' %}<b style="color:orange;font-size:80%">(new)</b>{% endif %}&nbsp;
+			{% if reply.1 == 'False' %}<b class="co cs">(new)</b>{% endif %}&nbsp;
 
 			{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-			<span style="color:grey;font-size:90%;"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span style="font-size:120%;color:deeppink;"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+			<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
 
-			<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span style="color:purple;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</span></a>&nbsp;
+			<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span class="cp">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</span></a>&nbsp;
 
-			<span style="color:grey;font-size:90%;">mein likha:</span><span style="color:#404040;">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span style="color:grey;font-size:80%;">, {{ reply.0.submitted_on|naturaltime }}</span><br>
+			<span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		{% endif %}
 
 	{% endif %}
@@ -179,12 +179,13 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" style="font-family:arial;"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bs cm"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button class="btn bcg bs cm"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
 {% endif %}
 {% endblock %}
+

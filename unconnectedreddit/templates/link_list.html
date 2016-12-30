@@ -16,12 +16,12 @@
 	{% if notification %}
 	{% if type_of_object == '2' %}
 			
-			<div class="welcome">
+			<div class="box dbt ">
 			{% if first_time_user %}
-				<span style="font-size:90%;color:#229ec3;">
+				<span class="ct cs">
 				Tumhe <b>welcome</b> kiya:
 				</span>
-				<p style="margin-top:0.5em;"></p>
+				<br>
 			{% else %}
 
 				{% if parent.ooa != 'None' %}
@@ -29,25 +29,25 @@
 				{% else %}
 					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 				{% endif %}
-				<span style="color:dimgrey;"><bdi>{{ parent.oon }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
+				<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
 			
 				<p style="margin-top:.5em;"></p>
 			
-				<span class="homechat">
+				<span class="ct cs">
 				is pr <b>new</b> jawab aya:
 				</span>
 				<p style="margin-top:.3em;"></p>
 			{% endif %}	
 			
-			<a href="{% url 'reply_pk' parent_pk %}" style="font-size:95%;"><bdi>{{ parent.lrsn }}</bdi>
+			<a href="{% url 'reply_pk' parent_pk %}"><bdi>{{ parent.lrsn }}</bdi>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar" ><b>*</b></span>
 			    {% endif %}
-			:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="latestreply"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			:<span class="cm"><bdi class="clb">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>
 				<p style="margin-top:.5em;"></p>
-				<button class="jawab">isko jawab do</button></a>&nbsp;&nbsp;
-				<a href="{% url 'x_notif' parent_pk ident 1 %}"><button class="crossnotification"><b>X</b></button></a>
+				<button class="btn nw bm bct mrs">jawab do</button></a>&nbsp;&nbsp;
+				<a href="{% url 'x_notif' parent_pk ident 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
@@ -55,13 +55,13 @@
 			<hr size=1>
 
 
-			<span class="homechat"><b>home</b> ki chat:</span>
+			<span class="ct cm"><b>home</b> ki chat:</span>
 			
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
-	<div class="private group">
-		<b style="color:#179b36;">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
-		<br><br><span style="color:#179b36;font-size:90%;">mein <b>new</b> pegham aya:</span><br><br>
+	<div class="box dbg">
+		<b class="cg cm">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
+		<br><br><span class="cg cs" >mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}" alt="no pic"><br>
 		{% endif %}
@@ -71,23 +71,23 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
-		<span style="font-size:90%;">{{ parent.lrsn }}</span></a>
+		<span class="cm">{{ parent.lrsn }}</span></a>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="time"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'private_group' parent.l %}"><button class="jawab" style="background-color:#2DB92D;border-color:#179b36">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<span class="clb">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		<br><a href="{% url 'private_group' parent.l %}"><button class="btn nw bm bcg mtl mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' %}"><button class="btn bcr bxs" ><b>X</b></button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
-				<span style="color:#179b36;font-size:90%;"><b>home</b> ki chat:</span>
+				<span class="cg cm"><b>home</b> ki chat:</span>
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
-	<div class="public group">
-		<b style="color:#765989;">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
-		<br><br><span style="color:#765989;font-size:90%;">mein <b>new</b> pegham aya:</span><br><br>
+	<div class="box dbp">
+		<b class="cp cm">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
+		<br><br><span class="cp cs">mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}"><br>
 		{% endif %}
@@ -97,20 +97,20 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
-		<span style="font-size:90%;">{{ parent.lrsn }}</span></a>
+		<span class="cm">{{ parent.lrsn }}</span></a>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="time"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'public_group' parent.l %}"><button class="jawab" style="background-color:#765989;;border-color:#503c5d">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		<br><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bm mtl mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' %}"><button class="btn bxs bcr"><b>X</b></button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
-				<span style="color:#765989;font-size:90%;"><b>home</b> ki chat:</span>
+				<span class="cp cm"><b>home</b> ki chat:</span>
 	{% elif type_of_object == '4' %}
-		<div class="namazbox">
+		<div class="box dbg">
 		<a href="{% url 'profile' parent.oon %}#section0">
 		{% if parent.ooa != 'None' %}
 		<img src="{{ parent.ooa|thumbedge }}" alt="no pic" width="22" height="22">
@@ -121,46 +121,46 @@
 				{% if parent.oon in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {{ user.username }}, waqt mila toh <b style="color:#179b36;">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
+		<span class="clb">: {{ user.username }}, waqt mila toh <b style="color:#179b36;">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
 		<br>
 			{% if first_time_user > 1 %}
-			<span style="color:#179b36;font-size:85%;">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
+			<span class="cg cm">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
 			{% endif %}
-		<a href="{% url 'cross_salat_notif' parent.c ident 1 %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<a href="{% url 'cross_salat_notif' parent.c ident 1 %}"><button class="btn bxs bcr mtl"><b>X</b></button></a>
 		</div>
 		<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
-				<span style="color:#179b36;font-size:90%;"><b>home</b> ki chat:</span>
+				<span class="cg cm"><b>home</b> ki chat:</span>
 	{% elif type_of_object == '0' %}
 
-		<div class="photonotification">
-		<span class="span">Photo pr <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
-		<a href="{% url 'comment_pk' parent_pk 6 %}" style="font-size:90%;">
+		<div class="box dby">
+		<span class="co cs">Photo pr <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
+		<a href="{% url 'comment_pk' parent_pk 6 %}">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|thumbedge }}" alt="no pic" class="uploadedphoto"></img>
+			<img src="{{ parent.p|thumbedge }}" alt="no pic" class="pht bright"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
+			<img src="{{ parent.p|thumbedge }}" ></img>
 		{% endif %}
-		<span style="color:grey;">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
-		<p style="margin-top:.3em;"></p>
-		<bdi>{{ latest_comment.lrsn }}</bdi><span style="color:#404040;font-size:110%;">
+		<span class="cgy">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
+		<br class="mbl">
+		<bdi>{{ latest_comment.lrsn }}</bdi><span class="clb cl">
 				{% if latest_comment.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 			    
-		:&nbsp;<bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="commentsubmitted"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
+		:&nbsp;<bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
 		<br>
 		<p style="margin-top:.5em;"></p>
-		<button class="tabsarakaro" >tabsra kro</button></a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 1 0 %}"><button class="crossnotification"><b>X</b></button></a>
+		<button class="btn nw bm bco" >tabsra kro</button></a>&nbsp;&nbsp;
+		<a href="{% url 'cross_comment_notif' parent_pk ident 1 0 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</a>
 		</div>
 		<p style="margin-top:.5em;"></p>
@@ -168,52 +168,53 @@
 				<p style="margin-top:-0.9em;"></p>
 		<hr size=1>
 
-				<span class="span"><b>home</b> ki chat:</span>
+				<span class="co cm"><b>home</b> ki chat:</span>
 	{% elif type_of_object == '1' %}
-		<div class="photonotification" >
-		<span class="span"><a href="{% url 'profile' parent.oon %}">{{ parent.oon }}</a>
+		<div class="box dby">
+		<span class="co cm"><a href="{% url 'profile' parent.oon %}">{{ parent.oon }}</a>
 				{% if parent.oon in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		ne new photo lagai:</span><p style="margin-top:.3em;"></p>
-		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}" style="font-size:90%;">
+		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|thumbedge }}" alt="no pic" class="uploadedphoto"></img>
+			<img src="{{ parent.p|thumbedge }}" alt="no pic" clas="pht bright"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
+			<img src="{{ parent.p|thumbedge }}" style="border:1px solid lightgrey;
+    width:auto;"></img>
 		{% endif %}
 		<span style="color:grey;">{{ parent.od|truncatechars:30 }}</span>
 		<p style="margin-top:.3em;"></p>
-		<button class="tabsarakaro">isko dekho</button>
+		<button class="btn nw bm bco">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}"><button class="crossnotification"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
-				<span class="span"><b>home</b> ki chat:</span>
+				<span class="co cm"><b>home</b> ki chat:</span>
 		{% endif %}
 	{% else %}
 			<table>
 			<tr><td>
 			{% if authenticated %}
 				{% if random < 3 %}
-					<span class="span"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="toplist"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+					<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
 				{% else %}
 					{% if username == newest_user.username %}
-					<span class="span"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="toplist"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+					<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
 					{% else %}
 						{% if score > 120 %}
-						<a href="{% url 'repnick' newest_user.id %}"><button class="crossnotification">X</button></a>
+						<a href="{% url 'repnick' newest_user.id %}"><button class="btn bxs bcr">X</button></a>
 						{% endif %}
-					<span class="homechat"><b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="jawab"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
+					<span class="ct cs"<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bl bct cm"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
 					{% endif %}
 				{% endif %}
 			{% else %}
@@ -238,33 +239,33 @@
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
-			<span class="namaz2"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
+			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
-			<hr size=1 COLOR="#3cb7dd" class="imagemargin">
+			<hr size=1 COLOR="#3cb7dd" >
 		{% elif not show_current and show_next %}
-			<div class="namaz">{% if authenticated %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="namazbutton"><b>record save krna</b></button></a>{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
+			<div class="ct cm">{% if authenticated %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bxl bcg"><b>record save krna</b></button></a>{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
 			</div><hr size=1 COLOR="#3cb7dd">
 		{% else %}
 			<!-- nothing to show -->
 		{% endif %}
 	{% endif %}
 	{% if link.c == '2' %}
-		<div class="new" >
+		<div style="margin-top:-1em; padding-top:1em;background-color:#faebeb;" >
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{% if link.av != 'None' %}
 			<img src="{{ link.av|thumbedge }}" alt="no pic" width="22" height="22"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
-		{% endif %}<span style="font-size:120%;">
+		{% endif %}<span class="cm">
 		{{ link.n }}</span>
 			
 			{% if link.n in checked %}
 		    	<span class="pinkstar"><b>*</b></span>
 		    {% endif %}
 		    
-		</a><span class="newmehfil"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="tabsarakaro" style="background-color:#9971A5;border-color:#765989;">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="newmehfil2" ><u>{{ link.de }}</u></a></span><span class="newmehfil3"><bdi>, {{ link.t|human_time }}</bdi></span>
-		<p><hr size=1 COLOR="#3cb7dd"></p>
+		</a><span class="clb cm"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bm bcp">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="cm cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<p><hr size=1 COLOR="#765989"></p>
 		</div>
 	{% elif link.c == '6' %}
 	<div style="margin-top:-1em;padding-top:1em;">
@@ -273,15 +274,15 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="uploadedphoto"></img>
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 			{% else %}
 			    {% if link.i %}
-			    <a href="{% url 'bari_photo_help' link.pi %}#section0"><div class="barriphoto">[barri photo]</div></a><br>
+			    <a href="{% url 'bari_photo_help' link.pi %}#section0"><div class="cs cgy">[barri photo]</div></a>
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="barriphoto2" src="{{ link.i|photoedge }}"></img></a>
+			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -314,13 +315,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="uploadedphoto"></img>
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="uploadedphoto"></img>
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -329,7 +330,7 @@
 		    {% endif %}
 		    <span class="spanemoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
 			
-				<span class="time"><bdi>, {{ link.t|human_time }}</bdi>
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi>
 	{% if authenticated %}
 		{% if link.dv == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
@@ -345,13 +346,13 @@
 		{% endif %}
 	{% endif %}
 		</span>
-		<p style="margin-top:.5em;">
+		<br>
 	{% if link.aw == '1' and link.h|add:0 > 7 %}
 		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
 	{% else %}
 		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 	{% endif %}
-		<button class="tabsarakaro">
+		<button class="btn nw bm bco mbs mtl">
 		{% if link.pc|add:0 > 1 %}
 		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
 		{% elif link.pc|add:0 == 1 %}
@@ -361,10 +362,10 @@
 		</button></a>
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
-		<a href="{% url 'photo_vote' link.pi 1 3 link.l %}"><button class="zabardast">zabrdast</button></a><br>
-		<a href="{% url 'photo_vote' link.pi 0 3 link.l %}"><button class="bekaar">bekaar</button></a>
+		<a href="{% url 'photo_vote' link.pi 1 3 link.l %}"><button class="btn bs bcg mbs">zabrdast</button></a><br>
+		<a href="{% url 'photo_vote' link.pi 0 3 link.l %}"><button class="btn bs bcr">bekaar</button></a>
 		{% endif %}
-		</p>
+		
 
 		{% if authenticated %}
 		<p style="margin-top:.5em;">
@@ -408,9 +409,9 @@
 		</span>{% if link.n in checked %}
 		    	<span class="pinkstar"><b>*</b></span>
 		    {% endif %}</a>:
-    	<span class="emoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
-			<a name="section{{ forloop.counter }}"></a> 
-		<span class="time"><bdi>, {{ link.t|human_time }}</bdi>
+    	<span class="cl clb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+			<a name="section{{ forloop.counter  }}"></a> 
+		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi>
 	{% if authenticated %}
 		{% if link.dv == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
@@ -426,22 +427,21 @@
 		{% endif %}
 	{% endif %}
 		</span>
-		<p style="margin-top:.5em;">
+		<br>
 				{% if link.cc|add:0 > 0 %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="jawab" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bm bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="jawab">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl">isko jawab do</button></a>
 				{% endif %}
 			<br>
 		{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
-			<a href="{% url 'vote' link.l ident forloop.counter 1 %}"><button class="jhappi">jhappi</button></a>
+			<a href="{% url 'vote' link.l ident forloop.counter 1 %}"><button class="btn bs bcg mbs">jhappi</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.l ident forloop.counter 2 %}" style="font-size:90%;color:green;"><u>+50</u></a>{% endif %}<br>
-			<a href="{% url 'vote' link.l ident forloop.counter 0 %}"><button class="chupair">chupair</button></a>
+			<a href="{% url 'vote' link.l ident forloop.counter 0 %}"><button class="btn bs bcr mbs">chupair</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.l ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-50</u></a>{% endif %}<br>
 		{% endif %}
-		</p>
+	
 		{% if authenticated %}
-		<p style="margin-top:.5em;">
 		{% endif %}
 		{% if authenticated and can_vote %}
 				{% for key,value in link.l|get_votes %}
@@ -456,7 +456,6 @@
 						<span style="font-size:80%;color:#FF1A1A;">ne <b>chupair</b> mr mr kr nani yad kara di <b>(-50)</b></span>
 					{% endif %}<br>
 				{% endfor %}
-		</p>
 		{% endif %}
 		<p><hr size=1 COLOR="#3cb7dd"></p>
 	{% endif %}
@@ -468,14 +467,13 @@
 
 <br><div class="pagination" style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
 </div>
 <br><br>
 {% endblock %}
-

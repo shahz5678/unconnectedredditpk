@@ -2,17 +2,17 @@
 {% load thumbnail %}
 {% block content %}
 
-    <div class="margin">
-    <b style="color:#404040;font-size:105%;">Damadam top 100 stars:</b><br><br>
+    <div class="margin clb">
+    <b class="cl">Damadam top 100 stars:</b><br><br>
     {% for user in object_list %}
-    <b class="numbers">{{ forloop.counter }}.</b>
-    <a href="{% url 'profile' slug=user.owner.username %}#section0">
+    <span class="co cs">{{ forloop.counter }}.</span>
+    <a href="{% url 'profile' slug=user.owner.username %}#section0" class="cb">
 	{% if user.owner.userprofile.avatar %}
 		<img src="{{ user.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
-    {{ user.owner }}</a>{% if user.owner.username in verified %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+    {{ user.owner }}</a>{% if user.owner.username in verified %}<b class="pinkstar">*</b>{% endif %}
 	{% if user.owner.userprofile.media_score %}
 		{% if user.owner.userprofile.media_score < 0 %}
 	    	<span style="color:#9900cc;">(1)</span>
@@ -20,11 +20,11 @@
 	    	<span style="color:#9900cc;">({{ user.owner.userprofile.media_score }})</span>
 		{% endif %}
     {% else %}
-    {% endif %}<b>:<span style="font-size:100%;color:#ff8000;"> <a href="{% url 'profile' slug=user.owner.username %}#section0" style="color:#ff8000;">{{ user.total_fans }} fans</span></b>
-    <span style="font-size:80%;color:#ff8000;">({{ user.total_photos }} photos)</a></span>
+    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.owner.username %}#section0" class="co">{{ user.total_fans }} fans</a></b>
+    <span class="co cs">({{ user.total_photos }} photos)</a></span>
     <br>
     
     {% endfor %}
     </div>
-
+<br><br>
 {% endblock %}

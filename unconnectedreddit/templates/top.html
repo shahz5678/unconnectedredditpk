@@ -2,23 +2,23 @@
 {% load thumbnail %}
 {% block content %}
 {% load cache %}
-{% cache 300 top_fragment %}
-    <div class="margin">
+{% cache 300 top_frag %}
+    <div class="margin clb">
     <b>Top chatters:</b><br><br>
     {% for user in object_list %}
-    <b class="numbers">{{ forloop.counter }}.</b>
+    <span class="cg cs">{{ forloop.counter }}.</span>
     <a href="{% url 'profile' slug=user.username %}#section0">
 	{% if user.userprofile.avatar %}
 		<img src="{{ user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
-    {{ user }}</a>{% if user.username in verified %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
+    {{ user }}</a>{% if user.username in verified %}<b class="pinkstar">*</b>{% endif %}
 	{% if user.userprofile.score %}
 		{% if user.userprofile.score < 0 %}
-	    	<span style="color:red;">({{ user.userprofile.score }})</span>
+	    	<span class="cg">(1)</span>
 	    {% else %}
-	    	<span style="color:#18A018;">({{ user.userprofile.score }})</span>
+	    	<span class="cg">({{ user.userprofile.score }})</span>
 		{% endif %}
     {% else %}
     {% endif %}
@@ -27,4 +27,5 @@
     {% endfor %}
     </div>
 {% endcache %}
+<br><br>
 {% endblock %}

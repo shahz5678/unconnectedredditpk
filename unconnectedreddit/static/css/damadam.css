@@ -45,7 +45,14 @@ S1: Html styling
     border-radius: 4px;
     border: solid 1px #20538D;
     text-align: center;
-   
+    }
+
+    /*border colors*/
+
+    .brcg {
+
+        border-color: solid 1px blue;
+
     }
     
     .header {
@@ -126,12 +133,15 @@ S1: Html styling
     
 
 /*=================================================
-S2 Text formatiing: Headings and Captions etc.
+S2 Text formatting: Headings and Captions etc.
 
 font size 65% is named cxs,
 font size 80% grey text will be class = "cs cgy", 
 ==================================================*/ 
 
+    h2{
+        font-size:125%;
+    }
 
     /*caption extra small*/
     .cxs{
@@ -295,6 +305,11 @@ Buttons
          width:1.7em;
     }
 
+    .bms
+    {
+         width:2.2em;
+    }    
+
     /*button small*/
     .bs{
          width:5em;
@@ -376,7 +391,8 @@ button color golden
 /*button color teal*/ 
 .bct{ 
     background-color:#3cb7dd;
-    border-color:#229ec3;
+    border:solid 1px #229ec3;
+    
 }
 
 /*button color cream*/ 
@@ -546,6 +562,7 @@ MARGINS
 /*button with colored text*/.btnc{border-radius:4px; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);margin-bottom:0.5em;margin-top:1em;text-align: center;white-space: nowrap;padding-left:2px;padding-right:2px;}
 
 /*image border blue*/   .ibb{border:1px solid blue;width:auto;}
+/*image border teal*/   .ibt{border:1px solid teal;width:auto;}
 /*image border orange*/ .ibo{border:1px solid #ff8000;width:auto;}
 /*image border grey*/   .ibg{border:1px solid lightgrey;width:auto;}
 /*image border green*/  .ibgn{border:1px solid green;width:auto;}

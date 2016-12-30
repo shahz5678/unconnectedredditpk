@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="margin">
+<div class="margin clb">
 <h2 style="color:red;">Nickname aur password puraney waley honay chahiyein!</h2>
 
 {% if form.errors %}
@@ -18,7 +18,8 @@
       {{ form.password }}</p>
   
   <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK"><br>
-  <i><span style="color:gray;font-size:85%;">Login nahi ho raha?<br>Barey aur chotey haroof ka khayal rakho</span></i><br><br>
+  <span class="cgy cs">Login nahi ho raha? Baray aur chotey haroof ka khayal rakho</span><br>
 </form>
 </div>
+<br><br>
 {% endblock %}

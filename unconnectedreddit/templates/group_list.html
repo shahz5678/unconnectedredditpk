@@ -3,18 +3,17 @@
 
 
 <div class="margin">
-<a href="{% url 'group_type' %}" style="font-size:65%;"><b>naee mehfil banao</b></a>&nbsp;<span style="font-size:70%;">|</span>
-<a href="{% url 'group_page' %}" style="font-size:65%;"><b>tumhari mehfilein</b></a>&nbsp;
+<a href="{% url 'group_type' %}" class="cxs"><b>naee mehfil banao</b></a>&nbsp;<span class="cs">|</span>
+<a href="{% url 'group_page' %}" class="cxs"><b>tumhari mehfilein</b></a>&nbsp;
 <br><br>
-<b style="color:#404040;">Mashoor mehfilein:</b><br><br>
+<b class="clb">Mashoor mehfilein:</b><br><br>
 {% for group in object_list %}
-<span style="color:lightgrey;font-size:150;">.</span>&nbsp;<a href="{% url 'public_group' slug=group.unique %}" style="color:#765989;"><b>{{ group.topic }}</b></a>
-<span style="color:grey;font-size:80%;">by</span>&nbsp;<span style="color:#6666ff;font-size:85%;">{{ group.owner }}</span>
+<a href="{% url 'public_group' slug=group.unique %}" class="cp"><b>{{ group.topic }}</b></a>
+<span class="cgy cs">by</span>&nbsp;<span class="cb cs">{{ group.owner }}</span>
 <br>
 <hr size=1 COLOR="#b3b3b3">
 {% endfor %}
 </div>
 <br><br>
-
 {% endblock %}
 

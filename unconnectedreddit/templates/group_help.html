@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin"><span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-<b>Mehfil mien dost mil kar chat kar sakta hain:</b><br><br>
-<b>. <span style="color:green;">Private mehfil</span>:</b> Is mein tum aur dost zaati baatein kar saktey hain, kisi aur ko woh chat nazar nahi aati. Is mein pics bhi daali jaa sakti hain. Is mehfil ka nam <span style="color:green;">sabz</span> rang ka hota hai.<br>
-<b>. <span style="color:red;">Open mehfil</span>:</b> Ye mehfil bilkul <a href="/">home</a> ki terah awam ke liye open hai, lekin yahan kay admin woh hota hai jis ne ye mehfil banaee ho. Is mehfil ka nam <span style="color:red;">lal</span> rang ka hota hai.<br>
-<b>. <span style="color:purple;">Bahir wali mehfil</span>:</b> Ye aik private mehfil hai, jis mein tum aisey insaan se baat kar saktey ho jis ka Damadam par khata na ho. Is mehfil ka button tumhari <a href="{% url 'profile' user.username %}">profile</a> par mojood hai.<br><br></span>
-<a href="{% url 'group_page' %}#section0"><< wapis</a>
+<div class="margin clb">
+<b>Mehfil mien dost mil kr chat karte hain!</b><br><br>
+<b><span class="cg">Private mehfil</span>:</b> Is mein zaati baatein ki jati hain. Kisi aur ko iski chat nazr nahi aati. Is mein pics bhi dali jaa sakti hain. Is mehfil ka nam <span style="color:green;">sabz</span> rang ka hota hai.<br class="mbs">
+<b><span class="cp">Open mehfil</span>:</b> Ye mehfil awam ke liye open hoti hai. Yahan kay admin woh hota hai jis ne ye mehfil banaee ho. Is mehfil ka nam <span class="cp">jamni</span> rang ka hota hai.<br><br>
+<a href="{% url 'group_page' %}#section0"><button class="btn bcgy bm mbl">wapis</button></a>
 </div>
 {% endblock %}

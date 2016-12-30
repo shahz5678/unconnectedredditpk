@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin">
-<b style="color:#765989;">Apni mehfil ka mazedar sa topic dalo!</b><br>
+<b class="cp">Apni mehfil ka mazedar sa topic dalo!</b><br>
 <form method="post" action="" method="POST">
 {% csrf_token %}
 
-	<span style="color:red;">{{ form.topic.errors }}</span>
+	<span class="cr">{{ form.topic.errors }}</span>
 	{{ form.topic }}<br>
 
-	<br><b style="color:#765989;">Mehfil ke rules kya rakhne hain?</b><br>  
-	<span style="color:red;">{{ form.rules.errors }}</span>
+	<br><b class="cp">Mehfil ke rules kya rakhne hain?</b><br>  
+	<span class="cr">{{ form.rules.errors }}</span>
 	{{ form.rules }}<br>
 
-	<br><b style="color:#765989;">Mehfil mien pics dalne ki ijazat deni hai?</b><br>
-	<span style="color:red;">{{ form.pics_ki_ijazat.errors }}</span>
-	{% for radio in form.pics_ki_ijazat %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}
+	<br><b class="cp">Mehfil mien pics dalne ki ijazat deni hai?</b><br>
+	<span class="cr">{{ form.pics_ki_ijazat.errors }}</span>
+	{% for radio in form.pics_ki_ijazat %}<table><tr><label for="{{ radio.id_for_label }}"><td><span class="cp mll">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}
 	<br>
-<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;" type="submit" value="OK">
+<button class="btn bms bcp mts" type="submit">OK</button>
 </form>
 </div>
+<br><br>
 {% endblock %}
+
+
+

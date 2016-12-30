@@ -8,18 +8,18 @@
 
 
 {% if group_banned %}
-	
-	<span style="color:red;">Tum <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho.<br>Ab kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
+    
+    <span class="cp">Tum <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho.<br>Ab kisi <a href="{% url 'group_list' %}">aur mehfil</a> mein jao.</span>
 
 {% elif switching %}
-    <span style="color:#404040;"><b>Ye mehfil tum se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
+    <span class="clb"><b>Ye mehfil tum se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
     Hum isey pakarne ki koshish krein ge</span><br><br>
-    <a href="{% url 'group_page' %}#section0"><button style="width:5em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:90%;border-radius:4px;text-align: center;"><b>wapis</b></button></a>
+    <a href="{% url 'group_page' %}#section0"><button class="btn bm bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;border-radius:4px;"><b>X</b></button></a>
-		&nbsp;<span style="color:#404040;"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
-		<span style="color:grey;font-size:80%;">, by&nbsp;
+    <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 %}"><button class="btn bxs bcr"><b>X</b></button></a>
+        &nbsp;<span class="clb"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
+        <span class="cgy cs">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
             <img src="{{ group.owner.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
@@ -27,37 +27,36 @@
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
         </a>
-    	<a href="{% url 'profile' slug=group.owner.username %}"><bdi>{{ group.owner }}</bdi></a>
-    	</span>
+        <a href="{% url 'profile' slug=group.owner.username %}"><bdi>{{ group.owner }}</bdi></a>
+        </span>
 
-	    {% if group.owner.username in ensured %}
-	            <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-	    {% endif %}
-	    
+           {% if group.owner.username in ensured %}
+                <span class="pinkstar"><b>*</b></span>
+           {% endif %}
 
-	    <span style="font-size:65%;">
+        <span class="cs">
 
-	        {% if group.owner.userprofile.score %}
-	            {% if group.owner.userprofile.score < 0 %}
-	                <span style="color:#18A018;">(1)</span>
-	            {% else %}
-	                <span style="color:#18A018;">({{ group.owner.userprofile.score }})</span>
-	            {% endif %}
-	        {% endif %}
+            {% if group.owner.userprofile.score %}
+                {% if group.owner.userprofile.score < 0 %}
+                    <span style="color:#18A018;">(1)</span>
+                {% else %}
+                    <span style="color:#18A018;">({{ group.owner.userprofile.score }})</span>
+                {% endif %}
+            {% endif %}
 
-	    </span>
+        </span>
     <br>
-	    {% if user == group.owner %}
-	    <a href="{% url 'change_topic' %}" style="font-size:70%;">(topic change karo)</a><br>
-	    {% endif %}
+        {% if user == group.owner %}
+        <a href="{% url 'change_topic' %}" style="font-size:70%;">(topic change karo)</a><br>
+        {% endif %}
     
         <div style="margin-top:0.5em;">
-	    {% if group.rules %}
-	    <span style="font-size:80%;color:#404040;">Rules:&nbsp;<span style="color:#765989;"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
-	    {% endif %}
-	    {% if user == group.owner %}
-	    <a href="{% url 'change_rules' %}" style="font-size:70%;">(qanoon change karo)</a>
-	    {% endif %}
+        {% if group.rules %}
+        <span class="clb cs">Rules:&nbsp;<span class="cp"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
+        {% endif %}
+        {% if user == group.owner %}
+        <a href="{% url 'change_rules' %}" class="cxs">(qanoon change karo)</a>
+        {% endif %}
         </div>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
@@ -65,33 +64,33 @@
     <form action="{% url 'public_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
-        <span style="color:#765989;font-size:90%;">Photo:&nbsp;</span>{{ form.image }}<br>
-        <span style="color:grey;font-size:80%;"><i><b>200 KB</b> se barri pic nahi lagti</i></span><br><br>
+        <span class="cp cm"><b>Photo:</b></span>&nbsp;{{ form.image }}<br>
+        <span class="cgy cs"><i><b>200 KB</b> se barri pic nahi lagti</i></span><br><br>
         {% endif %}
-        <span style="color:#765989;font-size:85%;"><b>Likho:</b></span>{{ form.text }}
-
-    <input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;margin-right:2.1em;" type="submit" value="OK" id="id_submit">
+        <span class="cp cm"><b>Likho:</b></span><br>{{ form.text }}
+<br>
+    <button class="btn bms bcp mrl" type="submit" id="id_submit">OK</button>
     </form>
     <form action="{% url 'first_time_public_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <input class="button" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 26px 26px; width:26px;height:26px;background-repeat: no-repeat;background-position: center; border-color:#f9a653;color:#f9c153;text-shadow:none;" type="submit" value=".">
+        <button class="btn bms bco mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
     </form>
         <br><br>
-	    <a href="{% url 'open_invite_type' %}#section0" style="font-size:65%;"><b>invite</b></a>{% if user == group.owner %}<span style="font-size:70%;">|</span>
-        <a href="{% url 'owner_group_online_kon' %}" style="font-size:65%;"><b>afsar banao</b></a>
+        <a href="{% url 'open_invite_type' %}#section0" class="cxs"><b>invite</b></a>{% if user == group.owner %}<span class="cxs ms">|</span>
+        <a href="{% url 'owner_group_online_kon' %}" class="cxs"><b>afsar banao</b></a>
         {%else %}
-        <span style="font-size:70%;">|</span>
-        <a href="{% url 'group_online_kon' %}" style="font-size:65%;"><b>online kon</b></a>
+        <span class="cxs">|</span>
+        <a href="{% url 'group_online_kon' %}" class="cxs"><b>online kon</b></a>
         {% endif %}
     <p style="margin-top:.2em;"></p>
-	    {% if replies|length < 25 %}
-	        <b style="font-size:90%;color:#6a517b;">{{ replies|length }} Baatien:</b><br>
-	    {% else %}
-	        <b style="font-size:90%;color:#6a517b;">Pichli 25 Baatien:</b><br>
-	    {% endif %}
+        {% if replies|length < 25 %}
+            <b class="cp cs">{{ replies|length }} Baatien:</b><br>
+        {% else %}
+            <b class="cp cs">Pichli 25 Baatien:</b><br>
+        {% endif %}
     <table>
-	    {% for reply,writer,time in replies %}
-	       <tr><td>
+        {% for reply,writer,time in replies %}
+           <tr><td>
         {% if reply.category == '2' %}
                 {% if time < 51 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -100,16 +99,11 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-                <span style="color:#765989;font-size:90%;">
+                <span class="cp cs">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
-                    {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
-                    {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-                    {% endif %}
                     {{ writer }}
                     {% if writer.username in ensured %}
-                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+                        <span class="pinkstar"><b>*</b></span>
                     {% endif %}
                 </a>
                     ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko&nbsp;mehfil&nbsp;se&nbsp;<b>nikal</b>&nbsp;<b>dia</b>
@@ -122,9 +116,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}
-                <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-            {% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
+            <span class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
         {% elif reply.category == '4' %}
                 {% if time < 51 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -133,9 +125,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>   {% if writer.username in ensured %}
-                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-                {% endif %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
+            <span class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% elif reply.category == '5' %}
                 {% if time < 51 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -144,12 +134,10 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
                 {% endif %}
-            <span style="color:red;font-size:90%;"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}        
-               <span style="font-size:120%;color:deeppink;"><b>*</b></span>
-            {% endif %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
+            <span class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
-            <img style="width:100%;max-width:400px;" src="{{ reply.image.url|photoedge }}"></img><br>
+            <img class="pht" src="{{ reply.image.url|photoedge }}"></img><br>
             {% endif %}
 
                 {% if time < 51 %}
@@ -180,9 +168,9 @@
                 {% endif %}
             </span>
                 {% if writer.username in ensured %}
-                    <span style="font-size:120%;color:deeppink;"><b>*</b></span>
+                    <span class="pinkstar"><b>*</b></span>
                 {% endif %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-            <span style="color:grey;font-size:65%">,{{ reply.submitted_on|naturaltime }}
+            <span class="cgy cxs">,{{ reply.submitted_on|naturaltime }}
         {% if reply.device == '1' %}
         <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
         {% elif reply.device == '2' %}
@@ -197,9 +185,9 @@
         {% endif %}
             </span>
             {% if user == group.owner %}
-                &nbsp;<a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;font-size:65%;"><b>kick</b></button></a>
+                &nbsp;<a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><button class="btn bcp bs cxs"><b>kick</b></button></a>
             {% else %}
-                &nbsp;<a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;font-size:65%;"><b>report</b></button></a>
+                &nbsp;<a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><button class="btn bcgy bs cxs"><b>report</b></button></a>
             {% endif %}
             <br>
         {% endif %}
@@ -207,7 +195,7 @@
         </td></tr>
         {% endfor %}
     </table>
-<span style="font-size:80%;color:gray;"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
+<span class="cs cgy"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
     {% endif %}
     </div>
     <br><br>

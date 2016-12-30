@@ -37,13 +37,13 @@
     {% elif photo.vote_score < -1 %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:auto;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url|thumbnail }}"></img>
+                <img class="fbl ibg" alt="no pic" src="{{ photo.image_file.url|thumbnail }}"></img>
             {% else %}
-                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+                <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}    
             {% if photo.image_file %}
-                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="fbh ibg"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
             {% endif %}
@@ -51,60 +51,60 @@
     {% else %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ photo.image_file.url }}"></img>
+                <img class="ibg iw" alt="no pic" src="{{ photo.image_file.url }}"></img>
             {% else %}
-                <img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+                <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}
-        	{% if photo.image_file %}
-            	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+            {% if photo.image_file %}
+                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
             {% else %}
-            	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
             {% endif %}
         {% endif %}
     {% endif %}</a>
     
     {% if not is_first or photo.vote_score < -2 %}
-    <span style="color:#404040;font-size:90%;">{{ photo.caption|truncatechars:30 }}</span>
+    <span class="clb cs">{{ photo.caption|truncatechars:30 }}</span>
     {% else %}
-    <br><span style="color:#404040;font-size:100%;"><b>{{ photo.caption }}</b></span>
+    <br><span class="clb cm"><b>{{ photo.caption }}</b></span>
     {% endif %}
 
     {% if not is_first or photo.vote_score < -2 %}
-    <br><span style="color:#a6a6a6;font-size:80%;">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+    <br><span class="cgy cs">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
     {% else %}
-    <span style="color:#a6a6a6;font-size:80%;">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
+    <span class="cgy cs">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span><br>
     {% endif %}
     {% if banned %}
 
-        <br><hr size=1 COLOR="#ff8000">
-        <span style="color:#404040;">Tum tabsra kr sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <br><hr size=1 class="co">
+        <span class="clb">Tum tabsra kr sko ge <b>{{ time_remaining }}</b> ke baad</span>
         <br>
-        <span style="font-size:90%;color:#ff8000;">Aesa tabsra na likho jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
-        <hr size=1 COLOR="#ff8000">
+        <span class="cs co">Aesa tabsra na likho jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
+        <hr size=1 class="co">
         <br>
 
     {% else %}
-<br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Tabsra likho:</b>
+<br><b class="cm co">Tabsra likho:</b>
     <form action="{% url 'comment' %}" method="POST">
-	{% csrf_token %}
+    {% csrf_token %}
     <input type="hidden" id="id_link" name="origin" class="hidden_id" value="{{ origin }}">
     {{ form.errors }}
     {{ form.text }}
         {% if warned %}
-        <br><span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
+        <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
         {% endif %}
     <br>
-    <input class="button" style="border-color:#ff8000;background-color:#ff9933;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;margin-bottom:0.7em;" type="submit" value="OK" id="id_submit">
+    <button class="btn bco cs bms mts mbl" type="submit"  id="id_submit">OK</button>
     </form>
     {% endif %}
 {% if count > 0 %}
     {% if count > 25 %}
-      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Pichley <b>25</b> tabsrey:</span><br>
+      <span class="cs csw co">Pichley <b>25</b> tabsrey:</span><br>
       {% elif count == 1 %}
-      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>1</b> tabsra:</span><br>
+      <span class="cs csw co"><b>1</b> tabsra:</span><br>
       {% else %}
-      <span style="font-size:90%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>{{ count }}</b> tabsrey:</span><br>
+      <span class="cs csw co"><b>{{ count }}</b> tabsrey:</span><br>
       {% endif %}
     <table>
     {% for comment in comments %}
@@ -114,67 +114,66 @@
     <hr size=1 COLOR="ORANGE">
     {% endif %}
         {% if comment.abuse %}
-        {% if authenticated and viewed_at %}
+        {% if authenticated and viewed_at %}<!-- what is 'viewed_at?' -->
             {% if not comment_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                <b class="cs co">(new)</b>&nbsp;
             {% elif comment.submitted_on > comment_time %}
-                <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+                <b class="cs co">(new)</b>&nbsp;
             {% endif %}
         {% endif %}
-        <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+        <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cs">
         {% if comment.submitted_by.userprofile.avatar %}
             <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
     {{ comment.submitted_by.username }}</a>
-        <span style="font-size:70%;">
+        <span class="cxs">
             {% if comment.submitted_by.userprofile.score %}
                 {% if comment.submitted_by.userprofile.score < 0 %}
-                    <span style="color:#18A018;">(1)</span>
+                    <span class="cg">(1)</span>
                 {% else %}
-                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                    <span class="cg">({{ comment.submitted_by.userprofile.score }})</span>
                 {% endif %}
             {% endif %}
         </span>
 
-        {% if comment.submitted_by.username in verified %}
-            <span style="color:deeppink;"><b>*</b></span>
-            {% endif %}
-        
-        <span style="color:grey;font-size:90%;">ke tabsrey ko <b>{{ photo.owner }}</b> ne hide kr dia</span>
+            {% if comment.submitted_by.username in verified %}
+                <span class="pkstr"><b>*</b></span>
+            {% endif %}        
+        <span class="cgy cs">ke tabsrey ko <b>{{ photo.owner }}</b> ne hide kr dia</span>
 
     {% else %}
 
     {% if authenticated and unseen %}
         {% if not comment_time %}
-        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        <b class="co cs">(new)</b>&nbsp;
         {% elif comment.submitted_on > comment_time %}
-        <b style="color:orange;font-size:80%">(new)</b>&nbsp;
+        <b class="co cs">(new)</b>&nbsp;
         {% endif %}
     {% endif %}
-    <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
-    	{% if comment.submitted_by.userprofile.avatar %}
-        	<img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+    <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cm">
+        {% if comment.submitted_by.userprofile.avatar %}
+            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
         {% else %}
-        	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
     {{ comment.submitted_by.username }}</a>
-        <span style="font-size:70%;">
+        <span class="cxs">
             {% if comment.submitted_by.userprofile.score %}
                 {% if comment.submitted_by.userprofile.score < 0 %}
-                    <span style="color:#18A018;">(1)</span>
+                    <span class="cg">(1)</span>
                 {% else %}
-                    <span style="color:#18A018;">({{ comment.submitted_by.userprofile.score }})</span>
+                    <span class="cg">({{ comment.submitted_by.userprofile.score }})</span>
                 {% endif %}
             {% endif %}
         </span>
 
-    	{% if comment.submitted_by.username in verified %}
-            <span style="color:deeppink;"><b>*</b></span>
+           {% if comment.submitted_by.username in verified %}
+             <span class="pkstr"><b>*</b></span>
             {% endif %}
-    :&nbsp;<bdi style="color:#404040;">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span style="font-size:73%;color:gray;"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
-    	{% if comment.device == '1' %}
+    :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+        {% if comment.device == '1' %}
         &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
         {% elif comment.device == '2' %}
         &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
@@ -203,7 +202,7 @@
     <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
     {% endif %}
 
-    <button style="font-weight:bold;color:white;background-color:#bfbfbf;border-color:#a6a6a6;width:3.5em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">hide</button></a>
+    <button class="btn bcgy cxs bs" >hide</button></a>
     {% endif %}
 
     {% if authenticated and user != comment.submitted_by %}
@@ -221,7 +220,7 @@
     {% else %}
     <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin %}">
     {% endif %}
-    <button style="font-weight:bold;color:white;background-color:#ff9933;border-color:#ff8000;width:4.6em;white-space:nowrap;border-radius: 3px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;font-size:65%;">mehfil</button></a>
+    <button class="btn bco bs cxs">mehfil</button></a>
     {% endif %}
     <br>
     {% endif %}
@@ -229,24 +228,24 @@
     {% endfor %}
     </table>
 {% endif %}
-<p style="margin-top:0.5em;"></p>
+<p class="mt"></p>
 <hr size=1 COLOR="ORANGE">
 <p style="margin-top:-0.9em;"></p>
 <hr size=1 COLOR="ORANGE">
 
-<span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-<span style="font-size:75%;color:dimgrey;"><b>.</b> zarur likhna&nbsp;</span><span style="font-size:90%;">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" style="font-size:75%;">{% else %}<a href="{% url 'faces' %}" style="font-size:75%;">{% endif %}faces full list</a>
+<span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
+<span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cm">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
 
 {% emoticons_index as emoticons_list %}
 
 {% for emoticons in emoticons_list %}
 {% if forloop.counter in random %}
-<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b style="color:#404040;">{{ emoticons.0 }}</b></p>
+<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
 {% endif %}
 {% endfor %}
 
 {% else %}
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Ye is terah nahi chalta!</h2>
+<h2 class="clb csw">Ye is terah nahi chalta!</h2>
 {% endif %}
 </div>
 {% endblock %}

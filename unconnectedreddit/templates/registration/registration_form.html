@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="margin">
+<div class="margin clb">
 <form method="post" action="">
   {% csrf_token %}
   {{ form.as_p }}
   <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;" type="submit" value="OK">
-  <br><br><i><span style="color:gray;font-size:85%;">Account nahi bn raha? Koi aur <b>nickname</b> rkh ke dekho!</span></i>
+  <br><span class="cgy cs">Account nahi bn raha? Koi aur <b>nickname</b> rkh ke dekho!</span>
 </form>
 </div>
-
+<br><br>
 {% endblock %}

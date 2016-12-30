@@ -4,40 +4,44 @@
     <div class="margin">
     {% if allowed %}
         {% if not users %}
-        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars woh hote hain jin ke tum fan ho</b><br>
-        <span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Is waqt tum kisi star ke fan nahi</span>
+        <b class="clb csw"class="clb csw">Stars woh hote hain jin ke tum fan ho</b><br>
+        <span class="clb csw">Is waqt tum kisi star ke fan nahi</span>
         <br><br>
         <a href="{% url 'profile' user.username %}#section0">
-        <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border:solid 1px #179b36;color:white;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button>
+        <button class="btn bcg bs cs">wapis</button>
         </a>
         {% else %}
-        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Stars jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
+        <b class="clb csw">Stars jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
             {% for star in users %}
-            <b class="numbers">{{ forloop.counter }}.</b>
+            <span class="co cs">{{ forloop.counter }}.</span>
             <a href="{% url 'profile' slug=star.0.username %}#section0">
-            	{% if star.0.userprofile.avatar %}
-            		<img src="{{ star.0.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
-            	{% else %}
-            		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-            	{% endif %}
-            {{ star.0.username }}</a>{% if star.0.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
-            	{% if star.0.userprofile.score %}
-            		{% if star.0.userprofile.score < 0 %}
-            	    	<span style="color:#18A018;font-size:75%;">(1)</span>
-            	    {% else %}
-            	    	<span style="color:#18A018;font-size:75%;">({{ star.0.userprofile.score }})</span>
-            		{% endif %}:
+                {% if star.0.userprofile.avatar %}
+                    <img src="{{ star.0.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                {% endif %}
+            {{ star.0.username }}</a>{% if star.0.username in girls %}<b class="pkstr">*</b>{% endif %}
+                {% if star.0.userprofile.score %}
+                    {% if star.0.userprofile.score < 0 %}
+                        <span class="cg cs">(1)</span>
+                    {% else %}
+                        <span class="cg cs">({{ star.0.userprofile.score }})</span>
+                    {% endif %}:
                 {% else %}
                 {% endif %}
-            <span style="font-size:100%;color:#ff8000;"> <a href="{% url 'profile' slug=star.0.username %}#section0" style="color:#ff8000;"><b>{{ star.1 }}</b> photos</a></span>&nbsp;&nbsp;
-            <a href="{% url 'fan' star.0.id 2 %}"><button style="background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;border-radius:4px;text-align: center;">khatm</button></a>
+            <span class="co cm"> <a href="{% url 'profile' slug=star.0.username %}#section0" class="co"><b>{{ star.1 }}</b> photos</a></span>&nbsp;&nbsp;
+            <a href="{% url 'fan' star.0.id 2 %}"><button class="btn bcr bm cs">khatm</button></a>
             <br>
             {% endfor %}
         {% endif %}
 
     {% else %}
-        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Ye is terah nahi chalta!</b><br><br>    
+        <b class="clb csw">Ye is terah nahi chalta!</b><br><br>    
     {% endif %}
     </div>
+    <br><br>
 {% endblock %}
+
+
+

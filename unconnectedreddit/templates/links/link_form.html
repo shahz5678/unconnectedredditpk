@@ -2,39 +2,41 @@
 {% block content %}
 {% load emoticons_tags %}
 
-<div class="margin" style="color:#404040;">
+<div class="margin">
 {% if banned %}
-	Tum home pe likh sko ge <b>{{ time_remaining }}</b> ke baad
+	<span class="clb">Tum home pe likh sko ge <b>{{ time_remaining }}</b> ke baad</span>
 	<br>
-	<span style="font-size:90%;color:#1f8cad;">Aesi baatein na likho jin se mahol kharab ho aur log bura manaein</span>
+	<span class="cs ct">Aesi baatein na likho jin se mahol kharab ho aur log bura manaein</span>
 {% else %}
-	{% if user.userprofile.score < 8 %}
-	<h2>Chat ke liye neechay kuch likho:</h2> 
-	{% endif %}
 
 	<form method="post" action="" enctype="multipart/form-data">
 	  {% csrf_token %}
-	  <span style="color:red;">{{ form.description.errors }}</span>
-	  <span style="font-size:100%;color:#1f8cad;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Kuch likho:</b></span><br>{{ form.description }}<br>
+	  {% if user.userprofile.score < 8 %}
+	  <span class="cm ct"><b>Chat ke liye neechay kuch likho:</b></span>
+	  {% else %}
+	  <span class="cm ct"><b>Kuch likho:</b></span>
+	  {% endif %}
+	  <span class="cr">{{ form.description.errors }}</span>
+	  <br class="mbl">{{ form.description }}<br class="mbl">
 	  	{% if warned %}
-		<span style="font-size:85%;color:#cc0000;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>
+		<span class="cs cr"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>
 		{% endif %}
-	  <input class="button" style="border-color:#229ec3;background-color:#3cb7dd;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK">
+	  <button class="btn bms bct" type="submit">OK</button>
 	</form>
 	{% if user.userprofile.score and user.userprofile.score < 8 and not warned %}
-	<span style="font-size:80%;color:grey;"><i>maslan likho: aap sub ka din kaisa guzra?</i></span><br>
+	<span class="cs cgy"><i>maslan likho: aap sub ka din kaisa guzra?</i></span><br>
 	{% endif %}
 	<br>
 	<hr size=1>
-	<span style="font-size:80%;color:dimgrey;"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-	<span style="font-size:75%;color:dimgrey;"><b>.</b> zarur likhna&nbsp;</span><span style="font-size:90%;">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" style="font-size:75%;">{% else %}<a href="{% url 'faces' %}" style="font-size:75%;">{% endif %}faces full list</a>
+	<span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
+	<span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cs">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
 
 	{% emoticons_index as emoticons_list %}
 
 	{% for emoticons in emoticons_list %}
 	{% if forloop.counter in random %}
 	
-	<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b style="color:#404040;">{{ emoticons.0 }}</b></p>
+	<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="cm">{{ emoticons.0 }}</b></p>
 	{% endif %}
 	{% endfor %}
 {% endif %}

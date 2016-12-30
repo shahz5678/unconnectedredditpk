@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="margin" style="color:#404040;">
+<div class="margin" class="clb">
 {% if user.userprofile.score > 4999 %}
-Open mehfil banane ki qeemat <b style="color:red;">5000 points</b> hai.<br>Tum ye qeemat dena chahte ho?<br><br>
-&nbsp;<a href="{% url 'open_group_create' %}#section0"><button style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:4em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;font-size:90%;">Haan</button></a><br>
-&nbsp;<a href="{% url 'group_page' %}#section0"><button style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;">Nahi</button></a>
+Open mehfil banane ki qeemat <b class="cp">5000 points</b> hai.<br>Tum ye qeemat dena chahte ho?<br><br>
+&nbsp;<a href="{% url 'open_group_create' %}#section0"><button class="btn bcp bm cm">Haan</button></a><br>
+&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcgy bm cm mtl">Nahi</button></a>
 {% else %}
-Open mehfil banane ki qeemat <b style="color:red;">5000 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhao</a>:<br><br>
- <a href="{% url 'group_page' %}#section0">&nbsp;Wapis jao</a>
+Open mehfil banane ki qeemat <b class="cp">5000 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhao</a>:<br>
+<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mts">Wapis</button></a>
 {% endif %}
 </div>
-
+<br><br>
 {% endblock %}

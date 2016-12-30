@@ -3,17 +3,17 @@
 {% load emoticons_tags %}
 {% block content %}
     <div class="margin">
-    <a href="{% url 'top_photo' %}#section0" style="color:#9900cc;font-size:65%;"><b>high photo score</b></a>&nbsp;<span style="font-size:70%;">|</span>
-    <a href="{% url 'top' %}#section0" style="color:#2eb82e;font-size:65%;"><b>high chat score</b></a>&nbsp;<span style="font-size:70%;">|</span>
-    <a href="{% url 'verified' %}#section0" style="font-size:65%;color:deeppink;"><b>verified girls</b></a><br>
+    <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high photo score</b></a>&nbsp;<span class="cs">|</span>
+    <a href="{% url 'top' %}#section0" class="cg cxs" ><b>high chat score</b></a>&nbsp;<span class="cs" >|</span>
+    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a><br>
         {% if not whose_online %}
             <br>
-            <span style="color:#404040;">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}<br>Hum isko theek krne ki kosh kr rahe hain!</span>
+            <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}<br>Hum isko theek krne ki kosh kr rahe hain!</span>
         {% else %}
         <ol>
-            <span style="color:grey;font-size:80%;"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
+            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
             {% for visitor in object_list %}
-                <span style="color:grey;font-size:90%;">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+                <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=visitor.username %}#section0">
                         {% if visitor.userprofile.avatar %}
                             <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
@@ -22,35 +22,33 @@
                         {% endif %}
                         {{ visitor.username }}
                         </a>
-                        {% for person in legit %}
-                            {% if person == visitor.username %}
-                                <span style="font-size:170%;color:deeppink;"><b>*</b></span>
+                            {% if visitor.username in legit %}
+                                <span class="pkstr"><b>*</b></span>
                             {% endif %}
-                        {% endfor %}
                         {% if visitor.userprofile.score %}
                             {% if visitor.userprofile.score < 0 %}
-                                <span style="color:red;font-size:75%;">({{ visitor.userprofile.score }})</span>
+                                <span class="cr cs">({{ visitor.userprofile.score }})</span>
                             {% else %}
-                                <span style="color:#18A018;font-size:75%;">({{ visitor.userprofile.score }})</span>
+                                <span class="cg cs">({{ visitor.userprofile.score }})</span>
                             {% endif %}
                         {% endif %}
                 <br>
             {% endfor %}
         </ol>
-        <span style="font-size:85%;">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+        <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
         {% endif %}
     </div><br>
 {% endblock %}
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination">
+<div class="pagination" style="text-align: center;">
     {% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bcr bs cs"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bcg bs cs"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div><br>
 <br>

@@ -12,7 +12,7 @@ def photo_poster(image_obj=None, caption=None):
     "page_id"      : PAGE_ID,  # Step 1
     "access_token" : ACCESS_TOKEN   # Step 3
     }
-
+  caption = caption+" (https://damadam.pk)"
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
 

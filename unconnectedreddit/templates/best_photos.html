@@ -9,37 +9,37 @@
 <div class="margin">
 	{% if notification %}
 	{% if type_of_object == '2' %}
-	<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#229ec3;">
+	<div class="div dbt">
 		{% if first_time_user %}
-		<span style="color:#229ec3;font-size:90%;">
+		<span class="cs ct">
 		Tumhe <b>welcome</b> kiya:
 		</span>
-		<p style="margin-top:.5em;"></p>
+		<br>
 		{% else %}
 			{% if parent.ooa != 'None' %}
 				<img src="{{ parent.ooa|thumbedge }}" alt="no pic" width="22" height="22"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 			{% endif %}
-		<span style="color:dimgrey;"><bdi>{{ parent.oon }}</bdi></span>:<span style="color:dimgrey;">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
+		<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
 			
 			<p style="margin-top:.5em;"></p>
 	
-		<span class="homechat">
+		<span class="cs ct">
 				is pr <b>new</b> jawab aya:
 				</span>
 				<p style="margin-top:.3em;"></p>
 			{% endif %}
 		
-		<a href="{% url 'reply_pk' parent_pk %}" style="font-size:95%;"><bdi>{{ parent.lrsn }}</bdi>
+		<a href="{% url 'reply_pk' parent_pk %}"><bdi>{{ parent.lrsn }}</bdi>
 			{% if parent.lrsn in girls %}
 		    	<span class="pinkstar" ><b>*</b></span>
 		    {% endif %}
-		:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="latestreply"><bdi>, {{ parent.lrti|human_time }}</bdi>
+		:<span class="cm"><bdi class="clb">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi>
 		</span>
 			<p style="margin-top:.5em;"></p>
-				<button class="jawab">isko jawab do</button></a>&nbsp;&nbsp;
-				<a href="{% url 'x_notif' parent_pk ident '2' %}"><button class="crossnotification"><b>X</b></button></a>
+				<button class="btn nw bm bct mrs">jawab do</button></a>&nbsp;&nbsp;
+				<a href="{% url 'x_notif' parent_pk ident '2' %}"><button class="btn bcr bxs"><b>X</b></button></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
@@ -48,9 +48,9 @@
 	
 {% elif type_of_object == '3a' %}
 	<!-- priv -->
-	<div class="private group">
-		<b style="color:#179b36;">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
-		<br><br><span style="color:#179b36;font-size:90%;">mein <b>new</b> pegham aya:</span><br><br>
+	<div class="box dbg">
+		<b class="cg">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b>
+		<br><br><span class="cg cs">mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}" alt="no pic"><br>
 		{% endif %}
@@ -60,12 +60,12 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
-		<span style="font-size:90%;">{{ parent.lrsn }}</span></a>
+		<span class="cm">{{ parent.lrsn }}</span></a>
 				{% if parent.lrsn in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="time"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'private_group' parent.l %}"><button class="jawab" style="background-color:#2DB92D;border-color:#179b36">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent_pk ident '2' %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		<br><a href="{% url 'private_group' parent.l %}"><button class="btn nw bm bcg mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent_pk ident '2' %}"><button class="btn bxs bcr" style="margin-top:1em;"><b>X</b></button></a>
 	</div>
 				<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -74,9 +74,9 @@
 
 	{% elif type_of_object == '3b' %}
 	<!-- pub -->
-	<div class="public group">
+	<div class="box dbp">
 		<b style="color:#765989;">{{ parent.od|truncatechars:40 }}</b>
-		<br><br><span style="color:#765989;font-size:90%;">mein <b>new</b> pegham aya:</span><br><br>
+		<br><br><span class="cs cp">mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}"><br>
 		{% endif %}
@@ -86,12 +86,12 @@
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
-		<span style="font-size:90%;">{{ parent.lrsn }}</span></a>
+		<span class="cm">{{ parent.lrsn }}</span></a>
 				{% if parent.lrsn in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {{ parent.lrtx|truncatechars:40 }}</span><span class="time"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'public_group' parent.l %}"><button class="jawab" style="background-color:#765989;;border-color:#503c5d">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '2' %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<span style="color:#404040;">: {{ parent.lrtx|truncatechars:40 }}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		<br><a href="{% url 'public_group' parent.l %}"><button class="btn nw bm bcp mrs" >jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '2' %}"><button class="btn bxs bcr" style="margin-top:1em;"><b>X</b></button></a>
 	</div>
 				<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -99,7 +99,7 @@
 				<hr size=1>
 
 	{% elif type_of_object == '4' %}
-		<div class="namazbox">
+		<div class="div dbg">
 		<a href="{% url 'profile' parent.oon %}#section0">
 		{% if parent.ooa != 'None' %}
 		<img src="{{ parent.ooa|thumbedge }}" alt="no pic" width="22" height="22">
@@ -110,12 +110,12 @@
 				{% if parent.oon in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {{ user.username }}, waqt mila toh <b style="color:#179b36;">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
+		<span class="clb">: {{ user.username }}, waqt mila toh <b class="cg">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
 		<br>
 			{% if first_time_user > 1 %}
-			<span style="color:#179b36;font-size:85%;">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
+			<span class="cg cm">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
 			{% endif %}
-		<a href="{% url 'cross_salat_notif' parent.c ident '2' %}"><button class="crossnotification" style="margin-top:1em;"><b>X</b></button></a>
+		<a href="{% url 'cross_salat_notif' parent.c ident '2' %}"><button class="btn bxs bcr mtl"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -123,10 +123,10 @@
 				<hr size=1>
 
 	{% elif type_of_object == '0' %}
-		<div class="photonotification">
-		<span class="span">Photo pr <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
+		<div class="box dby	">
+		<span class="co cs">Photo pr <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
 		
-		<a href="{% url 'comment_pk' parent_pk 2 %}" style="font-size:90%;">
+		<a href="{% url 'comment_pk' parent_pk 2 %}">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
@@ -138,17 +138,17 @@
 		{% else %}
 			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
 		{% endif %}
-		<span style="color:grey;">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
-		<p style="margin-top:.3em;"></p>
-		<bdi>{{ parent.lrsn }}</bdi><span style="color:#404040;font-size:110%;">
+		<span class="cgy">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
+		<br class="mbl">	
+		<bdi>{{ parent.lrsn }}</bdi><span class="clb cl">
 				{% if parent.lrsn in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		:&nbsp;<bdi>{% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="commentsubmitted"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		:&nbsp;<bdi>{% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		<br>
 		<p style="margin-top:.5em;"></p>
-		<button class="tabsarakaro" >tabsra kro</button></a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 2 0 %}"><button class="crossnotification"><b>X</b></button></a>
+		<button class="btn nw bm bco">tabsra kro</button></a>&nbsp;&nbsp;
+		<a href="{% url 'cross_comment_notif' parent_pk ident 2 0 %}"><button class="btn bcr bxs"><b>X</b></button></a>
 		</a>
 		</div>
 			<p style="margin-top:.5em;"></p>
@@ -156,7 +156,7 @@
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
 	{% elif type_of_object == '1' %}
-		<div class="photonotification" >
+		<div class="div dby" >
 		<span class="span"><a href="{% url 'profile' parent.oon %}">{{ parent.oon }}</a>
 				{% if parent.oon in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
@@ -174,11 +174,11 @@
 		{% else %}
 			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
 		{% endif %}
-		<span style="color:grey;">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
+		<span class="cgy cs">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
 		<p style="margin-top:.3em;"></p>
-		<button class="tabsarakaro">isko dekho</button>
+		<button class="btn nw bm bco mrs">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 2 1 %}"><button class="crossnotification"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident 2 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -187,14 +187,14 @@
 	{% endif %}
 	{% endif %}
 {% if authenticated and score > 29 and not banned %}
-<a href="{% url 'upload_photo' %}#section0"><button style="border-color:#ff8000;background-color:#ff9933;font-size:90%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;width:7em;"><b>New Photo Charhao</b></button></a>
+<a href="{% url 'upload_photo' %}#section0"><button class="btn bl bco"><b>New Photo Charhao</b></button></a>
 </p>
 {% elif not authenticated %}
-<span style="color:grey;font-size:90%;">Photo lagane ke liye account banao</span>
+<span class="cgy cm">Photo lagane ke liye account banao</span>
 {% elif banned %}
 {% elif first_time_user %}
 {% else %}
-<span style="color:#ff8000;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;white-space:nowrap;font-size:95%;color:white;border-radius:4px;text-align: center;margin-bottom:0.5em;"><b>score barhao</b></button></a></span>
+<span style="color:#ff8000;font-size:90%;">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bl bco"><b>score barhao</b></button></a></span>
 {% endif %}
 
 
@@ -202,7 +202,7 @@
 {% for photo in object_list %}
 	{% if forloop.counter == 1 %}
 	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<a href="{% url 'see_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span style="color:orange;">|</span><span style="font-size:78%;color:blue;"><b>&nbsp;&nbsp;Top photos&nbsp;&nbsp;</b></span>&nbsp;<span style="color:orange;">|</span><a href="{% url 'top_photo' %}#section0" style="font-size:78%;color:grey;">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+	<a href="{% url 'see_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span class="co">|</span><span class="cs cb"><b>&nbsp;&nbsp;Top photos&nbsp;&nbsp;</b></span>&nbsp;<span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 	{% else %}
 	<p><hr size=1 COLOR="#ff9933"></p>
@@ -232,7 +232,7 @@
 	{% endif %}
 	</a>
 	<a href="{% url 'comment_pk' photo.id 2 %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-	<button style="border-color:#ff8000;background-color:#ff9933;font-size:85%;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;white-space:nowrap;">
+	<button class="btn nw bm bco cs">
 	{% if photo.comment_count > 1 %}
 	<b>{{ photo.comment_count }}</b> tabsrey
 	{% elif photo.comment_count == 1 %}
@@ -263,33 +263,33 @@
 	
 	
 			{% if photo.vote_score < -2 %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vote_score < -1 %}
 				{% if photo.image_file %}
-				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url|photoedge }}"></img>
+				<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
 				{% else %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% else %}
 				{% if photo.image_file %}
 				
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url|photoedge }}"></img>
+				<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
 				{% else %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% endif %}<br>
 
 			<a href="{% url 'comment_pk' photo.id 2 %}">
 			{% if photo.latest_comment and photo.second_latest_comment %}
 			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
-			<span style="color:#1947D1;font-size:97%;">
+			<span class="cb cm">
 			<span style="color:#ffe8cc;">.</span>{{ photo.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:95%;">{% emoticons %}{{ photo.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
-			<span style="color:#1947D1;font-size:97%;"><span style="color:#FFF8DC;">.</span>{{ photo.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ photo.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			<span class="cb cm"><span style="color:#FFF8DC;">.</span>{{ photo.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
 			</div>
 			{% elif photo.latest_comment %}
 			<div style="background-color:#ffe8cc;width:100%;max-width:400px;margin-top:-0.3em;">
-			<span style="color:#1947D1;font-size:97%;">
-			<span style="color:#ffe8cc;">.</span>{{ photo.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span style="color:#404040;font-size:97%;">{% emoticons %}{{ photo.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
+			<span class="cb cm">
+			<span style="color:#ffe8cc;">.</span>{{ photo.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
 			</span>
 			</div>
 			{% else %}
@@ -298,22 +298,21 @@
 
 			<a href="{% url 'photo_izzat' photo.id 2 %}">
 			{% if photo.visible_score > 1 %}
-			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b>&nbsp;points</button><br>
+			<button class="btn nw bs bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;points</button><br>
 			{% elif photo.visible_score == 1 %}
-			<button style="font-size:90%;color:#009900;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b>&nbsp;point</button><br>
+			<button class="btn nw bs bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;point</button><br>
 			{% else %}
-			<button style="font-size:90%;color:red;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);border-radius: 4px;border-color:#e0e0eb;margin-bottom:0.1em;margin-top:0.3em;white-space:nowrap;"><b>{{ photo.visible_score }}</b>&nbsp;points</button><br>
+			<button class="btn nw bs bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;points</button><br>
 			{% endif %}
 			</a>
 
 				{% if can_vote and photo.id not in voted and photo.owner != user %}
-				<a href="{% url 'photo_vote' photo.id 1 2 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #179b36;background: #1CB841;font-size:90%;margin-top:0.4em;width:5.5em;">zabrdast</button></a><br>
-				<a href="{% url 'photo_vote' photo.id 0 2 %}"><button style="color:white;border-radius:4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-color: #cc0000;background: #FF1A1A;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;width:5.5em;">bekaar</button></a><br>
+				<a href="{% url 'photo_vote' photo.id 1 2 %}"><button class="btn bs bcg cm mbs">zabrdast</button></a><br>
+				<a href="{% url 'photo_vote' photo.id 0 2 %}"><button class="btn bs bcr cm mbs">bekaar</button></a><br>
 				{% endif %}
 
 
-			<a href="{% url 'photo_share' photo.id 2 %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;border-radius:4px;color:white;width:8.5em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;">photo share kro</button></a>
-
+			<a href="{% url 'photo_share' photo.id 2 %}"><button class="btn nw bxl bcp">photo share kro</button></a>
 		
 {% endfor %}
 {% endif %}
@@ -322,14 +321,16 @@
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination">
+<div class="pagination" style="text-align: center;">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
 {% endif %}
+<br><br>
 {% endblock %}
+

@@ -27,8 +27,10 @@ ON_AZURE = os.environ.get('ON_AZURE')
 
 if ON_HEROKU == '1' or ON_AZURE == '1':
 	DEBUG=False
+	STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True
+	STATIC_URL = '/static/'
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -89,7 +91,7 @@ STATIC_ROOT = 'staticfiles'
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 # STATIC_URL = '/static/'
-STATIC_URL = '//damadamstatic.azureedge.net/'
+# STATIC_URL = '//damadamstatic.azureedge.net/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (

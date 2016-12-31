@@ -5674,7 +5674,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
 					members = get_group_members(group.id)
 					context["members"] = members #contains members' usernames
-					if self.request.user.username in members and replies:
+					if members and replies and self.request.user.username in members:
 						# flip "unseen" notification here
 						context["unseen"] = True #i.e. the user is a member and replies exist; the prospect of unseen replies exists
 						update_notification(viewer_id=self.request.user.id, object_id=group.id, object_type='3', seen=True, \

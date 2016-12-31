@@ -468,7 +468,9 @@ def update_cc_in_home_link(link_pk):
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
 	if my_server.exists(hash_name):
 		amnt = my_server.hincrby(hash_name, "cc", amount=1)
-	return amnt
+		return amnt
+	else:
+		return 0
 
 def update_vsc_in_photo(photo_pk, amnt):
 	my_server = redis.Redis(connection_pool=POOL)

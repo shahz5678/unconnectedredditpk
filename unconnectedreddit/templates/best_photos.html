@@ -162,7 +162,7 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		ne new photo lagai:</span><p style="margin-top:.3em;"></p>
-		<a href="{% url 'user_profile_photo' parent.owner.username parent_pk 1 %}" style="font-size:90%;">
+		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}" style="font-size:90%;">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
@@ -313,6 +313,8 @@
 
 
 			<a href="{% url 'photo_share' photo.id 2 %}"><button class="btn nw bxl bcp">photo share kro</button></a>
+
+
 		
 {% endfor %}
 {% endif %}

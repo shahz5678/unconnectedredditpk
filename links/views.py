@@ -6741,7 +6741,7 @@ class WelcomeReplyView(FormView):
 						add_filtered_post(parent.id)
 						extras = add_unfiltered_post(parent.id)
 						if extras:
-							queue_for_deletion.delay(ext)
+							queue_for_deletion.delay(extras)
 					if option == '1' and message == 'Barfi khao aur mazay urao!':
 						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)

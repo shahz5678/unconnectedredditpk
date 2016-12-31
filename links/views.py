@@ -2093,7 +2093,10 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 		request.session["photograph_id"] = photo_pk
 		return redirect("profile", slug)
 	else:
-		return redirect("profile", slug)
+		try:
+			return redirect("profile", slug)
+		except:
+			return redirect("profile", request.user.username)
 
 def profile_pk(request, slug=None, key=None, *args, **kwargs):
 	request.session["photograph_id"] = key

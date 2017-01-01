@@ -34,13 +34,9 @@
 				<a href="{% url 'profile' slug=reply.0.writer.username %}">
 				{{ reply.0.writer }}
 				</a>
-			{% for person in verified %}
-				{% if person == reply.0.writer.username %}
-					<span class="pkstr">
-					<b>*</b>
-					</span>
-				{% endif %}
-			{% endfor %} ne tumhe
+			{% if reply.0.writer.username in verified %}
+					<span class="pkstr"><b>*</b></span>
+				{% endif %} ne tumhe
 			</span>
 
 			<a href="{% url 'private_group' reply.0.which_group.unique %}">
@@ -75,13 +71,9 @@
 				<a href="{% url 'profile' slug=reply.0.writer.username %}">
 				{{ reply.0.writer }}
 				</a>
-			{% for person in verified %}
-				{% if person == reply.0.writer.username %}
-					<span class="pkstr">
-					<b>*</b>
-					</span>
-				{% endif %}
-			{% endfor %} ne tumhe
+			{% if reply.0.writer.username in verified %}
+					<span class="pkstr"><b>*</b></span>
+				{% endif %} ne tumhe
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
@@ -117,7 +109,7 @@
 
 		<span class="cgy cm">
 		<a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>
-		{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+		{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %} ne</span>&nbsp;
 
 		<a href="{% url 'private_group' reply.0.which_group.unique %}"><b class="cg">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></a>&nbsp;
 
@@ -131,7 +123,7 @@
 
 		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+		<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %} ne</span>&nbsp;
 
 		<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span class="cp"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
@@ -158,7 +150,7 @@
 
 			{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-			<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% for person in verified %}{% if person == reply.0.writer.username %}<span class="pkstr"><b>*</b></span>{% endif %}{% endfor %} ne</span>&nbsp;
+			<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %} ne</span>&nbsp;
 
 			<a href="{% url 'outsider_group' slug=reply.0.which_group.unique %}"><span class="cp">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</span></a>&nbsp;
 

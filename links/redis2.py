@@ -86,8 +86,9 @@ def retrieve_unseen_activity(viewer_id):
 		result2 = pipeline2.execute()
 		# print result2
 		for i in range(len(hashes)):
-			combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-			list_of_dictionaries.append(combined)
+			if result2[i]:
+				combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+				list_of_dictionaries.append(combined)
 		# print list_of_dictionaries
 		return list_of_dictionaries
 	else:
@@ -306,6 +307,11 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 		count += 1
 	return replies_list
 
+def remove_group_object(group_id=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	group_object = parent_object = "o:3:"+str(group_id)
+	my_server.delete(group_object)
+
 def remove_group_notification(user_id=None,group_id=None,is_deleted=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	unseen_activity = "ua:"+str(user_id)
@@ -317,12 +323,7 @@ def remove_group_notification(user_id=None,group_id=None,is_deleted=None):
 	my_server.zrem(unseen_activity_resorted, notification)
 	my_server.zrem(single_notif,notification)
 	my_server.delete(notification)
-	if is_deleted:
-		my_server.delete(parent_object)
-	else:
-		num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
-		if num_subscribers < 1:
-			my_server.delete(parent_object)
+	num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
 
 def clean_expired_notifications(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)

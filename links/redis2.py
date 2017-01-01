@@ -86,7 +86,8 @@ def retrieve_unseen_activity(viewer_id):
 		result2 = pipeline2.execute()
 		# print result2
 		for i in range(len(hashes)):
-			if result2[i]:
+			if 'ot' in result2[i]:
+				#i.e. it means object type is defined
 				combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
 				list_of_dictionaries.append(combined)
 		# print list_of_dictionaries

@@ -169,7 +169,7 @@
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination">
+<div style="text-align: center;">
 	{% if page_obj.has_previous %}
     &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bs cm"><bdi>wapis</bdi></button></a>
     {% endif %}
@@ -179,5 +179,6 @@
     {% endif %}
 </div>
 {% endif %}
+<br><br>
 {% endblock %}
 

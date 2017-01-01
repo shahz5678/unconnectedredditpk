@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans hi nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
-<a href="{% url 'public_group_reply' unique %}">< wapis</a>
+<div class="margin clb">
+<b class="cl">Damadam ka sans nikl gya! Km zor lagao yar {% emoticons %}:p{% endemoticons %}</b>
+<br class="mbl">
+<a href="{% url 'public_group' unique %}"><button class="btn bcp bm">wapis</button></a>
 </div>
-<br><br><br>
+<br><br>
 {% endblock %}

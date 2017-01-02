@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Is mehfil ko banane ke liye kam az kam 500 points chahiyen {% emoticons %};){% endemoticons %}</h2>
-<a href="{% url 'comment_pk' pk=pk origin=origin %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:4em;">wapis</button></a>
+<div class="margin clb">
+<b class="cl">Is mehfil ko banane ke liye kam az kam 500 points chahiyen {% emoticons %};){% endemoticons %}</b><br>
+<a href="{% url 'comment_pk' pk=pk origin=origin %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
 </div>
-<br><br><br>
+<br>
 {% endblock %}

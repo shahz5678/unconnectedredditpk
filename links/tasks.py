@@ -57,9 +57,8 @@ def delete_notifications(user_id):
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
-	two_days = datetime.utcnow()-timedelta(hours=24*1)
+	two_days = datetime.utcnow()-timedelta(hours=24*2)
 	photos_score_list = Photo.objects.filter(upload_time__gte=two_days).annotate(unique_comments=Count('photocomment__submitted_by', distinct=True)).values_list('owner_id','vote_score','unique_comments')
-	# print photos_score_list
 	if photos_score_list:
 		photos_total_score_list= [ (k,(VOTE_WEIGHT*v1)+v2) for k,v1,v2 in photos_score_list]
 		total_photos = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})

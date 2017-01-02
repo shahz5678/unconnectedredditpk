@@ -325,14 +325,13 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 		owner_url = photo.owner.userprofile.avatar.url
 	except:
 		owner_url = None
-	# created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,\
-	# 	object_owner_id=photo_id,object_owner_name=photo.owner.username,\
-	# 	object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-	# 	lt_res_sub_name=commenter,lt_res_text=text,res_count=(photo.comment_count+1),\
-	# 	vote_score=photo.vote_score,photourl=photo.image_file.url)
-	# if not created:
-	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
-		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_id,\
+		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
+		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,\
+		photourl=photo.image_file.url)
+	if not created:
+		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
+			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
 	if photo_owner_id == user_id:
 		is_seen = True
 		unseen_activity = True

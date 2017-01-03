@@ -207,7 +207,7 @@ def fans():
 	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk returns a dictionary
 	sorted_list = [object_list[int(x)] for x in user_ids]# if x in object_list]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
 		})
 	cache_mem.set('fans', sorted_list)  # expiring in 120 seconds
 

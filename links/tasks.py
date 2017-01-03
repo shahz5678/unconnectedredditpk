@@ -10,7 +10,8 @@ from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publ
 Video, HotUser, PhotoStream
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online,\
+get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
 add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, \
 get_previous_best_photo
@@ -57,7 +58,7 @@ def delete_notifications(user_id):
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
-	two_days = datetime.utcnow()-timedelta(hours=24*2)
+	two_days = datetime.utcnow()-timedelta(hours=24*24)
 	photos_score_list = Photo.objects.filter(upload_time__gte=two_days).annotate(unique_comments=Count('photocomment__submitted_by', distinct=True)).values_list('owner_id','vote_score','unique_comments')
 	if photos_score_list:
 		photos_total_score_list= [ (k,(VOTE_WEIGHT*v1)+v2) for k,v1,v2 in photos_score_list]
@@ -201,11 +202,14 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	object_list = TotalFanAndPhotos.objects.select_related('owner__userprofile').exclude(total_photos=0).order_by('-total_fans','-total_photos')[:100]
+	top_100_ids_wscr = get_top_100() #list of top 100 photo uploaders (with scores)
+	user_ids = map(itemgetter(0),top_100_ids_wscr)
+	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk returns a dictionary
+	sorted_list = [object_list[int(x)] for x in user_ids]# if x in object_list]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 		})
-	cache_mem.set('fans', object_list)  # expiring in 120 seconds
+	cache_mem.set('fans', sorted_list)  # expiring in 120 seconds
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():

@@ -8,7 +8,6 @@ register = template.Library()
 def check_notif_count(context):
 	try:
 		user_id = context['request'].user.id
-		notif = get_notif_count(user_id) 
-		return notif
+		return get_notif_count(user_id) 
 	except:
 		return 0

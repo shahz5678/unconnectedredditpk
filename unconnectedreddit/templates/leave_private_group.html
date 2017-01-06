@@ -2,10 +2,14 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<b class="cl">Kia is mehfil ko chorna chahte ho? {% emoticons %}.j1.j2.j3.j4{% endemoticons %}</b>
+<b class="cl"><span class="cg">{{ topic }}</span> ko chorna hai? {% emoticons %}.j1.j2.j3.j4{% endemoticons %}</b>
 <br class="mbl">
 &nbsp;<a href="{% url 'left_private_group' pk unique private %}"><button class="btn bcg bm mbl">Haan</button></a><br>
+{% if inside_grp == '1' %}
 &nbsp;<a href="{% url 'private_group' unique %}"><button class="btn bcr bm mbs">Nahi</button></a>
+{% else %}
+&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcr bm mbs">Nahi</button></a>
+{% endif %}
 </div>
 <br>
 {% endblock %}

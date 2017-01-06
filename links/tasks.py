@@ -12,9 +12,9 @@ from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile,
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online,\
 get_top_100
-from .redis1 import add_filtered_post, add_unfiltered_post, add_photo_to_best, all_photos, add_video, save_recent_video, \
-add_to_deletion_queue, delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, \
-get_previous_best_photo
+from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
+delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
+add_photos_to_best
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -187,9 +187,16 @@ def rank_all_photos1():
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
-	for photo in Photo.objects.filter(id__in=all_photos()):
+	photos = Photo.objects.filter(id__in=all_photos())
+	photo_scores={}
+	for photo in photos:
 		score = photo.set_rank()
-		add_photo_to_best(photo.id, score)
+		photo_scores[photo] = score
+	best_photos = sorted(photo_scores,key=photo_scores.get, reverse=True) #returns list of keys, sorted by values
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 75,
+	})
+	cache_mem.set('best_photos', best_photos)
 
 # @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
@@ -210,6 +217,23 @@ def fans():
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
 		})
 	cache_mem.set('fans', sorted_list)  # expiring in 120 seconds
+
+@celery_app1.task(name='tasks.salat_info')
+def salat_info():
+	salat_timings = {}
+	now = datetime.utcnow()+timedelta(hours=5)
+	current_minute = now.hour * 60 + now.minute
+	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	salat_timings['previous_namaz'] = previous_namaz
+	salat_timings['next_namaz'] = next_namaz
+	salat_timings['namaz'] = namaz
+	salat_timings['next_namaz_start_time'] = next_namaz_start_time
+	salat_timings['current_namaz_start_time'] = current_namaz_start_time
+	salat_timings['current_namaz_end_time'] = current_namaz_end_time
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+	cache_mem.set('salat_timings', salat_timings)
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
@@ -547,3 +571,8 @@ def video_upload_tasks(video_name, video_id, user_id):
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 	else:
 		pass
+
+obj1 = locals()['salat_info']
+obj2 = locals()['rank_photos']
+obj1.run()
+obj2.run()

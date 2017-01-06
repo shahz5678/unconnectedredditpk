@@ -527,7 +527,15 @@ def add_vote_to_home_link(link_pk, value, username):
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("bestphotos:1000", 0, -1, withscores=False)
+	return my_server.zrange("bestphotos:1000", 0, -1, withscores=True)
+
+def add_photos_to_best(photo_scores):
+	my_server = redis.Redis(connection_pool=POOL)
+	best_photos = "bestphotos:1000"
+	pipeline1 = my_server.pipeline()
+	pipeline1.delete(best_photos)
+	pipeline1.zadd(best_photos,*photo_scores)
+	pipeline1.execute()
 
 def add_photo_to_best(photo_id, score):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -714,6 +722,26 @@ def add_group_invite(user_id, group_id, invite_id):
 		mapping = {'grp':group_id, 'usr':user_id, 'ivt':invite_id}
 		my_server.hmset(hash_name, mapping)
 
+def bulk_remove_group_invites(group_id, invited_ids):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for invited_id in invited_ids:
+		hash_name = "giu:"+str(group_id)+str(invited_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
+		invite = pipeline1.hget(hash_name, 'ivt') # get the invite_id to be removed	
+	invite_ids = pipeline1.execute()
+	print "invites to be removed are: %s" % invite_ids
+	count = 0
+	pipeline2 = my_server.pipeline()
+	for invite in invite_ids:
+		if invite:
+			hash_name = "giu:"+str(group_id)+str(invited_ids[count])
+			pipeline2.srem("pir:"+str(invited_ids[count]),invite) #remove invite for user: invited_ids[count]
+			print "removing invite_id %s from %s" % (invite,"pir:"+str(invited_ids[count]))
+			pipeline2.delete(hash_name)
+			print "deleting %s" % hash_name
+		count += 1
+	pipeline2.execute()
+
 def check_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
@@ -732,6 +760,7 @@ def remove_group_member(group_id, username):
 			pass
 	else:
 		pass
+	return my_server.scard(set_name)
 
 def add_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

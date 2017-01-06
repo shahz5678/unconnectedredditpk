@@ -32,7 +32,7 @@ from .redis2 import get_latest_online, set_uploader_score, retrieve_unseen_activ
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
 public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
-save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, get_user_rank
+save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
@@ -6084,11 +6084,7 @@ def unseen_help(request,*args,**kwargs):
 	return render(request,'photo_for_fans_help.html',context)
 
 def top_photo_help(request,*args,**kwargs):
-	user_rank = get_user_rank(request.user.id)
-	if user_rank:
-		context={'rank':user_rank}
-	else:
-		context={'rank':None}
+	context={'rank':None}
 	return render(request,'top_photo_help.html',context)
 
 def unseen_fans(request,pk=None,*args, **kwargs):

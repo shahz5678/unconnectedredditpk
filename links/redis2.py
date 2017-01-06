@@ -313,7 +313,7 @@ def remove_group_object(group_id=None):
 	group_object = parent_object = "o:3:"+str(group_id)
 	my_server.delete(group_object)
 
-def remove_group_notification(user_id=None,group_id=None,is_deleted=None):
+def remove_group_notification(user_id=None,group_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	unseen_activity = "ua:"+str(user_id)
 	unseen_activity_resorted = "uar:"+str(user_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
@@ -332,42 +332,25 @@ def clean_expired_notifications(viewer_id):
 	unseen_activity_resorted = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
 	single_notif = "sn:"+str(viewer_id)
 	notif_to_del = my_server.zrevrange(unseen_activity,(UA_LIMIT-UA_TO_TRIM),-1)
-	# print "notification set before deletion: %s" % my_server.zrange(unseen_activity,0,-1)
-	# print "\n"
-	# print "notifications to delete are: %s"% notif_to_del
-	# print "\n"
 	if notif_to_del:
 		# sanitize the ua: sorted set, and uar: sorted set
 		my_server.zrem(unseen_activity,*notif_to_del)
 		my_server.zrem(unseen_activity_resorted,*notif_to_del)
-		# print "notification set after deletion: %s" % my_server.zrange(unseen_activity,0,-1) 
-		# print "\n"
 		#sanitize the sn: sorted set
 		my_server.zrem(single_notif,*notif_to_del)
-		# print "notification set II after deletion: %s" % my_server.zrange(single_notif,0,-1) 
-		# print "\n"
 		pipeline1 = my_server.pipeline()
 		for notif in notif_to_del:
 			#delete the notification hash
 			pipeline1.delete(notif)
 		result1 = pipeline1.execute()
-		# print "notifications deleted are: %s"% notif_to_del
-		# print "\n"
-		# print "deleted keys are: %s" % result1
-		# print "\n"
 		pipeline2 = my_server.pipeline()
 		for notif in notif_to_del:
 			object_hash="o:"+notif.split(":",2)[2]
-			# print "hash objects to decrement: %s" % object_hash
-			# print "num of subs in hash before decrement: %s" % my_server.hget(object_hash,"n")
 			num_of_subscribers = pipeline2.hincrby(object_hash,"n",amount=-1)
-			# print "\n"
 		result2 = pipeline2.execute()
-		# print "hash objects decremented: %s" % result2
 		count = 0
 		pipeline3 = my_server.pipeline()
 		for result in result2:
-			# print result
 			if result < 1:
 				#delete the object hash
 				object_hash = "o:"+notif_to_del[count].split(":",2)[2]
@@ -375,14 +358,6 @@ def clean_expired_notifications(viewer_id):
 				pipeline3.delete(object_hash)
 			count += 1
 		result3 = pipeline3.execute()
-		# print "\n"			
-		# print "objects deleted: %s" % result3
-		# '''
-		# delete expired notifications
-		# remove object hash, if number_of_subscribers falls to 0
-		# delete entry from sorted set I (unseen acitivity ua:)
-		# delete entry from sorted set II (if required)
-		# '''
 
 def prev_unseen_activity_visit(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -561,3 +536,17 @@ def get_uploader_percentile(user_id):
 	except:
 		percentile = 0
 	return percentile
+
+def get_top_100():
+	my_server = redis.Redis(connection_pool=POOL)
+	photos_benchmark = "photos_benchmark"
+	return my_server.zrevrange(photos_benchmark,0,99,withscores=True)
+
+# def get_user_rank(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	photos_benchmark = "photos_benchmark"
+# 	rank = (my_server.zrevrank(photos_benchmark,user_id))
+# 	if rank:
+# 		return rank+1
+# 	else:
+# 		return None

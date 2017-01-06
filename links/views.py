@@ -32,7 +32,7 @@ from .redis2 import get_latest_online, set_uploader_score, retrieve_unseen_activ
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
 public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
-save_user_presence,get_latest_presence, get_replies_with_seen
+save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, get_user_rank
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
@@ -43,7 +43,7 @@ all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_vid
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_check_group_membership, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
 check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
-retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox
+retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, bulk_remove_group_invites
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -154,16 +154,20 @@ def GetLatest(user):
 		elif latest_notif['ot'] == '4':
 			# salat invites
 			time_now = datetime.utcnow()+timedelta(hours=5)
-			current_minute = time_now.hour * 60 + time_now.minute
-			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time \
-			= namaz_timings[current_minute]
-			if not namaz:
+			# current_minute = time_now.hour * 60 + time_now.minute
+			# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time \
+			# = namaz_timings[current_minute]
+			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			})
+			salat_timings = cache_mem.get('salat_timings')
+			if not salat_timings['namaz']:
 				#time for namaz has gone
 				delete_salat_notification(notif_name, hash_name, user.id)
 				return None, None, False, False, False, False
 			else:
-				starting_time = datetime.combine(time_now.today(), current_namaz_start_time)
-				ending_time = datetime.combine(time_now.today(), current_namaz_end_time)
+				starting_time = datetime.combine(time_now.today(), salat_timings['current_namaz_start_time'])
+				ending_time = datetime.combine(time_now.today(), salat_timings['current_namaz_end_time'])
 				try:
 					latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
 				except:
@@ -822,12 +826,13 @@ class ReportNicknameView(FormView):
 			else:
 				return redirect("home")
 
-def leave_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
-	if Group.objects.get(id=pk).owner == request.user:
-		context={'unique':unique, 'pk':pk, 'private':private}
+def leave_public_group(request, pk=None, unique=None, private=None, inside_grp=None, *args, **kwargs):
+	group = Group.objects.get(id=pk)
+	if group.owner == request.user:
+		context={'unique':unique, 'pk':pk, 'private':private,'topic':group.topic, 'inside_grp':inside_grp}
 		return render(request, 'delete_public_group.html', context)
 	else:
-		context={'unique':unique, 'pk':pk, 'private':private}
+		context={'unique':unique, 'pk':pk, 'private':private,'topic':group.topic, 'inside_grp':inside_grp}
 		return render(request, 'leave_public_group.html', context)
 
 def left_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
@@ -844,30 +849,31 @@ def left_public_group(request, pk=None, unique=None, private=None, *args, **kwar
 	if check_group_member(pk, request.user.username):
 		remove_group_member(pk, request.user.username)
 		remove_user_group(request.user.id, pk)
+		remove_group_notification(request.user.id,pk)
 	elif check_group_invite(request.user.id, pk):
 		remove_group_invite(request.user.id, pk)
+		remove_group_notification(request.user.id,pk)
 	else:
 		pass
-	remove_group_notification(user_id=request.user.id,group_id=pk,is_deleted=False)
 	return redirect("group_page")
 
 def del_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
 	if Group.objects.get(id=pk).owner == request.user:
-		remove_group_notification(user_id=request.user.id,group_id=pk,is_deleted=True)
-		GroupTraffic.objects.filter(which_group_id=pk).delete()
+		remove_group_notification(user_id=request.user.id,group_id=pk)
 		del_from_rankings(pk)
 		del_attendance(pk)
+		remove_group_object(pk)
 		GroupBanList.objects.filter(which_group_id=pk).delete()
 		GroupCaptain.objects.filter(which_group_id=pk).delete()
-		GroupInvite.objects.filter(which_group_id=pk).delete()
 		Group.objects.get(id=pk).delete()
 		return redirect("group_page")
 	else:
 		context={'private':'0','unique':unique}
 		return render(request,'penalty_groupbanned.html', context)
 
-def leave_private_group(request, pk=None, unique=None, private=None, *args, **kwargs):
-	context={'unique':unique, 'pk':pk, 'private':private}
+def leave_private_group(request, pk=None, unique=None, private=None, inside_grp=None, *args, **kwargs):
+	topic = Group.objects.get(id=pk).topic
+	context={'unique':unique, 'pk':pk, 'private':private,'topic':topic, 'inside_grp':inside_grp}
 	return render(request, 'leave_private_group.html', context)
 
 def left_private_group(request, pk=None, unique=None, private=None, *args, **kwargs):
@@ -887,17 +893,20 @@ def left_private_group(request, pk=None, unique=None, private=None, *args, **kwa
 		else:
 			device = '3'
 		if check_group_member(pk, request.user.username):
-			remove_group_member(pk, request.user.username)
-			remove_user_group(request.user.id, pk)
+			memcount = remove_group_member(pk, request.user.username) #group membership is truncated
+			remove_user_group(request.user.id, pk) #user's groups are truncated
+			remove_group_notification(request.user.id,pk) #group removed from user's notifications
+			if memcount < 1:
+				remove_group_object(pk)
 			reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='leaving group', category='6', device=device)
-			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)
+			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)	
 		elif check_group_invite(request.user.id, pk):
 			remove_group_invite(request.user.id, pk)
+			remove_group_notification(request.user.id,pk)
 			reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='unaccepted invite', category='7', device=device)
 			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)
 		else:
 			pass
-		remove_group_notification(request.user.id,pk)
 		return redirect("group_page")
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -1201,22 +1210,26 @@ class LinkDetailView(DetailView):
 		return context
 
 def skip_presalat(request, *args, **kwargs):
-	now = datetime.utcnow()+timedelta(hours=5)
-	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	if namaz:
+	# now = datetime.utcnow()+timedelta(hours=5)
+	# current_minute = now.hour * 60 + now.minute
+	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+	})
+	salat_timings = cache_mem.get('salat_timings')
+	if salat_timings['namaz']:
 		#i.e. it's not pre-namaz time
 		return redirect("home")
 	else:
-		if next_namaz == 'Fajr':
+		if salat_timings['next_namaz'] == 'Fajr':
 			salat='5'
-		elif next_namaz == 'Zuhr':
+		elif salat_timings['next_namaz'] == 'Zuhr':
 			salat='1'
-		elif next_namaz == 'Asr':
+		elif salat_timings['next_namaz'] == 'Asr':
 			salat='2'
-		elif next_namaz == 'Maghrib':
+		elif salat_timings['next_namaz'] == 'Maghrib':
 			salat='3'
-		elif next_namaz == 'Isha':
+		elif salat_timings['next_namaz'] == 'Isha':
 			salat='4'
 		else:
 			return redirect("home")
@@ -1232,23 +1245,27 @@ def skip_presalat(request, *args, **kwargs):
 
 def skip_salat(request, skipped=None, *args, **kwargs):
 	if skipped:
-		now = datetime.utcnow()+timedelta(hours=5)
-		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-		if not namaz:
+		# now = datetime.utcnow()+timedelta(hours=5)
+		# current_minute = now.hour * 60 + now.minute
+		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+		salat_timings = cache_mem.get('salat_timings')
+		if not salat_timings['namaz']:
 			return redirect("home")
-		elif skipped != namaz:
+		elif skipped != salat_timings['namaz']:
 			return redirect("home")
 		else:
-			if namaz == 'Fajr':
+			if salat_timings['namaz'] == 'Fajr':
 				salat='1'
-			elif namaz == 'Zuhr':
+			elif salat_timings['namaz'] == 'Zuhr':
 				salat='2'
-			elif namaz == 'Asr':
+			elif salat_timings['namaz'] == 'Asr':
 				salat='3'
-			elif namaz == 'Maghrib':
+			elif salat_timings['namaz'] == 'Maghrib':
 				salat='4'
-			elif namaz == 'Isha':
+			elif salat_timings['namaz'] == 'Isha':
 				salat='5'
 			else:
 				return redirect("home")
@@ -1293,24 +1310,29 @@ def AlreadyPrayed(salat, now):
 		return False
 	elif date_now == date_of_latest_salat:
 		#prayee logged a salat today
-		previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time, salat_to_do_end_time = namaz_timings[current_minute]
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+		salat_timings = cache_mem.get('salat_timings')
+		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		# previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time, salat_to_do_end_time = namaz_timings[current_minute]
 		previous_salat_done, next_salat_done, salat_done, salat_done_next_start_time, salat_done_start_time, salat_done_end_time = namaz_timings[minute_of_latest_salat]
-		if not salat_to_do and not salat_done:
+		if not salat_timings['namaz'] and not salat_done:
 			#this is some kind of an error, handle it gracefully
 			return True
-		elif not salat_to_do:
+		elif not salat_timings['salat_to_do']:
 			#i.e. it's pre-namaz time right now, and the person has already prayed too
 			if salat.skipped:
 				return 2
 			else:
 				return True
-		elif salat_done == salat_to_do:
+		elif salat_done == salat_timings['namaz']:#salat_to_do:
 			#i.e. the user has already prayed
 			if salat.skipped:
 				return 2
 			else:
 				return True
-		elif salat_done != salat_to_do:
+		elif salat_done != salat_timings['namaz']:#salat_to_do:
 			return False
 		else:
 			return True
@@ -1318,25 +1340,29 @@ def AlreadyPrayed(salat, now):
 def process_salat(request, offered=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	current_minute = now.hour * 60 + now.minute
+	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	user = request.user
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+	})
+	salat_timings = cache_mem.get('salat_timings')
 	try:
-		starting_time = datetime.combine(now.today(), current_namaz_start_time) #i.e. current namaz start time
+		starting_time = datetime.combine(now.today(), salat_timings['current_namaz_start_time']) #i.e. current namaz start time
 	except:
 		redirect("home")
-	if not namaz:
+	if not salat_timings['namaz']:
 		#it's not time for any namaz, ABORT
 		return redirect("home")
 	else:
-		if namaz == 'Fajr':
+		if salat_timings['namaz'] == 'Fajr':
 			salat='1'
-		elif namaz == 'Zuhr':
+		elif salat_timings['namaz'] == 'Zuhr':
 			salat='2'
-		elif namaz == 'Asr':
+		elif salat_timings['namaz'] == 'Asr':
 			salat='3'
-		elif namaz == 'Maghrib':
+		elif salat_timings['namaz'] == 'Maghrib':
 			salat='4'
-		elif namaz == 'Isha':
+		elif salat_timings['namaz'] == 'Isha':
 			salat='5'
 		else:
 			return redirect("home")
@@ -1412,6 +1438,7 @@ def home_link_list(request, *args, **kwargs):
 	form = HomeListListForm()
 	context = {}
 	context["checked"] = FEMALES
+	calc_photo_quality_benchmark()
 	context["form"] = form
 	context["can_vote"] = False
 	context["authenticated"] = False
@@ -1456,22 +1483,24 @@ def home_link_list(request, *args, **kwargs):
 	############################################ Namaz feature #############################################
 	now = datetime.utcnow()+timedelta(hours=5)
 	day = now.weekday()
-	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	context["next_namaz_start_time"] = next_namaz_start_time
-	if namaz == 'Zuhr' and day == 4: #4 is Friday
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+	salat_timings = cache_mem.get('salat_timings')
+	context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+	if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
 		context["current_namaz"] = 'Jummah'
 	else:
-		context["current_namaz"] = namaz
-	if next_namaz == 'Zuhr' and day == 4:#4 if Friday
+		context["current_namaz"] = salat_timings['namaz']
+	if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
 		context["next_namaz"] = 'Jummah'	
 	else:
-		context["next_namaz"] = next_namaz
-	if not namaz and not next_namaz:
+		context["next_namaz"] = salat_timings['next_namaz']
+	if not salat_timings['namaz'] and not salat_timings['next_namaz']:
 		# do not show namaz element at all, some error may have occurred
 		context["show_current"] = False
 		context["show_next"] = False
-	elif not namaz:
+	elif not salat_timings['namaz']:
 		if request.user.is_authenticated():
 			try:
 				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
@@ -1579,7 +1608,7 @@ def home_link_list(request, *args, **kwargs):
 					context["first_time_user"] = 0
 				context["banned"] = False
 				context["parent"] = salat_invite
-				context["namaz"] = namaz 
+				context["namaz"] = salat_timings['namaz'] 
 			elif is_link:
 				context["type_of_object"] = '2'
 				if freshest_reply:
@@ -1641,6 +1670,7 @@ def home_link_list(request, *args, **kwargs):
 			else:
 				return render(request, 'link_list.html', context)
 	else:
+		# print context
 		return render(request, 'link_list.html', context)
 	return render(request, 'link_list.html', context)
 
@@ -2479,15 +2509,12 @@ class InviteUsersToPrivateGroupView(ListView):
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})
-			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
 				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["private_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
-				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
-				# non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
 				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
 				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
 			except:
@@ -2573,12 +2600,16 @@ class ExternalSalatInviteView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(ExternalSalatInviteView, self).get_context_data(**kwargs)
-		now = datetime.utcnow()+timedelta(hours=5)
-		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-		if namaz:
+		# now = datetime.utcnow()+timedelta(hours=5)
+		# current_minute = now.hour * 60 + now.minute
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+		salat_timings = cache_mem.get('salat_timings')
+		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		if salat_timings['namaz']:
 			context["namaz_time"] = True
-			context["namaz"] = namaz
+			context["namaz"] = salat_timings['namaz']
 			context["freebasics_url"] = "https://https-damadam-pk.0.freebasics.com"
 			context["regular_url"] = "https://damadam.pk"
 		else:
@@ -2591,12 +2622,16 @@ class SalatInviteView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(SalatInviteView, self).get_context_data(**kwargs)
-		now = datetime.utcnow()+timedelta(hours=5)
-		current_minute = now.hour * 60 + now.minute
-		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-		if namaz:
+		# now = datetime.utcnow()+timedelta(hours=5)
+		# current_minute = now.hour * 60 + now.minute
+		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		})
+		salat_timings = cache_mem.get('salat_timings')
+		if salat_timings['namaz']:
 			context["namaz_time"] = True
-			context["namaz"] = namaz
+			context["namaz"] = salat_timings['namaz']
 		else:
 			context["namaz_time"] = False
 		return context
@@ -2608,7 +2643,6 @@ class InternalSalatInviteView(ListView):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})
-		# user_ids = get_latest_online()#get_whose_online()
 		try:
 			user_ids = cache_mem.get('online')
 			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
@@ -2719,10 +2753,10 @@ class TopPhotoView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
 		})
-		users_fans = cache_mem.get('fans')
-		return users_fans
+		top_stars = cache_mem.get('fans')
+		return top_stars
 
 	def get_context_data(self, **kwargs):
 		context = super(TopPhotoView, self).get_context_data(**kwargs)
@@ -2762,7 +2796,7 @@ class GroupPageView(ListView):
 		replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).\
 			values_list('id__max', flat=True)
 		invite_reply_ids = get_active_invites(user.id) #contains all current invites
-		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids
+		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
 		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=invite_reply_ids).\
 			order_by('-id')[:60]
 		replies = get_replies_with_seen(group_replies=replies_qs,viewer_id=self.request.user.id,object_type='3')
@@ -3701,16 +3735,20 @@ class SpecialPhotoView(ListView):
 					context["banned"] = False
 					return context
 				elif is_salat:
-					now = datetime.utcnow()+timedelta(hours=5)
-					current_minute = now.hour * 60 + now.minute
-					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					# now = datetime.utcnow()+timedelta(hours=5)
+					# current_minute = now.hour * 60 + now.minute
+					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+					})
+					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
 					context["first_time_user"] = False
 					context["banned"] = False
 					context["parent"] = salat_invite
-					context["namaz"] = namaz 
+					context["namaz"] = salat_timings['namaz'] 
 					context["freshest_unseen_comment"] = 1				
 				elif is_photo:
 					if object_type == '1':
@@ -4022,9 +4060,13 @@ class PhotoView(ListView):
 						context["first_time_user"] = False
 						context["banned"] = False
 				elif is_salat:
-					now = datetime.utcnow()+timedelta(hours=5)
-					current_minute = now.hour * 60 + now.minute
-					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					# now = datetime.utcnow()+timedelta(hours=5)
+					# current_minute = now.hour * 60 + now.minute
+					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+					})
+					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
@@ -4034,7 +4076,7 @@ class PhotoView(ListView):
 						context["first_time_user"] = 0
 					context["banned"] = False
 					context["parent"] = salat_invite
-					context["namaz"] = namaz 
+					context["namaz"] = salat_timings['namaz'] 
 					context["freshest_unseen_comment"] = 1				
 				elif is_photo:
 					if object_type == '1':
@@ -4207,7 +4249,14 @@ class BestPhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
+		# queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
+		# return queryset
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 75,
+		})
+		queryset = cache_mem.get('best_photos')
+		# for photo in queryset:
+		# 	print photo.invisible_score
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -4274,9 +4323,13 @@ class BestPhotoView(ListView):
 						context["first_time_user"] = False
 						context["banned"] = False
 				elif is_salat:
-					now = datetime.utcnow()+timedelta(hours=5)
-					current_minute = now.hour * 60 + now.minute
-					previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					# now = datetime.utcnow()+timedelta(hours=5)
+					# current_minute = now.hour * 60 + now.minute
+					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+					})
+					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
 					context["type_of_object"] = '4'
 					context["notification"] = 1
@@ -4286,7 +4339,7 @@ class BestPhotoView(ListView):
 						context["first_time_user"] = 0
 					context["banned"] = False
 					context["parent"] = salat_invite
-					context["namaz"] = namaz 
+					context["namaz"] = salat_timings['namaz'] 
 					context["freshest_unseen_comment"] = 1		
 				elif is_photo:
 					if object_type == '1':
@@ -5876,8 +5929,11 @@ class MehfilCommentView(FormView):
 			self.request.session['mehfilfrom_photos'] = None
 			if report == 'Haan':
 				if user.userprofile.score < 500:
-					context = {'pk': photo_id, 'origin':origin}
-					return render(self.request, 'penalty_mehfil.html', context)
+					if photo_id is not None and origin is not None:
+						context = {'pk': photo_id, 'origin':origin}
+						return render(self.request, 'penalty_mehfil.html', context)
+					else:
+						return redirect("closed_group_help")
 				else:
 					target = User.objects.get(id=target_id)
 					invitee = target.username
@@ -5894,7 +5950,10 @@ class MehfilCommentView(FormView):
 						add_user_group(user.id, group.id)
 						return redirect("private_group", slug=unique)
 					except:
-						redirect("comment_pk", pk=photo_id)
+						if photo_id is not None:
+							redirect("comment_pk", pk=photo_id)
+						else:
+							return redirect("profile",slug=self.request.user.username)
 			else:
 				if slug:
 					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
@@ -6023,6 +6082,14 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 def unseen_help(request,*args,**kwargs):
 	context={'nickname':request.user.username}
 	return render(request,'photo_for_fans_help.html',context)
+
+def top_photo_help(request,*args,**kwargs):
+	user_rank = get_user_rank(request.user.id)
+	if user_rank:
+		context={'rank':user_rank}
+	else:
+		context={'rank':None}
+	return render(request,'top_photo_help.html',context)
 
 def unseen_fans(request,pk=None,*args, **kwargs):
 	if request.method == 'POST':
@@ -6232,8 +6299,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 					publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user.id,\
 						link_submitter_id=answer_to.submitter_id,link_submitter_username=answer_to.submitter.username,\
 						link_desc=answer_to.description,reply_time=reply_time,reply_poster_url=url,\
-						reply_poster_username=user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
-						priority='home_jawab',from_unseen=False)
+						reply_poster_username=user.username,reply_desc=description,is_welc=False,\
+						reply_count=answer_to.reply_count,priority='home_jawab',from_unseen=False)
 					try:
 						return redirect("reply_pk", pk=pk)
 					except:
@@ -7348,21 +7415,25 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	epochtime = convert_to_epoch(now)
-	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	# current_minute = now.hour * 60 + now.minute
+	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+	})
+	salat_timings = cache_mem.get('salat_timings')
 	try:
-		starting_time = datetime.combine(now.today(), current_namaz_start_time)
+		starting_time = datetime.combine(now.today(), salat_timings['current_namaz_start_time'])
 	except:
 		return redirect("salat_invite")
-	if namaz =='Fajr':
+	if salat_timings['namaz'] =='Fajr':
 		salat = '1'
-	elif namaz =='Zuhr':
+	elif salat_timings['namaz'] =='Zuhr':
 		salat = '2'
-	elif namaz == 'Asr':
+	elif salat_timings['namaz'] == 'Asr':
 		salat = '3'
-	elif namaz == 'Maghrib':
+	elif salat_timings['namaz'] == 'Maghrib':
 		salat = '4'
-	elif namaz == 'Isha':
+	elif salat_timings['namaz'] == 'Isha':
 		salat = '5'
 	else:
 		return redirect("internal_salat_invite")
@@ -7379,14 +7450,14 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		except:
 			owner_url = None
 		create_object(object_id=salat_object_id,object_type='4',object_owner_name=request.user.username,\
-			object_owner_avurl=owner_url,object_desc=namaz, object_owner_id=request.user.id)
+			object_owner_avurl=owner_url,object_desc=salat_timings['namaz'], object_owner_id=request.user.id)
 		create_notification(object_id=salat_object_id,object_type='4',viewer_id=pk,seen=False,updated_at=epochtime,\
 			single_notif=True,priority='namaz_invite')
 		viewer_salat_notifications(viewer_id=pk,object_id=salat_object_id, time=epochtime)
 		return redirect("internal_salat_invite")
 	else:
 		user = User.objects.get(id=pk)
-		context = {'invitee':user, 'namaz':namaz}
+		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
 @ratelimit(rate='2/s')

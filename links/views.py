@@ -6603,7 +6603,7 @@ class KickView(FormView):
 								pass
 							culprit.userprofile.score = culprit.userprofile.score - 50 #cutting 50 points
 							culprit.userprofile.save()
-							remove_group_notification(user_id=pk,group_id=group_id,is_deleted=False) #removing culprit's matka notification
+							remove_group_notification(user_id=pk,group_id=group_id) #removing culprit's matka notification
 							remove_group_member(group_id=group_id, username=culprit.username)
 							remove_user_group(user_id=pk, group_id=group_id)
 							text = culprit.username

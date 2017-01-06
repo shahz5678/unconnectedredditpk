@@ -17,7 +17,7 @@
     <a href="{% url 'group_page' %}#section0"><button class="btn bm bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 %}"><button class="btn bxs bcr"><b>X</b></button></a>
+    <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 inside_grp=1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
         &nbsp;<span class="clb"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
         <span class="cgy cs">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">

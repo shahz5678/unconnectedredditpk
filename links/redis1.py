@@ -722,25 +722,25 @@ def add_group_invite(user_id, group_id, invite_id):
 		mapping = {'grp':group_id, 'usr':user_id, 'ivt':invite_id}
 		my_server.hmset(hash_name, mapping)
 
-def bulk_remove_group_invites(group_id, invited_ids):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	for invited_id in invited_ids:
-		hash_name = "giu:"+str(group_id)+str(invited_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
-		invite = pipeline1.hget(hash_name, 'ivt') # get the invite_id to be removed	
-	invite_ids = pipeline1.execute()
-	print "invites to be removed are: %s" % invite_ids
-	count = 0
-	pipeline2 = my_server.pipeline()
-	for invite in invite_ids:
-		if invite:
-			hash_name = "giu:"+str(group_id)+str(invited_ids[count])
-			pipeline2.srem("pir:"+str(invited_ids[count]),invite) #remove invite for user: invited_ids[count]
-			print "removing invite_id %s from %s" % (invite,"pir:"+str(invited_ids[count]))
-			pipeline2.delete(hash_name)
-			print "deleting %s" % hash_name
-		count += 1
-	pipeline2.execute()
+# def bulk_remove_group_invites(group_id, invited_ids):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	pipeline1 = my_server.pipeline()
+# 	for invited_id in invited_ids:
+# 		hash_name = "giu:"+str(group_id)+str(invited_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
+# 		invite = pipeline1.hget(hash_name, 'ivt') # get the invite_id to be removed	
+# 	invite_ids = pipeline1.execute()
+# 	print "invites to be removed are: %s" % invite_ids
+# 	count = 0
+# 	pipeline2 = my_server.pipeline()
+# 	for invite in invite_ids:
+# 		if invite:
+# 			hash_name = "giu:"+str(group_id)+str(invited_ids[count])
+# 			pipeline2.srem("pir:"+str(invited_ids[count]),invite) #remove invite for user: invited_ids[count]
+# 			print "removing invite_id %s from %s" % (invite,"pir:"+str(invited_ids[count]))
+# 			pipeline2.delete(hash_name)
+# 			print "deleting %s" % hash_name
+# 		count += 1
+# 	pipeline2.execute()
 
 def check_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

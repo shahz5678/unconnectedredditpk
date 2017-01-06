@@ -3,7 +3,7 @@
 {% block content %}
 
     <div class="margin clb">
-    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br class="mbl">
+    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>
     {% for user in object_list %}
     <span class="co cs">{{ forloop.counter }}.</span>
     <a href="{% url 'profile' slug=user.username %}#section0" class="cb">

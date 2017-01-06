@@ -2587,11 +2587,14 @@ class InviteUsersToGroupView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(InviteUsersToGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["legit"] = FEMALES
-			unique = self.request.session["public_uuid"]
-			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["group"] = group
+			try:
+				context["legit"] = FEMALES
+				unique = self.request.session["public_uuid"]
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+			except:
+				context["group"] = None
 		return context
 
 class ExternalSalatInviteView(FormView):

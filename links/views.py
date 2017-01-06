@@ -1320,7 +1320,7 @@ def AlreadyPrayed(salat, now):
 		if not salat_timings['namaz'] and not salat_done:
 			#this is some kind of an error, handle it gracefully
 			return True
-		elif not salat_timings['salat_to_do']:
+		elif not salat_timings['namaz']:
 			#i.e. it's pre-namaz time right now, and the person has already prayed too
 			if salat.skipped:
 				return 2

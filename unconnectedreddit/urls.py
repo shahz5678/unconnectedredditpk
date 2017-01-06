@@ -15,7 +15,7 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend
+suspend, top_photo_help
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -112,6 +112,7 @@ urlpatterns = patterns('',
 	# url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
+	url(r'^top_photo/help/$', auth(top_photo_help), name='top_photo_help'),
 	url(r'^comment/$', CommentView.as_view(), name='comment'),
 	url(r'^comment/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
 	url(r'^comment_chat_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
@@ -219,9 +220,9 @@ urlpatterns = patterns('',
 	url(r'^photo_share/(?P<pk>\d+)/(?P<loc>\d+)/$', PhotoShareView.as_view(), name='photo_share'),
 	url(r'^photo_share/(?P<pk>\d+)/(?P<loc>\d+)/(?P<slug>[\w.@+-]+)/$', PhotoShareView.as_view(), name='photo_share'),
 	url(r'^dlpgr/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(del_public_group), name='del_public_group'),
-	url(r'^lvpgr/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(leave_public_group), name='leave_public_group'),
+	url(r'^lvpgr/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<inside_grp>\d+)/$', auth(leave_public_group), name='leave_public_group'),
 	url(r'^leftpgroup/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(left_public_group), name='left_public_group'),
-	url(r'^lvpg/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(leave_private_group), name='leave_private_group'),
+	url(r'^lvpg/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<inside_grp>\d+)/$', auth(leave_private_group), name='leave_private_group'),
 	url(r'^leftgroup/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(left_private_group), name='left_private_group'),
 	url(r'^user_SMS/(?P<fbs>\d+)/(?P<num>[\w.@+-]+)/$', UserSMSView.as_view(), name='user_SMS'),
 	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),

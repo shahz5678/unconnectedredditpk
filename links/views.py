@@ -1438,7 +1438,7 @@ def home_link_list(request, *args, **kwargs):
 	form = HomeListListForm()
 	context = {}
 	context["checked"] = FEMALES
-	calc_photo_quality_benchmark()
+	# calc_photo_quality_benchmark()
 	context["form"] = form
 	context["can_vote"] = False
 	context["authenticated"] = False

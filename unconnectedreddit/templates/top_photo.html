@@ -3,25 +3,25 @@
 {% block content %}
 
     <div class="margin clb">
-    <b class="cl">Damadam top 100 stars:</b><br><br>
+    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br class="mbl">
     {% for user in object_list %}
     <span class="co cs">{{ forloop.counter }}.</span>
-    <a href="{% url 'profile' slug=user.owner.username %}#section0" class="cb">
-	{% if user.owner.userprofile.avatar %}
-		<img src="{{ user.owner.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+    <a href="{% url 'profile' slug=user.username %}#section0" class="cb">
+	{% if user.userprofile.avatar %}
+		<img src="{{ user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
-    {{ user.owner }}</a>{% if user.owner.username in verified %}<b class="pinkstar">*</b>{% endif %}
-	{% if user.owner.userprofile.media_score %}
-		{% if user.owner.userprofile.media_score < 0 %}
-	    	<span style="color:#9900cc;">(1)</span>
+    {{ user.username }}</a>{% if user.username in verified %}<b class="pinkstar">*</b>{% endif %}
+	{% if user.userprofile.media_score %}
+		{% if user.userprofile.media_score < 0 %}
+	    	<span class="cs" style="color:#9900cc;">(1)</span>
 	    {% else %}
-	    	<span style="color:#9900cc;">({{ user.owner.userprofile.media_score }})</span>
+	    	<span class="cs" style="color:#9900cc;">({{ user.userprofile.media_score }})</span>
 		{% endif %}
     {% else %}
-    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.owner.username %}#section0" class="co">{{ user.total_fans }} fans</a></b>
-    <span class="co cs">({{ user.total_photos }} photos)</a></span>
+    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.username %}#section0" class="co">{{ user.totalfanandphotos.total_fans }} fans</a></b>
+    <span class="co cs">({{ user.totalfanandphotos.total_photos }} photos)</a></span>
     <br>
     
     {% endfor %}

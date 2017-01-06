@@ -7,8 +7,6 @@ def photo_poster(image_obj=None, caption=None):
 
   PAGE_ID = os.environ.get('FACEBOOK_PAGE_ID')
   ACCESS_TOKEN = os.environ.get('FACEBOOK_ACCESS_TOKEN')
-  print PAGE_ID
-  print ACCESS_TOKEN
 
   cfg = {
     "page_id"      : PAGE_ID,  # Step 1

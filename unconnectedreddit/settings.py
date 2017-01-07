@@ -354,7 +354,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=60), #execute every 60 seconds
+		'schedule': timedelta(seconds=4.5*60), #execute every 4.5 mins
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',

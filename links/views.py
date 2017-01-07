@@ -600,7 +600,7 @@ class ReportFeedbackView(FormView):
 		except:
 			return redirect("profile", self.kwargs["nick"])
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def reprofile(request, pk=None, unique=None, private=None, grp=None, uname=None,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -671,7 +671,7 @@ class ReportProfileView(FormView):
 				context["pts"] = None
 		return context
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def rep(request, pk=None, num=None, nick=None, uuid=None, priv=None, scr=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	banned_self, ban_type_self, time_remaining_self, warned_self = private_group_posting_allowed(request.user.id)
@@ -740,7 +740,7 @@ def rep(request, pk=None, num=None, nick=None, uuid=None, priv=None, scr=None, *
 					context={'uuid':uuid, 'private':priv}
 					return render(request, 'penalty_nickdoublerep.html', context)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def repnick(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -1020,7 +1020,7 @@ class SalatSuccessView(ListView):
 			context["girls"] = FEMALES
 		return context
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def reportcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -1119,7 +1119,7 @@ class ReportcommentView(FormView):
 			else:
 				return redirect("score_help")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3187,7 +3187,7 @@ class PhotoScoreView(FormView):
 		context["girls"] = FEMALES
 		return context
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3254,7 +3254,7 @@ class PhotoReplyView(FormView):
 		except:
 			return redirect("see_photo")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3275,7 +3275,7 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 		else:
 			return redirect("see_photo")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def videocomment_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3372,7 +3372,7 @@ class VideoCommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3392,7 +3392,7 @@ def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 		except:
 			return redirect("see_photo")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3618,7 +3618,7 @@ class CommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def see_special_photo_pk(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3638,7 +3638,7 @@ def see_special_photo_pk(request,pk=None,*args,**kwargs):
 		else:
 			return redirect("see_special_photo")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def special_photo(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5304,7 +5304,7 @@ class ChangeGroupTopicView(CreateView):
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def outsider_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5454,7 +5454,7 @@ class OutsiderGroupView(CreateView):
 				self.request.session["unique_outsider"] = None
 				return redirect("outsider_group", slug=unique)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def public_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5607,7 +5607,7 @@ class PublicGroupView(CreateView):
 				self.request.session["public_uuid"] = None
 				return redirect("public_group", slug=pk)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def first_time_public_refresh(request, unique=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5628,7 +5628,7 @@ def first_time_public_refresh(request, unique=None, *args, **kwargs):
 		else:
 			return redirect("public_group", unique)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def first_time_refresh(request, unique=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5649,7 +5649,7 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 		else:
 			return redirect("private_group", unique)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def private_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5827,7 +5827,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					self.request.session['unique_id'] = None
 					return redirect("private_group", reply.which_group.unique)
 	
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def welcome_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5964,7 +5964,7 @@ class MehfilCommentView(FormView):
 				else:
 					return redirect("comment_pk", pk=photo_id, origin=origin)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
 	if was_limited:
@@ -6014,7 +6014,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			return redirect("score_help")
 
 #called when replying from unseen_activity
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6107,7 +6107,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 #called when replying from unseen_activity
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6159,7 +6159,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		else:
 			return redirect("score_help")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def reply_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6383,7 +6383,7 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6526,7 +6526,7 @@ class LinkCreateView(CreateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def kick_pk(request, pk=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6617,7 +6617,7 @@ class KickView(FormView):
 				else:
 					return redirect("score_help")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def groupreport_pk(request, slug=None, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6907,7 +6907,7 @@ def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 	else:
 		return redirect("see_photo")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7026,7 +7026,7 @@ def process_photo_vote(pk, ident, val, voter_id):
 		score_increase = -1
 		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7120,7 +7120,7 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 				context = {'unique': pk}
 				return render(request, 'already_photovoted.html', context)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, origin=None,link_id=None, val=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7298,7 +7298,7 @@ def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=N
 		return redirect("see_photo")
 
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7460,7 +7460,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def fan(request, pk=None, from_profile=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -7648,7 +7648,7 @@ def find_time(obj):
 	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 	#PERIODS = (1,5*1,10*1,)
 	was_limited = getattr(request, 'limits', False)
@@ -7805,7 +7805,7 @@ def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
 
 ######################### Advertising #########################
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def make_ad(request,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -8152,7 +8152,7 @@ class AdAddressView(FormView):
 		else:
 			return redirect("home")
 
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def ad_finalize(request,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:

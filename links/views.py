@@ -7261,7 +7261,7 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 		return redirect("home_loc")
 	elif origin == '4':
 		request.session["photograph_id"] = pk
-		return redirect("profile", owner_name)
+		return redirect("profile", uname)
 	else:
 		request.session["target_photo_id"] = pk
 		return redirect("see_photo")

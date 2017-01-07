@@ -1470,7 +1470,7 @@ def home_link_list(request, *args, **kwargs):
 		request.session['home_non_photo_link_ids'] = None
 		request.session['home_list_of_dictionaries'] = None
 	paginator = Paginator(list_of_dictionaries, 20) #give it a list of objects and number of objects to show per page, it does the rest
-	paginator._count = 1000
+	# paginator._count = 1000
 	page = request.GET.get('page', '1')
 	try:
 		page = paginator.page(page)

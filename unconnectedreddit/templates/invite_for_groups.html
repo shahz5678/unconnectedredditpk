@@ -33,7 +33,8 @@
 	{% endif %}
 	{% endfor %}
 {% else %}
-Damadam ko cheenk aa gayee! .i1.i2.i3.i4<br><br>
+{% load emoticons_tags %}
+{% emoticons %}Damadam ko cheenk aa gayee! .i1.i2.i3.i4{% endemoticons %}<br><br>
 <a href="{% url 'group_page' %}#section0"><button class="btn bcp bm cm">wapis</button></a>
 {% endif %}
 </div>

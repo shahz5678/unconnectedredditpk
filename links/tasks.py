@@ -195,7 +195,7 @@ def rank_photos():
 			photo_scores[photo] = score
 	best_photos = sorted(photo_scores,key=photo_scores.get, reverse=True) #returns list of keys, sorted by values
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 75,
+		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
 	})
 	cache_mem.set('best_photos', best_photos)
 

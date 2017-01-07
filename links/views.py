@@ -4255,7 +4255,7 @@ class BestPhotoView(ListView):
 		# queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
 		# return queryset
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 75,
+			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
 		})
 		queryset = cache_mem.get('best_photos')
 		# for photo in queryset:

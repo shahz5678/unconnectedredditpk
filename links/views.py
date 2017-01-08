@@ -32,7 +32,7 @@ from .redis2 import get_latest_online, set_uploader_score, retrieve_unseen_activ
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
 public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
-save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object
+save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
@@ -6081,9 +6081,8 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 		return render(request, 'inbox_tutorial.html', context)
 	else:
 		form = UnseenActivityForm()
-		oblist = retrieve_unseen_activity(request.user.id) # this is a list of dictionaries
-		last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
-		paginator = Paginator(oblist, 20) #give it a list of objects and number of objects to show per page, it does the rest
+		notifications = retrieve_unseen_notifications(request.user.id)
+		paginator = Paginator(notifications, ITEMS_PER_PAGE)
 		page = request.GET.get('page', '1')
 		try:
 			page = paginator.page(page)
@@ -6093,6 +6092,11 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 		except EmptyPage:
 			# If page is out of range (e.g. 9999), deliver last page of results.
 			page = paginator.page(paginator.num_pages)
+		if page.object_list:
+			oblist = retrieve_unseen_activity(page.object_list)
+		else:
+			oblist = []
+		last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
 		context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page,'nickname':request.user.username,\
 		'last_visit_time':last_visit_time}
 		return render(request, 'user_unseen_activity.html', context)

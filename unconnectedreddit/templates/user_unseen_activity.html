@@ -9,7 +9,7 @@
 <div class="margin">
 {% if page.object_list %}
 <span class="clb cs">Dekho matke mein kia hai:</span><p></p>
-{% for notif in page.object_list %}
+{% for notif in object_list %}
 {% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
 		<img src="{{ STATIC_URL }}img/taza.png" class="mbs" width="35" height="35" alt="no pic"><br>
 		{% endif %}

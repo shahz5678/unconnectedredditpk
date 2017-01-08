@@ -168,11 +168,14 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	previous_best_photo_id = get_previous_best_photo()
+	print "previous best_photo: %s" % previous_best_photo_id
 	current_best_photo_id = get_best_photo()
+	print "current best_photo: %s" % current_best_photo_id
 	if previous_best_photo_id is not None:
 		if previous_best_photo_id == current_best_photo_id:
 			pass
 		else:
+			print "uploading %s to Facebook..." % current_best_photo_id
 			set_best_photo(current_best_photo_id)
 			photo = Photo.objects.get(id=current_best_photo_id)
 			photo_poster(photo.image_file, photo.caption)
@@ -189,15 +192,18 @@ def rank_all_photos1():
 def rank_photos():
 	photos = Photo.objects.filter(id__in=all_photos())
 	photo_scores={}
+	photo_id_and_scr = {}
 	for photo in photos:
 		if photo.vote_score > -2:
 			score = photo.set_rank()
-			photo_scores[photo] = score
+			photo_scores[photo] = photo_id_and_scr[photo.id] = score
+			# photo_id_and_scr[photo.id] = score
 	best_photos = sorted(photo_scores,key=photo_scores.get, reverse=True) #returns list of keys, sorted by values
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
 	})
 	cache_mem.set('best_photos', best_photos)
+	add_photos_to_best(photo_id_and_scr)
 
 # @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')

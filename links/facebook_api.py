@@ -15,6 +15,7 @@ def photo_poster(image_obj=None, caption=None):
   caption = caption+" (https://damadam.pk)"
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
+  print "status: %s" % status
 
 def get_api(cfg):
   graph = facebook.GraphAPI(cfg['access_token'])

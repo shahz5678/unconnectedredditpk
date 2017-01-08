@@ -552,6 +552,7 @@ def all_best_photos():
 def add_photos_to_best(photo_scores):
 	my_server = redis.Redis(connection_pool=POOL)
 	best_photos = "bestphotos:1000"
+	#executing the following commands as a single transaction
 	pipeline1 = my_server.pipeline()
 	pipeline1.delete(best_photos)
 	pipeline1.zadd(best_photos,*photo_scores)

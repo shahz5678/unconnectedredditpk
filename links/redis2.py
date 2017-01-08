@@ -69,31 +69,32 @@ def retrieve_latest_notification(viewer_id):
 	combined = dict(notification,**parent_object)
 	return notif[0],notification['c'],combined
 
-def retrieve_unseen_activity(viewer_id):
+def retrieve_unseen_notifications(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
 	if my_server.zcard(sorted_set):
-		hashes = my_server.zrevrange(sorted_set, 0, -1) #hashes are all notifications for user with id = viewer_id
-		list_of_dictionaries = []
-		pipeline1 = my_server.pipeline()
-		pipeline2 = my_server.pipeline()
-		for notification in hashes:
-			notification = pipeline1.hgetall(notification)
-		result1 = pipeline1.execute()
-		# print result1
-		for notification in result1:
-			parent_object = pipeline2.hgetall(notification['c'])
-		result2 = pipeline2.execute()
-		# print result2
-		for i in range(len(hashes)):
-			if 'ot' in result2[i]:
-				#i.e. it means object type is defined
-				combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-				list_of_dictionaries.append(combined)
-		# print list_of_dictionaries
-		return list_of_dictionaries
+		return my_server.zrevrange(sorted_set, 0, -1)
 	else:
 		return []
+
+def retrieve_unseen_activity(notifications):
+	my_server = redis.Redis(connection_pool=POOL)
+	list_of_dictionaries = []
+	pipeline1 = my_server.pipeline()
+	for notification in notifications: #can this be paginated?
+		notification = pipeline1.hgetall(notification)
+	result1 = pipeline1.execute()
+	pipeline2 = my_server.pipeline()
+	for notification in result1:
+		parent_object = pipeline2.hgetall(notification['c'])
+	result2 = pipeline2.execute()
+	for i in range(len(notifications)):
+		if 'ot' in result2[i]:
+			#i.e. it means object type is defined
+			combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+			list_of_dictionaries.append(combined)
+	# print list_of_dictionaries
+	return list_of_dictionaries
 
 def bulk_update_salat_notifications(viewer_id=None, starting_time=None, seen=None, updated_at=None):
 	my_server = redis.Redis(connection_pool=POOL)

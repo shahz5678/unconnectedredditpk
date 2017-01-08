@@ -61,7 +61,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeListListForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -78,6 +78,8 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
+
+ITEMS_PER_PAGE = 20
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
@@ -1391,6 +1393,20 @@ def process_salat(request, offered=None, *args, **kwargs):
 		bulk_update_salat_notifications(viewer_id=user.id, starting_time=time, seen=True, updated_at=epochtime)
 		return redirect("salat_success", current_minute, now.weekday())
 
+def home_list(request, obj_list ,items_per_page):
+	paginator = Paginator(obj_list, items_per_page) #pass list of objects and number of objects to show per page, it does the rest
+	page = request.GET.get('page', '1') # 'page' parameter is lost when voting, thus redirection fails. referring page is unreliable anyway
+	try:
+		page = paginator.page(page)
+	except PageNotAnInteger:
+		# If page is not an integer, deliver first page.
+		page = paginator.page(1)
+	except EmptyPage:
+		# If page is out of range (e.g. 9999), deliver last page of results.
+		page = paginator.page(paginator.num_pages)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
+	return photo_ids, non_photo_link_ids, list_of_dictionaries, page
+
 def home_location(request, *args, **kwargs):
 	try:
 		link_id = request.session['target_id']
@@ -1401,12 +1417,17 @@ def home_location(request, *args, **kwargs):
 		oblist = all_unfiltered_posts()
 	else:
 		oblist = all_filtered_posts()
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)
-	request.session['home_photo_ids'] = photo_ids
-	request.session['home_non_photo_link_ids'] = non_photo_link_ids
-	request.session['home_list_of_dictionaries'] = list_of_dictionaries
 	try:
-		index = list(dictionary["l"] for dictionary in list_of_dictionaries).index(str(link_id))
+		index = oblist.index(str(link_id))
+	except:
+		index = 0
+	photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)	
+	request.session['home_photo_ids'] = photo_ids
+	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
+	request.session['list_of_dictionaries'] = list_of_dictionaries
+	request.session['page'] = None#page
+	try:
+		index = oblist.index(str(link_id))
 	except:
 		index = 0
 	if 0 <= index <= 19:
@@ -1435,51 +1456,44 @@ def home_location(request, *args, **kwargs):
 	return redirect(url)
 
 def home_link_list(request, *args, **kwargs):
-	form = HomeListListForm()
+	form = HomeLinkListForm()
 	context = {}
 	context["checked"] = FEMALES
-	# calc_photo_quality_benchmark()
 	context["form"] = form
 	context["can_vote"] = False
 	context["authenticated"] = False
 	try:
-		if request.session['home_photo_ids'] and request.session['home_non_photo_link_ids'] and request.session['home_list_of_dictionaries']:
+		if request.session['home_photo_ids'] and request.session['home_non_photo_link_ids'] \
+		and request.session['list_of_dictionaries'] and request.session['page']:
 			# kicks in if user redirected from vote page
 			photo_ids = request.session['home_photo_ids']
 			non_photo_link_ids = request.session['home_non_photo_link_ids']
-			list_of_dictionaries = request.session['home_list_of_dictionaries']
+			list_of_dictionaries = request.session['list_of_dictionaries']
+			page = request.session['page']
 			request.session['home_photo_ids'] = None
 			request.session['home_non_photo_link_ids'] = None
-			request.session['home_list_of_dictionaries'] = None
+			request.session['list_of_dictionaries'] = None
+			request.session['page'] = None
 		else:
 			# kicks in if person goes to next page by pressing aagey or wapis, or is coming in from another page (e.g. photos)
 			if request.user_banned:
 				oblist = all_unfiltered_posts()
 			else:
 				oblist = all_filtered_posts()
-			photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)	
+			photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)	
 	except:
 		# kicks in if user is not logged in
 		if request.user_banned:
 			oblist = all_unfiltered_posts()
 		else:
 			oblist = all_filtered_posts()
-		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(oblist)
+		photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)	
 		# ensures goes to 'else' above in next refresh, instead of hitting the expensive 'except' again and again
 		request.session['home_photo_ids'] = None
 		request.session['home_non_photo_link_ids'] = None
-		request.session['home_list_of_dictionaries'] = None
-	paginator = Paginator(list_of_dictionaries, 20) #give it a list of objects and number of objects to show per page, it does the rest
-	# paginator._count = 1000
-	page = request.GET.get('page', '1')
-	try:
-		page = paginator.page(page)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		page = paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		page = paginator.page(paginator.num_pages)
+		request.session['list_of_dictionaries'] = None
+		request.session['page'] = None
+	context["link_list"] = list_of_dictionaries
 	context["page"] = page
 	############################################ Namaz feature #############################################
 	now = datetime.utcnow()+timedelta(hours=5)
@@ -7650,7 +7664,8 @@ def find_time(obj):
 
 @ratelimit(rate='3/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
-	#PERIODS = (1,5*1,10*1,)
+	# print request.GET
+	# print request.META.get('HTTP_REFERER')
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		deduction = 3 * -1

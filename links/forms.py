@@ -408,7 +408,7 @@ class ChangeGroupRulesForm(forms.ModelForm):
 		model = Group
 		fields = ("rules",)
 
-class HomeListListForm(forms.Form):
+class HomeLinkListForm(forms.Form):
 	reply = forms.CharField(max_length=250)
 	class Meta:
 		fields = ("reply",)

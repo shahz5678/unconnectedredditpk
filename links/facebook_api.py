@@ -13,6 +13,7 @@ def photo_poster(image_obj=None, caption=None):
     "access_token" : ACCESS_TOKEN   # Step 3
     }
   caption = caption+" (https://damadam.pk)"
+  print cfg
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
   print "status: %s" % status

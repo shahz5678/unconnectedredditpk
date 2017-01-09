@@ -547,7 +547,7 @@ def add_vote_to_home_link(link_pk, value, username):
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("bestphotos:1000", 0, -1, withscores=True)
+	return my_server.zrevrange("bestphotos:1000", 0, -1, withscores=True)
 
 def add_photos_to_best(photo_scores):
 	my_server = redis.Redis(connection_pool=POOL)

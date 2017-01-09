@@ -4254,6 +4254,13 @@ class PhotoView(ListView):
 		else:
 			return self.render_to_response(context)
 
+def get_best_photos(best_qs,with_scrs):
+	photos = {}
+	for photo in best_qs:
+		photos[photo] = with_scrs[str(photo.id)] #creating a dictionary with object as key, object's redis score as values
+	photos = sorted(photos,key=photos.get, reverse=True) #returns list of keys, sorted by values (basically photo objects sorted by score)
+	return photos
+
 def see_best_photo_pk(request,pk=None,*args,**kwargs):
 	if pk.isdigit():
 		request.session["target_best_photo_id"] = pk
@@ -4269,13 +4276,14 @@ class BestPhotoView(ListView):
 	def get_queryset(self):
 		# queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
 		# return queryset
-		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
-		})
-		queryset = cache_mem.get('best_photos')
-		# for photo in queryset:
-		# 	print photo.invisible_score
-		return queryset
+
+		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		# 	'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
+		# })
+		# queryset = cache_mem.get('best_photos')
+		# return queryset
+		photos_and_scores = all_best_photos()
+		return photos_and_scores
 
 	def get_context_data(self, **kwargs):
 		context = super(BestPhotoView, self).get_context_data(**kwargs)
@@ -4283,6 +4291,8 @@ class BestPhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
+		context["object_list"] = dict(context["object_list"])
+		context["object_list"] = get_best_photos(Photo.objects.filter(id__in=context["object_list"].keys()),context["object_list"])
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 		else:

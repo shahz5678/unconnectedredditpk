@@ -13,23 +13,25 @@ def photo_poster(image_obj=None, caption=None):
     "access_token" : ACCESS_TOKEN   # Step 3
     }
   caption = caption+" (https://damadam.pk)"
-  print cfg
+  # print cfg
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
-  print "status: %s" % status
+  # print "status: %s" % status
 
 def get_api(cfg):
   graph = facebook.GraphAPI(cfg['access_token'])
+  # print "graph: %s" % graph
   # Get page token to post as the page. You can skip 
   # the following if you want to post as yourself. 
-  resp = graph.get_object('me/accounts')
-  print "getting own account: %s" % resp
+  # resp = graph.get_object('me/accounts')
+  resp = graph.get_object('10154886323073885/accounts')
+  # print "getting own account: %s" % resp
   page_access_token = None
   for page in resp['data']:
     if page['id'] == cfg['page_id']:
       page_access_token = page['access_token']
   graph = facebook.GraphAPI(page_access_token)
-  return graph
+  return graph 
   # You can also skip the above if you get a page token:
   # http://stackoverflow.com/questions/8231877/facebook-access-token-for-pages
   # and make that long-lived token as in Step 3

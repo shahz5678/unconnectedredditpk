@@ -23,7 +23,7 @@ def get_api(cfg):
   # Get page token to post as the page. You can skip 
   # the following if you want to post as yourself. 
   resp = graph.get_object('me/accounts')
-  # print resp
+  print "getting own account: %s" % resp
   page_access_token = None
   for page in resp['data']:
     if page['id'] == cfg['page_id']:

@@ -203,7 +203,7 @@ def rank_photos():
 		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
 	})
 	cache_mem.set('best_photos', best_photos)
-	add_photos_to_best(photo_id_and_scr)
+	add_photos_to_best(list(reduce(lambda x, y: x + y, photo_id_and_scr.items())))
 
 # @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')

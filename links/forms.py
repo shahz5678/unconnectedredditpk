@@ -1,7 +1,7 @@
 from django import forms
 import time
 from django.forms import Textarea
-from .redismodules import already_exists
+from .redis1 import already_exists
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User

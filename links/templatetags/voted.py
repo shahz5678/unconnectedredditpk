@@ -1,5 +1,5 @@
 from django.template.defaulttags import register
-from links.redismodules import voted_for_link
+from links.redis1 import voted_for_link
 
 @register.filter(name='voted')
 def voted(link_pk,username):

@@ -171,18 +171,21 @@ def rank_all_photos():
 	# print "previous best_photo: %s" % previous_best_photo_id
 	current_best_photo_id = get_best_photo()
 	# print "current best_photo: %s" % current_best_photo_id
-	if previous_best_photo_id is not None:
-		if previous_best_photo_id == current_best_photo_id:
-			pass
+	if current_best_photo_id is not None:
+		if previous_best_photo_id is not None:
+			if previous_best_photo_id == current_best_photo_id:
+				pass
+			else:
+				# print "uploading %s to Facebook..." % current_best_photo_id
+				set_best_photo(current_best_photo_id)
+				photo = Photo.objects.get(id=current_best_photo_id)
+				photo_poster(photo.image_file, photo.caption)
 		else:
-			# print "uploading %s to Facebook..." % current_best_photo_id
 			set_best_photo(current_best_photo_id)
 			photo = Photo.objects.get(id=current_best_photo_id)
 			photo_poster(photo.image_file, photo.caption)
 	else:
-		set_best_photo(current_best_photo_id)
-		photo = Photo.objects.get(id=current_best_photo_id)
-		photo_poster(photo.image_file, photo.caption)	
+		pass
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():

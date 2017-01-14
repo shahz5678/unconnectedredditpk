@@ -8336,7 +8336,6 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 # sudo cp redis.conf /etc/redis/redis-2.conf
 # 	Inside the conf:
 # pidfile /var/run/redis/redis2-server.pid
-# port 6380
 # logfile /var/log/redis/redis2-server.log
 # dir /var/lib/redis2
 # port 0
@@ -8345,7 +8344,7 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 #	Outside the conf:
 #sudo mkdir /var/lib/redis2
 #sudo chown -R redis:redis /var/lib/redis2
-#	Create a cope of redis-server file at /etc/init.d
+#	Create a cope of redis-server file at /etc/init.d (sudo cp redis-server /etc/init.d/redis2-server)
 # change DAEMON_ARGS, NAME, DESC, and PIDFILE
 # exit file and do:
 # sudo chmod 755 redis2-server

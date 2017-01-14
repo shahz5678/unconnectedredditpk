@@ -44,7 +44,8 @@ list_name = "vids:"+str(user_id)
 
 ##########
 '''
-POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)# change connection from TCP port to UNIX socket
+# POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path='/var/run/redis/redis.sock', db=0)
 
 INTERVAL_SIZE = 4*60
 
@@ -553,10 +554,13 @@ def add_photos_to_best(photo_scores):
 	my_server = redis.Redis(connection_pool=POOL)
 	best_photos = "bestphotos:1000"
 	#executing the following commands as a single transaction
-	pipeline1 = my_server.pipeline()
-	pipeline1.delete(best_photos)
-	pipeline1.zadd(best_photos,*photo_scores)
-	pipeline1.execute()
+	try:
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete(best_photos)
+		pipeline1.zadd(best_photos,*photo_scores)
+		pipeline1.execute()
+	except:
+		pass
 
 def add_photo_to_best(photo_id, score):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -573,7 +577,10 @@ def add_photo_to_best(photo_id, score):
 
 def get_best_photo():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("bestphotos:1000",-1,-1)[0]
+	try:
+		return my_server.zrange("bestphotos:1000",-1,-1)[0]
+	except:
+		return None
 
 def get_previous_best_photo():
 	my_server = redis.Redis(connection_pool=POOL)

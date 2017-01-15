@@ -1,8 +1,9 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
-from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.cache import cache_page
+# from brake.decorators import ratelimit
+# from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.views import login, logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
@@ -15,7 +16,7 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help
+suspend, top_photo_help, home_location
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -34,7 +35,7 @@ see_best_photo_pk, TopPhotoView, FanListView, StarListView, FanTutorialView, Pho
 SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
 SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, \
 VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,\
-AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView, home_location #LinkListView
+AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
 
 admin.autodiscover()
 
@@ -45,8 +46,9 @@ urlpatterns = patterns('',
 	# url(r'^$', LinkListView.as_view(), name='home'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^$', home_link_list, name='home'),
-	url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
-	url(r'^bahirniklo/$', 'django.contrib.auth.views.logout_then_login', name="bahirniklo"),
+	# url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
+	url(r'^login/$',login, {'template_name': 'login.html'}, name="login"),
+	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
 	url(r'^logout_reconfirm/$', LogoutReconfirmView.as_view(), name='logout_reconfirm'),

@@ -389,6 +389,12 @@ class UploadVideoForm(forms.Form):
 	class Meta:
 		fields = ("video_file", "caption",)
 
+# class LoginForm(forms.Form):
+# 	username = forms.CharField(error_messages={'required': 'nickname dalna zaruri hai'})
+# 	password = forms.CharField(error_messages={'required': 'password dalna zaruri hai'})
+# 	class Meta:
+# 		fields = ("username","password",)
+
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')
 	#image.widget.attrs["value"] ='Upload'

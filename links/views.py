@@ -3183,8 +3183,11 @@ class PhotoScoreView(FormView):
 		context["origin"] = self.kwargs["origin"]
 		context["key"] = key
 		if context["origin"] == '3':
-			#if originating from user profile
-			context["slug"] = self.kwargs["slug"]
+			try:
+				#if originating from user profile
+				context["slug"] = self.kwargs["slug"]
+			except:
+				context["slug"] = self.request.user.username
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 		else:

@@ -74,13 +74,13 @@
         {% endblock %}
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="/">Home</a></li><li><a href="{% url 'see_photo' %}">Photos</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'logout_penalty' %}#section0">Bahir Niklo</a></li>
+<li><a href="/">Home</a></li><li><a href="{% url 'see_photo' %}">Photos</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'logout_penalty' %}#section0">Bahir Niklo</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% else %}
 <li><a href="/">Home</a></li><li><a href="{% url 'register_walkthrough' %}#section0">New Account</a></li><li><a href="{% url 'login_walkthrough' %}#section0">Purana Account</a></li>
 {% endif %}
 </ul>
 
-<div class="mts">
+<div style="text-align:center" class="mtl">
 <span style="color:grey;font-size:80%;">|</span><a href="{%url 'privacy_policy' %}" style="font-size:70%;">&nbsp;&nbsp;Privacy Policy&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'about' %}" style="font-size:70%;">&nbsp;&nbsp;About Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span><a href="{%url 'contact' %}" style="font-size:70%;">&nbsp;&nbsp;Contact Us&nbsp;&nbsp;</a><span style="color:grey;font-size:80%;">|</span>
 </div>
 

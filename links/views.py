@@ -61,7 +61,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm#, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -327,6 +327,11 @@ class NotifHelpView(FormView):
 class RegisterWalkthroughView(FormView):
 	form_class = RegisterWalkthroughForm
 	template_name = "register_walkthrough.html"
+
+# def login_page(request, *args, **kwargs):
+# 	form = LoginForm()
+# 	context = {'form': form}
+# 	return render(request, 'registration/login.html', context)
 
 class LoginWalkthroughView(FormView):	
 	form_class = LoginWalkthroughForm
@@ -1458,7 +1463,6 @@ def home_location(request, *args, **kwargs):
 def home_link_list(request, *args, **kwargs):
 	form = HomeLinkListForm()
 	context = {}
-	context["tough"] = request.META.get('HTTP_X_FORWARDED_FOR')
 	context["checked"] = FEMALES
 	context["form"] = form
 	context["can_vote"] = False

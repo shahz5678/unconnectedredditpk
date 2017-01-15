@@ -1458,6 +1458,7 @@ def home_location(request, *args, **kwargs):
 def home_link_list(request, *args, **kwargs):
 	form = HomeLinkListForm()
 	context = {}
+	context["tough"] = request.META.get('HTTP_X_FORWARDED_FOR')
 	context["checked"] = FEMALES
 	context["form"] = form
 	context["can_vote"] = False
@@ -5983,10 +5984,12 @@ class MehfilCommentView(FormView):
 						else:
 							return redirect("profile",slug=self.request.user.username)
 			else:
-				if slug:
+				if slug and origin and pk:
 					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
-				else:
+				elif pk and origin:
 					return redirect("comment_pk", pk=photo_id, origin=origin)
+				else:
+					return redirect("home")
 
 @ratelimit(rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):

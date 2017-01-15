@@ -4,12 +4,12 @@
 <div class="margin">
 <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
   {% csrf_token %}
-  <input type="hidden" name="next" value="{{ next }}">
+  <input type="hidden" name="next" value="/">
  	
-    <p>{{ 'Nickname:' }}
+    <p>Nickname:
       {{ form.username }}</p>
   
-    <p>  {{ 'Password:' }}
+    <p>Password:
       {{ form.password }}</p>
    
   

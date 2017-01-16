@@ -6016,6 +6016,9 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
+					request.user.userprofile.previous_retort = description
+					request.user.userprofile.score = request.user.userprofile.score + 1
+					request.user.userprofile.save()
 					if request.is_feature_phone:
 						device = '1'
 					elif request.is_phone:

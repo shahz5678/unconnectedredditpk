@@ -6012,36 +6012,40 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
 				description = request.POST.get("group_reply")
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
+				score = fuzz.ratio(description, request.user.userprofile.previous_retort)
+				if score > 86:
+					return redirect("unseen_activity", slug=request.user.username)
 				else:
-					device = '3'
-				groupreply = Reply.objects.create(writer=request.user, which_group_id=pk, text=description,device=device)#,image='')
-				reply_time = convert_to_epoch(groupreply.submitted_on)
-				try:
-					url = request.user.userprofile.avatar.url
-				except:
-					url = None
-				try:
-					image_url = groupreply.image.url
-				except:
-					image_url = None
-				grp = Group.objects.get(id=pk)
-				if grp.private == '1':
-					priority='priv_mehfil'
-				else:
-					priority='public_mehfil'
-				group_notification_tasks.delay(group_id=pk,sender_id=request.user.id,\
-					group_owner_id=grp.owner.id,topic=grp.topic,reply_time=reply_time,poster_url=url,\
-					poster_username=request.user.username,reply_text=description,priv=grp.private,\
-					slug=grp.unique,image_url=image_url,priority=priority,from_unseen=True)
-				return redirect("unseen_activity", request.user.username)
+					if request.is_feature_phone:
+						device = '1'
+					elif request.is_phone:
+						device = '2'
+					elif request.is_tablet:
+						device = '4'
+					elif request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					groupreply = Reply.objects.create(writer=request.user, which_group_id=pk, text=description,device=device)#,image='')
+					reply_time = convert_to_epoch(groupreply.submitted_on)
+					try:
+						url = request.user.userprofile.avatar.url
+					except:
+						url = None
+					try:
+						image_url = groupreply.image.url
+					except:
+						image_url = None
+					grp = Group.objects.get(id=pk)
+					if grp.private == '1':
+						priority='priv_mehfil'
+					else:
+						priority='public_mehfil'
+					group_notification_tasks.delay(group_id=pk,sender_id=request.user.id,\
+						group_owner_id=grp.owner.id,topic=grp.topic,reply_time=reply_time,poster_url=url,\
+						poster_username=request.user.username,reply_text=description,priv=grp.private,\
+						slug=grp.unique,image_url=image_url,priority=priority,from_unseen=True)
+					return redirect("unseen_activity", request.user.username)
 			else:
 				return redirect("unseen_activity", request.user.username)
 		else:
@@ -6066,29 +6070,33 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
 				description = request.POST.get("comment")
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
+				score = fuzz.ratio(description, request.user.userprofile.previous_retort)
+				if score > 86:
+					return redirect("unseen_activity", slug=request.user.username)
 				else:
-					device = '3'
-				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
-				# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
-				update_cc_in_home_photo(pk)
-				photo = Photo.objects.get(id=pk)
-				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
-				comment_time = convert_to_epoch(photocomment.submitted_on)
-				try:
-					url = request.user.userprofile.avatar.url
-				except:
-					url = None
-				unseen_comment_tasks.delay(request.user.id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
-					request.user.username, url)
-				return redirect("unseen_activity", request.user.username)
+					if request.is_feature_phone:
+						device = '1'
+					elif request.is_phone:
+						device = '2'
+					elif request.is_tablet:
+						device = '4'
+					elif request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+					# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
+					update_cc_in_home_photo(pk)
+					photo = Photo.objects.get(id=pk)
+					exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
+					comment_time = convert_to_epoch(photocomment.submitted_on)
+					try:
+						url = request.user.userprofile.avatar.url
+					except:
+						url = None
+					unseen_comment_tasks.delay(request.user.id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
+						request.user.username, url)
+					return redirect("unseen_activity", request.user.username)
 			else:
 				return redirect("unseen_activity", request.user.username)
 		else:
@@ -6163,35 +6171,39 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
 				description = request.POST.get("comment")
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
+				score = fuzz.ratio(description, request.user.userprofile.previous_retort)
+				if score > 85:
+					return redirect("unseen_activity", slug=request.user.username)
 				else:
-					device = '3'
-				parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
-				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
-				reply_time = convert_to_epoch(reply.submitted_on)
-				amnt = update_cc_in_home_link(parent.id)
-				try:
-					url = request.user.userprofile.avatar.url
-				except:
-					url = None
-				try:
-					owner_url = parent.submitter.userprofile.avatar.url
-				except:
-					owner_url = None
-				publicreply_tasks.delay(request.user.id, reply.id, pk, description)
-				publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=request.user.id,\
-					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
-					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,\
-					reply_poster_username=request.user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
-					priority='home_jawab',from_unseen=True)
-				return redirect("unseen_activity", request.user.username)
+					if request.is_feature_phone:
+						device = '1'
+					elif request.is_phone:
+						device = '2'
+					elif request.is_tablet:
+						device = '4'
+					elif request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
+					reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
+					reply_time = convert_to_epoch(reply.submitted_on)
+					amnt = update_cc_in_home_link(parent.id)
+					try:
+						url = request.user.userprofile.avatar.url
+					except:
+						url = None
+					try:
+						owner_url = parent.submitter.userprofile.avatar.url
+					except:
+						owner_url = None
+					publicreply_tasks.delay(request.user.id, reply.id, pk, description)
+					publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=request.user.id,\
+						link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
+						link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,\
+						reply_poster_username=request.user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
+						priority='home_jawab',from_unseen=True)
+					return redirect("unseen_activity", request.user.username)
 			else:
 				return redirect("score_help")				
 		else:

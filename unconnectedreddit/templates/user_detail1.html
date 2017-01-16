@@ -37,7 +37,7 @@
 <b class="clb">Fans:</b>
 {% endif %}
 <a href="{% url 'fan_list' star_id %}" class="cs">
-<button class="btn bcg bms cm mbs">
+<button class="btn bcg cm mbs">
 {% if fans == 0 %}
 {{ fans }}
 {% else %}
@@ -49,7 +49,7 @@
 {% if authenticated and own_profile %}
   <br><b class="clb">Stars:</b>
   <a href="{% url 'star_list' user.id %}" class="cs">
-  <button class="btn bcg bms cm mbs">
+  <button class="btn bcg cm mbs">
   {% if stars == 0 %}
   {{ stars }}
   {% else %}

@@ -5,7 +5,10 @@ from .redis1 import already_exists
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext, ugettext_lazy as _
 from detect_porn import detect
 import PIL
 from PIL import Image, ImageFile, ImageEnhance, ExifTags
@@ -227,11 +230,6 @@ class PublicreplyForm(forms.ModelForm):
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
 
-# class OutsideMessageRecreateForm(forms.Form):
-# 	mobile_number = forms.CharField(max_length=50)
-# 	class Meta:
-# 		fields = ("mobile_number",)
-
 class OutsideMessageCreateForm(forms.Form):
 	full_name = forms.CharField(max_length=50)
 	mobile_number = forms.CharField(max_length=50)
@@ -269,11 +267,11 @@ class AdImageForm(forms.ModelForm):
 	class Meta:
 		model = ChatPic
 		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
-		fields = ("image",)
+		fields = ("image_file",)
 
 	def __init__(self, *args, **kwargs):
 		super(AdImageForm, self).__init__(*args, **kwargs)
-		self.fields['image'].label='Upload'#["value"]='Upload'
+		self.fields['image_file'].label='Upload'#["value"]='Upload'
 
 class AdImageYesNoForm(forms.Form):
 	class Meta:
@@ -327,6 +325,12 @@ class ReportFeedbackForm(forms.Form):
 	description = forms.CharField(max_length=250)
 	class Meta:
 		fields = ("description",)
+
+class UnseenActivityForm(forms.Form):
+	comment = forms.CharField(max_length=250)
+	group_reply = forms.CharField(max_length=500)
+	class Meta:
+		fields = ("comment", "group_reply", )
 
 class PhotoTimeForm(forms.Form):
 	class Meta:
@@ -418,12 +422,6 @@ class HomeLinkListForm(forms.Form):
 	reply = forms.CharField(max_length=250)
 	class Meta:
 		fields = ("reply",)
-
-class UnseenActivityForm(forms.Form):
-	comment = forms.CharField(max_length=250)
-	group_reply = forms.CharField(max_length=500)
-	class Meta:
-		fields = ("comment", "group_reply", )
 
 class FacesPagesForm(forms.Form):
 	class Meta:
@@ -699,9 +697,145 @@ class RegisterLoginForm(forms.Form):
 	class Meta:
 		pass
 
-class RegisterWalkthroughForm(forms.Form):
+class CreateAccountForm(forms.ModelForm):
+	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$')
+	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
-		pass
+		model = User
+		fields = ('username',)
+
+	def clean_username(self):
+		username = self.cleaned_data["username"]
+		try:
+			User._default_manager.get(username=username)
+		except User.DoesNotExist:
+			return username
+		raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
+
+	def clean_password(self):
+		password = self.cleaned_data.get("password")
+		return password
+
+	def save(self, commit=True):
+		user = super(CreateAccountForm, self).save(commit=False)
+		password = self.cleaned_data["password"]
+		user.set_password(password)
+		if commit:
+			user.save()
+		return user
+
+class CreatePasswordForm(forms.Form):
+	password = forms.CharField(widget=forms.PasswordInput)
+	class Meta:
+		fields = ('password',)
+
+	def __init__(self,*args,**kwargs):
+		self.request = kwargs.pop('request',None)
+		super(CreatePasswordForm, self).__init__(*args,**kwargs)
+
+	def clean_password(self):
+		password = self.cleaned_data.get("password")
+		lower_pass = password.lower()
+		nickname = self.request.session['nickname']
+		lower_nick = nickname.lower()
+		if len(password) < 6:
+			raise ValidationError('(tip: kam se kam 6 harf likhna zaruri hai)')
+		elif lower_pass.isdigit():
+			raise ValidationError('(tip: password mein sirf numbers nahi ho sakte)')
+		elif lower_nick in lower_pass:
+			raise ValidationError('(tip: %s nahi likh sakte kiyunke nickname mein hai)' % nickname)		
+		elif 'babykobasspasandhai' in lower_pass:
+			raise ValidationError('(tip: babykobasspasandhai ke bajai kuch aur likho)')
+		elif 'chaachi420' in lower_pass:
+			raise ValidationError('(tip: chaachi420 ke bajai kuch aur likho)')
+		elif 'chachi420' in lower_pass:
+			raise ValidationError('(tip: chachi420 ke bajai kuch aur likho)')
+		elif 'garamaanday' in lower_pass:
+			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
+		elif 'damadam' in lower_pass:
+			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+		return password
+
+class CreateNickForm(forms.Form):
+	username = forms.RegexField(max_length=50,regex=r'^[\w.@ +-]+$',help_text=_("Nick mein harf, number ya @ _ . + - likho"),\
+		error_messages={'invalid': _("(tip: sirf harf, number ya @ _ . + - likh sakte ho)")})
+	class Meta:
+		fields = ('username',)
+
+	def clean_username(self):
+		"""
+		Validate that the username is not already in use, etc.
+		
+		"""
+		username = self.cleaned_data['username']
+		if ' ' in username:
+			raise ValidationError('(tip: nickname mein khali jaga nahi hoti. %s likho)' % username.replace(" ",""))
+		elif User.objects.filter(username__iexact=username).exists():
+			raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
+		else:
+			return username
+
+class ReauthForm(forms.Form):
+	password = forms.CharField(widget=forms.TextInput(attrs={'placeholder':''}))
+	class Meta:
+		fields = ("password",)
+
+	def __init__(self,*args,**kwargs):
+		self.request = kwargs.pop('request',None)
+		super(ReauthForm, self).__init__(*args,**kwargs)
+
+	def clean_password(self):
+		entered_password = self.cleaned_data["password"]
+		real_password = self.request.user.password
+		if check_password(password=entered_password,encoded=real_password):
+			return entered_password
+		else:
+			raise forms.ValidationError('(tip: password theek nahi, phir se likho)')
+
+
+class ResetPasswordForm(forms.Form):
+	password = forms.CharField(widget=forms.PasswordInput)
+	class Meta:
+		fields = ('password',)
+
+	def __init__(self,*args,**kwargs):
+		self.request = kwargs.pop('request',None)
+		super(ResetPasswordForm, self).__init__(*args,**kwargs)
+
+	def clean_password(self):
+		password = self.cleaned_data["password"]
+		old_password = self.request.user.password
+		lower_pass = password.lower()
+		nickname = self.request.user.username
+		lower_nick = nickname.lower()
+		if check_password(password,old_password):
+			raise ValidationError('(tip: new password purane password se mukhtalif rakho)')
+		elif len(password) < 6:
+			raise ValidationError('(tip: kam se kam 6 harf likhna zaruri hai)')
+		elif lower_pass.isdigit():
+			raise ValidationError('(tip: password mein sirf numbers nahi ho sakte)')
+		elif lower_nick in lower_pass:
+			raise ValidationError('(tip: %s nahi likh sakte kiyunke nickname mein hai)' % nickname)		
+		elif 'babykobasspasandhai' in lower_pass:
+			raise ValidationError('(tip: babykobasspasandhai ke bajai kuch aur likho)')
+		elif 'chaachi420' in lower_pass:
+			raise ValidationError('(tip: chaachi420 ke bajai kuch aur likho)')
+		elif 'chachi420' in lower_pass:
+			raise ValidationError('(tip: chachi420 ke bajai kuch aur likho)')
+		elif 'garamaanday' in lower_pass:
+			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
+		elif 'damadam' in lower_pass:
+			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+		else:
+			return password
+
+	def save(self, commit=True):
+		user = self.request.user
+		password = self.cleaned_data["password"]
+		user.set_password(password)
+		if commit:
+			user.save()
+		return user
 
 class LoginWalkthroughForm(forms.Form):
 	class Meta:

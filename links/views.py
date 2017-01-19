@@ -5873,9 +5873,9 @@ class MehfilCommentView(FormView):
 						else:
 							return redirect("profile",slug=self.request.user.username)
 			else:
-				if slug and origin and pk:
+				if slug and origin and photo_id:
 					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
-				elif pk and origin:
+				elif photo_id and origin:
 					return redirect("comment_pk", pk=photo_id, origin=origin)
 				else:
 					return redirect("home")

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="margin clb">
+<b class="clb cxl">Apna purana password likho:</b>
+<br>
+<form method="post" action="{% url 'reauth' %}#section0">
+  {% csrf_token %}
+  	  {% if form.password.errors %}
+  	  	<span class="cr">{{ form.password.errors.0 }}</span><br><br>
+  	  {% else %}
+  	  	<span class="cgy">(tip: baray aur chotay harf ka khyal rakho)</span><br><br>
+  	  {% endif %}
+      {{ form.password }}<br><br>
+  <input class="btn bs bcg" type="submit" value="OK">
+</form>
+<br>
+</div>
+<br><br>
+{% endblock %}

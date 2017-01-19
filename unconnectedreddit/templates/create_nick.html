@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin clb">
+<span class="cxl">Pehle ek acha sa nickname likho:</span><br>
+<form method="post" action="{% url 'create_nick' %}#section0">
+{% csrf_token %}
+{% if form.username.errors %}
+<span class="cr">{{ form.username.errors.0 }}</span><br><br>
+{% else %}
+<span class="cgy">(tip: nickname mein khali jagah nahi dalni)</span><br><br>
+{% endif %}
+{{ form.username }}<br><br>
+<button class="btn bs bcg" type="submit">OK</button>
+</form>
+</div>
+<br><br>
+{% endblock %}

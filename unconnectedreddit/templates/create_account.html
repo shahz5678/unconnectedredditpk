@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin clb">
+{% if no_credentials %}
+	{% load emoticons_tags %}
+	<span class="cl">Damadam tumhara nickname bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
+	<a href="{% url 'home' %}#section0"><button class="btn bs bcg mtl">home</button></a>
+{% else %}
+	<form method="post" action="{% url 'create_account' %}#section0">
+	{% csrf_token %}
+	<input type="hidden" name="username" value="{{ username }}">
+	<input type="hidden" name="password" value="{{ password }}">
+		{% if form.username.errors %}
+			{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}
+		{% else %}
+			<span class="cxl">Password teen dafa parh ke yad kr lo:</span><br>
+			<div class="mts">
+			<span class="cs cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
+			<span class="cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
+			<span class="cxl cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
+			</div>
+			<button class="btn bcg bs mtl mbs" type="submit">OK</button><br>
+			<span class="cgy cs">(tip: is screen ki photo le lo, ya password apne pas likh lo agr bhoolne ka dar hai)</span><br><br>
+		{% endif %}
+	</form>
+{% endif %}
+</div>
+<br><br>
+
+{% endblock %}

@@ -2625,20 +2625,25 @@ def reset_password(request,*args,**kwargs):
 			#send back for reauth
 			return redirect("reauth")
 
-#rate limit this
+@ratelimit(method='POST', rate='7/h')
 def reauth(request, *args, **kwargs):
-	if request.method == 'POST':
-		form = ReauthForm(data=request.POST,request=request)
-		if form.is_valid():
-			request.session['authentic_password_owner'] = True
-			return redirect("reset_password")
-		else:
-			context={'form':form}
-			return render(request, 'reauth.html', context)
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context={'pk':'pk'}
+		return render(request, 'penalty_reauth.html', context)
 	else:
-		form = ReauthForm()
-		context = {'form':form}
-		return render(request, 'reauth.html', context)
+		if request.method == 'POST':
+			form = ReauthForm(data=request.POST,request=request)
+			if form.is_valid():
+				request.session['authentic_password_owner'] = True
+				return redirect("reset_password")
+			else:
+				context={'form':form}
+				return render(request, 'reauth.html', context)
+		else:
+			form = ReauthForm()
+			context = {'form':form}
+			return render(request, 'reauth.html', context)
 
 class VerifiedView(ListView):
 	model = User

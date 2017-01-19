@@ -24,7 +24,7 @@ SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment
 #from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login, authenticate
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 # from django.views.generic.list import MultipleObjectMixin
@@ -47,12 +47,12 @@ retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
-CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, \
+CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, \
 DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, \
 WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, \
 SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, \
 OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, \
-PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, RegisterWalkthroughForm, \
+PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, \
 RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, \
 GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
 WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
@@ -61,7 +61,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -324,9 +324,9 @@ class NotifHelpView(FormView):
 			#context["unique"] = link_pk
 		return context
 
-class RegisterWalkthroughView(FormView):
-	form_class = RegisterWalkthroughForm
-	template_name = "register_walkthrough.html"
+# class RegisterWalkthroughView(FormView):
+# 	form_class = RegisterWalkthroughForm
+# 	template_name = "register_walkthrough.html"
 
 # def login_page(request, *args, **kwargs):
 # 	form = LoginForm()
@@ -1694,268 +1694,6 @@ def home_link_list(request, *args, **kwargs):
 		return render(request, 'link_list.html', context)
 	return render(request, 'link_list.html', context)
 
-
-# class LinkListView(ListView):
-# 	model = Link
-# 	paginate_by = 20
-# 	template_name = "link_list.html"
-
-# 	def get_queryset(self):
-# 		if self.request.user_banned:
-# 			return all_unfiltered_posts()
-# 		else:
-# 			return all_filtered_posts()
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(LinkListView, self).get_context_data(**kwargs)
-# 		context["checked"] = FEMALES
-# 		# calc_photo_quality_benchmark()
-# 		context["can_vote"] = False
-# 		context["authenticated"] = False
-# 		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(context["object_list"])
-# 		context["links"] = list_of_dictionaries
-# 		###################### Namaz feature #######################################################################
-# 		now = datetime.utcnow()+timedelta(hours=5)
-# 		day = now.weekday()
-# 		current_minute = now.hour * 60 + now.minute
-# 		previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-# 		context["next_namaz_start_time"] = next_namaz_start_time
-# 		if namaz == 'Zuhr' and day == 4: #4 is Friday
-# 			context["current_namaz"] = 'Jummah'
-# 		else:
-# 			context["current_namaz"] = namaz
-# 		if next_namaz == 'Zuhr' and day == 4:#4 if Friday
-# 			context["next_namaz"] = 'Jummah'	
-# 		else:
-# 			context["next_namaz"] = next_namaz
-# 		if not namaz and not next_namaz:
-# 			# do not show namaz element at all, some error may have occurred
-# 			context["show_current"] = False
-# 			context["show_next"] = False
-# 		elif not namaz:
-# 			if self.request.user.is_authenticated():
-# 				try:
-# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-# 					already_prayed = AlreadyPrayed(latest_salat, now)
-# 					if already_prayed == 2:
-# 						#if user skipped previous namaz, no need to show prompt
-# 						context["show_current"] = False
-# 						context["show_next"] = False
-# 					else:
-# 						context["show_current"] = False
-# 						context["show_next"] = True
-# 				except:
-# 					context["show_current"] = False
-# 					context["show_next"] = True
-# 			else:
-# 				context["show_current"] = False
-# 				context["show_next"] = True
-# 		else:
-# 			if self.request.user.is_authenticated():
-# 				try:
-# 					latest_salat = LatestSalat.objects.filter(salatee=self.request.user).latest('when')
-# 					already_prayed = AlreadyPrayed(latest_salat, now)
-# 					if already_prayed:
-# 						if already_prayed == 2:
-# 							context["show_current"] = False
-# 							context["show_next"] = False
-# 						else:
-# 							context["show_current"] = False
-# 							context["show_next"] = True
-# 					else:
-# 						#i.e. show the CURRENT namaz the user has to offer
-# 						context["show_current"] = True
-# 						context["show_next"] = False
-# 				except:
-# 					#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
-# 					context["show_current"] = True
-# 					context["show_next"] = False
-# 			else:
-# 				context["show_current"] = True
-# 				context["show_next"] = False
-# 		################################################################################################################
-# 		if self.request.user.is_authenticated():
-# 			num = random.randint(1,4)
-# 			context["random"] = num #determines which message to show at header
-# 			if num > 2:
-# 				context["newest_user"] = User.objects.latest('id') #for unauthenticated users
-# 			else:
-# 				context["newest_user"] = None
-# 			context["authenticated"] = True
-# 			user = self.request.user
-# 			context["ident"] = user.id #own user id
-# 			context["username"] = user.username #own username
-# 			score = user.userprofile.score
-# 			context["score"] = score #own score
-# 			if score > 9:
-# 				context["can_vote"] = True #allowing user to vote
-# 			global condemned
-# 			if self.request.user_banned:
-# 				context["notification"] = 0 #hell banned users will never see notifications
-# 				context["sender"] = 0 #hell banned users will never see notifications
-# 			else:
-# 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-# 				if not is_link and not is_photo and not is_groupreply and not is_salat:
-# 					context["latest_reply"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 				elif not freshest_reply:
-# 					context["latest_reply"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 				elif is_groupreply:
-# 					if object_type == '1':
-# 						# private mehfil
-# 						context["type_of_object"] = '3a'
-# 						context["notification"] = 1
-# 						context["banned"] = False
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi'] #group id
-# 					elif object_type == '0':
-# 						# public mehfil
-# 						context["type_of_object"] = '3b'
-# 						context["notification"] = 1
-# 						context["banned"] = False
-# 						context["first_time_user"] = False
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi'] #group id
-# 					else:
-# 						context["latest_reply"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 				elif is_salat:
-# 					salat_invite = freshest_reply
-# 					context["type_of_object"] = '4'
-# 					context["notification"] = 1
-# 					try:
-# 						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-# 					except:
-# 						context["first_time_user"] = 0
-# 					context["banned"] = False
-# 					context["parent"] = salat_invite
-# 					context["namaz"] = namaz 
-# 				elif is_link:
-# 					context["type_of_object"] = '2'
-# 					if freshest_reply:
-# 						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
-# 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-# 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-# 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-# 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-# 						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-# 						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-# 						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-# 						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-# 						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-# 						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-# 						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-# 					else:
-# 						parent_link_writer = User()
-# 						WELCOME_MESSAGES = []
-# 					try:
-# 						context["latest_reply"] = freshest_reply
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']
-# 						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
-# 							context["first_time_user"] = True
-# 						else:
-# 							context["first_time_user"] = False
-# 					except:
-# 						context["latest_reply"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 				elif is_photo:
-# 					if object_type == '1':
-# 						# photo = Photo.objects.get(id=freshest_reply)
-# 						context["type_of_object"] = '1'
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					elif object_type == '0':
-# 						context["latest_comment"] = freshest_reply
-# 						context["type_of_object"] = '0'
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
-# 						context["first_time_user"] = False
-# 						context["banned"] = False						
-# 					else:
-# 						context["latest_comment"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					return context
-# 				else:
-# 					return context
-# 		else:
-# 			return context
-# 		return context
-
-# 	def get(self, request, *args, **kwargs):
-# 		self.object_list = self.get_queryset()
-# 		allow_empty = self.get_allow_empty() #Return a boolean specifying whether to display the page if no objects are available. If this method returns False and no objects are available, the view will raise a 404 instead of displaying an empty page. By default, this is True.
-# 		if not allow_empty:
-# 			# allow_empty is True by default in Django ListView, this this code never executes for us.
-# 			# When pagination is enabled and object_list is a queryset,
-# 			# it's better to do a cheap query than to load the unpaginated
-# 			# queryset in memory.
-# 			if (self.get_paginate_by(self.object_list) is not None
-# 				and hasattr(self.object_list, 'exists')):
-# 				# self.get_paginate_by(self.object_list) returns '20' in our case. It basically returns the number of items to paginate by, or None for no pagination. By default this simply returns the value of 'paginate_by'
-# 				# hasattr: The arguments are an object and a string. The result is 'True' if the string is the name of one of the object's attributes, False if not. 
-# 				is_empty = not self.object_list.exists()
-# 			else:
-# 				#this always executes, since hasattr(self.object_list, 'exists') is always False in our case
-# 				is_empty = len(self.object_list) == 0 #is_empty is true or false, depending on the outcome
-# 			if is_empty:
-# 				# ensures empty list is just not displayed
-# 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-# 						% {'class_name': self.__class__.__name__})
-# 		context = self.get_context_data(object_list=self.object_list)
-# 		try:
-# 			target_id = self.request.session['target_id']
-# 			self.request.session['target_id'] = None
-# 		except:
-# 			target_id = None
-# 		if target_id:
-# 			try:
-# 				index = list(link_id for link_id in self.object_list).index(str(target_id))
-# 			except:
-# 				index = None
-# 			if 0 <= index <= 19:
-# 				addendum = '#section'+str(index+1)
-# 			elif 20 <= index <= 39:
-# 				addendum = '?page=2#section'+str(index+1-20)
-# 			elif 40 <= index <= 59:
-# 				addendum = '?page=3#section'+str(index+1-40)
-# 			elif 60 <= index <= 79:
-# 				addendum = '?page=4#section'+str(index+1-60)
-# 			elif 80 <= index <= 99:
-# 				addendum = '?page=5#section'+str(index+1-80)
-# 			elif 100 <= index <= 119:
-# 				addendum = '?page=6#section'+str(index+1-100)
-# 			else:
-# 				addendum = '#section0'
-# 			return HttpResponseRedirect(addendum)
-# 		else:
-# 			return self.render_to_response(context)
-# 			# Combines a given template with a given context variable dictionary, and returns an HttpResponse object with that rendered text.
-# 			#I.e. just render the template normally, without redirecting to a specific anchor tag.
-
 class LinkUpdateView(UpdateView):
 	model = Link
 	form_class = LinkForm
@@ -2739,12 +2477,6 @@ class GroupListView(ListView):
 	paginate_by = 25
 
 	def get_queryset(self):
-		# allGrps = []
-		# date = datetime.now()-timedelta(minutes=60)
-		# new_traff = GroupTraffic.objects.filter(time__gte=date,which_group__private='0').distinct('visitor','which_group').values_list('id',flat=True)
-		# trendingGrp_ids = GroupTraffic.objects.filter(id__in=new_traff).values('which_group').annotate(total=Count('which_group')).order_by('-total')
-		# trendingGrps = [Group.objects.select_related('owner').filter(id=grp['which_group']).extra(select={"views":grp['total']})[0] for grp in trendingGrp_ids]
-		# return trendingGrps
 		trending_groups = []
 		group_ids_list = public_group_ranking()
 		group_ids_dict = dict(group_ids_list)
@@ -2757,6 +2489,156 @@ class GroupListView(ListView):
 		trending_groups = map(itemgetter(0), trending_groups)
 		# trending_groups = [group[0] for group in trending_groups]
 		return trending_groups
+
+def create_account(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = CreateAccountForm(data=request.POST)
+		password = request.POST.get("password"," ")
+		username = request.POST.get("username"," ")
+		if form.is_valid():
+			# ensured username is unique, no one else has booked it
+			if request.session.test_cookie_worked():
+				request.session.delete_test_cookie() #cleaning up
+				form.save() # creating the user
+				request.session['silo'] = None
+				request.session['nickname'] = None
+				user = authenticate(username=username,password=password)
+				login(request,user)
+				return redirect("link_create_pk") #REDIRECT TO A DIFFERNET PAGE
+			else:
+				#cookies aren't being set in the browser, so can't log in!
+				context={'pk':'pk'}
+				return render(request, 'penalty_cookies.html', context)
+		else:
+			# user couldn't be created because while user was deliberating, someone else booked the nickname!
+			context={'no_credentials':False,'password':password,'username':username,'form':form}
+			return render(request, 'create_account.html', context)
+	else:
+		form = CreateAccountForm()
+		try:
+			password = request.session['silo']
+			nickname = request.session['nickname']
+			if password is not None and nickname is not None:
+				context={'no_credentials':False,'password':password,'username':nickname,'form':form}
+				request.session.set_test_cookie() #set it now, to test it after POST
+				return render(request, 'create_account.html', context)
+			else:
+				# credentials have been lost, redo the whole process
+				context={'no_credentials':True}
+				return render(request, 'create_account.html', context)	
+		except:
+			# credentials have been lost, redo the whole process
+			context={'no_credentials':True}
+			return render(request, 'create_account.html', context)
+
+def create_password(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = CreatePasswordForm(data=request.POST,request=request)
+		try:
+			username = request.session['nickname']
+			if username is not None:
+				if form.is_valid():
+					# show user the password in the next screen
+					request.session['silo'] = request.POST.get("password")
+					return redirect('create_account')
+				else:
+					context={'no_nick':False,'form':form}
+					return render(request, 'create_password.html', context)
+			else:
+				# nickname information has been lost
+				context={'no_nick':True,'form':form}
+				return render(request, 'create_password.html', context)
+		except:
+			# nickname information has been lost
+			context={'no_nick':True,'form':form}
+			return render(request, 'create_password.html', context)
+	else:
+		form = CreatePasswordForm()
+		try:
+			username = request.session['nickname']
+			if username is not None:
+				context={'no_nick':False,'form':form}
+				return render(request, 'create_password.html', context)
+			else:
+				# nickname hasnt been selected
+				context={'no_nick':True,'form':form}
+				return render(request, 'create_password.html', context)
+		except:
+			# nickname hasnt been selected
+			context={'no_nick':True,'form':form}
+			return render(request, 'create_password.html', context)
+
+def create_nick(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = CreateNickForm(data=request.POST)
+		if form.is_valid():
+			username = request.POST.get("username")
+			request.session['nickname']=username
+			return redirect('create_password')
+		else:
+			context = {'form':form}
+			return render(request, 'create_nick.html', context)
+	else:
+		request.session['silo'] = None
+		request.session['nickname'] = None
+		form = CreateNickForm()
+		context = {'form':form}	
+		return render(request, 'create_nick.html', context)
+
+#rate limit this
+def reset_password(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = ResetPasswordForm(data=request.POST,request=request)
+		if form.is_valid():
+			form.save()
+			password = request.POST.get("password")
+			context={'new_pass':password}
+			try:
+				del request.session['authentic_password_owner']
+			except KeyError:
+				pass
+			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+			return render(request,'new_password.html',context)
+		else:
+			try:
+				allowed = request.session['authentic_password_owner']
+				if allowed is True:
+					context={'form':form,'allowed':True}					
+				else:
+					context={'form':form,'allowed':False}
+			except:
+				context={'form':form,'allowed':None}
+			# context={'form':form,'allowed':allowed}
+			return render(request,'reset_password.html',context)	
+	else:
+		form = ResetPasswordForm()
+		try:
+			allowed = request.session['authentic_password_owner']
+			if allowed is True:
+				#can press forward, user is 'allowed'
+				context={'form':form,'allowed':allowed}
+				return render(request,'reset_password.html',context)
+			else:
+				#send back for reauth
+				return redirect("reauth")
+		except:
+			#send back for reauth
+			return redirect("reauth")
+
+#rate limit this
+def reauth(request, *args, **kwargs):
+	if request.method == 'POST':
+		form = ReauthForm(data=request.POST,request=request)
+		if form.is_valid():
+			request.session['authentic_password_owner'] = True
+			return redirect("reset_password")
+		else:
+			context={'form':form}
+			return render(request, 'reauth.html', context)
+	else:
+		form = ReauthForm()
+		context = {'form':form}
+		return render(request, 'reauth.html', context)
 
 class VerifiedView(ListView):
 	model = User

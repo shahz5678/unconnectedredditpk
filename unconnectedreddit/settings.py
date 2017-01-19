@@ -210,6 +210,8 @@ CACHES = {
 	}
 }
 
+# SESSION_COOKIE_DOMAIN = '.damadam.pk'
+
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",

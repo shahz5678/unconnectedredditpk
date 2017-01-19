@@ -31,7 +31,7 @@
 <br>
 <b class="clb">Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
 <br><b class="clb">Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg mbs">profile</button></a>
-<br><b class="clb">Password:&nbsp;</b><a href="{% url 'reauth' %}#section0" class="clb"><button class="btn bcg mbs">badlo</button></a>
+{% if own_profile %}<br><b class="clb">Password:&nbsp;</b><a href="{% url 'reauth' %}#section0" class="clb"><button class="btn bcg mbs">badlo</button></a>{% endif %}
 <br>{% if fans == 1 %}
 <b class="clb">Fan:</b>
 {% else %}

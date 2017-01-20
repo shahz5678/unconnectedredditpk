@@ -60,7 +60,7 @@
   </a>
 {% endif %}
 
-{% if authenticated and allowed_fan and not own_profile %}
+{% if authenticated and not own_profile and allowed_fan %}
   {% if not_fan %}
   <br><a href="{% url 'fan' subject_id 1 %}"><button class="btn nw bcg cm bl mbs">iske fan bano</button></a>
   {% else %}

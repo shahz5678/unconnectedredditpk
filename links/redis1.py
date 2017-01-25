@@ -26,6 +26,7 @@ hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest 
 set_name = "nas:"+str(target_id) #nas is 'nick abuse set', it contains IDs of people who reported this person
 hash_name = "pah:"+str(user_id) #pah is 'publicreply abuse hash', it contains latest integrity value
 hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash', it contains latest integrity value
+hash_name = "ph:"+str(photo_id)
 hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 list_name = "phts:"+str(user_id)
@@ -170,6 +171,24 @@ def add_to_photo_vote_ban(user_ids, ban_type):
 #mehfil refresh button: '1'
 #photo defender:        '2'
 #inbox (matka):         '3'
+#fan:                   '4'
+#password change:       '5'
+
+def first_time_password_changer(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'5'):
+		return False
+	else:
+		return True
+
+def first_time_fan(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'4'):
+		return False
+	else:
+		return True
 
 def first_time_inbox_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -212,6 +231,16 @@ def add_inbox(user_id):
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '3')
 
+def add_fan(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '4')
+
+def add_password_change(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '5')
+
 #####################Publicreplies#####################
 
 #This failed in boosting performance - thus was deprecated
@@ -239,32 +268,96 @@ def add_inbox(user_id):
 
 #####################Photo objects#####################
 
-def get_recent_photos(user_id):
+def retrieve_photo_posts(photo_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("phts:"+str(user_id), 0, -1)
+	list_of_dictionaries = []
+	photo_ids = []
+	non_photo_link_ids = []
+	pipeline1 = my_server.pipeline()
+	for photo_id in photo_id_list:
+		hash_name="ph:"+str(photo_id)
+		pipeline1.hgetall(hash_name)
+	result1 = pipeline1.execute()
+	count = 0
+	for hash_obj in result1:
+		list_of_dictionaries.append(hash_obj)
+		count += 1
+	return list_of_dictionaries 
 
-def save_recent_photo(user_id, photo_id):
+def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None,\
+	upload_time=None,invisible_score=None,caption=None,photo_owner_username=None,\
+	device=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("phts:"+str(user_id), photo_id)
-	my_server.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos
+	hash_name = "ph:"+str(photo_id)
+	mapping = {'i':photo_id,'oi':owner_id,'oa':owner_av_url,'u':image_url,'t':upload_time,\
+	'in':invisible_score,'ca':caption,'o':photo_owner_username,'d':device,'vi':'0','vo':'0'}
+	my_server.hmset(hash_name, mapping)
+	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
+
+def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
+	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "ph:"+str(photo_id)
+	# fields_to_get = ['lctx','lcwi','lcau','lcwu']
+	lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
+	if lctx:
+		mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
+		'lcwu':latest_comm_writer_uname,'slctx':lctx,'slcwi':lcwi,'slcau':lcau,'slcwu':lcwu}
+	else:
+		mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
+		'lcwu':latest_comm_writer_uname}
+	my_server.hmset(hash_name, mapping)
+	my_server.hincrby(hash_name,'co',amount=1)
+	if photo_owner_id != latest_comm_writer_id and exists is False: #only give score if writer is not the original photo poster, and hasn't written before
+		my_server.hincrby(hash_name,'vi',amount=2)
+
+def add_vote_to_photo(photo_id, username, value):
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
+	hash_name = "ph:"+str(photo_id)
+	already_exists = my_server.zscore(sorted_set, username)
+	if already_exists != 0 and already_exists != 1:
+		#add the voter's username and vote_value (for display later)
+		my_server.zadd(sorted_set, username, value)
+		update_vsc_in_photo(photo_id,value)
+		#add vote to photo_obj
+		if int(value) == 0:
+			my_server.hincrby(hash_name,'vo',amount=-1)
+			my_server.hincrby(hash_name,'vi',amount=-1)
+		else:
+			my_server.hincrby(hash_name,'vo',amount=1)
+			my_server.hincrby(hash_name,'vi',amount=1)
+		#update 'last vote time'. Maitenance: if this time is older than 7 days (or something) remove 'vp:'
+		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
+		current_time = time.time()
+		mapping = {'t':current_time}
+		my_server.hmset(hash_name, mapping)
+		return True
+	else:
+		return False
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vp:"+str(photo_id)
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
-# def voted_for_photo2(photo_qs,username):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photos_voted = []
-# 	for photo in photo_qs:
-# 		sorted_set = "vp:"+str(photo.id)
-# 		already_exists = my_server.zscore(sorted_set, username)
-# 		if already_exists == 0 or already_exists == 1:
-# 			# i.e. upvote or downvote already exists, thus this photo.id counts!
-# 			photos_voted.append(photo.id)
-# 	return photos_voted
+def voted_for_photo(photo_lst_of_dict,username):
+	my_server = redis.Redis(connection_pool=POOL)
+	photos_voted = []
+	pipeline1 = my_server.pipeline()
+	for photo in photo_lst_of_dict:
+		sorted_set = "vp:"+photo['i']
+		pipeline1.zscore(sorted_set, username)
+	already_exists_list =  pipeline1.execute()
+	count = 0
+	for already_exists in already_exists_list:
+		if already_exists == 0 or already_exists == 1:
+			# i.e. upvote or downvote already exists, thus this photo.id counts!
+			photos_voted.append(photo_lst_of_dict[count]['i'])
+		count += 1
+	return photos_voted
 
-def voted_for_photo(photo_qs,username):
+def voted_for_photo_qs(photo_qs,username):
 	my_server = redis.Redis(connection_pool=POOL)
 	photos_voted = []
 	pipeline1 = my_server.pipeline()
@@ -290,23 +383,6 @@ def voted_for_single_photo(photo_id, username):
 	else:
 		# i.e. already exists
 		return True
-
-def add_vote_to_photo(photo_id, username, value):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
-	already_exists = my_server.zscore(sorted_set, username)
-	if already_exists != 0 and already_exists != 1:
-		#add the voter's username and vote_value (for display later)
-		my_server.zadd(sorted_set, username, value)
-		update_vsc_in_photo(photo_id,value)
-		#update 'last vote time'. Maitenance: if this time is older than 7 days (or something) remove 'vp:'
-		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
-		current_time = time.time()
-		mapping = {'t':current_time}
-		my_server.hmset(hash_name, mapping)
-		return True
-	else:
-		return False
 
 def can_photo_vote(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -344,6 +420,23 @@ def can_photo_vote(user_id):
 	else:
 		my_server.lpush(photo_vote_list,time.time())
 		return True, None
+
+def never_posted_photo(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.llen("phts:"+str(user_id)):
+		return False
+	else:
+		return True
+
+def get_recent_photos(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("phts:"+str(user_id), 0, -1)
+
+def save_recent_photo(user_id, photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("phts:"+str(user_id), photo_id)
+	my_server.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos
+
 
 #####################Video objects#####################
 
@@ -451,26 +544,6 @@ def retrieve_home_links(link_id_list):
 		count += 1
 	return photo_ids, non_photo_link_ids, list_of_dictionaries 
 
-# def retrieve_home_links2(link_id_list):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	list_of_dictionaries = []
-# 	photo_ids = []
-# 	non_photo_link_ids = []
-# 	pipeline1 = my_server.pipeline()
-# 	for link_id in link_id_list:
-# 		hash_name = "lk:"+str(link_id)
-# 		pipeline1.hgetall(hash_name)#
-# 	result1 = pipeline1.execute()
-# 	count = 0
-# 	for hash_contents in result1:
-# 		list_of_dictionaries.append(hash_contents)
-# 		try:
-# 			photo_ids.append(hash_contents['pi'])
-# 		except:
-# 			non_photo_link_ids.append(link_id_list[count])
-# 		count += 1
-# 	return photo_ids, non_photo_link_ids, list_of_dictionaries
-
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
@@ -561,19 +634,20 @@ def add_photos_to_best(photo_scores):
 		pipeline1.execute()
 	except:
 		pass
-
-def add_photo_to_best(photo_id, score):
-	my_server = redis.Redis(connection_pool=POOL)
-	try:
-		size = my_server.zcard("bestphotos:1000")
-		limit = 1000
-		if size < 1001:
-			my_server.zadd("bestphotos:1000", photo_id, score)
-		else:
-		   my_server.zremrangebyrank("bestphotos:1000", 0, 10)
-		   my_server.zadd("bestphotos:1000", photo_id, score)
-	except:
-		my_server.zadd("bestphotos:1000", photo_id, score)
+		
+# def add_photo_to_best(photo_id, score):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	try:
+# 		size = my_server.zcard("bestphotos:1000")
+# 		limit = 1000
+# 		if size < 1001:
+# 			my_server.zadd("bestphotos:1000", photo_id, score)
+# 		else:
+# 			# if size is bigger than 1000
+# 		   	my_server.zremrangebyrank("bestphotos:1000", 0, 899)
+# 		   	my_server.zadd("bestphotos:1000", photo_id, score)
+# 	except:
+# 		my_server.zadd("bestphotos:1000", photo_id, score)
 
 def get_best_photo():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -660,15 +734,6 @@ def bulk_check_group_membership(user_ids_list,group_id):
 		count += 1
 	return non_member_ids
 
-# def bulk_check_group_membership(user_ids_list,group_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	non_member_ids = []
-# 	for user_id in user_ids_list:
-# 		set_name = "ug:"+str(user_id) #ug is user's groups
-# 		if not my_server.sismember(set_name, group_id):
-# 			non_member_ids.append(user_id)
-# 	return non_member_ids
-
 def remove_user_group(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ug:"+str(user_id) #ug is user's groups
@@ -749,26 +814,6 @@ def add_group_invite(user_id, group_id, invite_id):
 		my_server.sadd(unsorted_set, invite_id) #invited_id is the reply_id that carries the invite
 		mapping = {'grp':group_id, 'usr':user_id, 'ivt':invite_id}
 		my_server.hmset(hash_name, mapping)
-
-# def bulk_remove_group_invites(group_id, invited_ids):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	pipeline1 = my_server.pipeline()
-# 	for invited_id in invited_ids:
-# 		hash_name = "giu:"+str(group_id)+str(invited_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
-# 		invite = pipeline1.hget(hash_name, 'ivt') # get the invite_id to be removed	
-# 	invite_ids = pipeline1.execute()
-# 	print "invites to be removed are: %s" % invite_ids
-# 	count = 0
-# 	pipeline2 = my_server.pipeline()
-# 	for invite in invite_ids:
-# 		if invite:
-# 			hash_name = "giu:"+str(group_id)+str(invited_ids[count])
-# 			pipeline2.srem("pir:"+str(invited_ids[count]),invite) #remove invite for user: invited_ids[count]
-# 			print "removing invite_id %s from %s" % (invite,"pir:"+str(invited_ids[count]))
-# 			pipeline2.delete(hash_name)
-# 			print "deleting %s" % hash_name
-# 		count += 1
-# 	pipeline2.execute()
 
 def check_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

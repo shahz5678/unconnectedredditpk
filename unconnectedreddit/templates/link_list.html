@@ -181,17 +181,15 @@
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|thumbedge }}" alt="no pic" clas="pht bright"></img>
+			<img src="{{ parent.p|thumbedge }}" alt="no pic" class="uploadedphoto"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|thumbedge }}" style="border:1px solid lightgrey;
-    width:auto;"></img>
+			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
 		{% endif %}
-		<span style="color:grey;">{{ parent.od|truncatechars:30 }}</span>
-		<p style="margin-top:.3em;"></p>
-		<button class="btn nw bm bco">isko dekho</button>
+		<span class="cgy">{{ parent.od|truncatechars:30 }}</span><br>
+		<button class="btn nw bm bco mtl">isko dekho</button>
 		</a>&nbsp;&nbsp;
 		<a href="{% url 'cross_comment_notif' parent_pk user.id 1 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</div>
@@ -346,6 +344,16 @@
 	{% endif %}
 		</span>
 		<br>
+		
+		{% if authenticated and link.n != username %}
+			{% if link.w|add:"0" in fanned %}
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+			{% else %}
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+			{% endif %}
+		{% endif %}
+
+
 	{% if link.aw == '1' and link.h|add:0 > 7 %}
 		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
 	{% else %}

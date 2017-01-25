@@ -62,9 +62,9 @@
 
 {% if authenticated and not own_profile and allowed_fan %}
   {% if not_fan %}
-  <br><a href="{% url 'fan' subject_id 1 %}"><button class="btn nw bcg cm bl mbs">iske fan bano</button></a>
+  <br><a href="{% url 'fan' subject_id 0 1 %}"><button class="btn nw bcg cm bl mbs">iske fan bano</button></a>
   {% else %}
-  <br><a href="{% url 'fan' subject_id 1 %}"><button class="btn nw bcr cm bl mbs">fan khatm kro</button></a>
+  <br><a href="{% url 'fan' subject_id 0 1 %}"><button class="btn nw bcr cm bl mbs">fan khatm kro</button></a>
   {% endif %}
 {% endif %}
 <br>

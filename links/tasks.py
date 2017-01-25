@@ -208,22 +208,25 @@ def rank_all_photos1():
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
-	# photos = retrieve_photo_posts(all_photos())
-	# photo_id_and_scr = []
-	# for photo in photos:
-	# 	if int(photo['vo']) > -2:
-	# 		rank = set_rank(int(photo['vi']),float(photo['t']))
-	# 		photo_id_and_scr.append(photo['i'])
-	# 		photo_id_and_scr.append(rank)
-	# add_photos_to_best(photo_id_and_scr)
-	photos = Photo.objects.filter(id__in=all_photos())
+	photos = retrieve_photo_posts(all_photos())
 	photo_id_and_scr = []
 	for photo in photos:
-		if photo.vote_score > -2:
-			score = photo.set_rank()
-			photo_id_and_scr.append(photo.id)
-			photo_id_and_scr.append(score)
+		try:
+			if int(photo['vo']) > -2:
+				rank = set_rank(int(photo['vi']),float(photo['t']))
+				photo_id_and_scr.append(photo['i'])
+				photo_id_and_scr.append(rank)
+		except:
+			pass
 	add_photos_to_best(photo_id_and_scr)
+	# photos = Photo.objects.filter(id__in=all_photos())
+	# photo_id_and_scr = []
+	# for photo in photos:
+	# 	if photo.vote_score > -2:
+	# 		score = photo.set_rank()
+	# 		photo_id_and_scr.append(photo.id)
+	# 		photo_id_and_scr.append(score)
+	# add_photos_to_best(photo_id_and_scr)
 
 # @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')

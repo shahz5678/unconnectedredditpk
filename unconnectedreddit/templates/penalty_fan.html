@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans hi nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
-<a href="{% url 'profile' user.username %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:4em;margin-top:0.5em;">wapis</button></a>
+<div class="margin clb">
+<h2>Damadam ka sans hi nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
+<a href="{% url 'profile' unique %}#section0"><button class="btn bco bm mtl">wapis</button></a>
 </div>
-<br><br><br>
+<br><br>
 {% endblock %}

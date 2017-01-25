@@ -1,24 +1,12 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% block content %}
-<div class="margin"> 
-{% if skip %}
-	<b style="color:#404040;font-size:100%;">Fan bn kr photo sb se pehlay dekho!</b><br>
-	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">1)</span> Agr tumhe kisi ki photos pasand hain, toh iske fan ban jao.<br>
-	<span style="color:green;">2)</span> Ye jb bhi naee photo lagai ga, tumhe photo sb se pehlay nazr aa jaye gi.<br>
-	</span>
-{% else %}
-	<b style="color:#404040;font-size:100%;">Fan bn kr photo sb se pehlay dekho!</b><br>
-	<span style="color:#404040;font-size:89%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">1)</span> Agr tumhe <b>{{ name }}</b> ki photos pasand hain, toh iske fan ban jao.<br>
-	<span style="color:green;">2)</span> Ye jb bhi naee photo lagai ga, tumhe photo sb se pehlay nazr aa jaye gi.<br>
-	</span>
-{% endif %}
-	<form action="{% url 'fan_tutorial' %}" method="POST">
-	{% csrf_token %}
-	<input class="button" style="color:white;background-color:#2DB92D;border:solid 1px #179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:6.4em;white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="samajh gaya"><br>
-	<input class="button" style="color:white;background-color:#FF1A1A;border:solid 1px #cc0000;width:6.4em;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);white-space:nowrap;border-radius:4px;" type="submit" name= "choice" value="nahi samjha"><br>
-	</form>
+<div class="margin clb">
+<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Dostoon ke fan bano </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic">
+<br><br>
+Jo pasand aye uske fan ban jao. Is terah tumhe uski photos sb se pehle nazr aya krein gi.<br>
+<span class="cs">Ab OK dbao takey tumhe <b>{{ name }}</b> ka fan bana diya jaye</span>
+<br>
+<a href="{% url 'fan' star_id obj_id origin %}"><button class="btn bcg bm mtl">OK</button></a>
 </div>
+<br><br>
 {% endblock %}

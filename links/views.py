@@ -15,7 +15,8 @@ from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
-VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks
+VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
+fan_recount
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
@@ -38,12 +39,13 @@ from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
 private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
-all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, add_photo_to_best, \
-all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
+all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, all_videos, \
+add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
 get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_check_group_membership, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
 check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
-retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox
+retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, \
+never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -1415,7 +1417,7 @@ def home_list(request, obj_list ,items_per_page):
 def home_location(request, *args, **kwargs):
 	try:
 		link_id = request.session['target_id']
-		request.session['target_id'] = None
+		del request.session['target_id']
 	except:
 		link_id = 0
 	if request.user_banned:
@@ -1573,6 +1575,8 @@ def home_link_list(request, *args, **kwargs):
 		user = request.user
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
+		photo_owners = set(item['w'] for item in list_of_dictionaries if 'pi' in item)
+		context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 		score = user.userprofile.score
 		context["score"] = score #own score
 		if score > 9:
@@ -1934,8 +1938,7 @@ class UserProfilePhotosView(ListView):
 			context["score"] = score
 			if score > 9 and not self.request.user_banned:
 				context["can_vote"] = True
-			# context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, username)]
-			context["voted"] = voted_for_photo(context["object_list"],username)
+			context["voted"] = voted_for_photo_qs(context["object_list"],username)
 			if UserFan.objects.filter(fan=self.request.user,star_id=star_id).exists():
 				context["not_fan"] = False
 			else:
@@ -2309,8 +2312,6 @@ def process_public_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				return redirect("reinvite_help", slug= unique)
 			else:#this person ought to be sent an invite
 				#send a notification to this person to check out the group
-				#GroupInvite.objects.create(inviter= self.request.user,which_group_id=group_id,invitee_id=invitee.id)
-				#GroupInvite.objects.filter(which_group=group ,invitee=self.request.user).exists() to check if an invite already exists
 				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
 				add_group_invite(pk, group_id,reply.id)
 				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
@@ -2328,15 +2329,12 @@ class InviteUsersToGroupView(ListView):
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
 			})	
-			# user_ids = get_latest_online()#get_whose_online()
 			global condemned
 			try:
 				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["public_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
-				# non_invited_online_ids = [pk for pk in users_purified if not check_group_invite(pk, group.id)] #i.e. ensure not invited to this group
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
-				# non_invited_non_member_online_ids = [pk for pk in non_invited_online_ids if not is_member_of_group(group.id, pk)]
 				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
 				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
 			except:
@@ -2361,13 +2359,10 @@ class ExternalSalatInviteView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(ExternalSalatInviteView, self).get_context_data(**kwargs)
-		# now = datetime.utcnow()+timedelta(hours=5)
-		# current_minute = now.hour * 60 + now.minute
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
 		})
 		salat_timings = cache_mem.get('salat_timings')
-		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 		if salat_timings['namaz']:
 			context["namaz_time"] = True
 			context["namaz"] = salat_timings['namaz']
@@ -2383,9 +2378,6 @@ class SalatInviteView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(SalatInviteView, self).get_context_data(**kwargs)
-		# now = datetime.utcnow()+timedelta(hours=5)
-		# current_minute = now.hour * 60 + now.minute
-		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
 		})
@@ -2437,7 +2429,6 @@ class InternalSalatInviteView(ListView):
 					already_prayed = LatestSalat.objects.filter(salatee_id__in=user_ids, skipped=False, latest_salat='1',when__gte=starting_time).values_list('salatee_id', flat=True)
 					#remove already invited and already prayed users from the object_list:
 					context["user_list"] = [user for user in context["object_list"] if user.pk not in set(list(invites) + list(already_prayed))]
-					#context["user_list"] = [user for user in context["user_list"] if user.pk not in already_prayed]
 				elif namaz == 'Zuhr':
 					#check which users have been sent an invite for the current namaz, AFTER the current namaz's start time
 					invites = SalatInvite.objects.filter(invitee_id__in=user_ids, which_salat='2', sent_at__gte=starting_time).values_list('invitee_id', flat=True)
@@ -2631,6 +2622,10 @@ def reauth(request, *args, **kwargs):
 	if was_limited:
 		context={'pk':'pk'}
 		return render(request, 'penalty_reauth.html', context)
+	elif first_time_password_changer(request.user.id):
+		add_password_change(request.user.id)
+		context={'username':request.user.username}
+		return render(request, 'password_change_tutorial.html', context)
 	else:
 		if request.method == 'POST':
 			form = ReauthForm(data=request.POST,request=request)
@@ -2658,7 +2653,7 @@ class VerifiedView(ListView):
 
 class TopPhotoView(ListView):
 	model = User
-	form_class = TotalFanAndPhotos
+	# form_class = TotalFanAndPhotos
 	template_name = "top_photo.html"
 
 	def get_queryset(self):
@@ -2886,7 +2881,6 @@ class ChainPhotoTutorialView(FormView):
 			if self.request.user_banned:
 				return redirect("see_photo")
 			else:
-				#which_photo = Photo.objects.get(id=pk)
 				if self.request.method == 'POST':
 					option = self.request.POST.get("choice",'')
 					if option == 'samajh gaya':
@@ -3315,19 +3309,16 @@ def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 			context = {'pk': '10'}
 			return render(request, 'penalty_commentpk.html', context)
 	else:
-		if pk.isdigit():
-			request.session["photo_id"] = pk
-			if ident:
-				request.session["user_ident"] = ident
-			else:
-				request.session["user_ident"] = None
-			if origin:
-				return redirect("comment", origin)
-			else:
-				return redirect("comment")
+		request.session["photo_id"] = pk
+		if ident:
+			request.session["user_ident"] = ident
 		else:
-			return redirect("see_photo")	
-
+			request.session["user_ident"] = None
+		if origin:
+			return redirect("comment", origin)
+		else:
+			return redirect("comment")
+	
 class CommentView(CreateView):
 	model = PhotoComment
 	form_class = CommentForm
@@ -3510,6 +3501,8 @@ class CommentView(CreateView):
 						url = user.userprofile.avatar.url
 					except:
 						url = None
+					add_photo_comment(photo_id=which_photo.id,photo_owner_id=which_photo.owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
+						latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists)
 					photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
 						exists, user.username, url)
 					if pk and origin and link_id:
@@ -3889,8 +3882,8 @@ class PhotoView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
+		# queryset = all_photos()
 		queryset = Photo.objects.select_related('owner__userprofile','latest_comment','second_latest_comment').filter(id__in=all_photos()).order_by('-id')
-		#queryset = Photo.objects.select_related('owner__userprofile','latest_comment__submitted_by','second_latest_comment__submitted_by').order_by('-upload_time')[:200]
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -3899,6 +3892,8 @@ class PhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
+		# context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
+		# context["object_list"] = filter(None, context["object_list"]) #filters empty values - O(n) time complexity
 		try:
 			on_fbs = self.request.META.get('X-IORG-FBS')
 		except:
@@ -3922,6 +3917,7 @@ class PhotoView(ListView):
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			user = self.request.user
+			context["username"] = self.request.user.username
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			if not self.request.user_banned:
@@ -3929,7 +3925,10 @@ class PhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				context["voted"] = voted_for_photo(context["object_list"],user.username)
+				context["voted"] = voted_for_photo_qs(context["object_list"],user.username)
+				# photo_owners = set([photo['oi'] for photo in context["object_list"]])
+				photo_owners = set([photo.owner_id for photo in context["object_list"]])
+				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -3973,9 +3972,6 @@ class PhotoView(ListView):
 						context["first_time_user"] = False
 						context["banned"] = False
 				elif is_salat:
-					# now = datetime.utcnow()+timedelta(hours=5)
-					# current_minute = now.hour * 60 + now.minute
-					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
 					})
@@ -4101,6 +4097,7 @@ class PhotoView(ListView):
 		if target_id:
 			try:
 				index = list(photo.id for photo in self.object_list).index(int(target_id))
+				# index = self.object_list.index(target_id)
 			except:
 				index = None
 			if 0 <= index <= 9:
@@ -4149,6 +4146,13 @@ class PhotoView(ListView):
 		else:
 			return self.render_to_response(context)
 
+# def get_best_photos(best_qs,with_scrs):
+# 	photos = {}
+# 	for photo in best_qs:
+# 		if photo:
+# 			photos[with_scrs[str(photo['i'])]] = photo
+# 	return [photos[key] for key in sorted(photos,reverse=True)]
+
 def get_best_photos(best_qs,with_scrs):
 	photos = {}
 	for photo in best_qs:
@@ -4166,17 +4170,10 @@ def see_best_photo_pk(request,pk=None,*args,**kwargs):
 class BestPhotoView(ListView):
 	model = Photo
 	template_name = "best_photos.html"
+	# template_name = "best_photos1.html"
 	paginate_by = 10
 
 	def get_queryset(self):
-		# queryset = Photo.objects.select_related('owner__userprofile').filter(id__in=all_best_photos()).exclude(vote_score__lte=-1).order_by('-invisible_score')
-		# return queryset
-
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		# 	'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
-		# })
-		# queryset = cache_mem.get('best_photos')
-		# return queryset
 		photos_and_scores = all_best_photos()
 		return photos_and_scores
 
@@ -4187,6 +4184,7 @@ class BestPhotoView(ListView):
 		context["can_vote"] = False
 		context["score"] = None
 		context["object_list"] = dict(context["object_list"])
+		# context["object_list"] = get_best_photos(retrieve_photo_posts(context["object_list"].keys()),context["object_list"])
 		context["object_list"] = get_best_photos(Photo.objects.filter(id__in=context["object_list"].keys()),context["object_list"])
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
@@ -4195,6 +4193,7 @@ class BestPhotoView(ListView):
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 			user = self.request.user
+			context["username"] = user.username
 			context["ident"] = user.id
 			context["score"] = user.userprofile.score
 			context["voted"] = []
@@ -4203,8 +4202,10 @@ class BestPhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				# context["voted"] = [photo.id for photo in context["object_list"] if voted_for_photo(photo.id, user.username)]
-				context["voted"] = voted_for_photo(context["object_list"],user.username)
+				context["voted"] = voted_for_photo_qs(context["object_list"],user.username)
+				# photo_owners = set([photo['oi'] for photo in context["object_list"]])
+				photo_owners = set([photo.owner_id for photo in context["object_list"]])
+				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
 					context["freshest_unseen_comment"] = []
@@ -4370,6 +4371,7 @@ class BestPhotoView(ListView):
 			target_id = None
 		if target_id:
 			try:
+				# index = list(photo[0] for photo in self.object_list).index(target_id)
 				index = list(photo.id for photo in self.object_list).index(int(target_id))
 			except:
 				index = None
@@ -4635,6 +4637,9 @@ class UploadPhotoView(CreateView):
 				except:
 					owner_url = None
 				name = user.username
+				add_photo_entry(photo_id=photo_id,owner_id=user_id,image_url=photo.image_file.url,upload_time=epochtime,\
+					invisible_score=invisible_score,caption=f.caption,photo_owner_username=name,owner_av_url=owner_url,\
+					device=device)
 				create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=user_id,\
 					object_owner_name=name,object_desc=f.caption,photourl=photo.image_file.url,vote_score=0,res_count=0)
 				# create_notification(viewer_id=user_id, object_id=photo_id, object_type='0',seen=True,updated_at=epochtime,\
@@ -5984,6 +5989,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						url = request.user.userprofile.avatar.url
 					except:
 						url = None
+					add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=request.user.id,\
+						latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists)
 					unseen_comment_tasks.delay(request.user.id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
 						request.user.username, url)
 					return redirect("unseen_activity", request.user.username)
@@ -7401,97 +7408,155 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		return render(request, 'salat_invite_error.html', context)
 
 @ratelimit(rate='3/s')
-def fan(request, pk=None, from_profile=None, *args, **kwargs):
+def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 5 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
+		UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-5)
 		return redirect("see_photo")
+	elif request.user.id == star_id:
+		# penalize this user
+		UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-5)
+		context={'unique':request.user.username}
+		return render(request,'penalty_fan.html',context)
+	elif never_posted_photo(request.user.id):
+		# show "please first upload at least 1 photo" to be eligible for upload a photo
+		context = {'unique': request.user.username}
+		return render(request, 'fan_requirement.html', context)
 	else:
-		if pk.isdigit() and (Photo.objects.filter(owner=request.user).exists() or request.user.userprofile.score > 30):
-			try:
-				user = User.objects.get(id=pk)
-				if request.user == user:
-					request.user.userprofile.score = request.user.userprofile.score - 5
-					request.user.userprofile.save()
-					context = {'unique': user}
-					return render(request, 'penalty_fan.html', context)
-			except:
-				return redirect("see_photo")
-			try:
-				UserFan.objects.get(fan=request.user, star=user).delete()
-				remove_from_photo_owner_activity(user.id, request.user.id)
-				try:
-					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-					aggregate_object.total_fans = aggregate_object.total_fans - 1
-					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-					aggregate_object.save()
-				except:
-					pass
-				if from_profile == '1':
-					return redirect("profile", user.username)
-				elif from_profile == '2':
-					return redirect("star_list", request.user.id)
-				else:
-					return redirect("profile", user.username)
-			except:
-				try:
-					seen_fan_option = TutorialFlag.objects.filter(user=request.user).latest('id').seen_fan_option
-					if seen_fan_option:
-						if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
-							UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
-							add_to_photo_owner_activity(pk, request.user.id)
-							try:
-								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-								aggregate_object.total_fans = aggregate_object.total_fans + 1
-								aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-								aggregate_object.save()
-							except:
-								TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
-						else:
-							if from_profile == '1':
-								return redirect("profile", user.username)
-							elif from_profile == '2':
-								return redirect("star_list", request.user.id)
-							else:
-								return redirect("profile", user.username)
-						if from_profile == '1':
-							return redirect("profile", user.username)
-						elif from_profile == '2':
-							return redirect("star_list", request.user.id)
-						else:
-							return redirect("profile", user.username)
-					else:
-						#no seen fan tutorial
-						request.session["ftue_fan_option"] = True
-						request.session["ftue_fan_user"] = user
-						return redirect("fan_tutorial")
-				except:
-					#the tutorial object didn't exist, has to be created now
-					TutorialFlag.objects.create(user=request.user)
-					request.session["ftue_fan_option"] = True
-					request.session["ftue_fan_user"] = user
-					return redirect("fan_tutorial")
-			if from_profile == '1':
-				return redirect("profile", user.username)
-			elif from_profile == '2':
-				return redirect("star_list", request.user.id)
+		star = User.objects.get(id=star_id)
+		try:
+			UserFan.objects.get(fan=request.user, star_id=star_id).delete()
+			remove_from_photo_owner_activity(star_id, request.user.id)
+			fan_recount.delay(owner_id=star_id,fan_increment=False,fan_decrement=True)
+		except:
+			#if not shown tutorial, show tutorial
+			new_to_fan = first_time_fan(request.user.id)
+			if new_to_fan:
+				# show fan tutorial first, then do the rest
+				add_fan(request.user.id) #adding fan tutorial flag
+				context = {'star_id': star_id,'obj_id':obj_id,'origin':origin,'name':star.username}
+				return render(request, 'fan_tutorial.html', context)
 			else:
-				return redirect("profile", user.username)
+				UserFan.objects.create(fan=request.user,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+				add_to_photo_owner_activity(star_id, request.user.id)
+				fan_recount.delay(owner_id=star_id,fan_increment=True,fan_decrement=False)
+		"""
+		(un)fanned from starlist: '0'
+		(un)fanned from starprofile: '1'
+		(un)fanned from fresh photos: '2'
+		(un)fanned from best photos: '3'
+		(un)fanned from home: '4'
+		"""
+		if origin == '0':
+			return redirect("star_list",request.user.id)
+		elif origin == '1':
+			return redirect("profile", star.username)
+		elif origin == '2':
+			return redirect("see_photo_pk",obj_id)
+		elif origin == '3':
+			return redirect("see_best_photo_pk",obj_id)
+		elif origin == '4':
+			request.session['target_id'] = obj_id
+			return redirect("home_loc")
 		else:
-			try:
-				user = User.objects.get(id=pk)
-				if request.user == user:
-					request.user.userprofile.score = request.user.userprofile.score - 5
-					request.user.userprofile.save()
-					context = {'unique': user}
-					return render(request, 'penalty_fan.html', context)
-			except:
-				return redirect("see_photo")
-			context = {'unique': user.username}
-			return render(request, 'fan_requirement.html', context)
-		return redirect("see_photo")
+			return redirect("home")
+
+# @ratelimit(rate='3/s')
+# def fan(request, pk=None, photo_id=None, from_profile=None, *args, **kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	if was_limited:
+# 		deduction = 5 * -1
+# 		request.user.userprofile.score = request.user.userprofile.score + deduction
+# 		request.user.userprofile.save()
+# 		return redirect("see_photo")
+# 	else:
+# 		if pk.isdigit() and (Photo.objects.filter(owner=request.user).exists() or request.user.userprofile.score > 30):
+# 			try:
+# 				user = User.objects.get(id=pk)
+# 				if request.user == user:
+# 					request.user.userprofile.score = request.user.userprofile.score - 5
+# 					request.user.userprofile.save()
+# 					context = {'unique': user}
+# 					return render(request, 'penalty_fan.html', context)
+# 			except:
+# 				return redirect("see_photo")
+# 			try:
+# 				UserFan.objects.get(fan=request.user, star=user).delete()
+# 				remove_from_photo_owner_activity(user.id, request.user.id)
+# 				try:
+# 					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+# 					aggregate_object.total_fans = aggregate_object.total_fans - 1
+# 					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+# 					aggregate_object.save()
+# 				except:
+# 					pass
+# 				if from_profile == '0':
+# 					request.session["target_photo_id"] = photo_id
+# 					return redirect("see_photo")
+# 				elif from_profile == '0':
+# 					return redirect("star_list", request.user.id)
+# 				else:
+# 					return redirect("profile", user.username)
+# 			except:
+# 				# try:
+# 				new_to_fan = first_time_fan(request.user.id)#TutorialFlag.objects.filter(user=request.user).latest('id').seen_fan_option
+# 				if new_to_fan:
+# 					if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
+# 						UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
+# 						add_to_photo_owner_activity(pk, request.user.id)
+# 						try:
+# 							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
+# 							aggregate_object.total_fans = aggregate_object.total_fans + 1
+# 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
+# 							aggregate_object.save()
+# 						except:
+# 							TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
+# 					else:
+# 						if from_profile == '0':
+# 							request.session["target_photo_id"] = photo_id
+# 							return redirect("see_photo")
+# 						elif from_profile == '2':
+# 							return redirect("star_list", request.user.id)
+# 						else:
+# 							return redirect("profile", user.username)
+# 					if from_profile == '0':
+# 						request.session["target_photo_id"] = photo_id
+# 						return redirect("see_photo")
+# 					elif from_profile == '2':
+# 						return redirect("star_list", request.user.id)
+# 					else:
+# 						return redirect("profile", user.username)
+# 				else:
+# 					#not seen fan tutorial
+# 					request.session["ftue_fan_option"] = True
+# 					request.session["ftue_fan_user"] = user
+# 					return redirect("fan_tutorial")
+# 				# except:
+# 				# 	#the tutorial object didn't exist, has to be created now
+# 				# 	TutorialFlag.objects.create(user=request.user)
+# 				# 	request.session["ftue_fan_option"] = True
+# 				# 	request.session["ftue_fan_user"] = user
+# 				# 	return redirect("fan_tutorial")
+# 			if from_profile == '0':
+# 				request.session["target_photo_id"] = photo_id
+# 				return redirect("see_photo")
+# 			elif from_profile == '2':
+# 				return redirect("star_list", request.user.id)
+# 			else:
+# 				return redirect("profile", user.username)
+# 		else:
+# 			try:
+# 				user = User.objects.get(id=pk)
+# 				if request.user == user:
+# 					request.user.userprofile.score = request.user.userprofile.score - 5
+# 					request.user.userprofile.save()
+# 					context = {'unique': user}
+# 					return render(request, 'penalty_fan.html', context)
+# 			except:
+# 				return redirect("see_photo")
+# 			context = {'unique': user.username}
+# 			return render(request, 'fan_requirement.html', context)
+# 		return redirect("see_photo")
 
 class SalatTutorialView(FormView):
 	form_class = SalatTutorialForm

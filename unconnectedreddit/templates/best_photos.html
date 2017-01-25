@@ -156,13 +156,13 @@
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
 	{% elif type_of_object == '1' %}
-		<div class="div dby" >
-		<span class="span"><a href="{% url 'profile' parent.oon %}">{{ parent.oon }}</a>
+		<div class="box dby" >
+		<span class="co"><a href="{% url 'profile' parent.oon %}">{{ parent.oon }}</a>
 				{% if parent.oon in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		ne new photo lagai:</span><p style="margin-top:.3em;"></p>
-		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}" style="font-size:90%;">
+		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
@@ -174,11 +174,11 @@
 		{% else %}
 			<img src="{{ parent.p|thumbedge }}" class="uploadedimage2"></img>
 		{% endif %}
-		<span class="cgy cs">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
-		<p style="margin-top:.3em;"></p>
-		<button class="btn nw bm bco mrs">isko dekho</button>
+		<span class="cgy">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span>
+		<br>
+		<button class="btn nw bm bco mtl">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 2 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident 2 1 %}"><button class="btn bxs bcr mtl"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -237,7 +237,7 @@
 	{% else %}
 	<b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
 	{% endif %}
-	<button class="btn nw bm bco cs">
+	<button class="btn nw bm bco cs mbs">
 	{% if photo.comment_count > 1 %}
 	<b>{{ photo.comment_count }}</b> tabsrey
 	{% elif photo.comment_count == 1 %}
@@ -300,6 +300,15 @@
 			{% else %}
 			{% endif %}
 			</a>
+
+
+			{% if authenticated and photo.owner != user %}
+				{% if photo.owner_id in fanned %}
+					<a href="{% url 'fan' photo.owner_id photo.id 3 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+				{% else %}
+					<a href="{% url 'fan' photo.owner_id photo.id 3 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+				{% endif %}
+			{% endif %}
 
 			<a href="{% url 'photo_izzat' photo.id 2 %}">
 			{% if photo.visible_score > 1 %}

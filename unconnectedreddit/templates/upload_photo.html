@@ -1,42 +1,42 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="margin">
+<div class="margin clb">
 {% if forbidden and time_remaining == '-1' %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;"><b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b></span><br><br>
-	<span style="color:grey;font-size:90%;">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
-	<a href="{% url 'see_photo' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
+	<b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b><br><br>
+	<span class="cgy cs">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
+	<a href="{% url 'see_photo' %}"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif forbidden %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b><br><br></span>
-	<span style="color:grey;font-size:90%;">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
-	<a href="{% url 'see_photo' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:4.5em;white-space:nowrap;font-size:100%;color:white;border-radius:4px;">wapis</button></a>
+	Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
+	<span class="cgy cs">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
+	<a href="{% url 'see_photo' %}"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif score < 30 %}
-	<span style="color:#404040; font-size:95%;">Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a></span>
+	Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a>
 {% else %}
 	<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{ form.image_file.errors }}
 	{% if opt == '7' %}
 	<input type="hidden" name="opt" value="{{ opt }}">
-	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>Eid selfie</b> ka intikhab kro:</span><br>
+	<span class="co"><b>Eid selfie</b> ka intikhab kro:</span><br>
 	{% else %}
 	<input type="hidden" name="opt" value="0">
-	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;"><b>Photo</b> ka intikhab kro:</span><br>
+	<span class="co"><b>Photo</b> ka intikhab kro:</span><br>
 	{% endif %}
 	{{ form.image_file }}<br><br>
 	{{ form.caption.errors }}
 	{% if opt == '7' %}
-	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Selfie pr <b>kuch likho</b>:</span>
+	<span class="co">Selfie pr <b>kuch likho</b>:</span>
 	{% else %}
-	<span style="font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#ff8000;">Photo pr <b>kuch likho</b>:</span>
+	<span class="co">Photo pr <b>kuch likho</b>:</span>
 	{% endif %}
 	<br>{{ form.caption }}<br>
-	<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Likh kr <b>OK</b> dabao</i></span><br>
-		<input class="button" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;" type="submit" value="OK" id="id_submit"><br>
+	<span class="cgy cs"><i>Likh kr <b>OK</b> dabao</i></span><br>
+		<button class="btn bco bs mts mbs" type="submit">OK</button><br>
 		{% if opt == '7' %}
-		<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Selfie ki qeemat: <b>3</b> points</i></span>
+		<span class="cgy cs"><i>Selfie ki qeemat: <b>3</b> points</i></span>
 		{% else %}
-		<span style="font-family:sans-serif;color:grey;font-size:80%;"><i>Photo ki qeemat: <b>3</b> points</i></span>
+		<span class="cgy cs"><i>Photo ki qeemat: <b>3</b> points</i></span>
 		{% endif %}
 	</form>
 {% endif %}

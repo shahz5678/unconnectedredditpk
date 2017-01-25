@@ -1,23 +1,106 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+
+</style>
 
     <body>
-    <div class="margin">
-    <h2> Damadam pe Welcome!</h2>
-    <ul>
-    <li><b>Chat kro:</b> Chat krne ke liye <b>kuch likho</b> mein type kro. Woh <b>home</b> par sab ko nazr aa jaye ga.</li>
-    <li><b>Dost banao:</b> Jis se dosti karni hai, uski chat ke neeche <b>jawab</b> par click kar ke us se baat karo.</li>
-    <li><b>Score:</b> Damadam par har insaan ka score hota hai, jis ko barhane ke tareeqe <a href="{% url 'score_help' %}#section0">yeh hain</a>.
-    <li><b>Profile photo:</b> Sb se uper 'Profile' ko dbao. Phir 'profile dekho' dbao. Wahan pr <b>profile badlo</b> nazr aye ga. Profile badlo mien tasveer dal jaye gi. Sath mien age bhi zarur likhna.</li>
-    <li><b>Jhappi Chupair:</b>Agr kisi ki bat achi lage toh jhappi do. Agar kisi ki bat burri lage toh chupair maro.</li>
-    <li><b>Verified lady:</b>Agr lady ho, toh <a href="{% url 'verify_help' %}#section0">verify karwa lo</a>. Verify se Damadam pr ladies ko larke tang nahi kar sakte.</li>
-    <li><b>Mehfil:</b> agar kisi se zaati bat karni ho, toh jawab mein <b>mehfil</b> ka option dhoondo, aur shuru ho jao.</li>
-    <li><b>Logout:</b> Damadam mein logout sirf verified ladies ke liye hai. Lekin agar zaruri karna ho, toh home par sab se neechay <b>bahir niklo</b> ko dekho.</li>
-    </ul>
-    <span style="color:grey;">Kuch aur bhi poochna hai? Home par <a href="{% url 'link_create' %}#section0">likh kar</a> awam ko apna masla bata do, koi na koi zarur jawab de ga.</span><br><br>
-    <span style="color:#1CB841;"><b>Internet seekhna hai? Ye button dabao:</b> <a href="//www.aasaninternet.com/"><button style="background-color:#ff9933;border-color:#ff8000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;">Aasan Internet</button></a></span>
+    <div class="margin clb">
+    <h2>Damadam pe Welcome!</h2>
+
+
+<table>
+  <tr>
+    <th>Button</th>
+    <th>Button ka kaam</th>
+    
+  </tr>
+  <tr>
+    <td><span style="background-color:orange; color:white">
+       Likho
+        
+        </span></td>
+    <td>Chat ke liye ye button dba kr kuch likho. Sara Damadam parhe ga. Ye button upr bna huwa hai</td>
+    
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Home
+        
+        </span></td>
+    <td>Home dba kr dekho log kia batein kr rahe hain. Tum bhi yahan baat kr sakte ho</td>
+    
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Matka
+        
+        </span></td>
+    <td>Ye button dba kr apni sari gup shup aur harkatein dekho</td>
+    
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Profile
+        
+        </span></td>
+    <td>Damadam pr hr ek ki profile hoti hai, jis mein us ki malomaat hoti hai. Ye button dba ke apni profile banao<br> </td>
+    
+  </tr>
+  <tr>
+    <td><span class="btn nw bl bct mbs mtl">jawab do</span></td>
+    <td>Jis se dosti karni hai, uski chat ke neeche ye button dba kr us se baat kro.</td>
+   
+  </tr>
+  <tr>
+    <td><span style="font-size:20px; color:deeppink;">*</span></td>
+    <td>Asli Lady: Jis ke naam ke agay ye nishan ho wo asli lady hai. Damadam pr asli ladies say panga lena mana hai!</td>
+ 
+  </tr>
+  <tr>
+    <td class="cg">Score</td>
+    <td>Damadam main sb ka score hota hai! Jitni achi batain likho gey, dost banao gey, utna ziada score ho ga</td>
+   
+  </tr>
+  <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+      Mehfil
+        
+        </span></td>
+    <td>Jb tumhara score barh jaye ga tum logon ke sath mehfil bna sako gey. Mehfil ek ya bohot sarey dostoon ki ho sakti hai</td>
+    
+  </tr>
+  <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+     Bahir Niklo
+        
+        </span></td>
+    <td>Logout:</b> Damadam mein logout sirf verified ladies ke liye hai. Lekin agar zaruri karna ho, toh home par sb se neechay <b>bahir niklo</b> ko dekho</td>
+    
+  </tr>
+
+ 
+</table>
+<br>
+ <span class="cgy">Kuch aur poochna hai? Home pr <a href="{% url 'link_create' %}#section0">likh kar</a> awam ko apna masla bata do, koi na koi zarur jawab de ga.</span><br><br>
+    <span style="color:#1CB841;"><b>Internet seekhna hai? Ye button dabao:</b> <a href="//www.aasaninternet.com/"><button class="btn bl bco">Aasan Internet</button></a></span>
     <br><br>
-	</div>
+    </div>
+
+</body>
+</html>
     </body>
 {% endblock %}

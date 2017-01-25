@@ -14,21 +14,31 @@ get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_i
 get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best
+add_photos_to_best, retrieve_photo_posts
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
+from math import log
 
 VOTE_WEIGHT = 1.5 # used for calculating daily benchmark
 FLOOR_PERCENTILE = 0.5
-CEILING_PERCENTILE = 0.8 # (inclusive)
+CEILING_PERCENTILE = 0.9 # (inclusive)
 MIN_FANS_TARGETED = 0.1 # 10%
 MAX_FANS_TARGETED = 0.95 # 95%
 
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
+
+def set_rank(netvotes,upload_time):
+	# Based on reddit ranking algo at http://amix.dk/blog/post/19588
+	if netvotes == None:
+		netvotes = 0
+	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
+	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+	secs = upload_time - 1432201843 #a recent date, coverted to epoch time
+	return round(sign * order + secs / 45000, 8)
 
 def fans_targeted(current_percentile):
 	overall_range = CEILING_PERCENTILE - FLOOR_PERCENTILE
@@ -43,14 +53,16 @@ def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
 	num_of_fans_to_notify = len(fan_ids_list) * percentage_of_fans_to_notify
 	if num_of_fans_to_notify:
 		fan_ids_to_notify = get_active_fans(user_id,int(num_of_fans_to_notify))
-	if fan_ids_to_notify:
+	try:
 		fan_ids_to_notify = map(int, fan_ids_to_notify)
-	# print "fan ids to notify: %s" % fan_ids_to_notify
-	# print "all fan ids: %s" % fan_ids_list
-	remaining_fan_ids = set(fan_ids_list) - set(fan_ids_to_notify)
-	# print "UA notifications generated for these ids: %s" % fan_ids_to_notify
-	# print "SN notifications generated for these ids: %s" % remaining_fan_ids
-	return remaining_fan_ids, fan_ids_to_notify
+		# print "fan ids to notify: %s" % fan_ids_to_notify
+		# print "all fan ids: %s" % fan_ids_list
+		remaining_fan_ids = set(fan_ids_list) - set(fan_ids_to_notify)
+		# print "UA notifications generated for these ids: %s" % fan_ids_to_notify
+		# print "SN notifications generated for these ids: %s" % remaining_fan_ids
+		return remaining_fan_ids, fan_ids_to_notify
+	except:
+		return fan_ids_list,0
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):
@@ -91,11 +103,14 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 		elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
 			percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
 			remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
-			bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
-				updated_at=epochtime,unseen_activity=True)
+			if notify_in_ua:
+				bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
+					updated_at=epochtime,unseen_activity=True)
+				fans_notified_in_ua = len(notify_in_ua)
+			else:
+				fans_notified_in_ua = 0
 			bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
 				updated_at=epochtime,unseen_activity=False)
-			fans_notified_in_ua = len(notify_in_ua)
 			# print "Beat %s percent users!" % (percentage_of_users_beaten*100)
 			# print "Notified %s percent fans!" % (percentage_of_fans_to_notify*100)
 			# print "UA notifications generated for these ids: %s" % notify_in_ua
@@ -193,9 +208,15 @@ def rank_all_photos1():
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
+	# photos = retrieve_photo_posts(all_photos())
+	# photo_id_and_scr = []
+	# for photo in photos:
+	# 	if int(photo['vo']) > -2:
+	# 		rank = set_rank(int(photo['vi']),float(photo['t']))
+	# 		photo_id_and_scr.append(photo['i'])
+	# 		photo_id_and_scr.append(rank)
+	# add_photos_to_best(photo_id_and_scr)
 	photos = Photo.objects.filter(id__in=all_photos())
-	# photo_scores={}
-	# photo_id_and_scr = {}
 	photo_id_and_scr = []
 	for photo in photos:
 		if photo.vote_score > -2:
@@ -203,14 +224,6 @@ def rank_photos():
 			photo_id_and_scr.append(photo.id)
 			photo_id_and_scr.append(score)
 	add_photos_to_best(photo_id_and_scr)
-			# photo_id_and_scr[photo.id] = score
-			# photo_scores[photo] = photo_id_and_scr[photo.id] = score
-	# best_photos = sorted(photo_scores,key=photo_scores.get, reverse=True) #returns list of keys, sorted by values (basically photo objects sorted by score)
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-	# 	'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 300,
-	# })
-	# cache_mem.set('best_photos', best_photos)
-	# add_photos_to_best(list(reduce(lambda x, y: x + y, photo_id_and_scr.items())))
 
 # @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
@@ -225,12 +238,12 @@ def whoseonline():
 def fans():
 	top_100_ids_wscr = get_top_100() #list of top 100 photo uploaders (with scores)
 	user_ids = map(itemgetter(0),top_100_ids_wscr)
-	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk returns a dictionary
+	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk() returns a dictionary
 	sorted_list = [object_list[int(x)] for x in user_ids]# if x in object_list]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
 		})
-	cache_mem.set('fans', sorted_list)  # expiring in 120 seconds
+	cache_mem.set('fans', sorted_list)
 
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
@@ -586,7 +599,18 @@ def video_upload_tasks(video_name, video_id, user_id):
 	else:
 		pass
 
+@celery_app1.task(name='tasks.fan_recount')
+def fan_recount(owner_id,fan_increment,fan_decrement):
+	if fan_decrement:
+		TotalFanAndPhotos.objects.filter(owner_id=owner_id).update(total_fans=F('total_fans')-1,last_updated=datetime.utcnow()+timedelta(hours=5))
+	elif fan_increment:
+		updated = TotalFanAndPhotos.objects.filter(owner_id=owner_id).update(total_fans=F('total_fans')+1,last_updated=datetime.utcnow()+timedelta(hours=5)) #move to tasks
+		if not updated:
+			TotalFanAndPhotos.objects.create(owner_id=star_id, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
+	else:
+		pass
+
 obj1 = locals()['salat_info']
-obj2 = locals()['rank_photos']
+# obj2 = locals()['rank_photos']
 obj1.run()
-obj2.run()
+# obj2.run()

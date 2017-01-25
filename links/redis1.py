@@ -298,18 +298,18 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)
-	# fields_to_get = ['lctx','lcwi','lcau','lcwu']
-	lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
-	if lctx:
-		mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
-		'lcwu':latest_comm_writer_uname,'slctx':lctx,'slcwi':lcwi,'slcau':lcau,'slcwu':lcwu}
-	else:
-		mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
-		'lcwu':latest_comm_writer_uname}
-	my_server.hmset(hash_name, mapping)
-	my_server.hincrby(hash_name,'co',amount=1)
-	if photo_owner_id != latest_comm_writer_id and exists is False: #only give score if writer is not the original photo poster, and hasn't written before
-		my_server.hincrby(hash_name,'vi',amount=2)
+	if my_server.exists(hash_name):
+		lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
+		if lctx:
+			mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
+			'lcwu':latest_comm_writer_uname,'slctx':lctx,'slcwi':lcwi,'slcau':lcau,'slcwu':lcwu}
+		else:
+			mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
+			'lcwu':latest_comm_writer_uname}
+		my_server.hmset(hash_name, mapping)
+		my_server.hincrby(hash_name,'co',amount=1)
+		if photo_owner_id != latest_comm_writer_id and exists is False: #only give score if writer is not the original photo poster, and hasn't written before
+			my_server.hincrby(hash_name,'vi',amount=2)
 
 def add_vote_to_photo(photo_id, username, value):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -321,12 +321,13 @@ def add_vote_to_photo(photo_id, username, value):
 		my_server.zadd(sorted_set, username, value)
 		update_vsc_in_photo(photo_id,value)
 		#add vote to photo_obj
-		if int(value) == 0:
-			my_server.hincrby(hash_name,'vo',amount=-1)
-			my_server.hincrby(hash_name,'vi',amount=-1)
-		else:
-			my_server.hincrby(hash_name,'vo',amount=1)
-			my_server.hincrby(hash_name,'vi',amount=1)
+		if my_server.exists(hash_name):
+			if int(value) == 0:
+				my_server.hincrby(hash_name,'vo',amount=-1)
+				my_server.hincrby(hash_name,'vi',amount=-1)
+			else:
+				my_server.hincrby(hash_name,'vo',amount=1)
+				my_server.hincrby(hash_name,'vi',amount=1)
 		#update 'last vote time'. Maitenance: if this time is older than 7 days (or something) remove 'vp:'
 		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 		current_time = time.time()

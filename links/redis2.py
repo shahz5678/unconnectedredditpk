@@ -478,7 +478,10 @@ def add_to_photo_owner_activity(photo_owner_id,fan_id):
 def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 	my_server = redis.Redis(connection_pool=POOL)
 	fans = "f:"+str(photo_owner_id)
-	return my_server.zrevrange(fans,0,(num_of_fans_to_notify-1))
+	if num_of_fans_to_notify:
+		return my_server.zrevrange(fans,0,(num_of_fans_to_notify-1))
+	else:
+		return None
 
 #######################Whose Online#######################
 
@@ -511,7 +514,6 @@ def set_benchmark(benchmark):
 def set_uploader_score(user_id,benchmark_score):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_score_hash = "us:"+str(user_id)
-	# benchmark_score = 3.1
 	mapping = { 'b':benchmark_score }
 	# print "user score over his last 5 photos is: %s" % benchmark_score
 	my_server.hmset(user_score_hash, mapping)

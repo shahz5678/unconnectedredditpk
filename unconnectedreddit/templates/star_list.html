@@ -31,7 +31,7 @@
                 {% else %}
                 {% endif %}
             <span class="co cm"> <a href="{% url 'profile' slug=star.0.username %}#section0" class="co"><b>{{ star.1 }}</b> photos</a></span>&nbsp;&nbsp;
-            <a href="{% url 'fan' star.0.id 2 %}"><button class="btn bcr bm cs">khatm</button></a>
+            <a href="{% url 'fan' star.0.id 0 0 %}"><button class="btn bcr bm cs">khatm</button></a>
             <br>
             {% endfor %}
         {% endif %}

@@ -3878,12 +3878,12 @@ class VideoView(ListView):
 
 class PhotoView(ListView):
 	model = Photo
-	template_name = "photos.html"
+	template_name = "photos1.html"
 	paginate_by = 10
 
 	def get_queryset(self):
-		# queryset = all_photos()
-		queryset = Photo.objects.select_related('owner__userprofile','latest_comment','second_latest_comment').filter(id__in=all_photos()).order_by('-id')
+		queryset = all_photos()
+		# queryset = Photo.objects.select_related('owner__userprofile','latest_comment','second_latest_comment').filter(id__in=all_photos()).order_by('-id')
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -3892,8 +3892,9 @@ class PhotoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
-		# context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
-		# context["object_list"] = filter(None, context["object_list"]) #filters empty values - O(n) time complexity
+		context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
+		context["object_list"] = [obj for obj in context["object_list"] if 'u' in obj]#filter(None, context["object_list"]) #filters empty values - O(n) time complexity
+		print context["object_list"]
 		try:
 			on_fbs = self.request.META.get('X-IORG-FBS')
 		except:
@@ -3925,9 +3926,9 @@ class PhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				context["voted"] = voted_for_photo_qs(context["object_list"],user.username)
-				# photo_owners = set([photo['oi'] for photo in context["object_list"]])
-				photo_owners = set([photo.owner_id for photo in context["object_list"]])
+				context["voted"] = voted_for_photo(context["object_list"],user.username)
+				photo_owners = set([photo['oi'] for photo in context["object_list"]])
+				# photo_owners = set([photo.owner_id for photo in context["object_list"]])
 				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
@@ -4096,8 +4097,8 @@ class PhotoView(ListView):
 			target_id = None
 		if target_id:
 			try:
-				index = list(photo.id for photo in self.object_list).index(int(target_id))
-				# index = self.object_list.index(target_id)
+				# index = list(photo.id for photo in self.object_list).index(int(target_id))
+				index = self.object_list.index(target_id)
 			except:
 				index = None
 			if 0 <= index <= 9:
@@ -4146,19 +4147,19 @@ class PhotoView(ListView):
 		else:
 			return self.render_to_response(context)
 
-# def get_best_photos(best_qs,with_scrs):
-# 	photos = {}
-# 	for photo in best_qs:
-# 		if photo:
-# 			photos[with_scrs[str(photo['i'])]] = photo
-# 	return [photos[key] for key in sorted(photos,reverse=True)]
-
 def get_best_photos(best_qs,with_scrs):
 	photos = {}
 	for photo in best_qs:
-		photos[photo] = with_scrs[str(photo.id)] #creating a dictionary with object as key, object's redis score as values
-	photos = sorted(photos,key=photos.get, reverse=True) #returns list of keys, sorted by values (basically photo objects sorted by score)
-	return photos
+		if 'u' in photo:
+			photos[with_scrs[str(photo['i'])]] = photo
+	return [photos[key] for key in sorted(photos,reverse=True)]
+
+# def get_best_photos(best_qs,with_scrs):
+# 	photos = {}
+# 	for photo in best_qs:
+# 		photos[photo] = with_scrs[str(photo.id)] #creating a dictionary with object as key, object's redis score as values
+# 	photos = sorted(photos,key=photos.get, reverse=True) #returns list of keys, sorted by values (basically photo objects sorted by score)
+# 	return photos
 
 def see_best_photo_pk(request,pk=None,*args,**kwargs):
 	if pk.isdigit():
@@ -4169,8 +4170,8 @@ def see_best_photo_pk(request,pk=None,*args,**kwargs):
 
 class BestPhotoView(ListView):
 	model = Photo
-	template_name = "best_photos.html"
-	# template_name = "best_photos1.html"
+	# template_name = "best_photos.html"
+	template_name = "best_photos1.html"
 	paginate_by = 10
 
 	def get_queryset(self):
@@ -4184,8 +4185,8 @@ class BestPhotoView(ListView):
 		context["can_vote"] = False
 		context["score"] = None
 		context["object_list"] = dict(context["object_list"])
-		# context["object_list"] = get_best_photos(retrieve_photo_posts(context["object_list"].keys()),context["object_list"])
-		context["object_list"] = get_best_photos(Photo.objects.filter(id__in=context["object_list"].keys()),context["object_list"])
+		context["object_list"] = get_best_photos(retrieve_photo_posts(context["object_list"].keys()),context["object_list"])
+		# context["object_list"] = get_best_photos(Photo.objects.filter(id__in=context["object_list"].keys()),context["object_list"])
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 		else:
@@ -4202,9 +4203,9 @@ class BestPhotoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				context["voted"] = voted_for_photo_qs(context["object_list"],user.username)
-				# photo_owners = set([photo['oi'] for photo in context["object_list"]])
-				photo_owners = set([photo.owner_id for photo in context["object_list"]])
+				context["voted"] = voted_for_photo(context["object_list"],user.username)
+				photo_owners = set([photo['oi'] for photo in context["object_list"]])
+				# photo_owners = set([photo.owner_id for photo in context["object_list"]])
 				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 				if not is_link and not is_photo and not is_groupreply and not is_salat:
@@ -4371,8 +4372,8 @@ class BestPhotoView(ListView):
 			target_id = None
 		if target_id:
 			try:
-				# index = list(photo[0] for photo in self.object_list).index(target_id)
-				index = list(photo.id for photo in self.object_list).index(int(target_id))
+				index = list(photo[0] for photo in self.object_list).index(target_id)
+				# index = list(photo.id for photo in self.object_list).index(int(target_id))
 			except:
 				index = None
 			if 0 <= index <= 9:

@@ -2,22 +2,22 @@
 {% load humanize %}
 {% load thumbedge %}
 {% block content %}
-<div class="margin"> 
+<div class="margin clb"> 
 
 	&nbsp;<img src="{{ photo_url|thumbedge }}" alt="no pic">
-	&nbsp;<span style="color:#404040;font-size:100%;">Ye photo <a href="{% url 'profile' photo_owner %}#section0">{{ photo_owner }}</a> ne charhai hai.
+	&nbsp;Ye photo <a href="{% url 'profile' photo_owner %}#section0">{{ photo_owner }}</a> ne charhai hai.
 		{% if already_banned == '-1' %}
-			{{ photo_owner }} pehle se hi <b style="color:#ff8000;">hamesha ke liye</b> yahan pr photo charhane se banned hai. Kya iske ban ka waqt change krna hai?
+			{{ photo_owner }} pehle se hi <b class="co">hamesha ke liye</b> yahan pr photo charhane se banned hai. Kya iske ban ka waqt change krna hai?
 		{% elif already_banned == '0' %}
 			Isko kitne waqt ke liye photos charhane se ban krna hai?
 		{% else %}
-			{{ photo_owner }} pehle se hi banned hai, aur dubara photo charha sake ga <b style="color:#ff8000;">{{ already_banned|naturaltime }}</b>. Kya iske ban ka waqt change krna hai?
+			{{ photo_owner }} pehle se hi banned hai, aur dubara photo charha sake ga <b class="co">{{ already_banned|naturaltime }}</b>. Kya iske ban ka waqt change krna hai?
 		{% endif %}
-	</span><br>
-	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '1' origin link_id val %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:1em;">1 day</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '2' origin link_id val %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">1 week</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '3' origin link_id val %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">Forever</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '0' origin link_id val %}"><button style="color:white;border-color: #ff8000;background: #ff9933;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.2em;margin-top:0.7em;">Rehne do</button></a><br><span style="font-size:80%;color:grey;">&nbsp;(sirf score <b>-1</b> kr do)</span>
+	<br>
+	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '1' origin link_id val %}"><button class="btn nw bcr bl mbs mtl">1 day</button></a><br>
+	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '2' origin link_id val %}"><button class="btn nw bcr bl mbs mts">1 week</button></a><br>
+	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '3' origin link_id val %}"><button class="btn nw bcr bl mbs mts">Forever</button></a><br>
+	&nbsp;<a href="{% url 'ban_photo_uploader' photo_id photo_owner owner_id '0' origin link_id val %}"><button class="btn nw bco bl mbs mts">Rehne do</button></a><br><span class="cgy cs">&nbsp;(sirf score <b>-1</b> kr do)</span>
 
-</div>
+</div><br><br>
 {% endblock %}

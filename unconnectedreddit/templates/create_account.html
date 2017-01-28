@@ -7,21 +7,23 @@
 	<span class="cl">Damadam tumhara nickname bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
 	<a href="{% url 'home' %}#section0"><button class="btn bs bcg mtl">home</button></a>
 {% else %}
-	<form method="post" action="{% url 'create_account' %}#section0">
+	<form method="post" action="{% url 'create_account' uhex ulen phex plen %}#section0">
 	{% csrf_token %}
-	<input type="hidden" name="username" value="{{ username }}">
-	<input type="hidden" name="password" value="{{ password }}">
 		{% if form.username.errors %}
-			{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}
+			<span class="cr">{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
+		{% elif form.password.errors %}
+			<span class="cr">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% else %}
-			<span class="cxl">Password teen dafa parh ke yad kr lo:</span><br>
+			<span class="cxl">{{ username }}, password 3 bar parh ke yad kr lo:</span><br>
 			<div class="mts">
 			<span class="cs cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
 			<span class="cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
 			<span class="cxl cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
 			</div>
+			<input type="hidden" name="username" value="{{ username }}">
+			<input type="hidden" name="password" value="{{ password }}">
 			<button class="btn bcg bs mtl mbs" type="submit">OK</button><br>
-			<span class="cgy cs">(tip: is screen ki photo le lo, ya password apne pas likh lo agr bhoolne ka dar hai)</span><br><br>
+			<span class="cgy cs">(tip: is screen ki photo le lo, ya password apne pas likh lo)</span><br><br>
 		{% endif %}
 	</form>
 {% endif %}

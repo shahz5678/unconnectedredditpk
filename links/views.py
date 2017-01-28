@@ -9,8 +9,10 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from django.db import connection
 from django.core.cache import get_cache, cache
+from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
+from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
@@ -45,7 +47,8 @@ get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
 check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
 retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, \
-never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs
+never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs,\
+voted_for_link, get_link_writer, needs_to_cool_down, account_creation_disallowed, account_created, ban_photo
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -77,7 +80,7 @@ from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.utils import timezone
 from django.utils.timezone import utc
-from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
@@ -88,6 +91,12 @@ condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct(
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
 	return (time-datetime(1970,1,1)).total_seconds()
+
+def getip(request):
+	ip = request.META.get('X-IORG-FBS-UIP',
+		request.META.get('REMOTE_ADDR')
+	)
+	return ip
 
 def get_price(points):
 	if points < 120:
@@ -136,7 +145,6 @@ def valid_uuid(uuid):
 def GetLatest(user):
 	try:
 		notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
-		# print latest_notif
 		if latest_notif['ot'] == '3':
 			# group chat
 			return latest_notif['g'], latest_notif, False, False, True, False
@@ -179,10 +187,8 @@ def GetLatest(user):
 					latest_namaz = None
 				if (convert_to_epoch(starting_time) <= float(latest_notif['u']) < convert_to_epoch(ending_time)) and not \
 				AlreadyPrayed(latest_namaz,time_now):
-					# print "showing namaz notification"
 					return '4',latest_notif, False, False, False, True
 				else:
-					# print "didn't clear if statement, deleting namaz notification"
 					delete_salat_notification(notif_name, hash_name, user.id)			
 					return None, None, False, False, False, False
 	except:
@@ -989,7 +995,6 @@ class SalatRankingView(ListView):
 			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('salat_streaks')
-		# print users_fans
 		if users_fans:
 			return users_fans
 		else:
@@ -1694,7 +1699,6 @@ def home_link_list(request, *args, **kwargs):
 			else:
 				return render(request, 'link_list.html', context)
 	else:
-		# print context
 		return render(request, 'link_list.html', context)
 	return render(request, 'link_list.html', context)
 
@@ -1835,7 +1839,6 @@ class GroupOnlineKonView(ListView):
 				context["groupies"] = []
 		return context
 
-#@cache_page(20)
 class OnlineKonView(ListView):
 	model = Session
 	template_name = "online_kon.html"
@@ -2284,7 +2287,6 @@ class InviteUsersToPrivateGroupView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			# print "hello"
 			context["legit"] = FEMALES
 			try:	
 				unique = self.request.session["private_uuid"]
@@ -2481,102 +2483,113 @@ class GroupListView(ListView):
 		# trending_groups = [group[0] for group in trending_groups]
 		return trending_groups
 
-def create_account(request,*args,**kwargs):
-	if request.method == 'POST':
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
+	if account_creation_disallowed(getip(request)):
+		return render(request,'penalty_account_create.html',{})
+	elif request.method == 'POST':
 		form = CreateAccountForm(data=request.POST)
-		password = request.POST.get("password"," ")
-		username = request.POST.get("username"," ")
 		if form.is_valid():
 			# ensured username is unique, no one else has booked it
-			if request.session.test_cookie_worked():
+			password = slug2.decode("hex")
+			username = slug1.decode("hex")
+			form.save() # creating the user
+			user = authenticate(username=username,password=password)
+			login(request,user)
+			account_created(getip(request),username)
+			try:
 				request.session.delete_test_cookie() #cleaning up
-				form.save() # creating the user
-				request.session['silo'] = None
-				request.session['nickname'] = None
-				user = authenticate(username=username,password=password)
-				login(request,user)
-				return redirect("link_create_pk") #REDIRECT TO A DIFFERNET PAGE
-			else:
-				#cookies aren't being set in the browser, so can't log in!
-				context={'pk':'pk'}
-				return render(request, 'penalty_cookies.html', context)
+			except:
+				pass
+			return redirect("link_create_pk") #REDIRECT TO A DIFFERNET PAGE
 		else:
-			# user couldn't be created because while user was deliberating, someone else booked the nickname!
-			context={'no_credentials':False,'password':password,'username':username,'form':form}
+			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
+			username = slug1.decode("hex")
+			password = slug2.decode("hex")
+			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
+			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
 			return render(request, 'create_account.html', context)
 	else:
-		form = CreateAccountForm()
-		try:
-			password = request.session['silo']
-			nickname = request.session['nickname']
-			if password is not None and nickname is not None:
-				context={'no_credentials':False,'password':password,'username':nickname,'form':form}
-				request.session.set_test_cookie() #set it now, to test it after POST
-				return render(request, 'create_account.html', context)
-			else:
-				# credentials have been lost, redo the whole process
-				context={'no_credentials':True}
-				return render(request, 'create_account.html', context)	
-		except:
-			# credentials have been lost, redo the whole process
-			context={'no_credentials':True}
+		if len(slug1) == int(length1) and len(slug2) == int(length2):
+			form = CreateAccountForm()
+			username = slug1.decode("hex")
+			password = slug2.decode("hex")
+			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
+			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
 			return render(request, 'create_account.html', context)
+		else:
+			# some tinerking in the link has taken place
+			return render(request,'penalty_link_tinkered.html',{})
 
-def create_password(request,*args,**kwargs):
-	if request.method == 'POST':
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+@csrf_protect
+def create_password(request,slug=None,length=None,*args,**kwargs):
+	if account_creation_disallowed(getip(request)):
+		return render(request,'penalty_account_create.html',{})
+	elif request.method == 'POST':
 		form = CreatePasswordForm(data=request.POST,request=request)
-		try:
-			username = request.session['nickname']
-			if username is not None:
-				if form.is_valid():
-					# show user the password in the next screen
-					request.session['silo'] = request.POST.get("password")
-					return redirect('create_account')
-				else:
-					context={'no_nick':False,'form':form}
-					return render(request, 'create_password.html', context)
+		if form.is_valid():
+			# show user the password in the next screen
+			if int(length) == len(slug):
+				password = request.POST.get("password")
+				result = password.encode("hex")
+				length1 = len(slug)
+				length2 = len(result)
+				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
-				# nickname information has been lost
-				context={'no_nick':True,'form':form}
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
+		else:
+			if int(length) == len(slug):
+				username = slug.decode("hex")
+				context={'form':form,'username':username,'uhex':slug,'length':length}
 				return render(request, 'create_password.html', context)
-		except:
-			# nickname information has been lost
-			context={'no_nick':True,'form':form}
-			return render(request, 'create_password.html', context)
+			else:
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
 	else:
-		form = CreatePasswordForm()
-		try:
-			username = request.session['nickname']
-			if username is not None:
-				context={'no_nick':False,'form':form}
+		if request.session.test_cookie_worked():
+			form = CreatePasswordForm()
+			if int(length) == len(slug):
+				username = slug.decode("hex")
+				context={'form':form,'username':username,'uhex':slug,'length':length}
 				return render(request, 'create_password.html', context)
 			else:
-				# nickname hasnt been selected
-				context={'no_nick':True,'form':form}
-				return render(request, 'create_password.html', context)
-		except:
-			# nickname hasnt been selected
-			context={'no_nick':True,'form':form}
-			return render(request, 'create_password.html', context)
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
+		else:
+			#cookies aren't being set in the browser, so can't make an account!
+			return render(request, 'penalty_cookie.html', {})
 
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+@csrf_protect		
 def create_nick(request,*args,**kwargs):
-	if request.method == 'POST':
+	if account_creation_disallowed(getip(request)):
+		return render(request, 'penalty_account_create.html',{})
+	elif request.method == 'POST':
 		form = CreateNickForm(data=request.POST)
 		if form.is_valid():
 			username = request.POST.get("username")
-			request.session['nickname']=username
-			return redirect('create_password')
+			result = username.encode("hex")
+			length = len(result)
+			request.session.set_test_cookie() #set it now, to test it in the next view
+			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
 			return render(request, 'create_nick.html', context)
 	else:
-		request.session['silo'] = None
-		request.session['nickname'] = None
 		form = CreateNickForm()
 		context = {'form':form}	
 		return render(request, 'create_nick.html', context)
 
 #rate limit this
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
 def reset_password(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = ResetPasswordForm(data=request.POST,request=request)
@@ -2599,7 +2612,6 @@ def reset_password(request,*args,**kwargs):
 					context={'form':form,'allowed':False}
 			except:
 				context={'form':form,'allowed':None}
-			# context={'form':form,'allowed':allowed}
 			return render(request,'reset_password.html',context)	
 	else:
 		form = ResetPasswordForm()
@@ -2616,6 +2628,8 @@ def reset_password(request,*args,**kwargs):
 			#send back for reauth
 			return redirect("reauth")
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
 @ratelimit(method='POST', rate='7/h')
 def reauth(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -3894,7 +3908,6 @@ class PhotoView(ListView):
 		context["score"] = None
 		context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
 		context["object_list"] = [obj for obj in context["object_list"] if 'u' in obj]#filter(None, context["object_list"]) #filters empty values - O(n) time complexity
-		print context["object_list"]
 		try:
 			on_fbs = self.request.META.get('X-IORG-FBS')
 		except:
@@ -3948,7 +3961,6 @@ class PhotoView(ListView):
 					context["banned"] = False
 					return context
 				elif is_groupreply:
-					# print freshest_reply
 					if object_type == '1':
 						# private mehfil
 						context["type_of_object"] = '3a'
@@ -4283,7 +4295,6 @@ class BestPhotoView(ListView):
 						context["notification"] = 1
 						context["parent"] = freshest_reply#.which_photo
 						context["parent_pk"] = freshest_reply['oi']
-						# print context["parent_pk"]
 						context["first_time_user"] = False
 						context["banned"] = False
 					else:
@@ -4556,11 +4567,9 @@ class UploadPhotoView(CreateView):
 				photo_ids = get_recent_photos(self.request.user.id)
 				photos_qs = Photo.objects.filter(id__in=photo_ids).order_by('-id').annotate(unique_comment_count=Count('photocomment__submitted_by', distinct=True))
 				for photo in photos_qs:
-					# print photo.vote_score
 					total_score += ((VOTE_WEIGHT*photo.vote_score) + photo.unique_comment_count)
 					photos.append((photo.vote_score, photo.upload_time, photo.visible_score)) #list of dictionaries
 					number_of_photos += 1
-				# print total_score
 				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 				if forbidden:
 					context={'time_remaining': time_remaining}
@@ -5891,6 +5900,7 @@ class MehfilCommentView(FormView):
 				else:
 					return redirect("home")
 
+@csrf_protect
 @ratelimit(rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
@@ -5948,6 +5958,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			return redirect("score_help")
 
 #called when replying from unseen_activity
+@csrf_protect
 @ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -6035,6 +6046,7 @@ def top_photo_help(request,*args,**kwargs):
 	context={'rank':None}
 	return render(request,'top_photo_help.html',context)
 
+@csrf_protect
 def unseen_fans(request,pk=None,*args, **kwargs):
 	if request.method == 'POST':
 		form = UnseenActivityForm(request.POST)
@@ -6051,6 +6063,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 #called when replying from unseen_activity
+@csrf_protect
 @ratelimit(rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -7001,7 +7014,6 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 			return render(request, 'photovote_disallowed.html', context)
 		else:
 			defender = in_defenders(request.user.id)
-			# print defender
 			if not defender:
 				can_vote, time_remaining = can_photo_vote(request.user.id)
 				if not can_vote:
@@ -7075,27 +7087,31 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 		context = {'pk': 'pk'}
 		return render(request, 'penalty_defender.html', context)
 	else:
+		#GOT BANNED WHILE SOMEHOW DOWNVOTING PHOTOS
 		if in_defenders(request.user.id):
 			if duration == '1':
 				#i.e. ban for 24 hrs
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
 				update_object(object_id=pk,object_type='0',vote_score=-100)
+				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '1') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '1') #to impede from voting on other photos
 			elif duration == '2':
 				#i.e. ban for 1 week
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
 				update_object(object_id=pk,object_type='0',vote_score=-100)
+				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '7') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '7') #to impede from voting on other photos
 			elif duration == '3':
 				#i.e. ban forever
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
 				update_object(object_id=pk,object_type='0',vote_score=-100)
+				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '-1') #to impede from adding more photos
 				add_to_photo_vote_ban(ident, '-1') #to impede from voting on other photos
 			else:
-				#the person changed their mind, so don't ban the photo, just regularly downvote it
+				#the defender changed their mind, so don't ban the photo, just regularly downvote it
 				process_photo_vote(pk, ident, val, request.user.id)
 				if origin == '1':
 					request.session["target_photo_id"] = pk
@@ -7187,6 +7203,7 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 		#ressurect photo
 		Photo.objects.filter(id=pk).update(vote_score=0, visible_score=0)
 		update_object(object_id=pk,object_type='0',vote_score=0)
+		ban_photo(photo_id=pk,ban=False)
 		photovote_usernames_and_values = get_photo_votes(pk)
 		uname_list = [k for (k,v) in photovote_usernames_and_values if int(v) == 0 ] #extract all usernames who downvoted this gem!
 		if uname_list:
@@ -7462,103 +7479,6 @@ def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 		else:
 			return redirect("home")
 
-# @ratelimit(rate='3/s')
-# def fan(request, pk=None, photo_id=None, from_profile=None, *args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	if was_limited:
-# 		deduction = 5 * -1
-# 		request.user.userprofile.score = request.user.userprofile.score + deduction
-# 		request.user.userprofile.save()
-# 		return redirect("see_photo")
-# 	else:
-# 		if pk.isdigit() and (Photo.objects.filter(owner=request.user).exists() or request.user.userprofile.score > 30):
-# 			try:
-# 				user = User.objects.get(id=pk)
-# 				if request.user == user:
-# 					request.user.userprofile.score = request.user.userprofile.score - 5
-# 					request.user.userprofile.save()
-# 					context = {'unique': user}
-# 					return render(request, 'penalty_fan.html', context)
-# 			except:
-# 				return redirect("see_photo")
-# 			try:
-# 				UserFan.objects.get(fan=request.user, star=user).delete()
-# 				remove_from_photo_owner_activity(user.id, request.user.id)
-# 				try:
-# 					aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-# 					aggregate_object.total_fans = aggregate_object.total_fans - 1
-# 					aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-# 					aggregate_object.save()
-# 				except:
-# 					pass
-# 				if from_profile == '0':
-# 					request.session["target_photo_id"] = photo_id
-# 					return redirect("see_photo")
-# 				elif from_profile == '0':
-# 					return redirect("star_list", request.user.id)
-# 				else:
-# 					return redirect("profile", user.username)
-# 			except:
-# 				# try:
-# 				new_to_fan = first_time_fan(request.user.id)#TutorialFlag.objects.filter(user=request.user).latest('id').seen_fan_option
-# 				if new_to_fan:
-# 					if not UserFan.objects.filter(fan=request.user, star=user).exists(): #adding extra check
-# 						UserFan.objects.create(fan=request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
-# 						add_to_photo_owner_activity(pk, request.user.id)
-# 						try:
-# 							aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-# 							aggregate_object.total_fans = aggregate_object.total_fans + 1
-# 							aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-# 							aggregate_object.save()
-# 						except:
-# 							TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
-# 					else:
-# 						if from_profile == '0':
-# 							request.session["target_photo_id"] = photo_id
-# 							return redirect("see_photo")
-# 						elif from_profile == '2':
-# 							return redirect("star_list", request.user.id)
-# 						else:
-# 							return redirect("profile", user.username)
-# 					if from_profile == '0':
-# 						request.session["target_photo_id"] = photo_id
-# 						return redirect("see_photo")
-# 					elif from_profile == '2':
-# 						return redirect("star_list", request.user.id)
-# 					else:
-# 						return redirect("profile", user.username)
-# 				else:
-# 					#not seen fan tutorial
-# 					request.session["ftue_fan_option"] = True
-# 					request.session["ftue_fan_user"] = user
-# 					return redirect("fan_tutorial")
-# 				# except:
-# 				# 	#the tutorial object didn't exist, has to be created now
-# 				# 	TutorialFlag.objects.create(user=request.user)
-# 				# 	request.session["ftue_fan_option"] = True
-# 				# 	request.session["ftue_fan_user"] = user
-# 				# 	return redirect("fan_tutorial")
-# 			if from_profile == '0':
-# 				request.session["target_photo_id"] = photo_id
-# 				return redirect("see_photo")
-# 			elif from_profile == '2':
-# 				return redirect("star_list", request.user.id)
-# 			else:
-# 				return redirect("profile", user.username)
-# 		else:
-# 			try:
-# 				user = User.objects.get(id=pk)
-# 				if request.user == user:
-# 					request.user.userprofile.score = request.user.userprofile.score - 5
-# 					request.user.userprofile.save()
-# 					context = {'unique': user}
-# 					return render(request, 'penalty_fan.html', context)
-# 			except:
-# 				return redirect("see_photo")
-# 			context = {'unique': user.username}
-# 			return render(request, 'fan_requirement.html', context)
-# 		return redirect("see_photo")
-
 class SalatTutorialView(FormView):
 	form_class = SalatTutorialForm
 	template_name = "salat_tutorial.html"
@@ -7654,10 +7574,45 @@ def find_time(obj):
 	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
 	return difference
 
+@csrf_protect
+@ratelimit(rate='3/s')
+def cast_vote(request,*args,**kwargs):
+	was_limited = getattr(request,'limits',False)
+	if was_limited:
+		return render(request, 'penalty_vote.html', {})
+	else:
+		if request.method == 'POST':
+			link_id = request.POST.get("lid","")
+			if link_id:
+				cool_down_flag,time=needs_to_cool_down(request.user.id)
+				# link still exists, i.e. not been deleted
+				if request.user.id == get_link_writer(link_id):
+					#own link; cant do this
+					pass
+				elif voted_for_link(link_id,request.user.username):
+					#already voted for link
+					return render(request,'already_voted.html',{})
+				elif cool_down_flag:
+					# this person needs to cooldown
+					context={'time_remaining':time}
+					return render(request,'vote_cool_down.html',context)
+				else:
+					value = request.POST.get("vote","")
+					if value == '1' or value == '-1':
+						add_vote_to_home_link(link_id, value, request.user.username)
+					else:
+						pass
+					request.session["target_id"] = link_id
+					return redirect("home_loc")
+			else:
+				#not allowed to vote; the link doesn't even exist
+				pass
+		else:
+			# you're not allowed to do this
+			pass
+
 @ratelimit(rate='3/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
-	# print request.GET
-	# print request.META.get('HTTP_REFERER')
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
 		deduction = 3 * -1

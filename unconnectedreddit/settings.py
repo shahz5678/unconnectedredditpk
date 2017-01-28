@@ -1,13 +1,15 @@
 # Django settings for unconnectedreddit project.
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /links/ 'app' folder
-MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedreddit/ 'project' folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
+MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
 
 #print "CHECKING_HEROKU_OR_AZURE!"
 ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
 #AZURE_ACCOUNT_KEY = os.environ.get('AZURE_ACCOUNT_KEY')
+
+RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 
 #ON_AZURE = '1'
 #heroku config:set ON_HEROKU=1 

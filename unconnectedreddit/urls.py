@@ -16,7 +16,8 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password
+suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password,\
+cast_vote
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -202,9 +203,9 @@ urlpatterns = patterns('',
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
 	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
 	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
-	url(r'^create_acc/$', create_account, name='create_account'),
+	url(r'^create_acc/(?P<slug1>[\w.@+-]+)/(?P<length1>\d+)/(?P<slug2>[\w.@+-]+)/(?P<length2>\d+)/$', create_account, name='create_account'),
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
-	url(r'^create_pass/$', create_password, name='create_password'),
+	url(r'^create_pass/(?P<slug>[\w.@+-]+)/(?P<length>\d+)/$', create_password, name='create_password'), #[\w.?)&;[\]}:${@+-]+
 	url(r'^create_nick/$', create_nick, name='create_nick'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
 	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
@@ -244,6 +245,7 @@ urlpatterns = patterns('',
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
+	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),

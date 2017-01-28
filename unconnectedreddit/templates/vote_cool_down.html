@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% load human_time %}
+{% load future_time %}
 {% block content %}
 <div class="margin clb">
-Jhappi ya chupair mar sako ge: <b class="cg">{{ time_remaining|human_time }}</b>
+Tum jhappi ya chupair mar sako ge: <b class="cg">{{ time_remaining|future_time }}</b><br>
+<a href="{% url 'home' %}#section0"><button class="btn bcg bm mtl mbl">wapis</button></a>
 <hr size=1>
 <span class="cgy cs">
-<b>Damadam rules:</b>
+<b>Damadam rules:</b><br>
 1) Kisi aur ko apna password na do<br>
 2) Password 7 days mein ek bar zarur tabdeel kro<br>
 3) Jo baat achi ho, sirf us par jhappi do<br>

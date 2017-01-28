@@ -17,8 +17,10 @@ hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest
 set_name = "ftux:"+str(user_id)
 hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
 hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
+registered_ip = "ip:"+str(ip)
 sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
 hash_name = "lah:"+str(user_id)
+link_vote_cooldown = "lc:"+str(user_id)
 hash_name = "lk:"+str(link_pk) #lk is 'link'
 hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
@@ -60,8 +62,26 @@ TWELVE_HOURS = 12*60*60
 SIX_HOURS = 6*60*60
 THREE_HOURS = 3*60*60
 ONE_HOUR = 60*60
+TWENTY_MINS = 20*60
 TEN_MINS = 10*60
+FIVE_MINS = 5*60
 THREE_MINS = 3*60
+
+#####################Authorization#####################
+
+def account_creation_disallowed(ip):
+	my_server = redis.Redis(connection_pool=POOL)
+	registered_ip = "ip:"+str(ip)
+	if my_server.exists(registered_ip):
+		return True
+	else:
+		return False
+
+def account_created(ip,username):
+	my_server = redis.Redis(connection_pool=POOL)
+	registered_ip = "ip:"+str(ip)
+	my_server.set(registered_ip,username)
+	my_server.expire(registered_ip,TWENTY_MINS)
 
 #######################Defenders#######################
 
@@ -310,6 +330,18 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		my_server.hincrby(hash_name,'co',amount=1)
 		if photo_owner_id != latest_comm_writer_id and exists is False: #only give score if writer is not the original photo poster, and hasn't written before
 			my_server.hincrby(hash_name,'vi',amount=2)
+
+def ban_photo(photo_id,ban):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "ph:"+str(photo_id)
+	if my_server.exists(hash_name):
+		if ban is True:
+			my_server.hset(hash_name,'vo','-100')
+		elif ban is False:
+			mapping={'vo':'0','vi':'0'}
+			my_server.hmset(hash_name,mapping)
+		else:
+			pass
 
 def add_vote_to_photo(photo_id, username, value):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -597,6 +629,34 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		'm':meh_url, 't':time.time() }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
+
+def needs_to_cool_down(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	link_vote_cooldown = "lc:"+str(user_id)
+	if my_server.exists(link_vote_cooldown):
+		tries_remaining = my_server.get(link_vote_cooldown)
+		if tries_remaining == '1':
+			#last try remaining
+			my_server.decr(link_vote_cooldown)
+			my_server.expire(link_vote_cooldown,FIVE_MINS) #expire the key after 5 mins
+			return False, None
+		elif tries_remaining == '0':
+			#tries depleted
+			return True, my_server.ttl(link_vote_cooldown)
+		else:
+			#several tries remainings
+			my_server.decr(link_vote_cooldown)
+			return False, None
+	else:
+		#create key
+		my_server.set(link_vote_cooldown,'5')
+		return False,None
+
+
+def get_link_writer(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	return my_server.hget(hash_name,'w')
 
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

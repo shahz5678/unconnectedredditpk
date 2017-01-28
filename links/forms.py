@@ -697,14 +697,14 @@ class RegisterLoginForm(forms.Form):
 		pass
 
 class CreateAccountForm(forms.ModelForm):
-	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$')
+	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$',error_messages={'invalid': _("ye nickname sahi nahi hai")})
 	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
 		model = User
 		fields = ('username',)
 
 	def clean_username(self):
-		username = self.cleaned_data["username"]
+		username = self.cleaned_data.get("username")
 		try:
 			User._default_manager.get(username=username)
 		except User.DoesNotExist:
@@ -713,6 +713,23 @@ class CreateAccountForm(forms.ModelForm):
 
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
+		lower_pass = password.lower()
+		if len(password) < 6:
+			raise ValidationError('password mein kam se kam 6 harf zaruri hain')
+		elif lower_pass.isdigit():
+			raise ValidationError('password mein sirf numbers nahi ho sakte')	
+		elif 'babykobasspasandhai' in lower_pass:
+			raise ValidationError('babykobasspasandhai ke bajai kuch aur password likho')
+		elif 'chaachi420' in lower_pass:
+			raise ValidationError('chaachi420 ke bajai kuch aur password likho')
+		elif 'chachi420' in lower_pass:
+			raise ValidationError('chachi420 ke bajai kuch aur password likho')
+		elif 'garamaanday' in lower_pass:
+			raise ValidationError('garamaanday ke bajai kuch aur password likho')
+		elif 'damadam' in lower_pass:
+			raise ValidationError('password mein damadam nahi likh sakte')
+		elif 'qwerty' in lower_pass:
+			raise ValidationError('qwerty ko boojhna aasan hai, kuch aur likho')	
 		return password
 
 	def save(self, commit=True):
@@ -724,18 +741,22 @@ class CreateAccountForm(forms.ModelForm):
 		return user
 
 class CreatePasswordForm(forms.Form):
+	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$')
 	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
-		fields = ('password',)
+		fields = ('password','username')
 
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(CreatePasswordForm, self).__init__(*args,**kwargs)
 
+	def clean_username(self):
+		return self.cleaned_data.get("username")
+
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
 		lower_pass = password.lower()
-		nickname = self.request.session['nickname']
+		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
 		if len(password) < 6:
 			raise ValidationError('(tip: kam se kam 6 harf likhna zaruri hai)')
@@ -753,6 +774,8 @@ class CreatePasswordForm(forms.Form):
 			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
 		elif 'damadam' in lower_pass:
 			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+		elif 'qwerty' in lower_pass:
+			raise ValidationError('(tip: qwerty ko boojhna aasan hai, kuch aur likho)')	
 		return password
 
 class CreateNickForm(forms.Form):
@@ -825,6 +848,8 @@ class ResetPasswordForm(forms.Form):
 			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
 		elif 'damadam' in lower_pass:
 			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+		elif 'qwerty' in lower_pass:
+			raise ValidationError('(tip: qwerty ko boojhna aasan hai, kuch aur likho)')	
 		else:
 			return password
 

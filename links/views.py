@@ -18,7 +18,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount
+fan_recount, vote_tasks
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
@@ -38,17 +38,18 @@ public_group_ranking, retrieve_latest_notification, delete_salat_notification, p
 save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
-publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, document_group_obscenity_abuse, \
-private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
-check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, private_group_posting_allowed, \
-all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, all_videos, \
-add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, \
-get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_check_group_membership, first_time_refresher, \
-add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, add_to_photo_vote_ban, add_to_photo_upload_ban, \
-check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, add_home_link, update_cc_in_home_link, update_cc_in_home_photo, \
-retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, \
-never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs,\
-voted_for_link, get_link_writer, needs_to_cool_down, account_creation_disallowed, account_created, ban_photo
+publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, \
+document_group_obscenity_abuse, private_group_posting_allowed, add_group_member, get_group_members, remove_group_member, \
+check_group_member, add_group_invite, check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, \
+remove_user_group, private_group_posting_allowed, all_unfiltered_posts, all_filtered_posts, add_unfiltered_post, add_filtered_post, \
+add_photo, all_photos, all_best_photos, all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, \
+save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, \
+bulk_check_group_membership, first_time_refresher, add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, \
+add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, \
+add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
+first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
+first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -3897,7 +3898,6 @@ class PhotoView(ListView):
 
 	def get_queryset(self):
 		queryset = all_photos()
-		# queryset = Photo.objects.select_related('owner__userprofile','latest_comment','second_latest_comment').filter(id__in=all_photos()).order_by('-id')
 		return queryset
 
 	def get_context_data(self, **kwargs):
@@ -3907,7 +3907,7 @@ class PhotoView(ListView):
 		context["can_vote"] = False
 		context["score"] = None
 		context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
-		context["object_list"] = [obj for obj in context["object_list"] if 'u' in obj]#filter(None, context["object_list"]) #filters empty values - O(n) time complexity
+		context["object_list"] = [obj for obj in context["object_list"] if 'u' in obj]
 		try:
 			on_fbs = self.request.META.get('X-IORG-FBS')
 		except:
@@ -4165,13 +4165,6 @@ def get_best_photos(best_qs,with_scrs):
 		if 'u' in photo:
 			photos[with_scrs[str(photo['i'])]] = photo
 	return [photos[key] for key in sorted(photos,reverse=True)]
-
-# def get_best_photos(best_qs,with_scrs):
-# 	photos = {}
-# 	for photo in best_qs:
-# 		photos[photo] = with_scrs[str(photo.id)] #creating a dictionary with object as key, object's redis score as values
-# 	photos = sorted(photos,key=photos.get, reverse=True) #returns list of keys, sorted by values (basically photo objects sorted by score)
-# 	return photos
 
 def see_best_photo_pk(request,pk=None,*args,**kwargs):
 	if pk.isdigit():
@@ -7087,7 +7080,6 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 		context = {'pk': 'pk'}
 		return render(request, 'penalty_defender.html', context)
 	else:
-		#GOT BANNED WHILE SOMEHOW DOWNVOTING PHOTOS
 		if in_defenders(request.user.id):
 			if duration == '1':
 				#i.e. ban for 24 hrs
@@ -7095,21 +7087,21 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 				update_object(object_id=pk,object_type='0',vote_score=-100)
 				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '1') #to impede from adding more photos
-				add_to_photo_vote_ban(ident, '1') #to impede from voting on other photos
+				add_user_to_photo_vote_ban(ident, '1') #to impede from voting on other photos
 			elif duration == '2':
 				#i.e. ban for 1 week
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
 				update_object(object_id=pk,object_type='0',vote_score=-100)
 				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '7') #to impede from adding more photos
-				add_to_photo_vote_ban(ident, '7') #to impede from voting on other photos
+				add_user_to_photo_vote_ban(ident, '7') #to impede from voting on other photos
 			elif duration == '3':
 				#i.e. ban forever
 				photo = Photo.objects.filter(id=pk).update(vote_score = -100) #to censor the photo from the list
 				update_object(object_id=pk,object_type='0',vote_score=-100)
 				ban_photo(photo_id=pk,ban=True)
 				add_to_photo_upload_ban(ident, '-1') #to impede from adding more photos
-				add_to_photo_vote_ban(ident, '-1') #to impede from voting on other photos
+				add_user_to_photo_vote_ban(ident, '-1') #to impede from voting on other photos
 			else:
 				#the defender changed their mind, so don't ban the photo, just regularly downvote it
 				process_photo_vote(pk, ident, val, request.user.id)
@@ -7380,8 +7372,6 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	epochtime = convert_to_epoch(now)
-	# current_minute = now.hour * 60 + now.minute
-	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
 	})
@@ -7487,11 +7477,8 @@ class SalatTutorialView(FormView):
 		if self.request.method == 'POST':
 			try:
 				choice = self.request.POST.get("choice")
-				if choice == 'samajh gaya':
-					TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
-					return redirect("process_salat")
-				else:
-					return redirect("home")
+				TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
+				return redirect("process_salat")
 			except:
 				TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
 				return redirect("process_salat")
@@ -7580,36 +7567,56 @@ def cast_vote(request,*args,**kwargs):
 	was_limited = getattr(request,'limits',False)
 	if was_limited:
 		return render(request, 'penalty_vote.html', {})
+	elif request.user_banned:
+		return render(request, 'penalty_banned.html', {})
 	else:
 		if request.method == 'POST':
 			link_id = request.POST.get("lid","")
 			if link_id:
-				cool_down_flag,time=needs_to_cool_down(request.user.id)
-				# link still exists, i.e. not been deleted
-				if request.user.id == get_link_writer(link_id):
-					#own link; cant do this
-					pass
+				tries_remaining = get_cool_down(request.user.id)
+				target_user_id = get_link_writer(link_id)
+				if request.user.id == int(target_user_id):
+					#voting for own self
+					return render(request, 'penalty_self_vote.html', {})
 				elif voted_for_link(link_id,request.user.username):
 					#already voted for link
 					return render(request,'already_voted.html',{})
-				elif cool_down_flag:
+				elif int(tries_remaining) < 1:
 					# this person needs to cooldown
+					time = time_to_vote_permission(request.user.id)
+					request.session["target_id"] = link_id
 					context={'time_remaining':time}
 					return render(request,'vote_cool_down.html',context)
 				else:
+					#process the vote
 					value = request.POST.get("vote","")
-					if value == '1' or value == '-1':
+					if value == '1':
+						vote_tasks.delay(target_user_id,link_id,value)
 						add_vote_to_home_link(link_id, value, request.user.username)
+						if random.random() < 0.4:
+							set_cool_down(tries_remaining,request.user.id)
+					elif value == '-1':
+						vote_tasks.delay(target_user_id,link_id,value)
+						add_vote_to_home_link(link_id, value, request.user.username)
+						set_cool_down(tries_remaining,request.user.id)
+					elif value == '2' and request.user.username in FEMALES:
+						#is the user a verified female? If so, process the super upvote
+						vote_tasks.delay(target_user_id,link_id,value)
+						add_vote_to_home_link(link_id, value, request.user.username)
+						set_cool_down(tries_remaining,request.user.id)
+					elif value == '-2' and request.user.username in FEMALES:
+						#is the user a verified female? If so, process the super downvote
+						vote_tasks.delay(target_user_id,link_id,value)
+						add_vote_to_home_link(link_id, value, request.user.username)
+						set_cool_down(tries_remaining,request.user.id)
 					else:
 						pass
 					request.session["target_id"] = link_id
 					return redirect("home_loc")
 			else:
-				#not allowed to vote; the link doesn't even exist
-				pass
+				return render(request, 'penalty_suspicious.html', {})
 		else:
-			# you're not allowed to do this
-			pass
+			return render(request, 'penalty_suspicious.html', {})
 
 @ratelimit(rate='3/s')
 def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):

@@ -1,38 +1,38 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load thumbedge %}
 {% block content %}
 <div class="margin">
-<span style="color:#1f8cad;font-size:100%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">
+<span class="ct">
 {% if user.userprofile.streak < 2 %}
-<b>{% emoticons %}(*)(*) ALHUMDULILLAH! (*)(*){% endemoticons %}</b><br>Tum ne {% if namaz == 'Jummah' %}<b style="color:#ff9933;">{{ namaz }}</b>{% else %}<b style="color:#179b36;">{{ namaz }}</b>{% endif %} parh kr nekiyan kamai!<br><br>Agli namaz <b style="color:#179b36;">{{ time }}</b> bajey hai
+<b>{% emoticons %}.g3.g3 ALHUMDULILLAH! .g3.g3{% endemoticons %}</b><br>Tum ne {% if namaz == 'Jummah' %}<b class="co">{{ namaz }}</b>{% else %}<b class="cg">{{ namaz }}</b>{% endif %} parh kr nekiyan kamai!<br><br>Agli namaz <b class="cg">{{ time }}</b> bajey hai
 {% else %}
-{% emoticons %}(*)(*){% endemoticons %} <b>ALHUMDULILLAH!</b> Tum <b style="color:#179b36;font-size:110%;">lagatar {{ user.userprofile.streak }} namazein</b> parh chuke ho! {% emoticons %}(*)(*){% endemoticons %}<br><br>
-<span style="font-size:95%;">Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey tumhari <b style="color:#179b36;">lagatar namazein</b> barhti jaein!</span>
+{% emoticons %}.g3.g3{% endemoticons %} <b>ALHUMDULILLAH!</b> Tum <b class="cg cl">lagatar {{ user.userprofile.streak }} namazein</b> parh chuke ho! {% emoticons %}.g3.g3{% endemoticons %}<br><br>
+Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey tumhari <b class="cg">lagatar namazein</b> barhti jaein!</span>
 {% endif %}</span>
 <br><br>
-<hr size=1 COLOR="#3cb7dd"><span style="color:#404040;">Doston ko {{ namaz }} ki</span>
-<a href="{% url 'salat_invite' %}"><button style="width:5.9em;background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:95%;border-radius:4px;text-align: center;"><b>dawat do</b></button></a><br>
+<hr size=1 COLOR="#3cb7dd"><span class="clb">Doston ko {{ namaz }} ki</span>
+<a href="{% url 'salat_invite' %}"><button class="btn nw bcg bm"><b>dawat do</b></button></a><br>
 <hr size=1 COLOR="#3cb7dd">
 <br>
 	{% for object in object_list %}
-	<span style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+	<span class="clb">
 	<span class="numbers">{{ forloop.counter }}.</span>
 	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
 		{% if object.salatee.userprofile.avatar %}
-			<img src="{{ object.salatee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ object.salatee.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}
 	{{ object.salatee }}</a>
-	{% if object.salatee.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
-	ne <!-- {{ object.when|naturaltime }}  --><b style="color:#179b36;">
+	{% if object.salatee.username in girls %}<b class="pinkstar">*</b>{% endif %}
+	ne <b class="cg">
 	{% if object.latest_salat == '1' %}
 	Fajr
 	{% elif object.latest_salat == '2' %}
 		{% if weekday == '4' %}
-		<span style="color:#ff9933;">Jummah</span>
+		<span class="co">Jummah</span>
 		{% else %}
 		Zuhr
 		{% endif %}
@@ -51,7 +51,7 @@
 	{% else %}
 	parhi
 	{% endif %}
-	<b style="color:#ff9933;">
+	<b class="co">
 	{% if object.salatee.userprofile.streak < 2 %}
 	({{ object.salatee.userprofile.streak }} namaz)
 	{% else %}
@@ -70,11 +70,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi><&nbsp;wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bs bcr"><bdi><&nbsp;wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey&nbsp;></bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey&nbsp;></bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

@@ -66,7 +66,7 @@ THREE_HOURS = 3*60*60
 ONE_HOUR = 60*60
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
-FIVE_MINS = 5*60
+FOUR_MINS = 4*60
 THREE_MINS = 3*60
 
 #####################Authorization#####################
@@ -650,7 +650,7 @@ def set_cool_down(tries_remaining,user_id):
 	if tries_remaining == '1':
 		#last try remaining
 		my_server.decr(link_vote_cooldown)
-		my_server.expire(link_vote_cooldown,FIVE_MINS) #expire the key after 5 mins
+		my_server.expire(link_vote_cooldown,FOUR_MINS) #expire the key after 4 mins
 	else:
 		#several tries remainings
 		my_server.decr(link_vote_cooldown)

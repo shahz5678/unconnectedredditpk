@@ -447,7 +447,16 @@
 			<a href="{% url 'vote' link.l ident forloop.counter 0 %}"><button class="btn bs bcr mbs">chupair</button></a>
 			{% if user.username in checked %}<a href="{% url 'vote' link.l ident forloop.counter 3 %}" style="font-size:90%;color:red;"><u>-50</u></a>{% endif %}<br>
 		{% endif %}
-	
+		
+		{% if can_vote and link.n != user.username and not link.l|voted:user.username and user.username == 'Sit' %}
+		<form  action="{% url 'cast_vote' %}" method="POST">
+		{% csrf_token %}
+			<input type="hidden" name="lid" value="{{ link.l }}">
+			<br><button class="btn bcg bxs" type="submit" name="vote" value="1">+</button>&nbsp;&nbsp;<button class="btn bcg bxs mbs" type="submit" name="vote" value="2">++</button><br>
+			<button class="btn bcr bxs" type="submit" name="vote" value="-1">-</button>&nbsp;&nbsp;<button class="btn bcr bxs" type="submit" name="vote" value="-2">--</button><br>
+		</form>
+		{% endif %}
+
 		{% if authenticated %}
 		{% endif %}
 		{% if authenticated and can_vote %}
@@ -468,7 +477,7 @@
 	{% endif %}
 {% endfor %}
 {% else %}
-<span style="color:#404040;">Ao gup lagain!</span>
+<span class="clb">Ao gup lagain!</span>
 {% endif %}
 
 

@@ -54,6 +54,8 @@ INTERVAL_SIZE = 4*60
 
 GRP_TGR = 700
 
+VOTE_LIMIT = 5 
+
 ONE_WEEK = 7*24*60*60
 FOUR_DAYS = 4*24*60*60
 THREE_DAYS = 3*24*60*60
@@ -172,6 +174,18 @@ def add_to_photo_upload_ban(user_id, ban_type):
 	current_time = time.time()
 	mapping = {'t':current_time, 'b':ban_type}
 	my_server.hmset(hash_name, mapping)
+
+def add_user_to_photo_vote_ban(user_id, ban_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	current_time = time.time()
+	hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
+	last_ban_type = my_server.hget(hash_name, 'b') # don't over-ride if this person was photo banned for a longer time previously
+	if last_ban_type == '-1':
+		#this person is already banned forever, so let the ban be
+		pass
+	else:
+		mapping = {'t':current_time, 'b':ban_type}
+		my_server.hmset(hash_name, mapping)
 
 def add_to_photo_vote_ban(user_ids, ban_type):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -630,32 +644,36 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 
-def needs_to_cool_down(user_id):
+def set_cool_down(tries_remaining,user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	link_vote_cooldown = "lc:"+str(user_id)
+	if tries_remaining == '1':
+		#last try remaining
+		my_server.decr(link_vote_cooldown)
+		my_server.expire(link_vote_cooldown,FIVE_MINS) #expire the key after 5 mins
+	else:
+		#several tries remainings
+		my_server.decr(link_vote_cooldown)
+
+def get_cool_down(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	link_vote_cooldown = "lc:"+str(user_id)
 	if my_server.exists(link_vote_cooldown):
-		tries_remaining = my_server.get(link_vote_cooldown)
-		if tries_remaining == '1':
-			#last try remaining
-			my_server.decr(link_vote_cooldown)
-			my_server.expire(link_vote_cooldown,FIVE_MINS) #expire the key after 5 mins
-			return False, None
-		elif tries_remaining == '0':
-			#tries depleted
-			return True, my_server.ttl(link_vote_cooldown)
-		else:
-			#several tries remainings
-			my_server.decr(link_vote_cooldown)
-			return False, None
+		#key already exists
+		return my_server.get(link_vote_cooldown)
 	else:
 		#create key
-		my_server.set(link_vote_cooldown,'5')
-		return False,None
+		my_server.set(link_vote_cooldown,VOTE_LIMIT)
+		return VOTE_LIMIT
 
+def time_to_vote_permission(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	link_vote_cooldown = "lc:"+str(user_id)
+	return my_server.ttl(link_vote_cooldown)
 
 def get_link_writer(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
 def voted_for_link(link_id, username):

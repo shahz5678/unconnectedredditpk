@@ -1,4 +1,4 @@
-import os, time, datetime#, math
+import os, time, datetime, random#, math
 from collections import defaultdict, Counter
 from operator import itemgetter
 from unconnectedreddit import celery_app1
@@ -7,7 +7,7 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream
+Video, HotUser, PhotoStream, HellBanList
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online,\
@@ -27,6 +27,11 @@ FLOOR_PERCENTILE = 0.5
 CEILING_PERCENTILE = 0.9 # (inclusive)
 MIN_FANS_TARGETED = 0.1 # 10%
 MAX_FANS_TARGETED = 0.95 # 95%
+
+UPVOTE = 3
+SUPER_UPVOTE = 50
+DOWNVOTE = -3
+SUPER_DOWNVOTE = -50
 
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
@@ -49,17 +54,12 @@ def fans_targeted(current_percentile):
 	return percentage_to_target
 
 def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
-	# fan_ids_list = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
 	num_of_fans_to_notify = len(fan_ids_list) * percentage_of_fans_to_notify
 	if num_of_fans_to_notify:
 		fan_ids_to_notify = get_active_fans(user_id,int(num_of_fans_to_notify))
 	try:
 		fan_ids_to_notify = map(int, fan_ids_to_notify)
-		# print "fan ids to notify: %s" % fan_ids_to_notify
-		# print "all fan ids: %s" % fan_ids_list
 		remaining_fan_ids = set(fan_ids_list) - set(fan_ids_to_notify)
-		# print "UA notifications generated for these ids: %s" % fan_ids_to_notify
-		# print "SN notifications generated for these ids: %s" % remaining_fan_ids
 		return remaining_fan_ids, fan_ids_to_notify
 	except:
 		return fan_ids_list,0
@@ -91,15 +91,12 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 		total_fans = len(fan_ids_list)
 		fans_notified_in_ua = 0
 		percentage_of_users_beaten = get_uploader_percentile(user_id)
-		# print percentage_of_users_beaten
 		if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
 			notify_in_ua = []
 			fans_notified_in_ua = 0
 			percentage_of_fans_to_notify = 0
 			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
 				unseen_activity=False)
-			# print "Beat %s percent users" % (percentage_of_users_beaten*100)
-			# print "No fans to notify"
 		elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
 			percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
 			remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
@@ -111,26 +108,18 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 				fans_notified_in_ua = 0
 			bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
 				updated_at=epochtime,unseen_activity=False)
-			# print "Beat %s percent users!" % (percentage_of_users_beaten*100)
-			# print "Notified %s percent fans!" % (percentage_of_fans_to_notify*100)
-			# print "UA notifications generated for these ids: %s" % notify_in_ua
-			# print "SN notifcations generated for these ids: %s" % remaining_ids
 		elif CEILING_PERCENTILE < percentage_of_users_beaten <= 1:
 			fans_notified_in_ua = len(fan_ids_list)
 			notify_in_ua = fan_ids_list
 			percentage_of_fans_to_notify = 1
 			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
 				unseen_activity=True)
-			# print "Beat %s percent users!" % (percentage_of_users_beaten*100)
-			# print "ALL FANS NOTIFIED!"
 		else:
 			notify_in_ua = 0
 			fans_notified_in_ua = 0
 			percentage_of_fans_to_notify = 0
 			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
 				unseen_activity=False)
-			# print "Beat %s percent users" % (percentage_of_users_beaten*100)
-			# print "no fans to notify (exception)"
 		# object and notification for self, that reports how many fans we reached out to!
 		create_object(object_id=photo_id, object_type='1',object_owner_id=user_id,photourl=photourl, vote_score=total_fans, \
 			slug=fans_notified_in_ua, res_count=notify_in_ua,is_thnks=percentage_of_fans_to_notify,object_owner_name=name, \
@@ -219,16 +208,7 @@ def rank_photos():
 		except:
 			pass
 	add_photos_to_best(photo_id_and_scr)
-	# photos = Photo.objects.filter(id__in=all_photos())
-	# photo_id_and_scr = []
-	# for photo in photos:
-	# 	if photo.vote_score > -2:
-	# 		score = photo.set_rank()
-	# 		photo_id_and_scr.append(photo.id)
-	# 		photo_id_and_scr.append(score)
-	# add_photos_to_best(photo_id_and_scr)
 
-# @shared_task(name='tasks.whoseonline')
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
 	user_ids = get_latest_online()
@@ -290,7 +270,6 @@ def salat_streaks():
 	else:
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# print object_list
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
 	})
@@ -330,7 +309,6 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 			add_filtered_post(link.id)
 			add_unfiltered_post(link.id)
 
-#same as photo_tasks, with a few omissions 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
 def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):
 	user = User.objects.get(id=user_id)
@@ -452,6 +430,39 @@ def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_incre
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 	if UserFan.objects.filter(star=user_id,fan=voter_id).exists():
 		add_to_photo_owner_activity(user_id, voter_id)
+
+@celery_app1.task(name='tasks.vote_tasks')
+def vote_tasks(target_user_id,target_link_id,vote_value):
+	target_userprofile = UserProfile.objects.get(user_id=target_user_id)
+	target_link = Link.objects.get(id=target_link_id)
+	#simply hellban the user in case their score is too low, and that's all
+	if target_userprofile.score < -25:
+		if not HellBanList.objects.filter(condemned_id=target_user_id).exists(): #only insert user in hell-ban list if she isn't there already
+			HellBanList.objects.create(condemned_id=target_user_id) #adding user to hell-ban list
+			target_userprofile.score = random.randint(10,71)
+			target_userprofile.save()		
+	elif vote_value == '1':
+		target_userprofile.score = target_userprofile.score + UPVOTE
+		target_link.net_votes = target_link.net_votes + 1
+		target_userprofile.save()
+		target_link.save()
+	elif vote_value == '2':
+		target_userprofile.score = target_userprofile.score + SUPER_UPVOTE
+		target_link.net_votes = target_link.net_votes + 1
+		target_userprofile.save()
+		target_link.save()
+	elif vote_value == '-1':
+		target_userprofile.score = target_userprofile.score + DOWNVOTE
+		target_link.net_votes = target_link.net_votes - 1
+		target_userprofile.save()
+		target_link.save()
+	elif vote_value == '-2':
+		target_userprofile.score = target_userprofile.score + SUPER_DOWNVOTE
+		target_link.net_votes = target_link.net_votes - 1
+		target_userprofile.save()
+		target_link.save()
+	else:
+		pass
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
@@ -592,7 +603,6 @@ def video_upload_tasks(video_name, video_id, user_id):
 	low_res_thumb = "//"+lst[0].partition('://')[2]
 	small_thumb = "//"+lst[1].partition('://')[2]
 	low_res_video = "//"+lst[2].partition('://')[2]
-	#print low_res_video
 	high_res_video = "//"+lst[3].partition('://')[2]
 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
 	if video:

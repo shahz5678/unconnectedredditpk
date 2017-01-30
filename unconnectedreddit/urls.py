@@ -16,7 +16,8 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password
+suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password,\
+get_all_nicks
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -190,7 +191,7 @@ urlpatterns = patterns('',
 	url(r'^bahir/invite/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
 	url(r'^group/open_invite_type/$', auth(OpenInviteTypeView.as_view()), name='open_invite_type'),
 	url(r'^group/closed_invite_type/$', auth(ClosedInviteTypeView.as_view()), name='closed_invite_type'),
-	#url(r'^link/(?P<pk>\d+)/$', LinkDetailView.as_view(), name='link_detail'),
+	url(r'^calc/$', get_all_nicks, name='calc_usernames'),
 	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
 	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^reinvite/private/$', auth(ReinvitePrivateView.as_view()), name='reinvite_private_help'),

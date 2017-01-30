@@ -14,7 +14,7 @@ get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_i
 get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts
+add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -463,6 +463,11 @@ def vote_tasks(target_user_id,target_link_id,vote_value):
 		target_link.save()
 	else:
 		pass
+
+@celery_app1.task(name='tasks.registration_task')
+def registration_task(ip,username):
+	account_created(ip,username)
+	insert_nickname(username)
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):

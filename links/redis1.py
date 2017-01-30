@@ -85,16 +85,10 @@ def account_created(ip,username):
 	my_server.set(registered_ip,username)
 	my_server.expire(registered_ip,TWENTY_MINS)
 
-def insert_bulk_nicknames(usernames):
-	my_server = redis.Redis(connection_pool=POOL)
-	nicknames = "nicknames"
-	my_server.sadd(nicknames,*usernames)
-
 def insert_nickname(username):
 	my_server = redis.Redis(connection_pool=POOL)
 	nicknames = "nicknames"
 	my_server.sadd(nicknames,username)	
-
 
 #######################Defenders#######################
 

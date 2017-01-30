@@ -6812,11 +6812,6 @@ class WelcomeReplyView(FormView):
 				else:
 					return redirect("score_help")
 
-def get_all_nicks(request,*args,**kwargs):
-	usernames = User.objects.values_list('username',flat=True)
-	insert_bulk_nicknames(usernames)
-	return redirect("home")
-
 def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)

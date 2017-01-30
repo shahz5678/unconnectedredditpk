@@ -7,7 +7,7 @@ from django.contrib.auth.views import login, logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
-from links.views import cross_notif, vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
+from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
 reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
@@ -16,8 +16,7 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password,\
-cast_vote
+suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -244,7 +243,7 @@ urlpatterns = patterns('',
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
-	url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
+	# url(r'^vote/(?P<pk>\d+)/(?P<usr>\d+)/(?P<loc>\d+)/(?P<val>\d+)/$', auth(vote), name='vote'),
 	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),

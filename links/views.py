@@ -7618,111 +7618,111 @@ def cast_vote(request,*args,**kwargs):
 		else:
 			return render(request, 'penalty_suspicious.html', {})
 
-@ratelimit(rate='3/s')
-def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': pk}
-		return render(request, 'penalty_vote.html', context)
-	else:
-		if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
-			try:
-				cooldown = Cooldown.objects.filter(voter=request.user).latest('id')#
-			except:
-				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=timezone.now())
-			c_pk = cooldown.pk
-			obj = update_cooldown(cooldown)
-			obj.save()
-			if int(obj.hot_score) < 1:
-				time_remaining = find_time(obj)
-				#time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
-				time_stamp = timezone.now() + time_remaining
-				context = {'time_remaining': time_stamp}
-				return render(request, 'cooldown.html', context)
-			try:
-				link = Link.objects.select_related('submitter__userprofile').get(pk=int(pk))#
-			except:
-				return redirect("link_create_pk")
-			if request.user == link.submitter:
-				return redirect("home")
-			section = str(loc)
-			value = int(val)
-			if not Vote.objects.filter(voter=request.user, link=link).exists():#
-				#only if user never voted on this link
-				if value == 1:
-					if request.user_banned:
-						return redirect("score_help")
-					else:
-						UserProfile.objects.filter(user=link.submitter).update(score=F('score')+3)
-						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
-						num = random.randint(1,4)
-						if num > 2: # don't always reduce hot_score, give jhappees some love
-							Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-						else:
-							Cooldown.objects.filter(id=c_pk).update(time_of_casting=timezone.now())
-				elif value == 2:
-					if request.user_banned or request.user.username not in FEMALES:
-						return redirect("score_help")
-					else:
-						if link.submitter.userprofile.score < -25:
-							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-						else:
-							UserProfile.objects.filter(user=link.submitter).update(score=F('score')+50)
-						#link.net_votes = link.net_votes + 1
-						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
-						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-				elif value == 0:
-					if request.user_banned:
-						return redirect("score_help")
-					else:
-						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-3)
-						if link.submitter.userprofile.score < -25:
-							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
-						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-					value = -1
-				elif value == 3:
-					if request.user_banned or request.user.username not in FEMALES:
-						return redirect("score_help")
-					else:
-						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-50)
-						if link.submitter.userprofile.score < -25:
-							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
-								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
-						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-3, time_of_casting=timezone.now())
-					value = -2
-				else:
-					value = 0
-					return redirect("link_create_pk")
-				try:
-					Vote.objects.create(voter=request.user, link=link, value=value) #DB call #add the up or down vote in the DB.
-					add_vote_to_home_link(link.id, value, request.user.username)
-					if value < 0:
-						document_link_abuse(link.submitter_id)
-						#report.delay(target_id=link.submitter_id, reporter_id=request.user.id, report_origin='1', which_link_id=link.id)
-				except:#if vote object can't be created, just redirect the user, no harm done
-					return redirect("link_create_pk")
-				try:
-					request.session['target_id'] = link.id
-					return redirect("home_loc")
-				except:
-					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
-			else:
-				try:
-					return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
-				except:
-					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
-		else:
-			return redirect("link_create_pk")
+# @ratelimit(rate='3/s')
+# def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	if was_limited:
+# 		deduction = 3 * -1
+# 		request.user.userprofile.score = request.user.userprofile.score + deduction
+# 		request.user.userprofile.save()
+# 		context = {'unique': pk}
+# 		return render(request, 'penalty_vote.html', context)
+# 	else:
+# 		if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
+# 			try:
+# 				cooldown = Cooldown.objects.filter(voter=request.user).latest('id')#
+# 			except:
+# 				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=timezone.now())
+# 			c_pk = cooldown.pk
+# 			obj = update_cooldown(cooldown)
+# 			obj.save()
+# 			if int(obj.hot_score) < 1:
+# 				time_remaining = find_time(obj)
+# 				#time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
+# 				time_stamp = timezone.now() + time_remaining
+# 				context = {'time_remaining': time_stamp}
+# 				return render(request, 'cooldown.html', context)
+# 			try:
+# 				link = Link.objects.select_related('submitter__userprofile').get(pk=int(pk))#
+# 			except:
+# 				return redirect("link_create_pk")
+# 			if request.user == link.submitter:
+# 				return redirect("home")
+# 			section = str(loc)
+# 			value = int(val)
+# 			if not Vote.objects.filter(voter=request.user, link=link).exists():#
+# 				#only if user never voted on this link
+# 				if value == 1:
+# 					if request.user_banned:
+# 						return redirect("score_help")
+# 					else:
+# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')+3)
+# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
+# 						num = random.randint(1,4)
+# 						if num > 2: # don't always reduce hot_score, give jhappees some love
+# 							Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
+# 						else:
+# 							Cooldown.objects.filter(id=c_pk).update(time_of_casting=timezone.now())
+# 				elif value == 2:
+# 					if request.user_banned or request.user.username not in FEMALES:
+# 						return redirect("score_help")
+# 					else:
+# 						if link.submitter.userprofile.score < -25:
+# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
+# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
+# 						else:
+# 							UserProfile.objects.filter(user=link.submitter).update(score=F('score')+50)
+# 						#link.net_votes = link.net_votes + 1
+# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
+# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
+# 				elif value == 0:
+# 					if request.user_banned:
+# 						return redirect("score_help")
+# 					else:
+# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-3)
+# 						if link.submitter.userprofile.score < -25:
+# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
+# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
+# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
+# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
+# 					value = -1
+# 				elif value == 3:
+# 					if request.user_banned or request.user.username not in FEMALES:
+# 						return redirect("score_help")
+# 					else:
+# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-50)
+# 						if link.submitter.userprofile.score < -25:
+# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
+# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
+# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
+# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
+# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-3, time_of_casting=timezone.now())
+# 					value = -2
+# 				else:
+# 					value = 0
+# 					return redirect("link_create_pk")
+# 				try:
+# 					Vote.objects.create(voter=request.user, link=link, value=value) #DB call #add the up or down vote in the DB.
+# 					add_vote_to_home_link(link.id, value, request.user.username)
+# 					if value < 0:
+# 						document_link_abuse(link.submitter_id)
+# 						#report.delay(target_id=link.submitter_id, reporter_id=request.user.id, report_origin='1', which_link_id=link.id)
+# 				except:#if vote object can't be created, just redirect the user, no harm done
+# 					return redirect("link_create_pk")
+# 				try:
+# 					request.session['target_id'] = link.id
+# 					return redirect("home_loc")
+# 				except:
+# 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
+# 			else:
+# 				try:
+# 					return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
+# 				except:
+# 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
+# 		else:
+# 			return redirect("link_create_pk")
 	
 # def LinkAutoCreate(user, content):   
 # 	link = Link()

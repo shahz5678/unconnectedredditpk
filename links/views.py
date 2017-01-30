@@ -18,7 +18,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks
+fan_recount, vote_tasks, registration_task
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
@@ -49,7 +49,7 @@ add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, chec
 add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -2499,7 +2499,8 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			form.save() # creating the user
 			user = authenticate(username=username,password=password)
 			login(request,user)
-			account_created(getip(request),username)
+			registration_task.delay(getip(request),username)
+			# account_created(getip(request),username)
 			try:
 				request.session.delete_test_cookie() #cleaning up
 			except:
@@ -6811,6 +6812,11 @@ class WelcomeReplyView(FormView):
 				else:
 					return redirect("score_help")
 
+def get_all_nicks(request,*args,**kwargs):
+	usernames = User.objects.values_list('username',flat=True)
+	insert_bulk_nicknames(usernames)
+	return redirect("home")
+
 def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
@@ -7543,23 +7549,23 @@ class FanTutorialView(FormView):
 				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
 			return redirect("top_photo")
 
-def update_cooldown(obj):
-	#time_now = datetime.utcnow().replace(tzinfo=utc)
-	time_now = timezone.now()
-	time_passed = obj.time_of_casting
-	difference = time_now - time_passed
-	difference_in_mins = difference.total_seconds() / 60
-	interval = int(difference_in_mins / 4) # control the interval length from here
-	obj.hot_score = obj.hot_score + interval
-	if obj.hot_score > 10:
-		obj.hot_score = 10
-	return obj
+# def update_cooldown(obj):
+# 	#time_now = datetime.utcnow().replace(tzinfo=utc)
+# 	time_now = timezone.now()
+# 	time_passed = obj.time_of_casting
+# 	difference = time_now - time_passed
+# 	difference_in_mins = difference.total_seconds() / 60
+# 	interval = int(difference_in_mins / 4) # control the interval length from here
+# 	obj.hot_score = obj.hot_score + interval
+# 	if obj.hot_score > 10:
+# 		obj.hot_score = 10
+# 	return obj
 
-def find_time(obj):
-	time_passed = obj.time_of_casting
-	target_time = time_passed + timedelta(minutes=4) # control the interval length from here
-	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
-	return difference
+# def find_time(obj):
+# 	time_passed = obj.time_of_casting
+# 	target_time = time_passed + timedelta(minutes=4) # control the interval length from here
+# 	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
+# 	return difference
 
 @csrf_protect
 @ratelimit(rate='3/s')
@@ -8208,27 +8214,6 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 
 ###############################################################
-
-
-# public.user_sessions_session_expire_date            | 3972 MB
-#  public.user_sessions_session                        | 1749 MB
-#  public.links_publicreply                            | 1552 MB
-#  public.user_sessions_session_user_id                | 1300 MB
-#  public.links_photocomment                           | 745 MB
-#  public.links_publicreply_answer_to_id               | 644 MB
-#  public.links_publicreply_submitted_by_id            | 614 MB
-#  public.links_photoobjectsubscription_which_photo_id | 574 MB
-#  public.links_link                                   | 530 MB
-#  public.links_photo_latest_comment_id                | 530 MB
-#  public.links_photoobjectsubscription_seen           | 492 MB
-#  public.links_publicreply_pkey                       | 489 MB
-#  public.links_grouptraffic_visitor_id                | 474 MB
-#  public.links_grouptraffic_which_group_id            | 464 MB
-#  public.links_photo_second_latest_comment_id         | 458 MB
-#  public.links_photoobjectsubscription_viewer_id      | 423 MB
-#  public.links_grouptraffic_pkey                      | 393 MB
-#  public.links_grouptraffic_time                      | 393 MB
-#  public.links_photoobjectsubscription_pkey           | 353 MB
 
 # Report run on 12/10/2016
 #              Table               |  Size   | External Size 

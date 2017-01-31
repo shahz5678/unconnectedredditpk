@@ -6,7 +6,7 @@
 {% block content %}
 {{ block.super }}
 
-<div style="margin-left:-1.3em;font-family:arial;line-height:1.8;">
+<div style="margin-left:-1.3em;line-height:1.8;">
 {% if is_paginated %}
 <ul start="{{ page_obj.start_index }}">
 {% else %}
@@ -15,7 +15,7 @@
 {% if not object_list %}
 <i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kis cheez ka hai?!</i>
 {% else %}
-<b>Home ki chat history:</b><p style="margin-top:.5em;"></p>
+<b>Home ki chat history:</b><br>
 
 {% for link in object_list %}
 	{% if link.image_file %}
@@ -34,16 +34,16 @@
 	<bdi>{{ link.submitter }}</bdi></a>
 	{% if user.is_authenticated and user.userprofile.score > 25 %}
 		{% if link.submitter.userprofile.score < 0 %}
-	    	<span style="color:#18A018;font-size:85%;">(1)</span>
+	    	<span class="cg cs">(1)</span>
 	    {% else %}
-	    	<span style="color:#18A018;font-size:85%;">({{ link.submitter.userprofile.score }})</span>
+	    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
 		{% endif %}
 	{% endif %}
 	{% for girl in verified %}
     {% if girl == link.submitter.username %}
-    	<span style="font-size:200%;color:deeppink;"><b>*</b></span>
+    	<span class="pinkstar"><b>*</b></span>
     {% endif %}{% endfor %}
-	: <bdi style="color:#404040;font-size:110%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span style="color:gray;font-size:80%;">, {{ link.submitted_on|naturaltime }}
+	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs">, {{ link.submitted_on|naturaltime }}
 		{% if link.device == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
 		{% elif link.device == '2' %}
@@ -58,11 +58,10 @@
 		{% endif %}
 	</span><a name="section{{ forloop.counter }}"></a><br>
 
-<!-- <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:6em;white-space:nowrap;font-size:90%;color:white;border-radius:4px;">-->
 		{% if link.reply_count > 0 %}
-		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);color:white;background-color:#3cb7dd;font-size:90%;border:solid 1px #229ec3;border-radius:4px;width:7em;white-space:nowrap;"><b>{{ link.reply_count }}</b> jawab</button></a>
+		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bl bct mts mbs"><b>{{ link.reply_count }}</b> jawab</button></a>
 		{% else %}
-		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);color:white;background-color:#3cb7dd;font-size:90%;border:solid 1px #229ec3;border-radius:4px;width:7em;white-space:nowrap;">isko jawab do</button></a>
+		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bl bct mts mbs">isko jawab do</button></a>
 		{% endif %}
 
 	{% if can_vote %}
@@ -71,27 +70,27 @@
 		{% if link.id == vote.link_id %}
 			{% if vote.value == -1 %}
 				{% if vote.voter.username in verified %}
-					<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne khinch ke chupair mari<br></span>
+					<span class="cr cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span class="pinkstar">*</span></b> ne bhare bazar mein <b>chupair</b> mari<br></span>
 				{% else %}
-					<span style="color:red;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne khinch ke chupair mari<br></span>
+					<span class="cr cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne bhare bazar mein <b>chupair</b> mari<br></span>
 				{% endif %}
 			{% endif %}
 			{% if vote.value == 1 %}
 				{% if vote.voter.username in verified %}
-					<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span style="color:deeppink;">*</span></b> ne jhappi di<br></span>
+					<span class="cg cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span class="pinkstar">*</span></b> ne barri si <b>jhappi</b> di<br></span>
 				{% else %}
-					<span style="color:green;font-size:80%;"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne jhappi di<br></span>
+					<span class="cg cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne barri si <b>jhappi</b> di<br></span>
 				{% endif %}
 			{% endif %}
 			{% if vote.value == 2 %}
-				<span style="color:green;font-size:80%;"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
-							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
-							</a></b> ne barri jhappi di <b>(+50)</b><br></span>
+				<span class="cg cs"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
+							{{ vote.voter.username }}<span class="pinkstar">*</span>
+							</a></b> ne zordar jhappi di <b>(+50)</b><br></span>
 			{% endif %}
 			{% if vote.value == -2 %}
-				<span style="color:red;font-size:80%;"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
-							{{ vote.voter.username }}<span style="color:deeppink;">*</span>
-							</a></b> ne nani yad kara di <b>(-50)</b><br></span>
+				<span class="cr cs"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
+							{{ vote.voter.username }}<span class="pinkstar">*</span>
+							</a></b> ne <b>chupair</b> mr mr ke nani yad kara di <b>(-50)</b><br></span>
 			{% endif %}	
 		{% endif %}
 	{% endfor %}
@@ -107,12 +106,12 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
-{% endif %}
+{% endif %}<br><br>
 {% endblock %}

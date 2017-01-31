@@ -7,7 +7,7 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList
+Video, HotUser, PhotoStream, HellBanList, Vote
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online,\
@@ -432,7 +432,7 @@ def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_incre
 		add_to_photo_owner_activity(user_id, voter_id)
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(target_user_id,target_link_id,vote_value):
+def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
 	target_userprofile = UserProfile.objects.get(user_id=target_user_id)
 	target_link = Link.objects.get(id=target_link_id)
 	#simply hellban the user in case their score is too low, and that's all
@@ -442,21 +442,25 @@ def vote_tasks(target_user_id,target_link_id,vote_value):
 			target_userprofile.score = random.randint(10,71)
 			target_userprofile.save()		
 	elif vote_value == '1':
+		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + UPVOTE
 		target_link.net_votes = target_link.net_votes + 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '2':
+		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + SUPER_UPVOTE
 		target_link.net_votes = target_link.net_votes + 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '-1':
+		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + DOWNVOTE
 		target_link.net_votes = target_link.net_votes - 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '-2':
+		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + SUPER_DOWNVOTE
 		target_link.net_votes = target_link.net_votes - 1
 		target_userprofile.save()

@@ -2,6 +2,7 @@
 import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
 from requests.auth import HTTPBasicAuth
+import newrelic.agent
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -2579,6 +2580,7 @@ def create_nick(request,*args,**kwargs):
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
+			newrelic.agent.add_custom_parameter("username", username) #added custom parameter for new relic to read
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
@@ -7574,9 +7576,10 @@ def cast_vote(request,*args,**kwargs):
 		if request.method == 'POST':
 			link_id = request.POST.get("lid","")
 			if link_id:
-				tries_remaining = get_cool_down(request.user.id)
+				own_id = request.user.id
+				tries_remaining = get_cool_down(own_id)
 				target_user_id = get_link_writer(link_id)
-				if request.user.id == int(target_user_id):
+				if own_id == int(target_user_id):
 					#voting for own self
 					return render(request, 'penalty_self_vote.html', {})
 				elif voted_for_link(link_id,request.user.username):
@@ -7584,7 +7587,7 @@ def cast_vote(request,*args,**kwargs):
 					return render(request,'already_voted.html',{})
 				elif int(tries_remaining) < 1:
 					# this person needs to cooldown
-					time = time_to_vote_permission(request.user.id)
+					time = time_to_vote_permission(own_id)
 					request.session["target_id"] = link_id
 					context={'time_remaining':time}
 					return render(request,'vote_cool_down.html',context)
@@ -7592,24 +7595,24 @@ def cast_vote(request,*args,**kwargs):
 					#process the vote
 					value = request.POST.get("vote","")
 					if value == '1':
-						vote_tasks.delay(target_user_id,link_id,value)
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
 						add_vote_to_home_link(link_id, value, request.user.username)
 						if random.random() < 0.4:
 							set_cool_down(tries_remaining,request.user.id)
 					elif value == '-1':
-						vote_tasks.delay(target_user_id,link_id,value)
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
 						add_vote_to_home_link(link_id, value, request.user.username)
-						set_cool_down(tries_remaining,request.user.id)
+						set_cool_down(tries_remaining,own_id)
 					elif value == '2' and request.user.username in FEMALES:
 						#is the user a verified female? If so, process the super upvote
-						vote_tasks.delay(target_user_id,link_id,value)
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
 						add_vote_to_home_link(link_id, value, request.user.username)
-						set_cool_down(tries_remaining,request.user.id)
+						set_cool_down(tries_remaining,own_id)
 					elif value == '-2' and request.user.username in FEMALES:
 						#is the user a verified female? If so, process the super downvote
-						vote_tasks.delay(target_user_id,link_id,value)
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
 						add_vote_to_home_link(link_id, value, request.user.username)
-						set_cool_down(tries_remaining,request.user.id)
+						set_cool_down(tries_remaining,own_id)
 					else:
 						pass
 					request.session["target_id"] = link_id

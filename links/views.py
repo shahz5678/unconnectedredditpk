@@ -3479,7 +3479,7 @@ class CommentView(CreateView):
 			try:
 				score = fuzz.ratio(text, get_prev_retort(user.id))
 			except:
-				score = 90
+				score = 85
 			if score > 86:
 				try:
 					return redirect("comment_pk", pk=pk)
@@ -5465,7 +5465,7 @@ class PublicGroupView(CreateView):
 			try:
 				score = fuzz.ratio(f.text, get_prev_retort(user_id))
 			except:
-				score = 88
+				score = 86
 			if score > 87:
 				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 				self.request.session["public_uuid"] = None
@@ -5692,7 +5692,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				try:
 					score = fuzz.ratio(text, get_prev_retort(user_id))
 				except:
-					score = 91
+					score = 89
 				if score > 90:
 					return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
 				else:
@@ -5912,7 +5912,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
 				except:
-					score = 87
+					score = 85
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -5977,7 +5977,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
 				except:
-					score = 87
+					score = 85
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6086,7 +6086,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
 				except:
-					score = 86
+					score = 84
 				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6231,7 +6231,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			try:
 				score = fuzz.ratio(description, get_prev_retort(user_id))
 			except:
-				score = 90
+				score = 84
 			if score > 85:
 				try:
 					return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)

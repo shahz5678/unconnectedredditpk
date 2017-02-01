@@ -230,7 +230,6 @@
 		</p>
 
 <!-- ################################################################################################# -->
-{% if page.object_list %}
 {% for link in link_list %}
 	{% if forloop.counter == 8 %}
 		{% if not show_current and not show_next %}
@@ -469,10 +468,10 @@
 		{% endif %}
 		<p><hr size=1 COLOR="#3cb7dd"></p>
 	{% endif %}
-{% endfor %}
-{% else %}
+{% empty %}
 <span class="clb">Ao gup lagain!</span>
-{% endif %}
+{% endfor %}
+
 
 
 <br><div style="text-align: center;">

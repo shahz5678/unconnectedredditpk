@@ -6,6 +6,7 @@ from django.core.cache import get_cache, cache
 from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, Vote
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
@@ -14,7 +15,7 @@ get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_i
 get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname
+add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -168,6 +169,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	if not updated:
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
+	set_prev_retort(sender_id,reply_text)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
@@ -339,7 +341,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	user.userprofile.previous_retort = text
+	set_prev_retort(user_id,text)
 	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -405,7 +407,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	user.userprofile.previous_retort = text
+	set_prev_retort(user_id,text)
 	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -480,7 +482,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	video.second_latest_comment = video.latest_comment
 	video.latest_comment_id = videocomment_id
 	video.comment_count = count
-	user.userprofile.previous_retort = text
+	set_prev_retort(user_id,text)
 	if user_id != video.owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
 		video.owner.userprofile.media_score = video.owner.userprofile.media_score + 2 #giving media score to the video poster
@@ -493,7 +495,8 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, reply_id, link_id, description):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
-	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2, previous_retort=description)
+	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
+	set_prev_retort(user_id,description)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

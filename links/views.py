@@ -3244,7 +3244,10 @@ class VideoCommentView(CreateView):
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("profile", slug=user.username)
-			score = fuzz.ratio(text, unicode(get_prev_retort(user.id), 'utf-8'))
+			try:
+				score = fuzz.ratio(text, get_prev_retort(user.id))
+			except:
+				score = 85
 			if score > 86:
 				try:
 					return redirect("videocomment_pk", pk=pk)
@@ -3475,7 +3478,10 @@ class CommentView(CreateView):
 				link_id = self.request.session["user_ident"]
 				self.request.session["user_ident"] = None
 				self.request.session["target_id"] = link_id				
-			score = fuzz.ratio(text, unicode(get_prev_retort(user.id), 'utf-8'))
+			try:
+				score = fuzz.ratio(text, get_prev_retort(user.id))
+			except:
+				score = 85
 			if score > 86:
 				try:
 					return redirect("comment_pk", pk=pk)
@@ -5458,8 +5464,10 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user_id = self.request.user.id
-			print "hello"
-			score = fuzz.ratio(f.text, unicode(get_prev_retort(user_id), 'utf-8'))
+			try:
+				score = fuzz.ratio(f.text, get_prev_retort(user_id))
+			except:
+				score = 85
 			if score > 87:
 				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 				self.request.session["public_uuid"] = None
@@ -5683,7 +5691,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			else:
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				text = f.text #text of the reply
-				score = fuzz.ratio(text, unicode(get_prev_retort(user_id), 'utf-8'))
+				try:
+					score = fuzz.ratio(text, get_prev_retort(user_id))
+				except:
+					score = 85
 				if score > 87:
 					return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
 				else:
@@ -5900,7 +5911,10 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("group_reply")
 				user_id = request.user.id
-				score = fuzz.ratio(description, unicode(get_prev_retort(user_id), 'utf-8'))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 85
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -5962,7 +5976,10 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("comment")
 				user_id = request.user.id
-				score = fuzz.ratio(description, unicode(get_prev_retort(user_id), 'utf-8'))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 85
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6068,7 +6085,10 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("comment")
 				user_id = request.user.id
-				score = fuzz.ratio(description, unicode(get_prev_retort(user_id), 'utf-8'))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 84
 				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6210,7 +6230,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			except:
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-2)
 				return redirect("profile", slug=self.request.user.username)
-			score = fuzz.ratio(description, unicode(get_prev_retort(user_id), 'utf-8'))
+			try:
+				score = fuzz.ratio(description, get_prev_retort(user_id))
+			except:
+				score = 84
 			if score > 85:
 				try:
 					return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
@@ -6438,7 +6461,10 @@ class LinkCreateView(CreateView):
 						f.device = '5'
 					else:
 						f.device = '3'
-					score = fuzz.ratio(f.description, unicode(get_prev_retort(user_id), 'utf-8'))
+					try:
+						score = fuzz.ratio(f.description, get_prev_retort(user_id))
+					except:
+						score = 85
 					if score > 86:
 						return redirect("link_create_pk")
 					set_prev_retort(user_id,f.description)

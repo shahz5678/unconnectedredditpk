@@ -5462,7 +5462,10 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user_id = self.request.user.id
-			score = fuzz.ratio(f.text, get_prev_retort(user_id))
+			try:
+				score = fuzz.ratio(f.text, get_prev_retort(user_id))
+			except:
+				score = 88
 			if score > 87:
 				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 				self.request.session["public_uuid"] = None
@@ -5906,7 +5909,10 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("group_reply")
 				user_id = request.user.id
-				score = fuzz.ratio(description, get_prev_retort(user_id))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 87
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -5968,7 +5974,10 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("comment")
 				user_id = request.user.id
-				score = fuzz.ratio(description, get_prev_retort(user_id))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 87
 				if score > 86:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6074,7 +6083,10 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = request.POST.get("comment")
 				user_id = request.user.id
-				score = fuzz.ratio(description, get_prev_retort(user_id))
+				try:
+					score = fuzz.ratio(description, get_prev_retort(user_id))
+				except:
+					score = 86
 				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:

@@ -9,7 +9,7 @@ from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
-reply_pk, reportreply_pk, kick_pk, groupreport_pk, outsider_group, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
+reply_pk, reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
 fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
 salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
 repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
@@ -24,9 +24,9 @@ ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, Captio
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, \
 PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, \
 NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, \
-KickView, SmsReinviteView, OutsiderGroupView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, \
+KickView, SmsReinviteView, OpenGroupHelpView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, \
 DirectMessageView, ClosedInviteTypeView, PrivateGroupView, PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, \
-RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, OpenGroupHelpView, \
+RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, \
 GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, \
 WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, \
@@ -258,8 +258,8 @@ urlpatterns = patterns('',
 	url(r'^mehfilawami/(?P<slug>[\w.@+-]+)/$', auth(public_group), name='public_group'),
 	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/$', auth(private_group), name='private_group'),
-	url(r'^mehfilbahir/$', OutsiderGroupView.as_view(), name='outsider_group_reply'),####
-	url(r'^mehfil/(?P<slug>[\w.@+-]+)/bahir/$', outsider_group, name='outsider_group'),
+	# url(r'^mehfilbahir/$', OutsiderGroupView.as_view(), name='outsider_group_reply'),####
+	# url(r'^mehfil/(?P<slug>[\w.@+-]+)/bahir/$', outsider_group, name='outsider_group'),
 	url(r'^group/change_topic/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),
 	url(r'^group/change_private_topic/$', auth(ChangePrivateGroupTopicView.as_view()), name='change_private_topic'),
 	url(r'^group/change_outside_topic/$', auth(ChangeOutsideGroupTopicView.as_view()), name='change_outside_topic'),

@@ -5686,7 +5686,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			else:
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				text = f.text #text of the reply
-				score = fuzz.ratio(text, get_prev_retort(user_id))
+				try:
+					score = fuzz.ratio(text, get_prev_retort(user_id))
+				except:
+					score = 91
 				if score > 90:
 					return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
 				else:

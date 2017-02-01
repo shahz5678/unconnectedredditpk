@@ -3476,7 +3476,10 @@ class CommentView(CreateView):
 				link_id = self.request.session["user_ident"]
 				self.request.session["user_ident"] = None
 				self.request.session["target_id"] = link_id				
-			score = fuzz.ratio(text, get_prev_retort(user.id))
+			try:
+				score = fuzz.ratio(text, get_prev_retort(user.id))
+			except:
+				score = 90
 			if score > 86:
 				try:
 					return redirect("comment_pk", pk=pk)
@@ -6210,7 +6213,10 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			except:
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-2)
 				return redirect("profile", slug=self.request.user.username)
-			score = fuzz.ratio(description, get_prev_retort(user_id))
+			try:
+				score = fuzz.ratio(description, get_prev_retort(user_id))
+			except:
+				score = 90
 			if score > 85:
 				try:
 					return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)

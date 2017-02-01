@@ -33,6 +33,7 @@ hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it con
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+prev_retort = "pr:"+str(user_id)
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 sorted_set = "public_group_rankings"
@@ -576,6 +577,27 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
+def retrieve_first_page():
+	my_server = redis.Redis(connection_pool=POOL)
+	link_id_list = my_server.lrange("filteredposts:1000",0,19)
+	list_of_dictionaries = []
+	photo_ids = []
+	non_photo_link_ids = []
+	pipeline1 = my_server.pipeline()
+	for link_id in link_id_list:
+		hash_name="lk:"+str(link_id)
+		pipeline1.hgetall(hash_name)
+	result1 = pipeline1.execute()
+	count = 0
+	for hash_obj in result1:
+		list_of_dictionaries.append(hash_obj)
+		if 'pi' in hash_obj:
+			photo_ids.append(hash_obj['pi'])
+		else:
+			non_photo_link_ids.append(link_id_list[count])
+		count += 1
+	return photo_ids, non_photo_link_ids, list_of_dictionaries 
+
 def retrieve_home_links(link_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_dictionaries = []
@@ -648,6 +670,12 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		'm':meh_url, 't':time.time() }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
+	#executing the following as an atomic transaction:
+	'''
+	alternative:
+		get latest top 20 posts as a 'list_of_dictionary'
+		'set' them as a memcached key
+	'''
 
 def set_cool_down(tries_remaining,user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -681,6 +709,17 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
+def set_prev_retort(user_id,text):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_retort = "pr:"+str(user_id)
+	my_server.set(prev_retort,text)
+	my_server.expire(prev_retort,TEN_MINS)
+
+def get_prev_retort(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_retort = "pr:"+str(user_id)
+	return my_server.get(prev_retort)
+	
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "v:"+str(link_id)

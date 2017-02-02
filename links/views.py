@@ -1470,9 +1470,6 @@ def home_location(request, *args, **kwargs):
 		addendum = '#section0'
 		page = 1
 	url = reverse_lazy("home")+addendum
-	'''
-	page object is always '1', even though it should be 2 or 3 or whatever. 
-	'''
 	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
 	try:
 		page = paginator.page(page)
@@ -6505,11 +6502,10 @@ class LinkCreateView(CreateView):
 							queue_for_deletion.delay(extras)
 					f.submitter.userprofile.save()
 					#Get first twenty links:
-					photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_first_page()
+					home_payload = {}
+					home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
 					#set cache
-					cache.set('list_of_dictionaries',list_of_dictionaries)
-					cache.set('non_photo_link_ids',non_photo_link_ids)
-					cache.set('photo_ids',photo_ids)
+					cache.set('home_payload',home_payload)
 					return redirect("home")#super(CreateView, self).form_valid(form) #saves the link automatically
 				else:
 					return redirect("score_help")
@@ -7584,24 +7580,6 @@ class FanTutorialView(FormView):
 				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
 			return redirect("top_photo")
 
-# def update_cooldown(obj):
-# 	#time_now = datetime.utcnow().replace(tzinfo=utc)
-# 	time_now = timezone.now()
-# 	time_passed = obj.time_of_casting
-# 	difference = time_now - time_passed
-# 	difference_in_mins = difference.total_seconds() / 60
-# 	interval = int(difference_in_mins / 4) # control the interval length from here
-# 	obj.hot_score = obj.hot_score + interval
-# 	if obj.hot_score > 10:
-# 		obj.hot_score = 10
-# 	return obj
-
-# def find_time(obj):
-# 	time_passed = obj.time_of_casting
-# 	target_time = time_passed + timedelta(minutes=4) # control the interval length from here
-# 	difference = target_time - timezone.now()#datetime.utcnow().replace(tzinfo=utc)
-# 	return difference
-
 @csrf_protect
 @ratelimit(rate='3/s')
 def cast_vote(request,*args,**kwargs):
@@ -7659,112 +7637,6 @@ def cast_vote(request,*args,**kwargs):
 				return render(request, 'penalty_suspicious.html', {})
 		else:
 			return render(request, 'penalty_suspicious.html', {})
-
-# @ratelimit(rate='3/s')
-# def vote(request, pk=None, usr=None, loc=None, val=None, *args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	if was_limited:
-# 		deduction = 3 * -1
-# 		request.user.userprofile.score = request.user.userprofile.score + deduction
-# 		request.user.userprofile.save()
-# 		context = {'unique': pk}
-# 		return render(request, 'penalty_vote.html', context)
-# 	else:
-# 		if pk.isdigit() and usr.isdigit() and loc.isdigit() and val.isdigit():
-# 			try:
-# 				cooldown = Cooldown.objects.filter(voter=request.user).latest('id')#
-# 			except:
-# 				cooldown = Cooldown.objects.create(voter=request.user, hot_score=10, time_of_casting=timezone.now())
-# 			c_pk = cooldown.pk
-# 			obj = update_cooldown(cooldown)
-# 			obj.save()
-# 			if int(obj.hot_score) < 1:
-# 				time_remaining = find_time(obj)
-# 				#time_stamp = datetime.utcnow().replace(tzinfo=utc) + time_remaining
-# 				time_stamp = timezone.now() + time_remaining
-# 				context = {'time_remaining': time_stamp}
-# 				return render(request, 'cooldown.html', context)
-# 			try:
-# 				link = Link.objects.select_related('submitter__userprofile').get(pk=int(pk))#
-# 			except:
-# 				return redirect("link_create_pk")
-# 			if request.user == link.submitter:
-# 				return redirect("home")
-# 			section = str(loc)
-# 			value = int(val)
-# 			if not Vote.objects.filter(voter=request.user, link=link).exists():#
-# 				#only if user never voted on this link
-# 				if value == 1:
-# 					if request.user_banned:
-# 						return redirect("score_help")
-# 					else:
-# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')+3)
-# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
-# 						num = random.randint(1,4)
-# 						if num > 2: # don't always reduce hot_score, give jhappees some love
-# 							Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-# 						else:
-# 							Cooldown.objects.filter(id=c_pk).update(time_of_casting=timezone.now())
-# 				elif value == 2:
-# 					if request.user_banned or request.user.username not in FEMALES:
-# 						return redirect("score_help")
-# 					else:
-# 						if link.submitter.userprofile.score < -25:
-# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-# 						else:
-# 							UserProfile.objects.filter(user=link.submitter).update(score=F('score')+50)
-# 						#link.net_votes = link.net_votes + 1
-# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')+1)
-# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-# 				elif value == 0:
-# 					if request.user_banned:
-# 						return redirect("score_help")
-# 					else:
-# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-3)
-# 						if link.submitter.userprofile.score < -25:
-# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hell-ban list if she isn't there already
-# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
-# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-1, time_of_casting=timezone.now())
-# 					value = -1
-# 				elif value == 3:
-# 					if request.user_banned or request.user.username not in FEMALES:
-# 						return redirect("score_help")
-# 					else:
-# 						UserProfile.objects.filter(user=link.submitter).update(score=F('score')-50)
-# 						if link.submitter.userprofile.score < -25:
-# 							if not HellBanList.objects.filter(condemned=link.submitter).exists(): #only insert user in hellban list if she isn't there already
-# 								HellBanList.objects.create(condemned=link.submitter) #adding user to hell-ban list
-# 								UserProfile.objects.filter(user=link.submitter).update(score=random.randint(10,71))
-# 						Link.objects.filter(pk=int(pk)).update(net_votes=F('net_votes')-1)
-# 						Cooldown.objects.filter(id=c_pk).update(hot_score=F('hot_score')-3, time_of_casting=timezone.now())
-# 					value = -2
-# 				else:
-# 					value = 0
-# 					return redirect("link_create_pk")
-# 				try:
-# 					Vote.objects.create(voter=request.user, link=link, value=value) #DB call #add the up or down vote in the DB.
-# 					add_vote_to_home_link(link.id, value, request.user.username)
-# 					if value < 0:
-# 						document_link_abuse(link.submitter_id)
-# 						#report.delay(target_id=link.submitter_id, reporter_id=request.user.id, report_origin='1', which_link_id=link.id)
-# 				except:#if vote object can't be created, just redirect the user, no harm done
-# 					return redirect("link_create_pk")
-# 				try:
-# 					request.session['target_id'] = link.id
-# 					return redirect("home_loc")
-# 				except:
-# 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER	
-# 			else:
-# 				try:
-# 					return redirect(request.META.get('HTTP_REFERER')+"#section"+section)
-# 				except:
-# 					return redirect("home") #e.g. if Dorado WAP browser, which doesn't have HTTP_REFERER
-# 		else:
-# 			return redirect("link_create_pk")
 	
 # def LinkAutoCreate(user, content):   
 # 	link = Link()

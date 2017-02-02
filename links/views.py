@@ -1429,45 +1429,64 @@ def home_location(request, *args, **kwargs):
 	except:
 		link_id = 0
 	if request.user_banned:
-		oblist = all_unfiltered_posts()
+		obj_list = all_unfiltered_posts()
 	else:
-		oblist = all_filtered_posts()
+		obj_list = all_filtered_posts()
 	try:
-		index = oblist.index(str(link_id))
-	except:
-		index = 0
-	photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)	
-	request.session['home_photo_ids'] = photo_ids
-	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
-	request.session['list_of_dictionaries'] = list_of_dictionaries
-	request.session['page'] = page
-	try:
-		index = oblist.index(str(link_id))
+		index = obj_list.index(str(link_id))
 	except:
 		index = 0
 	if 0 <= index <= 19:
 		addendum = '#section'+str(index+1)
+		page = 1
 	elif 20 <= index <= 39:
 		addendum = '?page=2#section'+str(index+1-20)
+		page = 2
 	elif 40 <= index <= 59:
 		addendum = '?page=3#section'+str(index+1-40)
+		page = 3
 	elif 60 <= index <= 79:
 		addendum = '?page=4#section'+str(index+1-60)
+		page = 4
 	elif 80 <= index <= 99:
 		addendum = '?page=5#section'+str(index+1-80)
+		page = 5
 	elif 100 <= index <= 119:
 		addendum = '?page=6#section'+str(index+1-100)
+		page = 6
 	elif 120 <= index <= 139:
 		addendum = '?page=7#section'+str(index+1-120)
+		page = 7
 	elif 140 <= index <= 159:
 		addendum = '?page=8#section'+str(index+1-140)
+		page = 8
 	elif 160 <= index <= 179:
 		addendum = '?page=9#section'+str(index+1-160)
+		page = 9
 	elif 180 <= index <= 199:
 		addendum = '?page=10#section'+str(index+1-180)
+		page = 10
 	else:
 		addendum = '#section0'
+		page = 1
 	url = reverse_lazy("home")+addendum
+	'''
+	page object is always '1', even though it should be 2 or 3 or whatever. 
+	'''
+	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
+	try:
+		page = paginator.page(page)
+	except PageNotAnInteger:
+		# If page is not an integer, deliver first page.
+		page = paginator.page(1)
+	except EmptyPage:
+		# If page is out of range (e.g. 9999), deliver last page of results.
+		page = paginator.page(paginator.num_pages)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
+	request.session['home_photo_ids'] = photo_ids
+	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
+	request.session['list_of_dictionaries'] = list_of_dictionaries
+	request.session['page'] = page
 	return redirect(url)
 
 def home_link_list(request, *args, **kwargs):

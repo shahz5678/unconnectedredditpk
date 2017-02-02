@@ -2532,6 +2532,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
 		form = CreateAccountForm(data=request.POST)
+		# print "recieved data"
 		if form.is_valid():
 			# ensured username is unique, no one else has booked it
 			password = slug2.decode("hex")
@@ -2545,7 +2546,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				request.session.delete_test_cookie() #cleaning up
 			except:
 				pass
-			return redirect("link_create_pk") #REDIRECT TO A DIFFERNET PAGE
+			return redirect("link_create_pk") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
 			username = slug1.decode("hex")

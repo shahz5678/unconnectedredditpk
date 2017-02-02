@@ -1,5 +1,4 @@
 from django import forms
-import time
 from django.forms import Textarea
 from .redis1 import already_exists
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
@@ -7,13 +6,13 @@ ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, Gro
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
+from django.core import validators
 from django.utils.translation import ugettext, ugettext_lazy as _
 from detect_porn import detect
 import PIL
 from PIL import Image, ImageFile, ImageEnhance, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import StringIO
-import math
+import StringIO, math, re, time
 from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
 #from django.core.files.base import ContentFile
@@ -697,7 +696,7 @@ class RegisterLoginForm(forms.Form):
 		pass
 
 class CreateAccountForm(forms.ModelForm):
-	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$',error_messages={'invalid': _("ye nickname sahi nahi hai")})
+	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': _("ye nickname sahi nahi hai")})
 	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
 		model = User
@@ -708,6 +707,7 @@ class CreateAccountForm(forms.ModelForm):
 		try:
 			User._default_manager.get(username=username)
 		except User.DoesNotExist:
+			# print "returning username"
 			return username
 		raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
 
@@ -741,7 +741,7 @@ class CreateAccountForm(forms.ModelForm):
 		return user
 
 class CreatePasswordForm(forms.Form):
-	username = forms.RegexField(max_length=50,regex=r'^[\w.@+-]+$')
+	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'))
 	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
 		fields = ('password','username')
@@ -779,8 +779,8 @@ class CreatePasswordForm(forms.Form):
 		return password
 
 class CreateNickForm(forms.Form):
-	username = forms.RegexField(max_length=50,regex=r'^[\w.@ +-]+$',help_text=_("Nick mein harf, number ya @ _ . + - likho"),\
-		error_messages={'invalid': _("(tip: sirf harf, number ya @ _ . + - likh sakte ho)")})
+	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),help_text=_("Nick mein english harf, number ya @ _ . + - likho"),\
+		error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)")})
 	class Meta:
 		fields = ('username',)
 

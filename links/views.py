@@ -1487,6 +1487,25 @@ def home_location(request, *args, **kwargs):
 		page = 1
 	url = reverse_lazy("home")+addendum
 	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
+	###########################
+	# print 'page %s:' % page
+	if page == 1:
+		home_payload = cache.get('home_payload',None)
+		if home_payload:
+			try:
+				page = paginator.page(page)
+			except PageNotAnInteger:
+				# If page is not an integer, deliver first page.
+				page = paginator.page(1)
+			except EmptyPage:
+				# If page is out of range (e.g. 9999), deliver last page of results.
+				page = paginator.page(paginator.num_pages)
+			request.session['home_photo_ids'] = home_payload['photo_ids']
+			request.session['home_non_photo_link_ids'] = home_payload['non_photo_link_ids']	
+			request.session['list_of_dictionaries'] = home_payload['list_of_dictionaries']
+			request.session['page'] = page
+			return redirect(url)
+	###########################
 	try:
 		page = paginator.page(page)
 	except PageNotAnInteger:

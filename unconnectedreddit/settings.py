@@ -4,18 +4,12 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
 
-#print "CHECKING_HEROKU_OR_AZURE!"
-ON_HEROKU = os.environ.get('ON_HEROKU')
 ON_AZURE = os.environ.get('ON_AZURE')
+ON_MAC = os.environ.get('ON_MAC')
+MAC_USER = os.environ.get('MAC_USER')
 #AZURE_ACCOUNT_KEY = os.environ.get('AZURE_ACCOUNT_KEY')
 
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
-
-#ON_AZURE = '1'
-#heroku config:set ON_HEROKU=1 
-#heroku ps:scale web=1 to put in a dyno
-
-#DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 #DEBUG_TOOLBAR_CONFIG = {
 #    'SHOW_TOOLBAR_CALLBACK': 'unconnectedreddit.settings.show_toolbar',
@@ -27,7 +21,7 @@ RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 #git add <files>
 #git push origin master	
 
-if ON_HEROKU == '1' or ON_AZURE == '1':
+if ON_AZURE == '1':
 	DEBUG=False
 	STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
@@ -38,8 +32,6 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
 	('Hassan Baig', 'baig.hassan@gmail.com'),
-	#('Sophie Pervez', 'spz3113@gmail.com'),
-	#('Fahad Rao', 'fahadrao@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -198,19 +190,26 @@ INSTALLED_APPS = (
 	'django_extensions',
 	#'request',
 	# 'debug_toolbar',
-	#'analytical',
-	#'django_whoshere',
 	# Uncomment the next line to enable admin documentation:
 	# 'django.contrib.admindocs',
 )
 
-CACHES = {
-	'default': {
-		'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
-		'LOCATION':'unix:/var/run/memcached/memcached.sock',
-		# 'LOCATION':'127.0.0.1:11211',
+if ON_MAC == '1':
+	CACHES = {
+		'default': {
+			'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
+			'LOCATION':'unix:usr/local/var/run/memcached/memcached.sock',
+			# 'LOCATION':'127.0.0.1:11211',
+		}
 	}
-}
+else:
+	CACHES = {
+		'default': {
+			'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
+			'LOCATION':'unix:/var/run/memcached/memcached.sock',
+			# 'LOCATION':'127.0.0.1:11211',
+		}
+	}
 
 # SESSION_COOKIE_DOMAIN = '.damadam.pk'
 
@@ -261,20 +260,7 @@ LOGGING = {
 }
 
 import dj_database_url
-if ON_HEROKU == '1':
-# Parse database configuration from $DATABASE_URL
-	#print "ON_HEROKU!"
-	DATABASES = {
-	'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-	}
-	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-	AWS_S3_FORCE_HTTP_URL = True
-	AWS_QUERYSTRING_AUTH = False
-	AWS_SECRET_ACCESS_KEY = os.environ.get('awssecretkey')
-	AWS_ACCESS_KEY_ID = os.environ.get('awsaccesskeyid')
-	AWS_S3_CALLING_FORMAT='boto.s3.connection.OrdinaryCallingFormat'
-	AWS_STORAGE_BUCKET_NAME = 'damadam.pk'
-elif ON_AZURE == '1':
+if ON_AZURE == '1':
 	# DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@40.114.247.165:5432/damadam'
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
@@ -293,25 +279,29 @@ elif ON_AZURE == '1':
 		'PORT': '6432',
 	}
 }
-else:
-# Parse database configuration from $DATABASE_URL
+elif ON_MAC == '1':
+	# Parse database configuration from $DATABASE_URL
 	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
 	AZURE_ACCOUNT_NAME = 'damadam'
 	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
 	AZURE_CONTAINER = 'pictures'
-######################################################
-#	DATABASES = {
-#	'default': {
-#		'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-#		'NAME': 'database.db',                      # Or path to database file if using sqlite3.
+	DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+		'NAME': 'damadampakistan',                      # Or path to database file if using sqlite3.
 		# The following settings are not used with sqlite3:
-#		'USER': '',
-#		'PASSWORD': '',
-#		'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-#		'PORT': '',                      # Set to empty string for default.
-#	}
-#}
-#######################################################
+		'USER': MAC_USER,
+		'PASSWORD': 'asdasdASFDA234',
+		'HOST': '',
+		'PORT': '5432',
+	}
+}
+else:
+	# Parse database configuration from $DATABASE_URL
+	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+	AZURE_ACCOUNT_NAME = 'damadam'
+	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
+	AZURE_CONTAINER = 'pictures'
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -332,9 +322,10 @@ djcelery.setup_loader()
 # config settings for Celery Daemon
 
 # Redis broker
-# BROKER_URL = 'redis://localhost:6379/0'
-BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
-#DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@damadamrg.cloudapp.net:5432/damadam'
+if ON_MAC == '1':
+	BROKER_URL = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+else:
+	BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
 
 BROKER_TRANSPORT = 'redis'
 
@@ -343,10 +334,11 @@ CELERY_IMPORTS = ('links.tasks', )
 
 CELERY_ALWAYS_EAGER = False
 
-# default RabbitMQ backend
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
+if ON_MAC == '1':
+	CELERY_RESULT_BACKEND = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+else:
+	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

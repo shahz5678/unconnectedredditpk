@@ -1,4 +1,5 @@
 import redis, time
+from location import REDLOC2
 
 '''
 ##########Redis Namespace##########
@@ -22,7 +23,7 @@ sorted_set = "whose_online_new"
 ###################################
 '''
 # changed connection from TCP port to UNIX socket
-POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path='/var/run/redis/redis2.sock', db=0)
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
 # 5,000,000,000 is most important priority wise
 PRIORITY={'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}

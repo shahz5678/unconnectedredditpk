@@ -14,6 +14,7 @@ from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
+from location import MEMLOC
 from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
@@ -169,11 +170,8 @@ def GetLatest(user):
 		elif latest_notif['ot'] == '4':
 			# salat invites
 			time_now = datetime.utcnow()+timedelta(hours=5)
-			# current_minute = time_now.hour * 60 + time_now.minute
-			# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time \
-			# = namaz_timings[current_minute]
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-				'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,
 			})
 			salat_timings = cache_mem.get('salat_timings')
 			if not salat_timings['namaz']:
@@ -995,7 +993,7 @@ class SalatRankingView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+			'LOCATION': MEMLOC, 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('salat_streaks')
 		if users_fans:
@@ -1016,7 +1014,7 @@ class SalatSuccessView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+			'LOCATION': MEMLOC, 'TIMEOUT': 120,
 		})
 		users_fans = cache_mem.get('salat_streaks')
 		if users_fans:
@@ -1231,7 +1229,7 @@ def skip_presalat(request, *args, **kwargs):
 	# current_minute = now.hour * 60 + now.minute
 	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		'LOCATION': MEMLOC, 'TIMEOUT': 70,
 	})
 	salat_timings = cache_mem.get('salat_timings')
 	if salat_timings['namaz']:
@@ -1266,7 +1264,7 @@ def skip_salat(request, skipped=None, *args, **kwargs):
 		# current_minute = now.hour * 60 + now.minute
 		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 		salat_timings = cache_mem.get('salat_timings')
 		if not salat_timings['namaz']:
@@ -1328,11 +1326,9 @@ def AlreadyPrayed(salat, now):
 	elif date_now == date_of_latest_salat:
 		#prayee logged a salat today
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 		salat_timings = cache_mem.get('salat_timings')
-		# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-		# previous_salat_to_do, next_salat_to_do, salat_to_do, next_salat_to_do_start_time, salat_to_do_start_time, salat_to_do_end_time = namaz_timings[current_minute]
 		previous_salat_done, next_salat_done, salat_done, salat_done_next_start_time, salat_done_start_time, salat_done_end_time = namaz_timings[minute_of_latest_salat]
 		if not salat_timings['namaz'] and not salat_done:
 			#this is some kind of an error, handle it gracefully
@@ -1360,7 +1356,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	user = request.user
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		'LOCATION': MEMLOC, 'TIMEOUT': 70,
 	})
 	salat_timings = cache_mem.get('salat_timings')
 	try:
@@ -1560,7 +1556,7 @@ def home_link_list(request, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	day = now.weekday()
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 	salat_timings = cache_mem.get('salat_timings')
 	context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
@@ -1895,7 +1891,7 @@ class OnlineKonView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 		})
 		try:
 			user_ids = cache_mem.get('online')
@@ -2312,7 +2308,7 @@ class InviteUsersToPrivateGroupView(ListView):
 			return []
 		else:
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 			})
 			global condemned
 			try:
@@ -2370,7 +2366,7 @@ class InviteUsersToGroupView(ListView):
 			return []
 		else:
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 			})	
 			global condemned
 			try:
@@ -2403,7 +2399,7 @@ class ExternalSalatInviteView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(ExternalSalatInviteView, self).get_context_data(**kwargs)
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 		salat_timings = cache_mem.get('salat_timings')
 		if salat_timings['namaz']:
@@ -2422,7 +2418,7 @@ class SalatInviteView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(SalatInviteView, self).get_context_data(**kwargs)
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 		salat_timings = cache_mem.get('salat_timings')
 		if salat_timings['namaz']:
@@ -2437,7 +2433,7 @@ class InternalSalatInviteView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 			})
 		try:
 			user_ids = cache_mem.get('online')
@@ -2460,7 +2456,7 @@ class InternalSalatInviteView(ListView):
 				context["unauthorized"] = True #it's not time for any namaz!
 				return context
 			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 			})
 			user_ids = cache_mem.get('online')
 			if namaz:
@@ -2715,7 +2711,7 @@ class TopPhotoView(ListView):
 
 	def get_queryset(self):
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
+			'LOCATION': MEMLOC, 'TIMEOUT': 660,
 		})
 		top_stars = cache_mem.get('fans')
 		return top_stars
@@ -3704,11 +3700,8 @@ class SpecialPhotoView(ListView):
 					context["banned"] = False
 					return context
 				elif is_salat:
-					# now = datetime.utcnow()+timedelta(hours=5)
-					# current_minute = now.hour * 60 + now.minute
-					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+						'LOCATION': MEMLOC, 'TIMEOUT': 70,
 					})
 					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
@@ -4034,7 +4027,7 @@ class PhotoView(ListView):
 						context["banned"] = False
 				elif is_salat:
 					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+						'LOCATION': MEMLOC, 'TIMEOUT': 70,
 					})
 					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
@@ -4301,11 +4294,8 @@ class BestPhotoView(ListView):
 						context["first_time_user"] = False
 						context["banned"] = False
 				elif is_salat:
-					# now = datetime.utcnow()+timedelta(hours=5)
-					# current_minute = now.hour * 60 + now.minute
-					# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-						'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+						'LOCATION': MEMLOC, 'TIMEOUT': 70,
 					})
 					salat_timings = cache_mem.get('salat_timings')
 					salat_invite = freshest_reply
@@ -4322,7 +4312,6 @@ class BestPhotoView(ListView):
 				elif is_photo:
 					if object_type == '1':
 						#i.e. it's a photo a fan ought to see!
-						# photo = Photo.objects.get(id=freshest_reply)
 						context["freshest_unseen_comment"] = None
 						context["type_of_object"] = '1'
 						context["notification"] = 1
@@ -5278,156 +5267,6 @@ class ChangeGroupTopicView(CreateView):
 			group.save()
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
-
-# @ratelimit(rate='3/s')
-# def outsider_group(request, slug=None, *args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	if was_limited:
-# 		deduction = 1 * -1
-# 		request.user.userprofile.score = request.user.userprofile.score + deduction
-# 		request.user.userprofile.save()
-# 		context = {'unique': slug}
-# 		return render(request, 'penalty_outsider.html', context)
-# 	else:
-# 		if valid_uuid(slug):
-# 			request.session["unique_outsider"] = slug
-# 			#request.session["outsider_path"] = 'outsider'
-# 			return redirect("outsider_group_reply")
-# 		else:
-# 			return redirect("profile", request.user.username)
-
-# class OutsiderGroupView(CreateView):
-# 	model = Reply
-# 	form_class = OutsiderGroupForm
-# 	template_name = "outsider_group_reply.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(OutsiderGroupView, self).get_context_data(**kwargs)
-# 		unique = self.request.session["unique_outsider"]
-# 		context["unique"] = unique
-# 		group = Group.objects.get(unique=unique)
-# 		if 'mehfilbahir' in self.request.path and group.private == '2':
-# 			context["switching"] = False
-# 			context["group"] = group
-# 			replies = Reply.objects.filter(which_group_id=group.id).order_by('-submitted_on')[:25]#get DB call
-# 			context["replies"] = replies
-# 			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
-# 			if self.request.user.is_authenticated():
-# 				context["ensured"] = FEMALES
-# 				context["members"] = User.objects.filter(reply__which_group=group).distinct()#get DB call
-# 				own_reply = Reply.objects.filter(which_group_id=group.id, writer_id=self.request.user.id).exists()#get DB call
-# 				if own_reply: #user wrote a reply too (whether or not they are group admin)
-# 					seen_replies=[]
-# 					latest_own_reply = Reply.objects.filter(which_group=group, writer=self.request.user).latest('submitted_on')
-# 					if latest_own_reply in replies: #i.e. user's latest reply is in the 25 replies shown
-# 						less_than_replies = [reply for reply in replies if reply.submitted_on < latest_own_reply.submitted_on]
-# 						less_than_replies_ids = [reply.id for reply in less_than_replies]
-# 						more_than_replies = [reply for reply in replies if reply.submitted_on >= latest_own_reply.submitted_on]
-# 						more_than_replies_ids = [reply.id for reply in more_than_replies]
-# 						#all seen objects of less than replies and more than replies
-# 						less_than_seen_replies = Reply.objects.filter(id__in=less_than_replies_ids,groupseen__seen_user=self.request.user)
-# 						more_than_seen_replies = Reply.objects.filter(id__in=more_than_replies_ids,groupseen__seen_user=self.request.user)
-# 						insert_list = []
-# 						for reply in less_than_replies:#sweeping unseen replies under the proverbial rug
-# 							if reply not in less_than_seen_replies:
-# 								#kicks in when a user jumps into the middle of a conversation.
-# 								insert_list.append(GroupSeen(seen_user= self.request.user,which_reply=reply))
-# 								seen_replies.append(reply)
-# 							else:
-# 								seen_replies.append(reply)
-# 						GroupSeen.objects.bulk_create(insert_list)
-# 						for reply in more_than_replies:
-# 							#####################################################
-# 							if reply in more_than_seen_replies:
-# 								seen_replies.append(reply)
-# 					context["seenreplies"] = seen_replies
-# 					object_list = []
-# 					for response in replies:
-# 						if response not in seen_replies:
-# 							#bulk creating seen objects for every unseen reply, for that particular user
-# 							object_list.append(GroupSeen(seen_user= self.request.user,which_reply=response))
-# 					GroupSeen.objects.bulk_create(object_list)
-# 				else: #user didn't create group, or replied. User is visiting
-# 					context["seenreplies"] = replies
-# 			else:
-# 				host = group.owner.username
-# 				context["host"] = host
-# 				context["number"] = group.owner.userprofile.mobilenumber
-# 		else:
-# 			context["switching"] = True
-# 		return context
-
-# 	def form_valid(self, form): #this processes the public form before it gets saved to the database
-# 		if self.request.user_banned:
-# 			return redirect("group_page")
-# 		else:
-# 			if self.request.user.is_authenticated():
-# 				if self.request.user.userprofile.score < -25:
-# 					HellBanList.objects.create(condemned=self.request.user)
-# 					self.request.user.userprofile.score = random.randint(10,71)
-# 					self.request.user.userprofile.save()
-# 					return redirect("group_page")
-# 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-# 				text = f.text
-# 				#if text == self.request.user.userprofile.previous_retort:
-# 				score = fuzz.ratio(text, self.request.user.userprofile.previous_retort)
-# 				if score > 90:
-# 					self.request.session["unique_outsider"] = None
-# 					return redirect("group_page")#, pk= reply.answer_to.id)
-# 				else:
-# 					self.request.user.userprofile.previous_retort = text
-# 					#self.request.user.userprofile.score = self.request.user.userprofile.score + 2
-# 					self.request.user.userprofile.save()
-# 					if f.image:
-# 						image_file = clean_image_file(f.image)
-# 						if image_file:
-# 							f.image = image_file
-# 						else:
-# 							f.image = None
-# 					else: 
-# 						f.image = None
-# 					if self.request.is_feature_phone:
-# 						device = '1'
-# 					elif self.request.is_phone:
-# 						device = '2'
-# 					elif self.request.is_tablet:
-# 						device = '4'
-# 					elif self.request.is_mobile:
-# 						device = '5'
-# 					else:
-# 						device = '3'
-# 					unique = self.request.session["unique_outsider"]
-# 					which_group = Group.objects.get(unique=unique)
-# 					self.request.session["unique_outsider"] = None
-# 					reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, device=device)
-# 					GroupSeen.objects.create(seen_user= self.request.user,which_reply=reply)#creating seen object for reply created
-# 					return redirect("outsider_group", slug=unique)
-# 			else:
-# 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-# 				if f.image:
-# 					image_file = clean_image_file(f.image)
-# 					if image_file:
-# 						f.image = image_file
-# 					else:
-# 						f.image = None
-# 				else: 
-# 					f.image = None
-# 				writer = User(id=8) # ALWAYS set this ID to unregistered_bhoot
-# 				unique = self.request.session["unique_outsider"]
-# 				group = Group.objects.get(unique=unique)
-# 				if self.request.is_feature_phone:
-# 					device = '1'
-# 				elif self.request.is_phone:
-# 					device = '2'
-# 				elif self.request.is_tablet:
-# 					device = '4'
-# 				elif self.request.is_mobile:
-# 					device = '5'
-# 				else:
-# 					device = '3'
-# 				Reply.objects.create(text=f.text,which_group=group,writer=writer, image=f.image, device=device)
-# 				self.request.session["unique_outsider"] = None
-# 				return redirect("outsider_group", slug=unique)
 
 @ratelimit(rate='3/s')
 def public_group(request, slug=None, *args, **kwargs):
@@ -7446,7 +7285,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 	now = datetime.utcnow()+timedelta(hours=5)
 	epochtime = convert_to_epoch(now)
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+		'LOCATION': MEMLOC, 'TIMEOUT': 70,
 	})
 	salat_timings = cache_mem.get('salat_timings')
 	try:

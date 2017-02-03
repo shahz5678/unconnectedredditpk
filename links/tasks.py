@@ -1,6 +1,7 @@
 import os, time, datetime, random#, math
 from collections import defaultdict, Counter
 from operator import itemgetter
+from location import MEMLOC
 from unconnectedreddit import celery_app1
 from django.core.cache import get_cache, cache
 from django.db.models import Count, Q, F, Sum
@@ -215,7 +216,7 @@ def rank_photos():
 def whoseonline():
 	user_ids = get_latest_online()
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 30,
 		})
 	cache_mem.set('online', user_ids)
 
@@ -226,7 +227,7 @@ def fans():
 	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk() returns a dictionary
 	sorted_list = [object_list[int(x)] for x in user_ids]# if x in object_list]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 660,
+			'LOCATION': MEMLOC, 'TIMEOUT': 660,
 		})
 	cache_mem.set('fans', sorted_list)
 
@@ -243,7 +244,7 @@ def salat_info():
 	salat_timings['current_namaz_start_time'] = current_namaz_start_time
 	salat_timings['current_namaz_end_time'] = current_namaz_end_time
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 70,
+			'LOCATION': MEMLOC, 'TIMEOUT': 70,
 		})
 	cache_mem.set('salat_timings', salat_timings)
 
@@ -273,7 +274,7 @@ def salat_streaks():
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': 'unix:/var/run/memcached/memcached.sock', 'TIMEOUT': 120,
+		'LOCATION': MEMLOC, 'TIMEOUT': 120,
 	})
 	status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 

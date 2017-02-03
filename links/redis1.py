@@ -1,5 +1,6 @@
 import redis, time
 from random import randint
+from location import REDLOC1
 '''
 ##########Redis Namespace##########
 
@@ -49,7 +50,7 @@ list_name = "vids:"+str(user_id)
 ##########
 '''
 # POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=0)
-POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path='/var/run/redis/redis.sock', db=0)
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC1, db=0)
 
 INTERVAL_SIZE = 4*60
 

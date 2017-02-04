@@ -421,6 +421,10 @@ class HomeLinkListForm(forms.Form):
 	class Meta:
 		fields = ("reply",)
 
+class UnauthHomeLinkListForm(forms.Form):
+	class Meta:
+		pass
+
 class FacesPagesForm(forms.Form):
 	class Meta:
 		pass

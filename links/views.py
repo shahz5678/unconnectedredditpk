@@ -52,7 +52,7 @@ add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, chec
 add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, retrieve_first_page
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort#, retrieve_first_page
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -70,7 +70,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1518,62 +1518,62 @@ def home_location(request, *args, **kwargs):
 	return redirect(url)
 
 def home_link_list(request, *args, **kwargs):
-	form = HomeLinkListForm()
-	context = {}
-	context["checked"] = FEMALES
-	context["form"] = form
-	context["can_vote"] = False
-	context["authenticated"] = False
-	if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
-	and 'list_of_dictionaries' in request.session and 'page' in request.session:
-		# called when user has voted
-		if request.session['list_of_dictionaries'] and request.session['page']:
-			#don't check for home photo ids or home non photo link ids in if clause, since these can be [] in certain allowable situations
-			photo_ids = request.session['home_photo_ids']
-			non_photo_link_ids = request.session['home_non_photo_link_ids']
-			list_of_dictionaries = request.session['list_of_dictionaries']
-			page = request.session['page']
+	if request.user.is_authenticated():
+		form = HomeLinkListForm()
+		context = {}
+		context["checked"] = FEMALES
+		context["form"] = form
+		context["can_vote"] = False
+		context["authenticated"] = False
+		if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
+		and 'list_of_dictionaries' in request.session and 'page' in request.session:
+			# called when user has voted
+			if request.session['list_of_dictionaries'] and request.session['page']:
+				#don't check for home photo ids or home non photo link ids in if clause, since these can be [] in certain allowable situations
+				photo_ids = request.session['home_photo_ids']
+				non_photo_link_ids = request.session['home_non_photo_link_ids']
+				list_of_dictionaries = request.session['list_of_dictionaries']
+				page = request.session['page']
+			else:
+				if request.user_banned:
+					oblist = all_unfiltered_posts()
+				else:
+					oblist = all_filtered_posts()
+				photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
+			del request.session['home_photo_ids']
+			del request.session['home_non_photo_link_ids']
+			del request.session['list_of_dictionaries']
+			del request.session['page']
 		else:
+			# normal refresh or toggling between pages
 			if request.user_banned:
 				oblist = all_unfiltered_posts()
 			else:
 				oblist = all_filtered_posts()
 			photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
-		del request.session['home_photo_ids']
-		del request.session['home_non_photo_link_ids']
-		del request.session['list_of_dictionaries']
-		del request.session['page']
-	else:
-		# normal refresh or toggling between pages (whether logged in or not)
-		if request.user_banned:
-			oblist = all_unfiltered_posts()
+		context["link_list"] = list_of_dictionaries
+		context["page"] = page
+		############################################ Namaz feature #############################################
+		now = datetime.utcnow()+timedelta(hours=5)
+		day = now.weekday()
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,
+			})
+		salat_timings = cache_mem.get('salat_timings')
+		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
+			context["current_namaz"] = 'Jummah'
 		else:
-			oblist = all_filtered_posts()
-		photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
-	context["link_list"] = list_of_dictionaries
-	context["page"] = page
-	############################################ Namaz feature #############################################
-	now = datetime.utcnow()+timedelta(hours=5)
-	day = now.weekday()
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 70,
-		})
-	salat_timings = cache_mem.get('salat_timings')
-	context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
-	if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
-		context["current_namaz"] = 'Jummah'
-	else:
-		context["current_namaz"] = salat_timings['namaz']
-	if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
-		context["next_namaz"] = 'Jummah'	
-	else:
-		context["next_namaz"] = salat_timings['next_namaz']
-	if not salat_timings['namaz'] and not salat_timings['next_namaz']:
-		# do not show namaz element at all, some error may have occurred
-		context["show_current"] = False
-		context["show_next"] = False
-	elif not salat_timings['namaz']:
-		if request.user.is_authenticated():
+			context["current_namaz"] = salat_timings['namaz']
+		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
+			context["next_namaz"] = 'Jummah'	
+		else:
+			context["next_namaz"] = salat_timings['next_namaz']
+		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
+			# do not show namaz element at all, some error may have occurred
+			context["show_current"] = False
+			context["show_next"] = False
+		elif not salat_timings['namaz']:
 			try:
 				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
 				already_prayed = AlreadyPrayed(latest_salat, now)
@@ -1588,10 +1588,6 @@ def home_link_list(request, *args, **kwargs):
 				context["show_current"] = False
 				context["show_next"] = True
 		else:
-			context["show_current"] = False
-			context["show_next"] = True
-	else:
-		if request.user.is_authenticated():
 			try:
 				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
 				already_prayed = AlreadyPrayed(latest_salat, now)
@@ -1610,11 +1606,7 @@ def home_link_list(request, *args, **kwargs):
 				#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
 				context["show_current"] = True
 				context["show_next"] = False
-		else:
-			context["show_current"] = True
-			context["show_next"] = False
-	################################################################################################################
-	if request.user.is_authenticated():
+		################################################################################################################
 		num = random.randint(1,4)
 		context["random"] = num #determines which message to show at header
 		if num > 2:
@@ -1743,9 +1735,49 @@ def home_link_list(request, *args, **kwargs):
 				return render(request, 'link_list.html', context)
 			else:
 				return render(request, 'link_list.html', context)
-	else:
+			return render(request, 'link_list.html', context)
 		return render(request, 'link_list.html', context)
-	return render(request, 'link_list.html', context)
+	else:
+		return redirect("unauth_home")
+
+def unauth_home_link_list(request, *args, **kwargs):
+	if request.user.is_authenticated():
+		return redirect("home")
+	else:
+		form = UnauthHomeLinkListForm()
+		context = {}
+		context["checked"] = FEMALES
+		context["form"] = form
+		oblist = all_filtered_posts()
+		photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
+		context["link_list"] = list_of_dictionaries
+		context["page"] = page
+		now = datetime.utcnow()+timedelta(hours=5)
+		day = now.weekday()
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,
+			})
+		salat_timings = cache_mem.get('salat_timings')
+		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
+			context["current_namaz"] = 'Jummah'
+		else:
+			context["current_namaz"] = salat_timings['namaz']
+		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
+			context["next_namaz"] = 'Jummah'	
+		else:
+			context["next_namaz"] = salat_timings['next_namaz']
+		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
+			# do not show namaz element at all, some error may have occurred
+			context["show_current"] = False
+			context["show_next"] = False
+		elif not salat_timings['namaz']:
+			context["show_current"] = False
+			context["show_next"] = True
+		else:
+			context["show_current"] = True
+			context["show_next"] = False
+		return render(request, 'unauth_link_list.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -6377,10 +6409,10 @@ class LinkCreateView(CreateView):
 							queue_for_deletion.delay(extras)
 					f.submitter.userprofile.save()
 					#Get first twenty links:
-					home_payload = {}
-					home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
+					# home_payload = {}
+					# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
 					#set cache
-					cache.set('home_payload',home_payload)
+					# cache.set('home_payload',home_payload)
 					return redirect("home")#super(CreateView, self).form_valid(form) #saves the link automatically
 				else:
 					return redirect("score_help")

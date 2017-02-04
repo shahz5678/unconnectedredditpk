@@ -6413,7 +6413,7 @@ class LinkCreateView(CreateView):
 					# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
 					#set cache
 					# cache.set('home_payload',home_payload)
-					return redirect("home")#super(CreateView, self).form_valid(form) #saves the link automatically
+					return super(CreateView, self).form_valid(form) #saves the link automatically
 				else:
 					return redirect("score_help")
 			except:
@@ -6421,8 +6421,8 @@ class LinkCreateView(CreateView):
 		else:
 			return redirect("score_help")
 
-	# def get_success_url(self): #which URL to go back once settings are saved?
-	# 	return reverse_lazy("home")
+	def get_success_url(self): #which URL to go back once settings are saved?
+		return reverse_lazy("home")
 
 @ratelimit(rate='3/s')
 def kick_pk(request, pk=None, slug=None, *args, **kwargs):

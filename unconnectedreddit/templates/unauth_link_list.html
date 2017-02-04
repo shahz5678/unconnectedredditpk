@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% load emoticons_tags %}
+{% load thumbedge %}
+{% load human_time %}
+{% load photoedge %}
+{% block content %}
+<div class="margin">
+	<span class="cg"><a href="{% url 'register_login' %}#section0"><u>Account bana</u></a> kr yahan chat karo:</span>
+		<p style="margin-top:.5em;">
+
+
+<!-- ################################################################################################# -->
+{% for link in link_list %}
+	{% if forloop.counter == 8 %}
+		{% if not show_current and not show_next %}
+			<!-- nothing to show -->
+		{% elif show_current and not show_next %}
+			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
+			<a href="{% url 'salat_tutorial_init' current_namaz %}">
+			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
+			<hr size=1 COLOR="#3cb7dd" >
+		{% elif not show_current and show_next %}
+			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga<br>Namaz parhna na bhoolna!&nbsp;
+			</div><hr size=1 COLOR="#3cb7dd">
+		{% else %}
+			<!-- nothing to show -->
+		{% endif %}
+	{% endif %}
+	{% if link.c == '2' %}
+		<div style="margin-top:-1em; padding-top:1em;background-color:#faebeb;" >
+		<a href="{% url 'profile' slug=link.n %}#section0">
+		{% if link.av != 'None' %}
+			<img src="{{ link.av|thumbedge }}" alt="no pic" width="22" height="22"></img>
+		{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+		{% endif %}<span class="cm">
+		{{ link.n }}</span>
+			
+			{% if link.n in checked %}
+		    	<span class="pinkstar"><b>*</b></span>
+		    {% endif %}
+		    
+		</a><span class="clb cm"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bm bcp">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="cm cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<p><hr size=1 COLOR="#ac39ac"></p>
+		</div>
+	{% elif link.c == '6' %}
+	<div style="margin-top:-1em;padding-top:1em;">
+		{% if link.aw == '1' and link.h > 7 %}
+	    	{% if link.v < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.v < -1 %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+			{% else %}
+			    {% if link.i %}
+			    <a href="{% url 'bari_photo_help' link.pi %}#section0"><div class="cs cgy">[barri photo]</div></a>
+			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
+			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}    
+	    	<br>
+		{% endif %}
+		<a href="{% url 'profile' link.n %}#secton0">
+		{% if link.av != 'None' %}
+			<img src="{{ link.av|thumbedge }}" alt="no pic" width="22" height="22"></img>
+			{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+		{% endif %}
+		<span style="font-size:110%;">
+		{{ link.n }}</span>
+			{% if link.n in checked %}
+		    	<span class="pinkstar"><b>*</b></span>
+		    {% endif %}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
+		    {% if not link.aw == '1' or not link.h > 7 %}
+		    <a href="{% url 'see_photo_pk' link.pi %}">
+		    {% if link.v < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.v < -1 %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% else %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" clas="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}
+		    </a>
+		    {% endif %}
+		    <span class="spanemoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+			
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<br>
+
+	{% if link.aw == '1' and link.h|add:0 > 7 %}
+		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+	{% else %}
+		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+	{% endif %}
+		<button class="btn nw bm bco mbs mtl">
+		{% if link.pc|add:0 > 1 %}
+		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
+		{% elif link.pc|add:0 == 1 %}
+		<b>1</b> tabsra
+		{% else %}tabsra kro
+		{% endif %}
+		</button></a>
+		<br>
+
+	<p><hr size=1 COLOR="#ff9933"></p>
+	</div>
+	{% else %}
+		<a href="{% url 'profile' slug=link.n %}#section0">
+		{% if link.av != 'None' %}
+
+			<img src="{{ link.av|thumbedge }}" alt="no pic" width="22" height="22"></img>
+
+		{% else %}
+		
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+		
+		{% endif %}
+
+			<span class="bigger" ><bdi>{{ link.n }}</bdi></span>
+		
+		{% if link.n in checked %}
+		    	<span class="pinkstar"><b>*</b></span>
+		    {% endif %}</a>:
+    	<span class="cl clb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+			<a name="section{{ forloop.counter  }}"></a> 
+		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<br>
+				{% if link.cc|add:0 > 0 %}
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bm bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
+				{% else %}
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl">isko jawab do</button></a>
+				{% endif %}
+			<br>
+		<p><hr size=1 COLOR="#3cb7dd"></p>
+	{% endif %}
+{% empty %}
+<span class="clb">Ao gup lagain!</span>
+{% endfor %}
+
+
+
+<br><div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+</div>
+<br><br>
+{% endblock %}

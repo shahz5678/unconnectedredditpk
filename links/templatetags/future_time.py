@@ -10,4 +10,4 @@ def future_time(value):
 		elif s:
 			return "%s seconds baad" % int(s)
 	except:
-		return "kuch minute baad"
+		return "kuch waqt baad"

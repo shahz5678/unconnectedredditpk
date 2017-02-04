@@ -578,26 +578,26 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
-def retrieve_first_page():
-	my_server = redis.Redis(connection_pool=POOL)
-	link_id_list = my_server.lrange("filteredposts:1000",0,19)
-	list_of_dictionaries = []
-	photo_ids = []
-	non_photo_link_ids = []
-	pipeline1 = my_server.pipeline()
-	for link_id in link_id_list:
-		hash_name="lk:"+str(link_id)
-		pipeline1.hgetall(hash_name)
-	result1 = pipeline1.execute()
-	count = 0
-	for hash_obj in result1:
-		list_of_dictionaries.append(hash_obj)
-		if 'pi' in hash_obj:
-			photo_ids.append(hash_obj['pi'])
-		else:
-			non_photo_link_ids.append(link_id_list[count])
-		count += 1
-	return photo_ids, non_photo_link_ids, list_of_dictionaries 
+# def retrieve_first_page():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	link_id_list = my_server.lrange("filteredposts:1000",0,19)
+# 	list_of_dictionaries = []
+# 	photo_ids = []
+# 	non_photo_link_ids = []
+# 	pipeline1 = my_server.pipeline()
+# 	for link_id in link_id_list:
+# 		hash_name="lk:"+str(link_id)
+# 		pipeline1.hgetall(hash_name)
+# 	result1 = pipeline1.execute()
+# 	count = 0
+# 	for hash_obj in result1:
+# 		list_of_dictionaries.append(hash_obj)
+# 		if 'pi' in hash_obj:
+# 			photo_ids.append(hash_obj['pi'])
+# 		else:
+# 			non_photo_link_ids.append(link_id_list[count])
+# 		count += 1
+# 	return photo_ids, non_photo_link_ids, list_of_dictionaries 
 
 def retrieve_home_links(link_id_list):
 	my_server = redis.Redis(connection_pool=POOL)

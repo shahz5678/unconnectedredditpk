@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load comments %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% load thumbedge %}
@@ -202,21 +201,17 @@
 	{% else %}
 			<table>
 			<tr><td>
-			{% if authenticated %}
-				{% if random < 3 %}
-					<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
-				{% else %}
-					{% if username == newest_user.username %}
-					<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
-					{% else %}
-						{% if score > 120 %}
-						<a href="{% url 'repnick' newest_user.id %}"><button class="btn bxs bcr">X</button></a>
-						{% endif %}
-					<span class="ct cs"<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bl bct cm"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
-					{% endif %}
-				{% endif %}
+			{% if random < 3 %}
+				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
 			{% else %}
-				<span style="color:purple;"><a href="{% url 'register_login' %}#section0"><u>Account bana</u></a> kr yahan chat karo:</span>
+				{% if username == newest_user.username %}
+				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bs bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+				{% else %}
+					{% if score > 120 %}
+					<a href="{% url 'repnick' newest_user.id %}"><button class="btn bxs bcr">X</button></a>
+					{% endif %}
+				<span class="ct cs"<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bl bct cm"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
+				{% endif %}
 			{% endif %}
 			</td></tr>
 			</table>
@@ -227,6 +222,7 @@
 		{% else %}
 		<span>
 		{% endif %}
+		</span>
 		</p>
 
 <!-- ################################################################################################# -->
@@ -240,7 +236,7 @@
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
 			<hr size=1 COLOR="#3cb7dd" >
 		{% elif not show_current and show_next %}
-			<div class="ct cm">{% if authenticated %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga.{% else %}<b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga{% endif %}<br>{% if authenticated %}{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bxl bcg"><b>record save krna</b></button></a>{% else %}Namaz parhna na bhoolna!{% endif %}&nbsp;
+			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bxl bcg"><b>record save krna</b></button></a>&nbsp;
 			</div><hr size=1 COLOR="#3cb7dd">
 		{% else %}
 			<!-- nothing to show -->
@@ -294,7 +290,7 @@
 		<span style="font-size:110%;">
 		{{ link.n }}</span>
 		    		<span style="font-size:85%;">
-		{% if authenticated and score > 25 %}				
+		{% if score > 25 %}				
 			{% if link.s < 0 %}
 		    	<span style="color:#18A018;">(1)</span>
 		    {% else %}
@@ -327,7 +323,6 @@
 		    <span class="spanemoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
 			
 				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi>
-	{% if authenticated %}
 		{% if link.dv == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.dv == '2' %}
@@ -340,11 +335,10 @@
 		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic" width="17" height="13"></img></a>
 		{% else %}
 		{% endif %}
-	{% endif %}
 		</span>
 		<br>
 		
-		{% if authenticated and link.n != username %}
+		{% if link.n != username %}
 			{% if link.w|add:"0" in fanned %}
 				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
 			{% else %}
@@ -372,11 +366,8 @@
 		<a href="{% url 'photo_vote' link.pi 0 3 link.l %}"><button class="btn bs bcr">bekaar</button></a>
 		{% endif %}
 		
-
-		{% if authenticated %}
 		<p style="margin-top:.5em;">
-		{% endif %}
-		{% if authenticated and can_vote %}
+		{% if can_vote %}
 			{% for key,value in link.pi|get_photovotes %}
 			<a href="{% url 'profile' key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
 				{% if value == 1 %}
@@ -405,7 +396,7 @@
 			<span class="bigger" ><bdi>{{ link.n }}</bdi></span>
 		
 		<span style="font-size:85%;">
-		{% if authenticated and score > 25 %}				
+		{% if score > 25 %}				
 			{% if link.s < 0 %}
 		    	<span style="color:#18A018;">(1)</span>
 		    {% else %}
@@ -418,7 +409,7 @@
     	<span class="cl clb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
 			<a name="section{{ forloop.counter  }}"></a> 
 		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi>
-	{% if authenticated %}
+
 		{% if link.dv == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic" width="7" height="12"></img></a>
 		{% elif link.dv == '2' %}
@@ -431,7 +422,7 @@
 		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic" width="17" height="13"></img></a>
 		{% else %}
 		{% endif %}
-	{% endif %}
+
 		</span>
 		<br>
 				{% if link.cc|add:0 > 0 %}
@@ -450,21 +441,19 @@
 		</form>
 		{% endif %}
 
-		{% if authenticated %}
-		{% endif %}
-		{% if authenticated and can_vote %}
-				{% for key,value in link.l|get_votes %}
-					<a href="{% url 'vote_or_prof' link.l link.w key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
-					{% if value == 1 %}
-						<span style="font-size:80%;color:green;">ne barri si <b>jhappi</b> di</span>
-					{% elif value == -1 %}
-						<span style="font-size:80%;color:#FF1A1A;">ne bhare bazar me <b>chupair</b> mari</span>
-					{% elif value == 2 %}
-						<span style="font-size:80%;color:green;">ne zordar <b>jhappi</b> di <b>(+50)</b></span> 
-					{% elif value == -2 %}
-						<span style="font-size:80%;color:#FF1A1A;">ne <b>chupair</b> mr mr kr nani yad kara di <b>(-50)</b></span>
-					{% endif %}<br>
-				{% endfor %}
+		{% if can_vote %}
+			{% for key,value in link.l|get_votes %}
+				<a href="{% url 'vote_or_prof' link.l link.w key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
+				{% if value == 1 %}
+					<span style="font-size:80%;color:green;">ne barri si <b>jhappi</b> di</span>
+				{% elif value == -1 %}
+					<span style="font-size:80%;color:#FF1A1A;">ne bhare bazar me <b>chupair</b> mari</span>
+				{% elif value == 2 %}
+					<span style="font-size:80%;color:green;">ne zordar <b>jhappi</b> di <b>(+50)</b></span> 
+				{% elif value == -2 %}
+					<span style="font-size:80%;color:#FF1A1A;">ne <b>chupair</b> mr mr kr nani yad kara di <b>(-50)</b></span>
+				{% endif %}<br>
+			{% endfor %}
 		{% endif %}
 		<p><hr size=1 COLOR="#3cb7dd"></p>
 	{% endif %}

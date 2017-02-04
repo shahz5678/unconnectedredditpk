@@ -2,7 +2,7 @@
 
 import facebook, os
 
-def photo_poster(image_obj=None, caption=None):
+def photo_poster(image_obj=None, caption=None, photo_id=None):
   # Fill in the values noted in documentation here:
 
   PAGE_ID = '1812492382364506'#os.environ.get('FACEBOOK_PAGE_ID')
@@ -12,7 +12,7 @@ def photo_poster(image_obj=None, caption=None):
     "page_id"      : PAGE_ID,  # Step 1
     "access_token" : ACCESS_TOKEN   # Step 3
     }
-  caption = caption+" (https://damadam.pk)"
+  caption = caption+" (https://damadam.pk/photo_detail/"+str(photo_id)+")"
   # print cfg
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
@@ -20,7 +20,6 @@ def photo_poster(image_obj=None, caption=None):
 
 def get_api(cfg):
   graph = facebook.GraphAPI(cfg['access_token'])
-  # print "graph: %s" % graph
   # Get page token to post as the page. You can skip 
   # the following if you want to post as yourself. 
   resp = graph.get_object('me/accounts')

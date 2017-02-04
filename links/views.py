@@ -1,4 +1,4 @@
-# Create your views here.
+# -*- coding: utf-8 -*-
 import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
 from requests.auth import HTTPBasicAuth
@@ -52,7 +52,7 @@ add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, chec
 add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort#, retrieve_first_page
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -70,7 +70,7 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm#, LoginForm, UpvoteForm, DownvoteForm, OutsideMessageRecreateForm, PhotostreamForm, 
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -225,6 +225,17 @@ class DeviceHelpView(FormView):
 			else:
 				context["device"] = None
 		return context
+
+# def set_usernames(request,*args,**kwargs):
+# 	usernames = list(User.objects.values_list('username',flat=True))
+# 	usernames.append('_____')
+# 	usernames.append('الأَبْجَدِيَّة العَرَبِيَّة‎‎')
+# 	username_scr = []
+# 	for username in usernames:
+# 		username_scr.append(username.lower()+":"+username)
+# 		username_scr.append(0)
+# 	insert_bulk_nicknames(username_scr)
+# 	return redirect("home")
 
 class GroupHelpView(FormView):
 	form_class = GroupHelpForm
@@ -1740,6 +1751,7 @@ def home_link_list(request, *args, **kwargs):
 	else:
 		return redirect("unauth_home")
 
+@cache_page(2)
 def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")

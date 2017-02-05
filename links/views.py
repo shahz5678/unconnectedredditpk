@@ -1419,20 +1419,20 @@ def home_list(request, obj_list ,items_per_page):
 	paginator = Paginator(obj_list, items_per_page) # pass list of objects and number of objects to show per page, it does the rest
 	page = request.GET.get('page', '1')
 	###########################
-	# print 'page %s:' % page
-	if page == '1':
-		home_payload = cache.get('home_payload',None)
-		if home_payload:
-			try:
-				page = paginator.page(page)
-			except PageNotAnInteger:
-				# If page is not an integer, deliver first page.
-				page = paginator.page(1)
-			except EmptyPage:
-				# If page is out of range (e.g. 9999), deliver last page of results.
-				page = paginator.page(paginator.num_pages)
-			# print "from cache!"
-			return home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'], page
+	# # print 'page %s:' % page
+	# if page == '1':
+	# 	home_payload = cache.get('home_payload',None)
+	# 	if home_payload:
+	# 		try:
+	# 			page = paginator.page(page)
+	# 		except PageNotAnInteger:
+	# 			# If page is not an integer, deliver first page.
+	# 			page = paginator.page(1)
+	# 		except EmptyPage:
+	# 			# If page is out of range (e.g. 9999), deliver last page of results.
+	# 			page = paginator.page(paginator.num_pages)
+	# 		# print "from cache!"
+	# 		return home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'], page
 	###########################
 	try:
 		page = paginator.page(page)

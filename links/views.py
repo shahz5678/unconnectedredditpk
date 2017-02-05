@@ -70,7 +70,8 @@ TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatT
 ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm
+AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
+BestPhotosListForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -89,6 +90,7 @@ from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
 ITEMS_PER_PAGE = 20
+PHOTOS_PER_PAGE = 10
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
@@ -1418,22 +1420,6 @@ def process_salat(request, offered=None, *args, **kwargs):
 def home_list(request, obj_list ,items_per_page):
 	paginator = Paginator(obj_list, items_per_page) # pass list of objects and number of objects to show per page, it does the rest
 	page = request.GET.get('page', '1')
-	###########################
-	# # print 'page %s:' % page
-	# if page == '1':
-	# 	home_payload = cache.get('home_payload',None)
-	# 	if home_payload:
-	# 		try:
-	# 			page = paginator.page(page)
-	# 		except PageNotAnInteger:
-	# 			# If page is not an integer, deliver first page.
-	# 			page = paginator.page(1)
-	# 		except EmptyPage:
-	# 			# If page is out of range (e.g. 9999), deliver last page of results.
-	# 			page = paginator.page(paginator.num_pages)
-	# 		# print "from cache!"
-	# 		return home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'], page
-	###########################
 	try:
 		page = paginator.page(page)
 	except PageNotAnInteger:
@@ -1494,25 +1480,6 @@ def home_location(request, *args, **kwargs):
 		page = 1
 	url = reverse_lazy("home")+addendum
 	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-	###########################
-	# # print 'page %s:' % page
-	# if page == 1:
-	# 	home_payload = cache.get('home_payload',None)
-	# 	if home_payload:
-	# 		try:
-	# 			page = paginator.page(page)
-	# 		except PageNotAnInteger:
-	# 			# If page is not an integer, deliver first page.
-	# 			page = paginator.page(1)
-	# 		except EmptyPage:
-	# 			# If page is out of range (e.g. 9999), deliver last page of results.
-	# 			page = paginator.page(paginator.num_pages)
-	# 		request.session['home_photo_ids'] = home_payload['photo_ids']
-	# 		request.session['home_non_photo_link_ids'] = home_payload['non_photo_link_ids']	
-	# 		request.session['list_of_dictionaries'] = home_payload['list_of_dictionaries']
-	# 		request.session['page'] = page
-	# 		return redirect(url)
-	###########################
 	try:
 		page = paginator.page(page)
 	except PageNotAnInteger:
@@ -4250,6 +4217,190 @@ def get_best_photos(best_qs,with_scrs):
 		if 'u' in photo:
 			photos[with_scrs[str(photo['i'])]] = photo
 	return [photos[key] for key in sorted(photos,reverse=True)]
+
+def unauth_best_photos(request,*args,**kwargs):
+	if request.user.is_authenticated():
+		return redirect("see_best_photo")
+	else:
+		context = {}
+		form = BestPhotosListForm()
+		obj_list = dict(all_best_photos())
+		paginator = Paginator(obj_list.keys(), PHOTOS_PER_PAGE)
+		page = request.GET.get('page', '1')
+		try:
+			page = paginator.page(page)
+		except PageNotAnInteger:
+			# If page is not an integer, deliver first page.
+			page = paginator.page(1)
+		except EmptyPage:
+			# If page is out of range (e.g. 9999), deliver last page of results.
+			page = paginator.page(paginator.num_pages)
+		context["page"] = page
+		context["object_list"] = get_best_photos(retrieve_photo_posts(page.object_list),obj_list)
+		return render(request,'best_photos.html',context)
+
+def best_photos_list(request,*args,**kwargs):
+	if request.user.is_authenticated():
+		context = {}
+		form = BestPhotosListForm()
+		obj_list = dict(all_best_photos())
+		paginator = Paginator(obj_list.keys(), PHOTOS_PER_PAGE)
+		page = request.GET.get('page', '1')
+		try:
+			page = paginator.page(page)
+		except PageNotAnInteger:
+			# If page is not an integer, deliver first page.
+			page = paginator.page(1)
+		except EmptyPage:
+			# If page is out of range (e.g. 9999), deliver last page of results.
+			page = paginator.page(paginator.num_pages)
+		context["page"] = page
+		context["object_list"] = get_best_photos(retrieve_photo_posts(page.object_list),obj_list)
+		user = request.user
+		context["username"] = user.username
+		context["ident"] = user.id
+		context["score"] = user.userprofile.score
+		context["voted"] = []
+		if not request.user_banned:
+			if user.userprofile.score > 9:
+				context["can_vote"] = True
+			else:
+				context["can_vote"] = False
+			context["voted"] = voted_for_photo(context["object_list"],context["username"])
+			photo_owners = set([photo['oi'] for photo in context["object_list"]])
+			context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
+			object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
+			if not is_link and not is_photo and not is_groupreply and not is_salat:
+				context["freshest_unseen_comment"] = []
+				context["notification"] = 0
+				context["parent"] = []
+				context["parent_pk"] = 0
+				context["first_time_user"] = False
+				context["banned"] = False
+			elif not freshest_reply:
+				context["freshest_unseen_comment"] = []
+				context["notification"] = 0
+				context["parent"] = []
+				context["parent_pk"] = 0
+				context["first_time_user"] = False
+				context["banned"] = False
+			elif is_groupreply:
+				if object_type == '1':
+					# private mehfil
+					context["type_of_object"] = '3a'
+					context["notification"] = 1
+					context["banned"] = False
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi'] #group id
+				elif object_type == '0':
+					# public mehfil
+					context["type_of_object"] = '3b'
+					context["notification"] = 1
+					context["banned"] = False
+					context["first_time_user"] = False
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi'] #group id
+				else:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+			elif is_salat:
+				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+					'LOCATION': MEMLOC, 'TIMEOUT': 70,
+				})
+				salat_timings = cache_mem.get('salat_timings')
+				salat_invite = freshest_reply
+				context["type_of_object"] = '4'
+				context["notification"] = 1
+				try:
+					context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
+				except:
+					context["first_time_user"] = 0
+				context["banned"] = False
+				context["parent"] = salat_invite
+				context["namaz"] = salat_timings['namaz'] 
+				context["freshest_unseen_comment"] = 1		
+			elif is_photo:
+				if object_type == '1':
+					#i.e. it's a photo a fan ought to see!
+					context["freshest_unseen_comment"] = None
+					context["type_of_object"] = '1'
+					context["notification"] = 1
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi']
+					context["first_time_user"] = False
+					context["banned"] = False
+				elif object_type == '0':
+					context["freshest_unseen_comment"] = freshest_reply
+					context["type_of_object"] = '0'
+					context["notification"] = 1
+					context["parent"] = freshest_reply#.which_photo
+					context["parent_pk"] = freshest_reply['oi']
+					context["first_time_user"] = False
+					context["banned"] = False
+				else:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+					context["banned"] = False
+			elif is_link:
+				context["type_of_object"] = '2'
+				context["banned"] = False
+				if freshest_reply:
+					parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
+					WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+					WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+					WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+					WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+					WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
+					WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+					WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+					WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+					WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
+					WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
+					WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
+				else:
+					parent_link_writer = User()
+					WELCOME_MESSAGES = []
+				try:
+					context["freshest_unseen_comment"] = freshest_reply
+					context["notification"] = 1
+					context["parent"] = freshest_reply
+					context["parent_pk"] = freshest_reply['oi']
+					if context["username"]==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
+						context["first_time_user"] = True
+					else:
+						context["first_time_user"] = False
+				except:
+					context["freshest_unseen_comment"] = []
+					context["notification"] = 0
+					context["parent"] = []
+					context["parent_pk"] = 0
+					context["first_time_user"] = False
+			else:
+				context["freshest_unseen_comment"] = []
+				context["notification"] = 0
+				context["parent"] = []
+				context["parent_pk"] = 0
+				context["banned"] = False
+				context["first_time_user"] = False
+		else:
+			context["notification"] = 0
+			context["banned"] = True
+			context["can_vote"] = False
+			context["first_time_user"] = False
+			context["type_of_object"] = None
+			context["freshest_unseen_comment"] = []
+			context["parent"] = []
+			context["parent_pk"] = 0
+		return render(request,'best_photos.html',context)
+	else:
+		return redirect("unauth_best_photo")
 
 def see_best_photo_pk(request,pk=None,*args,**kwargs):
 	if pk.isdigit():

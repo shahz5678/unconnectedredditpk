@@ -87,10 +87,14 @@ def account_created(ip,username):
 	my_server.set(registered_ip,username)
 	my_server.expire(registered_ip,TWENTY_MINS)
 
+def insert_bulk_nicknames(usernames):
+	my_server = redis.Redis(connection_pool=POOL)
+	print usernames
+	my_server.zadd("nicks",*usernames)
+
 def insert_nickname(username):
 	my_server = redis.Redis(connection_pool=POOL)
-	nicknames = "nicknames"
-	my_server.sadd(nicknames,username)	
+	my_server.zadd("nicks",username, 0.0)	
 
 #######################Defenders#######################
 
@@ -1687,7 +1691,8 @@ def insert_hash(photo_id, photo_hash):
 	my_server = redis.Redis(connection_pool=POOL)
 	try:
 		size = my_server.zcard("perceptual_hash_set")
-		limit = 3000
+		# limit = 3000
+		limit = 10000
 		if size < (limit+1):
 			my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
 		else:

@@ -17,7 +17,7 @@ video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_pub
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
 suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password,\
-unauth_home_link_list
+unauth_home_link_list, best_photos_list, unauth_best_photos#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -43,7 +43,7 @@ urlpatterns = patterns('',
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
-	# url(r'^$', LinkListView.as_view(), name='home'),
+	#url(r'^uname/$', set_usernames, name='get_username'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
@@ -146,6 +146,8 @@ urlpatterns = patterns('',
 	# url(r'^fan_tutorial/$', auth(fan_tutorial), name='fan_tutorial'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
 	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
+	url(r'^bestphoto/$', best_photos_list, name='best_photo'),
+	url(r'^unauthbestphoto/$', unauth_best_photos, name='unauth_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),

@@ -1751,7 +1751,7 @@ def home_link_list(request, *args, **kwargs):
 	else:
 		return redirect("unauth_home")
 
-@cache_page(2)
+@cache_page(10)
 def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")

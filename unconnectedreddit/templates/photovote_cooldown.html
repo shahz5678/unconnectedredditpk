@@ -4,12 +4,12 @@
 {% block content %}
 <div class="margin">
 
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Photos pr dubara voting ho sake gi <b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b><br>{% emoticons %}Abhi chill kr yar ;){% endemoticons %}</span><br><br>
+	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Photos pr dubara voting ho sake gi <b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b><br>{% emoticons %}Abhi chill kro ;){% endemoticons %}</span><br><br>
 
 	{% if origin == '1' %}
 	<a href="{% url 'see_photo_pk' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
 	{% elif origin == '2' %}
-	<a href="{% url 'see_best_photo_pk' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'best_photo_loc_pk' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
 	{% elif origin == '3' %}
 	<a href="{% url 'home' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
 	{% elif origin == '4' %}

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
-<a href="{% url 'see_photo_pk' pk %}">< wapis</a>
+<div class="margin clb">
+<h2>Damadam ka sans nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
+<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mbl mbs">wapis</button></a>
 </div>
-<br><br><br>
+<br><br>
 {% endblock %}

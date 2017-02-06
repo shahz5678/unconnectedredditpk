@@ -13,10 +13,18 @@
             <a href="{% url 'see_photo' %}#section0">
             {% endif %}
         {% elif origin == '2' %}
-            {% if photo_id %}
-            <a href="{% url 'best_photo_loc_pk' photo_id %}">
+            {% if authenticated %}
+                {% if photo_id %}
+                <a href="{% url 'best_photo_loc_pk' photo_id %}">
+                {% else %}
+                <a href="{% url 'best_photo' %}#section0">
+                {% endif %}
             {% else %}
-            <a href="{% url 'best_photo' %}#section0">
+                {% if photo_id %}
+                <a href="{% url 'unauth_best_photo_loc_pk' photo_id %}">
+                {% else %}
+                <a href="{% url 'unauth_best_photo' %}#section0">
+                {% endif %}
             {% endif %}
         {% elif origin == '3'  %}
         <a href="{% url 'user_profile_photo' username photo.id %}">

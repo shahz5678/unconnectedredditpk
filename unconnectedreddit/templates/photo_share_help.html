@@ -22,7 +22,7 @@
 	{% elif loc == '5' %}
     <a href="{% url 'see_special_photo_pk' ident %}">
 	{% else %}
-	<a href="{% url 'see_photo' %}#section1">
+	<a href="{% url 'best_photo' %}#section0">
 	{% endif %}
 	<button class="btn bco bs mtl mbl">wapis</button></a>
 
@@ -30,10 +30,10 @@
 	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mtl mbl">freebasics SMS</button></a><br>
     <a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mbl">normal SMS</button></a>
 {% else %}
-		<b>Ye photo sharma kr kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
-        Hum dhoondne ki koshish kr rehay hain<br>
-        <a href="{% url 'see_photo' %}#section0"><button class="btn bco bs mtl mbl">wapis</button></a>
-        <br><br><br>
+		<b>Ye photo kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
+        Hum dhoondne ki koshish kr rahe hain<br>
+        <a href="{% url 'best_photo' %}#section0"><button class="btn bco bs mtl mbl">wapis</button></a>
+        <br>
 {% endif %}
 </div><br><br>
 {% endblock %}

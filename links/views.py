@@ -4224,8 +4224,9 @@ def unauth_best_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = BestPhotosListForm()
-		obj_list = dict(all_best_photos())
-		paginator = Paginator(obj_list.keys(), PHOTOS_PER_PAGE)
+		obj_list = all_best_photos()
+		obj_list_keys = map(itemgetter(0), obj_list)
+		paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
 		page = request.GET.get('page', '1')
 		try:
 			page = paginator.page(page)
@@ -4236,15 +4237,16 @@ def unauth_best_photos(request,*args,**kwargs):
 			# If page is out of range (e.g. 9999), deliver last page of results.
 			page = paginator.page(paginator.num_pages)
 		context["page"] = page
-		context["object_list"] = get_best_photos(retrieve_photo_posts(page.object_list),obj_list)
+		context["object_list"] = retrieve_photo_posts(page.object_list)
 		return render(request,'best_photos.html',context)
 
 def best_photos_list(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		context = {}
 		form = BestPhotosListForm()
-		obj_list = dict(all_best_photos())
-		paginator = Paginator(obj_list.keys(), PHOTOS_PER_PAGE)
+		obj_list = all_best_photos()
+		obj_list_keys = map(itemgetter(0), obj_list)
+		paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
 		page = request.GET.get('page', '1')
 		try:
 			page = paginator.page(page)
@@ -4255,7 +4257,7 @@ def best_photos_list(request,*args,**kwargs):
 			# If page is out of range (e.g. 9999), deliver last page of results.
 			page = paginator.page(paginator.num_pages)
 		context["page"] = page
-		context["object_list"] = get_best_photos(retrieve_photo_posts(page.object_list),obj_list)
+		context["object_list"] = retrieve_photo_posts(page.object_list)
 		user = request.user
 		context["username"] = user.username
 		context["ident"] = user.id
@@ -4427,7 +4429,9 @@ class BestPhotoView(ListView):
 		context["score"] = None
 		context["object_list"] = dict(context["object_list"])
 		context["object_list"] = get_best_photos(retrieve_photo_posts(context["object_list"].keys()),context["object_list"])
-		# context["object_list"] = get_best_photos(Photo.objects.filter(id__in=context["object_list"].keys()),context["object_list"])
+		for obj in context["object_list"]:
+			print obj
+			print "\n"
 		if self.request.is_feature_phone:
 			context["feature_phone"] = True
 		else:

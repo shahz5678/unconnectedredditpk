@@ -5333,6 +5333,10 @@ class PhotoShareView(FormView):
 			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)
 		except:
 			context["no_id"] = True
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+		else:
+			context["authenticated"] = False
 		return context
 
 class DeletePicView(FormView):

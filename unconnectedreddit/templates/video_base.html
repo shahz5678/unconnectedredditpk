@@ -65,7 +65,7 @@
     <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
     {% endif %}
     <span style="color:white;">|</span>
-    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
+    <a href="{% url 'best_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
         {% if user.userprofile.score and user.userprofile.score > 40 %}
             <a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0" style="text-shadow:0 0 0.1px #886081;">Jawab</a> <span style="color:white;">|</span>
             <a class="sharing" href="{% url 'group_page' %}#section0" style="text-shadow:0 0 0.1px #886081;">Mehfil</a>
@@ -103,7 +103,7 @@
 
     
 {% else %}
-    <a href="{% url 'see_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
+    <a href="{% url 'best_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
     <a href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;"><b>New Account Bnao</b></a> <span style="color:white;">|</span>
     <a href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px #886081;">Purana Account Chlao</a>
 {% endif %}</p>

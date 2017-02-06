@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="margin">
+<div class="margin clb">
 {% if time_remaining == '-1' %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe ab yahan se photo lagane ki ijazat nahi!</span><br><br>
-	<span style="color:grey;font-size:90%;">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
-	<a href="{% url 'see_photo' %}#section0" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	Tumhe ab yahan se photo lagane ki ijazat nahi!<br>
+	<span class="cgy">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
+	<a href="{% url 'best_photo' %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
 {% else %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo lagane ki ijazat miley gi <b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b></span><br><br>
-	<span style="color:grey;font-size:90%;">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien</span><br><br>
-	<a href="{% url 'see_photo' %}#section0" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	Tumhe photo lagane ki ijazat miley gi <b class="cl co">{{ time_remaining|naturaltime }}</b><br>
+	<span class="cgy">Aesi photos lagana jo log pasand karein aur tumhari profile pr br br aien</span><br>
+	<a href="{% url 'best_photo' %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
 {% endif %}
-</div>
+</div><br><br>
 {% endblock %}

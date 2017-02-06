@@ -16,8 +16,8 @@ repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, 
 video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help, home_location, see_best_photo_pk, reauth, create_nick, create_password, create_account, reset_password,\
-unauth_home_link_list, best_photos_list, unauth_best_photos#, set_usernames
+suspend, top_photo_help, home_location, reauth, create_nick, create_password, create_account, reset_password, unauth_home_link_list, \
+best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -31,11 +31,11 @@ RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicVi
 GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, \
 WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, \
-InviteUsersToPrivateGroupView, BigPhotoHelpView, BestPhotoView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, \
-PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, \
-ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, \
-UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, AdDescriptionView, AdTitleView, AdTitleYesNoView, \
-AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
+InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, \
+SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, \
+MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, \
+VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView, \
+AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
 
 admin.autodiscover()
 
@@ -145,15 +145,18 @@ urlpatterns = patterns('',
 	#url(r'^special/$', special_photo, name='special_photo'),
 	# url(r'^fan_tutorial/$', auth(fan_tutorial), name='fan_tutorial'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
-	url(r'^photo/best/$', BestPhotoView.as_view(), name='see_best_photo'),
-	url(r'^bestphoto/$', best_photos_list, name='best_photo'),
-	url(r'^unauthbestphoto/$', unauth_best_photos, name='unauth_best_photo'),
+	url(r'^photo/best/$', best_photos_list, name='see_best_photo'), # DEPRECATE after 10th Feb 2017
+	url(r'^topphotos/$', best_photos_list, name='best_photo'),
+	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),
+	url(r'^tphredi/(?P<pk>\d+)/$', auth(see_best_photo_pk), name='best_photo_loc_pk'),
+	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
+	url(r'^utphredi/(?P<pk>\d+)/$', unauth_best_photo_location_pk, name='unauth_best_photo_loc_pk'),
+	url(r'^seetopphotos/$', unauth_best_photos, name='unauth_best_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
 	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
-	url(r'^best_photo_pk/(?P<pk>\d+)/$', see_best_photo_pk, name='see_best_photo_pk'),
 	url(r'^rep/(?P<num>\d+)/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<priv>\d+)/(?P<scr>\d+)/$', auth(rep), name='rep'),
 	url(r'^repback/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<private>\d+)/(?P<scr>\d+)/$', auth(ReportFeedbackView.as_view()), name='report_feedback'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),

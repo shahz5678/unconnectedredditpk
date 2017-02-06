@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="margin">
+<div class="margin clb">
 {% if time_remaining == '-1' %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe ab photo pr vote krne ki ijazat nahi!</span><br><br>
-	<span style="color:grey;font-size:90%;">Damadam ke mahol ko saf rakhna zaruri hai. Ye baat yad rakhna</span><br><br>
+	Tumhe ab photo pr vote krne ki ijazat nahi!<br><br>
+	<span class="cgy cs">Damadam ke mahol ko saf rakhna zaruri hai. Ye baat yad rakhna</span><br><br>
 {% else %}
-	<span style="font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">Tumhe photo pr vote krne ki ijazat miley gi <b style="color:#ff8000;font-size:105%;">{{ time_remaining|naturaltime }}</b></span><br><br>
-	<span style="color:grey;font-size:90%;">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
+	Tumhe photo pr vote krne ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
+	<span class="cgy cs">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
 {% endif %}
 	{% if origin == '1' %}
-	<a href="{% url 'see_photo_pk' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% elif origin == '2' %}
-	<a href="{% url 'best_photo_loc_pk' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% elif origin == '3' %}
-	<a href="{% url 'home' %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'home' %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% elif origin == '4' %}
-	<a href="{% url 'profile' slug %}#section0" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'profile' slug %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% else %}
-	<a href="{% url 'see_photo' pk %}" style="font-size:90%;"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:5em;">wapis</button></a>
+	<a href="{% url 'see_photo' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% endif %}
 </div>
 {% endblock %}

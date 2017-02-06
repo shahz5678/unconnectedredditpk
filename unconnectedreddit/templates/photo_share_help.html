@@ -2,13 +2,12 @@
 {% load humanize %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin"> 
+<div class="margin clb"> 
 {% if not no_id %}
-	<span style="color:#404040;font-size:100%;">Jis se photo share krni hai, kya woh <b style="color:#ff8000;">freebasics</b> pe hai?</span><br><br>
-	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">-</span> Agr <span style="color:#ff8000;">haan</span>, toh usse ye link bhejo:<br><b style="font-size:110%;color:#ff8000;word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br></span><br>
-	<span style="color:#404040;font-size:90%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	<span style="color:green;">-</span> Agr <span style="color:purple;">nahi</span>, toh usse ye link bhejo:<br><b style="font-size:110%;color:purple;word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br></span>
+	Jis se photo share krni hai, kya woh <b class="co">freebasics</b> pe hai?<br><br>
+	<b class="cgy">.</b> Agr <span class="co">haan</span>, toh usse ye link bhejo:<br><b class="cl co" style="word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br><br>
+	
+	<b class="cgy">.</b> Agr <span class="cp">nahi</span>, toh usse ye link bhejo:<br><b class="cl cp" style="word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br>
 
 	{% if loc == '1' %}
 	<a href="{% url 'see_photo_pk' ident %}">
@@ -25,16 +24,15 @@
 	{% else %}
 	<a href="{% url 'see_photo' %}#section1">
 	{% endif %}
-	<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>wapis</b></button></a>
+	<button class="btn bco bs mtl mbl">wapis</button></a>
 
 	<hr size=1 COLOR="#ff9933">
-	<span style="color:#404040;font-size:100%;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">
-	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Oye ye photo check kr: {{ freebasics_url }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;border-radius:4px;">freebasics SMS</button></a><br></span>
-    <a href="sms:+03?body=Oye ye photo check kr: {{ regular_url }}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border:solid 1px #732673;color:white;width:8.5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;border-radius:4px;">normal SMS</button></a>
+	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mtl mbl">freebasics SMS</button></a><br>
+    <a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mbl">normal SMS</button></a>
 {% else %}
-		<span style="color:#404040;"><b>Ye photo sharma kr kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
-        Hum dhoondne ki koshish kr rehay hain</span><br>
-        <a href="{% url 'see_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border:solid 1px #ff8000;color:white;width:5.7em;white-space:nowrap;font-size:90%;margin-top:1.25em;margin-bottom:1em;"><b>< wapis</b></button></a>
+		<b>Ye photo sharma kr kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
+        Hum dhoondne ki koshish kr rehay hain<br>
+        <a href="{% url 'see_photo' %}#section0"><button class="btn bco bs mtl mbl">wapis</button></a>
         <br><br><br>
 {% endif %}
 </div><br><br>

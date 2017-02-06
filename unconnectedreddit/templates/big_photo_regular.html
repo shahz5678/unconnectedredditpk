@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<b style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);font-size:107%;">10MB se barri photo Damadam nahi utha sakta {% emoticons %}:({% endemoticons %}</b><br>
-<span style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ko gym janey ki zarurat hai {% emoticons %}(dolay){% endemoticons %}</span><br><br>
-<a href="{% url 'see_photo' %}#section0"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:4em;">wapis</button></a>
+<div class="margin clb">
+<b class="cl">10MB se barri photo Damadam pe nahi lgti {% emoticons %}:({% endemoticons %}</b><br>
+<span class="cgy">Damadam ke pait me itni jaga nahi</span><br>
+<a href="{% url 'upload_photo' %}#section0"><button class="btn bco bs mtl mbs">wapis</button></a>
 </div>
-<br><br><br>
+<br><br>
 {% endblock %}

@@ -13,7 +13,11 @@
 	{% if loc == '1' %}
 	<a href="{% url 'see_photo_pk' ident %}">
 	{% elif loc == '2' %}
-	<a href="{% url 'see_best_photo_pk' ident %}">
+		{% if authenticated %}
+		<a href="{% url 'best_photo_loc_pk' ident %}">
+		{% else %}
+		<a href="{% url 'unauth_best_photo_loc_pk' ident %}">
+		{% endif %}
 	{% elif loc == '3' %}
 	<a href="{% url 'user_profile_photo' username ident %}">
 	{% elif loc == '5' %}

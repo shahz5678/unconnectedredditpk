@@ -10,7 +10,11 @@
 	<b class="cgy">.</b> Agr <span class="cp">nahi</span>, toh usse ye link bhejo:<br><b class="cl cp" style="word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br>
 
 	{% if loc == '1' %}
-	<a href="{% url 'see_photo_pk' ident %}">
+		{% if authenticated %}
+		<a href="{% url 'see_photo_pk' ident %}">
+		{% else %}
+		<a href="{% url 'unauth_photo_loc_pk' ident %}">
+		{% endif %}
 	{% elif loc == '2' %}
 		{% if authenticated %}
 		<a href="{% url 'best_photo_loc_pk' ident %}">

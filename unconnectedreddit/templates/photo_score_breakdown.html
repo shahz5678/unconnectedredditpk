@@ -4,7 +4,11 @@
 {% block content %}
 <div class="margin">
 {% if origin == '1' %}
-<a href="{% url 'see_photo_pk' key %}">
+	{% if authenticated %}
+	<a href="{% url 'see_photo_pk' key %}">
+	{% else %}
+	<a href="{% url 'unauth_photo_loc_pk' key %}">
+	{% endif %}
 {% elif origin == '2' %}
 	{% if authenticated %}
 	<a href="{% url 'best_photo_loc_pk' key %}">
@@ -61,7 +65,11 @@
 {% endif %}
 {% endif %}
 {% if origin == '1' %}
-<a href="{% url 'see_photo_pk' key %}">
+	{% if authenticated %}
+	<a href="{% url 'see_photo_pk' key %}">
+	{% else %}
+	<a href="{% url 'unauth_photo_loc_pk' key %}">
+	{% endif %}
 {% elif origin == '2' %}
 	{% if authenticated %}
 	<a href="{% url 'best_photo_loc_pk' key %}">

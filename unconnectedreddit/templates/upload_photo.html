@@ -5,11 +5,11 @@
 {% if forbidden and time_remaining == '-1' %}
 	<b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b><br><br>
 	<span class="cgy cs">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
-	<a href="{% url 'see_photo' %}"><button class="btn bm bco mts mbs">wapis</button></a>
+	<a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif forbidden %}
 	Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
 	<span class="cgy cs">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
-	<a href="{% url 'see_photo' %}"><button class="btn bm bco mts mbs">wapis</button></a>
+	<a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif score < 30 %}
 	Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a>
 {% else %}

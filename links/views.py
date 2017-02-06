@@ -4326,6 +4326,7 @@ def best_photo_location(request, *args, **kwargs):
 		request.session['best_photo_page'] = page
 		return redirect(url)
 
+@cache_page(10)
 def unauth_best_photos(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("best_photo")

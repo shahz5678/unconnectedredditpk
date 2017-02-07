@@ -53,10 +53,6 @@ OBJECT types:
 
 def delete_salat_notification(notif_name, hash_name, viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	# print "notif_name is: %s" % notif_name
-	# print "hash_name is: %s" % hash_name
-	# print "viewer id is: %s" % viewer_id
-	# print "sn contains: %s" % my_server.zrange("sn:"+str(viewer_id), 0, -1)
 	my_server.zrem("sn:"+str(viewer_id),notif_name)
 	my_server.delete(hash_name)
 	my_server.delete(notif_name)
@@ -82,18 +78,25 @@ def retrieve_unseen_activity(notifications):
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_dictionaries = []
 	pipeline1 = my_server.pipeline()
-	for notification in notifications: #can this be paginated?
-		notification = pipeline1.hgetall(notification)
-	result1 = pipeline1.execute()
-	pipeline2 = my_server.pipeline()
-	for notification in result1:
-		parent_object = pipeline2.hgetall(notification['c'])
-	result2 = pipeline2.execute()
-	for i in range(len(notifications)):
-		if 'ot' in result2[i]:
-			#i.e. it means object type is defined
-			combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+	for notification in notifications:
+		notif = pipeline1.hgetall(notification)
+		associated_obj = pipeline1.hgetall("o:"+notification.split(":",2)[2])
+	result = pipeline1.execute()
+	# pipeline2 = my_server.pipeline()
+	# for notification in result1:
+	# 	parent_object = pipeline2.hgetall(notification['c'])
+	# result2 = pipeline2.execute()
+	i = 0
+	while i < len(result):
+		if 'ot' in result[i+1]:
+			combined = dict(result[i],**result[i+1])
 			list_of_dictionaries.append(combined)
+		i += 2
+	# for i in range(len(notifications)):
+	# 	if 'ot' in result2[i]:
+	# 		#i.e. it means object type is defined
+	# 		combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
+	# 		list_of_dictionaries.append(combined)
 	# print list_of_dictionaries
 	return list_of_dictionaries
 

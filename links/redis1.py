@@ -325,7 +325,8 @@ def retrieve_photo_posts(photo_id_list):
 	result1 = pipeline1.execute()
 	count = 0
 	for hash_obj in result1:
-		list_of_dictionaries.append(hash_obj)
+		if 'u' in hash_obj:
+			list_of_dictionaries.append(hash_obj)
 		count += 1
 	return list_of_dictionaries 
 

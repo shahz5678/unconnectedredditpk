@@ -173,7 +173,7 @@ class UserSettingsForm(forms.ModelForm):
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	#image_file = forms.ImageField(label='Tasveer dallo:', help_text='less than 1 mb')
-	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
 	class Meta:
 		model = Link
 		exclude = ("submitter", "rank_score", "category")

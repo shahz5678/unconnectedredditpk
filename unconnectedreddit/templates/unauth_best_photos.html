@@ -8,15 +8,12 @@
 {% block content %}
 <div class="margin">
 <span class="cgy cm">Photo lagane ke liye account banao</span>
+<br>
+	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
+	<span class="cs cb"><b>&nbsp;&nbsp;Top photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'unauth_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 
 {% for photo in object_list %}
-	{% if forloop.counter == 1 %}
-	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<span class="cs cb"><b>&nbsp;&nbsp;Top photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'see_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</a><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
-	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
-	{% else %}
-	<p><hr size=1 COLOR="#ff9933"></p>
-	{% endif %}
 
 	<a name="section{{ forloop.counter }}"></a>
 	
@@ -33,20 +30,24 @@
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
 	</a>
-	<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
-	{% if photo.vo|add:"0" < -2 %}
-	<span class="cgy">--- --- ---</span>
+	{% if photo.vo|add:"0" < -50 %}
+		<span class="co">&nbsp;{{ photo.o|truncatechars:15 }} ko buri photos lagane se ban kr diya gaya&nbsp;{% emoticons %}.h1{% endemoticons %}</span>
+		<hr size=1 COLOR="#ff9933">
 	{% else %}
-	<b><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
-	{% endif %}
-	<button class="btn nw bm bco cs mbs">
-	{% if photo.co|add:"0" > 1 %}
-	<b>{{ photo.co|add:"0" }}</b> tabsrey
-	{% elif photo.co|add:"0" == 1 %}
-	<b>1</b> tabsra
-	{% else %}
-	tabsra kro
-	{% endif %}</button>
+		<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
+		{% if photo.vo|add:"0" < -2 %}
+		<span class="cgy">--- --- ---</span>
+		{% else %}
+		<b><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
+		{% endif %}
+		<button class="btn nw bm bco cs mbs mts">
+		{% if photo.co|add:"0" > 1 %}
+		<b>{{ photo.co|add:"0" }}</b> tabsrey
+		{% elif photo.co|add:"0" == 1 %}
+		<b>1</b> tabsra
+		{% else %}
+		tabsra kro
+		{% endif %}</button>
 	
 	{% if photo.d == '1' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
@@ -100,8 +101,8 @@
 
 
 			<a href="{% url 'photo_share' photo.i 2 %}"><button class="btn nw bxl bcp">photo share kro</button></a>
-
-
+			<p><hr size=1 COLOR="#ff9933"></p>
+	{% endif %}
 	{% empty %}<span class="clb">Top photos kuch deir baad nazr aien gi!</span>
 {% endfor %}
 

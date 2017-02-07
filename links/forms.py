@@ -186,12 +186,12 @@ class PublicGroupReplyForm(forms.ModelForm):
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
 
-# class OutsiderGroupForm(forms.ModelForm):
-# 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
-# 	class Meta:
-# 		model = Reply
-# 		exclude = ("submitted_on","which_group","writer","abuse")
-# 		fields = ("image", "text")
+class OutsiderGroupForm(forms.ModelForm):
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
+	class Meta:
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))

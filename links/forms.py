@@ -425,6 +425,10 @@ class BestPhotosListForm(forms.Form):
 	class Meta:
 		pass
 
+class PhotosListForm(forms.Form):
+	class Meta:
+		pass
+
 class UnauthHomeLinkListForm(forms.Form):
 	class Meta:
 		pass

@@ -111,7 +111,7 @@
 				{% if parent.oon in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span class="clb">: {{ user.username }}, waqt mila toh <b class="cg">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
+		<span class="clb">: {{ username }}, waqt mila toh <b class="cg">{{ namaz }}</b> parh lena {% emoticons %}:){% endemoticons %}</span>
 		<br>
 			{% if first_time_user > 1 %}
 			<span class="cg cm">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
@@ -186,157 +186,135 @@
 	{% endif %}
 	{% endif %}
 
-{% if authenticated and score > 29 and not banned %}
-<a href="{% url 'upload_photo' %}#section0"><button class="btn bl bco"><b>New Photo Charhao</b></button></a>
+{% if score > 29 and not banned %}
+<a href="{% url 'upload_photo' %}#section0"><button class="btn bl bco mbl mtl"><b>New Photo Charhao</b></button></a>
 </p>
-{% elif not authenticated %}
-<span style="color:grey;font-size:90%;">Photo lagane ke liye account banao</span>
 {% elif banned %}
 {% elif first_time_user %}
 {% else %}
-<span class="co cm">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bl bco mbs"><b>score barhao</b></button></a></span>
+<span class="co cm">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bl bco mbs"><b>score barhao</b></button></a></span><br>
 {% endif %}
+	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
+	<a href="{% url 'best_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top photos&nbsp;&nbsp;</a><span class="co">|</span><span class="cs cb"><b>&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 
-{% if object_list %}
 {% for photo in object_list %}
 
-	{% if forloop.counter == 1 %}
-	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<span class="cs cb"><b>&nbsp;&nbsp;Taza photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'see_best_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top photos&nbsp;&nbsp;</a>&nbsp;<span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
-	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
-	{% else %}
-	<p><hr size=1 COLOR="#ff9933"></p>
-	{% endif %}
-
-		{% if forloop.counter == 3 %}
-		<div class="cm co">{% if authenticated %}<a href="{% url 'auth_pics_display' %}#section0">{% else %}<a href="{% url 'pic_upload' %}">{% endif %}<button class="btn nw bm bco cm">Muft mein</button></a> apni photos dostoon ko SMS kro!
+		{% if forloop.counter == 4 %}
+		<div class="cm co">Photos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bs bco cm">SMS kro</button></a>&nbsp;bilkul muft!
 		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a><br><hr size=1 COLOR="#ff9933"></div>
-	{% endif %}
+		{% endif %}
 
 	<a name="section{{ forloop.counter }}"></a>
 	
-	<a href="{% url 'profile' photo.owner.username %}#section0">
-	{% if photo.owner.userprofile.avatar and user == photo.owner %}
-		<img style="border: 1px solid #00B800;" src="{{ photo.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
-	{% elif photo.owner.userprofile.avatar %}
-		<img style="border: 1px solid #A9A9A9;" src="{{ photo.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
+	<a href="{% url 'profile' photo.o %}#section0">
+	{% if photo.oa != 'None' and username == photo.o %}
+		<img style="border: 1px solid #00B800;" src="{{ photo.oa|thumbedge }}" alt="no pic" width="22" height="22"></img>
+	{% elif photo.oa != 'None' %}
+		<img style="border: 1px solid #A9A9A9;" src="{{ photo.oa|thumbedge }}" alt="no pic" width="22" height="22"></img>
 	{% else %}
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 	{% endif %}
 	</a>
-	<a href="{% url 'comment_pk' photo.id '1' %}" class="cb cl">
-	{% if photo.vote_score < -2 %}
-	<span class="cgy">--- --- ---</span>
+
+	{% if photo.vo|add:"0" < -50 %}
+		<span class="co cl">&nbsp;{{ photo.o|truncatechars:15 }} ko buri photos lagane se ban kr diya gaya&nbsp;{% emoticons %}.h1{% endemoticons %}</span>
+		<hr size=1 COLOR="#ff9933">
 	{% else %}
-	<b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-	{% endif %}
-	<button class="btn nw bm bco cs mbs">
-	{% if photo.comment_count > 1 %}
-	<b>{{ photo.comment_count }}</b> tabsrey
-	{% elif photo.comment_count == 1 %}
-	<b>1</b> tabsra
-	{% else %}
-	tabsra kro
-	{% endif %}</button>
+		<a href="{% url 'comment_pk' photo.i '1' %}" class="cb cl">
+		{% if photo.vo|add:"0" < -2 %}
+		<span class="cgy">--- --- ---</span>
+		{% else %}
+		<b><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
+		{% endif %}
+		<button class="btn nw bm bco cs mbs mts">
+		{% if photo.co|add:"0" > 1 %}
+		<b>{{ photo.co|add:"0" }}</b> tabsrey
+		{% elif photo.co|add:"0" == 1 %}
+		<b>1</b> tabsra
+		{% else %}
+		tabsra kro
+		{% endif %}
+		</button>
 	
-	{% if photo.category == '7' %}
-	&nbsp;<img src="{{ STATIC_URL }}img/sitara.jpg" alt="no pic" height="16" width="15">
-	{% else %}
-	{% if photo.device == '1' %}
+	{% if photo.d == '1' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif photo.device == '2' %}
+		{% elif photo.d == '2' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif photo.device == '4' %}
+		{% elif photo.d == '4' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif photo.device == '5' %}
+		{% elif photo.d == '5' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif photo.device == '3' %}
+		{% elif photo.d == '3' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
 		{% else %}
-		{% endif %}
 	{% endif %}
+	
 	</a>
-	
 	<br>
-	
-
-			{% if photo.vote_score < -2 %}
+			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-			{% elif photo.vote_score < -1 %}
-				{% if photo.image_file %}
-				<img class="pht bright" src="{{ photo.image_file.url|photoedge }}"></img>
-				{% else %}
-				<img class="pht bright" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-				{% endif %}
+			{% elif photo.vo|add:"0" < -1 %}
+				<img class="pht bright" src="{{ photo.u|photoedge }}"></img>
 			{% else %}
-				{% if photo.image_file %}
-				<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
-				{% else %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-				{% endif %}
+				<img class="pht" src="{{ photo.u|photoedge }}"></img>
 			{% endif %}<br>
 
-			<a href="{% url 'comment_pk' photo.id 1 %}">
-			{% if photo.latest_comment and photo.second_latest_comment %}
-				<div class="bglo iw2 mbs">
-				<span class="cm cb">&nbsp;{{ photo.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
-				<span class="cm cb">&nbsp;{{ photo.second_latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.second_latest_comment.text|truncatechars:30 }}{% endemoticons %}</span><br>
+			<a href="{% url 'comment_pk' photo.i 1 %}">
+			{% if photo.lctx and photo.slctx %}
+				<div class="bglo iw2">
+				<span class="cm cb">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.lctx|truncatechars:40 }}{% endemoticons %}</span><br>
+				<span class="cm cb">&nbsp;{{ photo.slcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.slctx|truncatechars:40 }}{% endemoticons %}</span><br>
 				</div>
-			{% elif photo.latest_comment %}
-				<div class="bglo iw2 mbs">
-				<span class="cb cm">&nbsp;{{ photo.latest_comment.submitted_by|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.latest_comment.text|truncatechars:30 }}{% endemoticons %}<br>
-				</span>
+			{% elif photo.lctx %}
+				<div class="bglo iw2">
+				<span class="cb cm">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
 				</div>
 			{% else %}
 			{% endif %}
 			</a>
 
-			{% if authenticated and photo.owner != user %}
-				{% if photo.owner_id in fanned %}
-					<a href="{% url 'fan' photo.owner_id photo.id 2 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+			{% if photo.o != username %}
+				{% if photo.oi|add:"0" in fanned %}
+					<a href="{% url 'fan' photo.oi photo.i 2 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
 				{% else %}
-					<a href="{% url 'fan' photo.owner_id photo.id 2 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+					<a href="{% url 'fan' photo.oi photo.i 2 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
 				{% endif %}
 			{% endif %}
 
-			<a href="{% url 'photo_izzat' photo.id 1 %}">
-			{% if photo.visible_score > 1 %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;points</button>
-			{% elif photo.visible_score == 1 %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;point</button>
+			<a href="{% url 'photo_izzat' photo.i 1 %}">
+			{% if photo.vi|add:"0" > 1 %}
+			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			{% elif photo.vi|add:"0" == 1 %}
+			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;point</button>
 			{% else %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b>&nbsp;points</button>
+			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% endif %}
 			</a>
 			<br>
-
-				{% if can_vote and photo.id not in voted and photo.owner != user %}
-				<a href="{% url 'photo_vote' photo.id 1 1 %}"><button class="btn bs bcg cm mts mbs">zabrdast</button></a><br>
-				<a href="{% url 'photo_vote' photo.id 0 1 %}"><button class="btn bs bcr cm mbl">bekaar</button></a><br>
+				{% if can_vote and photo.i not in voted and photo.o != username %}
+				<a href="{% url 'photo_vote' photo.i 1 1 %}"><button class="btn bs bcg cm mts mbs">zabrdast</button></a><br>
+				<a href="{% url 'photo_vote' photo.i 0 1 %}"><button class="btn bs bcr cm mbl">bekaar</button></a><br>
 				{% endif %}
 
 
-			<a href="{% url 'photo_share' photo.id 1 %}"><button class="btn nw bcp bl cm">photo share kro</button></a><br>
+			<a href="{% url 'photo_share' photo.i 1 %}"><button class="btn nw bxl bcp">photo share kro</button></a><br>
+			<p><hr size=1 COLOR="#ff9933"></p>
+	{% endif %}
+	{% empty %}
+	<span class="clb">Photos kuch deir baad nazr aien gi!</span>
 
-		
 {% endfor %}
-{% endif %}
-</div>
-{% endblock %}
 
-{% block pagination %}
-{% if is_paginated %}
-<div class="pagination" style="text-align: center;">
-	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
-    {% endif %}
+<br><div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
 </div>
-{% endif %}
 <br><br>
 {% endblock %}
-
-

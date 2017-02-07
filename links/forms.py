@@ -139,6 +139,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		# you take the user out of kwargs and store it as a class attribute
 		self.user = kwargs.pop('user', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
+		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -269,7 +270,7 @@ class AdImageForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(AdImageForm, self).__init__(*args, **kwargs)
-		self.fields['image_file'].label='Upload'#["value"]='Upload'
+		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
 class AdImageYesNoForm(forms.Form):
 	class Meta:
@@ -377,6 +378,10 @@ class UploadPhotoReplyForm(forms.ModelForm):
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
 		fields = ("image_file", "caption",)
 
+	def __init__(self, *args, **kwargs):
+		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
+		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
+
 class UploadPhotoForm(forms.ModelForm):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
@@ -387,19 +392,13 @@ class UploadPhotoForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
-		self.fields['image_file'].widget.attrs['style'] = 'width:80%;'
+		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
 	class Meta:
 		fields = ("video_file", "caption",)
-
-# class LoginForm(forms.Form):
-# 	username = forms.CharField(error_messages={'required': 'nickname dalna zaruri hai'})
-# 	password = forms.CharField(error_messages={'required': 'password dalna zaruri hai'})
-# 	class Meta:
-# 		fields = ("username","password",)
 
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')
@@ -411,8 +410,8 @@ class PicsChatUploadForm(forms.ModelForm):
 		fields = ("image",)
 
 	def __init__(self, *args, **kwargs):
-		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
-		self.fields['image'].label='Upload'#["value"]='Upload'
+		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))

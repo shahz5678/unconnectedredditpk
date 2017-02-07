@@ -4265,6 +4265,7 @@ def photo_location(request,*args,**kwargs):
 		request.session['photo_page'] = page
 		return redirect(url)
 
+@cache_page(10)
 def unauth_photos(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("photo")

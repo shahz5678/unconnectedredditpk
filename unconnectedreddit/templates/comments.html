@@ -7,10 +7,18 @@
 {% if authorized %}
     {% if origin %}
         {% if origin == '1' %}
-            {% if photo_id %}
-            <a href="{% url 'see_photo_pk' photo_id %}">
+            {% if authenticated %}
+                {% if photo_id %}
+                <a href="{% url 'see_photo_pk' photo_id %}">
+                {% else %}
+                <a href="{% url 'photo' %}#section0">
+                {% endif %}
             {% else %}
-            <a href="{% url 'see_photo' %}#section0">
+                {% if photo_id %}
+                <a href="{% url 'unauth_photo_loc_pk' photo_id %}">
+                {% else %}
+                <a href="{% url 'photo' %}#section0">
+                {% endif %}
             {% endif %}
         {% elif origin == '2' %}
             {% if authenticated %}
@@ -35,10 +43,10 @@
         {% elif origin == '6' %}
         <a href="{% url 'home' %}#section0">
         {% else %}
-        <a href="{% url 'see_photo' %}#section0">
+        <a href="{% url 'best_photo' %}#section0">
         {% endif %}
     {% else %}
-        <a href="{% url 'see_photo' %}#section0">
+        <a href="{% url 'best_photo' %}#section0">
     {% endif %}
     {% if photo.vote_score < -2 %}
         <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>

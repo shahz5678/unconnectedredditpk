@@ -385,6 +385,10 @@ class UploadPhotoForm(forms.ModelForm):
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
 		fields = ("image_file","caption",)
 
+	def __init__(self, *args, **kwargs):
+		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		self.fields['image_file'].widget.attrs['style'] = 'width:80%;'
+
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})

@@ -17,7 +17,8 @@ video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_pub
 faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
 suspend, top_photo_help, home_location, reauth, create_nick, create_password, create_account, reset_password, unauth_home_link_list, \
-best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk#, set_usernames
+best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, \
+photo_list, unauth_photos, unauth_photo_location_pk#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
 PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
 PhotoView, PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, \
@@ -138,20 +139,22 @@ urlpatterns = patterns('',
 	url(r'^star_list/$', StarListView.as_view(), name='star_list_view'),
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
-	url(r'^photo/$', PhotoView.as_view(), name='see_photo'),
 	url(r'^videos/$', VideoView.as_view(), name='see_video'),
 	url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
 	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
 	#url(r'^special/$', special_photo, name='special_photo'),
-	# url(r'^fan_tutorial/$', auth(fan_tutorial), name='fan_tutorial'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
+	url(r'^photo/$', PhotoView.as_view(), name='see_photo'), # DEPRECATE after 10th Feb 2017
+	url(r'^freshphotos/$', photo_list, name='photo'),
 	url(r'^photo/best/$', best_photos_list, name='see_best_photo'), # DEPRECATE after 10th Feb 2017
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),
 	url(r'^tphredi/(?P<pk>\d+)/$', auth(see_best_photo_pk), name='best_photo_loc_pk'),
 	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
+	url(r'^uphredi/(?P<pk>\d+)/$', unauth_photo_location_pk, name='unauth_photo_loc_pk'),
 	url(r'^utphredi/(?P<pk>\d+)/$', unauth_best_photo_location_pk, name='unauth_best_photo_loc_pk'),
 	url(r'^seetopphotos/$', unauth_best_photos, name='unauth_best_photo'),
+	url(r'^seefreshphotos/$', unauth_photos, name='unauth_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),

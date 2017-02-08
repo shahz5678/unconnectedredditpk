@@ -11,12 +11,15 @@
 
 	<form method="post" action="" enctype="multipart/form-data">
 	  {% csrf_token %}
-	  {% if user.userprofile.score < 8 %}
-	  <span class="cm ct"><b>Chat ke liye neechay kuch likho:</b></span>
+	  {% if form.description.errors %}
+	  <span class="cr">{{ form.description.errors.0 }}</span>
 	  {% else %}
-	  <span class="cm ct"><b>Kuch likho:</b></span>
+		  {% if user.userprofile.score < 8 %}
+		  <span class="cm ct"><b>Chat ke liye neechay kuch likho:</b></span>
+		  {% else %}
+		  <span class="cm ct"><b>Kuch likho:</b></span>
+		  {% endif %}
 	  {% endif %}
-	  <span class="cr">{{ form.description.errors }}</span>
 	  <br class="mbl">{{ form.description }}<br class="mbl">
 	  	{% if warned %}
 		<span class="cs cr"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>

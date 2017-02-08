@@ -114,22 +114,25 @@ def clean_image_file_with_hash(image):#, hashes): # where self is the form
 
 class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	MardAurat = (
-		('1','Aurat'),
-		('0','Mard'),
+		('1','Girl'),
+		('0','Boy'),
 		)
 	MaritalStatus = (
 		('1','Yes'),
 		('0','No'),
 		)
 	RATING = (
-		('0','Ekdum kadak yaar'),
-		('1','Itni burri bhi nahi'),
+		('0','Ek dum kadak'),
+		('1','Fifty fifty'),
 		('2','Shakal pe mat ja'),
 	)
 	avatar = forms.ImageField(label='Photo Lagao', help_text='less than 1 mb', required=False)
 	gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
 	shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
 	attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
+	bio = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'max-width:100%;'}))
+	mobilenumber = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:80%;'}))
+	age = forms.CharField(widget=forms.Textarea(attrs={'cols':10,'rows':1,'style':'max-width:100%;'}))
 	class Meta:
 		model = UserProfile
 		exclude = ('user','previous_retort') #so user and previous_retort doesn't show, but the extended attributes of bio and mobile number do show    

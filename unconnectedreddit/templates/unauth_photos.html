@@ -77,12 +77,12 @@
 			<a href="{% url 'comment_pk' photo.i 1 %}">
 			{% if photo.lctx and photo.slctx %}
 				<div class="bglo iw2">
-				<span class="cm cb">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.lctx|truncatechars:40 }}{% endemoticons %}</span><br>
-				<span class="cm cb">&nbsp;{{ photo.slcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.slctx|truncatechars:40 }}{% endemoticons %}</span><br>
+				<span class="cm">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
+				<span class="cm">&nbsp;{{ photo.slcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.slctx|truncatechars:30 }}{% endemoticons %}</span><br>
 				</div>
 			{% elif photo.lctx %}
 				<div class="bglo iw2">
-				<span class="cb cm">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb cm">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
+				<span class="cb">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
 				</div>
 			{% else %}
 			{% endif %}

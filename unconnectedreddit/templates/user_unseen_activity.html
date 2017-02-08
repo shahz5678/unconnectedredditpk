@@ -51,7 +51,7 @@
 		{% endif %}
 		{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 	<br>
-	<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bcgy bm mbs mts"><b>
+	<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bcgy bl mbs mts"><b>
 	{{ notif.r|add:"0" }}</b> jawab
 	</button></a>
 
@@ -73,7 +73,7 @@
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibt"></img>
 	{% endif %}
 {{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bct mbs bm mts"><b>
+<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bct mbs bl mts"><b>
 {{ notif.r|add:"0" }}</b> jawab
 </button></a>
 <br><b class="ct cs">Likho:</b>
@@ -267,7 +267,7 @@
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 			{% endif %}
 			{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-			<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user.id %}"><button class="btn nw bcgy bm mts mbs">
+			<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user.id %}"><button class="btn nw bcgy bl mts mbs">
 			{% if notif.r|add:"0" > 1 %}
 			<b>{{ notif.r }}</b> tabsrey
 			{% elif notif.r|add:"0" == 1 %}
@@ -296,7 +296,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibo"></img>
 		{% endif %}
 		{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}"><button class="btn nw bco bm mts mbs">
+		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}"><button class="btn nw bco bl mts mbs">
 		{% if notif.r|add:"0" > 1 %}
 		<b>{{ notif.r }}</b> tabsrey
 		{% elif notif.r|add:"0" == 1 %}
@@ -357,11 +357,11 @@
 
 	<br><div class="pagination" style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bcr cs bs"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bcg cs bs"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
 </div>

@@ -225,6 +225,12 @@ class CommentForm(forms.ModelForm):
 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
 		fields = ("text",)
 
+	def clean_text(self):
+		text = self.cleaned_data.get("text")
+		if len(text) < 5:
+			raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
+		return text
+
 class VideoCommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
 	class Meta:

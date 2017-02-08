@@ -1,27 +1,71 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin">
-<h2 style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.5;"><u>{{ user.username }} ki profile</u></h2>
+<div class="margin clb">
+<h2 class="cg">Tumhari profile:</h2>
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
-  <span style="color:red;">{{ form.mobilenumber.errors }}</span>
-  <span style="font-size:90%;">{{ form.mobilenumber.label_tag }}{{ form.mobilenumber }}<br>
-  <i style="color:grey;font-size:82%">Tumhara mobile number kisi ko nahi dikhaya jaye ga!</i></span>
-  <span style="color:red;">{{ form.bio.errors }}</span><p style="font-size:90%;">
-  {{ form.bio.label_tag }}{{ form.bio }}</p><p>
-  <span style="color:red;">{{ form.avatar.errors }}</span><p style="font-size:90%;">
-  {{ form.avatar.label_tag }}{{ form.avatar }}</p><p>
-  <span style="color:red;">{{ form.age.errors }}</span><p style="font-size:90%;">  
-  {{ form.age.label_tag }}{{ form.age }}</p>
-  <span style="color:red;">{{ form.gender.errors }}</span>
-<span style="font-size:90%;">{{ form.gender.label_tag }}</span><br>{% for radio in form.gender %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto;">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  <span style="color:red;">{{ form.shadi_shuda.errors }}</span>
-  <span style="font-size:90%;">Shaadi shuda</span><br>{% for radio in form.shadi_shuda %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span class="radio">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  <span style="color:red;">{{ form.attractiveness.errors }}</span>
-  <span style="font-size:90%;">Shakal soorat</span><br>{% for radio in form.attractiveness %}<table><tr><label for="{{ radio.id_for_label }}"><td><span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}<br>
-  <input class="button" style="background-color:white;color:#1947D1;border:solid 1px orange;" type="submit" value="Save">
+  {% if form.mobilenumber.errors %}<span class="cr">{{ form.mobilenumber.errors.0 }}</span><br>{% endif %}
+  <b>Mobile number:</b><br>{{ form.mobilenumber }}<br>
+  <span class="cs cgy">Tumhara mobile number kisi ko nahi dikhaya jaye ga</span>
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.bio.errors %}<span class="cr">{{ form.bio.errors.0 }}</span><br>{% endif %}
+  <b>Apni ek khas baat likho:</b><br>{{ form.bio }}
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.avatar.errors %}<span class="cr">{{ form.avatar.errors.0 }}</span><br>{% endif %}
+  <b>Tumhari photo:</b><br>{{ form.avatar }}
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.age.errors %}<span class="cr">{{ form.age.errors.0 }}</span><br>{% endif %}
+  <b>Age likho:</b><br>{{ form.age }}
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.gender.errors %}<span class="cr">{{ form.gender.errors.0 }}</span><br>{% endif %}
+  <b>Boy or girl:</b><br>
+  {% for radio in form.gender %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+  {% endfor %}
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.shadi_shuda.errors %}<span class="cr">{{ form.shadi_shuda.errors.0 }}</span>{% endif %}
+  <b>Shaadi shuda:</b><br>
+  {% for radio in form.shadi_shuda %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+  {% endfor %}
+  <hr size=1 COLOR="#b3e6b3"><br>
+  {% if form.attractiveness.errors %}<span class="cr">{{ form.attractiveness.errors.0 }}</span>{% endif %}
+  <b>Shakal soorat:</b><br>
+  {% for radio in form.attractiveness %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+  {% endfor %}
+  <hr size=1 COLOR="#b3e6b3">
+  <button class="btn bm bcg mbs mts" type="submit">Save</button>
 </form>
-<i style="font-size:80%;color:grey;">tasveer nahi lagti jab tuk tasveer ke saath <b>age</b> aur <b>mobile number</b> na diya toh!</i>
+<span class="cs cgy">photo nahi lagti jab tuk photo ke sath <b>age</b> aur <b>mobile number</b> na diya toh!</span>
 </div>
+<br><br>
 {% endblock %}

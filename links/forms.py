@@ -6,6 +6,7 @@ ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, Gro
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
+from django.core.files.images import get_image_dimensions
 from django.core import validators
 from django.utils.translation import ugettext, ugettext_lazy as _
 from detect_porn import detect
@@ -237,6 +238,12 @@ class PublicreplyForm(forms.ModelForm):
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
+
+	def clean_description(self):
+		description = self.cleaned_data.get("description")
+		if len(description) < 5:
+			raise forms.ValidationError('tip: jawab mein itna chota lafz nahi likh sakte')
+		return description
 
 class OutsideMessageCreateForm(forms.Form):
 	full_name = forms.CharField(max_length=50)

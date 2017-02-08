@@ -101,11 +101,15 @@
         <br>
 
     {% else %}
-<br><b class="cm co">Tabsra likho:</b>
+    <br>
     <form action="{% url 'comment' %}" method="POST">
     {% csrf_token %}
     <input type="hidden" id="id_link" name="origin" class="hidden_id" value="{{ origin }}">
-    {{ form.errors }}
+    {% if form.text.errors %}
+    <span class="cr">{{ form.text.errors.0 }}</span>
+    {% else %}
+    <b class="co">Tabsra likho:</b><br>
+    {% endif %}
     {{ form.text }}
         {% if warned %}
         <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>

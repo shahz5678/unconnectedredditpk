@@ -210,7 +210,7 @@
 					{% if score > 120 %}
 					<a href="{% url 'repnick' newest_user.id %}"><button class="btn bxs bcr">X</button></a>
 					{% endif %}
-				<span class="ct cs"<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bl bct cm"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
+				<span class="ct cs"<b> {{ newest_user.username }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bct cm" style="width:8.7em;"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
 				{% endif %}
 			{% endif %}
 			</td></tr>

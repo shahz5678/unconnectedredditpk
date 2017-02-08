@@ -82,22 +82,12 @@ def retrieve_unseen_activity(notifications):
 		notif = pipeline1.hgetall(notification)
 		associated_obj = pipeline1.hgetall("o:"+notification.split(":",2)[2])
 	result = pipeline1.execute()
-	# pipeline2 = my_server.pipeline()
-	# for notification in result1:
-	# 	parent_object = pipeline2.hgetall(notification['c'])
-	# result2 = pipeline2.execute()
 	i = 0
 	while i < len(result):
-		if 'ot' in result[i+1]:
+		if 'c' in result[i] and 'ot' in result[i+1]:
 			combined = dict(result[i],**result[i+1])
 			list_of_dictionaries.append(combined)
 		i += 2
-	# for i in range(len(notifications)):
-	# 	if 'ot' in result2[i]:
-	# 		#i.e. it means object type is defined
-	# 		combined = dict(result2[i],**result1[i]) #combining the two dictionaries, using a Guido Von Rossum 'disapproved' hack (but very efficient!)
-	# 		list_of_dictionaries.append(combined)
-	# print list_of_dictionaries
 	return list_of_dictionaries
 
 def bulk_update_salat_notifications(viewer_id=None, starting_time=None, seen=None, updated_at=None):
@@ -113,9 +103,6 @@ def viewer_salat_notifications(viewer_id=None, object_id=None, time=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "si:"+str(viewer_id) #salat invites sent to viewer_id
 	my_server.zadd(sorted_set,object_id,time)
-
-# def create_photo_notification_for_fans():
-# 	my_server = redis.Redis(connection_pool=POOL)
 
 def bulk_create_photo_notifications_for_fans(viewer_id_list=None,object_id=None,seen=None,updated_at=None,unseen_activity=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -315,7 +302,7 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 
 def remove_group_object(group_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	group_object = parent_object = "o:3:"+str(group_id)
+	group_object = "o:3:"+str(group_id)
 	my_server.delete(group_object)
 
 def remove_group_notification(user_id=None,group_id=None):
@@ -325,10 +312,10 @@ def remove_group_notification(user_id=None,group_id=None):
 	single_notif = "sn:"+str(user_id)
 	notification = "np:"+str(user_id)+":3:"+str(group_id)
 	parent_object = "o:3:"+str(group_id)
-	my_server.zrem(unseen_activity,notification)
-	my_server.zrem(unseen_activity_resorted, notification)
-	my_server.zrem(single_notif,notification)
-	my_server.delete(notification)
+	my_server.zrem(unseen_activity,notification)			#not worked
+	my_server.zrem(unseen_activity_resorted, notification)  #not worked
+	my_server.zrem(single_notif,notification)				#not worked
+	my_server.delete(notification)							#WORKED
 	num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
 
 def clean_expired_notifications(viewer_id):
@@ -346,7 +333,7 @@ def clean_expired_notifications(viewer_id):
 		pipeline1 = my_server.pipeline()
 		for notif in notif_to_del:
 			#delete the notification hash
-			pipeline1.delete(notif)
+			pipeline1.delete(notif)							
 		result1 = pipeline1.execute()
 		pipeline2 = my_server.pipeline()
 		for notif in notif_to_del:
@@ -359,7 +346,6 @@ def clean_expired_notifications(viewer_id):
 			if result < 1:
 				#delete the object hash
 				object_hash = "o:"+notif_to_del[count].split(":",2)[2]
-				# print "hashes to delete are: %s" % object_hash
 				pipeline3.delete(object_hash)
 			count += 1
 		result3 = pipeline3.execute()

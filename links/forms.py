@@ -183,6 +183,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		exclude = ("submitter", "rank_score", "category")
 		fields = ("image_file", "description",)
 
+	def clean_description(self):
+		description = self.cleaned_data.get("description")
+		if len(description) < 5:
+			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
+		return description
+
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
 	class Meta:

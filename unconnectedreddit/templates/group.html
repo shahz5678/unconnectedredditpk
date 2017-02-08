@@ -145,11 +145,11 @@
 {% if is_paginated %}
 <div style="text-align: center;">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bs cm"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button class="btn bcg bs cm"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
 {% endif %}

@@ -2,88 +2,80 @@
 
 {% block content %}
 {{ block.super }}
-<div class="margin" style="font-family:'Noto Nastaliq Urdu Draft',arial;line-height:1.8;">
+<div class="margin clb">
 {% if object.username == user.username %}
-<h2><u>Tumhari profile</u></h2>
-<a href="{% url 'edit_profile' %}#section0"> <button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-bottom:0.3em;font-size:95%;">Profile badlo</button></a><br>
-<a href="{% url 'user_activity' slug=object.username %}#section0"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-top:-0.1em;margin-bottom:0.3em;font-size:95%;">Tumhari history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
+<h2 class="cg">Tumhari profile:</h2>
+<a href="{% url 'edit_profile' %}#section0"><button class="btn bcg bxl mts mbl">Profile set kro</button></a><br>
+<a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl">Tumhari history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% else %}
-<h2><u>{{ object.username }} ki profile</u></h2>
-<a href="{% url 'direct_message' pk=object.id %}"> <button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-bottom:0.3em;font-size:95%;">Private mehfil</button></a>
-<br><a href="{% url 'user_activity' slug=object.username %}#section0"><button class="button" style="color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;background-color:#1CB841;border-color:#179b36;margin-top:-0.1em;margin-bottom:0.3em;font-size:95%;">Is ki history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
+<h2 class="cg">{{ object.username }} ki profile:</h2>
+<a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl">Private mehfil</button></a>
+<br><a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl">Home history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% endif %}
-
-
-	<div>
-	<b class="profile">Photo:</b>
+<hr size=1 COLOR="#b3e6b3">
+	<b class="profile">Profile photo:</b>
 	{% if object.userprofile.avatar %}
-	<img src="{{ object.userprofile.avatar.url }}" alt="no photo"  class ="info"></img>
+	{% load photoedge %}
+		<br><img class="pht" src="{{ object.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+	{% elif object.username == user.username %}
+		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" alt="no photo"></img>
 	{% else %}
-	{% if object.username == user.username %}
-	<img src="{{ STATIC_URL }}img/default-avatar2.jpg" alt="no photo"  class ="info"></img>
-	{% else %}
-	<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
+		<span class="cgy" style="font:85%;">isse kaho ek photo toh laga le...</span>
 	{% endif %}
-	</div>
-	{% endif %}
-	<div>
+	<hr size=1 COLOR="#b3e6b3">
 	<b class="profile">Chat score:</b>
 	<a class="info">
 	{% if object.userprofile.score %}
 		{% if object.userprofile.score < 0 %}
-			<b style="color:green;">1</b>
+			<b class="cg">1</b>
 		{% else %}
-			<b style="color:green;">{{ object.userprofile.score }}</b>
+			<b class="cg">{{ object.userprofile.score }}</b>
 		{% endif %}
 	{% else %}
-		<b style="color:green;">1</b>
+		<b class="cg">1</b>
 	{% endif %}
 	</a>&nbsp;(<a href="{% url 'score_help' %}#section0">?</a>)<br>
-	</div>
-	<div>
+	<hr size=1 COLOR="#b3e6b3">
+	
 	<b class="profile">About:</b>
-	{% if object.userprofile.bio %}
-	<a class="info">{{ object.userprofile.bio }}</a>
-	</div>
-	{% endif %}
-	<div>
+		{% if object.userprofile.bio %}
+		{% load emoticons_tags %}{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
+		{% endif %}
+	<hr size=1 COLOR="#b3e6b3">
+	
 	<b class="profile">Age:</b>
-	{% if object.userprofile.age %}
-	<a class="info">{{ object.userprofile.age }}</a>
-	</div>
-	{% endif %}
-	<div>
+		{% if object.userprofile.age %}
+		{{ object.userprofile.age }}
+		{% endif %}
+	<hr size=1 COLOR="#b3e6b3">
+
 	<b class="profile">Gender:</b>
-	{% if object.userprofile.gender == '1' %}
-		<a class="info">Aurat</a>
-		{% for name in ratified %}
-		{% if name == object.username %}
-    		<span style="font-size:200%;color:deeppink;"><b>*</b></span><span style="color:deeppink;">asli</span>
-    	{% endif %}
-    	{% endfor %}
-	{% else %}
-		<a class="info">Mard</a>	
-	</div>
-	{% endif %}
-	<div>
+		{% if object.userprofile.gender == '1' %}
+			Girl
+			{% if object.username in ratified %}
+	    		<span class="pinkstar"><b>*</b></span><span style="color:deeppink;">asli</span>
+	    	{% endif %}
+		{% else %}
+			Boy
+		{% endif %}
+	<hr size=1 COLOR="#b3e6b3">
+
 	<b class="profile">Shaadi shuda:</b>
-	{% if object.userprofile.shadi_shuda == '1' %}
-		<a class="info">Yes</a>
-	{% else %}
-		<a class="info">No</a>
-	</div>
-	{% endif %}
-	<div>
+		{% if object.userprofile.shadi_shuda == '1' %}
+			Yes
+		{% else %}
+			No
+		{% endif %}
+	<hr size=1 COLOR="#b3e6b3">
+
 	<b class="profile">Shakal soorat:</b>
 	{% if object.userprofile.attractiveness == '0' %}
-		<a class="info">Ekdum kadak yaar</a>
+		Ek dum kadak
+	{% elif object.userprofile.attractiveness == '1' %}
+		Fifty fifty
 	{% else %}
-		{% if object.userprofile.attractiveness == '1' %}
-			<a class="info">Itni burri bhi nahi</a>
-		{% else %}
-			<a class="info">Shakal pe mat ja</a>
-		{% endif %}
+		Shakal pe mat ja
 	{% endif %}
-	</div>
+	<hr size=1 COLOR="#b3e6b3">
 </div>
 {% endblock %}

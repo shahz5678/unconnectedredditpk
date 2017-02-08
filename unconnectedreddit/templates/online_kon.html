@@ -27,7 +27,7 @@
                             {% endif %}
                         {% if visitor.userprofile.score %}
                             {% if visitor.userprofile.score < 0 %}
-                                <span class="cr cs">({{ visitor.userprofile.score }})</span>
+                                <span class="cg cs">(1)</span>
                             {% else %}
                                 <span class="cg cs">({{ visitor.userprofile.score }})</span>
                             {% endif %}
@@ -44,11 +44,11 @@
 {% if is_paginated %}
 <div class="pagination" style="text-align: center;">
     {% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bcr bs cs"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bcg bs cs"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div><br>
 <br>

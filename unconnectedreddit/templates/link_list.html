@@ -428,7 +428,7 @@
 				{% if link.cc|add:0 > 0 %}
 						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bm bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl" style="padding-right:1px;padding-left:1px;">isko jawab do</button></a>
 				{% endif %}
 			<br>
 		

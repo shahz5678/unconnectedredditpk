@@ -3,7 +3,7 @@
 {% load emoticons_tags %}
 {% load thumbnail %}
 {% block content %}
-<div class="margin" style="color:#404040;">
+<div class="margin clb">
 {% if error %}
     <span class="co"><b>Ye jumla mojood nahi!</b></span>
 {% else %}
@@ -50,8 +50,11 @@
         <br>
         <form action="{% url 'reply' %}" method="POST">
             {% csrf_token %}
-            
+            {% if form.description.errors %}
+            <span class="cr">{{ form.description.errors.0 }}</span>
+            {% else %}
             <span class="cs ct"><b>Jawab likho:</b>
+            {% endif %}
             <br class="mbs">
             </span>{{ form.description }}
             {% if warned %}

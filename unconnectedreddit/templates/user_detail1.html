@@ -3,120 +3,162 @@
 {% load photoedge %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
+<div class="margin clb">
 {% if error %}
-<span class="clb"><b class="cb">{{ slug }}</b> ki profile Damadam ki duniya mein nahi hai {% emoticons %}:({% endemoticons %}</span><br><br>
-<a href="{% url 'home' %}#section0"><button class="btn bcb bs cs mbs">wapis</button></a>
-<br><br>
+
+  <b class="cb">{{ slug }}</b> ki profile Damadam ki duniya mein nahi hai {% emoticons %}:({% endemoticons %}<br><br>
+  <a href="{% url 'home' %}#section0"><button class="btn bcb bm mbs">wapis</button></a>
+  <br><br>
+
 {% else %}
-{% if own_profile %}
-<b class="clb cl">Tumhari photos:</b>
-{% else %}
-<b class="clb cl"><u>{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</u></b><br>
-  <span class="cgy cs">
-  {% if recent_fans > 1 %}
-  <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
-  {% elif recent_fans == 1 %}
-  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
-  {% else %}
-  {% endif %}</span>
-{% endif %}
-<br>
-<b class="clb">Profile photo:</b>
-{% if subject.userprofile.avatar %}
-<img src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo" class ="info"></img>
-{% else %}
-  <img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="no photo"  class ="info"></img>
-{% endif %}
-<br>
-<b class="clb">Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
-<br><b class="clb">Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg mbs">profile</button></a>
-{% if own_profile %}<br><b class="clb">Password:&nbsp;</b><a href="{% url 'reauth' %}#section0" class="clb"><button class="btn bcg mbs">badlo</button></a>{% endif %}
-<br>{% if fans == 1 %}
-<b class="clb">Fan:</b>
-{% else %}
-<b class="clb">Fans:</b>
-{% endif %}
-<a href="{% url 'fan_list' star_id %}" class="cs">
-<button class="btn bcg cm mbs">
-{% if fans == 0 %}
-{{ fans }}
-{% else %}
-{{ fans }}
-{% endif %}
-</button>
-</a>
 
-{% if authenticated and own_profile %}
-  <br><b class="clb">Stars:</b>
-  <a href="{% url 'star_list' user.id %}" class="cs">
-  <button class="btn bcg cm mbs">
-  {% if stars == 0 %}
-  {{ stars }}
-  {% else %}
-  {{ stars }}
-  {% endif %}
-  </button>
-  </a>
-{% endif %}
-
-{% if authenticated and not own_profile and allowed_fan %}
-  {% if not_fan %}
-  <br><a href="{% url 'fan' subject_id 0 1 %}"><button class="btn nw bcg cm bl mbs">iske fan bano</button></a>
-  {% else %}
-  <br><a href="{% url 'fan' subject_id 0 1 %}"><button class="btn nw bcr cm bl mbs">fan khatm kro</button></a>
-  {% endif %}
-{% endif %}
-<br>
-<hr size=1 COLOR="#ff9933">
-<br>
-<a name="sectionJ">
-{% if not object_list %}
-<i class="cgy">Abhi tak photos upload nahi ki</i><br><br>
-  {% else %}
-  {% for photo in object_list %}
-  <a name="section{{ forloop.counter }}"></a>
-  <a href="{% url 'comment_pk' photo.id 3 star_id %}" class="cb cl">
-  <b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-
-  <button class="btn nw bm bco cs mbs">
-  {% if photo.comment_count == 0 %}
-  tabsra kro
-  {% elif photo.comment_count == 1 %}
-  <b>1</b> tabsra
-  {% else %}
-  <b>{{ photo.comment_count }}</b> tabsrey
-  {% endif %}
-
-  </button>
-  </a><br>
-  <img class="iw ibg" src="{{ photo.image_file.url|photoedge }}"></img>
-  <br>
-  <span class="cxs cgy">charhai {{ photo.upload_time|naturaltime }}</span><br>
-
-        <a href="{% url 'photo_izzat' photo.id 3 slug %}">
-        {% if photo.visible_score > 1 %}
-        <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> points</button><br>
-        {% elif photo.visible_score == 1 %}
-        <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> point</button><br>
-        {% else %}
-        <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> points</button><br>
-        {% endif %}
-        </a>
-
-    {% if not own_profile and can_vote and photo.id not in voted %}
-    <a href="{% url 'photo_vote' photo.id 1 4 slug %}"><button class="btn bs bcg cm mbs">zabrdast</button></a><br>
-    <a href="{% url 'photo_vote' photo.id 0 4 slug %}"><button class="btn bs bcr cm mbl">bekaar</button></a><br>
+{% if page_obj.number == 1 %}
+    {% if own_profile %}
+                  <h2 class="cg">Tumhari photos:</h2>
+                  <span class="cgy">
+                  {% if recent_fans > 1 %}
+                  <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                  {% elif recent_fans == 1 %}
+                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                  {% else %}
+                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                  {% endif %}
+                  </span>
+                  <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Profile set kro</button></a>
+                  <br>
+                  {% if subject.userprofile.avatar %}
+                  <b>Photo photo:</b><br>
+                  <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+                  {% endif %}
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm">profile</button></a>
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Password:&nbsp;</b><a href="{% url 'reauth' %}#section0"><button class="btn bcg bm">badlo</button></a>
+                  <hr size=1 COLOR="#b3e6b3">
+                  {% if fans == 1 %}
+                  <b>Fan:</b>
+                  {% else %}
+                  <b>Fans:</b>
+                  {% endif %}
+                  <a href="{% url 'fan_list' star_id %}" class="cs">
+                  <button class="btn bcg">
+                  {% if fans == 0 %}
+                  {{ fans }}
+                  {% else %}
+                  {{ fans }}
+                  {% endif %}
+                  </button>
+                  </a>
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Stars:</b>
+                  <a href="{% url 'star_list' user.id %}" class="cs">
+                  <button class="btn bcg">
+                  {% if stars == 0 %}
+                  {{ stars }}
+                  {% else %}
+                  {{ stars }}
+                  {% endif %}
+                  </button>
+                  </a>
+                  <hr size=1 COLOR="#ff9933">
+                  <br>
+    {% else %}
+                  <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
+                  <span class="cgy">
+                  {% if recent_fans > 1 %}
+                  <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                  {% elif recent_fans == 1 %}
+                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                  {% else %}
+                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                  {% endif %}
+                  </span>
+                  {% if authenticated and not own_profile and allowed_fan %}
+                    {% if not_fan %}
+                    <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcg bl mtl mbl">iske fan bano</button></a>
+                    {% else %}
+                    <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bl mtl mbl">fan khatm kro</button></a>
+                    {% endif %}
+                    <br>
+                  {% endif %}
+                  {% if subject.userprofile.avatar %}
+                  <b>Photo photo:</b><br>
+                  <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+                  {% endif %}
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm">profile</button></a>
+                  <hr size=1 COLOR="#b3e6b3">
+                  {% if fans == 1 %}
+                  <b>Fan:</b>
+                  {% else %}
+                  <b>Fans:</b>
+                  {% endif %}
+                  <a href="{% url 'fan_list' star_id %}" class="cs">
+                  <button class="btn bcg">
+                  {% if fans == 0 %}
+                  {{ fans }}
+                  {% else %}
+                  {{ fans }}
+                  {% endif %}
+                  </button>
+                  </a>
+                  <hr size=1 COLOR="#ff9933">
+                  <br>
     {% endif %}
+  {% endif %}
 
 
-        <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bcp cm bxl">photo share kro</button></a>
+{% for photo in object_list %}
   
-  <br>
-  <p><hr size=1 COLOR="#ff9933"></p>
-  {% endfor %}
-  
-{% endif %}
+                          <a name="sectionJ">
+                          <a name="section{{ forloop.counter }}"></a>
+                          <a href="{% url 'comment_pk' photo.id 3 star_id %}" class="cb cl">
+                          <b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
+                          <button class="btn nw bm bco cs mbs">
+                          {% if photo.comment_count == 0 %}
+                          tabsra kro
+                          {% elif photo.comment_count == 1 %}
+                          <b>1</b> tabsra
+                          {% else %}
+                          <b>{{ photo.comment_count }}</b> tabsrey
+                          {% endif %}
+                          </button>
+                          </a><br>
+                          <img class="iw ibg" src="{{ photo.image_file.url|photoedge }}"></img>
+                          <br>
+                          <span class="cxs cgy">charhai {{ photo.upload_time|naturaltime }}</span><br>
+
+                                <a href="{% url 'photo_izzat' photo.id 3 slug %}">
+                                {% if photo.visible_score > 1 %}
+                                <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> points</button><br>
+                                {% elif photo.visible_score == 1 %}
+                                <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> point</button><br>
+                                {% else %}
+                                <button class="btn nw bcgy cs mtl mbl"><b>{{ photo.visible_score }}</b> points</button><br>
+                                {% endif %}
+                                </a>
+
+                          {% if not own_profile and can_vote and photo.id not in voted %}
+                          <a href="{% url 'photo_vote' photo.id 1 4 slug %}"><button class="btn bs bcg cm mbs">zabrdast</button></a><br>
+                          <a href="{% url 'photo_vote' photo.id 0 4 slug %}"><button class="btn bs bcr cm mbl">bekaar</button></a><br>
+                          {% endif %}
+
+
+                                <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bcp cm bxl">photo share kro</button></a>
+                          
+                          <br>
+                          <p><hr size=1 COLOR="#ff9933"></p>                        
+{% empty %}
+  {% if own_profile %}
+  <span class="cgy">Damadam pe&nbsp;<a href="{% url 'upload_photo' %}#section0"><button class="btn nw bco bxl mts">photos charhao</button></a></span>
+  {% else %}
+  <span class="cgy">{{ slug }} ne photos nahi lagain, kisi aur ki&nbsp;<a href="{% url 'best_photo' %}#section0"><button class="btn nw bco bxl mts">photos dekho</button></a></span>
+  {% endif %}
+{% endfor %}
 {% endif %}
 </div>
 {% endblock %}

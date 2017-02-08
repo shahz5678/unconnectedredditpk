@@ -413,7 +413,7 @@ class PicsChatUploadForm(forms.ModelForm):
 		fields = ("image",)
 
 	def __init__(self, *args, **kwargs):
-		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 
 class ChangeGroupRulesForm(forms.ModelForm):

@@ -340,9 +340,9 @@
 		
 		{% if link.n != username %}
 			{% if link.w|add:"0" in fanned %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.7em 1.7em;background-repeat: no-repeat;background-position: center;width:1.7em;height:1.7em;" type="submit">&nbsp;</button></a>
 			{% else %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></a>
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.7em 1.7em;background-repeat: no-repeat;background-position: center;width:1.7em;height:1.7em;" type="submit">&nbsp;</button></a>
 			{% endif %}
 		{% endif %}
 

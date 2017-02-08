@@ -917,7 +917,7 @@ def bulk_check_group_invite(user_id_list,group_id):
 
 def check_group_invite(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
+	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 100 invites
 	already_exists = my_server.zscore(sorted_set, group_id)
 	if not already_exists:
 		return False
@@ -926,7 +926,7 @@ def check_group_invite(user_id, group_id):
 
 def add_group_invite(user_id, group_id, invite_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 500 invites
+	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 100 invites
 	already_exists = my_server.zscore(sorted_set, group_id)
 	if not already_exists:
 		unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
@@ -951,6 +951,20 @@ def check_group_member(group_id, username):
 		return True
 	else:
 		return False
+
+def remove_group_for_all_members(group_id, member_ids):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for mem_id in member_ids:
+		set_name = "ug:"+str(mem_id) #ug is user's groups
+		pipeline1.srem(set_name,group_id)
+	pipeline1.execute()
+
+def remove_all_group_members(group_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
+	if my_server.exists(set_name):
+		my_server.delete(set_name)
 
 def remove_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

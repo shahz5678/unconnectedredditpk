@@ -61,7 +61,7 @@
 		{% if link.reply_count > 0 %}
 		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bl bct mts mbs"><b>{{ link.reply_count }}</b> jawab</button></a>
 		{% else %}
-		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bl bct mts mbs">isko jawab do</button></a>
+		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bxl bct mts mbs">isko jawab do</button></a>
 		{% endif %}
 
 	{% if can_vote %}
@@ -106,11 +106,11 @@
 {% if is_paginated %}
 <div class="pagination">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
     {% endif %}
     &nbsp;&nbsp;&nbsp;&nbsp;
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
     {% endif %}
 </div>
 {% endif %}<br><br>

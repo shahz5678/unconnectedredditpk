@@ -42,7 +42,7 @@
 		    	<span class="pinkstar"><b>*</b></span>
 		    {% endif %}
 		    
-		</a><span class="clb cm"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bm bcp">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="cm cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="clb cm"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="cm cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		<p><hr size=1 COLOR="#ac39ac"></p>
 		</div>
 	{% elif link.c == '6' %}
@@ -107,7 +107,7 @@
 	{% else %}
 		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 	{% endif %}
-		<button class="btn nw bm bco mbs mtl">
+		<button class="btn nw bl bco mbs mtl">
 		{% if link.pc|add:0 > 1 %}
 		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
 		{% elif link.pc|add:0 == 1 %}
@@ -141,9 +141,9 @@
 		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		<br>
 				{% if link.cc|add:0 > 0 %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bm bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bxl bct mbs mtl">isko jawab do</button></a>
 				{% endif %}
 			<br>
 		<p><hr size=1 COLOR="#3cb7dd"></p>
@@ -156,11 +156,11 @@
 
 <br><div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
 </div>

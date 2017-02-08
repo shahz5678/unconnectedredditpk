@@ -7563,8 +7563,11 @@ def cast_vote(request,*args,**kwargs):
 			if link_id:
 				own_id = request.user.id
 				tries_remaining = get_cool_down(own_id)
-				target_user_id = get_link_writer(link_id)
-				if own_id == int(target_user_id):
+				try:
+					target_user_id = int(get_link_writer(link_id))
+				except:
+					return redirect("home")
+				if own_id == target_user_id:
 					#voting for own self
 					return render(request, 'penalty_self_vote.html', {})
 				elif voted_for_link(link_id,request.user.username):

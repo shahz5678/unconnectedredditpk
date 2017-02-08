@@ -186,6 +186,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
+		description = description.strip()
 		if len(description) < 5:
 			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
 		return description
@@ -227,6 +228,7 @@ class CommentForm(forms.ModelForm):
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
+		text = text.strip()
 		if len(text) < 5:
 			raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
 		return text
@@ -247,6 +249,7 @@ class PublicreplyForm(forms.ModelForm):
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
+		description = description.strip()
 		if len(description) < 5:
 			raise forms.ValidationError('tip: jawab mein itna chota lafz nahi likh sakte')
 		return description

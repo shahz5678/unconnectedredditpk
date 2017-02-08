@@ -91,11 +91,11 @@
 
 			<a href="{% url 'photo_izzat' photo.i 2 %}">
 			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
+			<button class="btn nw bcgy bl mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
 			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;point</button><br>
+			<button class="btn nw bcgy bl mtl mbl"><b>{{ photo.vi }}</b>&nbsp;point</button><br>
 			{% else %}
-			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
+			<button class="btn nw bcgy bl mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
 			{% endif %}
 			</a>
 

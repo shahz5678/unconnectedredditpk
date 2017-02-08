@@ -158,7 +158,7 @@
 		:&nbsp;<bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
 		<br>
 		<p style="margin-top:.5em;"></p>
-		<button class="btn nw bm bco" >tabsra kro</button></a>&nbsp;&nbsp;
+		<button class="btn nw bl bco" >tabsra kro</button></a>&nbsp;&nbsp;
 		<a href="{% url 'cross_comment_notif' parent_pk ident 1 0 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</a>
 		</div>
@@ -236,7 +236,7 @@
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
 			<hr size=1 COLOR="#3cb7dd" >
 		{% elif not show_current and show_next %}
-			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bxl bcg"><b>record save krna</b></button></a>&nbsp;
+			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bcg" style="width:12em;"><b>record save krna</b></button></a>&nbsp;
 			</div><hr size=1 COLOR="#3cb7dd">
 		{% else %}
 			<!-- nothing to show -->
@@ -352,7 +352,7 @@
 	{% else %}
 		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 	{% endif %}
-		<button class="btn nw bm bco mbs mtl">
+		<button class="btn nw bl bco mbs mtl">
 		{% if link.pc|add:0 > 1 %}
 		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
 		{% elif link.pc|add:0 == 1 %}
@@ -426,9 +426,9 @@
 		</span>
 		<br>
 				{% if link.cc|add:0 > 0 %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bm bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mtl" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 				{% else %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bct mbs mtl">isko jawab do</button></a>
+						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bxl bct mbs mtl">isko jawab do</button></a>
 				{% endif %}
 			<br>
 		

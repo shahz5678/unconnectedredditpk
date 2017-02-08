@@ -185,9 +185,9 @@
         {% endif %}
             </span>
             {% if user == group.owner %}
-                &nbsp;<a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><button class="btn bcp bs cxs"><b>kick</b></button></a>
+                &nbsp;<a href="{% url 'kick_pk' pk=writer.pk slug=unique %}"><button class="btn bcp bm cxs"><b>kick</b></button></a>
             {% else %}
-                &nbsp;<a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><button class="btn bcgy bs cxs"><b>report</b></button></a>
+                &nbsp;<a href="{% url 'group_report_pk' slug=unique pk=reply.pk %}"><button class="btn bcgy bm cxs"><b>report</b></button></a>
             {% endif %}
             <br>
         {% endif %}

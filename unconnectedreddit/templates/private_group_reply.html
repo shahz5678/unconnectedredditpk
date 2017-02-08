@@ -13,7 +13,7 @@
     <br><br><br>
 {% else %}
     <a href="{% url 'leave_private_group' pk=group.id unique=group.unique private=1 inside_grp=1 %}"><button class="btn bcr bxs"><b>X</b></button></a>
-    <b class="clb cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}" class="cxs"><button class="btn bs bcg mbs"><b>change</b></button></a>
+    <b class="clb cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}"><button class="btn bm cxs bcg mbs"><b>change</b></button></a>
     <br>
     <span class="cs">
     <b class="clb">members:</b>
@@ -44,7 +44,7 @@
 
         {% endif %}
     {% else %}
-    <a href="{% url 'closed_invite_type' %}#section0"><button class="btn bs bcg brcg"><b>invite</b></button></a>
+    <a href="{% url 'closed_invite_type' %}#section0"><button class="btn bm bcg brcg"><b>invite</b></button></a>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#2DB92D">
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
@@ -240,7 +240,7 @@
         {% endif %}
             </span>
         {% if user != reply.writer and user.userprofile.score > 120 %}
-            &nbsp;<a href="{% url 'reprofile' reply.writer_id unique 1 group.id reply.writer.username %}"><button class="btn bcgy bs cxs">report</button></a>
+            &nbsp;<a href="{% url 'reprofile' reply.writer_id unique 1 group.id reply.writer.username %}"><button class="btn bcgy bm cxs">report</button></a>
         {% endif %}
         <hr size=1 COLOR="#2DB92D">
         </td></tr>

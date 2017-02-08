@@ -52,7 +52,8 @@ add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, chec
 add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort#, insert_bulk_nicknames
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, remove_all_group_members, \
+remove_group_for_all_members#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -870,17 +871,21 @@ def left_public_group(request, pk=None, unique=None, private=None, *args, **kwar
 		remove_group_notification(request.user.id,pk)
 	elif check_group_invite(request.user.id, pk):
 		remove_group_invite(request.user.id, pk)
-		remove_group_notification(request.user.id,pk)
+		# remove_group_notification(request.user.id,pk) # commented out since no notifications generated
 	else:
 		pass
 	return redirect("group_page")
 
 def del_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
-	if Group.objects.get(id=pk).owner == request.user:
+	group = Group.objects.get(id=pk)
+	member_ids = list(User.objects.filter(username__in=get_group_members(pk)).values_list('id',flat=True))
+	if group.owner == request.user:
 		remove_group_notification(user_id=request.user.id,group_id=pk)
 		del_from_rankings(pk)
 		del_attendance(pk)
 		remove_group_object(pk)
+		remove_all_group_members(pk)
+		remove_group_for_all_members(pk,member_ids)
 		GroupBanList.objects.filter(which_group_id=pk).delete()
 		GroupCaptain.objects.filter(which_group_id=pk).delete()
 		Group.objects.get(id=pk).delete()
@@ -3917,273 +3922,6 @@ class VideoView(ListView):
 				context["voted"] = voted_for_video(context["object_list"], user.username)
 		return context
 
-# class PhotoView(ListView):
-# 	model = Photo
-# 	template_name = "photos1.html"
-# 	paginate_by = 10
-
-# 	def get_queryset(self):
-# 		queryset = all_photos()
-# 		return queryset
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(PhotoView, self).get_context_data(**kwargs)
-# 		context["girls"] = FEMALES
-# 		context["authenticated"] = False
-# 		context["can_vote"] = False
-# 		context["score"] = None
-# 		context["object_list"] = retrieve_photo_posts(context["object_list"]) #list of dictionaries
-# 		context["object_list"] = [obj for obj in context["object_list"] if 'u' in obj]
-# 		try:
-# 			on_fbs = self.request.META.get('X-IORG-FBS')
-# 		except:
-# 			on_fbs = False
-# 		if on_fbs:
-# 			context["on_fbs"] = True
-# 		else:
-# 			context["on_fbs"] = False
-# 		if self.request.is_feature_phone:
-# 			context["feature_phone"] = True
-# 			context["is_android_phone"] = False
-# 		elif self.request.is_android_phone:
-# 			context["is_android_phone"] = True
-# 			context["feature_phone"] = False
-# 		elif self.request.is_iphone:
-# 			context["is_android_phone"] = True
-# 			context["feature_phone"] = False
-# 		else:
-# 			context["feature_phone"] = False
-# 			context["is_android_phone"] = True
-# 		if self.request.user.is_authenticated():
-# 			context["authenticated"] = True
-# 			user = self.request.user
-# 			context["username"] = self.request.user.username
-# 			context["score"] = user.userprofile.score
-# 			context["voted"] = []
-# 			if not self.request.user_banned:
-# 				if self.request.user.userprofile.score > 9:
-# 					context["can_vote"] = True
-# 				else:
-# 					context["can_vote"] = False
-# 				context["voted"] = voted_for_photo(context["object_list"],user.username)
-# 				photo_owners = set([photo['oi'] for photo in context["object_list"]])
-# 				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
-# 				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-# 				if not is_link and not is_photo and not is_groupreply and not is_salat:
-# 					context["freshest_unseen_comment"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 					context["banned"] = False
-# 					return context
-# 				elif not freshest_reply:
-# 					context["freshest_unseen_comment"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["first_time_user"] = False
-# 					context["banned"] = False
-# 					return context
-# 				elif is_groupreply:
-# 					if object_type == '1':
-# 						# private mehfil
-# 						context["type_of_object"] = '3a'
-# 						context["notification"] = 1
-# 						context["banned"] = False
-# 						context["first_time_user"] = False
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi'] #group id
-# 					elif object_type == '0':
-# 						# public mehfil
-# 						context["type_of_object"] = '3b'
-# 						context["notification"] = 1
-# 						context["banned"] = False
-# 						context["first_time_user"] = False
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi'] #group id
-# 					else:
-# 						context["freshest_unseen_comment"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 				elif is_salat:
-# 					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-# 						'LOCATION': MEMLOC, 'TIMEOUT': 70,
-# 					})
-# 					salat_timings = cache_mem.get('salat_timings')
-# 					salat_invite = freshest_reply
-# 					context["type_of_object"] = '4'
-# 					context["notification"] = 1
-# 					try:
-# 						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-# 					except:
-# 						context["first_time_user"] = 0
-# 					context["banned"] = False
-# 					context["parent"] = salat_invite
-# 					context["namaz"] = salat_timings['namaz'] 
-# 					context["freshest_unseen_comment"] = 1				
-# 				elif is_photo:
-# 					if object_type == '1':
-# 						#i.e. it's a photo a fan ought to see!
-# 						#photo = Photo.objects.get(id=freshest_reply)
-# 						context["freshest_unseen_comment"] = None
-# 						context["type_of_object"] = '1'
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					elif object_type == '0':
-# 						context["freshest_unseen_comment"] = freshest_reply
-# 						context["type_of_object"] = '0'
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']#.which_photo_id
-# 						# context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					else:
-# 						context["freshest_unseen_comment"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 						context["banned"] = False
-# 					return context
-# 				elif is_link:
-# 					context["type_of_object"] = '2'
-# 					context["banned"] = False
-# 					if freshest_reply:
-# 						# parent_link = freshest_reply.answer_to
-# 						# parent_link_writer = parent_link.submitter
-# 						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
-# 						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-# 						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-# 						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-# 						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-# 						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-# 						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-# 						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-# 						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-# 						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-# 						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-# 						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-# 					else:
-# 						parent_link_writer = User()
-# 						#parent_link.submitter = 0
-# 						WELCOME_MESSAGES = []
-# 					try:
-# 						context["freshest_unseen_comment"] = freshest_reply
-# 						context["notification"] = 1
-# 						context["parent"] = freshest_reply
-# 						context["parent_pk"] = freshest_reply['oi']
-# 						if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
-# 							context["first_time_user"] = True
-# 						else:
-# 							context["first_time_user"] = False
-# 					except:
-# 						context["freshest_unseen_comment"] = []
-# 						context["notification"] = 0
-# 						context["parent"] = []
-# 						context["parent_pk"] = 0
-# 						context["first_time_user"] = False
-# 					return context
-# 				else:
-# 					context["freshest_unseen_comment"] = []
-# 					context["notification"] = 0
-# 					context["parent"] = []
-# 					context["parent_pk"] = 0
-# 					context["banned"] = False
-# 					context["first_time_user"] = False
-# 					return context
-# 			else:
-# 				context["notification"] = 0
-# 				context["banned"] = True
-# 				context["can_vote"] = False
-# 				context["first_time_user"] = False
-# 				context["type_of_object"] = None
-# 				context["freshest_unseen_comment"] = []
-# 				context["parent"] = []
-# 				context["parent_pk"] = 0
-# 				return context
-# 		return context
-
-# 	def get(self, request, *args, **kwargs):
-# 		self.object_list = self.get_queryset()
-# 		allow_empty = self.get_allow_empty()
-# 		if not allow_empty:
-# 			# When pagination is enabled and object_list is a queryset,
-# 			# it's better to do a cheap query than to load the unpaginated
-# 			# queryset in memory.
-# 			if (self.get_paginate_by(self.object_list) is not None
-# 				and hasattr(self.object_list, 'exists')):
-# 				is_empty = not self.object_list.exists()
-# 			else:
-# 				is_empty = len(self.object_list) == 0
-# 			if is_empty:
-# 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-# 						% {'class_name': self.__class__.__name__})
-# 		context = self.get_context_data(object_list=self.object_list)
-# 		try:
-# 			target_id = self.request.session["target_photo_id"]
-# 			self.request.session["target_photo_id"] = None
-# 		except:
-# 			target_id = None
-# 		if target_id:
-# 			try:
-# 				# index = list(photo.id for photo in self.object_list).index(int(target_id))
-# 				index = self.object_list.index(target_id)
-# 			except:
-# 				index = None
-# 			if 0 <= index <= 9:
-# 				addendum = '#section'+str(index+1)
-# 			elif 10 <= index <= 19:
-# 				addendum = '?page=2#section'+str(index+1-10)
-# 			elif 20 <= index <= 29:
-# 				addendum = '?page=3#section'+str(index+1-20)
-# 			elif 30 <= index <= 39:
-# 				addendum = '?page=4#section'+str(index+1-30)
-# 			elif 40 <= index <= 49:
-# 				addendum = '?page=5#section'+str(index+1-40)
-# 			elif 50 <= index <= 59:
-# 				addendum = '?page=6#section'+str(index+1-50)
-# 			elif 60 <= index <= 69:
-# 				addendum = '?page=7#section'+str(index+1-60)
-# 			elif 70 <= index <= 79:
-# 				addendum = '?page=8#section'+str(index+1-70)
-# 			elif 80 <= index <= 89:
-# 				addendum = '?page=9#section'+str(index+1-80)
-# 			elif 90 <= index <= 99:
-# 				addendum = '?page=10#section'+str(index+1-90)
-# 			elif 100 <= index <= 109:
-# 				addendum = '?page=11#section'+str(index+1-100)
-# 			elif 110 <= index <= 119:
-# 				addendum = '?page=12#section'+str(index+1-110)
-# 			elif 120 <= index <= 129:
-# 				addendum = '?page=13#section'+str(index+1-120)
-# 			elif 130 <= index <= 139:
-# 				addendum = '?page=14#section'+str(index+1-130)
-# 			elif 140 <= index <= 149:
-# 				addendum = '?page=15#section'+str(index+1-140)
-# 			elif 150 <= index <= 159:
-# 				addendum = '?page=16#section'+str(index+1-150)
-# 			elif 160 <= index <= 169:
-# 				addendum = '?page=17#section'+str(index+1-160)
-# 			elif 170 <= index <= 179:
-# 				addendum = '?page=18#section'+str(index+1-170)
-# 			elif 180 <= index <= 189:
-# 				addendum = '?page=19#section'+str(index+1-180)
-# 			elif 190 <= index <= 199:
-# 				addendum = '?page=20#section'+str(index+1-190)
-# 			else:
-# 				addendum = '#section0'		
-# 			return HttpResponseRedirect(addendum)
-# 		else:
-# 			return self.render_to_response(context)
-
 def get_addendum(index,objs_per_page):
 	page = (index // objs_per_page)+1 #determining page number
 	section = index+1-((page-1)*objs_per_page) #determining section number
@@ -6565,6 +6303,12 @@ class UserProfileEditView(UpdateView):
 	model = UserProfile
 	form_class = UserProfileForm
 	template_name = "edit_profile.html"
+
+	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		return {'bio': 'Jb mein teen saal ka tha toh sr ke bl gir gaya tha. Tb se aisa hoon...'} #initial needs to be passed a dictionary
 
 	def get_form_kwargs(self):
 		"""

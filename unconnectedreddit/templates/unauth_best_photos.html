@@ -40,7 +40,7 @@
 		{% else %}
 		<b><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
 		{% endif %}
-		<button class="btn nw bm bco cs mbs mts">
+		<button class="btn nw bl bco cs mbs mts">
 		{% if photo.co|add:"0" > 1 %}
 		<b>{{ photo.co|add:"0" }}</b> tabsrey
 		{% elif photo.co|add:"0" == 1 %}
@@ -91,16 +91,16 @@
 
 			<a href="{% url 'photo_izzat' photo.i 2 %}">
 			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
+			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
 			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;point</button><br>
+			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;point</button><br>
 			{% else %}
-			<button class="btn nw bcgy cs mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
+			<button class="btn nw bcgy bm mtl mbl"><b>{{ photo.vi }}</b>&nbsp;points</button><br>
 			{% endif %}
 			</a>
 
 
-			<a href="{% url 'photo_share' photo.i 2 %}"><button class="btn nw bxl bcp">photo share kro</button></a>
+			<a href="{% url 'photo_share' photo.i 2 %}"><button class="btn nw bcp" style="width:12em;">photo share kro</button></a>
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}
 	{% empty %}<span class="clb">Top photos kuch deir baad nazr aien gi!</span>
@@ -108,11 +108,11 @@
 
 <br><div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bs bcr"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bs bcg"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
 </div>

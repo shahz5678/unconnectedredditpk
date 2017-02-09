@@ -10,7 +10,7 @@
 	Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
 	<span class="cgy cs">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
 	<a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
-{% elif score < 30 %}
+{% elif score < threshold|add:"0" %}
 	Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a>
 {% else %}
 	<form action="{% url 'upload_photo' %}" method="POST" enctype="multipart/form-data">

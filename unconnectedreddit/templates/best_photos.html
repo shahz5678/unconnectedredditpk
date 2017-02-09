@@ -186,7 +186,8 @@
 			<hr size=1>
 	{% endif %}
 	{% endif %}
-{% if score > 29 and not banned %}
+
+{% if score >= threshold and not banned %}
 <a href="{% url 'upload_photo' %}#section0"><button class="btn bxl bco mbl mtl"><b>New Photo Charhao</b></button></a>
 </p>
 {% elif banned %}

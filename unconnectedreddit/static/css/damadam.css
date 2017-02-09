@@ -119,17 +119,6 @@ S1: Html styling
 .bgc{
     background-color:#FFFFE0;
 }
-
- .margin{
-    margin-left:3px;
-    margin-right:10px;
-    padding: 10px;
-    border-radius:6px;
-    padding-top:0px;
-    padding-bottom:5px;
-    width: 90%;
-    }
-
     
 
 /*=================================================
@@ -514,7 +503,8 @@ border-radius: 4px;
 MARGINS
 ==================================================*/ 
 
-/*margin*/          .margin{margin-left:3px;margin-right:10px;padding: 10px;border-radius:6px;padding-top:0px;padding-bottom:5px;width:90%;}
+/*margin*/          /*.margin{margin-left:3px;margin-right:3px;padding: 10px;border-radius:6px;padding-top:0px;padding-bottom:5px;}*/
+/*margin*/          .margin{margin: 0 auto; margin-top: 0px: margin-bottom: 0px; margin-right: auto; margin-left: auto; max-width: 98%; padding: 0px;border-radius:6px;padding-top:0px;padding-bottom:5px;}
 /*margin auto*/     .ma{margin:auto;}
 /*margin left*/     .ml{margin-left:2em;}
 /*margin top*/      .mt{margin-top:0.2em;}

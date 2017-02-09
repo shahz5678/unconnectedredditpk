@@ -36,15 +36,14 @@ TYPE = (
 	)
 
 CATEGS = (
-('1','Gupshup'),
-('2','Songs'),
-('3','Funny'),
-('4','Videos'),
-('5','Cricket'),
+('1','Chat'),
+('2','Mehfil'),
+('3','Kings'),
+('4','Zalmi'),
+('5','Qalandars'),
 ('6','Photos'),
-('7','Ajeeb'),
-('8','Dosti'),
-('9', 'Khareedna Baichna')
+('7','Gladiators'),
+('8','United')
 	)
 
 ORIGINS = (

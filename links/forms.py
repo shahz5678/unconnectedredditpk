@@ -131,9 +131,9 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
 	shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
 	attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
-	bio = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'max-width:100%;'}))
+	bio = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'max-width:98%;'}))
 	mobilenumber = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:80%;'}))
-	age = forms.CharField(widget=forms.Textarea(attrs={'cols':10,'rows':1,'style':'max-width:100%;'}))
+	age = forms.CharField(widget=forms.Textarea(attrs={'cols':10,'rows':1,'style':'max-width:50%;'}))
 	class Meta:
 		model = UserProfile
 		exclude = ('user','previous_retort') #so user and previous_retort doesn't show, but the extended attributes of bio and mobile number do show    
@@ -177,11 +177,10 @@ class UserSettingsForm(forms.ModelForm):
 		fields = ('score_setting',)
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
-	#image_file = forms.ImageField(label='Tasveer dallo:', help_text='less than 1 mb')
-	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
+	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
 	class Meta:
 		model = Link
-		exclude = ("submitter", "rank_score", "category")
+		exclude = ("submitter", "rank_score", "cagtegory",)
 		fields = ("image_file", "description",)
 
 	def clean_description(self):
@@ -192,7 +191,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -206,7 +205,7 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -220,7 +219,7 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 class CommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = PhotoComment
 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
@@ -234,14 +233,14 @@ class CommentForm(forms.ModelForm):
 		return text
 
 class VideoCommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = VideoComment
 		exclude = ("which_photo", "device", "submitted_by", "submitted_on",)
 		fields = ("text",)
 
 class PublicreplyForm(forms.ModelForm):
-	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
@@ -378,26 +377,26 @@ class OpenGroupCreateForm(forms.ModelForm):
 		fields = ("topic", "rules", "pics_ki_ijazat")
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
 
 class ChangePrivateGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='New Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	topic = forms.CharField(label='New Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
 
 class ChangeGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:100%;'}))
+	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
 
 class UploadPhotoReplyForm(forms.ModelForm):
 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
@@ -409,7 +408,7 @@ class UploadPhotoReplyForm(forms.ModelForm):
 
 class UploadPhotoForm(forms.ModelForm):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
@@ -421,7 +420,7 @@ class UploadPhotoForm(forms.ModelForm):
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:100%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
 	class Meta:
 		fields = ("video_file", "caption",)
 
@@ -439,7 +438,7 @@ class PicsChatUploadForm(forms.ModelForm):
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 
 class ChangeGroupRulesForm(forms.ModelForm):
-	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:100%;'}))
+	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("rules",)
@@ -516,10 +515,6 @@ class StarListForm(forms.Form):
 		pass
 
 class FanListForm(forms.Form):
-	class Meta:
-		pass
-
-class PhotoOptionTutorialForm(forms.Form):
 	class Meta:
 		pass
 

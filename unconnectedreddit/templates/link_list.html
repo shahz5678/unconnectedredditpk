@@ -235,10 +235,11 @@
 			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
-			<hr size=1 COLOR="#3cb7dd" >
+			<p><hr size=1 COLOR="#3cb7dd" ></p>
 		{% elif not show_current and show_next %}
-			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bcg" style="width:12em;"><b>record save krna</b></button></a>&nbsp;
-			</div><hr size=1 COLOR="#3cb7dd">
+			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bcg mts" style="width:12em;"><b>record save krna</b></button></a>&nbsp;
+			</div>
+			<p><hr size=1 COLOR="#3cb7dd"></p>
 		{% else %}
 			<!-- nothing to show -->
 		{% endif %}

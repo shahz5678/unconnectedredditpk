@@ -20,14 +20,14 @@
 		  <span class="cm ct"><b>Kuch likho:</b></span>
 		  {% endif %}
 	  {% endif %}
-	  <br class="mbl">{{ form.description }}<br class="mbl">
+	  <br>{{ form.description }}<br>
 	  	{% if warned %}
 		<span class="cs cr"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>
 		{% endif %}
 		{% if user.userprofile.score <= threshold %}
-	  	<button class="btn bm bct" name="btn" value="1" type="submit">OK</button>
+	  	<button class="btn bm bct mtl" name="btn" value="1" type="submit">OK</button>
 	  	{% else %}
-	  	<button class="btn bm bct mbs" name="btn" value="1" type="submit">OK</button><br>
+	  	<button class="btn bm bct mbs mtl" name="btn" value="1" type="submit">OK</button><br>
 	  	<hr size=1 COLOR="#d1d1e0">
 	  	<span class="cgy cs">Choro OK, upr likho PSL ki team ke bare mein, aur phir dabao us team ka button:</span><br>
 	  	<button class="btn bl mtl" name="btn" value="4" style="background-color:#ddcc5e;border-color:#bda928;" type="submit">Zalmi</button><br>

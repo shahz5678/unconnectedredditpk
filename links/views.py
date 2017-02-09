@@ -6360,6 +6360,7 @@ class LinkCreateView(CreateView):
 			banned, time_remaining, warned = posting_allowed(self.request.user.id)
 			context["banned"] = banned
 			context["warned"] = warned
+			context["threshold"] = PSL_SUPPORT_STARTING_POINT
 			if self.request.is_feature_phone:
 				context["feature_phone"] = True
 			else:

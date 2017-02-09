@@ -218,6 +218,24 @@ def add_to_photo_vote_ban(user_ids, ban_type):
 #inbox (matka):         '3'
 #fan:                   '4'
 #password change:       '5'
+#photo uploader:        '6'
+#psl supporter:         '7'
+
+def first_time_psl_supporter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'7'):
+		return False
+	else:
+		return True
+
+def first_time_photo_uploader(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'6'):
+		return False
+	else:
+		return True
 
 def first_time_password_changer(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -285,6 +303,16 @@ def add_password_change(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '5')
+
+def add_photo_uploader(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '6')
+
+def add_psl_supporter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '7')
 
 #####################Publicreplies#####################
 
@@ -666,22 +694,36 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		# this is a typical link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
 		't':time.time() }
-	elif categ == '6':
-		# this is a photo-containing link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time() }
 	elif categ == '2':
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
 		'm':meh_url, 't':time.time() }
+	elif categ == '3':
+		# this is a link about KARACHI KINGS
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }
+	elif categ == '4':
+		# this is a link about PESHAWAR ZALMI
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }
+	elif categ == '5':
+		# this is a link about LAHORE QALANDARS
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }	
+	elif categ == '6':
+		# this is a photo-containing link on home
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time() }
+	elif categ == '7':
+		# this is a link about QUETTA GLADIATORS
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }
+	elif categ == '8':
+		# this is a link about ISLAMABAD UNITED
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
-	#executing the following as an atomic transaction:
-	'''
-	alternative:
-		get latest top 20 posts as a 'list_of_dictionary'
-		'set' them as a memcached key
-	'''
 
 def set_cool_down(tries_remaining,user_id):
 	my_server = redis.Redis(connection_pool=POOL)

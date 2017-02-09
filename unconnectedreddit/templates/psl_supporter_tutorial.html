@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+{% load emoticons_tags %}
+<div class="margin clb">
+<b class="ct">PSL pe gup shup kro&nbsp;{% emoticons %};){% endemoticons %}</b><br><br>
+<span class="ct">1)</span> Agli screen pe kisi bhi PSL team (ya player) ke bare mein likho<br>
+<span class="ct">2)</span> Likhne ke baad OK nahi dabao, balke jis team pe likha hai, uska button dabao<br>
+<span class="ct">3)</span> Aur agr PSL pe baat nahi krni, tu phir pehle ki terah kuch likho aur OK dabao<br>
+
+<a href="{% url 'link_create_pk' %}"><button class="btn nw bct bl mtl mbs" type="submit">Theek hai</button></a>
+
+</div><br><br>
+
+{% endblock %}

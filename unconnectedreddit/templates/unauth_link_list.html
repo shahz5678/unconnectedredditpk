@@ -20,10 +20,11 @@
 			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
-			<hr size=1 COLOR="#3cb7dd" >
+			<p><hr size=1 COLOR="#3cb7dd" ></p>
 		{% elif not show_current and show_next %}
 			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga<br>Namaz parhna na bhoolna!&nbsp;
-			</div><hr size=1 COLOR="#3cb7dd">
+			</div>
+			<p><hr size=1 COLOR="#3cb7dd"></p>
 		{% else %}
 			<!-- nothing to show -->
 		{% endif %}

@@ -19,9 +19,9 @@ process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help
 suspend, top_photo_help, home_location, reauth, create_nick, create_password, create_account, reset_password, unauth_home_link_list, \
 best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, \
 photo_list, unauth_photos, unauth_photo_location_pk#, set_usernames
-from links.views import home_link_list, TopView, PhotoReplyView, PhotoOptionTutorialView, UserProfilePhotosView, PhotoScoreView, \
-PhotoQataarHelpView, BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, \
-PhotoJawabView, CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
+from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
+BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
+CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
 ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, \
 GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, \
@@ -172,7 +172,6 @@ urlpatterns = patterns('',
 	url(r'^link/create/$', auth(link_create_pk), name='link_create_pk'),
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
 	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
-	url(r'^photo_option_seekho/$', auth(PhotoOptionTutorialView.as_view()), name='photo_option_tutorial'),
 	url(r'^ftr/(?P<unique>[\w.@+-]+)/$', auth(first_time_refresh), name='first_time_refresh'),
 	url(r'^ftpr/(?P<unique>[\w.@+-]+)/$', auth(first_time_public_refresh), name='first_time_public_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),

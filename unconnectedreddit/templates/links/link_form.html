@@ -24,7 +24,7 @@
 	  	{% if warned %}
 		<span class="cs cr"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>
 		{% endif %}
-		{% if user.userprofile.score < 8 %}
+		{% if user.userprofile.score <= threshold %}
 	  	<button class="btn bm bct" name="btn" value="1" type="submit">OK</button>
 	  	{% else %}
 	  	<button class="btn bm bct mbs" name="btn" value="1" type="submit">OK</button><br>
@@ -38,7 +38,7 @@
 	  	{% endif %}
 	</form>
 	{% if user.userprofile.score and user.userprofile.score < 8 and not warned %}
-	<span class="cs cgy"><i>maslan likho: aap sub ka din kaisa guzra?</i></span><br>
+	<span class="cs cgy"><i>maslan likho: aap sub kaise hain?</i></span><br>
 	{% endif %}
 	<br>
 	<hr size=1>

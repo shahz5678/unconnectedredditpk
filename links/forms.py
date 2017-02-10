@@ -16,6 +16,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO, math, re, time
 from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
+
+import unicodedata
 #from django.core.files.base import ContentFile
 
 # def uploaded_recently(avghash, hash_list):
@@ -186,6 +188,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
+ 		description = ''.join((c for c in unicodedata.normalize('NFD', description) if unicodedata.category(c) != 'Mn'))
 		if len(description) < 5:
 			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
 		return description

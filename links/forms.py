@@ -161,7 +161,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 
 	def clean_bio(self):
 		bio = self.cleaned_data.get("bio")
-		bio = text.strip(bio)
+		bio = bio.strip()
 		bio = clear_zalgo_text(bio)
 		return bio
 

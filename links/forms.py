@@ -87,17 +87,6 @@ def clean_image_file(image): # where self is the form
 	else:
 		return 0
 
-# def main(name):
-#     image = Image.open(name)
-#     ycbcr_image = Image.new('RGB', image.size, 'black')
-#     ycbcr, pixels = get_ycbcr(image), ycbcr_image.load()
-
-#     for i in range(0, image.size[0]):
-#         for j in range(0, image.size[1]):
-#             pixels[i, j] = tuple(map(int, ycbcr[i * image.size[1] + j]))
-
-#     ycbcr_image.show()
-
 def clean_image_file_with_hash(image):#, hashes): # where self is the form
 	if image:
 		# print image
@@ -114,6 +103,9 @@ def clean_image_file_with_hash(image):#, hashes): # where self is the form
 			return image, avghash, None
 	else:
 		return (0,-1)
+
+def clear_zalgo_text(text):
+	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
 class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	MardAurat = (
@@ -188,9 +180,9 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
- 		description = ''.join((c for c in unicodedata.normalize('NFD', description) if unicodedata.category(c) != 'Mn'))
 		if len(description) < 5:
 			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
+		description = clear_zalgo_text(description)
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

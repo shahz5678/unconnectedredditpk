@@ -3483,7 +3483,7 @@ class CommentView(CreateView):
 		if self.request.user.is_authenticated():
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user = self.request.user
-			text = self.request.POST.get("text")
+			text = f.text#self.request.POST.get("text")
 			origin = self.request.POST.get("origin")
 			star_user_id = None
 			link_id = None
@@ -6193,7 +6193,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			return redirect("reply_pk", pk=pk)
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			description = self.request.POST.get("description")
+			description = f.description#self.request.POST.get("description")
 			try:
 				answer_to = Link.objects.select_related('submitter__userprofile').get(id=pk)
 			except:

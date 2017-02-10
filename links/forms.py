@@ -231,7 +231,7 @@ class CommentForm(forms.ModelForm):
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
 		text = text.strip()
-		if len(text) < 5:
+		if len(text) < 2:
 			raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
 		return text
 
@@ -252,7 +252,7 @@ class PublicreplyForm(forms.ModelForm):
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		if len(description) < 5:
+		if len(description) < 2:
 			raise forms.ValidationError('tip: jawab mein itna chota lafz nahi likh sakte')
 		return description
 

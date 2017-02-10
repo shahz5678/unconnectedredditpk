@@ -157,7 +157,13 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			image = MakeThumbnail(image)
 			return image
 		else:
-			return 0   
+			return 0
+
+	def clean_bio(self):
+		bio = self.cleaned_data.get("bio")
+		bio = text.strip(bio)
+		bio = clear_zalgo_text(bio)
+		return bio
 
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (
@@ -192,6 +198,12 @@ class PublicGroupReplyForm(forms.ModelForm):
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
 
+	def clean_text(self):
+		text = self.cleaned_data.get("text")
+		text = text.strip()
+		text = clear_zalgo_text(text)
+		return text
+
 class OutsiderGroupForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
@@ -205,6 +217,12 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
+
+	def clean_text(self):
+		text = self.cleaned_data.get("text")
+		text = text.strip()
+		text = clear_zalgo_text(text)
+		return text
 
 class WelcomeMessageForm(forms.ModelForm):
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -223,6 +241,7 @@ class CommentForm(forms.ModelForm):
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
 		text = text.strip()
+		text = clear_zalgo_text(text)
 		if len(text) < 2:
 			raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
 		return text
@@ -244,6 +263,7 @@ class PublicreplyForm(forms.ModelForm):
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
+		description = clear_zalgo_text(description)
 		if len(description) < 2:
 			raise forms.ValidationError('tip: jawab mein itna chota lafz nahi likh sakte')
 		return description

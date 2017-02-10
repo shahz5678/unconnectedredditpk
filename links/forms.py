@@ -165,6 +165,10 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		bio = clear_zalgo_text(bio)
 		return bio
 
+class CricketDashboardForm(forms.Form):
+	class Meta:
+		pass
+
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (
 		('0','No'),
@@ -369,6 +373,16 @@ class UnseenActivityForm(forms.Form):
 	group_reply = forms.CharField(max_length=500)
 	class Meta:
 		fields = ("comment", "group_reply", )
+
+	def clean_comment(self):
+		comment = self.cleaned_data.get("comment")
+		comment = clear_zalgo_text(comment.strip())
+		return comment
+
+	def clean_group_reply(self):
+		group_reply = self.cleaned_data.get("group_reply")
+		group_reply = clear_zalgo_text(group_reply.strip())
+		return group_reply
 
 class PhotoTimeForm(forms.Form):
 	class Meta:

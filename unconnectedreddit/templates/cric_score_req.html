@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+<b>Is ke liye tumhara score kam az kam {{ score_req }} hona chahiye {% emoticons %}.c4{% endemoticons %}</b><br>
+<span class="cgy"><b>Home</b> pr kuch likhne ke liye 'okay' dabao</span><br>
+<a href="{% url 'link_create_pk' %}#section0"><button class="btn bcg bm mtl">okay</button></a>
+</div>
+<br><br>
+{% endblock %}

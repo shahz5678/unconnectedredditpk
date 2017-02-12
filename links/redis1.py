@@ -92,7 +92,7 @@ def get_cricket_match():
 def set_cricket_match(team_to_follow, team1, score1, team2, score2, status):
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"
-	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,'ended':'0','cc':0}
+	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status}
 	my_server.hmset(cricket, mapping)
 
 def del_cricket_match():

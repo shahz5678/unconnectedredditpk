@@ -165,10 +165,6 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		bio = clear_zalgo_text(bio)
 		return bio
 
-class CricketDashboardForm(forms.Form):
-	class Meta:
-		pass
-
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (
 		('0','No'),
@@ -179,6 +175,19 @@ class UserSettingsForm(forms.ModelForm):
 		model = UserSettings
 		exclude = ('user', 'setting2', 'setting3', 'setting4', 'setting5')
 		fields = ('score_setting',)
+
+class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
+	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	class Meta:
+		fields = ("description",)
+
+	def clean_description(self):
+		description = self.cleaned_data.get("description")
+		description = description.strip()
+		if len(description) < 3:
+			raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+		description = clear_zalgo_text(description)
+		return description
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))

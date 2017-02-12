@@ -43,7 +43,8 @@ CATEGS = (
 ('5','Qalandars'),
 ('6','Photos'),
 ('7','Gladiators'),
-('8','United')
+('8','United'),
+('9','Misc'),
 	)
 
 ORIGINS = (

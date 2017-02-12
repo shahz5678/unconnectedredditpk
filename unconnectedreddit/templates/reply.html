@@ -19,7 +19,7 @@
         {% if parent.submitter.username in ensured %}
             <span class="pinkstar"><b>*</b></span>
         {% endif %}
-    :&nbsp;<bdi class="clb cl">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy cxs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
+    :&nbsp;<bdi class="clb cl bw">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy cxs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
     {% if parent.device == '1' %}
     <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
     {% elif parent.device == '2' %}
@@ -129,8 +129,8 @@
             </span>
                {% if reply.submitted_by.username in ensured %}  
                     <span class="pinkstar"><b>*</b></span>
-                {% endif %}:&nbsp;<bdi class="clb">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
-        <span class="cxs cgy"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
+                {% endif %}:&nbsp;<bdi class="clb bw" style="overflow:hidden;">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
+                <span class="cxs cgy"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
             {% if reply.device == '1' %}
             <a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
             {% elif reply.device == '2' %}

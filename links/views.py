@@ -6571,7 +6571,7 @@ class LinkCreateView(CreateView):
 						if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
 							HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
 							user.userprofile.score = random.randint(10,71)
-							user.userprofile.save()
+							# user.userprofile.save()
 							f.submitter = user
 						else:
 							f.submitter = user # ALWAYS set this ID to unregistered_bhoot

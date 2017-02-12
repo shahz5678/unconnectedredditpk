@@ -18,7 +18,8 @@ faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter
 process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
 suspend, top_photo_help, home_location, reauth, create_nick, create_password, create_account, reset_password, unauth_home_link_list, \
 best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, \
-photo_list, unauth_photos, unauth_photo_location_pk#, set_usernames
+photo_list, unauth_photos, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page,\
+cricket_comment#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
@@ -44,7 +45,8 @@ urlpatterns = patterns('',
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
-	#url(r'^uname/$', set_usernames, name='get_username'),
+	url(r'^cricomm/$', auth(cricket_comment),name='cricket_comment'),
+	url(r'^cricket_page/$', auth(cricket_comment_page),name='cricket_comment_page'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
@@ -294,4 +296,7 @@ urlpatterns = patterns('',
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
 	url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
 	#url(r'^kick/$', auth(KickView.as_view()), name='kick'),
+	url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),
+	url(r'^cricket_remove/$',auth(cricket_remove),name='cricket_remove'),
+	url(r'^cricket_initiate/$', auth(cricket_initiate),name='cricket_initiate'),
 )

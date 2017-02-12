@@ -18,7 +18,15 @@
 			{% if enqueued_match.ended == '1' %}
 				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
 			{% elif enqueued_match.ended == '0' %}
-				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
+				{% if enqueued_match.score1 != 'None' and enqueued_match.score2 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
+				{% elif enqueued_match.score1 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
+				{% elif enqueued_match.score2 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
+				{% else %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
+				{% endif %}
 			{% endif %}
 				<p><hr size=1 COLOR="#33cc33"></p>
 		{% endif %}

@@ -391,6 +391,30 @@ button color golden
     border:solid 1px orange;
 }
 
+.qal {
+    background-color:#eb2727;
+    border-color:#bb1111;
+}
+
+.uni {
+    background-color:#ff4500;
+    border-color:#b33000;
+}
+
+.kng {
+    background-color:#244ed8;
+    border-color:#1a3799;
+}
+
+.zal {
+    background-color:#ddcc5e;
+    border-color:#bda928;
+}
+
+.gld {
+    background-color:#9040a8;
+    border-color:#4f235c;
+}
 /*background color cream*/                  .bgc{background-color:#FFFFE0;}
 /*background color lightgreen*/             .bglg{background-color:#EDFFEE;}
 /*background color light orange*/           .bglo{background-color:#ffe8cc;}

@@ -362,6 +362,10 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.rank_all_photos',
 		'schedule': timedelta(seconds=5*60), #execute every 5 mins
 	},
+	'tasks.rank_all_photos1': {
+		'task': 'tasks.rank_all_photos1',
+		'schedule': timedelta(seconds=45), #execute every 45 seconds
+	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',
 		'schedule': timedelta(seconds=86400), # execute every 24 hours

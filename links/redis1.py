@@ -15,6 +15,7 @@ set_name = "defenders" # set of all Damadam defenders
 ###########
 
 hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
+cricket = "cricket"
 set_name = "ftux:"+str(user_id)
 hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)
 hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
@@ -70,6 +71,36 @@ TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
 THREE_MINS = 3*60
+
+#####################Cricket Widget#####################
+
+def incr_cric_comm():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	my_server.hincrby(cricket,'cc',amount=1)
+
+def get_cricket_match():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	return my_server.hgetall(cricket)
+
+def set_cricket_match(team_to_follow, team1, score1, team2, score2, status):
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,'ended':'0','cc':0}
+	my_server.hmset(cricket, mapping)
+
+def del_cricket_match():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	my_server.delete(cricket)
+
+def del_delay_cricket_match():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	if my_server.exists(cricket) and my_server.ttl(cricket) < 0:
+		my_server.hset(cricket,'ended','1')
+		my_server.expire(cricket,TWENTY_MINS)
 
 #####################Authorization#####################
 
@@ -720,6 +751,10 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		't':time.time() }
 	elif categ == '8':
 		# this is a link about ISLAMABAD UNITED
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
+		't':time.time() }
+	elif categ == '9':
+		# this is a link about misc
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
 		't':time.time() }
 	# add the info in a hash

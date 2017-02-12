@@ -8,8 +8,9 @@ from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
+from cricket_score import cricket_scr
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
-PSL_SUPPORT_STARTING_POINT
+CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES
 from django.db import connection
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
@@ -54,7 +55,8 @@ add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_li
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, remove_all_group_members, \
-remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter#, insert_bulk_nicknames
+remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, set_cricket_match, \
+get_cricket_match, del_cricket_match, incr_cric_comm#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
 ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
@@ -73,7 +75,7 @@ ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameFo
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
 AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
-BestPhotosListForm, PhotosListForm
+BestPhotosListForm, PhotosListForm, CricketCommentForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1490,6 +1492,9 @@ def home_link_list(request, *args, **kwargs):
 		context["form"] = form
 		context["can_vote"] = False
 		context["authenticated"] = False
+		enqueued_match = get_cricket_match()
+		if 'team1' in enqueued_match:
+			context["enqueued_match"] = enqueued_match
 		if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
 		and 'list_of_dictionaries' in request.session and 'page' in request.session:
 			# called when user has voted
@@ -1714,6 +1719,9 @@ def unauth_home_link_list(request, *args, **kwargs):
 		context = {}
 		context["checked"] = FEMALES
 		context["form"] = form
+		enqueued_match = get_cricket_match()
+		if 'team1' in enqueued_match:
+			context["enqueued_match"] = enqueued_match
 		oblist = all_filtered_posts()
 		photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
@@ -2075,6 +2083,172 @@ class UserProfilePhotosView(ListView):
 			return HttpResponseRedirect(addendum)
 		else:
 			return self.render_to_response(context)
+
+@csrf_protect
+def cricket_comment(request,*args,**kwargs):
+	form = CricketCommentForm(request.POST)
+	if form.is_valid():
+		user = request.user
+		user_id = user.id
+		description = form.cleaned_data.get("description")
+		try:
+			score = fuzz.ratio(description, get_prev_retort(user_id))
+		except:
+			score = 85
+		if score > 86:
+			return redirect("link_create_pk")
+		set_prev_retort(user_id,description)
+		if user.userprofile.score < -25:
+			if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+				HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+				user.userprofile.score = random.randint(10,71)
+		else:
+			user.userprofile.score = user.userprofile.score + 1 #adding 1 point every time a user submits new content
+		user.userprofile.save()
+		category = request.POST.get("btn")
+		with_votes = 0
+		if request.is_feature_phone:
+			device = '1'
+		elif request.is_phone:
+			device = '2'
+		elif request.is_tablet:
+			device = '4'
+		elif request.is_mobile:
+			device = '5'
+		else:
+			device = '3'
+		link = Link.objects.create(description=description,submitter_id=user_id,rank_score=10.1, device=device,\
+			cagtegory=category)
+		try:
+			av_url = user.userprofile.avatar.url
+		except:
+			av_url = None
+		add_home_link(link_pk=link.id, categ=category, nick=user.username, av_url=av_url, desc=description, \
+			scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device)
+		incr_cric_comm()
+		if request.user_banned:
+			extras = add_unfiltered_post(link.id)
+			if extras:
+				queue_for_deletion.delay(extras)
+		else:
+			add_filtered_post(link.id)
+			extras = add_unfiltered_post(link.id)
+			if extras:
+				queue_for_deletion.delay(extras)
+		return redirect("home")
+	else:
+		return redirect("home")
+
+@csrf_protect
+def cricket_comment_page(request,*args,**kwargs):
+	if request.method == 'POST':
+		if request.user.userprofile.score < CRICKET_SUPPORT_STARTING_POINT:
+			context={"score_req":CRICKET_SUPPORT_STARTING_POINT}
+			return render(request,"cric_score_req.html",context)
+		else:
+			if first_time_psl_supporter(request.user.id):
+				add_psl_supporter(request.user.id)
+				return render(request,'psl_supporter_tutorial.html',{})
+			else:
+				form = CricketCommentForm()
+				enqueued_match = get_cricket_match()
+				try:
+					context={'form':form,'status':enqueued_match['status'],\
+					'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],\
+					'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],\
+					'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],\
+					'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
+					'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
+					'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
+				except:
+					context={'form':form,'status':enqueued_match['status'],\
+					'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],\
+					'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],\
+					'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
+				return render(request,"cricket_comment.html",context)
+	else:
+		return redirect("link_create_pk")
+
+@csrf_protect
+def cricket_initiate(request,*args,**kwargs):
+	if request.method == 'POST':
+		decision = request.POST.get("decision")
+		if decision == 'yes':
+			team_to_follow = request.POST.get("team")
+			team1 = request.POST.get("team1")
+			team2 = request.POST.get("team2")
+			score1 = request.POST.get("score1")
+			score2 = request.POST.get("score2")
+			status = request.POST.get("status")
+			set_cricket_match(team_to_follow, team1, score1, team2, score2, status)
+			context = {'team1':team1, 'score1':score1, 'team2':team2, 'score2':score2}
+			return render(request,"cricket_initialization.html",context)
+		else:
+			return redirect("cricket_dashboard")
+	else:
+		return redirect("cricket_dashboard")
+
+@csrf_protect
+def cricket_remove(request,*args,**kwargs):
+	if request.method == 'POST':
+		decision = request.POST.get("decision")
+		if decision == 'yes':
+			del_cricket_match()
+			return redirect("cricket_dashboard")
+		else:
+			return redirect("home")
+	else:	
+		return redirect("home")
+
+@csrf_protect
+def cricket_dashboard(request,*args,**kwargs):
+	teams_with_results = cricket_scr()
+	enqueued_match = get_cricket_match()
+	if enqueued_match:
+		team1 = enqueued_match['team1']
+		score1 = enqueued_match['score1']
+		team2 = enqueued_match['team2']
+		score2 = enqueued_match['score2']
+		context={'team1':team1,'team2':team2,'score1':score1,'score2':score2,'enqueued':1,'user':request.user.username}
+		return render(request,"cricket_dashboard.html",context)
+	else:
+		if request.method == 'POST':
+			team_to_follow = request.POST.get("game")
+			match_to_follow = 0
+			for match in teams_with_results:
+				if match[0][0] == team_to_follow:
+					match_to_follow = match
+			if match_to_follow:
+				team1 = match_to_follow[0][0]
+				team2 = match_to_follow[1][0]
+				try:
+					score1 = match_to_follow[0][1]
+				except:
+					score1 = None #this side is yet to score
+				try:
+					score2 = match_to_follow[1][1]
+				except:
+					score2 = None #this side is yet to score
+				status = match_to_follow[2]
+				if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower() \
+				or "abandoned" in status.lower():
+					#this match should not be enquequed since it's over
+					context = {'too_late':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2,\
+					'user':request.user.username}
+				elif "begin" in status.lower():
+					#this match is yet to begin, don't enqueue 
+					context = {'too_early':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2,\
+					'user':request.user.username}
+				else:
+					context = {'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,\
+					'team_to_follow':team_to_follow,'user':request.user.username}
+				return render(request,'cricket_dashboard.html',context)
+			else:
+				context = {'teams_with_results':teams_with_results,'user':request.user.username}
+				return render(request,'cricket_dashboard.html',context)
+		else:
+			context = {'teams_with_results':teams_with_results,'user':request.user.username}
+			return render(request,"cricket_dashboard.html",context)
 
 class UserProfileDetailView(DetailView):
 	model = get_user_model()
@@ -5878,7 +6052,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
-				description = request.POST.get("group_reply")
+				description = form.cleaned_data.get("group_reply")
 				user_id = request.user.id
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
@@ -5943,7 +6117,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
-				description = request.POST.get("comment")
+				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
@@ -6052,7 +6226,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST)
 			if form.is_valid():
-				description = request.POST.get("comment")
+				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
 				try:
 					score = fuzz.ratio(description, get_prev_retort(user_id))
@@ -6343,9 +6517,6 @@ def link_create_pk(request, *args, **kwargs):
 			context = {'unique': 'ID'}
 			return render(request, 'penalty_linkcreate.html', context)
 	else:
-		if first_time_psl_supporter(request.user.id) and request.user.userprofile.score > PSL_SUPPORT_STARTING_POINT:
-			add_psl_supporter(request.user.id)
-			return render(request,'psl_supporter_tutorial.html',{})
 		request.session["link_create_token"] = uuid.uuid4()
 		return redirect("link_create")
 
@@ -6360,7 +6531,7 @@ class LinkCreateView(CreateView):
 			banned, time_remaining, warned = posting_allowed(self.request.user.id)
 			context["banned"] = banned
 			context["warned"] = warned
-			context["threshold"] = PSL_SUPPORT_STARTING_POINT
+			context["threshold"] = CRICKET_SUPPORT_STARTING_POINT
 			if self.request.is_feature_phone:
 				context["feature_phone"] = True
 			else:
@@ -6407,8 +6578,7 @@ class LinkCreateView(CreateView):
 							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 					else:
 						f.submitter = user
-						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 2 points every time a user submits new content
-					f.with_votes = 0
+						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
 					category = self.request.POST.get("btn")
 					f.cagtegory = category
 					if self.request.is_feature_phone:

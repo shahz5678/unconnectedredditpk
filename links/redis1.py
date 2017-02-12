@@ -74,6 +74,11 @@ THREE_MINS = 3*60
 
 #####################Cricket Widget#####################
 
+def get_cricket_ttl():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	return my_server.ttl(cricket)
+
 def incr_cric_comm():
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"

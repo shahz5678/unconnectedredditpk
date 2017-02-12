@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+
+<h2>Game on hai!</h2>
+<b><span class="ct">{{ team1 }}&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;{{ team2 }}&nbsp;{{ score2 }}</span></b><br><br>
+<a href="{% url 'home' %}#section3"><button class="btn bcg bm mbs">Done</button></a>
+
+</div>
+<br><br>
+{% endblock %}

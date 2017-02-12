@@ -2202,53 +2202,54 @@ def cricket_remove(request,*args,**kwargs):
 
 @csrf_protect
 def cricket_dashboard(request,*args,**kwargs):
-	teams_with_results = cricket_scr()
-	enqueued_match = get_cricket_match()
-	if enqueued_match:
-		team1 = enqueued_match['team1']
-		score1 = enqueued_match['score1']
-		team2 = enqueued_match['team2']
-		score2 = enqueued_match['score2']
-		context={'team1':team1,'team2':team2,'score1':score1,'score2':score2,'enqueued':1,'user':request.user.username}
-		return render(request,"cricket_dashboard.html",context)
-	else:
-		if request.method == 'POST':
-			team_to_follow = request.POST.get("game")
-			match_to_follow = 0
-			for match in teams_with_results:
-				if match[0][0] == team_to_follow:
-					match_to_follow = match
-			if match_to_follow:
-				team1 = match_to_follow[0][0]
-				team2 = match_to_follow[1][0]
-				try:
-					score1 = match_to_follow[0][1]
-				except:
-					score1 = None #this side is yet to score
-				try:
-					score2 = match_to_follow[1][1]
-				except:
-					score2 = None #this side is yet to score
-				status = match_to_follow[2]
-				if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower() \
-				or "abandoned" in status.lower():
-					#this match should not be enquequed since it's over
-					context = {'too_late':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2,\
-					'user':request.user.username}
-				elif "begin" in status.lower():
-					#this match is yet to begin, don't enqueue 
-					context = {'too_early':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2,\
-					'user':request.user.username}
-				else:
-					context = {'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,\
-					'team_to_follow':team_to_follow,'user':request.user.username}
-				return render(request,'cricket_dashboard.html',context)
-			else:
-				context = {'teams_with_results':teams_with_results,'user':request.user.username}
-				return render(request,'cricket_dashboard.html',context)
-		else:
-			context = {'teams_with_results':teams_with_results,'user':request.user.username}
+	if request.user.username == 'pathan-e-khan' or request.user.username == 'mhb11':
+		teams_with_results = cricket_scr()
+		enqueued_match = get_cricket_match()
+		if enqueued_match:
+			team1 = enqueued_match['team1']
+			score1 = enqueued_match['score1']
+			team2 = enqueued_match['team2']
+			score2 = enqueued_match['score2']
+			context={'team1':team1,'team2':team2,'score1':score1,'score2':score2,'enqueued':1}
 			return render(request,"cricket_dashboard.html",context)
+		else:
+			if request.method == 'POST':
+				team_to_follow = request.POST.get("game")
+				match_to_follow = 0
+				for match in teams_with_results:
+					if match[0][0] == team_to_follow:
+						match_to_follow = match
+				if match_to_follow:
+					team1 = match_to_follow[0][0]
+					team2 = match_to_follow[1][0]
+					try:
+						score1 = match_to_follow[0][1]
+					except:
+						score1 = None #this side is yet to score
+					try:
+						score2 = match_to_follow[1][1]
+					except:
+						score2 = None #this side is yet to score
+					status = match_to_follow[2]
+					if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower() \
+					or "abandoned" in status.lower():
+						#this match should not be enquequed since it's over
+						context = {'too_late':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2}
+					elif "begin" in status.lower():
+						#this match is yet to begin, don't enqueue 
+						context = {'too_early':1,'score1':score1,'team1':team1,'score2':score2,'team2':team2}
+					else:
+						context = {'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,\
+						'team_to_follow':team_to_follow}
+					return render(request,'cricket_dashboard.html',context)
+				else:
+					context = {'teams_with_results':teams_with_results}
+					return render(request,'cricket_dashboard.html',context)
+			else:
+				context = {'teams_with_results':teams_with_results}
+				return render(request,"cricket_dashboard.html",context)
+	else:
+		return redirect("home")
 
 class UserProfileDetailView(DetailView):
 	model = get_user_model()

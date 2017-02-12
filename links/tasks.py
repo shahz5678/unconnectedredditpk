@@ -7,6 +7,7 @@ from django.core.cache import get_cache, cache
 from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
+from cricket_score import cricket_scr
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, Vote
@@ -16,7 +17,8 @@ get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_i
 get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort#, retrieve_first_page
+add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_cricket_match, del_cricket_match, \
+set_cricket_match, del_delay_cricket_match#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -196,7 +198,39 @@ def rank_all_photos():
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
-	pass
+	enqueued_match = get_cricket_match()
+	if 'team1' in enqueued_match:
+		#refresh the results
+		teams_with_results = cricket_scr()
+		match_to_follow = 0
+		for match in teams_with_results:
+			if match[0][0] == enqueued_match['team1']:
+				match_to_follow = match
+		if match_to_follow:
+			team1 = match_to_follow[0][0]
+			team2 = match_to_follow[1][0]
+			try:
+				score1 = match_to_follow[0][1]
+			except:
+				score1 = None #this side is yet to score
+			try:
+				score2 = match_to_follow[1][1]
+			except:
+				score2 = None #this side is yet to score
+			status = match_to_follow[2]
+			# decide whether to go on, or delete match
+			if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower():
+				#match ended
+				del_delay_cricket_match() #key will expire in 20 mins
+			elif "abandoned" in status.lower() or "begin" in status.lower():
+				#match not begun, or abandoned. Dequeue immediately
+				del_cricket_match()
+			else:
+				set_cricket_match(team_to_follow=team1, team1=team1, score1=score1, team2=team2, \
+					score2=score2, status=status)
+		else:
+			#match not found, dequeue it
+			del_cricket_match()
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():

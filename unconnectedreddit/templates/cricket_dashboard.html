@@ -2,53 +2,49 @@
 {% block content %}
 {% load emoticons_tags %}
 <div class="margin">
-{% if user == 'gori' or user == 'pathan-e-khan' %}
-	{% if enqueued %}
-		<h2>The following match is already enqueued:</h2>
-		<b><span class="ct">{{ team1 }}&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;{{ team2 }}&nbsp;{{ score2 }}</span></b><br><br>
-		<hr size=1 COLOR="#b3e6b3">
-		<h2>Do you want to remove it?</h2>
-		<form method="POST" action="{% url 'cricket_remove' %}">
+{% if enqueued %}
+	<h2>The following match is already enqueued:</h2>
+	<b><span class="ct">{{ team1 }}&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;{{ team2 }}&nbsp;{{ score2 }}</span></b><br><br>
+	<hr size=1 COLOR="#b3e6b3">
+	<h2>Do you want to remove it?</h2>
+	<form method="POST" action="{% url 'cricket_remove' %}">
+		{% csrf_token %}
+		<button class="btn bcg bm mbs" type="submit" name="decision" value="yes">Yes</button></a><br>
+		<button class="btn bcr bm mts mbs" type="submit" name="decision" value="no">No</button></a>
+	</form>
+{% else %}
+	{% if too_late %}
+		<h2 class="clb">This match has already ended!</h2>
+		<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
+		<a href="{% url 'cricket_dashboard' %}"><button class="btn bcr bm mtl mbs">Back</button></a>
+	{% elif too_early %}
+		<h2 class="clb">This match hasn't begun yet!</h2>
+		<span class="ct"><b>{{ team1 }}</b></span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b></span><br>
+		<a href="{% url 'cricket_dashboard' %}"><button class="btn bcr bm mtl mbs">Back</button></a>
+	{% elif team_to_follow %}
+		<h2 class="clb">Match selected:</h2>
+		<form method="POST" action="{% url 'cricket_initiate' %}">
 			{% csrf_token %}
-			<button class="btn bcg bm mbs" type="submit" name="decision" value="yes">Yes</button></a><br>
-			<button class="btn bcr bm mts mbs" type="submit" name="decision" value="no">No</button></a>
+			<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
+			<input type="hidden" name="team" value="{{ team_to_follow }}">
+			<input type="hidden" name="team1" value="{{ team1 }}">
+			<input type="hidden" name="team2" value="{{ team2 }}">
+			<input type="hidden" name="score1" value="{{ score1 }}">
+			<input type="hidden" name="score2" value="{{ score2 }}">
+			<input type="hidden" name="status" value="{{ status }}">
+			<button class="btn bcg bl mtl" name="decision" value="yes" type="submit">Let's go!</button><br>
+			<button class="btn bcr bl mtl mbs" name="decision" value="no" type="submit">Nevermind</button>
 		</form>
 	{% else %}
-		{% if too_late %}
-			<h2 class="clb">This match has already ended!</h2>
-			<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
-			<a href="{% url 'cricket_dashboard' %}"><button class="btn bcr bm mtl mbs">Back</button></a>
-		{% elif too_early %}
-			<h2 class="clb">This match hasn't begun yet!</h2>
-			<span class="ct"><b>{{ team1 }}</b></span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b></span><br>
-			<a href="{% url 'cricket_dashboard' %}"><button class="btn bcr bm mtl mbs">Back</button></a>
-		{% elif team_to_follow %}
-			<h2 class="clb">Match selected:</h2>
-			<form method="POST" action="{% url 'cricket_initiate' %}">
-				{% csrf_token %}
-				<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
-				<input type="hidden" name="team" value="{{ team_to_follow }}">
-				<input type="hidden" name="team1" value="{{ team1 }}">
-				<input type="hidden" name="team2" value="{{ team2 }}">
-				<input type="hidden" name="score1" value="{{ score1 }}">
-				<input type="hidden" name="score2" value="{{ score2 }}">
-				<input type="hidden" name="status" value="{{ status }}">
-				<button class="btn bcg bl mtl" name="decision" value="yes" type="submit">Let's go!</button><br>
-				<button class="btn bcr bl mtl mbs" name="decision" value="no" type="submit">Nevermind</button>
-			</form>
-		{% else %}
-			<form method="post" action="{% url 'cricket_dashboard' %}">
-				{% csrf_token %}
-				{% for match in teams_with_results %}
-				<span class="cg">{{ forloop.counter }}.</span>
-				<input class="mbl" type="radio" name="game" value="{{ match.0.0 }}" checked><span class="ct"><b>{{ match.0.0 }}</b>&nbsp;{{ match.0.1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ match.1.0 }}</b>&nbsp;{{ match.1.1 }}</span><br>
-				{% endfor %}
-				<button class="btn bm bcg mbs mts" type="submit">Submit</button>
-			</form>
-		{% endif %}
+		<form method="post" action="{% url 'cricket_dashboard' %}">
+			{% csrf_token %}
+			{% for match in teams_with_results %}
+			<span class="cg">{{ forloop.counter }}.</span>
+			<input class="mbl" type="radio" name="game" value="{{ match.0.0 }}" checked><span class="ct"><b>{{ match.0.0 }}</b>&nbsp;{{ match.0.1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ match.1.0 }}</b>&nbsp;{{ match.1.1 }}</span><br>
+			{% endfor %}
+			<button class="btn bm bcg mbs mts" type="submit">Submit</button>
+		</form>
 	{% endif %}
-{% else %}
-<h2 class="clb">Ye nahi chal raha</h2>
 {% endif %}
 </div>
 <br><br>

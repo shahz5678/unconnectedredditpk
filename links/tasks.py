@@ -199,7 +199,7 @@ def rank_all_photos():
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	enqueued_match = get_cricket_match()
-	if 'team1' in enqueued_match and get_cricket_ttl() > 1:
+	if 'team1' in enqueued_match and get_cricket_ttl() < 1:
 		#refresh the result
 		teams_with_results = cricket_scr()
 		match_to_follow = 0

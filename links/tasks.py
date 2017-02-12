@@ -18,7 +18,7 @@ get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_cricket_match, del_cricket_match, \
-set_cricket_match, del_delay_cricket_match#, retrieve_first_page
+set_cricket_match, del_delay_cricket_match, get_cricket_ttl#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -199,8 +199,8 @@ def rank_all_photos():
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	enqueued_match = get_cricket_match()
-	if 'team1' in enqueued_match:
-		#refresh the results
+	if 'team1' in enqueued_match and get_cricket_ttl() > 1:
+		#refresh the result
 		teams_with_results = cricket_scr()
 		match_to_follow = 0
 		for match in teams_with_results:

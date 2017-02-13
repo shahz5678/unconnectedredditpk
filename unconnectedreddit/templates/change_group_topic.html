@@ -2,10 +2,10 @@
 {% block content %}
 
 
-<div class="margin" style="color:#404040;">
+<div class="margin clb">
 {% if unauthorized %}
 
-<span style="font-size:90%;color:red;"><b>Sirf mehfil ka admin ye kaam kar sakta hai!</b></span>
+<span class="cr"><b>Sirf mehfil ka admin ye kaam kar sakta hai!</b></span>
 
 {% else %}
 <span>Is mehfil ka new topic kiya rakhna hai?</span><br>
@@ -18,7 +18,7 @@
 <br>
 <form method="post" action="">
 {% csrf_token %}
-<span style="color:red;">{{ form.topic.errors }}</span>
+<span class="cr">{{ form.topic.errors }}</span>
 <b class="cp">New Topic:</b><br>{{ form.topic }}<br>
 <button class="btn bcp bms mtl mbl" type="submit">OK</button>
 </form>

@@ -2,13 +2,13 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<b class="cl"><span class="cg">{{ topic }}</span> ko chorna hai? {% emoticons %}.j1.j2.j3.j4{% endemoticons %}</b>
+<b class="cl"><span class="cg">{% emoticons %}{{ topic }}</span> ko chorna hai? .j1{% endemoticons %}</b>
 <br class="mbl">
-&nbsp;<a href="{% url 'left_private_group' pk unique private %}"><button class="btn bcg bm mbl">Haan</button></a><br>
+<a href="{% url 'left_private_group' pk unique private %}"><button class="btn bcg bm mbl mls">Haan</button></a><br>
 {% if inside_grp == '1' %}
-&nbsp;<a href="{% url 'private_group' unique %}"><button class="btn bcr bm mbs">Nahi</button></a>
+<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcr mls mbs">Nahi</button></form>
 {% else %}
-&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcr bm mbs">Nahi</button></a>
+<a href="{% url 'group_page' %}#section0"><button class="btn bcr bm mls mbs">Nahi</button></a>
 {% endif %}
 </div>
 <br>

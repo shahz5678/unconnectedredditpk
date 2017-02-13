@@ -5,8 +5,8 @@
 	<h2>Kiya tum is baat ko mita dena chahte ho?</h2>
 	<form action="{% url 'group_report' %}" method="POST">
 	{% csrf_token %}
-	<b class="cgy">.</b></span><input type="submit" name="report" class="cb" value="Haan mita do"><br>
-	<b class="cgy">.</b></span><input type="submit" name="report" class="cb" value="Nahi rehne do"><br>
+	</span><button type="submit" name="report" class="btn bcg bm" value="Haan mita do">Haan</button><br>
+	</span><button type="submit" name="report" class="btn bcr bm mtl" value="Nahi rehne do">Nahi</button>
 	</form>
 {% else %}
 	<h2>Tum is baat ko report nahi kr sakte</h2>

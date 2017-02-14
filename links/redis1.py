@@ -79,6 +79,11 @@ def get_cricket_ttl():
 	cricket = "cricket"
 	return my_server.ttl(cricket)
 
+def get_prev_status():
+	my_server = redis.Redis(connection_pool=POOL)
+	cricket = "cricket"
+	return my_server.hget(cricket,'status')
+
 def incr_cric_comm():
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"
@@ -92,7 +97,7 @@ def get_cricket_match():
 def set_cricket_match(team_to_follow, team1, score1, team2, score2, status):
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"
-	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,'ended':'0'}
+	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,'team2':team2,'score2':score2,'status':status,'ended':'0','cc':0}
 	my_server.hmset(cricket, mapping)
 
 def del_cricket_match():
@@ -100,12 +105,15 @@ def del_cricket_match():
 	cricket = "cricket"
 	my_server.delete(cricket)
 
-def del_delay_cricket_match():
+def del_delay_cricket_match(final_status):
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"
 	if my_server.exists(cricket) and my_server.ttl(cricket) < 0:
-		my_server.hset(cricket,'ended','1')
-		my_server.expire(cricket,TWENTY_MINS)
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset(cricket,'ended','1')
+		pipeline1.hset(cricket,'status',final_status)	
+		pipeline1.expire(cricket,TWENTY_MINS)
+		pipeline1.execute()
 
 #####################Authorization#####################
 

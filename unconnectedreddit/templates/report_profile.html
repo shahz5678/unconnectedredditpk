@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="margin" style="color:#404040;"> 
+<div class="margin clb"> 
 
 {% if target_id and allowed %}
-	<b style="font-size:105%;"><span style="color:#229ec3;">{{target_username }}</span> ko report krne ki wajah:</b><br>
-	<span style="font-size:85%;color:#ff8000;">report ki qeemat: <b>{{ pts }} points</b></span><br>
-	&nbsp;<a href="{% url 'rep' num=1 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:1em;">gali di hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=2 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">dhamki di hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=8 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">fake admin hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=3 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">fake profile hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=4 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">gandi baat ki hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=5 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">password manga hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=6 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">firqa wariyat ki hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=7 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">burri photo lagai hai</button></a><br>
-	&nbsp;<a href="{% url 'rep' num=9 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button style="color:white;border-color: #ff8000;background: #ff9933;width:10.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;">kuch aur masla hai</button></a><br>
+	<b class="cl"><span class="ct">{{target_username }}</span> ko report krne ki wajah batao:</b><br>
+	<span class="cgy cs">(report ki qeemat <b>{{ pts }} points</b>)</span><br>
+	&nbsp;<a href="{% url 'rep' num=1 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">gali di hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=2 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">dhamki di hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=8 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">fake admin hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=3 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">fake profile hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=4 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">gandi baat ki hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=5 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">password manga hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=6 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">firqa wariyat ki hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=7 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">burri photo lagai hai</button></a><br>
+	&nbsp;<a href="{% url 'rep' num=9 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bco mtl" style="width:15em;">kuch aur masla hai</button></a><br>
 
 {% elif target_id and not allowed %}
-	<b><span style="color:#229ec3;">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kr sakte</b><br><br>
-	<a href="{% url 'private_group' mehfil_uuid %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
+	<b><span class="ct">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kr sakte</b>
+	<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ mehfil_uuid }}" class="btn bm bcg mtl">wapis</button></form>
 {% else %}
-	<b>Damadam ki yad daasht chali gaii! Tum kon ho?!</b>
+	<b>Damadam ki yad dasht chali gai! Tum kon ho?!</b>
 {% endif %}
 	<br><br>
 

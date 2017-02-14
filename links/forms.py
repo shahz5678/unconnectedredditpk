@@ -402,6 +402,10 @@ class ClosedGroupCreateForm(forms.ModelForm):
 		model = Group
 		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
 		fields = ("topic",)
+
+	def __init__(self, *args, **kwargs):
+		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
 	
 class OpenGroupCreateForm(forms.ModelForm):
 	PicNoPic = (
@@ -413,6 +417,11 @@ class OpenGroupCreateForm(forms.ModelForm):
 		model = Group
 		exclude = ("owner","created_at", "members", "cagtegory","private")
 		fields = ("topic", "rules", "pics_ki_ijazat")
+
+	def __init__(self, *args, **kwargs):
+		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
+		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))

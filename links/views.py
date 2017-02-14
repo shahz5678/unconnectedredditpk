@@ -58,23 +58,23 @@ time_to_vote_permission, account_creation_disallowed, account_created, ban_photo
 remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, set_cricket_match, \
 get_cricket_match, del_cricket_match, incr_cric_comm#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
-ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangeOutsideGroupTopicForm, \
-ChangePrivateGroupTopicForm, ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, \
-CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, \
-DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, \
-WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, \
-SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, \
-OutsideMessageCreateForm, OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, \
-PublicGroupReplyForm, ClosedInviteTypeForm, OpenInviteTypeForm, TopForm, LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, \
-RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, \
-GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, \
-WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, \
-ClosedGroupCreateForm, OpenGroupCreateForm, BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, TopPhotoForm, \
-FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, \
-ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, \
-UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
-AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, \
-AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
+ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
+ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
+PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, DeletePicForm, UserPhoneNumberForm, \
+PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, \
+NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, \
+OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, \
+OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, TopForm, \
+LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, \
+ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, \
+ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, \
+PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, \
+BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, \
+PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, ReportcommentForm, MehfilCommentForm, \
+SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, \
+VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, \
+AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
+AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
 BestPhotosListForm, PhotosListForm, CricketCommentForm
 
 from django.core.urlresolvers import reverse_lazy
@@ -380,33 +380,33 @@ class SmsInviteView(FormView):
 			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
 		return context
 
-class ClosedInviteTypeView(FormView):
-	form_class = ClosedInviteTypeForm
-	template_name = "closed_invite_type.html"
+# class ClosedInviteTypeView(FormView):
+# 	form_class = ClosedInviteTypeForm
+# 	template_name = "closed_invite_type.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(ClosedInviteTypeView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.request.session["private_uuid"]
-			context["unique"] = unique
-			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(ClosedInviteTypeView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			unique = self.request.session["private_uuid"]
+# 			context["unique"] = unique
+# 			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique
+# 		return context
 
-class OpenInviteTypeView(FormView):
-	form_class = OpenInviteTypeForm
-	template_name = "open_invite_type.html"
+# class OpenInviteTypeView(FormView):
+# 	form_class = OpenInviteTypeForm
+# 	template_name = "open_invite_type.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(OpenInviteTypeView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.request.session["public_uuid"]
-			try:
-				context["unique"] = unique
-				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
-			except:
-				context["unique"] = None
-				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com"
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(OpenInviteTypeView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			unique = self.request.session["public_uuid"]
+# 			try:
+# 				context["unique"] = unique
+# 				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
+# 			except:
+# 				context["unique"] = None
+# 				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com"
+# 		return context
 
 class RegisterLoginView(FormView):
 	form_class = RegisterLoginForm
@@ -985,14 +985,13 @@ class MehfilView(FormView):
 						reply_list = []
 						seen_list = []
 						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
-						#reply_list.append(Reply(text='Aur g kia haal hai?', which_group_id=group.id, writer=user))
-						#Reply.objects.bulk_create(reply_list)
 						add_group_member(group.id, user.username)
 						add_group_invite(target, group.id,reply.id)
 						add_user_group(user.id, group.id)
-						return redirect("private_group", slug=unique)
+						self.request.session["unique_id"] = unique
+						return redirect("private_group_reply")#, slug=unique)
 					except:
-						redirect("reply_pk", pk=link_id)
+						return redirect("reply_pk", pk=link_id)
 			else:
 				return redirect("home")
 
@@ -1488,10 +1487,14 @@ def home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		form = HomeLinkListForm()
 		context = {}
+		user = request.user
 		context["checked"] = FEMALES
 		context["form"] = form
 		context["can_vote"] = False
 		context["authenticated"] = False
+		context["ident"] = user.id #own user id
+		context["username"] = user.username #own username
+		newrelic.agent.add_custom_parameter("nickname", user.username)
 		enqueued_match = get_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -1584,9 +1587,6 @@ def home_link_list(request, *args, **kwargs):
 		else:
 			context["newest_user"] = None
 		context["authenticated"] = True
-		user = request.user
-		context["ident"] = user.id #own user id
-		context["username"] = user.username #own username
 		photo_owners = set(item['w'] for item in list_of_dictionaries if 'pi' in item)
 		context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 		score = user.userprofile.score
@@ -2293,7 +2293,6 @@ class OutsideMessageCreateView(FormView):
 class DirectMessageCreateView(FormView):
 	model = Group
 	form_class = DirectMessageCreateForm
-	#template_name = "create_direct_message.html"
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
@@ -2309,12 +2308,11 @@ class DirectMessageCreateView(FormView):
 				reply_list=[]
 				seen_list=[]
 				reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=self.request.user)
-				#reply_list.append(Reply(text='aur g kia haal hai?', which_group_id=group.id, writer=self.request.user))
-				#Reply.objects.bulk_create(reply_list)
 				add_group_member(group.id, self.request.user.username)
 				add_group_invite(pk, group.id,reply.id)
 				add_user_group(self.request.user.id, group.id)
-				return redirect("private_group", slug=unique)
+				self.request.session["unique_id"] = unique
+				return redirect("private_group_reply")#, slug=unique)
 			except:
 				return redirect("profile", slug=invitee)
 
@@ -2353,7 +2351,8 @@ class ClosedGroupCreateView(CreateView):
 			try: 
 				return redirect("invite_private", slug=unique)
 			except:
-				return redirect("private_group", slug=unique)
+				self.request.session["unique_id"] = unique
+				return redirect("private_group_reply")#, slug=unique)
 		else:
 			return redirect("group_page")
 
@@ -2486,7 +2485,7 @@ class InviteUsersToPrivateGroupView(ListView):
 			global condemned
 			try:
 				user_ids = cache_mem.get('online')
-				group = Group.objects.get(unique=self.request.session["private_uuid"])
+				group = Group.objects.get(unique=self.request.session["unique_id"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
 				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
@@ -2499,7 +2498,7 @@ class InviteUsersToPrivateGroupView(ListView):
 		if self.request.user.is_authenticated():
 			context["legit"] = FEMALES
 			try:	
-				unique = self.request.session["private_uuid"]
+				unique = self.request.session["unique_id"]
 				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
 				context["authorized"] = True
@@ -5392,44 +5391,6 @@ class ChangeGroupRulesView(CreateView):
 			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
 			return redirect("public_group", slug=unique)
 
-class ChangeOutsideGroupTopicView(CreateView):
-	model = Group
-	form_class = ChangeOutsideGroupTopicForm
-	template_name = "change_outside_group_topic.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(ChangeOutsideGroupTopicView, self).get_context_data(**kwargs)
-		user = self.request.user
-		context["unauthorized"] = False
-		if user.is_authenticated():
-			unique = self.request.session["unique_outsider"]
-			if unique:	
-				context["unique"] = unique
-				group = Group.objects.get(unique=unique)
-				context["group"] = group
-				if group.private == '0' or group.private == '1':
-					context["unauthorized"] = True
-					context["group"] = None
-					return context
-			else:
-				context["unauthorized"] = True
-				context["group"] = None
-				return context
-		return context
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		user = self.request.user
-		if self.request.user_banned:
-			return redirect("profile", slug=user.username)
-		else:
-			topic = self.request.POST.get("topic")
-			unique = self.request.session["unique_outsider"]
-			group = Group.objects.get(unique=unique)
-			group.topic = topic
-			group.save()
-			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
-			return redirect("outsider_group", slug=unique)
-
 class ChangePrivateGroupTopicView(CreateView):
 	model = Group
 	form_class = ChangePrivateGroupTopicForm
@@ -5479,7 +5440,8 @@ class ChangePrivateGroupTopicView(CreateView):
 			else:
 				device = '3'
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4', device=device)
-			return redirect("private_group", slug=unique)
+			self.request.session["unique_id"] = unique
+			return redirect("private_group_reply")#, slug=unique)
 
 class ChangeGroupTopicView(CreateView):
 	model = Group
@@ -5717,28 +5679,22 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 			context = {'unique': unique}
 			return render(request, 'mehfil_refresh.html', context)
 		else:
-			return redirect("private_group", unique)
+			request.session["unique_id"] = unique
+			return redirect("private_group_reply")#, slug=unique)
 
-@ratelimit(rate='3/s')
-def private_group(request, slug=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': slug}
-			return render(request, 'penalty.html', context)
-		else:
-			context = {'unique': slug}
-			return render(request, 'penalty.html', context)
-	else:
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def priv_group(request,*args,**kwargs):
+	if request.method == 'POST':
+		slug = request.POST.get("private_uuid")
 		if valid_uuid(slug):
-			request.session['unique_id'] = slug
-			request.session["private_uuid"] = slug
+			request.session["unique_id"] = slug
+			return redirect("private_group_reply")
 		else:
-			return redirect("score_help")
-		return redirect("private_group_reply")
+			return redirect("group_page")	
+	else:
+		return redirect("group_page")
 
 class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Reply
@@ -5840,7 +5796,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				except:
 					score = 85
 				if score > 87:
-					return redirect("private_group", self.request.session['unique_id'])#, pk= reply.answer_to.id)
+					return redirect("private_group_reply")#, pk= reply.answer_to.id)
 				else:
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					if f.image:
@@ -5877,7 +5833,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 						device = '5'
 					else:
 						device = '3'
-					which_group = Group.objects.get(unique=self.request.POST.get("unique"))
+					unique = self.request.POST.get("unique")
+					which_group = Group.objects.get(unique=unique)
 					which_group_id = which_group.id
 					reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
 						device=device)
@@ -5897,8 +5854,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 						group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
 						poster_username=self.request.user.username,reply_text=text,priv=which_group.private,\
 						slug=which_group.unique,image_url=image_url,priority='priv_mehfil',from_unseen=False)
-					self.request.session['unique_id'] = None
-					return redirect("private_group", reply.which_group.unique)
+					self.request.session['unique_id'] = unique
+					return redirect("private_group_reply")#, reply.which_group.unique)
 	
 @ratelimit(rate='3/s')
 def welcome_pk(request, pk=None, *args, **kwargs):
@@ -6025,7 +5982,8 @@ class MehfilCommentView(FormView):
 						add_group_member(group.id, user.username)
 						add_group_invite(target_id, group.id,reply.id)
 						add_user_group(user.id, group.id)
-						return redirect("private_group", slug=unique)
+						self.request.session["unique_id"] = unique
+						return redirect("private_group_reply")#, slug=unique)
 					except:
 						if photo_id is not None:
 							redirect("comment_pk", pk=photo_id)
@@ -8188,9 +8146,11 @@ def ad_finalize(request,*args, **kwargs):
 					"image_url":image,"address":address,
 					"only_ladies":gender_based, "location":locations,
 					"app_code":"1","user_id":user_id,"ad_url":ad_url}
+			# print data
 			response = call_aasan_api(data,'create')
-			print response.json()
-			print response.text
+			# print response
+			# print response.json()
+			# print response.text
 			return HttpResponse('Ad sent to aasanads')
 		else:
 			return redirect("home")

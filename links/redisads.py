@@ -1,13 +1,15 @@
 import redis, random
 from django.shortcuts import redirect
 from target_urls import call_aasan_api
+from location import REDLOC1
 
 '''
 separate redis modules for ads, so that the namespace doesn't collide with other
 redis functions
 '''
 
-POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=1)# change connection from TCP port to UNIX socket
+# POOL = redis.ConnectionPool(host='127.0.0.1', port=6379, db=1)
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC1, db=1) # changed connection from TCP port to UNIX socket
 
 ##########Redis ads namespace##########
 
@@ -211,11 +213,12 @@ def send_sms(ad_id,ad_progress):
 def store_click(ad_id,location=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad_id = str(ad_id)
+	# print ad_id
 	if location in LOCATION_KEYS:
 		# total_location_impressions = my_server.incr("il:"+ad_id)
 		# total_impressions = my_server.incr("ic:"+ad_id)
 		click_ceiling = my_server.hget("ad:"+ad_id,"cl")
-		current_clicks = my_server.get("ac:"+ad_id)
+		current_clicks = my_server.get("ac:"+ad_id) 
 		if int(current_clicks) < int(click_ceiling):
 			total_clicks = my_server.incr("ac:"+ad_id)
 			total_location_clicks = my_server.incr("al:"+ad_id+":"+str(location))

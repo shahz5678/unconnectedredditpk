@@ -13,7 +13,7 @@
     <br><br><br>
 {% else %}
     <a href="{% url 'leave_private_group' pk=group.id unique=group.unique private=1 inside_grp=1 %}"><button class="btn bcr bxs"><b>X</b></button></a>
-    <b class="clb cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}"><button class="btn bm cxs bcg mbs"><b>change</b></button></a>
+    <b class="clb cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}"><button class="btn bm bcg cs mbs">change</button></a>
     <br>
     <span class="cs">
     <b class="clb">members:</b>
@@ -44,7 +44,7 @@
 
         {% endif %}
     {% else %}
-    <a href="{% url 'closed_invite_type' %}#section0"><button class="btn bm bcg brcg"><b>invite</b></button></a>
+    <a href="{% url 'invite_private_group' %}#section0"><button class="btn bm bcg cs mts">invite</button></a>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#2DB92D">
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">

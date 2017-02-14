@@ -36,27 +36,18 @@
 				</a>
 			{% if reply.0.writer.username in verified %}
 					<span class="pkstr"><b>*</b></span>
-				{% endif %} ne tumhe
-			</span>
+				{% endif %} ne tumhe</span><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</button></form><span class="cgy cm">mein bulaya</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
 
-			<a href="{% url 'private_group' reply.0.which_group.unique %}">
-			<span class="cg"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
-			</a>
-			<span class="cgy cm">mein bulaya</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
-			<p><hr size=1 COLOR="#2DB92D"></p>
+				<p><hr size=1 COLOR="#2DB92D"></p>
+
 		{% elif reply.0.which_group.private == '1' and reply.0.writer == user %}
 
 			<a href="{% url 'leave_private_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;&nbsp;
 
-			<span class="cgy cm">
-			Tum ne
-			</span>
-
-			<a href="{% url 'private_group' reply.0.which_group.unique %}">
-			<span class="cg"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
-			</a>
-			<span class="cgy cm">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy cm">Tum ne</span><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</button></form><span class="cgy cm">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			
 			<p><hr size=1 COLOR="#2DB92D"></p>
+
 		{% elif reply.0.which_group.private == '0' and reply.0.writer != user %}
 
 			<a href="{% url 'leave_public_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;&nbsp;
@@ -106,13 +97,7 @@
 		
 		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span class="cgy cm">
-		<a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>
-		{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %} ne</span>&nbsp;
-
-		<a href="{% url 'private_group' reply.0.which_group.unique %}"><b class="cg">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></a>&nbsp;
-
-		<span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
+		<span class="cgy cm"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %}&nbsp;ne</span><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</button></form><span class="cgy cm">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#2DB92D"></p>
 		

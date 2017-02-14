@@ -76,7 +76,7 @@
         <button class="btn bms bco mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
     </form>
         <br><br>
-        <a href="{% url 'open_invite_type' %}#section0" class="cxs"><b>invite</b></a>{% if user == group.owner %}<span class="cxs ms">|</span>
+        <a href="{% url 'invite' %}#section0" class="cxs"><b>invite</b></a>{% if user == group.owner %}<span class="cxs ms">|</span>
         <a href="{% url 'owner_group_online_kon' %}" class="cxs"><b>afsar banao</b></a>
         {%else %}
         <span class="cxs">|</span>

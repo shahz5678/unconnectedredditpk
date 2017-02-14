@@ -5,13 +5,13 @@
 
 <div class="margin clb">
 {% if unauthorized %}
-<span class="clb"><b>Tumhe ye dekhne ki ijazat nahi</b>
+<span class="clb"><b>Tumhe ye nahi dekh sakte</b>
 {% else %}
 Yahan ye log pichle 10 min mein nazr aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" class="cs"><button class="btn bcg bm cs mtl">wapis</button></a><br><br>
+	<form class="POST" method="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="unique" class="btn bcg bm cs mtl">wapis</button></form><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" class="cs"><button class="btn bcp bm cs mtl">wapis</button></a><br><br>
+	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm cs mtl">wapis</button></a><br><br>
 	{% else %}
 	{% endif %}
 {% for visitor,captain in groupies %}
@@ -31,15 +31,15 @@ Yahan ye log pichle 10 min mein nazr aye:<br>
 		<span class="cgy cs"><b>(afsar)</b></span>
 	{% endif %}
 	{% if visitor == group.owner %}
-		<span class="cg cs"><b>(admin)</b></span>
+		<span class="cp cs"><b>(admin)</b></span>
 	{% endif %}
 	<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}" class="cs"><button class="btn bcg bm cs mbl">wapis</button></a><br><br>
+	<form class="POST" method="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="unique" class="btn bcg bm cs mtl">wapis</button></form><br><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}" class="cs"><button class="btn bcp bm cs mbl">wapis</button></a><br><br>
+	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm cs mbl">wapis</button></a><br><br>
 	{% else %}
 	{% endif %}
 {% endif %}

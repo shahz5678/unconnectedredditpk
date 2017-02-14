@@ -8,12 +8,12 @@
 {% else %}
 Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' unique %}" class="cs"><button class="btn bcg bm cs mtl">wapis</button></a>
+	<form class="POST" method="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="unique" class="btn bcg bm cs mtl">wapis</button></form><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' unique %}" class="cs"><button class="btn bcp bm cs mtl">wapis</button></a>
+	<a href="{% url 'public_group' unique %}"><button class="btn bcp bm cs mtl mbl">wapis</button></a><br>
 	{% else %}
 	{% endif %}
-<br><br>
+	<br>
 {% for group_user,captain in groupies %}
 		<b class="clg cl">.</b>
 		<a href="{% url 'profile' slug=group_user.username %}">
@@ -39,12 +39,11 @@ Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 {% endfor %}
 <br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' unique %}" class="cs"><button class="btn bcg bm cs mtl">wapis</button></a>
+	<form class="POST" method="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="unique" class="btn bcg bm cs mtl">wapis</button></form><br>
 	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' unique %}" class="cs"><button class="btn bcp bm cs mtl">wapis</button></a>
+	<a href="{% url 'public_group' unique %}"><button class="btn bcp bm cs mtl">wapis</button></a><br>
 	{% else %}
 	{% endif %}
-<br><br>
 {% endif %}
 </div>
 <br><br>																																

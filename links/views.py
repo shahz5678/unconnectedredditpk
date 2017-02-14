@@ -299,7 +299,7 @@ class ReinvitePrivateView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(ReinvitePrivateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			unique = self.request.session["private_uuid"]
+			unique = self.request.session["unique_id"]
 			context["unique"] = unique
 		return context
 
@@ -379,34 +379,6 @@ class SmsInviteView(FormView):
 			context["number"] = number
 			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
 		return context
-
-# class ClosedInviteTypeView(FormView):
-# 	form_class = ClosedInviteTypeForm
-# 	template_name = "closed_invite_type.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(ClosedInviteTypeView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			unique = self.request.session["private_uuid"]
-# 			context["unique"] = unique
-# 			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique
-# 		return context
-
-# class OpenInviteTypeView(FormView):
-# 	form_class = OpenInviteTypeForm
-# 	template_name = "open_invite_type.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(OpenInviteTypeView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			unique = self.request.session["public_uuid"]
-# 			try:
-# 				context["unique"] = unique
-# 				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfilawami/"+unique
-# 			except:
-# 				context["unique"] = None
-# 				context["sms_url"] = "https://http-damadam-pk.0.freebasics.com"
-# 		return context
 
 class RegisterLoginView(FormView):
 	form_class = RegisterLoginForm
@@ -2349,9 +2321,9 @@ class ClosedGroupCreateView(CreateView):
 			add_group_member(f.id, self.request.user.username)
 			add_user_group(user_id, f.id)
 			try: 
-				return redirect("invite_private", slug=unique)
+				return redirect("invite_private", slug=f.unique)
 			except:
-				self.request.session["unique_id"] = unique
+				self.request.session["unique_id"] = f.unique
 				return redirect("private_group_reply")#, slug=unique)
 		else:
 			return redirect("group_page")
@@ -2444,7 +2416,7 @@ class DirectMessageView(FormView):
 
 def invite_private(request, slug=None, *args, **kwargs):
 	if valid_uuid(slug):
-		request.session["private_uuid"] = slug
+		request.session["unique_id"] = slug
 		return redirect("invite_private_group")
 	else:
 		return redirect("score_help")
@@ -2467,7 +2439,7 @@ def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
 				add_group_invite(pk, group_id,reply.id)
 				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
-		request.session["private_uuid"] = None
+		request.session["unique_id"] = None
 		return redirect("invite_private", slug=uuid)
 
 class InviteUsersToPrivateGroupView(ListView):

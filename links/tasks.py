@@ -18,7 +18,7 @@ get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_cricket_match, del_cricket_match, \
-set_cricket_match, del_delay_cricket_match, get_cricket_ttl#, retrieve_first_page
+set_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -199,7 +199,7 @@ def rank_all_photos():
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	enqueued_match = get_cricket_match()
-	if 'team1' in enqueued_match and get_cricket_ttl() < 1:
+	if 'team1' in enqueued_match:# and get_cricket_ttl() < 1:
 		#refresh the result
 		teams_with_results = cricket_scr()
 		match_to_follow = 0
@@ -219,10 +219,11 @@ def rank_all_photos1():
 				score2 = None #this side is yet to score
 			status = match_to_follow[2]
 			# decide whether to go on, or delete match
-			if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower():
+			prev_status = get_prev_status().lower()
+			if "won by" in prev_status or "drawn" in prev_status or "tied" in prev_status:
 				#match ended
-				del_delay_cricket_match() #key will expire in 20 mins
-			elif "abandoned" in status.lower() or "begin" in status.lower():
+				del_delay_cricket_match(status) #key will expire in 20 mins
+			elif "abandoned" in prev_status or "begin" in prev_status:
 				#match not begun, or abandoned. Dequeue immediately
 				del_cricket_match()
 			else:

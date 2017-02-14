@@ -3,7 +3,8 @@ from requests.auth import HTTPBasicAuth
 
 # DOMAIN = 'http://10.50.202.114:8000'
 # DOMAIN = 'http://aasaninternet.com:786'
-DOMAIN = 'http://192.168.1.108:8000'
+DOMAIN = 'http://192.168.1.128:8000'
+# DOMAIN = 'https://fahadrao.pagekite.me'
 
 SEND_SMS_URL = DOMAIN+'/api/ad/send_sms/'
 CREATE_URL = DOMAIN+'/api/ad/create/'

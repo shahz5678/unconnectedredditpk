@@ -953,13 +953,13 @@ class MehfilView(FormView):
 					unique = uuid.uuid4()
 					try:
 						group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
-						user.userprofile.save()
 						reply_list = []
 						seen_list = []
 						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
 						add_group_member(group.id, user.username)
 						add_group_invite(target, group.id,reply.id)
 						add_user_group(user.id, group.id)
+						user.userprofile.save()
 						self.request.session["unique_id"] = unique
 						return redirect("private_group_reply")#, slug=unique)
 					except:
@@ -2305,7 +2305,6 @@ class ClosedGroupCreateView(CreateView):
 			f.rules = ''
 			f.category = '1'
 			set_prev_retort(user_id,f.topic)
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PRIVATE_GROUP_COST)
 			f.save()
 			creation_text = 'mein ne new mehfil shuru kar di'
 			reply = Reply.objects.create(text=creation_text,which_group=f,writer_id=user_id)
@@ -2317,6 +2316,7 @@ class ClosedGroupCreateView(CreateView):
 			create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
 				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique)
 			create_notification(viewer_id=user_id,object_id=f.id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
+			f.owner.userprofile.score = f.owner.userprofile.score - PRIVATE_GROUP_COST
 			f.owner.userprofile.save()
 			add_group_member(f.id, self.request.user.username)
 			add_user_group(user_id, f.id)
@@ -2343,7 +2343,6 @@ class OpenGroupCreateView(CreateView):
 			unique = uuid.uuid4()
 			f.unique = unique
 			set_prev_retort(user_id,f.topic)
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PUBLIC_GROUP_COST)
 			f.save()
 			creation_text = 'mein ne new mehfil shuru kar di'
 			reply = Reply.objects.create(text=creation_text,which_group=f,writer=user)
@@ -2374,6 +2373,8 @@ class OpenGroupCreateView(CreateView):
 				extras = add_unfiltered_post(link.id)
 				if extras:
 					queue_for_deletion.delay(extras)
+			f.owner.userprofile.score = f.owner.userprofile.score - PUBLIC_GROUP_COST
+			f.owner.userprofile.save()
 			add_group_member(f_id, user.username)
 			add_user_group(user_id, f_id)
 			try: 

@@ -64,8 +64,8 @@
 				{% if parent.lrsn in girls %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'private_group' parent.l %}"><button class="btn nw bl bcg mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent_pk ident '2' %}"><button class="btn bxs bcr" style="margin-top:1em;"><b>X</b></button></a>
+		<span class="clb">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span><br> 
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bl bcg mrs">jawab do</button></form>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent_pk ident '2' %}"><button class="btn bxs bcr" style="margin-top:1em;"><b>X</b></button></a>
 	</div>
 				<p style="margin-top:.5em;"></p>
 				<hr size=1>

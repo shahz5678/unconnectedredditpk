@@ -16,7 +16,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO, math, re, time
 from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
-
+from abuse import BANNED_WORDS
 import unicodedata
 #from django.core.files.base import ContentFile
 
@@ -877,6 +877,9 @@ class CreateNickForm(forms.Form):
 		elif User.objects.filter(username__iexact=username).exists():
 			raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
 		else:
+			for name in BANNED_WORDS:
+				if name in username.lower():
+					raise ValidationError('tip: nick mein "%s" nahi ho sakta' % name)
 			return username
 
 class ReauthForm(forms.Form):

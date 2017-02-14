@@ -1948,7 +1948,7 @@ class UserProfilePhotosView(ListView):
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
-			newrelic.agent.add_custom_parameter("nickname", username)
+			newrelic.agent.add_custom_parameter("photoboys", username)
 			context["authenticated"] = True
 			score = self.request.user.userprofile.score
 			context["score"] = score

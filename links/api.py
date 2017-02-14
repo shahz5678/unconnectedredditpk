@@ -8,7 +8,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 
 #uname = aasanads
-#password = damadam1234
+#password = asdasdASFDA234
 
 # def enqueue_ad(ad_dict):
 # 	'''
@@ -118,7 +118,7 @@ def process_req(request,realm="", *args, **kwargs):
 				data = {'tid':str(ad_id),'sms_url':'http://example.com/ad_location'}
 				try:
 					response = call_aasan_api(data,'send_sms')
-					print response
+					# print response
 					# print response.content 
 					return HttpResponse('SMS sent') #sending back the ad_url that appears in the SMS
 				except:

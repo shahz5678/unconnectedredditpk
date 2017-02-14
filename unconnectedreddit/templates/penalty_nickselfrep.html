@@ -1,15 +1,13 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Apne aap ko report krna himakat hi nahi, jurm bhi hai</h2>
-
+<div class="margin clb">
+<h2>Apne aap ko report nahi kya ja sakta</h2>
 {% if private == '1' %}
-<a href="{% url 'private_group' uuid %}">
+<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ uuid }}" class="btn bm bcg mtl">wapis</button></form>
 {% else %}
-<a href="{% url 'public_group' uuid %}">
+<a href="{% url 'public_group' uuid %}"><button class="btn bm bcp mbs">wapis</button></a>
 {% endif %}
-<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:4em;">wapis</button></a>
 </div>
-<br><br><br>
+<br><br>
 {% endblock %}

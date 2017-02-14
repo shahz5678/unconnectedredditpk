@@ -2,23 +2,22 @@
 {% block content %}
 
 
-<div class="margin" style="color:#404040;">
+<div class="margin clb">
 {% if unauthorized %}
 
-<span style="font-size:100%;color:red;"><b>Tumhe ye krne ka ikhtiyar nahi, chill kro!</b></span>
+<span class="cr"><b>Tumhe ye krne ka ikhtiyar nahi</b></span>
 
 {% else %}
 	<span>Is mehfil ka new topic kia rakhna hai?</span><br>
 	{% if group.private == '1' %}
-	<a href="{% url 'private_group' slug=unique %}"><button class="btn bcg bm mbl mts">wapis</button></a>
+	<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bcg bm mbl mts">wapis</button></form>
 	{% elif group.private == '0' %}
 	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm mbl mts">wapis</button></a>
 	{% else %}
 	{% endif %}
-	<br>
 	<form method="post" action="">
 	{% csrf_token %}
-	<span style="color:red;">{{ form.topic.errors }}</span>
+	<span class="cr">{{ form.topic.errors }}</span>
 	<b class="cg">New Topic:</b><br>{{ form.topic }}<br>
 	<button class="btn bcg bms mtl mbl" type="submit">OK</button>
 	</form>

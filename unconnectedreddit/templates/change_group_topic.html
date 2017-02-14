@@ -9,14 +9,14 @@
 
 {% else %}
 	<span>Is mehfil ka new topic kiya rakhna hai?</span><br><br>
-	<form method="post" action="" style="display:inline">
+	<form method="post" action="">
 	{% csrf_token %}
 	<span class="cr">{{ form.topic.errors }}</span>
 	<b class="cp">New Topic:</b><br>{{ form.topic }}<br>
 	<button class="btn bcp bms mtl mbl mrl" type="submit">OK</button>
 	</form>
 	{% if group.private == '1' %}
-	<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcgy mtl mls mbl">wapis</button></form>
+	<form method="POST" action="{% url 'priv_group' %}" style="display:inline;">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcgy mtl mls mbl">wapis</button></form>
 	{% elif group.private == '0' %}
 	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mtl mls mbl">wapis</button></a>
 	{% else %}

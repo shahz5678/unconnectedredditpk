@@ -8,20 +8,20 @@
 <span class="cr"><b>Tumhe ye krne ka ikhtiyar nahi</b></span>
 
 {% else %}
-	<span>Is mehfil ka new topic kia rakhna hai?</span><br>
-	{% if group.private == '1' %}
-	<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bcg bm mbl mts">wapis</button></form>
-	{% elif group.private == '0' %}
-	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm mbl mts">wapis</button></a>
-	{% else %}
-	{% endif %}
+	<span>Is mehfil ka new topic kia rakhna hai?</span><br><br>
 	<form method="post" action="">
 	{% csrf_token %}
 	<span class="cr">{{ form.topic.errors }}</span>
 	<b class="cg">New Topic:</b><br>{{ form.topic }}<br>
 	<button class="btn bcg bms mtl mbl" type="submit">OK</button>
 	</form>
+	{% if group.private == '1' %}
+	<form method="POST" action="{% url 'priv_group' %}" style="display:inline;">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bcgy bm mbl mts">wapis</button></form>
+	{% elif group.private == '0' %}
+	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mbl mts">wapis</button></a>
+	{% else %}
+	{% endif %}
 {% endif %}
 </div>
-
+<br><br>
 {% endblock %}

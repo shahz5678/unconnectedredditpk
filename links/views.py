@@ -292,17 +292,6 @@ class FanListView(FormView):
 			context["error"] = True
 		return context
 
-class ReinvitePrivateView(FormView):
-	form_class = ReinvitePrivateForm
-	template_name = "reinvite_private.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(ReinvitePrivateView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.request.session["unique_id"]
-			context["unique"] = unique
-		return context
-
 class ReinviteView(FormView):
 	form_class = ReinviteForm
 	template_name = "reinvite.html"
@@ -2413,6 +2402,18 @@ class DirectMessageView(FormView):
 				context["nopk"] = True
 				context["target"] = None
 				return context
+		return context
+
+
+class ReinvitePrivateView(FormView):
+	form_class = ReinvitePrivateForm
+	template_name = "reinvite_private.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ReinvitePrivateView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			unique = self.request.session["unique_id"]
+			context["unique"] = unique
 		return context
 
 def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):

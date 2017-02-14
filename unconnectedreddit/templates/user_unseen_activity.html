@@ -90,7 +90,7 @@
 {% elif notif.ot == '3' %}
 	{% if notif.s == 'True' %}
 	{% if notif.g == '1' %}
-	<a href="{% url 'private_group' notif.l %}"><b class="cgy">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+	<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="cl cgy" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</button></form>
 	{% else %}
 	<a href="{% url 'public_group' notif.l %}"><b class="cgy">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
 	{% endif %}
@@ -112,8 +112,8 @@
 		<br>
 
 		{% if notif.g == '1' %}
-		<a href="{% url 'private_group' notif.l %}"><button class="btn nw bcgy bm mbs mts">andr jao</button></a>
-		<br><b class="cgy cs">Likho:</b>
+		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcgy mbl mtl">andr jao</button></form>
+		<b class="cgy cs">Likho:</b>
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<input type="hidden" name="comment" value="1">
@@ -138,8 +138,7 @@
 		
 	
 		{% if notif.g == '1' %}
-
-		<a href="{% url 'private_group' notif.l %}"><b class="cg">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="cl cg" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</button></form>
 		<br>
 		<span class="cg cs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
 		<br>
@@ -148,18 +147,16 @@
 		<br>
 		{% endif %}
 
-		<a href="{% url 'private_group' notif.l %}">
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" class="ibgn"></img>
+		<input type="image" height="22" width="22" src="{{ notif.lrau|thumbedge }}">
 		{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+		<input type="image" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg">
 		{% endif %}
-		
-		{{ notif.lrsn }}</a><span class="clb">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<span style="color:blue;">{{ notif.lrsn }}</span></form><span class="clb">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
-
-		<a href="{% url 'private_group' notif.l %}"><button class="btn nw bcg bm mbs mts">andr jao</button></a>
-		<br><b class="cg cs">Likho:</b>
+		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcg mbl mtl">andr jao</button></form>
+		<b class="cg cs">Likho:</b>
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<input type="hidden" name="comment" value="1">

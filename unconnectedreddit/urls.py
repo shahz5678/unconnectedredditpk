@@ -8,32 +8,31 @@ from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
-comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, private_group, direct_message, mehfil_help, \
-reply_pk, reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, \
-fan, fan_list, comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, \
-salat_tutorial_init, salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, \
-repnick, reprofile, rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
-video_vote, profile_pk, first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, \
-faces_pages, ban_photo_uploader, redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, \
-process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,\
-suspend, top_photo_help, home_location, reauth, create_nick, create_password, create_account, reset_password, unauth_home_link_list, \
-best_photos_list, unauth_best_photos, unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, \
-photo_list, unauth_photos, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page,\
-cricket_comment#, set_usernames
+comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
+reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
+comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
+salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, repnick, reprofile, \
+rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
+first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, ban_photo_uploader, \
+redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, process_public_group_invite, non_fbs_vid, \
+unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, \
+create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
+unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
+cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
-CommentView, UploadPhotoView, AboutView, ChangeOutsideGroupTopicView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
+CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
 ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, \
 GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, \
 GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OpenGroupHelpView, SmsInviteView, \
-OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, ClosedInviteTypeView, PrivateGroupView, \
-PublicGroupView, OpenInviteTypeView, ReinviteView, LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, \
-ChangeGroupTopicView, GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, \
-InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, \
-LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, \
-ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, \
-StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, \
+OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, PrivateGroupView, PublicGroupView, \
+ReinviteView, LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, \
+GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, \
+OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
+ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, \
+UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, StarListView, \
+FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, \
 ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, \
 ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, \
 AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, \
@@ -199,8 +198,6 @@ urlpatterns = patterns('',
 	url(r'^privateinvite/(?P<slug>[\w.@+-]+)/$', auth(invite_private), name='invite_private'),
 	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/(?P<name>[\w.@+-]+)/$', auth(SmsInviteView.as_view()), name='sms_invite'),
 	url(r'^bahir/invite/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
-	url(r'^group/open_invite_type/$', auth(OpenInviteTypeView.as_view()), name='open_invite_type'),
-	url(r'^group/closed_invite_type/$', auth(ClosedInviteTypeView.as_view()), name='closed_invite_type'),
 	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
 	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^reinvite/private/$', auth(ReinvitePrivateView.as_view()), name='reinvite_private_help'),
@@ -268,12 +265,11 @@ urlpatterns = patterns('',
 	url(r'^mehfil/awami/$', auth(PublicGroupView.as_view()), name='public_group_reply'),
 	url(r'^mehfilawami/(?P<slug>[\w.@+-]+)/$', auth(public_group), name='public_group'),
 	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
-	url(r'^mehfil/(?P<slug>[\w.@+-]+)/$', auth(private_group), name='private_group'),
+	url(r'^pmf/$', auth(priv_group), name='priv_group'),
 	# url(r'^mehfilbahir/$', OutsiderGroupView.as_view(), name='outsider_group_reply'),####
 	# url(r'^mehfil/(?P<slug>[\w.@+-]+)/bahir/$', outsider_group, name='outsider_group'),
 	url(r'^group/change_topic/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),
 	url(r'^group/change_private_topic/$', auth(ChangePrivateGroupTopicView.as_view()), name='change_private_topic'),
-	url(r'^group/change_outside_topic/$', auth(ChangeOutsideGroupTopicView.as_view()), name='change_outside_topic'),
 	url(r'^group/change_rules/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),
 	url(r'^group/online_kon/$', auth(GroupOnlineKonView.as_view()), name='group_online_kon'),
 	url(r'^group/owner_online_kon/$', auth(OwnerGroupOnlineKonView.as_view()), name='owner_group_online_kon'),

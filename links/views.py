@@ -2415,13 +2415,6 @@ class DirectMessageView(FormView):
 				return context
 		return context
 
-def invite_private(request, slug=None, *args, **kwargs):
-	if valid_uuid(slug):
-		request.session["unique_id"] = slug
-		return redirect("invite_private_group")
-	else:
-		return redirect("score_help")
-
 def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 	if request.user_banned:
 		return redirect("group_page")
@@ -2442,6 +2435,13 @@ def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
 		request.session["unique_id"] = None
 		return redirect("invite_private", slug=uuid)
+
+def invite_private(request, slug=None, *args, **kwargs):
+	if valid_uuid(slug):
+		request.session["unique_id"] = slug
+		return redirect("invite_private_group")
+	else:
+		return redirect("score_help")
 
 class InviteUsersToPrivateGroupView(ListView):
 	model = Session

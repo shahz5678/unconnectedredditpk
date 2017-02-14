@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin clb">
+<form method="post" action="">
+  {% csrf_token %}
+  Nickname:<br>
+  {{ form.username }}<br><br>
+  Password:<br>
+  {{ form.password1 }}<br><br>
+  Password (dobara se):<br>
+  {{ form.password2 }}<br><br>
+  <input class="btn bcg bs mbs" type="submit" value="OK">
+  <br><span class="cgy cs">Account nahi bn raha? Koi aur <b>nickname</b> rkh ke dekho!</span>
+</form>
+</div>
+<br><br>
+{% endblock %}

@@ -2,23 +2,22 @@
 {% block content %}
 <div class="margin clb">
 {% if unauthorized %}
-<span style="font-size:90%;color:red;"><b>Sirf mehfil ka admin ye kaam kar sakta hai!</b></span>
+	<span class="cr"><b>Sirf mehfil ka admin ye kaam kr sakta hai!</b></span>
 {% else %}
-<span>Is mehfil ka new qanoon keya rakhna hai?</span><br>
-{% if group.private == '1' %}
-<a href="{% url 'private_group' slug=unique %}"><button class="btn bcg bm mbl mts">wapis</button></a>
-{% elif group.private == '0' %}
-<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm mbl mts">wapis</button></a>
-{% else %}
-{% endif %}
-<br><br>
-<form method="post" action="">
-{% csrf_token %}
-<span style="color:red;">{{ form.rules.errors }}</span>
-<b class="cp">New Qanoon:</b><br>{{ form.rules }}<br>
-<button class="btn bcp bms mtl mbl" type="submit">OK</button>
-</form>
-{% endif %}
+	<span>Is mehfil ka new qanoon kya rakhna hai?</span><br><br>
+	<form method="post" action="" style="display:inline">
+	{% csrf_token %}
+	<span class="cr">{{ form.rules.errors }}</span>
+	<b class="cp">New Qanoon:</b><br>{{ form.rules }}<br>
+	<button class="btn bcp bms mtl mbl mrl" type="submit">OK</button>
+	</form>
+		{% if group.private == '1' %}
+		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcgy mtl mls mbs">wapis</button></form>
+		{% elif group.private == '0' %}
+		<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mtl mls mbs">wapis</button></a>
+		{% else %}
+		{% endif %}
+	{% endif %}
 </div>
-<br>
+<br><br>
 {% endblock %}

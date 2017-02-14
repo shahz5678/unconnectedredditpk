@@ -942,23 +942,11 @@ class VoteOrProfForm(forms.Form):
 	class Meta:
 		pass
 
-# class VoteOrProfileForm(forms.Form):
-# 	class Meta:
-# 		pass
-
-class OpenInviteTypeForm(forms.Form):
-	class Meta:
-		pass
-
 class SmsReinviteForm(forms.Form):
 	class Meta:
 		pass
 
 class SmsInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class ClosedInviteTypeForm(forms.Form):
 	class Meta:
 		pass
 

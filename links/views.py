@@ -56,7 +56,7 @@ add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_li
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, remove_all_group_members, \
-remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, set_cricket_match, \
+remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter,\
 create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -2239,6 +2239,11 @@ def cricket_dashboard(request,*args,**kwargs):
 					except:
 						score2 = None #this side is yet to score
 					status = match_to_follow[2]
+					if not status:
+						if score2:
+							status = str(team1)+" "+str(score1)+" vs "+str(team2)+" "+str(score2)
+						else:
+							status = str(team1)+" "+str(score1)+" vs "+str(team2)
 					if "won by" in status.lower() or "drawn" in status.lower() or "tied" in status.lower() \
 					or "abandoned" in status.lower():
 						#this match should not be enquequed since it's over

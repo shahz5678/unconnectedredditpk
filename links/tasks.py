@@ -18,7 +18,7 @@ get_top_100
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_current_cricket_match, \
-del_cricket_match, set_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status#, retrieve_first_page
+del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -218,6 +218,11 @@ def rank_all_photos1():
 			except:
 				score2 = None #this side is yet to score
 			status = match_to_follow[2]
+			if not status:
+				if score2:
+					status = str(team1)+" "+str(score1)+" vs "+str(team2)+" "+str(score2)
+				else:
+					status = str(team1)+" "+str(score1)+" vs "+str(team2)
 			# decide whether to go on, or delete match
 			prev_status = get_prev_status().lower()
 			if "won by" in prev_status or "drawn" in prev_status or "tied" in prev_status:
@@ -227,7 +232,7 @@ def rank_all_photos1():
 				#match not begun, or abandoned. Dequeue immediately
 				del_cricket_match(enqueued_match['id'])
 			else:
-				set_cricket_match(team_to_follow=team1, team1=team1, score1=score1, team2=team2, \
+				update_cricket_match(team_to_follow=team1, team1=team1, score1=score1, team2=team2, \
 					score2=score2, status=status)
 		else:
 			#match not found, dequeue it

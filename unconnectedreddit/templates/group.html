@@ -39,7 +39,7 @@
 				{% endif %}</span>&nbsp;<span class="cgy">ne tumhe</span>
 				<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}
 				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-				<label class="cg cl" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
+				<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
 				<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label>
 				</form>
 				<span class="cgy">mein bulaya</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
@@ -53,7 +53,7 @@
 			<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
 			<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 			</form>
 			<span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
@@ -110,7 +110,7 @@
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
@@ -125,7 +125,7 @@
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		

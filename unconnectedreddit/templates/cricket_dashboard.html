@@ -25,7 +25,11 @@
 		<h2 class="clb">Match selected:</h2>
 		<form method="POST" action="{% url 'cricket_initiate' %}">
 			{% csrf_token %}
-			<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
+			{% if score2 %}
+				<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b>&nbsp;{{ score2 }}</span><br>
+			{% else %}
+				<span class="ct"><b>{{ team1 }}</b>&nbsp;{{ score1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ team2 }}</b><br>
+			{% endif %}
 			<input type="hidden" name="team" value="{{ team_to_follow }}">
 			<input type="hidden" name="team1" value="{{ team1 }}">
 			<input type="hidden" name="team2" value="{{ team2 }}">

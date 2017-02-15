@@ -61,7 +61,7 @@
         <br>
         {{ form.text }}
             {% if warned %}
-            <span class="cs cr"><b>Warning:</b> tumhare khilaf reports a rahi hain, ehtiat kro yar!</span>
+            <span class="cs cr"><b>Warning:</b> tumhare khilaf reports a rahi hain, ehtiat kro!</span>
             {% endif %}
             <br>
     <button class="btn bms bcg mrl" type="submit" id="id_submit">OK</button>
@@ -205,22 +205,17 @@
             <bdi>{{ reply.writer }}</bdi>
             </a>
             
-            <span class="cxs">
-
                 {% if writer.userprofile.score %}
                     {% if writer.userprofile.score < 0 %}
-                        <span class="cg">(1)</span>
+                        <span class="cg cxs">(1)</span>
                     {% else %}
-                        <span class="cg">({{ writer.userprofile.score }})</span>
+                        <span class="cg cxs">({{ writer.userprofile.score }})</span>
                     {% endif %}
                 {% endif %}
 
-            </span>
-            <span>
             {% if writer.username in ensured %}
                 <span class="pinkstar"><b>*</b></span>
-            {% endif %}</span>
-            <span>:</span>&nbsp;
+            {% endif %}:&nbsp;
             <bdi class="bw">{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
         
         {% endif %}

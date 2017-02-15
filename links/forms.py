@@ -165,6 +165,12 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		bio = clear_zalgo_text(bio)
 		return bio
 
+	def clean_age(self):
+		age = self.cleaned_data.get("age")
+		if len(age) > 2:
+			raise forms.ValidationError('tip: age sahi likho')
+		return age
+
 class UserSettingsForm(forms.ModelForm):
 	ScoreVisible = (
 		('0','No'),

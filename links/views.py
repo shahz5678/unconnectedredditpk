@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
+from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
 CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES
 from django.db import connection
@@ -56,7 +57,7 @@ first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, remove_all_group_members, \
 remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, set_cricket_match, \
-get_cricket_match, del_cricket_match, incr_cric_comm#, insert_bulk_nicknames
+create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
@@ -92,9 +93,6 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
-
-ITEMS_PER_PAGE = 20
-PHOTOS_PER_PAGE = 10
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
@@ -1456,7 +1454,7 @@ def home_link_list(request, *args, **kwargs):
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
 		newrelic.agent.add_custom_parameter("nickname", user.username)
-		enqueued_match = get_cricket_match()
+		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
 		if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
@@ -1680,7 +1678,7 @@ def unauth_home_link_list(request, *args, **kwargs):
 		context = {}
 		context["checked"] = FEMALES
 		context["form"] = form
-		enqueued_match = get_cricket_match()
+		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
 		oblist = all_filtered_posts()
@@ -2048,58 +2046,90 @@ class UserProfilePhotosView(ListView):
 
 @csrf_protect
 def cricket_comment(request,*args,**kwargs):
-	form = CricketCommentForm(request.POST)
-	if form.is_valid():
-		user = request.user
-		user_id = user.id
-		description = form.cleaned_data.get("description")
-		try:
-			score = fuzz.ratio(description, get_prev_retort(user_id))
-		except:
-			score = 85
-		if score > 86:
-			return redirect("link_create_pk")
-		set_prev_retort(user_id,description)
-		if user.userprofile.score < -25:
-			if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-				HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-				user.userprofile.score = random.randint(10,71)
+	enqueued_match = get_current_cricket_match()
+	if request.method == 'POST':
+		form = CricketCommentForm(request.POST)
+		if form.is_valid():
+			user = request.user
+			user_id = user.id
+			description = form.cleaned_data.get("description")
+			try:
+				score = fuzz.ratio(description, get_prev_retort(user_id))
+			except:
+				score = 85
+			if score > 86:
+				return redirect("cricket_comment")
+			set_prev_retort(user_id,description)
+			if user.userprofile.score < -25:
+				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+					user.userprofile.score = random.randint(10,71)
+			else:
+				user.userprofile.score = user.userprofile.score + 1 #adding 1 point every time a user submits new content
+			user.userprofile.save()
+			category = request.POST.get("btn")
+			with_votes = 0
+			if request.is_feature_phone:
+				device = '1'
+			elif request.is_phone:
+				device = '2'
+			elif request.is_tablet:
+				device = '4'
+			elif request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			link = Link.objects.create(description=description,submitter_id=user_id,rank_score=10.1, device=device,\
+				cagtegory=category)
+			try:
+				av_url = user.userprofile.avatar.url
+			except:
+				av_url = None
+			add_home_link(link_pk=link.id, categ=category, nick=user.username, av_url=av_url, desc=description, \
+				scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device)
+			incr_cric_comm(link.id,enqueued_match['id'])
+			if request.user_banned:
+				extras = add_unfiltered_post(link.id)
+				if extras:
+					queue_for_deletion.delay(extras)
+			else:
+				add_filtered_post(link.id)
+				extras = add_unfiltered_post(link.id)
+				if extras:
+					queue_for_deletion.delay(extras)
+			return redirect("home")
 		else:
-			user.userprofile.score = user.userprofile.score + 1 #adding 1 point every time a user submits new content
-		user.userprofile.save()
-		category = request.POST.get("btn")
-		with_votes = 0
-		if request.is_feature_phone:
-			device = '1'
-		elif request.is_phone:
-			device = '2'
-		elif request.is_tablet:
-			device = '4'
-		elif request.is_mobile:
-			device = '5'
-		else:
-			device = '3'
-		link = Link.objects.create(description=description,submitter_id=user_id,rank_score=10.1, device=device,\
-			cagtegory=category)
-		try:
-			av_url = user.userprofile.avatar.url
-		except:
-			av_url = None
-		add_home_link(link_pk=link.id, categ=category, nick=user.username, av_url=av_url, desc=description, \
-			scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device)
-		incr_cric_comm()
-		if request.user_banned:
-			extras = add_unfiltered_post(link.id)
-			if extras:
-				queue_for_deletion.delay(extras)
-		else:
-			add_filtered_post(link.id)
-			extras = add_unfiltered_post(link.id)
-			if extras:
-				queue_for_deletion.delay(extras)
-		return redirect("home")
+			return redirect("cricket_comment")
 	else:
-		return redirect("home")
+		form = CricketCommentForm()
+		nickname = request.user.username
+		score = request.user.userprofile.score
+		link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+		paginator = Paginator(link_objs, CRICKET_COMMENTS_PER_PAGE)
+		page = request.GET.get('page', '1')
+		try:
+			page = paginator.page(page)
+		except PageNotAnInteger:
+			# If page is not an integer, deliver first page.
+			page = paginator.page(1)
+		except EmptyPage:
+			# If page is out of range (e.g. 9999), deliver last page of results.
+			page = paginator.page(paginator.num_pages)
+		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
+		try:
+			context={'form':form,'page':page,'status':enqueued_match['status'],\
+			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
+			'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
+			'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
+			'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],'score':score,\
+			'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
+			'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
+		except:
+			context={'form':form,'page':page,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
+			'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
+			'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
+			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
+		return render(request,"cricket_comment.html",context)
 
 @csrf_protect
 def cricket_comment_page(request,*args,**kwargs):
@@ -2112,24 +2142,39 @@ def cricket_comment_page(request,*args,**kwargs):
 				add_psl_supporter(request.user.id)
 				return render(request,'psl_supporter_tutorial.html',{})
 			else:
-				form = CricketCommentForm()
-				enqueued_match = get_cricket_match()
-				try:
-					context={'form':form,'status':enqueued_match['status'],\
-					'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],\
-					'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],\
-					'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],\
-					'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
-					'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-					'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-				except:
-					context={'form':form,'status':enqueued_match['status'],\
-					'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],\
-					'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],\
-					'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
-				return render(request,"cricket_comment.html",context)
+				return redirect("cricket_comment")
 	else:
 		return redirect("link_create_pk")
+
+# @csrf_protect
+# def cricket_comment_page(request,*args,**kwargs):
+# 	if request.method == 'POST':
+# 		if request.user.userprofile.score < CRICKET_SUPPORT_STARTING_POINT:
+# 			context={"score_req":CRICKET_SUPPORT_STARTING_POINT}
+# 			return render(request,"cric_score_req.html",context)
+# 		else:
+# 			if first_time_psl_supporter(request.user.id):
+# 				add_psl_supporter(request.user.id)
+# 				return render(request,'psl_supporter_tutorial.html',{})
+# 			else:
+# 				form = CricketCommentForm()
+# 				enqueued_match = get_current_cricket_match()
+# 				try:
+# 					context={'form':form,'status':enqueued_match['status'],\
+# 					'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],\
+# 					'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],\
+# 					'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],\
+# 					'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
+# 					'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
+# 					'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
+# 				except:
+# 					context={'form':form,'status':enqueued_match['status'],\
+# 					'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],\
+# 					'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],\
+# 					'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
+# 				return render(request,"cricket_comment.html",context)
+# 	else:
+# 		return redirect("link_create_pk")
 
 @csrf_protect
 def cricket_initiate(request,*args,**kwargs):
@@ -2142,7 +2187,7 @@ def cricket_initiate(request,*args,**kwargs):
 			score1 = request.POST.get("score1")
 			score2 = request.POST.get("score2")
 			status = request.POST.get("status")
-			set_cricket_match(team_to_follow, team1, score1, team2, score2, status)
+			create_cricket_match(team_to_follow, team1, score1, team2, score2, status)
 			context = {'team1':team1, 'score1':score1, 'team2':team2, 'score2':score2}
 			return render(request,"cricket_initialization.html",context)
 		else:
@@ -2155,7 +2200,8 @@ def cricket_remove(request,*args,**kwargs):
 	if request.method == 'POST':
 		decision = request.POST.get("decision")
 		if decision == 'yes':
-			del_cricket_match()
+			enqueued_match = get_current_cricket_match()
+			del_cricket_match(enqueued_match['id'])
 			return redirect("cricket_dashboard")
 		else:
 			return redirect("home")
@@ -2166,7 +2212,7 @@ def cricket_remove(request,*args,**kwargs):
 def cricket_dashboard(request,*args,**kwargs):
 	if request.user.username == 'pathan-e-khan' or request.user.username == 'mhb11':
 		teams_with_results = cricket_scr()
-		enqueued_match = get_cricket_match()
+		enqueued_match = get_current_cricket_match()
 		if enqueued_match:
 			team1 = enqueued_match['team1']
 			score1 = enqueued_match['score1']

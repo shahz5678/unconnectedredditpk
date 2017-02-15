@@ -90,9 +90,9 @@
 {% elif notif.ot == '3' %}
 	{% if notif.s == 'True' %}
 	{% if notif.g == '1' %}
-	<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cgy bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form>
+	<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cgy bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form>
 	{% else %}
-	<a href="{% url 'public_group' notif.l %}"><b class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
+	<a href="{% url 'public_group' notif.l %}"><b class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</b></a>
 	{% endif %}
 	<br>
 	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
@@ -108,7 +108,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
 	
-		<span class="cgy bw">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<span class="cgy bw">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 		<br>
 
 		{% if notif.g == '1' %}

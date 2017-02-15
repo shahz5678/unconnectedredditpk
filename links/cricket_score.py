@@ -19,7 +19,13 @@ def cricket_scr(jurl=jurl):
 	single = 0
 	double = 0
 	while double < len(matches):
-		matches_and_results.append((matches[double],matches[double+1],results[single][0]))
+		team1 = matches[double]
+		team2 = matches[double+1]
+		try:
+			status = results[single][0]
+		except:
+			status = []
+		matches_and_results.append((team1,team2,status))
 		single += 1
 		double += 2
 	return matches_and_results

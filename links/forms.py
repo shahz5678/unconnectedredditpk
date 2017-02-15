@@ -541,6 +541,10 @@ class PicPasswordForm(forms.Form):
 	class meta:
 		fields = ("mobile_number",)
 
+	def __init__(self, *args, **kwargs):
+		super(PicPasswordForm, self).__init__(*args, **kwargs)
+		self.fields['mobile_number'].widget.attrs['style'] = 'width:95%;'
+
 class WelcomeReplyForm(forms.Form):
 	class Meta:
 		model = Publicreply
@@ -831,6 +835,7 @@ class CreatePasswordForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(CreatePasswordForm, self).__init__(*args,**kwargs)
+		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
 
 	def clean_username(self):
 		return self.cleaned_data.get("username")
@@ -866,6 +871,10 @@ class CreateNickForm(forms.Form):
 	class Meta:
 		fields = ('username',)
 
+	def __init__(self, *args, **kwargs):
+		super(CreateNickForm, self).__init__(*args, **kwargs)
+		self.fields['username'].widget.attrs['style'] = 'max-width:95%;'
+
 	def clean_username(self):
 		"""
 		Validate that the username is not already in use, etc.
@@ -890,6 +899,7 @@ class ReauthForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(ReauthForm, self).__init__(*args,**kwargs)
+		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
 
 	def clean_password(self):
 		entered_password = self.cleaned_data["password"]
@@ -908,6 +918,7 @@ class ResetPasswordForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(ResetPasswordForm, self).__init__(*args,**kwargs)
+		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
 
 	def clean_password(self):
 		password = self.cleaned_data["password"]

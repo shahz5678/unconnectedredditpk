@@ -108,7 +108,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
 	
-		<span class="cgy">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<span class="cgy bw">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
 
 		{% if notif.g == '1' %}
@@ -153,7 +153,7 @@
 		{% else %}
 		<input type="image" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg">
 		{% endif %}
-		<span style="color:blue;">{{ notif.lrsn }}</span></form><span class="clb bw">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		<span class="bw" style="color:blue;">{{ notif.lrsn }}</span></form><span class="clb bw">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
 		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcg mbl mtl">andr jao</button></form>
 		<b class="cg cs">Likho:</b>

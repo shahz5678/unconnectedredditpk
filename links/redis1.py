@@ -110,12 +110,12 @@ def create_cricket_match(team_to_follow, team1, score1, team2, score2, status):
 	'team2':team2,'score2':score2,'status':status,'ended':'0','cc':0,'id':match_id}
 	my_server.hmset(cricket, mapping)
 
-def set_cricket_match(team_to_follow, team1, score1, team2, score2, status):
+def update_cricket_match(team_to_follow, team1, score1, team2, score2, status):
 	my_server = redis.Redis(connection_pool=POOL)
 	cricket = "cricket"
 	match_id = my_server.get("cric")
 	mapping = {'team_to_follow':team_to_follow,'team1':team1,'score1':score1,\
-	'team2':team2,'score2':score2,'status':status,'ended':'0','cc':0,'id':match_id}
+	'team2':team2,'score2':score2,'status':status,'ended':'0','id':match_id}
 	my_server.hmset(cricket, mapping)
 
 def del_cricket_match(match_id):

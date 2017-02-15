@@ -50,7 +50,7 @@
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" id="id_link" name="unique" class="hidden_id" value="{{ unique }}">
-       <span class="cm cg"><b>Photo:</b>&nbsp;</span>{{ form.image }}<br>
+       <span class="cm cg"><b>Photo:</b><br></span>{{ form.image }}<br>
         {% if not on_fbs %}
         <span class="cs cgy"><b>10 mb</b> se barri pic nahi lagti</span><br>
         {% else %}

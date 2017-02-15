@@ -1453,6 +1453,7 @@ def home_link_list(request, *args, **kwargs):
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
+		newrelic.agent.add_custom_parameter("auth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		newrelic.agent.add_custom_parameter("nickname", user.username)
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
@@ -1678,6 +1679,7 @@ def unauth_home_link_list(request, *args, **kwargs):
 		context = {}
 		context["checked"] = FEMALES
 		context["form"] = form
+		newrelic.agent.add_custom_parameter("unauth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -2104,7 +2106,10 @@ def cricket_comment(request,*args,**kwargs):
 		form = CricketCommentForm()
 		nickname = request.user.username
 		score = request.user.userprofile.score
-		link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+		try:
+			link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+		except:
+			return redirect("home")
 		paginator = Paginator(link_objs, CRICKET_COMMENTS_PER_PAGE)
 		page = request.GET.get('page', '1')
 		try:
@@ -4192,6 +4197,7 @@ def unauth_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = PhotosListForm()
+		newrelic.agent.add_custom_parameter("unauth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if 'unauth_photos' in request.session and 'unauth_photo_page' in request.session:
 			if request.session['unauth_photos'] and request.session['unauth_photo_page']:
 				# called when user has redirect from a photo comment
@@ -4231,6 +4237,7 @@ def unauth_photos(request,*args,**kwargs):
 
 def photo_list(request,*args, **kwargs):
 	if request.user.is_authenticated():
+		newrelic.agent.add_custom_parameter("auth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if first_time_photo_uploader(request.user.id) and request.user.userprofile.score > UPLOAD_PHOTO_REQ:
 			add_photo_uploader(request.user.id)
 			return render(request, 'photo_uploader_tutorial.html', {})
@@ -4495,6 +4502,7 @@ def unauth_best_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = BestPhotosListForm()
+		newrelic.agent.add_custom_parameter("unauth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if 'unauth_best_photos' in request.session and 'unauth_best_photo_page' in request.session:
 			if request.session['unauth_best_photos'] and request.session['unauth_best_photo_page']:
 				# called when user has redirect from a photo comment
@@ -4542,6 +4550,7 @@ def best_photos_list(request,*args,**kwargs):
 		else:
 			context = {}
 			form = BestPhotosListForm()
+			newrelic.agent.add_custom_parameter("auth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 			if 'best_photos' in request.session and 'best_photo_page' in request.session:
 				if request.session['best_photos'] and request.session['best_photo_page']:
 					# called when user has voted

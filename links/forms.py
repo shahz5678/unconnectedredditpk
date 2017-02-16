@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists
+from .redis1 import already_exists, get_prev_retort
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -18,16 +18,19 @@ from user_sessions.models import Session
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from abuse import BANNED_WORDS
 import unicodedata
-#from django.core.files.base import ContentFile
+from fuzzywuzzy import fuzz
 
-# def uploaded_recently(avghash, hash_list):
-# 	try:
-# 		hash_list=list(hash_list)
-# 		index = hash_list.index(avghash)
-# 		return index
-# 	except:
-# 		index = -1 
-# 		return index
+def get_score(text,user_id):
+	return fuzz.ratio(text,get_prev_retort(user_id))
+	# print "ratio: %s" % score1
+	# score2 = fuzz.token_sort_ratio(description, get_prev_retort(self.user_id))
+	# print "token_sort_ratio: %s" % score2
+	# score3 = fuzz.partial_ratio(description, get_prev_retort(self.user_id))
+	# print "partial_ratio (winner): %s" % score3
+	# score4 = fuzz.token_set_ratio(description, get_prev_retort(self.user_id))
+	# print "token_set_ratio: %s" % score4
+	# score = (score1+score2+score3+score4)/4
+	# print "AVERAGE: %s" % score
 
 def compute_avg_hash(image):
 	small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
@@ -202,12 +205,18 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		exclude = ("submitter", "rank_score", "cagtegory",)
 		fields = ("image_file", "description",)
 
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		super(LinkForm, self).__init__(*args,**kwargs)
+
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
 		if len(description) < 5:
 			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
 		description = clear_zalgo_text(description)
+		if get_score(description,self.user_id) > 75:
+			raise forms.ValidationError('tip: milti julti cheez bar bar nah likho')
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

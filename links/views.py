@@ -6544,8 +6544,7 @@ class LinkCreateView(CreateView):
 				score = fuzz.ratio(f.description, get_prev_retort(user_id))
 				if score > 86:
 					return redirect("link_create_pk")
-				uni_desc = u"%s" % f.description
-				set_prev_retort(user_id,uni_desc)
+				set_prev_retort(user_id,f.description)
 				f.save()
 				try:
 					av_url = user.userprofile.avatar.url

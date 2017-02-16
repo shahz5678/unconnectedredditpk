@@ -6475,6 +6475,11 @@ class LinkCreateView(CreateView):
 	model = Link
 	form_class = LinkForm
 
+	def get_form_kwargs( self ):
+		kwargs = super(LinkCreateView,self).get_form_kwargs()
+		kwargs['user_id'] = self.request.user.id
+		return kwargs
+
 	def get_context_data(self, **kwargs):
 		context = super(LinkCreateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
@@ -6541,9 +6546,6 @@ class LinkCreateView(CreateView):
 					f.device = '5'
 				else:
 					f.device = '3'
-				score = fuzz.ratio(f.description, get_prev_retort(user_id))
-				if score > 86:
-					return redirect("link_create_pk")
 				set_prev_retort(user_id,f.description)
 				f.save()
 				try:

@@ -2727,6 +2727,11 @@ class GroupListView(ListView):
 @sensitive_post_parameters()
 @csrf_protect
 def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
+	if 'returning_acc_creator' in request.session and request.session['returning_acc_creator'] == 1:
+		pass
+	else:
+		newrelic.agent.add_custom_parameter("memorizepass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		request.session['returning_acc_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
@@ -2745,6 +2750,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				request.session.delete_test_cookie() #cleaning up
 			except:
 				pass
+			request.session["first_time_user"] = 1
 			return redirect("link_create_pk") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2769,6 +2775,11 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 # @sensitive_post_parameters()
 @csrf_protect
 def create_password(request,slug=None,length=None,*args,**kwargs):
+	if 'returning_pass_creator' in request.session and request.session['returning_pass_creator'] == 1:
+		pass
+	else:
+		newrelic.agent.add_custom_parameter("createpass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		request.session['returning_pass_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
@@ -2810,6 +2821,11 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 # @sensitive_post_parameters()
 @csrf_protect		
 def create_nick(request,*args,**kwargs):
+	if 'returning_nick_creator' in request.session and request.session['returning_nick_creator'] == 1:
+		pass
+	else:
+		newrelic.agent.add_custom_parameter("createnick_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		request.session['returning_nick_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request, 'penalty_account_create.html',{})
 	elif request.method == 'POST':

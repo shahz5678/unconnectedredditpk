@@ -836,7 +836,10 @@ def set_prev_retort(user_id,text):
 def get_prev_retort(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_retort = "pr:"+str(user_id)
-	return my_server.get(prev_retort)
+	try:
+		return my_server.get(prev_retort).decode('utf-8')
+	except:
+		return "no string"
 	
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

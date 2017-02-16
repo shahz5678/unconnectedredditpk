@@ -21,7 +21,8 @@ import unicodedata
 from fuzzywuzzy import fuzz
 
 def get_score(text,user_id):
-	return fuzz.ratio(text,get_prev_retort(user_id))
+	score = fuzz.ratio(text,get_prev_retort(user_id))
+	return score
 	# print "ratio: %s" % score1
 	# score2 = fuzz.token_sort_ratio(description, get_prev_retort(self.user_id))
 	# print "token_sort_ratio: %s" % score2
@@ -215,7 +216,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		if len(description) < 5:
 			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
 		description = clear_zalgo_text(description)
-		if get_score(description,self.user_id) > 75:
+		if get_score(description,self.user_id) > 70:
 			raise forms.ValidationError('tip: milti julti cheez bar bar nah likho')
 		return description
 

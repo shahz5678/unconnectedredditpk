@@ -1392,39 +1392,7 @@ def home_location(request, *args, **kwargs):
 		index = obj_list.index(str(link_id))
 	except:
 		index = 0
-	if 0 <= index <= 19:
-		addendum = '#section'+str(index+1)
-		page = 1
-	elif 20 <= index <= 39:
-		addendum = '?page=2#section'+str(index+1-20)
-		page = 2
-	elif 40 <= index <= 59:
-		addendum = '?page=3#section'+str(index+1-40)
-		page = 3
-	elif 60 <= index <= 79:
-		addendum = '?page=4#section'+str(index+1-60)
-		page = 4
-	elif 80 <= index <= 99:
-		addendum = '?page=5#section'+str(index+1-80)
-		page = 5
-	elif 100 <= index <= 119:
-		addendum = '?page=6#section'+str(index+1-100)
-		page = 6
-	elif 120 <= index <= 139:
-		addendum = '?page=7#section'+str(index+1-120)
-		page = 7
-	elif 140 <= index <= 159:
-		addendum = '?page=8#section'+str(index+1-140)
-		page = 8
-	elif 160 <= index <= 179:
-		addendum = '?page=9#section'+str(index+1-160)
-		page = 9
-	elif 180 <= index <= 199:
-		addendum = '?page=10#section'+str(index+1-180)
-		page = 10
-	else:
-		addendum = '#section0'
-		page = 1
+	page, addendum = get_addendum(index,ITEMS_PER_PAGE)
 	url = reverse_lazy("home")+addendum
 	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
 	try:
@@ -2055,10 +2023,7 @@ def cricket_comment(request,*args,**kwargs):
 			user = request.user
 			user_id = user.id
 			description = form.cleaned_data.get("description")
-			try:
-				score = fuzz.ratio(description, get_prev_retort(user_id))
-			except:
-				score = 85
+			score = fuzz.ratio(description, get_prev_retort(user_id))
 			if score > 86:
 				return redirect("cricket_comment")
 			set_prev_retort(user_id,description)
@@ -3492,10 +3457,7 @@ class VideoCommentView(CreateView):
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("profile", slug=user.username)
-			try:
-				score = fuzz.ratio(text, get_prev_retort(user.id))
-			except:
-				score = 85
+			score = fuzz.ratio(text, get_prev_retort(user.id))
 			if score > 86:
 				try:
 					return redirect("videocomment_pk", pk=pk)
@@ -3726,10 +3688,7 @@ class CommentView(CreateView):
 				link_id = self.request.session["user_ident"]
 				self.request.session["user_ident"] = None
 				self.request.session["target_id"] = link_id				
-			try:
-				score = fuzz.ratio(text, get_prev_retort(user.id))
-			except:
-				score = 85
+			score = fuzz.ratio(text, get_prev_retort(user.id))
 			if score > 86:
 				try:
 					return redirect("comment_pk", pk=pk)
@@ -5621,11 +5580,8 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user_id = self.request.user.id
-			try:
-				score = fuzz.ratio(f.text, get_prev_retort(user_id))
-			except:
-				score = 85
-			if score > 87:
+			score = fuzz.ratio(f.text, get_prev_retort(user_id))
+			if score > 85:
 				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
 				self.request.session["public_uuid"] = None
 				return redirect("public_group", slug=pk)
@@ -5842,11 +5798,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			else:
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				text = f.text #text of the reply
-				try:
-					score = fuzz.ratio(text, get_prev_retort(user_id))
-				except:
-					score = 85
-				if score > 87:
+				score = fuzz.ratio(text, get_prev_retort(user_id))
+				if score > 85:
 					return redirect("private_group_reply")#, pk= reply.answer_to.id)
 				else:
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
@@ -6064,11 +6017,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = form.cleaned_data.get("group_reply")
 				user_id = request.user.id
-				try:
-					score = fuzz.ratio(description, get_prev_retort(user_id))
-				except:
-					score = 85
-				if score > 86:
+				score = fuzz.ratio(description, get_prev_retort(user_id))
+				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
 					if request.is_feature_phone:
@@ -6129,11 +6079,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
-				try:
-					score = fuzz.ratio(description, get_prev_retort(user_id))
-				except:
-					score = 85
-				if score > 86:
+				score = fuzz.ratio(description, get_prev_retort(user_id))
+				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
 					if request.is_feature_phone:
@@ -6238,10 +6185,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
-				try:
-					score = fuzz.ratio(description, get_prev_retort(user_id))
-				except:
-					score = 84
+				score = fuzz.ratio(description, get_prev_retort(user_id))
 				if score > 85:
 					return redirect("unseen_activity", slug=request.user.username)
 				else:
@@ -6383,10 +6327,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			except:
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-2)
 				return redirect("profile", slug=self.request.user.username)
-			try:
-				score = fuzz.ratio(description, get_prev_retort(user_id))
-			except:
-				score = 84
+			score = fuzz.ratio(description, get_prev_retort(user_id))
 			if score > 85:
 				try:
 					return redirect("reply_pk", pk=pk)#, pk= reply.answer_to.id)
@@ -6571,69 +6512,67 @@ class LinkCreateView(CreateView):
 			except:
 				return redirect("profile", slug=self.request.user.username)
 			self.request.session["link_create_token"] = None
-			try:
-				if valid_uuid(str(token)):
-					f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-					user = self.request.user
-					user_id = user.id
-					f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-					if user.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-							user.userprofile.score = random.randint(10,71)
-							# user.userprofile.save()
-							f.submitter = user
-						else:
-							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-					else:
+			# try:
+			if valid_uuid(str(token)):
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				user = self.request.user
+				user_id = user.id
+				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+				if user.userprofile.score < -25:
+					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+						user.userprofile.score = random.randint(10,71)
+						# user.userprofile.save()
 						f.submitter = user
-						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-					category = self.request.POST.get("btn")
-					f.cagtegory = category
-					if self.request.is_feature_phone:
-						f.device = '1'
-					elif self.request.is_phone:
-						f.device = '2'
-					elif self.request.is_tablet:
-						f.device = '4'
-					elif self.request.is_mobile:
-						f.device = '5'
 					else:
-						f.device = '3'
-					try:
-						score = fuzz.ratio(f.description, get_prev_retort(user_id))
-					except:
-						score = 85
-					if score > 86:
-						return redirect("link_create_pk")
-					set_prev_retort(user_id,f.description)
-					f.save()
-					try:
-						av_url = user.userprofile.avatar.url
-					except:
-						av_url = None
-					add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
-						scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device)
-					if self.request.user_banned:
-						extras = add_unfiltered_post(f.id)
-						if extras:
-							queue_for_deletion.delay(extras)
-					else:
-						add_filtered_post(f.id)
-						extras = add_unfiltered_post(f.id)
-						if extras:
-							queue_for_deletion.delay(extras)
-					f.submitter.userprofile.save()
-					#Get first twenty links:
-					# home_payload = {}
-					# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
-					#set cache
-					# cache.set('home_payload',home_payload)
-					return super(CreateView, self).form_valid(form) #saves the link automatically
+						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 				else:
-					return redirect("score_help")
-			except:
+					f.submitter = user
+					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+				category = self.request.POST.get("btn")
+				f.cagtegory = category
+				if self.request.is_feature_phone:
+					f.device = '1'
+				elif self.request.is_phone:
+					f.device = '2'
+				elif self.request.is_tablet:
+					f.device = '4'
+				elif self.request.is_mobile:
+					f.device = '5'
+				else:
+					f.device = '3'
+				score = fuzz.ratio(f.description, get_prev_retort(user_id))
+				if score > 86:
+					return redirect("link_create_pk")
+				uni_desc = u"%s" % f.description
+				set_prev_retort(user_id,uni_desc)
+				f.save()
+				try:
+					av_url = user.userprofile.avatar.url
+				except:
+					av_url = None
+				add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
+					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device)
+				if self.request.user_banned:
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				else:
+					add_filtered_post(f.id)
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				f.submitter.userprofile.save()
+				#Get first twenty links:
+				# home_payload = {}
+				# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
+				#set cache
+				# cache.set('home_payload',home_payload)
+				return super(CreateView, self).form_valid(form) #saves the link automatically
+			else:
 				return redirect("score_help")
+			# except:
+			# 	return redirect("score_help")
 		else:
 			return redirect("score_help")
 

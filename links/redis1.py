@@ -36,6 +36,7 @@ set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 prev_retort = "pr:"+str(user_id)
+prev_retort = "pr5:"+str(user_id) # set 5 previous retorts
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 sorted_set = "public_group_rankings"
@@ -827,11 +828,23 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
+def set_prev_retorts(user_id,text):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
+	my_server.lpush(prev_retorts,text)
+	my_server.ltrim(prev_retorts, 0, 4)
+	my_server.expire(prev_retorts,ONE_HOUR)
+
 def set_prev_retort(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_retort = "pr:"+str(user_id)
 	my_server.set(prev_retort,text)
-	my_server.expire(prev_retort,TEN_MINS)
+	my_server.expire(prev_retort,ONE_HOUR)
+
+def get_prev_retorts(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_retorts = "pr5:"+str(user_id)
+	return my_server.lrange(prev_retorts,0,-1)
 
 def get_prev_retort(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

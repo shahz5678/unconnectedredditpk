@@ -320,7 +320,7 @@
 		{{ link.n }}</span>
 		    		<span style="font-size:85%;">
 		{% if score > 25 %}				
-			{% if link.s < 0 %}
+			{% if link.s|add:"0" < 1 %}
 		    	<span style="color:#18A018;">(1)</span>
 		    {% else %}
 		    	<span style="color:#18A018;">({{ link.s }})</span>
@@ -454,7 +454,7 @@
 			
 			<span style="font-size:85%;">
 			{% if score > 25 %}				
-				{% if link.s < 0 %}
+				{% if link.s|add:"0" < 1 %}
 			    	<span class="cg">(1)</span>
 			    {% else %}
 			    	<span class="cg">({{ link.s }})</span>

@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists, get_prev_retort
+from .redis1 import already_exists, get_prev_retorts
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -20,9 +20,16 @@ from abuse import BANNED_WORDS
 import unicodedata
 from fuzzywuzzy import fuzz
 
-def get_score(text,user_id):
-	score = fuzz.ratio(text,get_prev_retort(user_id))
-	return score
+def can_post(text,user_id):
+	prev_retorts = get_prev_retorts(user_id)
+	for retort in prev_retorts:
+		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
+		if score > 75:
+			return False
+	return True
+
+# score = fuzz.ratio(text,get_prev_retort(user_id))
+	# print score
 	# print "ratio: %s" % score1
 	# score2 = fuzz.token_sort_ratio(description, get_prev_retort(self.user_id))
 	# print "token_sort_ratio: %s" % score2
@@ -30,8 +37,9 @@ def get_score(text,user_id):
 	# print "partial_ratio (winner): %s" % score3
 	# score4 = fuzz.token_set_ratio(description, get_prev_retort(self.user_id))
 	# print "token_set_ratio: %s" % score4
-	# score = (score1+score2+score3+score4)/4
-	# print "AVERAGE: %s" % score
+
+def uniform_string(text):
+	return text == len(text) * text[0]
 
 def compute_avg_hash(image):
 	small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
@@ -213,11 +221,13 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		if len(description) < 5:
-			raise forms.ValidationError('tip: home pr itna chota lafz nahi likh sakte')
+		if len(description) < 10:
+			raise forms.ValidationError('tip: home pr itni choti baat nahi likh sakte')
 		description = clear_zalgo_text(description)
-		if get_score(description,self.user_id) > 70:
-			raise forms.ValidationError('tip: milti julti cheez bar bar nah likho')
+		if uniform_string(description):
+			raise forms.ValidationError('tip: bar bar ek hi harf nah likho')
+		if not can_post(description,self.user_id):
+			raise forms.ValidationError('tip: har thori deir baad milti julti batein na likho')
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

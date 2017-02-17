@@ -39,6 +39,7 @@ def can_post(text,user_id):
 	# print "token_set_ratio: %s" % score4
 
 def uniform_string(text):
+	text = text.lower()
 	return text == len(text) * text[0]
 
 def compute_avg_hash(image):

@@ -36,7 +36,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model, login, authenticate
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-# from django.views.generic.list import MultipleObjectMixin
+from salutations import SALUTATIONS
 from .redis2 import get_latest_online, set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -55,9 +55,9 @@ add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, chec
 add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, get_prev_retort, remove_all_group_members, \
-remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter,\
-create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments#, insert_bulk_nicknames
+time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, \
+remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
+add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments#, insert_bulk_nicknames
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
@@ -6546,7 +6546,8 @@ class LinkCreateView(CreateView):
 					f.device = '5'
 				else:
 					f.device = '3'
-				set_prev_retort(user_id,f.description)
+				# set_prev_retort(user_id,f.description)
+				set_prev_retorts(user_id,f.description)
 				f.save()
 				try:
 					av_url = user.userprofile.avatar.url
@@ -6841,27 +6842,10 @@ class WelcomeReplyView(FormView):
 						parent.reply_count = parent.reply_count + 1
 						update_cc_in_home_link(parent.id)
 					else:
-						num = random.randint(1,5)
-						if num == 1:
-							parent = Link.objects.create(description='I am new', submitter=target, reply_count=1, device=device)
-							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='I am new', \
-								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-						elif num == 2:
-							parent = Link.objects.create(description='Salam, Im new', submitter=target, reply_count=1, device=device)
-							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='Salam, Im new', \
-								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-						elif num == 3:
-							parent = Link.objects.create(description='mein new hun', submitter=target, reply_count=1, device=device)
-							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='mein new hun', \
-								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-						elif num == 4:
-							parent = Link.objects.create(description='hi every1', submitter=target, reply_count=1, device=device)
-							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='hi every1', \
-								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
-						else:
-							parent = Link.objects.create(description='damadam mast qalander', submitter=target, reply_count=1, device=device)
-							add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc='damadam mast qalander', \
-								scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
+						num = random.randint(1,len(SALUTATIONS))
+						parent = Link.objects.create(description=SALUTATIONS[num], submitter=target, reply_count=1, device=device)
+						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num], \
+							scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 						add_filtered_post(parent.id)
 						extras = add_unfiltered_post(parent.id)
 						if extras:

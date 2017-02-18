@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+
+<h2>Is waqt <span class="ct">{{ target_uname}}</span> ka score <span class="cg">{{ target_scr }}</span> hai</h2>
+<span class="cgy">Ye score kitne points girana hai?</span><br>
+
+	<form method="post" action="{% url 'cut_user_score' %}">
+		{% csrf_token %}
+		<input type="hidden" name="t_id" value="{{ t_id }}">
+		<input type="hidden" name="t_uname" value="{{ target_uname }}">
+		<input class="mtl mbl" type="radio" name="penalty" value="-1" checked><span class="co"><b>Rehne do</b>&nbsp;<br>
+		<input class="mbl" type="radio" name="penalty" value="{{ penalty1 }}"><span class="cr"><b>{{ penalty1 }}</b>&nbsp;<br>
+		<input class="mbl" type="radio" name="penalty" value="{{ penalty2 }}"><span class="cr"><b>{{ penalty2 }}</b>&nbsp;<br>
+		<input class="mbl" type="radio" name="penalty" value="{{ penalty3 }}"><span class="cr"><b>{{ penalty3 }}</b>&nbsp;<br>
+		<input class="mbl" type="radio" name="penalty" value="{{ penalty4 }}"><span class="cr"><b>Score 0 kar ko!</b>&nbsp;<br>
+		<button class="btn bl bcr mbs mts" type="submit">Submit</button><br>
+	</form>
+	<hr size=1 COLOR="#b3e6b3">
+	<span class="cgy cs">Score sirf giraya ja sakta hai, barhaya nahi ja sakta. Insaf ka khyal rakhna!</span>
+</div>
+<br><br>
+{% endblock %}

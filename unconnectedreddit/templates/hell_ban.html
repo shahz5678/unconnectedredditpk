@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+
+{% if already_banned %}
+	<b class="ct">{{ target_uname }}</b> pehle se hi ghost banned hai<br>
+{% else %}
+
+	{% if num_banned == 1 %}
+		<b class="ct">{{ target_uname }}</b> ko ghost banned kr diya gaya hai<br>
+	{% else %}
+		In nick(s) ko ghost banned kr diya gaya:<br><br>
+			{% for username in usernames %}
+				<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}">{{ username }}</a><br>
+			{% endfor %}
+	{% endif %}
+
+{% endif %}
+<br>
+<a href="{% url 'profile' target_uname %}"><button class="btn bco bm mtl mbs">wapis</button></a><br>
+</div>
+<br><br>
+{% endblock %}

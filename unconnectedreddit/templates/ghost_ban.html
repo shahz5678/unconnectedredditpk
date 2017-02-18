@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin clb">
+
+{% if authorized %}
+	<b>Ghost Ban</b> daba kr tum <b class="co">{{ target_uname }}</b> ko khufiya taur pr ban kr sakte ho<br>
+	<span class="cgy">Ye ek aisa ban hai jis mein {{ target_uname }} ko sahi se samajh nahi aye gi ke usko ban kr diya gaya hai</span><br>
+	<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bm mtl">wapis</button></form>
+
+{% else %}
+	<h2 class="cg">Ye toh ek khokhlay matke ki terah khali hai</h2>
+	<span class="cgy">Tum kahin rasta toh nahi bhool gaye?</span>
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

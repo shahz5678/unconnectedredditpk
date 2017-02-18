@@ -223,7 +223,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 			if uni_str.isspace():
 				raise forms.ValidationError('tip: ziyada spaces daal di hain')
 			else:	
-				raise forms.ValidationError('tip: "%s" is terhan bar bar ek hi harf nah likho' % uni_str)
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 		if not can_post(description,self.request.user.id):
 			raise forms.ValidationError('tip: milti julti batein nah likho, kuch new likho')
 		return description

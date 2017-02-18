@@ -7753,12 +7753,22 @@ def hell_ban(request,*args,**kwargs):
 		ip = get_user_ip(target_id)
 		if ip:
 			all_user_ids = find_probable_clones(target_id, ip)
-			usernames = User.objects.filter(id__in=all_user_ids).values_list('username',flat=True)
+			hellbanned = []
+			banned_ids = []
 			for user_id in all_user_ids:
-				if not HellBanList.objects.filter(condemned_id=user_id).exists():
-					HellBanList.objects.create(condemned_id=user_id)
-			context={'num_banned':2,'usernames':usernames,'target_uname':target_username}
-			return render(request,"hell_ban.html",context)
+				if user_id:
+					hellbanned.append(HellBanList(condemned_id=user_id))
+					banned_ids.append(user_id)
+			if hellbanned:
+				HellBanList.objects.bulk_create(hellbanned)
+				usernames = User.objects.filter(id__in=banned_ids).values_list('username',flat=True)
+				context={'num_banned':2,'usernames':usernames,'target_uname':target_username}
+				return render(request,"hell_ban.html",context)
+			else:
+				#it was empty, so just ban the origin target
+				HellBanList.objects.create(condemned_id=target_id)
+				context={'num_banned':1,'target_uname':target_username}
+				return render(request,"hell_ban.html",context)
 		else:
 			if HellBanList.objects.filter(condemned_id=target_id).exists():
 				context={'already_banned':True,'target_uname':target_username}

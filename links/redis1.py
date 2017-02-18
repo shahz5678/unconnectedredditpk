@@ -37,6 +37,7 @@ list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 prev_retort = "pr:"+str(user_id)
 prev_retort = "pr5:"+str(user_id) # set 5 previous retorts
+prev_times = "pt6:"+str(user_id) # set 6 previous times
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 sorted_set = "public_group_rankings"
@@ -827,6 +828,38 @@ def get_link_writer(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
+
+# def set_site_ban(user_id,ONE_HOUR):
+# 	my_server = redis.Redis(connection_pool=POOL)
+
+# def should_cooldown(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	prev_times = "pt6:"+str(user_id) # set 6 previous times
+# 	times_list = my_server.lrange(prev_times,0,-1)
+# 	if len(times_list) > 5:
+# 		diff1 = int(times_list[0]) - int(times_list[1])
+# 		diff2 = int(times_list[1]) - int(times_list[2]) 
+# 		diff3 = int(times_list[2]) - int(times_list[3])
+# 		diff4 = int(times_list[3]) - int(times_list[4])
+# 		diff5 = int(times_list[4]) - int(times_list[5])
+# 		avgdiff = (diff1+diff2+diff3+diff4+diff5)/5
+# 		if avgdiff < 16:
+# 			set_site_ban(user_id,ONE_HOUR)
+# 			return 2 #kick out the person, reduce random.randint(500,1000) points
+# 		elif avgdiff < 23:
+# 			set_home_ban(user_id,TWENTY_MINS)
+# 			return 1 #ban from writing on home for twenty mins
+# 		else:
+# 			return 0
+# 	else:
+# 		return 0
+
+# def set_prev_times(user_id,time):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	prev_times = "pt6:"+str(user_id) # set 6 previous times
+# 	my_server.lpush(prev_times,time)
+# 	my_server.ltrim(prev_times, 0, 5)
+# 	my_server.expire(prev_times,FOUR_MINS)
 
 def set_prev_retorts(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)

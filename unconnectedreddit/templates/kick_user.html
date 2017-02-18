@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+{% if num_of_users > 1 %}
+	<b class="ct">{{ original_target_uname }}</b> ke sath aur nick(s) bhi kick kiye gaye!<br>
+	<span class="cgy cs">(in pr shak tha ke ye bhi {{ original_target_uname}} hi hain)</span><br><br>
+	<span class="co"><b>Kicked users:</b></span><br>
+	{% for username in usernames %}
+		<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}#section0">{{ username }}</a><br>
+	{% endfor %}
+{% elif num_of_users == 1 %}
+	<b class="ct">{{ original_target_uname }}</b> ko Damadam se kick kr ke log out kr diya gaya hai<br>
+{% else %}
+	<b class="ct">{{ original_target_uname }}</b> ko Damadam se kick kr ke log out kr diya gaya hai<br>
+{% endif %}
+<br>
+<a href="{% url 'profile' original_target_uname %}"><button class="btn bco bm mbs mts">wapis</button></a>
+</div>
+<br><br>
+{% endblock %}

@@ -33,7 +33,7 @@
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
                   <hr size=1 COLOR="#b3e6b3">
-                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm">profile</button></a>
+                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm mls">profile</button></a>
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Password:&nbsp;</b><a href="{% url 'reauth' %}#section0"><button class="btn bcg bm">badlo</button></a>
                   <hr size=1 COLOR="#b3e6b3">
@@ -90,7 +90,8 @@
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
                   <hr size=1 COLOR="#b3e6b3">
-                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm">profile</button></a>
+                  <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm mls">profile</button></a>
+                  {% if manageable %}&nbsp;<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user.id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm mls">manage</button></form>{% endif %}
                   <hr size=1 COLOR="#b3e6b3">
                   {% if fans == 1 %}
                   <b>Fan:</b>

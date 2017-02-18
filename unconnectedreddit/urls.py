@@ -18,7 +18,8 @@ redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_privat
 unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, \
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
-cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login#, set_usernames
+cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
+cut_user_score, kick_user, show_clones, hell_ban#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
@@ -296,4 +297,10 @@ urlpatterns = patterns('',
 	url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),
 	url(r'^cricket_remove/$',auth(cricket_remove),name='cricket_remove'),
 	url(r'^cricket_initiate/$', auth(cricket_initiate),name='cricket_initiate'),
+	url(r'^manage_user/$', auth(manage_user),name='manage_user'),
+	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
+	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),
+	url(r'^kick_user/$', auth(kick_user),name='kick_user'),
+	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
+	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 )

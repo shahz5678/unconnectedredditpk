@@ -6,6 +6,7 @@ from location import REDLOC2
 
 fans = "f:"+str(photo_owner_id) // a sorted set
 group_attendance = "ga:"+str(group_id)
+latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
 hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' is notification payload, contains notification data
 hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
 photos_benchmark = "photos_benchmark"
@@ -33,6 +34,7 @@ SEEN={True:2000000000,False:4000000000}
 
 FUTURE_EPOCH = 1609406042 #Human time (GMT): Thu, 31 Dec 2020 09:14:02 GMT
 
+TEN_MINS = 10*60
 THREE_DAYS = 3*24*60*60
 HALF_LIFE = THREE_DAYS #used in ranking public groups
 
@@ -475,10 +477,18 @@ def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 
 #######################Whose Online#######################
 
-def set_whose_online(user_id):
+def set_whose_online(user_id,user_ip):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "whose_online_new"
 	my_server.zadd(sorted_set, user_id, time.time())
+	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	my_server.set(latest_user_ip,user_ip)
+	my_server.expire(latest_user_ip,TEN_MINS)
+
+def get_user_ip(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	return my_server.get(latest_user_ip)
 
 def get_latest_online():
 	my_server = redis.Redis(connection_pool=POOL)

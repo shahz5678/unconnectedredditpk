@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 # from brake.decorators import ratelimit
 # from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.views import login, logout_then_login
+from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
@@ -18,7 +18,7 @@ redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_privat
 unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, \
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
-cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment#, set_usernames
+cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
@@ -50,7 +50,8 @@ urlpatterns = patterns('',
 	url(r'^$', home_link_list, name='home'),
 	url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
 	# url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="login"),
-	url(r'^login/$',login, {'template_name': 'login.html'}, name="login"),
+	url(r'^login/$',login, name="login"),
+	# url(r'^login/$', 'django.contrib.auth.views.login',name='login'),
 	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
@@ -84,7 +85,7 @@ urlpatterns = patterns('',
 	url(r'^ad_gender/$', AdGenderChoiceView.as_view(), name='ad_gender'),
 	url(r'^ad_image/$', AdImageView.as_view(), name='ad_image'),
 	url(r'^ad_title_yesno/$', AdTitleYesNoView.as_view(), name='ad_title_yesno'),
-	url(r'^accounts/', include('registration.backends.simple.urls')),
+	# url(r'^accounts/', include('registration.backends.simple.urls')),
 	url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
 	url(r'^closed_group/help/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),

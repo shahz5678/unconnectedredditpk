@@ -1,10 +1,12 @@
+
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists, get_prev_retorts
+from .redis1 import already_exists, get_prev_retorts#, should_cooldown
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
+# from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
 from django.core import validators
@@ -19,28 +21,32 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from abuse import BANNED_WORDS
 import unicodedata
 from fuzzywuzzy import fuzz
+# import numpy as np
 
 def can_post(text,user_id):
 	prev_retorts = get_prev_retorts(user_id)
+	# print prev_retorts
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
+		# print score
 		if score > 75:
 			return False
 	return True
 
-# score = fuzz.ratio(text,get_prev_retort(user_id))
-	# print score
-	# print "ratio: %s" % score1
-	# score2 = fuzz.token_sort_ratio(description, get_prev_retort(self.user_id))
-	# print "token_sort_ratio: %s" % score2
-	# score3 = fuzz.partial_ratio(description, get_prev_retort(self.user_id))
-	# print "partial_ratio (winner): %s" % score3
-	# score4 = fuzz.token_set_ratio(description, get_prev_retort(self.user_id))
-	# print "token_set_ratio: %s" % score4
-
-def uniform_string(text):
+def uniform_string(text,n=5):
 	text = text.lower()
-	return text == len(text) * text[0]
+	# print text
+	for i, c in enumerate(text):
+		if text[i:i+n] == c * n:
+			# print text[i:i+n]
+			return text[i:i+n]
+	return False
+
+def getip(request):
+	ip = request.META.get('X-IORG-FBS-UIP',
+		request.META.get('REMOTE_ADDR')
+	)
+	return ip
 
 def compute_avg_hash(image):
 	small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
@@ -200,12 +206,26 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 	class Meta:
 		fields = ("description",)
 
+	def __init__(self,*args,**kwargs):
+		self.request = kwargs.pop('request', None)
+		super(CricketCommentForm, self).__init__(*args, **kwargs)
+
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		if len(description) < 3:
-			raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+		if len(description) < 10:
+			raise forms.ValidationError('tip: itna choti baat nahi likh sakte')
+		elif len(description) > 500:
+			raise forms.ValidationError('tip: itna barri baat nahi likh sakte')
 		description = clear_zalgo_text(description)
+		uni_str = uniform_string(description)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" is terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_post(description,self.request.user.id):
+			raise forms.ValidationError('tip: milti julti batein nah likho, kuch new likho')
 		return description
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
@@ -221,14 +241,30 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
+		# cooldown = should_cooldown(self.user_id)
+		# if cooldown:
+		# 	if cooldown == 2:
+		# 		pass
+		# 		#kick user out
+		# 	elif cooldown == 1:
+		# 		pass
+		# 		#user has to cool down for up to 20 mins
+		# 	else:
+		# 		pass
 		description = description.strip()
 		if len(description) < 10:
 			raise forms.ValidationError('tip: home pr itni choti baat nahi likh sakte')
+		elif len(description) > 500:
+			raise forms.ValidationError('tip: home pr inti barri baat nahi likh sakte')
 		description = clear_zalgo_text(description)
-		if uniform_string(description):
-			raise forms.ValidationError('tip: bar bar ek hi harf nah likho')
+		uni_str = uniform_string(description)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" is terhan bar bar ek hi harf nah likho' % uni_str)
 		if not can_post(description,self.user_id):
-			raise forms.ValidationError('tip: har thori deir baad milti julti batein na likho')
+			raise forms.ValidationError('tip: milti julti batein nah likho, kuch new likho')
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):
@@ -807,6 +843,12 @@ class ScoreHelpForm(forms.Form):
 class RegisterLoginForm(forms.Form):
 	class Meta:
 		pass
+
+# class LoginForm(AuthenticationForm):
+# 	username = forms.CharField(max_length=254)
+# 	password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
+# 	class Meta:
+# 		fields = ('username','password',)	
 
 class CreateAccountForm(forms.ModelForm):
 	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': _("ye nickname sahi nahi hai")})

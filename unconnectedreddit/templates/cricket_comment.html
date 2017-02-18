@@ -7,14 +7,14 @@
 {% block content %}
 <div class="margin clb">
 	<h2 class="cg">{{ status }}</h2>
-	<form method="post" action="{% url 'cricket_comment' %}">
-	  {% csrf_token %}
 	  {% if form.description.errors %}
 	  <span class="cr">{{ form.description.errors.0 }}</span>
 	  {% else %}
 	  <span class="cm ct"><b>Tabsra:</b></span>
 	  {% endif %}
-	  <br>{{ form.description }}<br>
+	<form method="post" action="{% url 'cricket_comment' %}">
+	  {% csrf_token %}
+	  {{ form.description }}<br>
 	  	<button class="btn bl mtl {{ css_class1 }}" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button><br>
 	  	<button class="btn bl mtl mbl {{ css_class2 }}" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
 	</form>
@@ -66,7 +66,7 @@
 			
 			<span style="font-size:85%;">
 			{% if score > 25 %}				
-				{% if comment.s < 0 %}
+				{% if comment.s|add:"0" < 0 %}
 			    	<span class="cg">(1)</span>
 			    {% else %}
 			    	<span class="cg">({{ comment.s }})</span>

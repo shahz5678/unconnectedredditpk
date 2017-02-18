@@ -34,6 +34,7 @@ SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model, login, authenticate
+from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
@@ -57,7 +58,8 @@ first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, \
 remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
-add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments#, insert_bulk_nicknames
+add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, current_match_comments
+from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
@@ -99,12 +101,6 @@ condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct(
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
 	return (time-datetime(1970,1,1)).total_seconds()
-
-def getip(request):
-	ip = request.META.get('X-IORG-FBS-UIP',
-		request.META.get('REMOTE_ADDR')
-	)
-	return ip
 
 def get_price(points):
 	if points < 120:
@@ -2018,15 +2014,12 @@ class UserProfilePhotosView(ListView):
 def cricket_comment(request,*args,**kwargs):
 	enqueued_match = get_current_cricket_match()
 	if request.method == 'POST':
-		form = CricketCommentForm(request.POST)
+		form = CricketCommentForm(request.POST,request=request)
 		if form.is_valid():
 			user = request.user
 			user_id = user.id
 			description = form.cleaned_data.get("description")
-			score = fuzz.ratio(description, get_prev_retort(user_id))
-			if score > 86:
-				return redirect("cricket_comment")
-			set_prev_retort(user_id,description)
+			set_prev_retorts(user_id,description)
 			if user.userprofile.score < -25:
 				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
 					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
@@ -2685,8 +2678,14 @@ class GroupListView(ListView):
 			trending_groups.append((group,group_ids_dict[group_id]))
 		trending_groups.sort(key=itemgetter(1), reverse=True)
 		trending_groups = map(itemgetter(0), trending_groups)
-		# trending_groups = [group[0] for group in trending_groups]
 		return trending_groups
+
+def login(request,*args,**kwargs):
+	if request.method == 'POST':
+		# opportunity to block entry here
+		return log_me_in(request=request,template_name='login.html')
+	else:
+		return log_me_in(request=request,template_name='login.html')
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
@@ -6546,7 +6545,6 @@ class LinkCreateView(CreateView):
 					f.device = '5'
 				else:
 					f.device = '3'
-				# set_prev_retort(user_id,f.description)
 				set_prev_retorts(user_id,f.description)
 				f.save()
 				try:

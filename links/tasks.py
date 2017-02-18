@@ -8,7 +8,7 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
-from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, Vote
 from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
@@ -336,7 +336,7 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 	photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
 	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
-	if hotuser.allowed and hotuser.hot_score > 4:
+	if hotuser.allowed and hotuser.hot_score > PHOTO_HOT_SCORE_REQ:
 		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream.id)#
 		photo_link_mapping(photo_id, link.id)
 		try:

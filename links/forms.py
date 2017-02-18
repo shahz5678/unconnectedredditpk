@@ -25,7 +25,6 @@ from fuzzywuzzy import fuzz
 
 def can_post(text,user_id):
 	prev_retorts = get_prev_retorts(user_id)
-	# print prev_retorts
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
 		# print score
@@ -610,7 +609,7 @@ class PicPasswordForm(forms.Form):
 
 class WelcomeReplyForm(forms.Form):
 	class Meta:
-		model = Publicreply
+		pass
 
 class SalatTutorialForm(forms.Form):
 	class Meta:

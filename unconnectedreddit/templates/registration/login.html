@@ -1,24 +1,23 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="margin clb">
-<h2 style="color:red;">Nickname aur password puraney waley honay chahiyein!</h2>
 
+<div class="margin">
 {% if form.errors %}
-<p style="color:red;">Jo harf bara hai, usko bara likho, jo chota hai, usko chota likho.</p>
+<span class="cr">Nickname ya password mein ghalti hai. Phir koshish kro...</span>
 {% endif %}
-
-<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+<form method="post" action="{% url 'login' %}">
   {% csrf_token %}
   <input type="hidden" name="next" value="/">
-   <p>Nickname:
+ 	
+    <p>Nickname:
       {{ form.username }}</p>
-    
-      <p>Password:
-      {{ form.password }}</p>
   
-  <input class="button" style="background-color:#2DB92D;border-color:#179b36;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);border-radius:4px;" type="submit" value="OK"><br>
-  <span class="cgy cs">Login nahi ho raha? Baray aur chotey haroof ka khayal rakho</span><br>
+    <p>Password:
+      {{ form.password }}</p>
+   
+  
+  <button class="btn bcg bm mts mbs" type="submit">OK</button><br>
+  
 </form>
 </div>
 <br><br>

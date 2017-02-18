@@ -333,7 +333,7 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	stream = PhotoStream.objects.create(cover_id = photo_id, show_time = timeobj)
-	photo.which_stream.add(stream) ##big server call  #m2m field, thus 'append' a stream to the "which_stream" attribute
+	photo.which_stream.add(stream) # CAN REMOVE? m2m field, thus 'append' a stream to the "which_stream" attribute
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
 	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
 	if hotuser.allowed and hotuser.hot_score > PHOTO_HOT_SCORE_REQ:

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin clb">
+
+{% if authorized %}
+	<b>Check Clones</b> se tum dekh sakte ho ke <b class="co">{{ target_uname }}</b> kis kis nick se pichle 10 mins mein Damadam pr aya<br>
+	<span class="cgy">Yahan woh sarey nicks dikha diye jaien ge jin pr shak hai ke woh {{ target_uname }} hain</span><br>
+	<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bm mtl">wapis</button></form>
+
+{% else %}
+	<h2 class="cg">Ye toh ek khokhlay matke ki terah khali hai</h2>
+	<span class="cgy">Tum kahin rasta toh nahi bhool gaye?</span>
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

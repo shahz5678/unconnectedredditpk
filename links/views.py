@@ -7741,7 +7741,7 @@ def cast_vote(request,*args,**kwargs):
 			return render(request, 'penalty_suspicious.html', {})
 	
 def find_probable_clones(target_id,target_ip):
-	recent = datetime.utcnow()-timedelta(minutes=11)
+	recent = datetime.now()-timedelta(minutes=11)
 	probable_clones = list(set(Session.objects.filter(last_activity__gte=recent,ip=target_ip).values_list('user_id',flat=True)))
 	return probable_clones
 

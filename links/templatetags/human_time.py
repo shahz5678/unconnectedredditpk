@@ -9,7 +9,10 @@ def human_time(value):
 		return ''
 	m, s = divmod(diff, 60)
 	h, m = divmod(m, 60)
-	if h:
+	d, h = divmod(h, 24)
+	if d:
+		return "%s days ago" % int(d)
+	elif h:
 		return "%s hours ago" % int(h)
 	elif m:
 		return "%s minutes ago" % int(m)

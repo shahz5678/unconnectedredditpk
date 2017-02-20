@@ -2,7 +2,7 @@
 import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
 from requests.auth import HTTPBasicAuth
-import newrelic.agent
+# import newrelic.agent
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -59,7 +59,7 @@ first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, \
 remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
-current_match_unfiltered_comments, current_match_comments
+current_match_unfiltered_comments, current_match_comments#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -98,6 +98,36 @@ from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
+
+def set_rank():
+	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+	netvotes = 0
+	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
+	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+	unaware_submission = datetime.utcnow().replace(tzinfo=None)
+	td = unaware_submission - epoch 
+	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+	invisible_score = round(sign * order + secs / 45000, 8)
+	return invisible_score
+
+def get_page_obj(page_num,obj_list,items_per_page):
+	# pass list of objects and number of objects to show per page, it does the rest
+	paginator = Paginator(obj_list, items_per_page)
+	try:
+		return paginator.page(page_num)
+	except PageNotAnInteger:
+		# If page is not an integer, deliver first page.
+		return paginator.page(1)
+	except EmptyPage:
+		# If page is out of range (e.g. 9999), deliver last page of results.
+		return paginator.page(paginator.num_pages)
+
+def get_addendum(index,objs_per_page):
+	page = (index // objs_per_page)+1 #determining page number
+	section = index+1-((page-1)*objs_per_page) #determining section number
+	addendum = '?page='+str(page)+"#section"+str(section) #forming url addendum
+	return page, addendum #returing page and addendum
 
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
@@ -444,17 +474,9 @@ class VoteOrProfView(FormView):
 def faces_pages(request, *args, **kwargs):
 	form = FacesPagesForm()
 	oblist = EMOTICONS_LIST
-	paginator = Paginator(oblist, 16)
-	page = request.GET.get('page', '1')
-	try:
-		page = paginator.page(page)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		page = paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		page = paginator.page(paginator.num_pages)
-	context = {'object_list': oblist, 'form':form, 'page':page}
+	page_num = request.GET.get('page', '1')
+	page_obj = get_page_obj(page_num,oblist,16)
+	context = {'object_list': oblist, 'form':form, 'page':page_obj}
 	return render(request, 'faces_pages.html', context)
 
 class FacesHelpView(FormView):
@@ -1362,18 +1384,10 @@ def process_salat(request, offered=None, *args, **kwargs):
 		return redirect("salat_success", current_minute, now.weekday())
 
 def home_list(request, obj_list ,items_per_page):
-	paginator = Paginator(obj_list, items_per_page) # pass list of objects and number of objects to show per page, it does the rest
-	page = request.GET.get('page', '1')
-	try:
-		page = paginator.page(page)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		page = paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		page = paginator.page(paginator.num_pages)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
-	return photo_ids, non_photo_link_ids, list_of_dictionaries, page
+	page_num = request.GET.get('page', '1')
+	page_obj = get_page_obj(page_num,obj_list,items_per_page)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj
 
 def home_location(request, *args, **kwargs):
 	try:
@@ -1389,28 +1403,21 @@ def home_location(request, *args, **kwargs):
 		index = obj_list.index(str(link_id))
 	except:
 		index = 0
-	page, addendum = get_addendum(index,ITEMS_PER_PAGE)
+	page_num, addendum = get_addendum(index,ITEMS_PER_PAGE)
 	url = reverse_lazy("home")+addendum
-	paginator = Paginator(obj_list, ITEMS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-	try:
-		page = paginator.page(page)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		page = paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		page = paginator.page(paginator.num_pages)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
+	page_obj = get_page_obj(page_num,obj_list,ITEMS_PER_PAGE)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 	request.session['home_photo_ids'] = photo_ids
 	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
 	request.session['list_of_dictionaries'] = list_of_dictionaries
-	request.session['page'] = page
+	request.session['page'] = page_obj
 	return redirect(url)
 
 def home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		form = HomeLinkListForm()
 		context = {}
+		# test_lua()
 		user = request.user
 		context["checked"] = FEMALES
 		context["form"] = form
@@ -1418,8 +1425,8 @@ def home_link_list(request, *args, **kwargs):
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
-		newrelic.agent.add_custom_parameter("auth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		newrelic.agent.add_custom_parameter("nickname", user.username)
+		# newrelic.agent.add_custom_parameter("auth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		# newrelic.agent.add_custom_parameter("nickname", user.username)
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -1443,7 +1450,7 @@ def home_link_list(request, *args, **kwargs):
 			del request.session['list_of_dictionaries']
 			del request.session['page']
 		else:
-			# normal refresh or toggling between pages
+			# normal refresh or toggling between pages (via agey or wapis)
 			if request.user_banned:
 				oblist = all_unfiltered_posts()
 			else:
@@ -1644,7 +1651,7 @@ def unauth_home_link_list(request, *args, **kwargs):
 		context = {}
 		context["checked"] = FEMALES
 		context["form"] = form
-		newrelic.agent.add_custom_parameter("unauth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		# newrelic.agent.add_custom_parameter("unauth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -1914,7 +1921,7 @@ class UserProfilePhotosView(ListView):
 		context["manageable"] = False
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
-			newrelic.agent.add_custom_parameter("photoboys", username)
+			# newrelic.agent.add_custom_parameter("photoboys", username)
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["manageable"] = True
@@ -2074,19 +2081,11 @@ def cricket_comment(request,*args,**kwargs):
 					link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
 			except:
 				return redirect("home")
-			paginator = Paginator(link_objs, CRICKET_COMMENTS_PER_PAGE)
-			page = request.GET.get('page', '1')
+			page_num = request.GET.get('page', '1')
+			page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
+			photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 			try:
-				page = paginator.page(page)
-			except PageNotAnInteger:
-				# If page is not an integer, deliver first page.
-				page = paginator.page(1)
-			except EmptyPage:
-				# If page is out of range (e.g. 9999), deliver last page of results.
-				page = paginator.page(paginator.num_pages)
-			photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
-			try:
-				context={'form':form,'page':page,'status':enqueued_match['status'],\
+				context={'form':form,'page':page_obj,'status':enqueued_match['status'],\
 				'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
 				'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
 				'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
@@ -2094,7 +2093,7 @@ def cricket_comment(request,*args,**kwargs):
 				'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
 				'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
 			except:
-				context={'form':form,'page':page,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
+				context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
 				'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
 				'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
 				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
@@ -2110,19 +2109,11 @@ def cricket_comment(request,*args,**kwargs):
 				link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
 		except:
 			return redirect("home")
-		paginator = Paginator(link_objs, CRICKET_COMMENTS_PER_PAGE)
-		page = request.GET.get('page', '1')
+		page_num = request.GET.get('page', '1')
+		page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
+		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page.object_list)
-		try:
-			context={'form':form,'page':page,'status':enqueued_match['status'],\
+			context={'form':form,'page':page_obj,'status':enqueued_match['status'],\
 			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
 			'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
 			'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
@@ -2130,7 +2121,7 @@ def cricket_comment(request,*args,**kwargs):
 			'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
 			'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
 		except:
-			context={'form':form,'page':page,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
+			context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
 			'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
 			'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
 			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
@@ -2150,36 +2141,6 @@ def cricket_comment_page(request,*args,**kwargs):
 				return redirect("cricket_comment")
 	else:
 		return redirect("link_create_pk")
-
-# @csrf_protect
-# def cricket_comment_page(request,*args,**kwargs):
-# 	if request.method == 'POST':
-# 		if request.user.userprofile.score < CRICKET_SUPPORT_STARTING_POINT:
-# 			context={"score_req":CRICKET_SUPPORT_STARTING_POINT}
-# 			return render(request,"cric_score_req.html",context)
-# 		else:
-# 			if first_time_psl_supporter(request.user.id):
-# 				add_psl_supporter(request.user.id)
-# 				return render(request,'psl_supporter_tutorial.html',{})
-# 			else:
-# 				form = CricketCommentForm()
-# 				enqueued_match = get_current_cricket_match()
-# 				try:
-# 					context={'form':form,'status':enqueued_match['status'],\
-# 					'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],\
-# 					'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],\
-# 					'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],\
-# 					'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
-# 					'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-# 					'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-# 				except:
-# 					context={'form':form,'status':enqueued_match['status'],\
-# 					'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],\
-# 					'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],\
-# 					'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
-# 				return render(request,"cricket_comment.html",context)
-# 	else:
-# 		return redirect("link_create_pk")
 
 @csrf_protect
 def cricket_initiate(request,*args,**kwargs):
@@ -2733,11 +2694,11 @@ def login(request,*args,**kwargs):
 @sensitive_post_parameters()
 @csrf_protect
 def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
-	if 'returning_acc_creator' in request.session and request.session['returning_acc_creator'] == 1:
-		pass
-	else:
-		newrelic.agent.add_custom_parameter("memorizepass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		request.session['returning_acc_creator'] = 1
+	# if 'returning_acc_creator' in request.session and request.session['returning_acc_creator'] == 1:
+	# 	pass
+	# else:
+	# 	newrelic.agent.add_custom_parameter("memorizepass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+	# 	request.session['returning_acc_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
@@ -2781,11 +2742,11 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 # @sensitive_post_parameters()
 @csrf_protect
 def create_password(request,slug=None,length=None,*args,**kwargs):
-	if 'returning_pass_creator' in request.session and request.session['returning_pass_creator'] == 1:
-		pass
-	else:
-		newrelic.agent.add_custom_parameter("createpass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		request.session['returning_pass_creator'] = 1
+	# if 'returning_pass_creator' in request.session and request.session['returning_pass_creator'] == 1:
+	# 	pass
+	# else:
+	# 	newrelic.agent.add_custom_parameter("createpass_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+	# 	request.session['returning_pass_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
@@ -2827,11 +2788,11 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 # @sensitive_post_parameters()
 @csrf_protect		
 def create_nick(request,*args,**kwargs):
-	if 'returning_nick_creator' in request.session and request.session['returning_nick_creator'] == 1:
-		pass
-	else:
-		newrelic.agent.add_custom_parameter("createnick_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		request.session['returning_nick_creator'] = 1
+	# if 'returning_nick_creator' in request.session and request.session['returning_nick_creator'] == 1:
+	# 	pass
+	# else:
+	# 	newrelic.agent.add_custom_parameter("createnick_scr", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+	# 	request.session['returning_nick_creator'] = 1
 	if account_creation_disallowed(getip(request)):
 		return render(request, 'penalty_account_create.html',{})
 	elif request.method == 'POST':
@@ -4124,12 +4085,6 @@ class VideoView(ListView):
 				context["voted"] = voted_for_video(context["object_list"], user.username)
 		return context
 
-def get_addendum(index,objs_per_page):
-	page = (index // objs_per_page)+1 #determining page number
-	section = index+1-((page-1)*objs_per_page) #determining section number
-	addendum = '?page='+str(page)+"#section"+str(section) #forming url addendum
-	return page, addendum #returing page and addendum
-
 #########################Views for fresh photos#########################
 
 def see_photo_pk(request,pk=None,*args,**kwargs):
@@ -4146,19 +4101,11 @@ def unauth_photo_location_pk(request,pk=None,*args,**kwargs):
 			index = photo_ids.index(pk)
 		except:
 			index = 0
-		page, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
 		url = reverse_lazy("unauth_photo")+addendum
-		paginator = Paginator(photo_ids, PHOTOS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['unauth_photos'] = retrieve_photo_posts(page.object_list)
-		request.session['unauth_photo_page'] = page
+		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+		request.session['unauth_photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['unauth_photo_page'] = page_obj
 		return redirect(url)
 	else:
 		return redirect("unauth_photo")
@@ -4172,37 +4119,22 @@ def photo_location(request,*args,**kwargs):
 	photo_ids = all_photos()
 	if photo_id == 0:
 		# there is no indexing to be done, just return to the top of the page
-		paginator = Paginator(photo_ids, PHOTOS_PER_PAGE)
-		page = request.GET.get('page', '1')
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['photos'] = retrieve_photo_posts(page.object_list)
-		request.session['photo_page'] = page
+		page_num = request.GET.get('page', '1')
+		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+		request.session['photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['photo_page'] = page_obj
 		return redirect("photo")
 	else:
+		# have to return user to a specific anchor
 		try:
 			index = photo_ids.index(photo_id)
 		except:
 			index = 0
-		page, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
 		url = reverse_lazy("photo")+addendum
-		paginator = Paginator(photo_ids, PHOTOS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['photos'] = retrieve_photo_posts(page.object_list)
-		request.session['photo_page'] = page
+		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+		request.session['photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['photo_page'] = page_obj
 		return redirect(url)
 
 @cache_page(10)
@@ -4212,7 +4144,7 @@ def unauth_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = PhotosListForm()
-		newrelic.agent.add_custom_parameter("unauth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		# newrelic.agent.add_custom_parameter("unauth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if 'unauth_photos' in request.session and 'unauth_photo_page' in request.session:
 			if request.session['unauth_photos'] and request.session['unauth_photo_page']:
 				# called when user has redirect from a photo comment
@@ -4220,39 +4152,23 @@ def unauth_photos(request,*args,**kwargs):
 				context["page"] = request.session['unauth_photo_page']
 			else:
 				photo_ids = all_photos()
-				paginator = Paginator(photo_ids, PHOTOS_PER_PAGE)
-				page = request.GET.get('page', '1')
-				try:
-					page = paginator.page(page)
-				except PageNotAnInteger:
-					# If page is not an integer, deliver first page.
-					page = paginator.page(1)
-				except EmptyPage:
-					# If page is out of range (e.g. 9999), deliver last page of results.
-					page = paginator.page(paginator.num_pages)
-				context["page"] = page
-				context["object_list"] = retrieve_photo_posts(page.object_list)
+				page_num = request.GET.get('page', '1')
+				page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+				context["page"] = page_obj
+				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 			del request.session['unauth_photos']
 			del request.session['unauth_photo_page']
 		else:
 			photo_ids = all_photos()
-			paginator = Paginator(photo_ids, PHOTOS_PER_PAGE)
-			page = request.GET.get('page', '1')
-			try:
-				page = paginator.page(page)
-			except PageNotAnInteger:
-				# If page is not an integer, deliver first page.
-				page = paginator.page(1)
-			except EmptyPage:
-				# If page is out of range (e.g. 9999), deliver last page of results.
-				page = paginator.page(paginator.num_pages)
-			context["page"] = page
-			context["object_list"] = retrieve_photo_posts(page.object_list)
+			page_num = request.GET.get('page', '1')
+			page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+			context["page"] = page_obj
+			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 		return render(request,'unauth_photos.html',context)
 
 def photo_list(request,*args, **kwargs):
 	if request.user.is_authenticated():
-		newrelic.agent.add_custom_parameter("auth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		# newrelic.agent.add_custom_parameter("auth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if first_time_photo_uploader(request.user.id) and request.user.userprofile.score > UPLOAD_PHOTO_REQ:
 			add_photo_uploader(request.user.id)
 			return render(request, 'photo_uploader_tutorial.html', {})
@@ -4265,34 +4181,18 @@ def photo_list(request,*args, **kwargs):
 					context["object_list"] = request.session['photos']
 				else:
 					photo_ids = all_photos()
-					paginator = Paginator(photo_ids, PHOTOS_PER_PAGE)
-					page = request.GET.get('page', '1')
-					try:
-						page = paginator.page(page)
-					except PageNotAnInteger:
-						# If page is not an integer, deliver first page.
-						page = paginator.page(1)
-					except EmptyPage:
-						# If page is out of range (e.g. 9999), deliver last page of results.
-						page = paginator.page(paginator.num_pages)
-					context["page"] = page
-					context["object_list"] = retrieve_photo_posts(page.object_list)
+					page_num = request.GET.get('page', '1')
+					page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+					context["page"] = page_obj
+					context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 				del request.session['photo_page']
 				del request.session['photos']
 			else:
 				photo_ids = all_photos()
-				paginator = Paginator(photo_ids, PHOTOS_PER_PAGE)
-				page = request.GET.get('page', '1')
-				try:
-					page = paginator.page(page)
-				except PageNotAnInteger:
-					# If page is not an integer, deliver first page.
-					page = paginator.page(1)
-				except EmptyPage:
-					# If page is out of range (e.g. 9999), deliver last page of results.
-					page = paginator.page(paginator.num_pages)
-				context["page"] = page
-				context["object_list"] = retrieve_photo_posts(page.object_list)
+				page_num = request.GET.get('page', '1')
+				page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+				context["page"] = page_obj
+				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = request.user.username
@@ -4450,19 +4350,11 @@ def unauth_best_photo_location_pk(request,pk=None, *args,**kwargs):
 			index = obj_list_keys.index(pk)
 		except:
 			index = 0
-		page, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
 		url = reverse_lazy("unauth_best_photo")+addendum
-		paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['unauth_best_photos'] = retrieve_photo_posts(page.object_list)
-		request.session['unauth_best_photo_page'] = page
+		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+		request.session['unauth_best_photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['unauth_best_photo_page'] = page_obj
 		return redirect(url)
 	else:
 		return redirect("unauth_best_photo")
@@ -4477,37 +4369,21 @@ def best_photo_location(request, *args, **kwargs):
 	obj_list_keys = map(itemgetter(0), obj_list)
 	if photo_id == 0:
 		# there is no index, just return to the top of the page
-		paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
-		page = request.GET.get('page', '1')
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['best_photos'] = retrieve_photo_posts(page.object_list)
-		request.session['best_photo_page'] = page
+		page_num = request.GET.get('page', '1')
+		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+		request.session['best_photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['best_photo_page'] = page_obj
 		return redirect("best_photo")
 	else:
 		try:
 			index = obj_list_keys.index(photo_id)
 		except:
 			index = 0
-		page, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
 		url = reverse_lazy("best_photo")+addendum
-		paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE) # pass list of objects and number of objects to show per page, it does the rest
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		request.session['best_photos'] = retrieve_photo_posts(page.object_list)
-		request.session['best_photo_page'] = page
+		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+		request.session['best_photos'] = retrieve_photo_posts(page_obj.object_list)
+		request.session['best_photo_page'] = page_obj
 		return redirect(url)
 
 @cache_page(10)
@@ -4517,7 +4393,7 @@ def unauth_best_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = BestPhotosListForm()
-		newrelic.agent.add_custom_parameter("unauth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+		# newrelic.agent.add_custom_parameter("unauth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if 'unauth_best_photos' in request.session and 'unauth_best_photo_page' in request.session:
 			if request.session['unauth_best_photos'] and request.session['unauth_best_photo_page']:
 				# called when user has redirect from a photo comment
@@ -4526,35 +4402,19 @@ def unauth_best_photos(request,*args,**kwargs):
 			else:
 				obj_list = all_best_photos()
 				obj_list_keys = map(itemgetter(0), obj_list)
-				paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
-				page = request.GET.get('page', '1')
-				try:
-					page = paginator.page(page)
-				except PageNotAnInteger:
-					# If page is not an integer, deliver first page.
-					page = paginator.page(1)
-				except EmptyPage:
-					# If page is out of range (e.g. 9999), deliver last page of results.
-					page = paginator.page(paginator.num_pages)
-				context["page"] = page
-				context["object_list"] = retrieve_photo_posts(page.object_list)
+				page_num = request.GET.get('page', '1')
+				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+				context["page"] = page_obj
+				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 			del request.session['unauth_best_photos']
 			del request.session['unauth_best_photo_page']
 		else:
 			obj_list = all_best_photos()
 			obj_list_keys = map(itemgetter(0), obj_list)
-			paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
-			page = request.GET.get('page', '1')
-			try:
-				page = paginator.page(page)
-			except PageNotAnInteger:
-				# If page is not an integer, deliver first page.
-				page = paginator.page(1)
-			except EmptyPage:
-				# If page is out of range (e.g. 9999), deliver last page of results.
-				page = paginator.page(paginator.num_pages)
-			context["page"] = page
-			context["object_list"] = retrieve_photo_posts(page.object_list)
+			page_num = request.GET.get('page', '1')
+			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+			context["page"] = page_obj
+			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 		return render(request,'unauth_best_photos.html',context)
 
 def best_photos_list(request,*args,**kwargs):
@@ -4565,7 +4425,7 @@ def best_photos_list(request,*args,**kwargs):
 		else:
 			context = {}
 			form = BestPhotosListForm()
-			newrelic.agent.add_custom_parameter("auth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+			# newrelic.agent.add_custom_parameter("auth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 			if 'best_photos' in request.session and 'best_photo_page' in request.session:
 				if request.session['best_photos'] and request.session['best_photo_page']:
 					# called when user has voted
@@ -4574,36 +4434,20 @@ def best_photos_list(request,*args,**kwargs):
 				else:
 					obj_list = all_best_photos()
 					obj_list_keys = map(itemgetter(0), obj_list)
-					paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
-					page = request.GET.get('page', '1')
-					try:
-						page = paginator.page(page)
-					except PageNotAnInteger:
-						# If page is not an integer, deliver first page.
-						page = paginator.page(1)
-					except EmptyPage:
-						# If page is out of range (e.g. 9999), deliver last page of results.
-						page = paginator.page(paginator.num_pages)
-					context["page"] = page
-					context["object_list"] = retrieve_photo_posts(page.object_list)
+					page_num = request.GET.get('page', '1')
+					page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+					context["page"] = page_obj
+					context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 				del request.session['best_photos']
 				del request.session['best_photo_page']
 			else:
 				# normal refresh or toggling between pages
 				obj_list = all_best_photos()
 				obj_list_keys = map(itemgetter(0), obj_list)
-				paginator = Paginator(obj_list_keys, PHOTOS_PER_PAGE)
-				page = request.GET.get('page', '1')
-				try:
-					page = paginator.page(page)
-				except PageNotAnInteger:
-					# If page is not an integer, deliver first page.
-					page = paginator.page(1)
-				except EmptyPage:
-					# If page is out of range (e.g. 9999), deliver last page of results.
-					page = paginator.page(paginator.num_pages)
-				context["page"] = page
-				context["object_list"] = retrieve_photo_posts(page.object_list)
+				page_num = request.GET.get('page', '1')
+				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+				context["page"] = page_obj
+				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = user.username
@@ -4759,18 +4603,6 @@ def see_best_photo_pk(request,pk=None,*args,**kwargs):
 		return redirect("best_photo")
 
 ##################################################################
-
-def set_rank():
-	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
-	netvotes = 0
-	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
-	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
-	unaware_submission = datetime.utcnow().replace(tzinfo=None)
-	td = unaware_submission - epoch 
-	epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
-	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
-	invisible_score = round(sign * order + secs / 45000, 8)
-	return invisible_score
 
 class UploadVideoView(FormView):
 	# model = Video
@@ -6168,22 +6000,14 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	else:
 		form = UnseenActivityForm()
 		notifications = retrieve_unseen_notifications(request.user.id)
-		paginator = Paginator(notifications, ITEMS_PER_PAGE)
-		page = request.GET.get('page', '1')
-		try:
-			page = paginator.page(page)
-		except PageNotAnInteger:
-			# If page is not an integer, deliver first page.
-			page = paginator.page(1)
-		except EmptyPage:
-			# If page is out of range (e.g. 9999), deliver last page of results.
-			page = paginator.page(paginator.num_pages)
-		if page.object_list:
-			oblist = retrieve_unseen_activity(page.object_list)
+		page_num = request.GET.get('page', '1')
+		page_obj = get_page_obj(page_num, notifications, ITEMS_PER_PAGE)
+		if page_obj.object_list:
+			oblist = retrieve_unseen_activity(page_obj.object_list)
 		else:
 			oblist = []
 		last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
-		context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page,'nickname':request.user.username,\
+		context = {'object_list': oblist, 'verify':FEMALES, 'form':form, 'page':page_obj,'nickname':request.user.username,\
 		'last_visit_time':last_visit_time}
 		return render(request, 'user_unseen_activity.html', context)
 

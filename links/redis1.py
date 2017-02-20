@@ -74,6 +74,11 @@ TEN_MINS = 10*60
 FOUR_MINS = 4*60
 THREE_MINS = 3*60
 
+# def test_lua():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	import hello
+# 	return my_server.eval(hello)
+
 #####################Cricket Widget#####################
 
 def current_match_comments(match_id):

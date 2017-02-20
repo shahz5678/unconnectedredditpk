@@ -91,22 +91,22 @@
 				{% endif %}
 				</span>
 	 			<br>
-					<!-- {% if comment.cc|add:0 > 0 %}
+				<!-- {% if comment.cc|add:0 > 0 %}
 							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bl bct mbs mtl" ><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 					{% else %}
 							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bxl bct mbs mtl">isko jawab do</button></a>
 					{% endif %}
 					<br>
-
+				-->
 				{% if comment.n != nickname and not comment.l|voted:nickname %}
 				<form  action="{% url 'cast_vote' %}" method="POST">
 				{% csrf_token %}
 					<input type="hidden" name="lid" value="{{ comment.l }}">
+					<input type="hidden" name="origin" value="1">
 					<button class="btn bcg bm mbl mts" type="submit" name="vote" value="1">jhappi</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="2">+50</button>{% endif %}<br>
 					<button class="btn bcr bm mbs" type="submit" name="vote" value="-1">chupair</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 50</button>{% endif %}<br>
 				</form>
 				{% endif %}
- -->
  		
 				{% for key,value in comment.l|get_votes %}
 					<a href="{% url 'vote_or_prof' comment.l comment.w key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}

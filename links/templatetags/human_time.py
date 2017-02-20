@@ -15,6 +15,6 @@ def human_time(value):
 	elif h:
 		return "%s hours ago" % int(h)
 	elif m:
-		return "%s minutes ago" % int(m)
+		return "%s mins ago" % int(m)
 	elif s:
-		return "%s seconds ago" % int(s)
+		return "%s secs ago" % int(s)

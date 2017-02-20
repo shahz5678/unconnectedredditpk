@@ -493,6 +493,7 @@
 			<form  action="{% url 'cast_vote' %}" method="POST">
 			{% csrf_token %}
 				<input type="hidden" name="lid" value="{{ link.l }}">
+				<input type="hidden" name="origin" value="0">
 				<button class="btn bcg bm mbl mts" type="submit" name="vote" value="1">jhappi</button>{% if user.username in checked %}&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="2">+50</button>{% endif %}<br>
 				<button class="btn bcr bm mbs" type="submit" name="vote" value="-1">chupair</button>{% if user.username in checked %}&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 50</button>{% endif %}<br>
 			</form>

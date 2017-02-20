@@ -2021,6 +2021,29 @@ class UserProfilePhotosView(ListView):
 		else:
 			return self.render_to_response(context)
 
+def cricket_location(request, *args, **kwargs):
+	enqueued_match = get_current_cricket_match()
+	try:
+		link_id = request.session['target_id']
+		del request.session['target_id']
+	except:
+		link_id = 0
+	if request.user_banned:
+		obj_list = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+	else:
+		obj_list = current_match_comments(enqueued_match['id']) # list of Link object ids
+	try:
+		index = obj_list.index(str(link_id))
+	except:
+		index = 0
+	page_num, addendum = get_addendum(index,CRICKET_COMMENTS_PER_PAGE)
+	url = reverse_lazy("cricket_comment")+addendum
+	page_obj = get_page_obj(page_num,obj_list,CRICKET_COMMENTS_PER_PAGE)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	request.session['list_of_cric_dictionaries'] = list_of_dictionaries
+	request.session['cric_page'] = page_obj
+	return redirect(url)
+
 @csrf_protect
 def cricket_comment(request,*args,**kwargs):
 	enqueued_match = get_current_cricket_match()
@@ -2070,20 +2093,34 @@ def cricket_comment(request,*args,**kwargs):
 				extras = add_unfiltered_post(link.id)
 				if extras:
 					queue_for_deletion.delay(extras)
-			return redirect("home")
+			return redirect(reverse_lazy("cricket_comment")+"?page=1#section1")
 		else:
 			nickname = request.user.username
 			score = request.user.userprofile.score
-			try:
-				if request.user_banned:
-					link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+			if 'list_of_cric_dictionaries' in request.session and 'cric_page' in request.session:
+				if request.session['list_of_cric_dictionaries'] and request.session['cric_page']:
+					list_of_dictionaries = request.session['list_of_cric_dictionaries']
+					page_obj = request.session['cric_page']
 				else:
-					link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
-			except:
-				return redirect("home")
-			page_num = request.GET.get('page', '1')
-			page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
-			photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+					try:
+						if request.user_banned:
+							link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+						else:
+							link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+					except:
+						return redirect("cricket_comment")
+					photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj = home_list(request, link_objs, CRICKET_COMMENTS_PER_PAGE)
+				del request.session['list_of_cric_dictionaries']
+				del request.session['cric_page']
+			else:
+				try:
+					if request.user_banned:
+						link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+					else:
+						link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+				except:
+					return redirect("cricket_comment")
+				photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj = home_list(request, link_objs, CRICKET_COMMENTS_PER_PAGE)
 			try:
 				context={'form':form,'page':page_obj,'status':enqueued_match['status'],\
 				'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
@@ -7557,8 +7594,18 @@ def cast_vote(request,*args,**kwargs):
 						set_cool_down(tries_remaining,own_id)
 					else:
 						pass
-					request.session["target_id"] = link_id
-					return redirect("home_loc")
+					origin = request.POST.get("origin","")
+					if origin == '1':
+						#came from cricket_comments
+						request.session["target_id"] = link_id
+						return redirect("cric_loc")
+					elif origin == '0':
+						#came from home page
+						request.session["target_id"] = link_id
+						return redirect("home_loc")
+					else:
+						#came from somewhere else (error?)
+						return redirect("home")
 			else:
 				return render(request, 'penalty_suspicious.html', {})
 		else:

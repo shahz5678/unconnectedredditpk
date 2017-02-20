@@ -6753,8 +6753,8 @@ class WelcomeReplyView(FormView):
 						update_cc_in_home_link(parent.id)
 					else:
 						num = random.randint(1,len(SALUTATIONS))
-						parent = Link.objects.create(description=SALUTATIONS[num], submitter=target, reply_count=1, device=device)
-						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num], \
+						parent = Link.objects.create(description=SALUTATIONS[num-1], submitter=target, reply_count=1, device=device)
+						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num-1], \
 							scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
 						add_filtered_post(parent.id)
 						extras = add_unfiltered_post(parent.id)

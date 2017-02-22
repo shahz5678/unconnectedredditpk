@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+<h2>Damadam ka sans hi nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
+{% if unique == 'none' %}
+<a href="{% url 'home' %}">
+<button class="btn bco bm">wapis</button></a>
+{% else %}
+<a href="{% url 'unseen_activity' unique %}">
+<button class="btn bco bm">wapis</button></a>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

@@ -33,8 +33,10 @@ hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash',
 hash_name = "ph:"+str(photo_id)
 hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
+prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+prev_replies = "prp5:"+str(user_id) #prp5 is a set containing 5 previous replies
 prev_retort = "pr:"+str(user_id)
 prev_retort = "pr5:"+str(user_id) # set 5 previous retorts
 prev_times = "pt6:"+str(user_id) # set 6 previous times
@@ -751,6 +753,24 @@ def update_cc_in_home_photo(photo_pk):
 	if my_server.exists(hash_name):
 		my_server.hincrby(hash_name, "pc", amount=1)
 
+def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	if my_server.exists(hash_name):
+		sec_reply, sec_writer, sec_av_url, sec_time, sec_writer_id = \
+		my_server.hmget(hash_name,'1str','1stw','1sta','1stt','1sti')
+		if sec_reply:
+			# move everything to the 2nd slot
+			mapping = {'1str':reply,'1stw':writer,'1sta':writer_av,'1stt':time,'1sti':writer_id,\
+			'2ndr':sec_reply,'2ndw':sec_writer,'2nda':sec_av_url,'2ndt':sec_time,'2ndi':sec_writer_id}
+		else:
+			# this is the first comment to be written
+			mapping = {'1str':reply,'1stw':writer,'1sta':writer_av,'1stt':time,'1sti':writer_id}
+		my_server.hmset(hash_name, mapping)
+		return 1
+	else:
+		return 0
+
 def update_cc_in_home_link(link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
@@ -847,9 +867,6 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
-# def set_site_ban(user_id,ONE_HOUR):
-# 	my_server = redis.Redis(connection_pool=POOL)
-
 # def should_cooldown(user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	prev_times = "pt6:"+str(user_id) # set 6 previous times
@@ -879,6 +896,20 @@ def get_link_writer(link_id):
 # 	my_server.ltrim(prev_times, 0, 5)
 # 	my_server.expire(prev_times,FOUR_MINS)
 
+def set_prev_group_replies(user_id,text):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
+	my_server.lpush(prev_group_replies,text)
+	my_server.ltrim(prev_group_replies, 0, 4)
+	my_server.expire(prev_group_replies,ONE_HOUR)
+
+def set_prev_replies(user_id,text):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_replies = "prp5:"+str(user_id) # set 5 previous replies
+	my_server.lpush(prev_replies,text)
+	my_server.ltrim(prev_replies, 0, 4)
+	my_server.expire(prev_replies,ONE_HOUR)
+
 def set_prev_retorts(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
@@ -891,6 +922,16 @@ def set_prev_retort(user_id,text):
 	prev_retort = "pr:"+str(user_id)
 	my_server.set(prev_retort,text)
 	my_server.expire(prev_retort,ONE_HOUR)
+
+def get_prev_group_replies(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_group_replies = "pgrp5:"+str(user_id)
+	return my_server.lrange(prev_group_replies,0,-1)
+
+def get_prev_replies(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_replies = "prp5:"+str(user_id)
+	return my_server.lrange(prev_replies,0,-1)
 
 def get_prev_retorts(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

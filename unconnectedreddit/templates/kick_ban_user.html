@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+
+{% if offline %}
+	<span class="cxl"><b class="ct">{{ original_target_uname }}</b> is waqt online nahi!</span><br>
+	<form method="POST" action="{% url 'kick_ban_user' %}">
+		{% csrf_token %}
+		<span class="cgy">Kya isko phir bhi kick and ban kar diya jaye?</span><br>
+		<input type="hidden" name="kick_ban" value="1">
+		<input type="hidden" name="counter" value="1">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		<button class="btn bcr bl mtl mbl" name="target1" value="{{ original_target_id }}" type="submit">Haan</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button class="btn bcgy bl bts mts mbs" type="submit">Nahi</button></form><br>
+{% else %}
+
+	<span class="cxl">Kiya in users ko kick and ban kar diya jaye?</span><br><br>
+	<form method="POST" action="{% url 'kick_ban_user' %}">
+		{% csrf_token %}
+		<input type="hidden" name="kick_ban" value="1">
+		<input type="hidden" name="counter" value="{{ counter }}">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		{% for target in targets %}
+		<input type="checkbox" name="target{{ forloop.counter }}" value="{{ target.id }}" checked>&nbsp;<a href="{% url 'profile' target.username %}#section0">{{ target.username }}</a><br>
+		{% endfor %}
+		<button class="btn bl bcr mbl mtl" type="submit">Kick and Ban</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button type="submit" class="btn bcgy bl mbs">Rehne Do</button></form>
+
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

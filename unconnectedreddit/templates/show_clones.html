@@ -1,16 +1,18 @@
 {% extends "base.html" %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
 
 {% if usernames %}
-Pichle 10 mins me <b class="ct">{{ original_target_uname }}</b> ne ye nick(s) istmal kiye:<br><br>
+Pichle 10-15 mins ke beech me <b class="ct">{{ original_target_uname }}</b> ne ye nick(s) istmal kiye:<br><br>
 	{% for username in usernames %}
-	<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}#section0">{{ username }}</a><br>
+	<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}#section0"><b>{{ username }}</b></a><br>
 	{% endfor %}
 {% else %}
-Pichle 10 mins me <b class="ct">{{ original_target_uname }}</b> ko Damadam pr nahi dekha gaya<br>
+Pichle 10 mins me <b class="ct">{{ original_target_uname }}</b> ko Damadam pr nahi dekha gaya&nbsp;{% emoticons %}.g8{% endemoticons %}<br>
 {% endif %}
-<a href="{% url 'profile' original_target_uname %}#section0"><button class="btn bco bm mbs mtl">wapis</button></a>
+<br>
+<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button type="submit" class="btn bco bm mts">wapis</button></form>
 </div>
 <br><br>
 {% endblock %}

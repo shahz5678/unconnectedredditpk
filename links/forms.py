@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists, get_prev_retorts#, should_cooldown
+from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies#, should_cooldown
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -23,12 +23,33 @@ import unicodedata
 from fuzzywuzzy import fuzz
 # import numpy as np
 
+def can_group_reply(text,user_id):
+	prev_group_replies = get_prev_group_replies(user_id)
+	# print prev_group_replies
+	for group_reply in prev_group_replies:
+		score = fuzz.partial_ratio(text,group_reply.decode('utf-8'))
+		# print score
+		if score > 74:
+			return False
+	return True
+
+def can_reply(text,user_id):
+	prev_publicreplies = get_prev_replies(user_id)
+	# print prev_publicreplies
+	for publicreply in prev_publicreplies:
+		score = fuzz.partial_ratio(text,publicreply.decode('utf-8'))
+		# print score
+		if score > 74:
+			return False
+	return True
+
 def can_post(text,user_id):
 	prev_retorts = get_prev_retorts(user_id)
+	# print prev_retorts
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
 		# print score
-		if score > 75:
+		if score > 74:
 			return False
 	return True
 
@@ -224,7 +245,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 			else:	
 				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 		if not can_post(description,self.request.user.id):
-			raise forms.ValidationError('tip: milti julti batein nah likho, kuch new likho')
+			raise forms.ValidationError('tip: milti julti baatein nah likho, kuch new likho')
 		return description
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
@@ -240,16 +261,6 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
-		# cooldown = should_cooldown(self.user_id)
-		# if cooldown:
-		# 	if cooldown == 2:
-		# 		pass
-		# 		#kick user out
-		# 	elif cooldown == 1:
-		# 		pass
-		# 		#user has to cool down for up to 20 mins
-		# 	else:
-		# 		pass
 		description = description.strip()
 		if len(description) < 10:
 			raise forms.ValidationError('tip: home pr itni choti baat nahi likh sakte')
@@ -273,10 +284,26 @@ class PublicGroupReplyForm(forms.ModelForm):
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
 
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
+
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
 		text = text.strip()
+		if len(text) < 2:
+			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
+		elif len(text) > 500:
+			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
 		text = clear_zalgo_text(text)
+		uni_str = uniform_string(text)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_group_reply(text,self.user_id):
+			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return text
 
 class OutsiderGroupForm(forms.ModelForm):
@@ -293,10 +320,26 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
 
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
+
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
 		text = text.strip()
+		if len(text) < 2:
+			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
+		elif len(text) > 500:
+			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
 		text = clear_zalgo_text(text)
+		uni_str = uniform_string(text)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_group_reply(text,self.user_id):
+			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return text
 
 class WelcomeMessageForm(forms.ModelForm):
@@ -313,12 +356,26 @@ class CommentForm(forms.ModelForm):
 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
 		fields = ("text",)
 
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		super(CommentForm, self).__init__(*args,**kwargs)
+
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
 		text = text.strip()
-		text = clear_zalgo_text(text)
 		if len(text) < 2:
 			raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
+		elif len(text) > 250:
+			raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
+		text = clear_zalgo_text(text)
+		uni_str = uniform_string(text)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_reply(text,self.user_id):
+			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return text
 
 class VideoCommentForm(forms.ModelForm):
@@ -335,12 +392,26 @@ class PublicreplyForm(forms.ModelForm):
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
 
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		super(PublicreplyForm, self).__init__(*args,**kwargs)
+
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		description = clear_zalgo_text(description)
 		if len(description) < 2:
-			raise forms.ValidationError('tip: jawab mein itna chota lafz nahi likh sakte')
+			raise forms.ValidationError('tip: itna chota jawab nahi likh sakte')
+		elif len(description) > 250:
+			raise forms.ValidationError('tip: inta bara jawab nahi likh sakte')
+		description = clear_zalgo_text(description)
+		uni_str = uniform_string(description)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_reply(description,self.user_id):
+			raise forms.ValidationError('tip: milte julte jawab nah likho, kuch new likho')
 		return description
 
 class OutsideMessageCreateForm(forms.Form):
@@ -445,14 +516,45 @@ class UnseenActivityForm(forms.Form):
 	class Meta:
 		fields = ("comment", "group_reply", )
 
+	def __init__(self,*args,**kwargs):
+		# self.request = kwargs.pop('request', None)
+		self.user = kwargs.pop('user',None)
+		super(UnseenActivityForm, self).__init__(*args, **kwargs)
+
 	def clean_comment(self):
 		comment = self.cleaned_data.get("comment")
-		comment = clear_zalgo_text(comment.strip())
+		comment = comment.strip()
+		if len(comment) < 2:
+			raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+		elif len(comment) > 250:
+			raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+		comment = clear_zalgo_text(comment)
+		uni_str = uniform_string(comment)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_reply(comment,self.user.id):
+			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return comment
 
 	def clean_group_reply(self):
 		group_reply = self.cleaned_data.get("group_reply")
-		group_reply = clear_zalgo_text(group_reply.strip())
+		group_reply = group_reply.strip()
+		if len(group_reply) < 2:
+			raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+		elif len(group_reply) > 500:
+			raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+		group_reply = clear_zalgo_text(group_reply)
+		uni_str = uniform_string(group_reply)
+		if uni_str:
+			if uni_str.isspace():
+				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+			else:	
+				raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+		if not can_group_reply(group_reply,self.user.id):
+			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return group_reply
 
 class PhotoTimeForm(forms.Form):
@@ -554,8 +656,14 @@ class ChangeGroupRulesForm(forms.ModelForm):
 
 class HomeLinkListForm(forms.Form):
 	reply = forms.CharField(max_length=250)
+	
 	class Meta:
 		fields = ("reply",)
+
+	def __init__(self, *args, **kwargs):
+		super(HomeLinkListForm, self).__init__(*args, **kwargs)
+		self.fields['reply'].widget.attrs['style'] = \
+		'width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 
 class BestPhotosListForm(forms.Form):
 	class Meta:

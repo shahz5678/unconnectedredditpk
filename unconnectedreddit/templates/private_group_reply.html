@@ -56,8 +56,7 @@
         {% else %}
         <span class="cs cgy"><b>200 kb</b> se barri pic nahi lagti</span><br>
         {% endif %}
-        <br><span class="cm cg"><b>Likho:</b></span>
-        <span class="cs cr">{{ form.errors }}</span>
+        <br>{% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
         <br>
         {{ form.text }}
             {% if warned %}

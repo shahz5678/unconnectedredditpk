@@ -6208,15 +6208,15 @@ def top_photo_help(request,*args,**kwargs):
 def unseen_fans(request,pk=None,*args, **kwargs):
 	if request.method == 'POST':
 		form = UnseenActivityForm(request.POST)
-		if form.is_valid():
-			photo_url = request.POST.get("photo_url")
-			fan_num = request.POST.get("fan_num")
-			fan_list = request.POST.get("fan_list")
-			fan_list = fan_list[1:-1] #removing '[' and ']' from the result
-			fan_list = fan_list.split(", ") #tokenzing values from remaining string
-			fan_list = User.objects.select_related('userprofile').filter(id__in=fan_list)
-			context={'fan_list':fan_list,'photo_url':photo_url,'fan_num':fan_num,'nickname':request.user.username}
-			return render(request,'which_fans.html',context)
+		# if form.is_valid():
+		photo_url = request.POST.get("photo_url")
+		fan_num = request.POST.get("fan_num")
+		fan_list = request.POST.get("fan_list")
+		fan_list = fan_list[1:-1] #removing '[' and ']' from the result
+		fan_list = fan_list.split(", ") #tokenzing values from remaining string
+		fan_list = User.objects.select_related('userprofile').filter(id__in=fan_list)
+		context={'fan_list':fan_list,'photo_url':photo_url,'fan_num':fan_num,'nickname':request.user.username}
+		return render(request,'which_fans.html',context)
 	else:
 		return redirect("unseen_activity",request.user.username)
 

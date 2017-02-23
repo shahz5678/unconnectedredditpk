@@ -10,8 +10,8 @@
 <form method="POST" action="{% url 'kick_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl mtl">Kick Out</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="kout" class="btn bcr cs bxs mll">?</button></form><br>
-<!--  -->
-<button type="submit" class="btn bcr bl mtl">Kick and Ban</button>&nbsp;
+<!-- Kick and Ban -->
+<form method="POST" action="{% url 'kick_ban_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl mtl">Kick and Ban</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="kban" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Ghost Ban -->
@@ -23,7 +23,7 @@
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br>
 <!-- Nevermind -->
-<a href="{% url 'profile' target_uname %}#section0"><button class="btn bco bl mtl">Rehne Do</button></a>&nbsp;<br>
+<a href="{% url 'profile' target_uname %}#section0"><button class="btn bcgy bl mtl">Rehne Do</button></a>&nbsp;<br>
 </div>
 <br><br>
 {% endblock %}

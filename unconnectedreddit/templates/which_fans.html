@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% block content %}
-<div class="margin">
-<span style="color:#404040;">Ye photo <img src="{{ photo_url|thumbnail }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:</span>
+<div class="margin clb">
+Ye photo <img src="{{ photo_url|thumbnail }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:
 <br><br>
 {% for fan in fan_list %}
 	{% if fan.userprofile.avatar %}	
@@ -10,9 +10,9 @@
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic">
 	{% endif %}
-	<a href="{% url 'profile' fan.username %}">{{ fan.username }}</a><span style="color:#18A018;font-size:85%;"> ({{ fan.userprofile.score }})</span><br>
+	<a href="{% url 'profile' fan.username %}">{{ fan.username }}</a><span class="cg cs">&nbsp;({{ fan.userprofile.score }})</span><br>
 {% endfor %}
 <br>
-<a href="{% url 'unseen_activity' nickname %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;width:4em;margin-top:0.5em;">wapis</button></a>
+<a href="{% url 'unseen_activity' nickname %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 </div><br><br>
 {% endblock %}

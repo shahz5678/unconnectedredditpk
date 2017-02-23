@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans hi nikal gya! Kam zor lagao yar {% emoticons %}:p{% endemoticons %}</h2>
+<div class="margin clb">
+<h2>Damadam ka sans hi nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
 {% if unique == 'none' %}
 <a href="{% url 'group_page' %}">
-<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;color:white;border-radius:4px;width:4em;margin-top:0.5em;">wapis</button></a>
+<button class="btn bcp bm">wapis</button></a>
 {% else %}
 <a href="{% url 'public_group' unique %}">
-<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#9971A5;border-color:#765989;color:white;border-radius:4px;width:4em;margin-top:0.5em;">wapis</button></a>
+<button class="btn bcp bm">wapis</button></a>
 {% endif %}
 </div>
 <br><br><br>

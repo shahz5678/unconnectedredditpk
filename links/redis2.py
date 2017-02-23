@@ -481,23 +481,39 @@ def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 #######################Whose Online#######################
 
 def expire_online_users():
+	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
-	cleanselogins(keys=[sorted_set],args=[time.time()])
+	my_server.zremrangebyscore(sorted_set,'-inf','('+str(time.time()-TEN_MINS))
+	# cleanselogins(keys=[sorted_set],args=[time.time()])
 
 def set_online_users(user_id,user_ip):
+	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
 	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
-	storelogin(keys=[sorted_set,latest_user_ip],args=[time.time(),user_id,user_ip])
+	my_server.zadd(sorted_set,str(user_id)+":"+str(user_ip),time.time())
+	my_server.set(latest_user_ip,user_ip)
+	my_server.expire(latest_user_ip,TEN_MINS)
+	# storelogin(keys=[sorted_set,latest_user_ip],args=[time.time(),user_id,user_ip])
 
 def get_recent_online():
+	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
-	return getlatestlogins(keys=[sorted_set],args=[time.time()])
+	ten_mins_ago = time.time() - TEN_MINS
+	online_users = my_server.zrangebyscore(sorted_set,ten_mins_ago,'+inf')
+	print online_users
+	online_ids = []
+	for user in online_users:
+		online_ids.append(user.split(":",1)[0])
+	print online_ids
+	return online_ids
+	# return getlatestlogins(keys=[sorted_set],args=[time.time()])
 
 def get_clones(user_id):
-	sorted_set = "online_users"
-	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
-	clone_list = retrieveclones(keys=[sorted_set,latest_user_ip],args=[time.time()])
-	return clone_list
+	pass
+	# sorted_set = "online_users"
+	# latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	# clone_list = retrieveclones(keys=[sorted_set,latest_user_ip],args=[time.time()])
+	# return clone_list
 
 def set_site_ban(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

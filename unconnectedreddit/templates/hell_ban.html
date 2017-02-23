@@ -2,22 +2,37 @@
 {% block content %}
 <div class="margin clb">
 
-{% if already_banned %}
-	<b class="ct">{{ target_uname }}</b> pehle se hi ghost banned hai<br>
+{% if offline %}
+	
+	<span class="cxl"><b class="ct">{{ original_target_uname }}</b> is waqt online nahi!</span><br>
+	{% if banned %}<span class="cs cr"><b>(ye pehle se hi ghost banned hai)</b></span><br><br>{% endif %}
+	<form method="POST" action="{% url 'hell_ban' %}">
+		{% csrf_token %}
+		<span class="cgy">Kya isko phir bhi ghost ban kar diya jaye?</span><br>
+		<input type="hidden" name="ghost_ban" value="1">
+		<input type="hidden" name="counter" value="1">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		<button class="btn bcr bl mtl mbl" name="target1" value="{{ original_target_id }}" type="submit">Haan</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button class="btn bcgy bl bts mts mbs" type="submit">Nahi</button></form><br>
+
 {% else %}
 
-	{% if num_banned == 1 %}
-		<b class="ct">{{ target_uname }}</b> ko ghost banned kr diya gaya hai<br>
-	{% else %}
-		In nick(s) ko ghost banned kr diya gaya:<br><br>
-			{% for username in usernames %}
-				<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}">{{ username }}</a><br>
-			{% endfor %}
-	{% endif %}
+	<span class="cxl">Kiya in users ko ghost ban kr diya jaye?</span><br><br>
+	<form method="POST" action="{% url 'hell_ban' %}">
+		{% csrf_token %}
+		<input type="hidden" name="ghost_ban" value="1">
+		<input type="hidden" name="counter" value="{{ counter }}">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		{% for target in targets %}
+		<input type="checkbox" name="target{{ forloop.counter }}" value="{{ target.id }}" checked>&nbsp;<a href="{% url 'profile' target.username %}#section0">{{ target.username }}</a>&nbsp;{% if target.banned %}<span class="cs cr"><b>(banned)</b></span>{% endif %}<br>
+		{% endfor %}
+		<button class="btn bl bcr mbl mtl" type="submit">Ghost Ban</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button type="submit" class="btn bcgy bl mts mbs">Rehne Do</button></form>
 
 {% endif %}
-<br>
-<a href="{% url 'profile' target_uname %}"><button class="btn bco bm mtl mbs">wapis</button></a><br>
+
 </div>
 <br><br>
 {% endblock %}

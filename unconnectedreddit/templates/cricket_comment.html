@@ -90,8 +90,25 @@
 				{% else %}
 				{% endif %}
 				</span>
-	 			<br>
-				<!-- {% if comment.cc|add:0 > 0 %}
+		 		
+		 		{% if comment.1str and comment.2ndr %}
+					<div class="clb mtl">
+					<b class="ct">Latest Jawab:</b><br>
+					<a href="{% url 'profile' comment.1stw %}">{% if comment.1sta != 'None' %}<img src="{{ comment.1sta|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
+					{{ comment.1stw }}</a>&nbsp;{% if comment.1stw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1str }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1stt|human_time }}</span><br>
+					<a href="{% url 'profile' comment.2ndw %}">{% if comment.1sta != 'None' %}<img src="{{ comment.1sta|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
+					{{ comment.2ndw }}</a>&nbsp;{% if comment.1stw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ comment.2ndr }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.2ndt|human_time }}</span>
+					</div>
+				{% elif comment.1str %}
+					<div class="clb mtl">
+					<b class="ct">Latest Jawab:</b><br>
+					<a href="{% url 'profile' comment.1stw %}">{% if comment.1sta != 'None' %}<img src="{{ comment.1sta|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
+					{{ comment.1stw }}</a>&nbsp;{% if comment.1stw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1str }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1stt|human_time }}</span>
+					</div>
+				{% else %}
+					<br>
+				{% endif %}
+				<!-- {% if comment.cc|add:"0" > 0 %}
 							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bl bct mbs mtl" ><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></a>
 					{% else %}
 							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bxl bct mbs mtl">isko jawab do</button></a>

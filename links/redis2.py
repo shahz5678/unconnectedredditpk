@@ -1,5 +1,6 @@
 import redis, time
 from location import REDLOC2
+from lua_scripts import storelogin, getlatestlogins, cleanselogins, retrieveclones
 
 '''
 ##########Redis Namespace##########
@@ -17,6 +18,7 @@ sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with vi
 single_key = 't:'+str(viewer_id) #'t' stores time of last visit to unseen activity by viewer_id
 sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
 sorted_set = "uar:"+str(viewer_id) #unseen activity resorted (by whether notifs are seen or not)
+user_ban = "ub:"+str(user_id)
 user_presence = "up:"+str(user_id)+str(group_id)
 user_presence = "up:"+str(user_id)+":"+str(group_id)
 sorted_set = "whose_online_new"
@@ -35,6 +37,7 @@ SEEN={True:2000000000,False:4000000000}
 FUTURE_EPOCH = 1609406042 #Human time (GMT): Thu, 31 Dec 2020 09:14:02 GMT
 
 TEN_MINS = 10*60
+ONE_HOUR = 60*60
 THREE_DAYS = 3*24*60*60
 HALF_LIFE = THREE_DAYS #used in ranking public groups
 
@@ -477,30 +480,30 @@ def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 
 #######################Whose Online#######################
 
-def set_whose_online(user_id,user_ip):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "whose_online_new"
-	my_server.zadd(sorted_set, user_id, time.time())
+def expire_online_users():
+	sorted_set = "online_users"
+	cleanselogins(keys=[sorted_set],args=[time.time()])
+
+def set_online_users(user_id,user_ip):
+	sorted_set = "online_users"
 	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
-	my_server.set(latest_user_ip,user_ip)
-	my_server.expire(latest_user_ip,TEN_MINS)
+	storelogin(keys=[sorted_set,latest_user_ip],args=[time.time(),user_id,user_ip])
 
-def get_user_ip(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
+def get_recent_online():
+	sorted_set = "online_users"
+	return getlatestlogins(keys=[sorted_set],args=[time.time()])
+
+def get_clones(user_id):
+	sorted_set = "online_users"
 	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
-	return my_server.get(latest_user_ip)
+	clone_list = retrieveclones(keys=[sorted_set,latest_user_ip],args=[time.time()])
+	return clone_list
 
-def get_latest_online():
+def set_site_ban(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "whose_online_new"
-	ten_mins_ago = time.time() - (10*60)
-	return my_server.zrangebyscore(sorted_set, ten_mins_ago, '+inf')
-
-def expire_whose_online():
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "whose_online_new"
-	ten_mins_ago = time.time() - (10*60)
-	my_server.zremrangebyscore(sorted_set,'-inf',ten_mins_ago)
+	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
+	my_server.set(user_ban,1)
+	my_server.expire(user_ban,ONE_HOUR)
 
 #######################Photos Benchmarking#######################
 
@@ -508,34 +511,27 @@ def set_benchmark(benchmark):
 	my_server = redis.Redis(connection_pool=POOL)
 	photos_benchmark = "photos_benchmark"
 	my_server.delete(photos_benchmark)
-	# print benchmark
 	my_server.zadd(photos_benchmark,*benchmark)
 
 def set_uploader_score(user_id,benchmark_score):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_score_hash = "us:"+str(user_id)
 	mapping = { 'b':benchmark_score }
-	# print "user score over his last 5 photos is: %s" % benchmark_score
 	my_server.hmset(user_score_hash, mapping)
 
 def get_uploader_percentile(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_score_hash = "us:"+str(user_id) 
 	user_score = my_server.hget(user_score_hash,'b')# 1.0
-	# print "user score over last 5 photos is: %s " % user_score
 	try:
 		value = my_server.zrevrangebyscore('photos_benchmark','('+str(user_score), '-inf', start=0, num=1)
 		if value:
 			rank = my_server.zrank('photos_benchmark',value[0])+1 #added 1 because rank is 0 based
-			# print "user rank is: %s" % rank
 			cardinality = my_server.zcard('photos_benchmark')
-			# print "cardinality is: %s" % cardinality
 			# the uploader beat the following percentage of users:
 			percentile = rank/(cardinality*1.0)
-			# print "percentile is: %s" % percentile
 		else:
 			percentile = 0
-			# print "no percentile calculated"
 	except:
 		percentile = 0
 	return percentile
@@ -544,12 +540,3 @@ def get_top_100():
 	my_server = redis.Redis(connection_pool=POOL)
 	photos_benchmark = "photos_benchmark"
 	return my_server.zrevrange(photos_benchmark,0,99,withscores=True)
-
-# def get_user_rank(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photos_benchmark = "photos_benchmark"
-# 	rank = (my_server.zrevrank(photos_benchmark,user_id))
-# 	if rank:
-# 		return rank+1
-# 	else:
-# 		return None

@@ -1,20 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-{% if num_of_users > 1 %}
-	<b class="ct">{{ original_target_uname }}</b> ke sath aur nick(s) bhi kick kiye gaye!<br>
-	<span class="cgy cs">(in pr shak tha ke ye bhi {{ original_target_uname}} hi hain)</span><br><br>
-	<span class="co"><b>Kicked users:</b></span><br>
-	{% for username in usernames %}
-		<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}#section0">{{ username }}</a><br>
-	{% endfor %}
-{% elif num_of_users == 1 %}
-	<b class="ct">{{ original_target_uname }}</b> ko Damadam se kick kr ke log out kr diya gaya hai<br>
+
+{% if offline %}
+	<span class="cxl"><b class="ct">{{ original_target_uname }}</b> is waqt online nahi!</span><br>
+	<form method="POST" action="{% url 'kick_user' %}">
+		{% csrf_token %}
+		<span class="cgy">Kya isko phir bhi kick kiya jaye? Is se ye log out ho jaye ga:</span><br>
+		<input type="hidden" name="kick" value="1">
+		<input type="hidden" name="counter" value="1">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		<button class="btn bcr bl mtl mbl" name="target1" value="{{ original_target_id }}" type="submit">Haan</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button class="btn bcgy bl bts mts mbs" type="submit">Nahi</button></form><br>
 {% else %}
-	<b class="ct">{{ original_target_uname }}</b> ko Damadam se kick kr ke log out kr diya gaya hai<br>
+
+	<span class="cxl">Kiya in users ko kick kar diya jaye?</span><br><br>
+	<form method="POST" action="{% url 'kick_user' %}">
+		{% csrf_token %}
+		<input type="hidden" name="kick" value="1">
+		<input type="hidden" name="counter" value="{{ counter }}">
+		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
+		{% for target in targets %}
+		<input type="checkbox" name="target{{ forloop.counter }}" value="{{ target.id }}" checked>&nbsp;<a href="{% url 'profile' target.username %}#section0">{{ target.username }}</a><br>
+		{% endfor %}
+		<button class="btn bl bcr mbl mtl" type="submit">Kick</button><br>
+	</form>
+		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button type="submit" class="btn bcgy bl mbs">Rehne Do</button></form>
+
 {% endif %}
-<br>
-<a href="{% url 'profile' original_target_uname %}"><button class="btn bco bm mbs mts">wapis</button></a>
+
 </div>
 <br><br>
 {% endblock %}

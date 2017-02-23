@@ -11,14 +11,15 @@ from cricket_score import cricket_scr
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, Vote
-from .redis2 import expire_whose_online, set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
+from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_latest_online,\
-get_top_100
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
+get_recent_online, expire_online_users#, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_current_cricket_match, \
-del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status#, retrieve_first_page
+del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, \
+set_prev_group_replies#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -137,7 +138,8 @@ def trim_top_group_rankings():
 
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():
-	expire_whose_online()
+	expire_online_users()
+	# expire_whose_online()
 
 #used to calculate group ranking
 @celery_app1.task(name='tasks.public_group_vote_tasks')
@@ -172,7 +174,8 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	if not updated:
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
-	set_prev_retort(sender_id,reply_text)
+	set_prev_group_replies(sender_id,reply_text)
+	# set_prev_retort(sender_id,reply_text)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
@@ -254,9 +257,11 @@ def rank_photos():
 
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	user_ids = get_latest_online()
+	user_ids = get_recent_online()
+	# user_ids = get_latest_online()
+	# print user_ids
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 30,
+			'LOCATION': MEMLOC, 'TIMEOUT': 67,
 		})
 	cache_mem.set('online', user_ids)
 
@@ -385,7 +390,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	set_prev_retort(user_id,text)
+	set_prev_replies(user_id,text)
 	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -451,7 +456,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	set_prev_retort(user_id,text)
+	set_prev_replies(user_id,text)
 	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -540,7 +545,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 def publicreply_tasks(user_id, reply_id, link_id, description):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
-	set_prev_retort(user_id,description)
+	set_prev_replies(user_id,description)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

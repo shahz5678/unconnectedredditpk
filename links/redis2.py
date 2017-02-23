@@ -1,6 +1,6 @@
 import redis, time
 from location import REDLOC2
-from lua_scripts import storelogin, getlatestlogins, cleanselogins, retrieveclones
+# from lua_scripts import storelogin, getlatestlogins, cleanselogins, retrieveclones
 
 '''
 ##########Redis Namespace##########
@@ -500,11 +500,11 @@ def get_recent_online():
 	sorted_set = "online_users"
 	ten_mins_ago = time.time() - TEN_MINS
 	online_users = my_server.zrangebyscore(sorted_set,ten_mins_ago,'+inf')
-	print online_users
+	# print online_users
 	online_ids = []
 	for user in online_users:
 		online_ids.append(user.split(":",1)[0])
-	print online_ids
+	# print online_ids
 	return online_ids
 	# return getlatestlogins(keys=[sorted_set],args=[time.time()])
 

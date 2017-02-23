@@ -19,7 +19,7 @@ unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_gr
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
 cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, cricket_location#, set_usernames
+cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
@@ -178,6 +178,7 @@ urlpatterns = patterns('',
 	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
 	url(r'^ftr/(?P<unique>[\w.@+-]+)/$', auth(first_time_refresh), name='first_time_refresh'),
 	url(r'^ftpr/(?P<unique>[\w.@+-]+)/$', auth(first_time_public_refresh), name='first_time_public_refresh'),
+	url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
@@ -302,6 +303,7 @@ urlpatterns = patterns('',
 	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
 	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),
 	url(r'^kick_user/$', auth(kick_user),name='kick_user'),
+	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 )

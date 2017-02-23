@@ -356,7 +356,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',
-		'schedule': timedelta(seconds=10*60), #execute every 10 mins
+		'schedule': timedelta(seconds=5*60), #execute every 5 mins
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
@@ -376,7 +376,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',
-		'schedule': timedelta(seconds=25),  # execute every 25 seconds
+		'schedule': timedelta(seconds=60),  # execute every 60 seconds
 		'args': (),
 	},
 	'tasks.fans': {

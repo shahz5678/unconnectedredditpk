@@ -509,9 +509,20 @@ def get_recent_online():
 	# return getlatestlogins(keys=[sorted_set],args=[time.time()])
 
 def get_clones(user_id):
-	pass
-	# sorted_set = "online_users"
-	# latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	my_server = redis.Redis(connection_pool=POOL)
+	sorted_set = "online_users"
+	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	user_ip = my_server.get(latest_user_ip)
+	if user_ip:
+		clones = []
+		ten_mins_ago = time.time() - TEN_MINS
+		online_users = my_server.zrangebyscore(sorted_set,ten_mins_ago,'+inf')
+		for user in online_users:
+			if user_ip == user.split(":",1)[1]:
+				clones.append(user.split(":",1)[0])
+		return clones
+	else:
+		return None
 	# clone_list = retrieveclones(keys=[sorted_set,latest_user_ip],args=[time.time()])
 	# return clone_list
 

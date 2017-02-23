@@ -65,9 +65,9 @@
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
         <span class="cp cm"><b>Photo:</b></span>&nbsp;{{ form.image }}<br>
-        <span class="cgy cs"><i><b>200 KB</b> se barri pic nahi lagti</i></span><br><br>
+        <span class="cgy cs"><b>200 KB</b> se barri pic nahi lagti</span><br><br>
         {% endif %}
-        <span class="cp cm"><b>Likho:</b></span><br>{{ form.text }}
+        {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
 <br>
     <button class="btn bms bcp mrl" type="submit" id="id_submit">OK</button>
     </form>

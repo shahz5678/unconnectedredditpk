@@ -4,32 +4,37 @@
 {% load thumbedge %}
 {% load photoedge %}
 {% load human_time %}
+{% load get_item %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
 {% if page.object_list %}
+<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline;">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></form>
 <span class="clb cs">Dekho matke mein kia hai:</span><p></p>
 {% for notif in object_list %}
-{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
-		<img src="{{ STATIC_URL }}img/taza.png" class="mbs" width="35" height="35" alt="no pic"><br>
-		{% endif %}
-<span style="font-size:90%;display:inline-block;margin-bottom:0.5em;">
-	{% if notif.s == 'True' %}
-	<span style="color:#808080;">
-	{% elif notif.ot == '2' %}
-	<span style="color:#229ec3;">
-	{% elif notif.ot == '0' %}
-	<span style="color:#ff8000;">
-	{% elif notif.ot == '3' and notif.g == '1' %}
-	<span style="color:#179b36;">
-	{% elif notif.ot == '3' and notif.g == '0' %}
-	<span style="color:#765989;">
-	{% else %}
-	<span style="color:#ff8000;">
+<a name="section{{ forloop.counter }}">
+	{% with forms|get_item:notif.oi as form %}
+	{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
+	<img src="{{ STATIC_URL }}img/taza.png" class="mbs" width="35" height="35" alt="no pic"><br>
 	{% endif %}
-	{{ forloop.counter0|add:page.start_index }}.
+
+	<span style="font-size:90%;display:inline-block;margin-bottom:0.5em;">
+		{% if notif.s == 'True' %}
+		<span style="color:#808080;">
+		{% elif notif.ot == '2' %}
+		<span style="color:#229ec3;">
+		{% elif notif.ot == '0' %}
+		<span style="color:#ff8000;">
+		{% elif notif.ot == '3' and notif.g == '1' %}
+		<span style="color:#179b36;">
+		{% elif notif.ot == '3' and notif.g == '0' %}
+		<span style="color:#765989;">
+		{% else %}
+		<span style="color:#ff8000;">
+		{% endif %}
+		{{ forloop.counter0|add:page.start_index }}.
+		</span>
 	</span>
-</span>
 
 {% if notif.ot == '2' %}
 <a href="{% url 'reply_pk' notif.oi %}">
@@ -55,12 +60,13 @@
 	{{ notif.r|add:"0" }}</b> jawab
 	</button></a>
 
-	<br><b class="cgy cs">Likho:</b>
+	<br>
+	{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
-		<input type="hidden" name="group_reply" value="1">
+		<input type="hidden" name="group_reply" value="111">
 		{{ form.comment }}
-		<br><button class="btn bcgy bms mts mbs" type="submit">OK</button>
+		<br><button class="btn bcgy bms mts mbs" name="btn{{ forloop.counter }}" type="submit">OK</button>
 		</form>
 	<hr size=1 COLOR="#cccccc">
 {% else %}
@@ -76,10 +82,10 @@
 <a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bct mbs bl mts"><b>
 {{ notif.r|add:"0" }}</b> jawab
 </button></a>
-<br><b class="ct cs">Likho:</b>
+<br>{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="ct cs">Likho:</b>{% endif %}
 	<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 	{% csrf_token %}
-	<input type="hidden" name="group_reply" value="1">
+	<input type="hidden" name="group_reply" value="111">
 	{{ form.comment }}
 	<br><button class="btn bct bms mts" type="submit">OK</button>
 	</form>
@@ -113,19 +119,19 @@
 
 		{% if notif.g == '1' %}
 		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcgy mbl mtl">andr jao</button></form>
-		<b class="cgy cs">Likho:</b>
+		{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
-				<input type="hidden" name="comment" value="1">
+				<input type="hidden" name="comment" value="111">
 				{{ form.group_reply }}
 				<br><button class="btn bcgy bms mts" type="submit" >OK</button>
 			</form>
 		{% else %}
 		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcgy bm mbs mts">andr jao</button></a>
-		<br><b class="cgy cs">Likho:</b>
+		<br>{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
-				<input type="hidden" name="comment" value="1">
+				<input type="hidden" name="comment" value="111">
 				{{ form.group_reply }}
 				<br><button class="btn bcgy bms mts" type="submit">OK</button>
 			</form>
@@ -156,10 +162,10 @@
 		<span class="bw" style="color:blue;">{{ notif.lrsn }}</span></form><span class="clb bw">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
 		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcg mbl mtl">andr jao</button></form>
-		<b class="cg cs">Likho:</b>
+		{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cg cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
-				<input type="hidden" name="comment" value="1">
+				<input type="hidden" name="comment" value="111">
 				{{ form.group_reply }}
 				<br><button class="btn bcg bms mts" type="submit" >OK</button>
 			</form>
@@ -187,10 +193,10 @@
 		<br>
 
 		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcp bm mbs mts">andr jao</button></a>
-		<br><b class="cp cs">Likho:</b>
+		<br>{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cp cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
-				<input type="hidden" name="comment" value="1">
+				<input type="hidden" name="comment" value="111">
 				{{ form.group_reply }}
 				<br><button class="btn bcp bms mts" type="submit">OK</button>
 			</form>
@@ -273,10 +279,10 @@
 			{% endif %}</button></a>
 			<br>
 		{% endif %}
-	<b class="cgy cs">Likho:</b>
+		{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
-		<input type="hidden" name="group_reply" value="1">
+		<input type="hidden" name="group_reply" value="111">
 		{{ form.comment }}
 		<br><button class="btn bcgy bms mts" type="submit">OK</button>
 		</form>
@@ -302,10 +308,10 @@
 		{% endif %}</button></a>
 		<br>
 	{% endif %}
-		<b class="co cs">Likho:</b>
+		{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="co cs">Likho:</b>{% endif %}
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
-		<input type="hidden" name="group_reply" value="1">
+		<input type="hidden" name="group_reply" value="111">
 		{{ form.comment }}
 		<br><button class="btn bco bms mts" type="submit">OK</button>
 		</form>
@@ -332,8 +338,8 @@
 				<input type="hidden" name="fan_list" value="{{ notif.r }}">
 				<input type="hidden" name="photo_url" value="{{ notif.p }}">
 				<input type="hidden" name="fan_num" value="{{ notif.l }}">
-				<input type="hidden" name="group_reply" value="1">
-				<input type="hidden" name="comment" value="1">
+				<input type="hidden" name="group_reply" value="111">
+				<input type="hidden" name="comment" value="111">
 				<input type="submit" style="border:none;background:none;margin-left:-0.5em;margin-right:-0.5em;color:#1947D1;font-weight:bold;" value="{{ notif.l }} fans">
 			</form>
 			ke matke mein pohonch gayee! Baqi <b>{{ notif.v|sub:notif.l }} fans</b> reh gaye {% emoticons %}.i5.i6.i7.i8{% endemoticons %}
@@ -346,10 +352,12 @@
 	<hr size=1 COLOR="#ff9933" class="mts">
 <br>
 {% endif %}
+
+{% endwith %}
 {% endfor %}
 
 {% else %}
-<span class="clb">Gup shup lagao take matka bharna shuru ho!</span>
+<span class="clb">Gup shup lagao takey matka bharna shuru ho!</span>
 {% endif %}
 
 	<br><div class="pagination" style="text-align: center;">

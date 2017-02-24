@@ -49,7 +49,7 @@ def can_post(text,user_id):
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
 		# print score
-		if score > 83:
+		if score > 74:
 			return False
 	return True
 

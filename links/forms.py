@@ -29,7 +29,7 @@ def can_group_reply(text,user_id):
 	for group_reply in prev_group_replies:
 		score = fuzz.partial_ratio(text,group_reply.decode('utf-8'))
 		# print score
-		if score > 74:
+		if score > 83:
 			return False
 	return True
 
@@ -39,7 +39,7 @@ def can_reply(text,user_id):
 	for publicreply in prev_publicreplies:
 		score = fuzz.partial_ratio(text,publicreply.decode('utf-8'))
 		# print score
-		if score > 74:
+		if score > 83:
 			return False
 	return True
 
@@ -49,7 +49,7 @@ def can_post(text,user_id):
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
 		# print score
-		if score > 74:
+		if score > 83:
 			return False
 	return True
 

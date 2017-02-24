@@ -486,8 +486,8 @@
 				<b class="ct">Latest Jawab:</b><br>
 				<a href="{% url 'profile' link.1stw %}">{% if link.1sta != 'None' %}<img src="{{ link.1sta|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
 				{{ link.1stw }}</a>&nbsp;{% if link.1stw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ link.1str }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1stt|human_time }}</span><br>
-				<a href="{% url 'profile' link.2ndw %}">{% if link.1sta != 'None' %}<img src="{{ link.1sta|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
-				{{ link.2ndw }}</a>&nbsp;{% if link.1stw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ link.2ndr }}{% endemoticons %}</span><span class="cgy cs">, {{ link.2ndt|human_time }}</span>
+				<a href="{% url 'profile' link.2ndw %}">{% if link.2nda != 'None' %}<img src="{{ link.2nda|thumbedge }}" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">{% endif %}&nbsp;
+				{{ link.2ndw }}</a>&nbsp;{% if link.2ndw in checked%}<span class="pinkstar">*</span>&nbsp;{% endif %}:&nbsp;<span class="ct">{% emoticons %}{{ link.2ndr }}{% endemoticons %}</span><span class="cgy cs">, {{ link.2ndt|human_time }}</span>
 				</div>
 			{% elif link.1str %}
 				<div class="clb mtl">

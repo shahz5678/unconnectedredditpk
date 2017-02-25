@@ -29,7 +29,7 @@ def can_group_reply(text,user_id):
 	for group_reply in prev_group_replies:
 		score = fuzz.partial_ratio(text,group_reply.decode('utf-8'))
 		# print score
-		if score > 83:
+		if score > 87:
 			return False
 	return True
 
@@ -39,7 +39,7 @@ def can_reply(text,user_id):
 	for publicreply in prev_publicreplies:
 		score = fuzz.partial_ratio(text,publicreply.decode('utf-8'))
 		# print score
-		if score > 83:
+		if score > 87:
 			return False
 	return True
 
@@ -663,7 +663,7 @@ class HomeLinkListForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(HomeLinkListForm, self).__init__(*args, **kwargs)
 		self.fields['reply'].widget.attrs['style'] = \
-		'width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
+		'background-color:#F8F8F8;width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 
 class BestPhotosListForm(forms.Form):
 	class Meta:

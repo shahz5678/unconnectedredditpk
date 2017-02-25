@@ -856,8 +856,8 @@ def update_cc_in_home_photo(photo_pk):
 def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	# writer = 'զųɛɛŋơʄҠąřąĆɧı'
-	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer,is_pinkstar,'medium',False)
+	# writer = 'سلمہ'.encode('utf-8')#զųɛɛŋơʄҠąřąĆɧı'
+	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
 		sec_head, sec_reply, sec_time, sec_writer_id = my_server.hmget(hash_name,'1h','1r','1t','1i')
 		if sec_reply:

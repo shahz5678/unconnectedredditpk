@@ -1,6 +1,9 @@
-import redis, time
+# coding=utf-8
+import redis, time, string
 from random import randint
 from location import REDLOC1
+from score import VOTE_TEXT
+
 '''
 ##########Redis Namespace##########
 
@@ -76,10 +79,107 @@ TEN_MINS = 10*60
 FOUR_MINS = 4*60
 THREE_MINS = 3*60
 
-# def test_lua():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	import hello
-# 	return my_server.eval(hello)
+#####################Helper Functions#####################
+
+def pinkstar_formatting(pinkstar):
+	if pinkstar:
+		return '<img src="/static/img/pstar.png" alt="*" width="13" height="13"></img>'
+	else:
+		return '<span></span>'
+
+def category_formatting(categ):
+	if categ == '1':
+		#tyical home link
+		div_head = '<span></span>'
+		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
+	elif categ == '2':
+		#public mehfil creation announcement on home
+		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'
+		div_tail = '<p><hr size=1 COLOR="#ac39ac"></p></div>'
+	elif categ == '3':
+		#Karachi Kings
+		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'
+		div_tail = '<p><hr size=1 COLOR="#244ed8"></p></div>'
+	elif categ == '4':
+		#Peshawar Zalmi
+		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Peshawar Zalmi</h1>'
+		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
+	elif categ == '5':
+		#Lahore Qalandars
+		div_head = '<div style="background-color:#e6ffe6;"><h1 style="font-size:0.7em;background-color:#00e600;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Lahore Qalandars</h1>'
+		div_tail = '<p><hr size=1 COLOR="#00e600"></p></div>'
+	elif categ == '6':
+		#Photo sharing
+		div_head = '<span></span>'
+		div_tail = '<p><hr size=1 COLOR="#ff9933"></p>'
+	elif categ == '7':
+		#Quetta Glads
+		div_head = '<div style="background-color:#f5edf8;"><h1 style="font-size:0.7em;background-color:#9040a8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Quetta Gladiators</h1>'
+		div_tail = '<p><hr size=1 COLOR="#9040a8"></p></div>'
+	elif categ == '8':
+		#Islamabad United
+		div_head = '<div style="background-color:#ffece6;"><h1 style="font-size:0.7em;background-color:#ff4500;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Islamabad United</h1>'
+		div_tail = '<p><hr size=1 COLOR="#ec544f"></p></div>'
+	elif categ == '9':
+		#misc
+		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
+		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
+	else:
+		pass
+	return div_head, div_tail
+
+def device_formatting(device):
+	if device == '1':
+		device = '<a href="/device_help/1/">&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img></a>'
+	elif device == '2':
+		device = '<a href="/device_help/2/">&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12"></img></a>'
+	elif device == '3':
+		device = '<a href="/device_help/3/">&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13"></img></a>'
+	elif device == '4':
+		device = '<a href="/device_help/4/">&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11"></img></a>'
+	elif device == '5':
+		device = '<a href="/device_help/5/">&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12"></img></a>'
+	else:
+		device = None
+	return device
+
+def scr_formatting(score):
+	style_tag = '<span style="font-size:85%;" class="cg">'
+	if score < 1:
+		score = style_tag + "(1)" + '</span>'
+	else:
+		score = style_tag + "(" + str(score) + ")" + '</span>'
+	return score
+
+def username_formatting(username,is_pinkstar,size,is_bold):
+	username = username.decode('utf-8')
+	if size == 'small':
+		a_href = "<a style='font-size:80%;' "+ ("href='/user/%s'>" % username)
+		if is_bold:
+			username = a_href+"<b>"+username+"</b></a>"
+		else:
+			username = a_href+username+"</a>"
+	elif size == 'medium':
+		a_href = ("<a href='/user/%s'>" % username)
+		if is_bold:
+			username = a_href+"<b>"+username+"</b></a>"
+		else:
+			username = a_href+username+"</a>"
+	if is_pinkstar:
+		username = '<bdi>'+username+'</bdi>'+'<img src="/static/img/pstar_small.png" alt="*" width="9" height="9"></img>'
+	else:
+		username = '<bdi>'+username+'</bdi>'
+	return username
+
+def av_url_formatting(av_url):
+	if av_url:
+		if 'res/avatars' in av_url:
+			url = string.replace(av_url, "damadam.blob.core.windows.net/pictures/avatars", "damadamthumbs.azureedge.net")
+		else:
+			url = av_url
+		return '<img src="%s" width="22" height="22"></img>' % url
+	else:
+		return '<img src="/static/img/default-avatar-min.jpg" alt="no pic"  width="22" height="22"></img>'
 
 #####################Cricket Widget#####################
 
@@ -753,19 +853,20 @@ def update_cc_in_home_photo(photo_pk):
 	if my_server.exists(hash_name):
 		my_server.hincrby(hash_name, "pc", amount=1)
 
-def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk):
+def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	# writer = 'զųɛɛŋơʄҠąřąĆɧı'
+	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer,is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
-		sec_reply, sec_writer, sec_av_url, sec_time, sec_writer_id = \
-		my_server.hmget(hash_name,'1str','1stw','1sta','1stt','1sti')
+		sec_head, sec_reply, sec_time, sec_writer_id = my_server.hmget(hash_name,'1h','1r','1t','1i')
 		if sec_reply:
 			# move everything to the 2nd slot
-			mapping = {'1str':reply,'1stw':writer,'1sta':writer_av,'1stt':time,'1sti':writer_id,\
-			'2ndr':sec_reply,'2ndw':sec_writer,'2nda':sec_av_url,'2ndt':sec_time,'2ndi':sec_writer_id}
+			mapping = {'1h':latest_reply_head,'1r':reply,'1t':time,'1i':writer_id,\
+			'2h':sec_head,'2r':sec_reply,'2t':sec_time,'2i':sec_writer_id}
 		else:
 			# this is the first comment to be written
-			mapping = {'1str':reply,'1stw':writer,'1sta':writer_av,'1stt':time,'1sti':writer_id}
+			mapping = {'1h':latest_reply_head,'1r':reply,'1t':time,'1i':writer_id}
 		my_server.hmset(hash_name, mapping)
 		return 1
 	else:
@@ -793,45 +894,52 @@ def update_vsc_in_photo(photo_pk, amnt):
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
-	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None):
+	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
+	av_url = av_url_formatting(av_url)
+	scr = scr_formatting(scr)
+	device = device_formatting(device)
+	categ_head,categ_tail = category_formatting(categ)
+	pinkstar = pinkstar_formatting(by_pinkstar)
+	nick = '🌻'
 	if categ == '1':
 		# this is a typical link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '2':
 		# this announces public mehfil creation on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		'm':meh_url, 't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '3':
 		# this is a link about KARACHI KINGS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '4':
 		# this is a link about PESHAWAR ZALMI
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '5':
 		# this is a link about LAHORE QALANDARS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }	
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }	
 	elif categ == '6':
 		# this is a photo-containing link on home
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time(),'ch':categ_head,'ct':categ_tail,\
+		'p':pinkstar }
 	elif categ == '7':
 		# this is a link about QUETTA GLADIATORS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '8':
 		# this is a link about ISLAMABAD UNITED
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	elif categ == '9':
 		# this is a link about misc
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'av':av_url, 'de':desc, 's':scr, 'cc':cc, 'dv':device, 'w':writer_pk, \
-		't':time.time() }
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 
@@ -960,13 +1068,32 @@ def get_home_link_votes(link_id):
 	sorted_set = "v:"+str(link_id)
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
-def add_vote_to_home_link(link_pk, value, username):
+def add_vote_to_link(link_pk,value,username,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
 	already_exists = my_server.zscore(sorted_set, username)
-	if not already_exists:# != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
-		#add the vote
-		my_server.zadd(sorted_set, username, value)
+	if not already_exists:
+		plain_username = username
+		hash_name = "lk:"+str(link_pk) #lk is 'link'
+		vote_text = my_server.hget(hash_name,'vt')
+		username = username_formatting(username,is_pinkstar,'small',True)
+		if vote_text:
+			new_text = username+str(VOTE_TEXT[value])
+			text = new_text+vote_text
+			my_server.hset(hash_name,'vt',text)
+			my_server.zadd(sorted_set, plain_username, value)
+		else:
+			text = username+str(VOTE_TEXT[value])
+			my_server.hset(hash_name,'vt',text)
+			my_server.zadd(sorted_set, plain_username, value)
+
+# def add_vote_to_home_link(link_pk, value, username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
+# 	already_exists = my_server.zscore(sorted_set, username)
+# 	if not already_exists:# != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
+# 		#add the vote
+# 		my_server.zadd(sorted_set, username, value)
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)

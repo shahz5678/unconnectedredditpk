@@ -1,4 +1,4 @@
-
+# coding=utf-8
 import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
 from requests.auth import HTTPBasicAuth
@@ -6352,6 +6352,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				owner_url = answer_to.submitter.userprofile.avatar.url
 			except:
 				owner_url = None
+			# username = 'سلمہ'
 			update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
 			publicreply_tasks.delay(user_id, reply.id, pk, description)
 			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\

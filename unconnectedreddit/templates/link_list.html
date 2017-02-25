@@ -382,14 +382,14 @@
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				{{ link.au|safe }}
 				<bdi class="cl">{{ link.n }}</bdi>
-				
+				</a>
 			{% if score > 25 %}				
 				{{ link.sc|safe }}
 			{% endif %}
 
 			{{ link.p|safe }}:
 	    	<span class="cl clb bw"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
-				<a name="section{{ forloop.counter  }}"></a> 
+				<a name="section{{ forloop.counter  }}"> 
 			<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{{ link.dc|safe }}

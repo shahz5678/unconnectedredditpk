@@ -902,7 +902,7 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
 	pinkstar = pinkstar_formatting(by_pinkstar)
-	nick = '🌻'
+	# nick = '🌻'
 	if categ == '1':
 		# this is a typical link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \

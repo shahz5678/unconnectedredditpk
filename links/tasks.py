@@ -356,9 +356,6 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 		else:
 			add_filtered_post(link.id)
 			add_unfiltered_post(link.id)
-		# home_payload = {}
-		# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
-		# cache.set('home_payload',home_payload)
 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
 def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):

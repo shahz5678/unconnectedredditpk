@@ -416,8 +416,6 @@
 				<br>
 			{% endif %}
 
-			{{ link.rt|safe }}
-
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
 			<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 			{% csrf_token %}

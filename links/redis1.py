@@ -1071,19 +1071,20 @@ def get_home_link_votes(link_id):
 def add_vote_to_link(link_pk,value,username,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
+	# username = username.encode('utf-8')
 	already_exists = my_server.zscore(sorted_set, username)
 	if not already_exists:
 		plain_username = username
 		hash_name = "lk:"+str(link_pk) #lk is 'link'
 		vote_text = my_server.hget(hash_name,'vt')
-		username = username_formatting(username,is_pinkstar,'small',True)
+		username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
 		if vote_text:
-			new_text = username+str(VOTE_TEXT[value])
+			new_text = username+VOTE_TEXT[value]
 			text = new_text+vote_text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 		else:
-			text = username+str(VOTE_TEXT[value])
+			text = username+VOTE_TEXT[value]
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 

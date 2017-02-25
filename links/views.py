@@ -54,7 +54,7 @@ add_photo, all_photos, all_best_photos, all_videos, add_video, video_uploaded_to
 save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, \
 bulk_check_group_membership, first_time_refresher, add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, \
 add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, \
-add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_home_link, bulk_check_group_invite, \
+add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, \
 first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
 first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
 time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, \
@@ -2080,7 +2080,8 @@ def cricket_comment(request,*args,**kwargs):
 			except:
 				av_url = None
 			add_home_link(link_pk=link.id, categ=category, nick=user.username, av_url=av_url, desc=description, \
-				scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device)
+				scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device,\
+				by_pinkstar=(True if user.username in FEMALES else False))
 			if request.user_banned:
 				incr_unfiltered_cric_comm(link.id,enqueued_match['id'])
 				extras = add_unfiltered_post(link.id)
@@ -2407,7 +2408,8 @@ class OpenGroupCreateView(CreateView):
 			except:
 				av_url = None
 			add_home_link(link_pk=link.id, categ='2', nick=f.owner.username, av_url=av_url, desc=f.topic, \
-				scr=f.owner.userprofile.score, cc=1, writer_pk=user_id, device='1', meh_url=unique)
+				scr=f.owner.userprofile.score, cc=1, writer_pk=user_id, device='1', meh_url=unique,\
+				by_pinkstar = (True if f.owner.username in FEMALES else False))
 			if self.request.user_banned:
 				extras = add_unfiltered_post(link.id)
 				if extras:
@@ -6102,10 +6104,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
-				# score = fuzz.ratio(description, get_prev_retort(user_id))
-				# if score > 85:
-				# 	return redirect("unseen_activity", slug=request.user.username)
-				# else:
+				username = request.user.username
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -6128,14 +6127,14 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					owner_url = parent.submitter.userprofile.avatar.url
 				except:
 					owner_url = None
-				update_comment_in_home_link(description,request.user.username,url,reply_time,user_id,pk)
+				update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
 				publicreply_tasks.delay(user_id, reply.id, pk, description)
 				publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
 					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
 					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,\
-					reply_poster_username=request.user.username,reply_desc=description,is_welc=False,reply_count=amnt,\
+					reply_poster_username=username,reply_desc=description,is_welc=False,reply_count=amnt,\
 					priority='home_jawab',from_unseen=True)
-				return redirect("unseen_activity", request.user.username)
+				return redirect("unseen_activity", username)
 			else:
 				notification = "np:"+str(request.user.id)+":2:"+str(pk)
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -6291,7 +6290,6 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			#replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(id__in=get_publicreplies(self.request.session["link_pk"])).order_by('-id')
 			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]
 			context["replies"] = replies
 			if self.request.user_banned:
@@ -6326,11 +6324,12 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			description = f.description#self.request.POST.get("description")
+			username = self.request.user.username
 			try:
 				answer_to = Link.objects.select_related('submitter__userprofile').get(id=pk)
 			except:
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-2)
-				return redirect("profile", slug=self.request.user.username)
+				return redirect("profile", slug=username)
 			# user = self.request.user
 			if self.request.is_feature_phone:
 				device = '1'
@@ -6353,18 +6352,18 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				owner_url = answer_to.submitter.userprofile.avatar.url
 			except:
 				owner_url = None
-			update_comment_in_home_link(description,self.request.user.username,url,reply_time,user_id,pk)
+			update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
 			publicreply_tasks.delay(user_id, reply.id, pk, description)
 			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
 				link_submitter_id=answer_to.submitter_id,link_submitter_username=answer_to.submitter.username,\
 				link_desc=answer_to.description,reply_time=reply_time,reply_poster_url=url,\
-				reply_poster_username=self.request.user.username,reply_desc=description,is_welc=False,\
+				reply_poster_username=username,reply_desc=description,is_welc=False,\
 				reply_count=answer_to.reply_count,priority='home_jawab',from_unseen=False)
 			try:
 				return redirect("reply_pk", pk=pk)
 			except:
 				UserProfile.objects.filter(user=user).update(score=F('score')-2)
-				return redirect("profile", slug=self.request.user.username)
+				return redirect("profile", slug=username)
 
 class UserActivityView(ListView):
 	model = Link
@@ -6511,7 +6510,6 @@ class LinkCreateView(CreateView):
 			except:
 				return redirect("profile", slug=self.request.user.username)
 			self.request.session["link_create_token"] = None
-			# try:
 			if valid_uuid(str(token)):
 				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				user = self.request.user
@@ -6521,7 +6519,6 @@ class LinkCreateView(CreateView):
 					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
 						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
 						user.userprofile.score = random.randint(10,71)
-						# user.userprofile.save()
 						f.submitter = user
 					else:
 						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
@@ -6547,7 +6544,8 @@ class LinkCreateView(CreateView):
 				except:
 					av_url = None
 				add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
-					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device)
+					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
+					by_pinkstar = (True if user.username in FEMALES else False))
 				if self.request.user_banned:
 					extras = add_unfiltered_post(f.id)
 					if extras:
@@ -6558,16 +6556,9 @@ class LinkCreateView(CreateView):
 					if extras:
 						queue_for_deletion.delay(extras)
 				f.submitter.userprofile.save()
-				#Get first twenty links:
-				# home_payload = {}
-				# home_payload['photo_ids'], home_payload['non_photo_link_ids'], home_payload['list_of_dictionaries'] = retrieve_first_page()
-				#set cache
-				# cache.set('home_payload',home_payload)
 				return super(CreateView, self).form_valid(form) #saves the link automatically
 			else:
 				return redirect("score_help")
-			# except:
-			# 	return redirect("score_help")
 		else:
 			return redirect("score_help")
 
@@ -6805,12 +6796,13 @@ class WelcomeReplyView(FormView):
 			if self.request.user_banned:
 				return render(self.request,'500.html',{})
 			else:
+				username = self.request.user.username
 				try:
 					pk = self.request.session["welcome_pk"]
 					self.request.session["welcome_pk"] = None
 					target = User.objects.get(pk=pk)
 				except:
-					return redirect("profile", slug=self.request.user.username)
+					return redirect("profile", slug=username)
 				current = User.objects.latest('id')
 				num = current.id
 				if (num-100) <= int(pk) <= (num+100):
@@ -6840,7 +6832,8 @@ class WelcomeReplyView(FormView):
 						num = random.randint(1,len(SALUTATIONS))
 						parent = Link.objects.create(description=SALUTATIONS[num-1], submitter=target, reply_count=1, device=device)
 						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num-1], \
-							scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device)
+							scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device, \
+							by_pinkstar=(True if target.username in FEMALES else False))
 						add_filtered_post(parent.id)
 						extras = add_unfiltered_post(parent.id)
 						if extras:
@@ -6881,11 +6874,11 @@ class WelcomeReplyView(FormView):
 					except:
 						url = None
 					time = convert_to_epoch(reply.submitted_on)
-					update_comment_in_home_link(description,self.request.user.username,url,time,self.request.user.id,parent.id)
+					update_comment_in_home_link(description,username,url,time,self.request.user.id,parent.id,(True if username in FEMALES else False))
 					publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url,\
 						sender_id=self.request.user.id,link_submitter_id=pk,link_submitter_username=target.username,\
 						link_desc=parent.description,reply_time=time,reply_poster_url=url,\
-						reply_poster_username=self.request.user.username,reply_desc=reply.description,is_welc=False,\
+						reply_poster_username=username,reply_desc=reply.description,is_welc=False,\
 						reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
 					return redirect("home")
 				else:
@@ -6974,7 +6967,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 					if value == 1:
 						if not Vote.objects.filter(voter=request.user,link=link):
 							Vote.objects.create(voter=request.user, link=link, value=value)
-							add_vote_to_home_link(link.id, value, request.user.username)
+							# add_vote_to_home_link(link.id, value, request.user.username)
 							target.userprofile.score = target.userprofile.score + 3
 							target.userprofile.save()
 						else:
@@ -6983,7 +6976,7 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 						value = -1
 						if not Vote.objects.filter(voter=request.user,link=link):
 							Vote.objects.create(voter=request.user, link=link, value=value)
-							add_vote_to_home_link(link.id, value, request.user.username)
+							# add_vote_to_home_link(link.id, value, request.user.username)
 							target.userprofile.score = target.userprofile.score - 3
 							if target.userprofile.score < -25:
 								if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
@@ -7004,13 +6997,14 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 						except:
 							av_url = None
 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
-								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1')
+								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
+								by_pinkstar = (True if target.username in FEMALES else False))
 						add_filtered_post(link.id)
 						extras = add_unfiltered_post(link.id)
 						if extras:
 							queue_for_deletion.delay(extras)
 						Vote.objects.create(voter=request.user, link=link, value=value)
-						add_vote_to_home_link(link.id, value, request.user.username)
+						# add_vote_to_home_link(link.id, value, request.user.username)
 						target.userprofile.score = target.userprofile.score + 3
 						target.userprofile.save()
 						return redirect("home")
@@ -7022,13 +7016,14 @@ def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, 
 						except:
 							av_url = None
 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
-								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1')
+								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
+								by_pinkstar = (True if target.username in FEMALES else False))
 						add_filtered_post(link.id)
 						extras = add_unfiltered_post(link.id)
 						if extras:
 							queue_for_deletion.delay(extras)
 						Vote.objects.create(voter=request.user, link=link, value=value)
-						add_vote_to_home_link(link.id, value, request.user.username)
+						# add_vote_to_home_link(link.id, value, request.user.username)
 						target.userprofile.score = target.userprofile.score - 3
 						if target.userprofile.score < -25:
 							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
@@ -7658,25 +7653,30 @@ def cast_vote(request,*args,**kwargs):
 					return render(request,'vote_cool_down.html',context)
 				else:
 					#process the vote
+					is_pinkstar = (True if request.user.username in FEMALES else False)
 					value = request.POST.get("vote","")
 					if value == '1':
 						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_home_link(link_id, value, request.user.username)
+						# add_vote_to_home_link(link_id, value, request.user.username)
+						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
 						if random.random() < 0.4:
 							set_cool_down(tries_remaining,request.user.id)
 					elif value == '-1':
 						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_home_link(link_id, value, request.user.username)
+						# add_vote_to_home_link(link_id, value, request.user.username)
+						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
 						set_cool_down(tries_remaining,own_id)
-					elif value == '2' and request.user.username in FEMALES:
+					elif value == '2' and is_pinkstar:
 						#is the user a verified female? If so, process the super upvote
 						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_home_link(link_id, value, request.user.username)
+						# add_vote_to_home_link(link_id, value, request.user.username)
+						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
 						set_cool_down(tries_remaining,own_id)
-					elif value == '-2' and request.user.username in FEMALES:
+					elif value == '-2' and is_pinkstar:
 						#is the user a verified female? If so, process the super downvote
 						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_home_link(link_id, value, request.user.username)
+						# add_vote_to_home_link(link_id, value, request.user.username)
+						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
 						set_cool_down(tries_remaining,own_id)
 					else:
 						pass
@@ -7738,29 +7738,38 @@ def hell_ban(request,*args,**kwargs):
 			target_id = request.POST.get("t_id")
 			clone_ids = get_clones(target_id)
 			own_id = request.user.id
-			if len(clone_ids) > 1:
-				targets = User.objects.filter(id__in=clone_ids).values('id','username')
-				hellbanned = list(HellBanList.objects.filter(condemned_id__in=clone_ids).values_list('condemned_id',flat=True))
-				if hellbanned:
-					for target in targets:
-						if target['id'] in hellbanned:
-							target['banned'] = True
-						else:
+			if clone_ids:
+				if len(clone_ids) > 1:
+					targets = User.objects.filter(id__in=clone_ids).values('id','username')
+					hellbanned = list(HellBanList.objects.filter(condemned_id__in=clone_ids).values_list('condemned_id',flat=True))
+					if hellbanned:
+						for target in targets:
+							if target['id'] in hellbanned:
+								target['banned'] = True
+							else:
+								target['banned'] = False
+					else:
+						for target in targets:
 							target['banned'] = False
+					context = {'offline':False,'own_id':own_id,'targets':targets,'counter':len(clone_ids),'original_target_id':target_id,\
+					'original_target_uname':target_username}
+					return render(request,'hell_ban.html',context)
+				elif len(clone_ids) == 1:
+					if HellBanList.objects.filter(condemned_id=target_id).exists():
+						targets = [{'id':target_id,'username':target_username,'banned':True}]
+					else:
+						targets = [{'id':target_id,'username':target_username,'banned':False}]
+					context = {'offline':False,'counter':1,'original_target_id':target_id,'own_id':own_id,'targets':targets,\
+					'original_target_uname':target_username}
+					return render(request,'hell_ban.html',context)
 				else:
-					for target in targets:
-						target['banned'] = False
-				context = {'offline':False,'own_id':own_id,'targets':targets,'counter':len(clone_ids),'original_target_id':target_id,\
-				'original_target_uname':target_username}
-				return render(request,'hell_ban.html',context)
-			elif len(clone_ids) == 1:
-				if HellBanList.objects.filter(condemned_id=target_id).exists():
-					targets = [{'id':target_id,'username':target_username,'banned':True}]
-				else:
-					targets = [{'id':target_id,'username':target_username,'banned':False}]
-				context = {'offline':False,'counter':1,'original_target_id':target_id,'own_id':own_id,'targets':targets,\
-				'original_target_uname':target_username}
-				return render(request,'hell_ban.html',context)
+					if HellBanList.objects.filter(condemned_id=target_id).exists():
+						banned = True
+					else:
+						banned = False
+					context={'offline':True,'original_target_id':target_id,'counter':1,'own_id':own_id,'banned':banned,\
+					'original_target_uname':target_username}
+					return render(request,'hell_ban.html',context)
 			else:
 				if HellBanList.objects.filter(condemned_id=target_id).exists():
 					banned = True
@@ -7943,6 +7952,9 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,"404.html",{})	
 	else:
 		return render(request,"404.html",{})
+
+def missing_page(request,*args,**kwargs):
+	return render(request,'404.html',{})
 
 # def LinkAutoCreate(user, content):   
 # 	link = Link()
@@ -8431,25 +8443,21 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 ###############################################################
 
-# Report run on 12/10/2016
-#              Table               |  Size   | External Size 
+# Report run on 24/2/2017
+#               Table               |  Size   | External Size 
 # ----------------------------------+---------+---------------
-#  user_sessions_session            | 8204 MB | 6455 MB
-#  links_publicreply                | 3622 MB | 1901 MB
-#  links_photoobjectsubscription    | 2619 MB | 2250 MB
-#  links_photo                      | 1814 MB | 1489 MB
-#  links_grouptraffic               | 1784 MB | 1724 MB
-#  links_photocomment               | 1554 MB | 742 MB
-#  links_link                       | 787 MB  | 214 MB
-#  links_reply                      | 542 MB  | 411 MB
-#  links_groupseen                  | 454 MB  | 362 MB
-#  links_vote                       | 360 MB  | 233 MB
-#  links_seen                       | 351 MB  | 351 MB
-#  links_salatinvite                | 311 MB  | 226 MB
-#  links_groupinvite                | 164 MB  | 125 MB
-#  links_photo_which_stream         | 146 MB  | 98 MB
-#  links_photostream                | 139 MB  | 73 MB
-#  links_userprofile                | 119 MB  | 42 MB
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5453 MB | 2817 MB
+#  links_photocomment               | 2604 MB | 1249 MB
+#  links_photo                      | 2366 MB | 2040 MB
+#  links_link                       | 1277 MB | 338 MB
+#  links_reply                      | 868 MB  | 655 MB
+#  links_vote                       | 555 MB  | 356 MB
+#  links_salatinvite                | 419 MB  | 305 MB
+#  links_groupseen                  | 394 MB  | 362 MB
+#  links_photo_which_stream         | 218 MB  | 146 MB
+#  links_photostream                | 208 MB  | 110 MB
+#  links_userprofile                | 129 MB  | 52 MB
 
 
 # Report run on 12/11/2016

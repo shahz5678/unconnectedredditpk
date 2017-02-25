@@ -1080,11 +1080,15 @@ def add_vote_to_link(link_pk,value,username,is_pinkstar):
 		username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
 		if vote_text:
 			new_text = username+VOTE_TEXT[value]
-			text = new_text+vote_text
+			# print new_text
+			# print vote_text
+			text = new_text+vote_text.decode('utf-8')
+			# print text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 		else:
 			text = username+VOTE_TEXT[value]
+			# print text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 

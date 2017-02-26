@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load future_time %}
+{% load humanize %}
 {% block content %}
 <div class="margin clb">
-Tum jhappi ya chupair mar sako ge: <b class="cg">{{ time_remaining|future_time }}</b><br>
+Tum jhappi ya chupair mar sako ge: <b class="cg">{{ time_remaining|naturaltime }}</b><br>
 <a href="{% url 'home_loc' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
 <hr size=1>
 <span class="cgy cs">

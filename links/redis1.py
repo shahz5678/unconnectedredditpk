@@ -1,8 +1,10 @@
 # coding=utf-8
-import redis, time, string
+import redis, time
 from random import randint
 from location import REDLOC1
 from score import VOTE_TEXT
+from html_injector import pinkstar_formatting, category_formatting, device_formatting, scr_formatting, \
+username_formatting, av_url_formatting, comment_count_formatting
 
 '''
 ##########Redis Namespace##########
@@ -43,14 +45,15 @@ prev_replies = "prp5:"+str(user_id) #prp5 is a set containing 5 previous replies
 prev_retort = "pr:"+str(user_id)
 prev_retort = "pr5:"+str(user_id) # set 5 previous retorts
 prev_times = "pt6:"+str(user_id) # set 6 previous times
+photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 sorted_set = "public_group_rankings"
-photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
 unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
 set_name = "ug:"+str(user_id) #ug is user's groups
 sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
+votes_allowed = "va:"+str(user_id) #votes allowed to user_id
 sorted_set = "vp:"+str(photo_id)
 sorted_set = "vv:"+str(video_id) #vv is 'voted video'
 list_name = "vids:"+str(user_id)
@@ -78,108 +81,10 @@ TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
 THREE_MINS = 3*60
+FORTY_FIVE_SECS = 45
 
-#####################Helper Functions#####################
-
-def pinkstar_formatting(pinkstar):
-	if pinkstar:
-		return '<img src="/static/img/pstar.png" alt="*" width="13" height="13"></img>'
-	else:
-		return '<span></span>'
-
-def category_formatting(categ):
-	if categ == '1':
-		#tyical home link
-		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
-	elif categ == '2':
-		#public mehfil creation announcement on home
-		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'
-		div_tail = '<p><hr size=1 COLOR="#ac39ac"></p></div>'
-	elif categ == '3':
-		#Karachi Kings
-		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'
-		div_tail = '<p><hr size=1 COLOR="#244ed8"></p></div>'
-	elif categ == '4':
-		#Peshawar Zalmi
-		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Peshawar Zalmi</h1>'
-		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
-	elif categ == '5':
-		#Lahore Qalandars
-		div_head = '<div style="background-color:#e6ffe6;"><h1 style="font-size:0.7em;background-color:#00e600;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Lahore Qalandars</h1>'
-		div_tail = '<p><hr size=1 COLOR="#00e600"></p></div>'
-	elif categ == '6':
-		#Photo sharing
-		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#ff9933"></p>'
-	elif categ == '7':
-		#Quetta Glads
-		div_head = '<div style="background-color:#f5edf8;"><h1 style="font-size:0.7em;background-color:#9040a8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Quetta Gladiators</h1>'
-		div_tail = '<p><hr size=1 COLOR="#9040a8"></p></div>'
-	elif categ == '8':
-		#Islamabad United
-		div_head = '<div style="background-color:#ffece6;"><h1 style="font-size:0.7em;background-color:#ff4500;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Islamabad United</h1>'
-		div_tail = '<p><hr size=1 COLOR="#ec544f"></p></div>'
-	elif categ == '9':
-		#misc
-		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
-		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
-	else:
-		pass
-	return div_head, div_tail
-
-def device_formatting(device):
-	if device == '1':
-		device = '<a href="/device_help/1/">&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img></a>'
-	elif device == '2':
-		device = '<a href="/device_help/2/">&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12"></img></a>'
-	elif device == '3':
-		device = '<a href="/device_help/3/">&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13"></img></a>'
-	elif device == '4':
-		device = '<a href="/device_help/4/">&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11"></img></a>'
-	elif device == '5':
-		device = '<a href="/device_help/5/">&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12"></img></a>'
-	else:
-		device = None
-	return device
-
-def scr_formatting(score):
-	style_tag = '<span style="font-size:85%;" class="cg">'
-	if score < 1:
-		score = style_tag + "(1)" + '</span>'
-	else:
-		score = style_tag + "(" + str(score) + ")" + '</span>'
-	return score
-
-def username_formatting(username,is_pinkstar,size,is_bold):
-	username = username.decode('utf-8')
-	if size == 'small':
-		a_href = "<a style='font-size:80%;' "+ ("href='/user/%s'>" % username)
-		if is_bold:
-			username = a_href+"<b>"+username+"</b></a>"
-		else:
-			username = a_href+username+"</a>"
-	elif size == 'medium':
-		a_href = ("<a href='/user/%s'>" % username)
-		if is_bold:
-			username = a_href+"<b>"+username+"</b></a>"
-		else:
-			username = a_href+username+"</a>"
-	if is_pinkstar:
-		username = '<bdi>'+username+'</bdi>'+'<img src="/static/img/pstar_small.png" alt="*" width="9" height="9"></img>'
-	else:
-		username = '<bdi>'+username+'</bdi>'
-	return username
-
-def av_url_formatting(av_url):
-	if av_url:
-		if 'res/avatars' in av_url:
-			url = string.replace(av_url, "damadam.blob.core.windows.net/pictures/avatars", "damadamthumbs.azureedge.net")
-		else:
-			url = av_url
-		return '<img src="%s" width="22" height="22"></img>' % url
-	else:
-		return '<img src="/static/img/default-avatar-min.jpg" alt="no pic"  width="22" height="22"></img>'
+VOTE_SPREE_ALWD = 6
+PHOTO_VOTE_SPREE_ALWD = 6
 
 #####################Cricket Widget#####################
 
@@ -585,7 +490,7 @@ def ban_photo(photo_id,ban):
 		else:
 			pass
 
-def add_vote_to_photo(photo_id, username, value):
+def add_vote_to_photo(photo_id, username, value,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
 	hash_name = "ph:"+str(photo_id)
@@ -602,14 +507,29 @@ def add_vote_to_photo(photo_id, username, value):
 			else:
 				my_server.hincrby(hash_name,'vo',amount=1)
 				my_server.hincrby(hash_name,'vi',amount=1)
-		#update 'last vote time'. Maitenance: if this time is older than 7 days (or something) remove 'vp:'
-		hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
-		current_time = time.time()
-		mapping = {'t':current_time}
-		my_server.hmset(hash_name, mapping)
+		##################HTML injection##################
+		link_id = my_server.hget("plm:"+str(photo_id),'l') # a home_page link corresponds with this photo
+		if link_id:
+			add_vote_to_home_photo(link_id,value,username,is_pinkstar)
+		##################################################
 		return True
 	else:
 		return False
+
+def add_vote_to_home_photo(link_id, value, username,is_pinkstar):
+	my_server = redis.Redis(connection_pool=POOL)
+	plain_username = username
+	hash_name = "lk:"+str(link_id) #lk is 'link'
+	vote_text = my_server.hget(hash_name,'vt')
+	username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
+	index = '3' if value == '1' else '-3'
+	if vote_text:
+		new_text = username+VOTE_TEXT[index]
+		text = new_text+vote_text.decode('utf-8')
+		my_server.hset(hash_name,'vt',text)
+	else:
+		text = username+VOTE_TEXT[index]
+		my_server.hset(hash_name,'vt',text)
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -659,42 +579,26 @@ def voted_for_single_photo(photo_id, username):
 		# i.e. already exists
 		return True
 
-def can_photo_vote(user_id):
+#vote blocking algorithm that elegently cools down with time
+def can_vote_on_photo(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	photo_vote_list = "pvl:"+str(user_id) #'pvl': photo_vote_list
-	list_len = my_server.llen(photo_vote_list)
-	if list_len >= 5:
-		last_vote_time = my_server.lrange(photo_vote_list, 0, 0)
-		time_diff = time.time() - float(last_vote_time[0])
-		intervals = int(time_diff/INTERVAL_SIZE)
-		if intervals == 0:
-			#the user has to wait, he/she can't push more votes
-			return False, (INTERVAL_SIZE - time_diff)
-		elif intervals == 1:
-			my_server.rpop(photo_vote_list)
-			my_server.lpush(photo_vote_list,time.time())
-			return True, None
-		elif intervals == 2:
-			my_server.ltrim(photo_vote_list, 3, 4)
-			my_server.lpush(photo_vote_list,time.time())
-			return True, None
-		elif intervals == 3:
-			my_server.ltrim(photo_vote_list, 2, 4)
-			my_server.lpush(photo_vote_list,time.time())
-			return True, None
-		elif intervals == 4:
-			my_server.ltrim(photo_vote_list, 1, 4)
-			my_server.lpush(photo_vote_list,time.time())
-			return True, None
-		elif intervals >= 5:
-			my_server.ltrim(photo_vote_list, 0, 4)
-			my_server.lpush(photo_vote_list,time.time())
-			return True, None
-		else:
-			return True, None
+	photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
+	current_spree = my_server.get(photo_votes_allowed)
+	if current_spree is None:
+		pipeline1 = my_server.pipeline()
+		my_server.incr(photo_votes_allowed)
+		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS)
+		pipeline1.execute()
+		return None, True
+	elif int(current_spree) > (PHOTO_VOTE_SPREE_ALWD-1):
+		ttl = my_server.ttl(photo_votes_allowed)
+		return ttl, False
 	else:
-		my_server.lpush(photo_vote_list,time.time())
-		return True, None
+		pipeline1 = my_server.pipeline()
+		my_server.incr(photo_votes_allowed)
+		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+		pipeline1.execute()
+		return None, True
 
 def never_posted_photo(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -859,6 +763,7 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 	# writer = 'سلمہ'.encode('utf-8')#զųɛɛŋơʄҠąřąĆɧı'
 	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
+		#################################Saving latest comments################################
 		sec_head, sec_reply, sec_time, sec_writer_id = my_server.hmget(hash_name,'1h','1r','1t','1i')
 		if sec_reply:
 			# move everything to the 2nd slot
@@ -868,15 +773,9 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 			# this is the first comment to be written
 			mapping = {'1h':latest_reply_head,'1r':reply,'1t':time,'1i':writer_id}
 		my_server.hmset(hash_name, mapping)
-		return 1
-	else:
-		return 0
-
-def update_cc_in_home_link(link_pk):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	if my_server.exists(hash_name):
-		amnt = my_server.hincrby(hash_name, "cc", amount=1)
+		########################################################################################
+		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
+		my_server.hset(hash_name,'rb',comment_count_formatting(amnt,link_pk))
 		return amnt
 	else:
 		return 0
@@ -902,27 +801,28 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
 	pinkstar = pinkstar_formatting(by_pinkstar)
+	reply_button = comment_count_formatting(cc,link_pk)
 	# nick = '🌻'
 	if categ == '1':
 		# this is a typical link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '2':
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '3':
 		# this is a link about KARACHI KINGS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '4':
 		# this is a link about PESHAWAR ZALMI
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '5':
 		# this is a link about LAHORE QALANDARS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }	
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }	
 	elif categ == '6':
 		# this is a photo-containing link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
@@ -931,44 +831,38 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	elif categ == '7':
 		# this is a link about QUETTA GLADIATORS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '8':
 		# this is a link about ISLAMABAD UNITED
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	elif categ == '9':
 		# this is a link about misc
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 
-def set_cool_down(tries_remaining,user_id):
+#vote blocking algorithm that elegently cools down with time
+def can_vote_on_link(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	link_vote_cooldown = "lc:"+str(user_id)
-	if tries_remaining == '1':
-		#last try remaining
-		my_server.decr(link_vote_cooldown)
-		my_server.expire(link_vote_cooldown,FOUR_MINS) #expire the key after 4 mins
+	votes_allowed = "va:"+str(user_id) #votes allowed to user_id
+	current_spree = my_server.get(votes_allowed)
+	if current_spree is None:
+		pipeline1 = my_server.pipeline()
+		my_server.incr(votes_allowed)
+		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
+		pipeline1.execute()
+		return None, True
+	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
+		ttl = my_server.ttl(votes_allowed)
+		return ttl, False
 	else:
-		#several tries remainings
-		my_server.decr(link_vote_cooldown)
-
-def get_cool_down(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	link_vote_cooldown = "lc:"+str(user_id)
-	if my_server.exists(link_vote_cooldown):
-		#key already exists
-		return my_server.get(link_vote_cooldown)
-	else:
-		#create key
-		my_server.set(link_vote_cooldown,VOTE_LIMIT)
-		return VOTE_LIMIT
-
-def time_to_vote_permission(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	link_vote_cooldown = "lc:"+str(user_id)
-	return my_server.ttl(link_vote_cooldown)
+		pipeline1 = my_server.pipeline()
+		my_server.incr(votes_allowed)
+		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+		pipeline1.execute()
+		return None, True
 
 def get_link_writer(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1091,14 +985,6 @@ def add_vote_to_link(link_pk,value,username,is_pinkstar):
 			# print text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
-
-# def add_vote_to_home_link(link_pk, value, username):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
-# 	already_exists = my_server.zscore(sorted_set, username)
-# 	if not already_exists:# != -1 and already_exists != 1 and already_exists !=-2 and already_exists != 2:
-# 		#add the vote
-# 		my_server.zadd(sorted_set, username, value)
 
 def all_best_photos():
 	my_server = redis.Redis(connection_pool=POOL)

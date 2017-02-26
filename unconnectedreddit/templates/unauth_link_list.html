@@ -139,11 +139,7 @@
 			<a name="section{{ forloop.counter  }}"></a> 
 		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 			
-			{% if link.cc|add:"0" > 0 %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mts" ><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></a>
-				{% else %}
-						<a href="{% url 'reply_pk' link.l %}"><button class="btn nw bl bct mbs mts">jawab do</button></a>
-				{% endif %}
+			{{ link.rb|safe }}
 			
 
 			{% if link.1h and link.2h %}

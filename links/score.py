@@ -1,7 +1,9 @@
 VOTE_TEXT = {'1':'<span class="cg" style="font-size:80%;"> ne barri si <b>jhappi</b> di</span><br>',\
 '-1':'<span class="cr" style="font-size:80%;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
 '2': '<span class="cg" style="font-size:80%;"> ne zordar <b>jhappi</b> di <b>(+50)</b></span><br>',\
-'-2': '<span class="cg" style="font-size:80%;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-50)</b></span><br>'}
+'-2': '<span class="cg" style="font-size:80%;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-50)</b></span><br>',\
+'3': '<span class="cg" style="font-size:80%;"> ko ye photo <b>zabrdast</b> lagi</span><br>',\
+'-3': '<span class="cr" style="font-size:80%;"> ko ye photo <b>bekaar</b> lagi</span><br>'}
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
 PUBLIC_GROUP_MESSAGE = 2 # score for messaging in public group

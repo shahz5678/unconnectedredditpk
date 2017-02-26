@@ -53,14 +53,13 @@ remove_user_group, private_group_posting_allowed, all_unfiltered_posts, all_filt
 add_photo, all_photos, all_best_photos, all_videos, add_video, video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, \
 save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, \
 bulk_check_group_membership, first_time_refresher, add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, \
-add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, check_photo_upload_ban, check_photo_vote_ban, can_photo_vote, \
-add_home_link, update_cc_in_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, \
-first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, \
-first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, get_cool_down, set_cool_down, \
-time_to_vote_permission, account_creation_disallowed, account_created, ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, \
-remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
-add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
-current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link#, test_lua
+add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
+add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, \
+first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
+add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, can_vote_on_link, account_creation_disallowed, account_created, \
+ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, \
+add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
+incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -6118,7 +6117,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
 				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
 				reply_time = convert_to_epoch(reply.submitted_on)
-				amnt = update_cc_in_home_link(parent.id)
+				# amnt = update_cc_in_home_link(parent.id)
 				try:
 					url = request.user.userprofile.avatar.url
 				except:
@@ -6127,13 +6126,13 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					owner_url = parent.submitter.userprofile.avatar.url
 				except:
 					owner_url = None
-				update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
+				amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
 				publicreply_tasks.delay(user_id, reply.id, pk, description)
 				publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
 					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
-					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,\
-					reply_poster_username=username,reply_desc=description,is_welc=False,reply_count=amnt,\
-					priority='home_jawab',from_unseen=True)
+					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
+					reply_poster_username=username,reply_desc=description,is_welc=False,priority='home_jawab',\
+					from_unseen=True)
 				return redirect("unseen_activity", username)
 			else:
 				notification = "np:"+str(request.user.id)+":2:"+str(pk)
@@ -6343,7 +6342,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				device = '3'
 			reply= Publicreply.objects.create(submitted_by_id=user_id, answer_to=answer_to, description=description, category='1', device=device)
 			reply_time = convert_to_epoch(reply.submitted_on)
-			amnt = update_cc_in_home_link(pk) #updating comment count for home link
+			# amnt = update_cc_in_home_link(pk) #updating comment count for home link
 			try:
 				url = self.request.user.userprofile.avatar.url
 			except:
@@ -6352,8 +6351,8 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				owner_url = answer_to.submitter.userprofile.avatar.url
 			except:
 				owner_url = None
-			# username = 'سلمہ'
-			update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
+			# username = u'سلمہ'
+			amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
 			publicreply_tasks.delay(user_id, reply.id, pk, description)
 			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
 				link_submitter_id=answer_to.submitter_id,link_submitter_username=answer_to.submitter.username,\
@@ -6828,12 +6827,12 @@ class WelcomeReplyView(FormView):
 					if Link.objects.filter(submitter=target).exists():
 						parent = Link.objects.filter(submitter=target).latest('id')
 						parent.reply_count = parent.reply_count + 1
-						update_cc_in_home_link(parent.id)
+						# update_cc_in_home_link(parent.id)
 					else:
 						num = random.randint(1,len(SALUTATIONS))
 						parent = Link.objects.create(description=SALUTATIONS[num-1], submitter=target, reply_count=1, device=device)
 						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num-1], \
-							scr=target.userprofile.score, cc=1, writer_pk=target.id, device=device, \
+							scr=target.userprofile.score, cc=0, writer_pk=target.id, device=device, \
 							by_pinkstar=(True if target.username in FEMALES else False))
 						add_filtered_post(parent.id)
 						extras = add_unfiltered_post(parent.id)
@@ -6875,7 +6874,7 @@ class WelcomeReplyView(FormView):
 					except:
 						url = None
 					time = convert_to_epoch(reply.submitted_on)
-					update_comment_in_home_link(description,username,url,time,self.request.user.id,parent.id,(True if username in FEMALES else False))
+					amnt = update_comment_in_home_link(description,username,url,time,self.request.user.id,parent.id,(True if username in FEMALES else False))
 					publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url,\
 						sender_id=self.request.user.id,link_submitter_id=pk,link_submitter_username=target.username,\
 						link_desc=parent.description,reply_time=time,reply_poster_url=url,\
@@ -7084,12 +7083,14 @@ def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwar
 		else:
 			defender = in_defenders(request.user.id)
 			if not defender:
-				can_vote, time_remaining = can_photo_vote(request.user.id)
+				time_remaining, can_vote = can_vote_on_photo(request.user.id) #defenders are exempt from timing out currently
 				if not can_vote:
 					time_remaining = timezone.now()+timedelta(seconds=time_remaining)
 					context={'time_remaining':time_remaining, 'origin':origin, 'pk':pk, 'slug':slug}
 					return render(request, 'photovote_cooldown.html', context)
-			added = add_vote_to_photo(pk, request.user.username, val)
+			username = request.user.username
+			# username = u'💕💕۞ﺍﻟﻠﻪ۞'
+			added = add_vote_to_photo(pk, username, val,(True if username in FEMALES else False))
 			if added:
 				if defender:
 				#this person can kick extra butt; she's a defender!
@@ -7635,7 +7636,6 @@ def cast_vote(request,*args,**kwargs):
 			link_id = request.POST.get("lid","")
 			if link_id:
 				own_id = request.user.id
-				tries_remaining = get_cool_down(own_id)
 				try:
 					target_user_id = int(get_link_writer(link_id))
 				except:
@@ -7646,53 +7646,51 @@ def cast_vote(request,*args,**kwargs):
 				elif voted_for_link(link_id,request.user.username):
 					#already voted for link
 					return render(request,'already_voted.html',{})
-				elif int(tries_remaining) < 1:
-					# this person needs to cooldown
-					time = time_to_vote_permission(own_id)
-					request.session["target_id"] = link_id
-					context={'time_remaining':time}
-					return render(request,'vote_cool_down.html',context)
 				else:
 					#process the vote
-					is_pinkstar = (True if request.user.username in FEMALES else False)
-					value = request.POST.get("vote","")
-					if value == '1':
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						# add_vote_to_home_link(link_id, value, request.user.username)
-						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-						if random.random() < 0.4:
-							set_cool_down(tries_remaining,request.user.id)
-					elif value == '-1':
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						# add_vote_to_home_link(link_id, value, request.user.username)
-						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-						set_cool_down(tries_remaining,own_id)
-					elif value == '2' and is_pinkstar:
-						#is the user a verified female? If so, process the super upvote
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						# add_vote_to_home_link(link_id, value, request.user.username)
-						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-						set_cool_down(tries_remaining,own_id)
-					elif value == '-2' and is_pinkstar:
-						#is the user a verified female? If so, process the super downvote
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						# add_vote_to_home_link(link_id, value, request.user.username)
-						add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-						set_cool_down(tries_remaining,own_id)
-					else:
-						pass
-					origin = request.POST.get("origin","")
-					if origin == '1':
-						#came from cricket_comments
+					time_remaining, can_vote = can_vote_on_link(own_id)
+					if not can_vote:
+						time_remaining = timezone.now()+timedelta(seconds=time_remaining)
 						request.session["target_id"] = link_id
-						return redirect("cric_loc")
-					elif origin == '0':
-						#came from home page
-						request.session["target_id"] = link_id
-						return redirect("home_loc")
+						context = {'time_remaining':time_remaining}
+						return render(request,'vote_cool_down.html',context)
 					else:
-						#came from somewhere else (error?)
-						return redirect("home")
+						is_pinkstar = (True if request.user.username in FEMALES else False)
+						value = request.POST.get("vote","")
+						if value == '1':
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							# username = u'سلمہ'
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							# if random.random() < 0.4:
+							# 	set_cool_down(tries_remaining,request.user.id)
+						elif value == '-1':
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							# set_cool_down(tries_remaining,own_id)
+						elif value == '2' and is_pinkstar:
+							#is the user a verified female? If so, process the super upvote
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							# set_cool_down(tries_remaining,own_id)
+						elif value == '-2' and is_pinkstar:
+							#is the user a verified female? If so, process the super downvote
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							# set_cool_down(tries_remaining,own_id)
+						else:
+							pass
+						origin = request.POST.get("origin","")
+						if origin == '1':
+							#came from cricket_comments
+							request.session["target_id"] = link_id
+							return redirect("cric_loc")
+						elif origin == '0':
+							#came from home page
+							request.session["target_id"] = link_id
+							return redirect("home_loc")
+						else:
+							#came from somewhere else (error?)
+							return redirect("home")
 			else:
 				return render(request, 'penalty_suspicious.html', {})
 		else:

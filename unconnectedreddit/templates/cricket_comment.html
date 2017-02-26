@@ -37,7 +37,7 @@
 			{{ comment.p|safe }}</a>:<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
 			    <a name="section{{ forloop.counter  }}"></a> 
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
-		 		
+		 		<!-- {{ comment.rb|safe }} -->
 		 	{% if comment.1h and comment.2h %}
 				<div class="clb mts mbs">
 				<b class="ct">Latest Jawab:</b><br>
@@ -52,13 +52,6 @@
 			{% else %}
 				<br>
 			{% endif %}
-				<!-- {% if comment.cc|add:"0" > 0 %}
-							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bl bct mbs mtl" ><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></a>
-					{% else %}
-							<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bxl bct mbs mtl">isko jawab do</button></a>
-					{% endif %}
-					<br>
-				-->
 				{% if comment.n != nickname and not comment.l|voted:nickname %}
 				<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 				{% csrf_token %}

@@ -110,8 +110,6 @@ def get_prev_status():
 
 def incr_unfiltered_cric_comm(link_id, match_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	# cricket = "cricket"
-	# my_server.hincrby(cricket,'cc',amount=1)
 	match_comments = "unfilcricmatch:"+str(match_id)
 	my_server.lpush(match_comments, link_id)
 	my_server.ltrim(match_comments, 0, 199)

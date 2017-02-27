@@ -7,7 +7,7 @@
 	
 	<form action="{% url 'ad_image' %}" method="post" enctype="multipart/form-data">
 		{% csrf_token %}
-		{{ form.image_file }}
+		{{ form.image }}
 		<br>
 		<input class="button" style="background-color:#3cb7dd;border-color:#229ec3;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
 	</form>

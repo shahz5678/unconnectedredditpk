@@ -8,8 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 # from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
-from django.core.files.images import get_image_dimensions
 from django.core import validators
+from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
 from detect_porn import detect
 import PIL
@@ -249,7 +249,8 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 		return description
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
-	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
+		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Link
 		exclude = ("submitter", "rank_score", "cagtegory",)
@@ -447,15 +448,15 @@ class UserSMSForm(forms.Form):
 		pass
 
 class AdImageForm(forms.ModelForm):
-	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
+	image = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
 	class Meta:
 		model = ChatPic
 		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
-		fields = ("image_file",)
+		fields = ("image",)
 
 	def __init__(self, *args, **kwargs):
 		super(AdImageForm, self).__init__(*args, **kwargs)
-		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
+		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 
 class AdImageYesNoForm(forms.Form):
 	class Meta:
@@ -714,10 +715,6 @@ class PicPasswordForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(PicPasswordForm, self).__init__(*args, **kwargs)
 		self.fields['mobile_number'].widget.attrs['style'] = 'width:95%;'
-
-class WelcomeReplyForm(forms.Form):
-	class Meta:
-		pass
 
 class SalatTutorialForm(forms.Form):
 	class Meta:
@@ -989,7 +986,7 @@ class CreateAccountForm(forms.ModelForm):
 		elif 'garamaanday' in lower_pass:
 			raise ValidationError('garamaanday ke bajai kuch aur password likho')
 		elif 'damadam' in lower_pass:
-			raise ValidationError('password mein damadam nahi likh sakte')
+			raise ValidationError('damadam ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
 			raise ValidationError('qwerty ko boojhna aasan hai, kuch aur likho')	
 		return password
@@ -1012,6 +1009,8 @@ class CreatePasswordForm(forms.Form):
 		self.request = kwargs.pop('request',None)
 		super(CreatePasswordForm, self).__init__(*args,**kwargs)
 		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
+		self.fields['password'].widget.attrs['class'] = 'cxl'
+		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 
 	def clean_username(self):
 		return self.cleaned_data.get("username")
@@ -1036,20 +1035,29 @@ class CreatePasswordForm(forms.Form):
 		elif 'garamaanday' in lower_pass:
 			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
 		elif 'damadam' in lower_pass:
-			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+			raise ValidationError('(tip: damadam ko boojhna aasan hai, kuch aur likho)')
 		elif 'qwerty' in lower_pass:
 			raise ValidationError('(tip: qwerty ko boojhna aasan hai, kuch aur likho)')	
 		return password
 
+
+def validate_whitespaces_in_nickname(value):
+    if ' ' in value:
+        raise ValidationError('(tip: nickname mein khali jaga nahi hoti. %s likho)' % value.replace(" ",""))
+
 class CreateNickForm(forms.Form):
-	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),help_text=_("Nick mein english harf, number ya @ _ . + - likho"),\
-		error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)")})
+	username = forms.CharField(max_length=50,error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
+		'required':_("(tip: nickname ko khali nahi chore sakte)")},\
+		validators=[validate_whitespaces_in_nickname, validators.RegexValidator(regex='^[\w.@+-]+$')])
 	class Meta:
 		fields = ('username',)
 
 	def __init__(self, *args, **kwargs):
 		super(CreateNickForm, self).__init__(*args, **kwargs)
 		self.fields['username'].widget.attrs['style'] = 'max-width:95%;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_username(self):
 		"""
@@ -1057,9 +1065,7 @@ class CreateNickForm(forms.Form):
 		
 		"""
 		username = self.cleaned_data['username']
-		if ' ' in username:
-			raise ValidationError('(tip: nickname mein khali jaga nahi hoti. %s likho)' % username.replace(" ",""))
-		elif User.objects.filter(username__iexact=username).exists():
+		if User.objects.filter(username__iexact=username).exists():
 			raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
 		else:
 			for name in BANNED_WORDS:

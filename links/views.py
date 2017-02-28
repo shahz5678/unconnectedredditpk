@@ -65,9 +65,9 @@ from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHe
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
 PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, DeletePicForm, UserPhoneNumberForm, \
-PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, WelcomeReplyForm, WelcomeMessageForm, WelcomeForm, \
+PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, \
 NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, \
-OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, SmsInviteForm, InviteForm, OutsideMessageCreateForm, \
+OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, InviteForm, OutsideMessageCreateForm, \
 OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, TopForm, \
 LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, \
 ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, \
@@ -6788,101 +6788,100 @@ class ReportView(FormView):
 			else:
 				return render(self.request,'500.html',{})
 
-class WelcomeReplyView(FormView):
-	form_class = WelcomeReplyForm
-
-	def form_valid(self, form):
-		if self.request.method == 'POST':
-			if self.request.user_banned:
-				return render(self.request,'500.html',{})
-			else:
-				username = self.request.user.username
+def welcome_reply(request,*args,**kwargs):
+	if request.user_banned:
+		return render(request,'500.html',{})
+	else:
+		if request.method == 'POST':
+			user = request.user
+			username = request.user.username
+			try:
+				pk = request.session["welcome_pk"]
+				del request.session["welcome_pk"]
+				target = User.objects.get(pk=pk)
+			except:
+				return redirect("profile", slug=username)
+			current = User.objects.latest('id')
+			num = current.id
+			if (num-100) <= int(pk) <= (num+100):
+				option = request.POST.get("opt")
+				message = request.POST.get("msg")
+				if request.is_feature_phone:
+					device = '1'
+				elif request.is_phone:
+					device = '2'
+				elif request.is_tablet:
+					device = '4'
+				elif request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				request.user.userprofile.score = request.user.userprofile.score + 1
+				request.user.userprofile.save()
 				try:
-					pk = self.request.session["welcome_pk"]
-					self.request.session["welcome_pk"] = None
-					target = User.objects.get(pk=pk)
+					av_url = target.userprofile.avatar.url
 				except:
-					return redirect("profile", slug=username)
-				current = User.objects.latest('id')
-				num = current.id
-				if (num-100) <= int(pk) <= (num+100):
-					option = self.request.POST.get("opt")
-					message = self.request.POST.get("msg")
-					if self.request.is_feature_phone:
-						device = '1'
-					elif self.request.is_phone:
-						device = '2'
-					elif self.request.is_tablet:
-						device = '4'
-					elif self.request.is_mobile:
-						device = '5'
-					else:
-						device = '3'
-					self.request.user.userprofile.score = self.request.user.userprofile.score + 1
-					self.request.user.userprofile.save()
-					try:
-						av_url = target.userprofile.avatar.url
-					except:
-						av_url = None
-					if Link.objects.filter(submitter=target).exists():
-						parent = Link.objects.filter(submitter=target).latest('id')
-						parent.reply_count = parent.reply_count + 1
-						# update_cc_in_home_link(parent.id)
-					else:
-						num = random.randint(1,len(SALUTATIONS))
-						parent = Link.objects.create(description=SALUTATIONS[num-1], submitter=target, reply_count=1, device=device)
-						add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num-1], \
-							scr=target.userprofile.score, cc=0, writer_pk=target.id, device=device, \
-							by_pinkstar=(True if target.username in FEMALES else False))
-						add_filtered_post(parent.id)
-						extras = add_unfiltered_post(parent.id)
-						if extras:
-							queue_for_deletion.delay(extras)
-					if option == '1' and message == 'Barfi khao aur mazay urao!':
-						description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
-						description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '1' and message == 'Is barfi se mu meetha karo!':
-						description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '2' and message == 'Aik plate laddu se life set!':
-						description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '2' and message == 'Ye saray laddu aap ke liye!':
-						description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '2' and message == 'Laddu khao, jaan banao yar!':
-						description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
-						description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '3' and message == 'Jalebi meri pasandida hai!':
-						description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					elif option == '3' and message == 'Is jalebi se mu metha karo!':
-						description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
-						reply = Publicreply.objects.create(submitted_by=self.request.user, answer_to=parent, description=description, device=device)
-					else:
-						return redirect("score_help")
-					parent.latest_reply = reply
-					parent.save()
-					try:
-						url = self.request.user.userprofile.avatar.url
-					except:
-						url = None
-					time = convert_to_epoch(reply.submitted_on)
-					amnt = update_comment_in_home_link(description,username,url,time,self.request.user.id,parent.id,(True if username in FEMALES else False))
-					publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url,\
-						sender_id=self.request.user.id,link_submitter_id=pk,link_submitter_username=target.username,\
-						link_desc=parent.description,reply_time=time,reply_poster_url=url,\
-						reply_poster_username=username,reply_desc=reply.description,is_welc=False,\
-						reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
-					return redirect("home")
+					av_url = None
+				if Link.objects.filter(submitter=target).exists():
+					parent = Link.objects.filter(submitter=target).latest('id')
+					parent.reply_count = parent.reply_count + 1
+				else:
+					num = random.randint(1,len(SALUTATIONS))
+					parent = Link.objects.create(description=SALUTATIONS[num-1], submitter=target, reply_count=1, device=device)
+					add_home_link(link_pk=parent.id, categ='1', nick=target.username, av_url=av_url, desc=SALUTATIONS[num-1], \
+						scr=target.userprofile.score, cc=0, writer_pk=target.id, device=device, \
+						by_pinkstar=(True if target.username in FEMALES else False))
+					add_filtered_post(parent.id)
+					extras = add_unfiltered_post(parent.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				if option == '1' and message == 'Barfi khao aur mazay urao!':
+					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
+					description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '1' and message == 'Is barfi se mu meetha karo!':
+					description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '2' and message == 'Aik plate laddu se life set!':
+					description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '2' and message == 'Ye saray laddu aap ke liye!':
+					description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '2' and message == 'Laddu khao, jaan banao yar!':
+					description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
+					description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '3' and message == 'Jalebi meri pasandida hai!':
+					description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
+				elif option == '3' and message == 'Is jalebi se mu metha karo!':
+					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
+					reply = Publicreply.objects.create(submitted_by=user, answer_to=parent, description=description, device=device)
 				else:
 					return redirect("score_help")
+				parent.latest_reply = reply
+				parent.save()
+				try:
+					url = request.user.userprofile.avatar.url
+				except:
+					url = None
+				time = convert_to_epoch(reply.submitted_on)
+				amnt = update_comment_in_home_link(description,username,url,time,user.id,parent.id,(True if username in FEMALES else False))
+				publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url,\
+					sender_id=user.id,link_submitter_id=pk,link_submitter_username=target.username,\
+					link_desc=parent.description,reply_time=time,reply_poster_url=url,\
+					reply_poster_username=username,reply_desc=reply.description,is_welc=False,\
+					reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
+				return redirect("home")
+			else:
+				return render(request,'old_user.html',{'username':target.username})
+		else:
+			return render(request,'404.html',{})
 
 def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
@@ -7828,16 +7827,21 @@ def kick_ban_user(request,*args,**kwargs):
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
 			clone_ids = get_clones(target_id)
-			if len(clone_ids) > 1:
-				targets = User.objects.filter(id__in=clone_ids).values('id','username')
-				context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
-				'counter':len(clone_ids),'own_id':request.user.id}
-				return render(request,'kick_ban_user.html',context)
-			elif len(clone_ids) == 1:
-				targets = [{'id':target_id,'username':target_username}]
-				context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
-				'counter':1,'own_id':request.user.id}
-				return render(request,'kick_ban_user.html',context)
+			if clone_ids:
+				if len(clone_ids) > 1:
+					targets = User.objects.filter(id__in=clone_ids).values('id','username')
+					context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
+					'counter':len(clone_ids),'own_id':request.user.id}
+					return render(request,'kick_ban_user.html',context)
+				elif len(clone_ids) == 1:
+					targets = [{'id':target_id,'username':target_username}]
+					context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
+					'counter':1,'own_id':request.user.id}
+					return render(request,'kick_ban_user.html',context)
+				else:
+					context={'offline':True,'original_target_uname':target_username,'original_target_id':target_id,'counter':1,\
+					'own_id':request.user.id}
+					return render(request,'kick_ban_user.html',context)
 			else:
 				context={'offline':True,'original_target_uname':target_username,'original_target_id':target_id,'counter':1,\
 				'own_id':request.user.id}
@@ -7874,19 +7878,24 @@ def kick_user(request,*args,**kwargs):
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
 			clone_ids = get_clones(target_id)
-			if len(clone_ids) > 1:
-				targets = User.objects.filter(id__in=clone_ids).values('id','username')
-				context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
-				'counter':len(clone_ids),'own_id':request.user.id}
-				return render(request,'kick_user.html',context)
-			elif len(clone_ids) == 1:
-				targets = [{'id':target_id,'username':target_username}]
-				context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
-				'counter':1,'own_id':request.user.id}
-				return render(request,'kick_user.html',context)
+			if clone_ids:
+				if len(clone_ids) > 1:
+					targets = User.objects.filter(id__in=clone_ids).values('id','username')
+					context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
+					'counter':len(clone_ids),'own_id':request.user.id}
+					return render(request,'kick_user.html',context)
+				elif len(clone_ids) == 1:
+					targets = [{'id':target_id,'username':target_username}]
+					context={'offline':False,'targets':targets,'original_target_id':target_id,'original_target_uname':target_username,\
+					'counter':1,'own_id':request.user.id}
+					return render(request,'kick_user.html',context)
+				else:
+					context={'offline':True,'original_target_uname':target_username,'original_target_id':target_id,'counter':1,\
+					'own_id':request.user.id}
+					return render(request,'kick_user.html',context)
 			else:
-				context={'offline':True,'original_target_uname':target_username,'original_target_id':target_id,'counter':1,\
-				'own_id':request.user.id}
+				context={'offline':True,'original_target_id':target_id,'counter':1,'own_id':request.user.id,\
+				'original_target_uname':target_username}
 				return render(request,'kick_user.html',context)
 	else:
 		return render(request,"404.html",{})
@@ -8216,19 +8225,19 @@ class AdImageView(CreateView):
 
 	def form_valid(self, form):
 		f = form.save(commit=False)
-		if f.image_file:
+		if f.image:
 			try:
 				on_fbs = self.request.META.get('X-IORG-FBS')
 			except:
 				on_fbs = False
 			if on_fbs:
-				if f.image_file.size > 200000:
+				if f.image.size > 200000:
 					context = {'pk':'pk'}
 					return render(self.request,'big_photo_fbs.html',context)
 				else:
 					pass
 			else:
-				if f.image_file.size > 10000000:
+				if f.image.size > 10000000:
 					context = {'pk':'pk'}
 					return render(self.request,'big_photo_regular.html',context)
 				else:
@@ -8238,7 +8247,7 @@ class AdImageView(CreateView):
 				f.image = image_file
 			else:
 				f.image = None
-		if f.image_file:
+		if f.image:
 			unique = uuid.uuid4()
 			if self.request.user.is_authenticated():
 				ad_image=ChatPic.objects.create(image=f.image, owner=request.user, times_sent=0, unique=unique)

@@ -53,7 +53,7 @@ def can_post(text,user_id):
 			return False
 	return True
 
-def uniform_string(text,n=5):
+def uniform_string(text,n=7):
 	text = text.lower()
 	# print text
 	for i, c in enumerate(text):
@@ -521,6 +521,8 @@ class UnseenActivityForm(forms.Form):
 		# self.request = kwargs.pop('request', None)
 		self.user = kwargs.pop('user',None)
 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
+		self.fields['group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['comment'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_comment(self):
 		comment = self.cleaned_data.get("comment")

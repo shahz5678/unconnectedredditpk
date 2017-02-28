@@ -820,10 +820,6 @@ class GroupOnlineKonForm(forms.ModelForm):
 	class Meta:
 		model = GroupTraffic
 
-class BigPhotoHelpForm(forms.Form):
-	class Meta:
-		pass
-
 class OutsideMessageForm(forms.Form):
 	class Meta:
 		pass

@@ -62,7 +62,7 @@ add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
-ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, CommentForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
+ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
 PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, DeletePicForm, UserPhoneNumberForm, \
 PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, \
@@ -73,7 +73,7 @@ LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, RegisterLoginForm, Clo
 ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, \
 ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, \
 PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, \
-BigPhotoHelpForm, clean_image_file, clean_image_file_with_hash, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, \
+CommentForm, clean_image_file, clean_image_file_with_hash, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, \
 PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, ReportcommentForm, MehfilCommentForm, \
 SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, \
 VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, \
@@ -504,16 +504,6 @@ class EmoticonsHelpView(FormView):
 class LogoutHelpView(FormView):
 	form_class = LogoutHelpForm
 	template_name = "logout_help.html"
-
-class BigPhotoHelpView(FormView):
-	form_class = BigPhotoHelpForm
-	template_name = "big_photo_help.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(BigPhotoHelpView, self).get_context_data(**kwargs)
-		photo_id = self.kwargs["pk"]
-		context["photo"] = Photo.objects.get(id=photo_id)
-		return context
 
 class LogoutReconfirmView(FormView):
 	form_class = LogoutReconfirmForm

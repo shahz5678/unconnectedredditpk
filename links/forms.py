@@ -279,7 +279,8 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
+		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -315,7 +316,8 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
+		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -361,7 +363,6 @@ class CommentForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
-
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")

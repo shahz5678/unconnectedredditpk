@@ -44,7 +44,8 @@ def category_formatting(categ):
 		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
 		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
 	else:
-		pass
+		div_head = '<span></span>'
+		div_tail = '<span></span>'
 	return div_head, div_tail
 
 def device_formatting(device):

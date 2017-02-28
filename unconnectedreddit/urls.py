@@ -32,11 +32,11 @@ ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonV
 ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, \
 LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, \
 RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, \
-InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, \
+InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, \
 PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, \
 SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, \
 ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, \
-AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, \
+AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, \
 AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
 
 admin.autodiscover()
@@ -187,7 +187,7 @@ urlpatterns = patterns('',
 	url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
 	url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
-	url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
+	# url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
 	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
 	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),

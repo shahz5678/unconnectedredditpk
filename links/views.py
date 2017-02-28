@@ -7650,22 +7650,31 @@ def cast_vote(request,*args,**kwargs):
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							# username = u'سلمہ'
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-							# if random.random() < 0.4:
-							# 	set_cool_down(tries_remaining,request.user.id)
 						elif value == '-1':
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-							# set_cool_down(tries_remaining,own_id)
+						elif value == '4':
+							vote_tasks.delay(own_id, target_user_id,link_id,'1')
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+						elif value == '-4':
+							vote_tasks.delay(own_id, target_user_id,link_id,'-1')
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+						elif value == '5' and is_pinkstar:
+							#is the user a verified female? If so, process the super cricket upvote
+							vote_tasks.delay(own_id, target_user_id,link_id,'2')
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+						elif value == '-5' and is_pinkstar:
+							#is the user a verified female? If so, process the super cricket downvote
+							vote_tasks.delay(own_id, target_user_id,link_id,'-2')
+							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
 						elif value == '2' and is_pinkstar:
 							#is the user a verified female? If so, process the super upvote
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-							# set_cool_down(tries_remaining,own_id)
 						elif value == '-2' and is_pinkstar:
 							#is the user a verified female? If so, process the super downvote
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
-							# set_cool_down(tries_remaining,own_id)
 						else:
 							pass
 						origin = request.POST.get("origin","")

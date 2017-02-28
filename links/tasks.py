@@ -8,7 +8,8 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
-from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
+SUPER_UPVOTE
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, Vote
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
@@ -32,11 +33,6 @@ FLOOR_PERCENTILE = 0.5
 CEILING_PERCENTILE = 0.9 # (inclusive)
 MIN_FANS_TARGETED = 0.1 # 10%
 MAX_FANS_TARGETED = 0.95 # 95%
-
-UPVOTE = 3
-SUPER_UPVOTE = 50
-DOWNVOTE = -3
-SUPER_DOWNVOTE = -50
 
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()

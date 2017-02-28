@@ -2,29 +2,34 @@
 {% load humanize %}
 {% load thumbedge %}
 {% block content %}
-<div class="margin">
-{% if num == 1 %}
-	{% if type == 'ban' %} 
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#179b36;">zabardast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor %}</span>
-	{% else %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko is Damadamer ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }}</a>{% endfor %}</span>
-	{% endif %}
-		<span style="color:#404040;font-size:100%;"><br><br>Is ko photos pr vote krne se kitne waqt ke liye ban krna hai?
-		</span><br>
-{% else %}
-	{% if type == 'ban' %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#179b36;">zabrdast</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor %}</span>
-	{% else %}
-		<span style="color:#404040;font-size:100%;">{{ owner_name }} ki is photo ko in Damadamers ne <b style="color:#FF1A1A;">bekaar</b> vote diya:&nbsp;{% for name in unames %}<a href="{% url 'profile' name %}#section0">{{ name }},&nbsp;</a>{% endfor %}</span>
-	{% endif %}
-		<span style="color:#404040;font-size:100%;"><br><br>In sb ko photos pr vote krne se kitne waqt ke liye ban krna hai?
-		</span><br>
-{% endif %}
-	&nbsp;<a href="{% url 'ban_photo_voter' pk owner_name '1' origin link_id %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:1em;">3 hours</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_voter' pk owner_name '2' origin link_id %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">3 days</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_voter' pk owner_name '3' origin link_id %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">1 week</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_voter' pk owner_name '4' origin link_id %}"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">Forever</button></a><br>
-	&nbsp;<a href="{% url 'ban_photo_voter' pk owner_name '0' origin link_id %}"><button style="color:white;border-color: #ff8000;background: #ff9933;width:6.2em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:0.5em;margin-top:0.7em;">Rehne do</button></a><br>
+<div class="margin clb">
+	<form method="POST" action="{% url 'ban_photo_voter' %}">
+	{% csrf_token %}
+		{% if type == 'ban' %}
+			<b class="ct">{{ owner_name }}</b> ki is photo ko <b>{{ num }}</b> Damadamers ne <b class="cg">zabardast</b> vote diya:<br><br>
+			{% for name in unames %}
+				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name %}#section0">{{ name }}</a><br>
+			{% endfor %}
+		{% else %}
+			<b class="ct">{{ owner_name }}</b> ki is photo ko <b>{{ num }}</b> Damadamers ne <b class="cr">bekaar</b> vote diya:<br><br>
+			{% for name in unames %}
+				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name %}#section0">{{ name }}</a><br>
+			{% endfor %}
+		{% endif %}
+			<br>In sb ko photos pr vote krne se kitne waqt ke liye ban krna hai?
+			<br><span class="cgy cs">(tip: jisko chorna hai, uske box ka tick mark hata do)</span><br>
 
+		<input type="hidden" name="photo_id" value="{{ pk }}">
+		<input type="hidden" name="owner_name" value="{{ owner_name }}">
+		<input type="hidden" name="origin" value="{{ origin }}">
+		<input type="hidden" name="link_id" value="{{ link_id }}">
+
+		<button class="btn bcr bl mtl mbl" name="duration" value="1" type="submit">3 hours</button><br>
+		<button class="btn bcr bl mtl mbl" name="duration" value="2" type="submit">3 days</button><br>
+		<button class="btn bcr bl mtl mbl" name="duration" value="3" type="submit">1 week</button><br>
+		<button class="btn bcr bl mtl mbl" name="duration" value="4" type="submit">Forever</button><br>
+		<button class="btn bco bl mtl mbl" name="duration" value="0" type="submit">Rehne do</button><br>
+	</form>
 </div>
+<br><br>
 {% endblock %}

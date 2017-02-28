@@ -19,22 +19,22 @@ unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_gr
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
 cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page#, set_usernames
+cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, welcome_reply#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
-CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, \
-ContactView, PrivacyPolicyView, CaptionView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
-UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, \
-GroupHelpView, WelcomeView, WelcomeReplyView, WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, \
-GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, OpenGroupHelpView, SmsInviteView, \
-OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, DirectMessageView, PrivateGroupView, PublicGroupView, \
-ReinviteView, LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, \
-GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, \
-OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, \
-ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, \
-UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, StarListView, \
-FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, \
-ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, \
+CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, \
+CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, \
+AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, \
+WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, \
+AppointCaptainView, KickView, SmsReinviteView, OpenGroupHelpView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, \
+DirectMessageCreateView, DirectMessageView, PrivateGroupView, PublicGroupView, ReinviteView, LoginWalkthroughView, RegisterLoginView, \
+ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, \
+ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, \
+LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, \
+RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, \
+InviteUsersToPrivateGroupView, BigPhotoHelpView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, \
+PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, \
+SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, \
 ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, \
 AdDescriptionView, AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, \
 AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
@@ -190,7 +190,7 @@ urlpatterns = patterns('',
 	url(r'^bari_photo_help/(?P<pk>\d+)/$', BigPhotoHelpView.as_view(), name='bari_photo_help'),
 	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
 	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
-	url(r'^damadam_par_khushamdeed/$', auth(WelcomeReplyView.as_view()), name='welcome_reply'),
+	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),
 	url(r'^khushamdeed/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
 	url(r'^closed_mehfil/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),

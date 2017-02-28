@@ -7191,7 +7191,6 @@ def ban_photo_uploader(request, pk=None, uname=None, ident=None, duration=None, 
 			if uname_list:
 				#i.e. this kicks in if the photo has been voted
 				number_of_voters = len(uname_list)
-				request.session["target_unames"] = uname_list
 				context = {'pk':pk, 'owner_name': uname,'unames':uname_list, 'origin':origin, 'link_id':link_id,\
 				 'num':number_of_voters, 'type':'ban'}
 				return render(request, 'ban_photo_voter.html',context)
@@ -7267,7 +7266,6 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 		if uname_list:
 			#i.e. this kicks in if the photo has been voted
 			number_of_voters = len(uname_list)
-			request.session["target_unames"] = uname_list
 			context = {'pk':pk, 'owner_name': uname,'unames':uname_list, 'origin':origin, 'link_id':link_id,\
 			 'num':number_of_voters,'type':'unban'}
 			return render(request, 'ban_photo_voter.html',context)
@@ -7290,36 +7288,40 @@ def resurrect_photo(request, pk=None, ident=None, dec=None, uname=None, origin=N
 		request.session["target_photo_id"] = pk
 		return redirect("photo_loc")
 
-def ban_photo_voter(request, pk=None, owner_name = None, duration=None, origin=None, link_id = None, *args, **kwargs):
-	uname_list = request.session["target_unames"]
-	request.session["target_unames"] = None
-	targets = User.objects.filter(username__in=uname_list).values_list('id',flat=True)
-	if duration == '1':
+def ban_photo_voter(request, *args, **kwargs):
+	uname_list = request.POST.getlist('unames')
+	photo_id = request.POST.get('photo_id','')
+	owner_name = request.POST.get('owner_name','')
+	origin = request.POST.get('origin','')
+	link_id = request.POST.get('link_id','')
+	duration = request.POST.get('duration','')
+	if uname_list and duration != '0':
+		targets = User.objects.filter(username__in=uname_list).values_list('id',flat=True)
+		if duration == '1':
 			add_to_photo_vote_ban(targets, '0.1')
-	elif duration == '2':
-			add_to_photo_vote_ban(targets, '3')
-	elif duration == '3':
-			add_to_photo_vote_ban(targets, '7')
-	elif duration == '4':
-			add_to_photo_vote_ban(targets, '-1')
-	else:
-		pass
+		elif duration == '2':
+				add_to_photo_vote_ban(targets, '3')
+		elif duration == '3':
+				add_to_photo_vote_ban(targets, '7')
+		elif duration == '4':
+				add_to_photo_vote_ban(targets, '-1')
+		else:
+			pass
 	if origin == '1':
-		request.session["target_photo_id"] = pk
+		request.session["target_photo_id"] = photo_id
 		return redirect("photo_loc")
 	elif origin == '2':
-		request.session["target_best_photo_id"] = pk
+		request.session["target_best_photo_id"] = photo_id
 		return redirect("best_photo_loc")
 	elif origin == '3':
 		request.session["target_id"] = link_id
 		return redirect("home_loc")
 	elif origin == '4':
-		request.session["photograph_id"] = pk
+		request.session["photograph_id"] = photo_id
 		return redirect("profile", owner_name)
 	else:
-		request.session["target_photo_id"] = pk
+		request.session["target_photo_id"] = photo_id
 		return redirect("photo_loc")
-
 
 @ratelimit(rate='3/s')
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):

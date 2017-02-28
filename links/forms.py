@@ -222,7 +222,8 @@ class UserSettingsForm(forms.ModelForm):
 		fields = ('score_setting',)
 
 class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
-	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		fields = ("description",)
 

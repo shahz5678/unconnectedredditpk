@@ -351,7 +351,8 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 class CommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
+		'placeholder':'Tabsra likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = PhotoComment
 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
@@ -360,6 +361,7 @@ class CommentForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
+
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")

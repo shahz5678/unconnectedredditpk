@@ -389,7 +389,8 @@ class VideoCommentForm(forms.ModelForm):
 		fields = ("text",)
 
 class PublicreplyForm(forms.ModelForm):
-	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
+	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
+		'placeholder':'Jawab likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")

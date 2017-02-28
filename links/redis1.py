@@ -611,8 +611,11 @@ def get_recent_photos(user_id):
 
 def save_recent_photo(user_id, photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("phts:"+str(user_id), photo_id)
-	my_server.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("phts:"+str(user_id), photo_id)
+	pipeline1.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos'
+	pipeline1.expire("phts:"+str(user_id),FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
+	pipeline1.execute()
 
 
 #####################Video objects#####################

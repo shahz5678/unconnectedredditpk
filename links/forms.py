@@ -250,7 +250,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Link
 		exclude = ("submitter", "rank_score", "cagtegory",)
@@ -280,7 +280,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -317,7 +317,7 @@ class OutsiderGroupForm(forms.ModelForm):
 
 class PrivateGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'placeholder':'Kuch likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -354,7 +354,7 @@ class WelcomeMessageForm(forms.ModelForm):
 
 class CommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'placeholder':'Tabsra likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = PhotoComment
 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
@@ -391,7 +391,7 @@ class VideoCommentForm(forms.ModelForm):
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'placeholder':'Jawab likho...','class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
@@ -527,10 +527,10 @@ class UnseenActivityForm(forms.Form):
 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
 		self.fields['group_reply'].widget.attrs['style'] = 'max-width:95%;width:1000px;'
 		self.fields['group_reply'].widget.attrs['autocomplete'] = 'off'
-		self.fields['group_reply'].widget.attrs['placeholder'] = 'Likho...'
+		# self.fields['group_reply'].widget.attrs['placeholder'] = 'Likho...'
 		self.fields['comment'].widget.attrs['style'] = 'max-width:95%;width:1000px;'
 		self.fields['comment'].widget.attrs['autocomplete'] = 'off'
-		self.fields['comment'].widget.attrs['placeholder'] = 'Likho...'
+		# self.fields['comment'].widget.attrs['placeholder'] = 'Likho...'
 
 	def clean_comment(self):
 		comment = self.cleaned_data.get("comment")

@@ -57,8 +57,8 @@
 				{% csrf_token %}
 					<input type="hidden" name="lid" value="{{ comment.l }}">
 					<input type="hidden" name="origin" value="1">
-					<button class="btn bcg bm mbl mts" type="submit" name="vote" value="1">jhappi</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="2">+50</button>{% endif %}<br>
-					<button class="btn bcr bm" type="submit" name="vote" value="-1">chupair</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 50</button>{% endif %}<br>
+					<button class="btn bcg bm mbl mts" type="submit" name="vote" value="4">taliyan</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="5">+50</button>{% endif %}<br>
+					<button class="btn bcr bm" type="submit" name="vote" value="-4">balla</button>{% if nickname in checked %}&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-5">- 50</button>{% endif %}<br>
 				</form>
 				{% endif %}
  		

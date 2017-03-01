@@ -25,9 +25,9 @@ PHOTO_HOT_SCORE_REQ = 9 #aggregated 'visible_score' over previous 5 photos, abov
 CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
 'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
-'North':'North','Northwest':'Northwest'}
+'South Africa':'South Africa','New Zealand':'New Zealand'}
 CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
-'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','North':'9','Northwest':'9'}
+'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10'}
 CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
-'North':'bco','Northwest':'bco'}
+'South Africa':'saf','New Zealand':'nze'}

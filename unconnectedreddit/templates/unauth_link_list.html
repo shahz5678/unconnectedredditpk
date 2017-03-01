@@ -15,6 +15,7 @@
 {% for link in link_list %}
 	{% if forloop.counter == 4 %}
 		{% if enqueued_match %}
+		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
 			{% if enqueued_match.ended == '1' %}
 				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
 			{% elif enqueued_match.ended == '0' %}
@@ -28,7 +29,7 @@
 					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
 				{% endif %}
 			{% endif %}
-				<p><hr size=1 COLOR="#33cc33"></p>
+				<p><hr size=1 COLOR="#33cc33"></p></div>
 		{% endif %}
 	{% endif %}
 	{% if forloop.counter == 8 %}

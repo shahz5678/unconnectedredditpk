@@ -19,7 +19,8 @@ unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_gr
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
 cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, welcome_reply#, set_usernames
+cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, welcome_reply,\
+cricket_reply, first_time_cricket_refresh#, set_usernames
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, \
@@ -45,9 +46,6 @@ urlpatterns = patterns('',
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
-	url(r'^cricomm/$', auth(cricket_comment),name='cricket_comment'),
-	url(r'^cricket_page/$', auth(cricket_comment_page),name='cricket_comment_page'),
-	url(r'^redirectcric/$', auth(cricket_location), name='cric_loc'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
@@ -297,9 +295,16 @@ urlpatterns = patterns('',
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
 	url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
 	#url(r'^kick/$', auth(KickView.as_view()), name='kick'),
+	############################################Cricket Related######################################
 	url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),
 	url(r'^cricket_remove/$',auth(cricket_remove),name='cricket_remove'),
 	url(r'^cricket_initiate/$', auth(cricket_initiate),name='cricket_initiate'),
+	url(r'^cricomm/$', auth(cricket_comment),name='cricket_comment'),
+	url(r'^cricket_page/$', auth(cricket_comment_page),name='cricket_comment_page'),
+	url(r'^redirectcric/$', auth(cricket_location), name='cric_loc'),
+	url(r'^ftcr/$', auth(first_time_cricket_refresh), name='first_time_cricket_refresh'),
+	url(r'^cricrep/(?P<pk>\d+)/$', auth(cricket_reply), name='cricket_reply'),
+	#################################################################################################
 	url(r'^manage_user/$', auth(manage_user),name='manage_user'),
 	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
 	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),

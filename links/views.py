@@ -79,7 +79,7 @@ SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackF
 VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, \
 AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
 AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
-BestPhotosListForm, PhotosListForm, CricketCommentForm
+BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -2010,6 +2010,60 @@ class UserProfilePhotosView(ListView):
 		else:
 			return self.render_to_response(context)
 
+@csrf_protect
+def cricket_reply(request, pk=None,*args,**kwargs):
+	if request.user_banned:
+		return render(request,"500.html",{})
+	elif request.method == 'POST':
+		form = PublicreplyMiniForm(data=request.POST,user_id=request.user.id)
+		if form.is_valid():
+			description = form.cleaned_data.get("description")
+			# print description
+			user_id = request.user.id
+			username = request.user.username
+			if request.is_feature_phone:
+				device = '1'
+			elif request.is_phone:
+				device = '2'
+			elif request.is_tablet:
+				device = '4'
+			elif request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
+			reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by_id=user_id, device=device)
+			reply_time = convert_to_epoch(reply.submitted_on)
+			try:
+				url = request.user.userprofile.avatar.url
+			except:
+				url = None
+			try:
+				owner_url = parent.submitter.userprofile.avatar.url
+			except:
+				owner_url = None
+			amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
+			publicreply_tasks.delay(user_id, reply.id, pk, description)
+			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
+					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
+					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
+					reply_poster_username=username,reply_desc=description,is_welc=False,priority='home_jawab',\
+					from_unseen=False)
+			request.session['target_id'] = pk
+			return redirect("cric_loc")
+		else:
+			enqueued_match = get_current_cricket_match()
+			page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+			= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match, notif=pk)
+			replyforms[pk] = form
+			request.session['replyforms'] = replyforms
+			request.session['list_of_cric_dictionaries'] = list_of_dictionaries
+			request.session['cric_page'] = page_obj
+			url = reverse_lazy("cricket_comment")+addendum
+			return redirect(url)
+	else:
+		return redirect("cricket_comment")
+
 def cricket_location(request, *args, **kwargs):
 	enqueued_match = get_current_cricket_match()
 	try:
@@ -2017,20 +2071,12 @@ def cricket_location(request, *args, **kwargs):
 		del request.session['target_id']
 	except:
 		link_id = 0
-	if request.user_banned:
-		obj_list = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
-	else:
-		obj_list = current_match_comments(enqueued_match['id']) # list of Link object ids
-	try:
-		index = obj_list.index(str(link_id))
-	except:
-		index = 0
-	page_num, addendum = get_addendum(index,CRICKET_COMMENTS_PER_PAGE)
-	url = reverse_lazy("cricket_comment")+addendum
-	page_obj = get_page_obj(page_num,obj_list,CRICKET_COMMENTS_PER_PAGE)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	page_obj, list_of_dictionaries, replyforms, page_num, addendum = \
+	get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match, notif=link_id)
 	request.session['list_of_cric_dictionaries'] = list_of_dictionaries
 	request.session['cric_page'] = page_obj
+	request.session['replyforms'] = replyforms
+	url = reverse_lazy("cricket_comment")+addendum
 	return redirect(url)
 
 @csrf_protect
@@ -2087,32 +2133,22 @@ def cricket_comment(request,*args,**kwargs):
 		else:
 			nickname = request.user.username
 			score = request.user.userprofile.score
-			if 'list_of_cric_dictionaries' in request.session and 'cric_page' in request.session:
-				if request.session['list_of_cric_dictionaries'] and request.session['cric_page']:
+			if 'list_of_cric_dictionaries' in request.session and 'cric_page' in request.session and 'replyforms' in request.session:
+				if request.session['list_of_cric_dictionaries'] and request.session['cric_page'] and request.session['replyforms']:
 					list_of_dictionaries = request.session['list_of_cric_dictionaries']
 					page_obj = request.session['cric_page']
+					replyforms = request.session['replyforms']
 				else:
-					try:
-						if request.user_banned:
-							link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
-						else:
-							link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
-					except:
-						return redirect("cricket_comment")
-					photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj = home_list(request, link_objs, CRICKET_COMMENTS_PER_PAGE)
+					page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+					= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
 				del request.session['list_of_cric_dictionaries']
 				del request.session['cric_page']
+				del request.session['replyforms']
 			else:
-				try:
-					if request.user_banned:
-						link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
-					else:
-						link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
-				except:
-					return redirect("cricket_comment")
-				photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj = home_list(request, link_objs, CRICKET_COMMENTS_PER_PAGE)
+				page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+				= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
 			try:
-				context={'form':form,'page':page_obj,'status':enqueued_match['status'],\
+				context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
 				'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
 				'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
 				'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
@@ -2123,36 +2159,64 @@ def cricket_comment(request,*args,**kwargs):
 				context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
 				'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
 				'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
+				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
 			return render(request,"cricket_comment.html",context)
 	else:
 		form = CricketCommentForm()
 		nickname = request.user.username
 		score = request.user.userprofile.score
-		try:
-			if request.user_banned:
-				link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+		if 'list_of_cric_dictionaries' in request.session and 'cric_page' in request.session and 'replyforms' in request.session:
+			if request.session['list_of_cric_dictionaries'] and request.session['cric_page'] and request.session['replyforms']:
+				list_of_dictionaries = request.session['list_of_cric_dictionaries']
+				page_obj = request.session['cric_page']
+				replyforms = request.session['replyforms']
 			else:
-				link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
-		except:
-			return redirect("home")
-		page_num = request.GET.get('page', '1')
-		page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
-		photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+				page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+				= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
+			del request.session['list_of_cric_dictionaries']
+			del request.session['cric_page']
+			del request.session['replyforms']
+		else:
+			page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+			= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
 		try:
-			context={'form':form,'page':page_obj,'status':enqueued_match['status'],\
-			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
+			context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
+			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,'score':score,\
 			'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
 			'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
-			'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],'score':score,\
+			'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
 			'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
 			'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
 		except:
 			context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
 			'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
 			'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc']}
+			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
 		return render(request,"cricket_comment.html",context)
+
+def get_cric_object_list_and_forms(request, enqueued_match, notif=None):
+	try:
+		if request.user_banned:
+			link_objs = current_match_unfiltered_comments(enqueued_match['id']) # list of Link object ids
+		else:
+			link_objs = current_match_comments(enqueued_match['id']) # list of Link object ids
+	except:
+		return redirect("home")
+	if notif:
+		try:
+			index = link_objs.index(notif)
+		except:
+			index = 0
+		page_num, addendum = get_addendum(index,CRICKET_COMMENTS_PER_PAGE)
+	else:
+		addendum = '?page=1#section0'
+		page_num = request.GET.get('page', '1')
+	page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
+	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	replyforms = {}
+	for obj in list_of_dictionaries:
+		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary
+	return page_obj, list_of_dictionaries, replyforms, page_num, addendum
 
 @csrf_protect
 def cricket_comment_page(request,*args,**kwargs):
@@ -5559,6 +5623,25 @@ class PublicGroupView(CreateView):
 			self.request.session["public_uuid"] = None
 			return redirect("public_group", slug=pk)
 
+
+@ratelimit(rate='3/s')
+def first_time_cricket_refresh(request, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		if request.user.is_authenticated():
+			deduction = 1 * -1
+			request.user.userprofile.score = request.user.userprofile.score + deduction
+			request.user.userprofile.save()
+			return render(request, 'cricket_refresh_penalty.html', {})
+		else:
+			return render(request, 'cricket_refresh_penalty.html', {})
+	else:
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			return render(request, 'cricket_refresh.html', {})
+		else:
+			return redirect("cricket_comment")
+
 @ratelimit(rate='3/s')
 def first_time_unseen_refresh(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -7655,6 +7738,8 @@ def cast_vote(request,*args,**kwargs):
 						elif value == '-1':
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+						##############################Cricket Voting###########################
+						#######################################################################
 						elif value == '4':
 							vote_tasks.delay(own_id, target_user_id,link_id,'1')
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
@@ -7669,6 +7754,8 @@ def cast_vote(request,*args,**kwargs):
 							#is the user a verified female? If so, process the super cricket downvote
 							vote_tasks.delay(own_id, target_user_id,link_id,'-2')
 							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+						#######################################################################
+						#######################################################################
 						elif value == '2' and is_pinkstar:
 							#is the user a verified female? If so, process the super upvote
 							vote_tasks.delay(own_id, target_user_id,link_id,value)

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+<h2>Damadam ka sans hi nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
+
+<a href="{% url 'home' %}">
+<button class="btn bco bm">wapis</button></a>
+
+</div>
+<br><br>
+{% endblock %}

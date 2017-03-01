@@ -223,7 +223,7 @@ class UserSettingsForm(forms.ModelForm):
 
 class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autocomplete': 'off'}))
 	class Meta:
 		fields = ("description",)
 
@@ -419,6 +419,15 @@ class PublicreplyForm(forms.ModelForm):
 		if not can_reply(description,self.user_id):
 			raise forms.ValidationError('tip: milte julte jawab nah likho, kuch new likho')
 		return description
+
+class PublicreplyMiniForm(PublicreplyForm):
+	description = forms.CharField(max_length=250)
+
+	def __init__(self,*args,**kwargs):
+		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
+		self.fields['description'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
+		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
 class OutsideMessageCreateForm(forms.Form):
 	full_name = forms.CharField(max_length=50)

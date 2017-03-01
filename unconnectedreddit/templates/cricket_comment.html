@@ -3,6 +3,7 @@
 {% load thumbedge %}
 {% load voted %}
 {% load get_votes %}
+{% load get_item %}
 {% load human_time %}
 {% block content %}
 <div class="margin clb">
@@ -10,7 +11,7 @@
 	  {% if form.description.errors %}
 	  <span class="cr">{{ form.description.errors.0 }}</span>
 	  {% else %}
-	  <span class="cm ct"><b>Tabsra:</b></span>
+	  <span class="ct"><b>Tabsra:</b></span>
 	  {% endif %}
 	<form method="post" action="{% url 'cricket_comment' %}">
 	  {% csrf_token %}
@@ -20,10 +21,12 @@
 	</form>
 	 <hr size=1 COLOR="#2DB92D">
  <div class="cg cs" style="margin-bottom:1.5em;">
- <b>Latest match tabsre:</b>
+ <form action="{% url 'first_time_cricket_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline;">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></form><b>Latest match tabsre:</b>
  </div>
 <br>
+
  {% for comment in object_list %}
+ {% with replyforms|get_item:comment.l as replyform %}
 
 			{{ comment.ch|safe }}
 
@@ -34,10 +37,10 @@
 			{% if score > 25 %}				
 				{{ comment.sc|safe }}
 			{% endif %}
-			{{ comment.p|safe }}</a>:<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
+			{{ comment.p|safe }}</a>:&nbsp;<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
 			    <a name="section{{ forloop.counter  }}"></a> 
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
-		 		<!-- {{ comment.rb|safe }} -->
+		 		{% if comment.cc|add:"0" > 0 %}&nbsp;<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bl mbs mts" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></a>{% endif %}
 		 	{% if comment.1h and comment.2h %}
 				<div class="clb mts mbs">
 				<b class="ct">Latest Jawab:</b><br>
@@ -52,6 +55,15 @@
 			{% else %}
 				<br>
 			{% endif %}
+
+			<div class="mtl">
+				<form method="post" action="{% url 'cricket_reply' pk=comment.l %}">
+				{% csrf_token %}
+				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}</span><br>
+				<button class="btn bct bs mtl mbs" type="submit">OK</button>
+				</form>
+			</div>
+
 				{% if comment.n != nickname and not comment.l|voted:nickname %}
 				<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 				{% csrf_token %}
@@ -64,7 +76,7 @@
  		
 				{{ comment.vt|safe }}
 				{{ comment.ct|safe }}
-
+ {% endwith %}
  {% endfor %}
 
 	<div style="text-align: center;">

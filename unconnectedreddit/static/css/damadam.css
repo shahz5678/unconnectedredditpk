@@ -391,6 +391,16 @@ button color golden
     border:solid 1px orange;
 }
 
+.nze {
+    background-color:#404040;
+    border-color:black;
+}
+
+.saf {
+    background-color:#ddcc5e;
+    border-color:#bda928;
+}
+
 .qal {
     background-color:#00e600;
     border-color:#008000;

@@ -45,11 +45,11 @@ def category_formatting(categ):
 		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
 	elif categ == '10':
 		#New Zealand
-		div_head = '<div style="background-color:#f2f2f2;"><h1 style="font-size:0.7em;background-color:#404040;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
+		div_head = '<div style="background-color:#f2f2f2;"><h1 style="font-size:0.7em;background-color:#404040;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">New Zealand</h1>'
 		div_tail = '<p><hr size=1 COLOR="#404040"></p></div>'
 	elif categ == '11':
 		# South Africa
-		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
+		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">South Africa</h1>'
 		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
 	else:
 		div_head = '<span></span>'

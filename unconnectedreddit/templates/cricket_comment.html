@@ -28,7 +28,7 @@
 			{{ comment.ch|safe }}
 
 			<a href="{% url 'profile' slug=comment.n %}#section0">
-				{{ comment.av|safe }}
+				{{ comment.au|safe }}
 				<bdi>{{ comment.n }}</bdi>
 			
 			{% if score > 25 %}				

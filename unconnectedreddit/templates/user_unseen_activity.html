@@ -70,7 +70,7 @@
 		</form>
 	<hr size=1 COLOR="#cccccc">
 {% else %}
-<span class="ct cm">{{ notif.oon }}</a>:&nbsp;<span class="ct bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
+<span class="ct">{{ notif.oon }}</a>:&nbsp;<span class="ct bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
 <a href="{% url 'reply_pk' notif.oi %}" class="ct cs mbs"><br>new jawab aya <b>{{ notif.lrti|human_time }}</b>:</a><br>
 <span class="clb csw mbs"><a href="{% url 'reply_pk' notif.oi %}">	
 	{% if notif.lrau != 'None' %}

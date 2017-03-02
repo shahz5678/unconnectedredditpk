@@ -2,19 +2,18 @@
 {% load humanize %}
 {% load mathfilters %}
 {% load thumbnail %}
+{% load get_votes %}
 {% load emoticons_tags %}
 {% block content %}
 {{ block.super }}
 
-<div style="margin-left:-1.3em;line-height:1.8;">
+<div class="clb" style="margin-left:-1.3em;line-height:1.8;">
 {% if is_paginated %}
 <ul start="{{ page_obj.start_index }}">
 {% else %}
 <ul>
 {% endif %}
-{% if not object_list %}
-<i>Forun <a href="{% url 'link_create' %}#section0">kuch likho</a>, intezar kis cheez ka hai?!</i>
-{% else %}
+
 <b>Home ki chat history:</b><br>
 
 {% for link in object_list %}
@@ -39,10 +38,9 @@
 	    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
 		{% endif %}
 	{% endif %}
-	{% for girl in verified %}
-    {% if girl == link.submitter.username %}
+	{% if link.submitter.username in verified %}
     	<span class="pinkstar"><b>*</b></span>
-    {% endif %}{% endfor %}
+    {% endif %}
 	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs">, {{ link.submitted_on|naturaltime }}
 		{% if link.device == '1' %}
 		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
@@ -66,49 +64,43 @@
 
 	{% if can_vote %}
 	<br>
-	{% for vote in vote_cluster reversed %}
-		{% if link.id == vote.link_id %}
-			{% if vote.value == -1 %}
-				{% if vote.voter.username in verified %}
-					<span class="cr cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span class="pinkstar">*</span></b> ne bhare bazar mein <b>chupair</b> mari<br></span>
-				{% else %}
-					<span class="cr cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne bhare bazar mein <b>chupair</b> mari<br></span>
-				{% endif %}
-			{% endif %}
-			{% if vote.value == 1 %}
-				{% if vote.voter.username in verified %}
-					<span class="cg cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a><span class="pinkstar">*</span></b> ne barri si <b>jhappi</b> di<br></span>
-				{% else %}
-					<span class="cg cs"><b><a href="{% url 'user_activity' slug=vote.voter.username %}#section0">{{ vote.voter.username }}</a></b> ne barri si <b>jhappi</b> di<br></span>
-				{% endif %}
-			{% endif %}
-			{% if vote.value == 2 %}
-				<span class="cg cs"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
-							{{ vote.voter.username }}<span class="pinkstar">*</span>
-							</a></b> ne zordar jhappi di <b>(+50)</b><br></span>
-			{% endif %}
-			{% if vote.value == -2 %}
-				<span class="cr cs"><b><a href="{% url 'vote_or_prof' link.id link.submitter_id vote.voter.username %}#section0">
-							{{ vote.voter.username }}<span class="pinkstar">*</span>
-							</a></b> ne <b>chupair</b> mr mr ke nani yad kara di <b>(-50)</b><br></span>
-			{% endif %}	
-		{% endif %}
-	{% endfor %}
+		{% for key,value in link.id|get_votes %}
+				<a href="{% url 'vote_or_prof' link.id link.submitter_id key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
+				{% if value == 1 %}
+					<span style="font-size:80%;color:green;">ne barri si <b>jhappi</b> di</span>
+				{% elif value == -1 %}
+					<span style="font-size:80%;color:#FF1A1A;">ne bhare bazar me <b>chupair</b> mari</span>
+				{% elif value == 2 %}
+					<span style="font-size:80%;color:green;">ne zordar <b>jhappi</b> di <b>(+50)</b></span> 
+				{% elif value == -2 %}
+					<span style="font-size:80%;color:#FF1A1A;">ne <b>chupair</b> mr mr kr nani yad kara di <b>(-50)</b></span>
+				{% elif value == 4 %}
+					<span style="font-size:80%;color:green;"> ne shot pe <b>taliyan</b> bajaien</span>
+				{% elif value == -4 %}
+					<span style="font-size:80%;color:#FF1A1A;"> ne ghuma ke <b>balla</b> mara</span>
+				{% elif value == 5 %}
+					<span style="font-size:80%;color:green;"> ne iske <b>six</b> pe chalangein lagaien <b>(+50)</b></span>
+				{% elif value == -5 %}
+					<span style="font-size:80%;color:#FF1A1A;"> ne isko <b>andey</b> pe out kr diya <b>(-50)</b></span>
+				{% endif %}<br>
+		{% endfor %}
 	{% endif %}
-<hr size=1 color="#229ec3" >
+	<hr size=1 color="#229ec3" >
+	{% empty %}
+	<span class="cgy">Is chat history mein kuch nahi...</span>
+	<hr size=1 color="#229ec3" >
 {% endfor %}
-{% endif %}
 </ul>
 </div>
 {% endblock %}
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination">
+<div style="text-align: center;">
 	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
     {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;
     {% if page_obj.has_next %}
     <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
     {% endif %}

@@ -2177,8 +2177,11 @@ def cricket_comment(request,*args,**kwargs):
 			del request.session['cric_page']
 			del request.session['replyforms']
 		else:
-			page_obj, list_of_dictionaries, replyforms, page_num, addendum \
-			= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
+			try:
+				page_obj, list_of_dictionaries, replyforms, page_num, addendum \
+				= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
+			except:
+				return render(request,'no_cricket.html',{})
 		try:
 			context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
 			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,'score':score,\

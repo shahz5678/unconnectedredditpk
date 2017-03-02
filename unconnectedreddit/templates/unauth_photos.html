@@ -102,12 +102,14 @@
 			<a href="{% url 'photo_share' photo.i 1 %}"><button class="btn nw bcp" style="width:12em;">photo share kro</button></a>
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}
-	{% empty %}<span class="clb">Photos kuch deir baad nazr aien gi!</span>
+	{% empty %}
+	<span class="clb">Photos kuch deir baad nazr aien gi!</span>
+	<p><hr size=1 COLOR="#ff9933"></p>
 {% endfor %}
 
 <br><div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}

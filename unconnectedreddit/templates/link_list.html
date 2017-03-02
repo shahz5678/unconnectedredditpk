@@ -357,8 +357,7 @@
 		</button></a>
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
-		<a href="{% url 'photo_vote' link.pi 1 3 link.l %}"><button class="btn bm bcg mbl mts">zabrdast</button></a><br>
-		<a href="{% url 'photo_vote' link.pi 0 3 link.l %}"><button class="btn bm bcr mbl">bekaar</button></a><br>
+		<a href="{% url 'photo_vote' link.pi 1 3 link.l %}"><button class="btn bm bcg mbs mts">zabrdast</button></a>&nbsp;&nbsp;&nbsp;<a href="{% url 'photo_vote' link.pi 0 3 link.l %}"><button class="btn bm bcr mts mbl">bekaar</button></a><br>
 		{% endif %}
 		
 		{{ link.vt|safe }}
@@ -403,8 +402,12 @@
 			{% csrf_token %}
 				<input type="hidden" name="lid" value="{{ link.l }}">
 				<input type="hidden" name="origin" value="0">
-				<button class="btn bcg bm mts mbl" type="submit" name="vote" value="1">jhappi</button>{% if user.username in checked %}&nbsp;&nbsp;<button class="btn bcg mbl" type="submit" name="vote" value="2">+50</button>{% endif %}<br>
-				<button class="btn bcr bm" type="submit" name="vote" value="-1">chupair</button>{% if user.username in checked %}&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 50</button>{% endif %}<br>
+				{% if user.username in checked %}
+				<button class="btn bcg bm mts mbl" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;<button class="btn bcg mbl" type="submit" name="vote" value="2">+50</button><br>
+				<button class="btn bcr bm" type="submit" name="vote" value="-1">chupair</button>&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 50</button><br>
+				{% else %}
+				<button class="btn bcg bm mts mbs" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;&nbsp;<button class="btn bcr bm mts mbs" type="submit" name="vote" value="-1">chupair</button><br>
+				{% endif %}
 			</form>
 			{% endif %}
 
@@ -420,7 +423,7 @@
 
 <br><div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}

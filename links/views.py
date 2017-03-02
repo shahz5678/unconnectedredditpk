@@ -1784,9 +1784,9 @@ class GroupOnlineKonView(ListView):
 			global condemned
 			context["unauthorized"] = False
 			context["legit"] = FEMALES
-			unique = self.request.session["public_uuid"]
-			context["unique"] = unique
 			try:
+				unique = self.request.session["public_uuid"]
+				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
 				context["group"] = group
 			except:

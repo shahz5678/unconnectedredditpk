@@ -2,9 +2,11 @@
 {% load thumbnail %}
 {% block content %}
 
-<div class="margin" class="clb">
+<div class="margin clb">
 {% if unauthorized %}
-<span class="clb csw"><b>Tumhe ye dekhne ki ijazat nahi</b></span>
+<b class="cxl">Ye is terah nahi chalta!</b><br>
+<span class="cgy cs">Mehfil ke andr <b>afsar banao</b> ko press kro</span><br>
+<a href="{% url 'group_page' %}"><button class="btn bcp bm mtl mbl">wapis</button></a>
 {% else %}
 Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 	{% if group.private == '1' %}

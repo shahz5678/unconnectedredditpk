@@ -5,7 +5,9 @@
 
 <div class="margin clb">
 {% if unauthorized %}
-<span class="clb"><b>Tumhe ye nahi dekh sakte</b>
+<b class="cxl">Ye is terah nahi chalta!</b><br>
+<span class="cgy cs">Mehfil ke andr <b>online kon</b> ko press kro</span><br>
+<a href="{% url 'group_page' %}"><button class="btn bcp bm mtl mbl">wapis</button></a>
 {% else %}
 Yahan ye log pichle 10 min mein nazr aye:<br>
 	{% if group.private == '1' %}

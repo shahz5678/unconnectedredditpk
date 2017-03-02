@@ -6430,36 +6430,27 @@ class UserActivityView(ListView):
 	model = Link
 	slug_field = "username"
 	template_name = "user_activity.html"
-	paginate_by = 15
+	paginate_by = 20
 
 	def get_queryset(self):
 		username = self.kwargs['slug']
-		user = User.objects.get(username=username)
-		return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:30]# instead of Link.with_votes.filter
+		try:
+			user = User.objects.get(username=username)
+			return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:40]# instead of Link.with_votes.filter
+		except:
+			return []
 
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
-			# if self.request.user_banned and (self.request.user.username ==  self.kwargs['slug']):
-			# 	return redirect("score_help")
-			# else:
-			global condemned
-			if self.request.user.userprofile.score > 9:
-				context["can_vote"] = True
-			links_in_page = [link.id for link in context["object_list"]]#getting ids of all user's links in page
-			if self.request.user_banned:
-				vote_cluster = Vote.objects.filter(link_id__in=links_in_page) # votes on user's link in page
+			if self.request.user_banned:# and (self.request.user.username ==  self.kwargs['slug']):
+				context["banned"]
 			else:
-				vote_cluster = Vote.objects.filter(link_id__in=links_in_page).exclude(voter_id__in=condemned) # votes on user's link in page
-			context["vote_cluster"] = vote_cluster
-			voted = vote_cluster.filter(voter=self.request.user)
-			context["voted"] = voted.values_list('link_id', flat=True)
-			context["verified"] = FEMALES
-			return context
-		else:
-			return context
-
+				if self.request.user.userprofile.score > 9:
+					context["can_vote"] = True
+				context["verified"] = FEMALES
+		return context
 
 class UserSettingDetailView(DetailView):
 	model = get_user_model()

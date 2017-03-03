@@ -10,6 +10,7 @@
 {% load photoedge %}
 {% block content %}
 <div class="margin">
+
 	{% if notification %}
 	{% if type_of_object == '2' %}
 			
@@ -226,6 +227,7 @@
 <!-- ################################################################################################# -->
 
 {% for link in link_list %}
+{% with replyforms|get_item:link.l as replyform %}
 	{% if forloop.counter == 4 %}
 		{% if enqueued_match %}
 		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
@@ -397,6 +399,14 @@
 				<br>
 			{% endif %}
 
+			<div class="mtl">
+				<form method="post" action="{% url 'home_reply' pk=link.l %}">
+				{% csrf_token %}
+				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}</span><br>
+				<button class="btn bct bs mtl mbs" type="submit">OK</button>
+				</form>
+			</div>
+
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
 			<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 			{% csrf_token %}
@@ -416,8 +426,10 @@
 			{{ link.ct|safe }}
 			
 	{% endif %}
+{% endwith %}
 {% empty %}
-<span class="clb">Ao gup lagain!</span>
+	<span class="clb">Ao gup lagain!</span>
+	<hr size=1 COLOR="#3cb7dd">
 {% endfor %}
 
 
@@ -430,6 +442,7 @@
 	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
+
 </div>
 <br><br>
 {% endblock %}

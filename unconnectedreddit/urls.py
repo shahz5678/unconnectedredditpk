@@ -7,7 +7,7 @@ from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
-from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, vote_on_vote, \
+from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
@@ -19,11 +19,11 @@ unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_gr
 create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
 unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
 cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, welcome_reply,\
-cricket_reply, first_time_cricket_refresh, home_reply#, set_usernames
+cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page,\
+cricket_reply, first_time_cricket_refresh, home_reply#, set_usernames, vote_on_vote
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
-CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionView, \
+CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, \
 CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, \
 AuthPicsDisplayView, UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, \
 WelcomeMessageView, NotifHelpView, MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, \
@@ -31,14 +31,14 @@ AppointCaptainView, KickView, SmsReinviteView, OpenGroupHelpView, SmsInviteView,
 DirectMessageCreateView, DirectMessageView, PrivateGroupView, PublicGroupView, ReinviteView, LoginWalkthroughView, RegisterLoginView, \
 ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, \
 ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, \
-LinkCreateView, LinkDetailView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, \
+LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, \
 RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, \
 InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, \
 PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, \
 SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, \
-ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, VoteOrProfView, \
+ReportProfileView, ReportFeedbackView, UploadVideoView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, \
 AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, AdGenderChoiceView, AdAddressYesNoView, AdAddressView, \
-AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView
+AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
 
 admin.autodiscover()
 
@@ -65,7 +65,7 @@ urlpatterns = patterns('',
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/(?P<is_notif>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='user_profile'),
-	url(r'^vote_or_user/(?P<pk>\d+)/(?P<id>\d+)/(?P<slug>[\w.@+-]+)/$', auth(VoteOrProfView.as_view()), name='vote_or_prof'),
+	# url(r'^vote_or_user/(?P<pk>\d+)/(?P<id>\d+)/(?P<slug>[\w.@+-]+)/$', auth(VoteOrProfView.as_view()), name='vote_or_prof'),
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
 	url(r'^unseen_fans/$', auth(unseen_fans), name='unseen_fans'),
@@ -248,7 +248,7 @@ urlpatterns = patterns('',
 	#url(r'^send_pic_sms/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/$', SendPicSMSView.as_view(), name='send_pic_sms'),
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
-	url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
+	# url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),

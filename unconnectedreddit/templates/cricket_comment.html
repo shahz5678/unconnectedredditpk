@@ -42,13 +42,13 @@
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
 		 		{% if comment.cc|add:"0" > 0 %}&nbsp;<a href="{% url 'reply_pk' comment.l %}"><button class="btn nw bl mbs mts" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></a>{% endif %}
 		 	{% if comment.1h and comment.2h %}
-				<div class="clb mts mbs">
+				<div class="clb mts mbs mls">
 				<b class="ct">Latest Jawab:</b><br>
 				{{ comment.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1t|human_time }}</span><br>
 				{{ comment.2h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.2r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.2t|human_time }}</span>
 				</div>
 			{% elif comment.1h %}
-				<div class="clb mts mbs">
+				<div class="clb mts mbs mls">
 				<b class="ct">Latest Jawab:</b><br>
 				{{ comment.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1t|human_time }}</span>
 				</div>

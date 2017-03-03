@@ -143,13 +143,13 @@
 			
 
 			{% if link.1h and link.2h %}
-				<div class="clb mts mbs">
+				<div class="clb mts mbs mls">
 				<b class="ct">Latest Jawab:</b><br>
 				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span><br>
 				{{ link.2h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.2r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.2t|human_time }}</span>
 				</div>
 			{% elif link.1h %}
-				<div class="clb mts mbs">
+				<div class="clb mts mbs mls">
 				<b class="ct">Latest Jawab:</b><br>
 				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span>
 				</div>

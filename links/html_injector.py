@@ -58,15 +58,15 @@ def category_formatting(categ):
 
 def device_formatting(device):
 	if device == '1':
-		device = '<a href="/device_help/1/">&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img></a>'
+		device = '&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img>'
 	elif device == '2':
-		device = '<a href="/device_help/2/">&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12"></img></a>'
+		device = '&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12"></img>'
 	elif device == '3':
-		device = '<a href="/device_help/3/">&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13"></img></a>'
+		device = '&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13"></img>'
 	elif device == '4':
-		device = '<a href="/device_help/4/">&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11"></img></a>'
+		device = '&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11"></img>'
 	elif device == '5':
-		device = '<a href="/device_help/5/">&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12"></img></a>'
+		device = '&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12"></img>'
 	else:
 		device = None
 	return device

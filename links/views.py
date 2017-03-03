@@ -59,7 +59,8 @@ first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment,
 add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, can_vote_on_link, account_creation_disallowed, account_created, \
 ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, \
 add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
-incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link#, test_lua
+incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
+add_home_replier, first_time_home_replier#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -152,7 +153,6 @@ def get_price(points):
 		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
 	return int(price)
 
-
 def valid_passcode(user,num):
 	if user.is_authenticated():
 		if ChatPicMessage.objects.filter(sender=user,what_number=num).exists():
@@ -176,6 +176,41 @@ def valid_uuid(uuid):
 	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
 	match = regex.match(uuid)
 	return bool(match)
+
+def process_publicreply(request,link_id,text,origin=None):
+	user_id = request.user.id
+	username = request.user.username
+	if request.is_feature_phone:
+		device = '1'
+	elif request.is_phone:
+		device = '2'
+	elif request.is_tablet:
+		device = '4'
+	elif request.is_mobile:
+		device = '5'
+	else:
+		device = '3'
+	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+	parent_username = parent.submitter.username
+	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id, device=device)
+	reply_time = convert_to_epoch(reply.submitted_on)
+	try:
+		url = request.user.userprofile.avatar.url
+	except:
+		url = None
+	try:
+		owner_url = parent.submitter.userprofile.avatar.url
+	except:
+		owner_url = None
+	# username = u'سلمہ'
+	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
+	publicreply_tasks.delay(user_id, reply.id, link_id, text)
+	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,\
+			link_submitter_id=parent.submitter_id,link_submitter_username=parent_username,\
+			link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
+			reply_poster_username=username,reply_desc=text,is_welc=False,priority='home_jawab',\
+			from_unseen=(True if origin == 'from_unseen' else False))
+	return parent_username
 
 def GetLatest(user):
 	try:
@@ -1373,11 +1408,54 @@ def process_salat(request, offered=None, *args, **kwargs):
 		bulk_update_salat_notifications(viewer_id=user.id, starting_time=time, seen=True, updated_at=epochtime)
 		return redirect("salat_success", current_minute, now.weekday())
 
-def home_list(request, obj_list ,items_per_page):
-	page_num = request.GET.get('page', '1')
+@csrf_protect
+def home_reply(request,pk=None,*args,**kwargs):
+	if request.user_banned:
+		return render(request,"500.html",{})
+	elif request.method == 'POST':
+		user_id = request.user.id
+		form = PublicreplyMiniForm(data=request.POST,user_id=request.user.id)
+		if form.is_valid():
+			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
+			request.session['target_id'] = pk
+			if first_time_home_replier(user_id):
+				add_home_replier(user_id)
+				return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
+			else:
+				return redirect("home_loc")
+		else:
+			photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,pk)
+			replyforms[pk] = form
+			request.session['replyforms'] = replyforms
+			request.session['list_of_dictionaries'] = list_of_dictionaries
+			request.session['page'] = page_obj
+			request.session['home_photo_ids'] = photo_ids
+			request.session['home_non_photo_link_ids'] = non_photo_link_ids
+			url = reverse_lazy("home")+addendum
+			return redirect(url)
+	else:
+		return redirect("home")
+
+def home_list(request, items_per_page, notif=None):
+	if request.user_banned:
+		obj_list = all_unfiltered_posts()
+	else:
+		obj_list = all_filtered_posts()
+	if notif:
+		try:
+			index = obj_list.index(notif)
+		except:
+			index = 0
+		page_num, addendum = get_addendum(index,items_per_page)
+	else:
+		addendum = '?page=1#section0'
+		page_num = request.GET.get('page', '1')
 	page_obj = get_page_obj(page_num,obj_list,items_per_page)
 	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
-	return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj
+	replyforms = {}
+	for obj in list_of_dictionaries:
+		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary
+	return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum
 
 def home_location(request, *args, **kwargs):
 	try:
@@ -1385,22 +1463,13 @@ def home_location(request, *args, **kwargs):
 		del request.session['target_id']
 	except:
 		link_id = 0
-	if request.user_banned:
-		obj_list = all_unfiltered_posts()
-	else:
-		obj_list = all_filtered_posts()
-	try:
-		index = obj_list.index(str(link_id))
-	except:
-		index = 0
-	page_num, addendum = get_addendum(index,ITEMS_PER_PAGE)
-	url = reverse_lazy("home")+addendum
-	page_obj = get_page_obj(page_num,obj_list,ITEMS_PER_PAGE)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
 	request.session['home_photo_ids'] = photo_ids
 	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
 	request.session['list_of_dictionaries'] = list_of_dictionaries
 	request.session['page'] = page_obj
+	request.session['replyforms'] = replyforms
+	url = reverse_lazy("home")+addendum
 	return redirect(url)
 
 def home_link_list(request, *args, **kwargs):
@@ -1414,39 +1483,32 @@ def home_link_list(request, *args, **kwargs):
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
-		# newrelic.agent.add_custom_parameter("auth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		# newrelic.agent.add_custom_parameter("nickname", user.username)
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
 		if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
-		and 'list_of_dictionaries' in request.session and 'page' in request.session:
+		and 'list_of_dictionaries' in request.session and 'page' in request.session and 'replyforms' in request.session:
 			# called when user has voted
-			if request.session['list_of_dictionaries'] and request.session['page']:
+			if request.session['list_of_dictionaries'] and request.session['page'] and request.session['replyforms']:
 				#don't check for home photo ids or home non photo link ids in if clause, since these can be [] in certain allowable situations
 				photo_ids = request.session['home_photo_ids']
 				non_photo_link_ids = request.session['home_non_photo_link_ids']
 				list_of_dictionaries = request.session['list_of_dictionaries']
 				page = request.session['page']
+				replyforms = request.session['replyforms']
 			else:
-				if request.user_banned:
-					oblist = all_unfiltered_posts()
-				else:
-					oblist = all_filtered_posts()
-				photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
+				photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 			del request.session['home_photo_ids']
 			del request.session['home_non_photo_link_ids']
 			del request.session['list_of_dictionaries']
 			del request.session['page']
+			del request.session['replyforms']
 		else:
 			# normal refresh or toggling between pages (via agey or wapis)
-			if request.user_banned:
-				oblist = all_unfiltered_posts()
-			else:
-				oblist = all_filtered_posts()
-			photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
+			photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
+		context["replyforms"] = replyforms
 		############################################ Namaz feature #############################################
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
@@ -1644,8 +1706,7 @@ def unauth_home_link_list(request, *args, **kwargs):
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
-		oblist = all_filtered_posts()
-		photo_ids, non_photo_link_ids, list_of_dictionaries, page = home_list(request, oblist,ITEMS_PER_PAGE)
+		photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		now = datetime.utcnow()+timedelta(hours=5)
@@ -2015,42 +2076,16 @@ def cricket_reply(request, pk=None,*args,**kwargs):
 	if request.user_banned:
 		return render(request,"500.html",{})
 	elif request.method == 'POST':
-		form = PublicreplyMiniForm(data=request.POST,user_id=request.user.id)
+		user_id = request.user.id
+		form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
 		if form.is_valid():
-			description = form.cleaned_data.get("description")
-			# print description
-			user_id = request.user.id
-			username = request.user.username
-			if request.is_feature_phone:
-				device = '1'
-			elif request.is_phone:
-				device = '2'
-			elif request.is_tablet:
-				device = '4'
-			elif request.is_mobile:
-				device = '5'
-			else:
-				device = '3'
-			parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
-			reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by_id=user_id, device=device)
-			reply_time = convert_to_epoch(reply.submitted_on)
-			try:
-				url = request.user.userprofile.avatar.url
-			except:
-				url = None
-			try:
-				owner_url = parent.submitter.userprofile.avatar.url
-			except:
-				owner_url = None
-			amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
-			publicreply_tasks.delay(user_id, reply.id, pk, description)
-			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
-					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
-					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
-					reply_poster_username=username,reply_desc=description,is_welc=False,priority='home_jawab',\
-					from_unseen=False)
+			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 			request.session['target_id'] = pk
-			return redirect("cric_loc")
+			if first_time_home_replier(user_id):
+				add_home_replier(user_id)
+				return render(request,'cricket_reply_tutorial.html', {'target':target,'own_self':request.user.username})
+			else:
+				return redirect("cric_loc")
 		else:
 			enqueued_match = get_current_cricket_match()
 			page_obj, list_of_dictionaries, replyforms, page_num, addendum \
@@ -6162,39 +6197,8 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
-				description = form.cleaned_data.get("comment")
-				user_id = request.user.id
-				username = request.user.username
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
-				parent = Link.objects.select_related('submitter__userprofile').get(id=pk)
-				reply = Publicreply.objects.create(description=description, answer_to=parent, submitted_by=request.user, device=device)
-				reply_time = convert_to_epoch(reply.submitted_on)
-				# amnt = update_cc_in_home_link(parent.id)
-				try:
-					url = request.user.userprofile.avatar.url
-				except:
-					url = None
-				try:
-					owner_url = parent.submitter.userprofile.avatar.url
-				except:
-					owner_url = None
-				amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
-				publicreply_tasks.delay(user_id, reply.id, pk, description)
-				publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
-					link_submitter_id=parent.submitter_id,link_submitter_username=parent.submitter.username,\
-					link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
-					reply_poster_username=username,reply_desc=description,is_welc=False,priority='home_jawab',\
-					from_unseen=True)
-				return redirect("unseen_activity", username)
+				process_publicreply(request,pk,form.cleaned_data.get("comment"),'from_unseen')
+				return redirect("unseen_activity", request.user.username)
 			else:
 				notification = "np:"+str(request.user.id)+":2:"+str(pk)
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -6383,48 +6387,12 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			return redirect("reply_pk", pk=pk)
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			description = f.description#self.request.POST.get("description")
-			username = self.request.user.username
-			try:
-				answer_to = Link.objects.select_related('submitter__userprofile').get(id=pk)
-			except:
-				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-2)
-				return redirect("profile", slug=username)
-			# user = self.request.user
-			if self.request.is_feature_phone:
-				device = '1'
-			elif self.request.is_phone:
-				device = '2'
-			elif self.request.is_tablet:
-				device = '4'
-			elif self.request.is_mobile:
-				device = '5'
-			else:
-				device = '3'
-			reply= Publicreply.objects.create(submitted_by_id=user_id, answer_to=answer_to, description=description, category='1', device=device)
-			reply_time = convert_to_epoch(reply.submitted_on)
-			# amnt = update_cc_in_home_link(pk) #updating comment count for home link
-			try:
-				url = self.request.user.userprofile.avatar.url
-			except:
-				url = None
-			try:
-				owner_url = answer_to.submitter.userprofile.avatar.url
-			except:
-				owner_url = None
-			# username = u'سلمہ'
-			amnt = update_comment_in_home_link(description,username,url,reply_time,user_id,pk,(True if username in FEMALES else False))
-			publicreply_tasks.delay(user_id, reply.id, pk, description)
-			publicreply_notification_tasks.delay(link_id=pk,link_submitter_url=owner_url,sender_id=user_id,\
-				link_submitter_id=answer_to.submitter_id,link_submitter_username=answer_to.submitter.username,\
-				link_desc=answer_to.description,reply_time=reply_time,reply_poster_url=url,\
-				reply_poster_username=username,reply_desc=description,is_welc=False,\
-				reply_count=answer_to.reply_count,priority='home_jawab',from_unseen=False)
+			process_publicreply(self.request,pk,f.description)
 			try:
 				return redirect("reply_pk", pk=pk)
 			except:
-				UserProfile.objects.filter(user=user).update(score=F('score')-2)
-				return redirect("profile", slug=username)
+				UserProfile.objects.filter(user=self.request.user).update(score=F('score')-2)
+				return redirect("profile", slug=self.request.user.username)
 
 class UserActivityView(ListView):
 	model = Link

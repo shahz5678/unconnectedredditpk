@@ -236,7 +236,7 @@
 		tabsra kro
 		{% endif %}
 		</button>
-	
+		</a>
 	{% if photo.d == '1' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
 		{% elif photo.d == '2' %}
@@ -250,7 +250,7 @@
 		{% else %}
 	{% endif %}
 	
-	</a>
+	
 	<br>
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>

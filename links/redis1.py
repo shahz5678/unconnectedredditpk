@@ -311,6 +311,15 @@ def add_to_photo_vote_ban(user_ids, ban_type):
 #password change:       '5'
 #photo uploader:        '6'
 #psl supporter:         '7'
+#home replier:          '8'
+
+def first_time_home_replier(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'8'):
+		return False
+	else:
+		return True	
 
 def first_time_psl_supporter(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -404,6 +413,11 @@ def add_psl_supporter(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '7')
+
+def add_home_replier(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '8')
 
 #####################Publicreplies#####################
 

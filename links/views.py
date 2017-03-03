@@ -26,10 +26,10 @@ video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, registration_task
 from .check_abuse import check_photo_abuse, check_video_abuse
-from .models import Link, Vote, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
+from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
 Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment
+SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment#, Vote
 #from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView

@@ -254,8 +254,6 @@ def rank_photos():
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
 	user_ids = get_recent_online()
-	# user_ids = get_latest_online()
-	# print user_ids
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': MEMLOC, 'TIMEOUT': 67,
 		})
@@ -295,7 +293,6 @@ def salat_streaks():
 	current_minute = now.hour * 60 + now.minute
 	twelve_hrs_ago = now - timedelta(hours=12)
 	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	# print namaz
 	if namaz == 'Fajr':
 		salat = '1'
 		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
@@ -433,7 +430,6 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 		pass
 	if created_for_parent and not same_writer:
 		try:
-			#remove answer_to.submitter_id from all_reply_ids so it doesn't get updated again in 'bulk update notifcations'
 			all_commenter_ids.remove(photo_owner_id)
 		except:
 			pass

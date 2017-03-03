@@ -469,42 +469,42 @@ class LogoutPenaltyView(FormView):
 	form_class = LogoutPenaltyForm
 	template_name = "logout_penalty.html"
 
-class VoteOrProfView(FormView):
-	form_class = VoteOrProfForm
-	template_name = "vote_or_profile.html"
+# class VoteOrProfView(FormView):
+# 	form_class = VoteOrProfForm
+# 	template_name = "vote_or_profile.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(VoteOrProfView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			try:
-				voter = User.objects.get(username=self.kwargs["slug"])
-				vote = Vote.objects.get(link_id=self.kwargs["pk"], voter=voter)
-			except:
-				# couldn't get vote
-				context["self"] = -1
-				context["subject"] = None
-				context["vote_id"] = None
-				context["link_submitter_id"] = None
-				return context
-			if self.request.user == voter:
-				#if person looking at own vote
-				context["self"] = 1
-				context["subject"] = self.request.user
-				context["vote_id"] = vote.id
-				context["link_submitter_id"] = self.kwargs["id"]
-			elif self.request.user.id == self.kwargs["id"]:
-				#if person is the link writer too
-				context["self"] = 2
-				context["subject"] = voter
-				context["vote_id"] = vote.id
-				context["link_submitter_id"] = self.kwargs["id"]
-			else:
-				#if person is nor the link writer, or the voter
-				context["self"] = 0
-				context["subject"] = voter
-				context["vote_id"] = vote.id
-				context["link_submitter_id"] = self.kwargs["id"]
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(VoteOrProfView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			try:
+# 				voter = User.objects.get(username=self.kwargs["slug"])
+# 				vote = Vote.objects.get(link_id=self.kwargs["pk"], voter=voter)
+# 			except:
+# 				# couldn't get vote
+# 				context["self"] = -1
+# 				context["subject"] = None
+# 				context["vote_id"] = None
+# 				context["link_submitter_id"] = None
+# 				return context
+# 			if self.request.user == voter:
+# 				#if person looking at own vote
+# 				context["self"] = 1
+# 				context["subject"] = self.request.user
+# 				context["vote_id"] = vote.id
+# 				context["link_submitter_id"] = self.kwargs["id"]
+# 			elif self.request.user.id == self.kwargs["id"]:
+# 				#if person is the link writer too
+# 				context["self"] = 2
+# 				context["subject"] = voter
+# 				context["vote_id"] = vote.id
+# 				context["link_submitter_id"] = self.kwargs["id"]
+# 			else:
+# 				#if person is nor the link writer, or the voter
+# 				context["self"] = 0
+# 				context["subject"] = voter
+# 				context["vote_id"] = vote.id
+# 				context["link_submitter_id"] = self.kwargs["id"]
+# 		return context
 
 def faces_pages(request, *args, **kwargs):
 	form = FacesPagesForm()
@@ -1213,20 +1213,20 @@ class PhotoDetailView(DetailView):
 					context["can_vote"] = False
 		return context
 
-class LinkDetailView(DetailView):
-	model = Link
+# class LinkDetailView(DetailView):
+# 	model = Link
 
-	def get_context_data(self, **kwargs):
-		context = super(LinkDetailView, self).get_context_data(**kwargs)
-		token = '?'+self.object.description.replace(" ", "")[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
-		context["token"] = token
-		if self.request.user.is_authenticated():
-			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
-			link_in_page = self.object.id #the link.id of the link shown on the detailview
-			voted = voted.filter(link_id=link_in_page) #is the current link in that list of objects?
-			voted = voted.values_list('link_id', flat=True) #strips aways everything other than the id of the link
-			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(LinkDetailView, self).get_context_data(**kwargs)
+# 		token = '?'+self.object.description.replace(" ", "")[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
+# 		context["token"] = token
+# 		if self.request.user.is_authenticated():
+# 			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
+# 			link_in_page = self.object.id #the link.id of the link shown on the detailview
+# 			voted = voted.filter(link_id=link_in_page) #is the current link in that list of objects?
+# 			voted = voted.values_list('link_id', flat=True) #strips aways everything other than the id of the link
+# 			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
+# 		return context
 
 def skip_presalat(request, *args, **kwargs):
 	# now = datetime.utcnow()+timedelta(hours=5)
@@ -6953,112 +6953,112 @@ def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 	else:
 		return redirect("photo")
 
-@ratelimit(rate='3/s')
-def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': vote_id}
-		return render(request, 'penalty_vote_on_vote.html', context)
-	else:	
-		if vote_id.isdigit() and target_id.isdigit() and link_submitter_id.isdigit() and val.isdigit():
-			if request.user_banned:
-				return render(self.request,'500.html',{})
-			if request.user.id == link_submitter_id:
-				return redirect("score_help")
-			try:
-				vote = Vote.objects.get(pk=vote_id)
-			except:
-				return redirect("score_help")	
-			if target_id:
-				try:
-					target = User.objects.get(pk=target_id)
-				except:
-					return redirect("home")
-			else:
-				return redirect("home")
-			value = int(val)
-			if vote.voter.id == int(target_id): #target is indeed the user who's vote was identified
-				try:
-					link = Link.objects.filter(submitter_id=target_id).latest('id')
-					if value == 1:
-						if not Vote.objects.filter(voter=request.user,link=link):
-							Vote.objects.create(voter=request.user, link=link, value=value)
-							# add_vote_to_home_link(link.id, value, request.user.username)
-							target.userprofile.score = target.userprofile.score + 3
-							target.userprofile.save()
-						else:
-							pass
-					elif value == 0:
-						value = -1
-						if not Vote.objects.filter(voter=request.user,link=link):
-							Vote.objects.create(voter=request.user, link=link, value=value)
-							# add_vote_to_home_link(link.id, value, request.user.username)
-							target.userprofile.score = target.userprofile.score - 3
-							if target.userprofile.score < -25:
-								if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
-									HellBanList.objects.create(condemned=target) #adding target to hell-ban list
-									target.userprofile.score = random.randint(10,71) #assigning random score to banned user
-								else:
-									pass
-							else:
-								pass
-							target.userprofile.save()
-					else:
-						return redirect("score_help")
-				except:
-					if value == 1:
-						link = Link.objects.create(description='mein idher hu', submitter=target)
-						try:
-							av_url = target.userprofile.avatar.url
-						except:
-							av_url = None
-						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
-								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
-								by_pinkstar = (True if target.username in FEMALES else False))
-						add_filtered_post(link.id)
-						extras = add_unfiltered_post(link.id)
-						if extras:
-							queue_for_deletion.delay(extras)
-						Vote.objects.create(voter=request.user, link=link, value=value)
-						# add_vote_to_home_link(link.id, value, request.user.username)
-						target.userprofile.score = target.userprofile.score + 3
-						target.userprofile.save()
-						return redirect("home")
-					elif value == 0:
-						value = -1
-						link = Link.objects.create(description='mein idher hu', submitter=target)
-						try:
-							av_url = target.userprofile.avatar.url
-						except:
-							av_url = None
-						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
-								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
-								by_pinkstar = (True if target.username in FEMALES else False))
-						add_filtered_post(link.id)
-						extras = add_unfiltered_post(link.id)
-						if extras:
-							queue_for_deletion.delay(extras)
-						Vote.objects.create(voter=request.user, link=link, value=value)
-						# add_vote_to_home_link(link.id, value, request.user.username)
-						target.userprofile.score = target.userprofile.score - 3
-						if target.userprofile.score < -25:
-							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
-								HellBanList.objects.create(condemned=target) #adding target to hell-ban list
-								target.userprofile.score = random.randint(10,71) #assigning random score to banned user
-							else:
-								pass
-						target.userprofile.save()
-						return redirect("home")
-					else:
-						return redirect("home")
-			else:
-				return redirect("link_create_pk")
-			return redirect("home")
-		else:
-			return redirect("link_create_pk")
+# @ratelimit(rate='3/s')
+# def vote_on_vote(request, vote_id=None, target_id=None, link_submitter_id=None, val=None, *args, **kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	if was_limited:
+# 		deduction = 3 * -1
+# 		request.user.userprofile.score = request.user.userprofile.score + deduction
+# 		request.user.userprofile.save()
+# 		context = {'unique': vote_id}
+# 		return render(request, 'penalty_vote_on_vote.html', context)
+# 	else:	
+# 		if vote_id.isdigit() and target_id.isdigit() and link_submitter_id.isdigit() and val.isdigit():
+# 			if request.user_banned:
+# 				return render(self.request,'500.html',{})
+# 			if request.user.id == link_submitter_id:
+# 				return redirect("score_help")
+# 			try:
+# 				vote = Vote.objects.get(pk=vote_id)
+# 			except:
+# 				return redirect("score_help")	
+# 			if target_id:
+# 				try:
+# 					target = User.objects.get(pk=target_id)
+# 				except:
+# 					return redirect("home")
+# 			else:
+# 				return redirect("home")
+# 			value = int(val)
+# 			if vote.voter.id == int(target_id): #target is indeed the user who's vote was identified
+# 				try:
+# 					link = Link.objects.filter(submitter_id=target_id).latest('id')
+# 					if value == 1:
+# 						if not Vote.objects.filter(voter=request.user,link=link):
+# 							Vote.objects.create(voter=request.user, link=link, value=value)
+# 							# add_vote_to_home_link(link.id, value, request.user.username)
+# 							target.userprofile.score = target.userprofile.score + 3
+# 							target.userprofile.save()
+# 						else:
+# 							pass
+# 					elif value == 0:
+# 						value = -1
+# 						if not Vote.objects.filter(voter=request.user,link=link):
+# 							Vote.objects.create(voter=request.user, link=link, value=value)
+# 							# add_vote_to_home_link(link.id, value, request.user.username)
+# 							target.userprofile.score = target.userprofile.score - 3
+# 							if target.userprofile.score < -25:
+# 								if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
+# 									HellBanList.objects.create(condemned=target) #adding target to hell-ban list
+# 									target.userprofile.score = random.randint(10,71) #assigning random score to banned user
+# 								else:
+# 									pass
+# 							else:
+# 								pass
+# 							target.userprofile.save()
+# 					else:
+# 						return redirect("score_help")
+# 				except:
+# 					if value == 1:
+# 						link = Link.objects.create(description='mein idher hu', submitter=target)
+# 						try:
+# 							av_url = target.userprofile.avatar.url
+# 						except:
+# 							av_url = None
+# 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
+# 								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
+# 								by_pinkstar = (True if target.username in FEMALES else False))
+# 						add_filtered_post(link.id)
+# 						extras = add_unfiltered_post(link.id)
+# 						if extras:
+# 							queue_for_deletion.delay(extras)
+# 						Vote.objects.create(voter=request.user, link=link, value=value)
+# 						# add_vote_to_home_link(link.id, value, request.user.username)
+# 						target.userprofile.score = target.userprofile.score + 3
+# 						target.userprofile.save()
+# 						return redirect("home")
+# 					elif value == 0:
+# 						value = -1
+# 						link = Link.objects.create(description='mein idher hu', submitter=target)
+# 						try:
+# 							av_url = target.userprofile.avatar.url
+# 						except:
+# 							av_url = None
+# 						add_home_link(link_pk=link.id, categ='1', nick=target.username, av_url=av_url, desc='mein idher hu', \
+# 								scr=target.userprofile.score, cc=0, writer_pk=target.id, device='1',\
+# 								by_pinkstar = (True if target.username in FEMALES else False))
+# 						add_filtered_post(link.id)
+# 						extras = add_unfiltered_post(link.id)
+# 						if extras:
+# 							queue_for_deletion.delay(extras)
+# 						Vote.objects.create(voter=request.user, link=link, value=value)
+# 						# add_vote_to_home_link(link.id, value, request.user.username)
+# 						target.userprofile.score = target.userprofile.score - 3
+# 						if target.userprofile.score < -25:
+# 							if not HellBanList.objects.filter(condemned_id=target_id).exists(): #only insert target in hell-ban list if she isn't there already
+# 								HellBanList.objects.create(condemned=target) #adding target to hell-ban list
+# 								target.userprofile.score = random.randint(10,71) #assigning random score to banned user
+# 							else:
+# 								pass
+# 						target.userprofile.save()
+# 						return redirect("home")
+# 					else:
+# 						return redirect("home")
+# 			else:
+# 				return redirect("link_create_pk")
+# 			return redirect("home")
+# 		else:
+# 			return redirect("link_create_pk")
 
 def process_photo_vote(pk, ident, val, voter_id):
 	if int(val) > 0:

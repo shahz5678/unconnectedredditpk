@@ -11,7 +11,7 @@ from cricket_score import cricket_scr
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList, Vote
+Video, HotUser, PhotoStream, HellBanList#, Vote
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
@@ -482,25 +482,25 @@ def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
 			target_userprofile.score = random.randint(10,71)
 			target_userprofile.save()		
 	elif vote_value == '1':
-		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
+		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + UPVOTE
 		target_link.net_votes = target_link.net_votes + 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '2':
-		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
+		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + SUPER_UPVOTE
 		target_link.net_votes = target_link.net_votes + 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '-1':
-		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
+		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + DOWNVOTE
 		target_link.net_votes = target_link.net_votes - 1
 		target_userprofile.save()
 		target_link.save()
 	elif vote_value == '-2':
-		Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
+		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
 		target_userprofile.score = target_userprofile.score + SUPER_DOWNVOTE
 		target_link.net_votes = target_link.net_votes - 1
 		target_userprofile.save()

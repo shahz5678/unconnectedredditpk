@@ -52,19 +52,8 @@
 		tabsra kro
 		{% endif %}
 	</button>
-	{% if photo.d == '1' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif photo.d == '2' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif photo.d == '4' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif photo.d == '5' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif photo.d == '3' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-		{% else %}
-	{% endif %}
 	</a>
+	
 	<br>
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>

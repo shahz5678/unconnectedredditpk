@@ -117,5 +117,5 @@ def comment_count_formatting(comment_count, link_id):
 	if comment_count > 0:
 		button = '&nbsp;&nbsp;'+a_href_head+button_head+'<b>'+str(comment_count)+'</b>&nbsp;&nbsp;jawab'+button_tail+a_href_tail
 	else:
-		button = '&nbsp;&nbsp;'+a_href_head+button_head+'jawab do'+button_tail+a_href_tail
+		button = '<span></span>'
 	return button

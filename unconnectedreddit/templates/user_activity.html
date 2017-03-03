@@ -43,15 +43,15 @@
     {% endif %}
 	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs">, {{ link.submitted_on|naturaltime }}
 		{% if link.device == '1' %}
-		<a href="{% url 'device_help' 1 %}">&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img></a>
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
 		{% elif link.device == '2' %}
-		<a href="{% url 'device_help' 2 %}">&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img></a>
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
 		{% elif link.device == '4' %}
-		<a href="{% url 'device_help' 4 %}">&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img></a>
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
 		{% elif link.device == '5' %}
-		<a href="{% url 'device_help' 5 %}">&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img></a>
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
 		{% elif link.device == '3' %}
-		<a href="{% url 'device_help' 3 %}">&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img></a>
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
 		{% else %}
 		{% endif %}
 	</span><a name="section{{ forloop.counter }}"></a><br>
@@ -65,7 +65,7 @@
 	{% if can_vote %}
 	<br>
 		{% for key,value in link.id|get_votes %}
-				<a href="{% url 'vote_or_prof' link.id link.submitter_id key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
+				<a href="{% url 'profile' key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
 				{% if value == 1 %}
 					<span style="font-size:80%;color:green;">ne barri si <b>jhappi</b> di</span>
 				{% elif value == -1 %}

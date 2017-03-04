@@ -1424,13 +1424,15 @@ def home_reply(request,pk=None,*args,**kwargs):
 			else:
 				return redirect("home_loc")
 		else:
-			photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,pk)
+			# photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,pk)
+			photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,pk)
 			replyforms[pk] = form
 			request.session['replyforms'] = replyforms
 			request.session['list_of_dictionaries'] = list_of_dictionaries
 			request.session['page'] = page_obj
-			request.session['home_photo_ids'] = photo_ids
-			request.session['home_non_photo_link_ids'] = non_photo_link_ids
+			# request.session['home_photo_ids'] = photo_ids
+			# request.session['home_non_photo_link_ids'] = non_photo_link_ids
+			request.session['photo_links'] = photo_links
 			url = reverse_lazy("home")+addendum
 			return redirect(url)
 	else:
@@ -1451,11 +1453,13 @@ def home_list(request, items_per_page, notif=None):
 		addendum = '?page=1#section0'
 		page_num = request.GET.get('page', '1')
 	page_obj = get_page_obj(page_num,obj_list,items_per_page)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	# photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	photo_links, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 	replyforms = {}
 	for obj in list_of_dictionaries:
 		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary
-	return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum
+	# return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum
+	return photo_links, list_of_dictionaries, page_obj, replyforms, addendum
 
 def home_location(request, *args, **kwargs):
 	try:
@@ -1463,9 +1467,11 @@ def home_location(request, *args, **kwargs):
 		del request.session['target_id']
 	except:
 		link_id = 0
-	photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
-	request.session['home_photo_ids'] = photo_ids
-	request.session['home_non_photo_link_ids'] = non_photo_link_ids	
+	# photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
+	photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
+	# request.session['home_photo_ids'] = photo_ids
+	# request.session['home_non_photo_link_ids'] = non_photo_link_ids	
+	request.session['photo_links'] = photo_links
 	request.session['list_of_dictionaries'] = list_of_dictionaries
 	request.session['page'] = page_obj
 	request.session['replyforms'] = replyforms
@@ -1486,26 +1492,30 @@ def home_link_list(request, *args, **kwargs):
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
-		if 'home_photo_ids' in request.session and 'home_non_photo_link_ids' in request.session \
-		and 'list_of_dictionaries' in request.session and 'page' in request.session and 'replyforms' in request.session:
+		if 'photo_links' in request.session and 'list_of_dictionaries' in request.session \
+		and 'page' in request.session and 'replyforms' in request.session:
 			# called when user has voted
 			if request.session['list_of_dictionaries'] and request.session['page'] and request.session['replyforms']:
-				#don't check for home photo ids or home non photo link ids in if clause, since these can be [] in certain allowable situations
-				photo_ids = request.session['home_photo_ids']
-				non_photo_link_ids = request.session['home_non_photo_link_ids']
+				#don't check for photo_links in if clause, since this can be [] in certain allowable situations
+				photo_links = request.session['photo_links']
+				# photo_ids = request.session['home_photo_ids']
+				# non_photo_link_ids = request.session['home_non_photo_link_ids']
 				list_of_dictionaries = request.session['list_of_dictionaries']
 				page = request.session['page']
 				replyforms = request.session['replyforms']
 			else:
-				photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
-			del request.session['home_photo_ids']
-			del request.session['home_non_photo_link_ids']
+				# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+			del request.session['photo_links']
+			# del request.session['home_photo_ids']
+			# del request.session['home_non_photo_link_ids']
 			del request.session['list_of_dictionaries']
 			del request.session['page']
 			del request.session['replyforms']
 		else:
 			# normal refresh or toggling between pages (via agey or wapis)
-			photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+			# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["replyforms"] = replyforms
@@ -1570,7 +1580,7 @@ def home_link_list(request, *args, **kwargs):
 		else:
 			context["newest_user"] = None
 		context["authenticated"] = True
-		photo_owners = set(item['w'] for item in list_of_dictionaries if 'pi' in item)
+		photo_owners = set(item['w'] for item in photo_links)
 		context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 		score = user.userprofile.score
 		context["score"] = score #own score
@@ -1706,7 +1716,8 @@ def unauth_home_link_list(request, *args, **kwargs):
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
-		photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+		# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		now = datetime.utcnow()+timedelta(hours=5)
@@ -2250,7 +2261,8 @@ def get_cric_object_list_and_forms(request, enqueued_match, notif=None):
 		addendum = '?page=1#section0'
 		page_num = request.GET.get('page', '1')
 	page_obj = get_page_obj(page_num,link_objs,CRICKET_COMMENTS_PER_PAGE)
-	photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	# photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
+	photo_links, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 	replyforms = {}
 	for obj in list_of_dictionaries:
 		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary

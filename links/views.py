@@ -8486,6 +8486,28 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 ###############################################################
 
+# Report run on 4/3/2017
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5636 MB | 2904 MB
+#  links_photocomment               | 2717 MB | 1303 MB
+#  links_photo                      | 2423 MB | 2098 MB
+#  links_link                       | 1334 MB | 352 MB
+#  links_reply                      | 873 MB  | 659 MB
+#  links_vote                       | 579 MB  | 371 MB
+#  links_salatinvite                | 429 MB  | 312 MB
+#  links_groupseen                  | 394 MB  | 362 MB
+#  links_photo_which_stream         | 225 MB  | 151 MB
+#  links_photostream                | 214 MB  | 113 MB
+#  links_userprofile                | 129 MB  | 53 MB
+#  links_userfan                    | 101 MB  | 63 MB
+#  auth_user                        | 96 MB   | 36 MB
+#  links_totalfanandphotos          | 82 MB   | 73 MB
+#  links_report                     | 82 MB   | 67 MB
+#  links_photovote                  | 49 MB   | 49 MB
+
+
 # Report run on 24/2/2017
 #               Table               |  Size   | External Size 
 # ----------------------------------+---------+---------------

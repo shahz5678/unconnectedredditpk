@@ -1581,12 +1581,13 @@ def home_link_list(request, *args, **kwargs):
 			context["newest_user"] = None
 		context["authenticated"] = True
 		photo_owners = set(item['w'] for item in photo_links)
-		context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
+		context["fanned"] = []
+		if photo_owners:
+			context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
 		score = user.userprofile.score
 		context["score"] = score #own score
 		if score > 9:
 			context["can_vote"] = True #allowing user to vote
-		global condemned
 		if request.user_banned:
 			context["notification"] = 0 #hell banned users will never see notifications
 			context["sender"] = 0 #hell banned users will never see notifications

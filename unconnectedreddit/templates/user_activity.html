@@ -56,14 +56,17 @@
 		{% endif %}
 	</span><a name="section{{ forloop.counter }}"></a><br>
 
+		<form action="{% url 'reply_pk' pk=link.pk %}" method="POST">
+		{% csrf_token %}
 		{% if link.reply_count > 0 %}
-		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bl bct mts mbs"><b>{{ link.reply_count }}</b> jawab</button></a>
+		<button type="submit" class="btn nw bl bct mts mbs"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button>
 		{% else %}
-		<a href="{% url 'reply_pk' pk=link.pk %}#section0"> <button class="btn nw bxl bct mts mbs">isko jawab do</button></a>
+		<button type="submit" class="btn nw bxl bct mts mbs">isko jawab do</button>
 		{% endif %}
+		</form>
 
 	{% if can_vote %}
-	<br>
+	
 		{% for key,value in link.id|get_votes %}
 				<a href="{% url 'profile' key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
 				{% if value == 1 %}

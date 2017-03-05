@@ -4,7 +4,7 @@ from random import randint
 from location import REDLOC1
 from score import VOTE_TEXT
 from html_injector import pinkstar_formatting, category_formatting, device_formatting, scr_formatting, \
-username_formatting, av_url_formatting, comment_count_formatting
+username_formatting, av_url_formatting#, comment_count_formatting
 
 '''
 ##########Redis Namespace##########
@@ -805,7 +805,7 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		my_server.hmset(hash_name, mapping)
 		########################################################################################
 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		my_server.hset(hash_name,'rb',comment_count_formatting(amnt,link_pk))
+		# my_server.hset(hash_name,'rb',comment_count_formatting(amnt,link_pk))
 		return amnt
 	else:
 		return 0
@@ -831,28 +831,28 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
 	pinkstar = pinkstar_formatting(by_pinkstar)
-	reply_button = comment_count_formatting(cc,link_pk)
+	# reply_button = comment_count_formatting(cc,link_pk)
 	# nick = '🌻'
 	if categ == '1':
 		# this is a typical link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '2':
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail}#,'p':pinkstar,'rb':reply_button }
 	elif categ == '3':
 		# this is a link about KARACHI KINGS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '4':
 		# this is a link about PESHAWAR ZALMI
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '5':
 		# this is a link about LAHORE QALANDARS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }	
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }	
 	elif categ == '6':
 		# this is a photo-containing link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
@@ -861,23 +861,23 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	elif categ == '7':
 		# this is a link about QUETTA GLADIATORS
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '8':
 		# this is a link about ISLAMABAD UNITED
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '9':
 		# this is a link about misc
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '10':
 		# this is a link about New Zealand Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '11':
 		# this is a link about South African Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar,'rb':reply_button }
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 

@@ -178,6 +178,8 @@ def valid_uuid(uuid):
 	return bool(match)
 
 def process_publicreply(request,link_id,text,origin=None):
+	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+	parent_username = parent.submitter.username
 	user_id = request.user.id
 	username = request.user.username
 	if request.is_feature_phone:
@@ -190,8 +192,6 @@ def process_publicreply(request,link_id,text,origin=None):
 		device = '5'
 	else:
 		device = '3'
-	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
-	parent_username = parent.submitter.username
 	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id, device=device)
 	reply_time = convert_to_epoch(reply.submitted_on)
 	try:
@@ -994,7 +994,8 @@ class MehfilView(FormView):
 						self.request.session["unique_id"] = unique
 						return redirect("private_group_reply")#, slug=unique)
 					except:
-						return redirect("reply_pk", pk=link_id)
+						self.request.session["link_pk"] = link_id
+						return redirect("reply")
 			else:
 				return redirect("home")
 
@@ -3825,17 +3826,7 @@ class CommentView(CreateView):
 				link_id = self.request.session["user_ident"]
 				self.request.session["user_ident"] = None
 				self.request.session["target_id"] = link_id				
-			# score = fuzz.ratio(text, get_prev_retort(user.id))
-			# if score > 86:
-			# 	try:
-			# 		return redirect("comment_pk", pk=pk)
-			# 	except:
-			# 		user.userprofile.score = user.userprofile.score - 3
-			# 		user.userprofile.save()
-			# 		return redirect("profile", slug=user.username)
-			# else:
 			exists = PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists()
-			# which_photo.comment_count = which_photo.comment_count + 1
 			update_cc_in_home_photo(which_photo.id)
 			if self.request.is_feature_phone:
 				device = '1'
@@ -6195,15 +6186,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': pk}
-			return render(request, 'penalty_publicreply.html', context)
-		except:
-			context = {'pk': pk}
-			return render(request, 'penalty_publicreply.html', context)
+		context = {'pk': request.user.username}
+		return render(request, 'penalty_publicreply.html', context)
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -6296,25 +6280,15 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 	else:
 		return redirect("unseen_activity",request.user.username)
 
-@ratelimit(rate='3/s')
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
 def reply_pk(request, pk=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': pk}
-			return render(request, 'penalty_publicreply.html', context)
-		else:
-			context = {'pk': pk}
-			return render(request, 'penalty_publicreply.html', context)
+	if request.method == 'POST':
+		request.session["link_pk"] = pk
+		return redirect("reply")
 	else:
-		if pk.isdigit():
-			request.session["link_pk"] = pk
-			return redirect("reply")
-		else:
-			return redirect("score_help")
+		return redirect("home")
 
 class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
 	model = Publicreply
@@ -6354,16 +6328,15 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 				# return context
 			else:
 				context["time_remaining"] = None
-			context["authenticated"] = True
-			score = self.request.user.userprofile.score
-			context["score"] = score
 			try:
 				link = Link.objects.select_related('submitter__userprofile').get(id=self.request.session["link_pk"])
 			except:
 				context["error"] = True
 				return context
-			#is_notification = self.kwargs["is_notif"]
 			context["error"] = False
+			context["authenticated"] = True
+			score = self.request.user.userprofile.score
+			context["score"] = score
 			context["parent"] = link #the parent link
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
@@ -6392,20 +6365,16 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
-		pk = self.request.session["link_pk"]
-		self.request.session["link_pk"] = None
+		link_id = self.request.POST.get("link_id")
 		user_id = self.request.user.id
 		banned, time_remaining, warned = publicreply_allowed(user_id)
 		if banned:
-			return redirect("reply_pk", pk=pk)
+			return redirect("reply")
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			process_publicreply(self.request,pk,f.description)
-			try:
-				return redirect("reply_pk", pk=pk)
-			except:
-				UserProfile.objects.filter(user=self.request.user).update(score=F('score')-2)
-				return redirect("profile", slug=self.request.user.username)
+			process_publicreply(self.request,link_id,f.description)
+			self.request.session["link_pk"] = link_id
+			return redirect("reply")
 
 class UserActivityView(ListView):
 	model = Link
@@ -6807,8 +6776,8 @@ class ReportView(FormView):
 						ident = self.request.user.id
 						if pk != ident:
 							document_publicreply_abuse(pk)
-							#report.delay(target_id=pk, reporter_id=ident, report_origin='2', which_publicreply_id=reply_id)
-						return redirect("reply_pk", pk=reply.answer_to.id)
+						self.request.session["link_pk"] = reply.answer_to.id
+						return redirect("reply")
 					else:
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-3)
 						return redirect("home")
@@ -6817,7 +6786,8 @@ class ReportView(FormView):
 					link = get_object_or_404(Link, pk=link_id)
 					self.request.session["report_pk"] = None
 					self.request.session["linkreport_pk"] = None
-					return redirect("reply_pk", pk= link.id)
+					self.request.session["link_pk"] = link.id
+					return redirect("reply")
 			else:
 				return render(self.request,'500.html',{})
 

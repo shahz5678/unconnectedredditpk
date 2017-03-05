@@ -9,37 +9,40 @@
 <div class="margin">
 	{% if notification %}
 	{% if type_of_object == '2' %}
-	<div class="div dbt">
-		{% if first_time_user %}
-		<span class="cs ct">
-		Tumhe <b>welcome</b> kiya:
-		</span>
-		<br>
-		{% else %}
-			{% if parent.ooa != 'None' %}
-				<img src="{{ parent.ooa|thumbedge }}" alt="no pic" width="22" height="22"></img>
-			{% else %}
-				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
-			{% endif %}
-		<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
-			
-			<p style="margin-top:.5em;"></p>
 	
-		<span class="cs ct">
-				is pr <b>new</b> jawab aya:
-				</span>
-				<p style="margin-top:.3em;"></p>
-			{% endif %}
+		<div class="div dbt">
+			{% if first_time_user %}
+			<span class="cs ct">
+			Tumhe <b>welcome</b> kiya:
+			</span>
+			<br>
+			{% else %}
+				{% if parent.ooa != 'None' %}
+					<img src="{{ parent.ooa|thumbedge }}" alt="no pic" width="22" height="22"></img>
+				{% else %}
+					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+				{% endif %}
+			<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
+				
+				<p style="margin-top:.5em;"></p>
 		
-		<a href="{% url 'reply_pk' parent_pk %}"><bdi>{{ parent.lrsn }}</bdi>
-			{% if parent.lrsn in girls %}
-		    	<span class="pinkstar" ><b>*</b></span>
-		    {% endif %}
-		:<span class="cm"><bdi class="clb">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi>
-		</span>
+			<span class="cs ct">
+					is pr <b>new</b> jawab aya:
+					</span>
+					<p style="margin-top:.3em;"></p>
+				{% endif %}
+			
+			<a href="{% url 'profile' parent.lrsn %}"><bdi>{{ parent.lrsn }}</bdi>
+				{% if parent.lrsn in girls %}
+			    	<span class="pinkstar" ><b>*</b></span>
+			    {% endif %}</a>
+			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			</span>
 			<p style="margin-top:.5em;"></p>
-				<button class="btn nw bl bct mrs">jawab do</button></a>&nbsp;&nbsp;
-				<a href="{% url 'x_notif' parent_pk ident '2' %}"><button class="btn bcr bxs"><b>X</b></button></a>
+				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
+				{% csrf_token %}
+				<button class="btn nw bl bct mrs" type="submit">jawab do</button></form>&nbsp;&nbsp;
+				<a href="{% url 'x_notif' parent_pk ident '2' %}"><button class="btn bcr bxs"><b>X</b></button>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>

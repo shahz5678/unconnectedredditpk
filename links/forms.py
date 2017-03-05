@@ -532,15 +532,14 @@ class UnseenActivityForm(forms.Form):
 		fields = ("comment", "group_reply", )
 
 	def __init__(self,*args,**kwargs):
-		# self.request = kwargs.pop('request', None)
 		self.user = kwargs.pop('user',None)
 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
-		self.fields['group_reply'].widget.attrs['style'] = 'max-width:95%;width:1000px;'
+		self.fields['group_reply'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;max-width:95%;width:1000px;border: 1px solid #a6a6a6;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #404040;'
 		self.fields['group_reply'].widget.attrs['autocomplete'] = 'off'
-		# self.fields['group_reply'].widget.attrs['placeholder'] = 'Likho...'
-		self.fields['comment'].widget.attrs['style'] = 'max-width:95%;width:1000px;'
+		self.fields['comment'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;max-width:95%;width:1000px;border: 1px solid #a6a6a6;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #404040;'
 		self.fields['comment'].widget.attrs['autocomplete'] = 'off'
-		# self.fields['comment'].widget.attrs['placeholder'] = 'Likho...'
 
 	def clean_comment(self):
 		comment = self.cleaned_data.get("comment")

@@ -6395,7 +6395,7 @@ class UserActivityView(ListView):
 		context["can_vote"] = False
 		if self.request.user.is_authenticated():
 			if self.request.user_banned:# and (self.request.user.username ==  self.kwargs['slug']):
-				context["banned"]
+				context["banned"] = True
 			else:
 				if self.request.user.userprofile.score > 9:
 					context["can_vote"] = True

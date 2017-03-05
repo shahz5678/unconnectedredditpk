@@ -29,16 +29,15 @@
 		</span>
 		<p style="margin-top:.3em;"></p>
 		{% endif %}	
-		<a href="{% url 'reply_pk' parent_pk %}" style="font-size:95%;"><bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
-		{% for person in girls %}
-	    {% if person == freshest_unseen_comment.submitted_by.username %}
+		<a href="{% url 'profile' freshest_unseen_comment.submitted_by %}"><bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
+		{% if freshest_unseen_comment.submitted_by.username in girls %}
 	    	<span style="font-size:110%;color:deeppink;"><b>*</b></span>
-	    {% endif %}
-	    {% endfor %}
+	    {% endif %}</a>
 		:<span style="font-size:110%;"><bdi style="color:#404040;">{% emoticons %} {{ freshest_unseen_comment.description|truncatechars:70 }}{% endemoticons %}</bdi></span><span style="font-size:80%;font-family:'arial';color:gray;"><bdi>, {{ freshest_unseen_comment.submitted_on|naturaltime }}</bdi>
 		</span>
 			<p style="margin-top:.5em;"></p>
-			<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7.5em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></a>&nbsp;&nbsp;
+			<form action="{% url 'reply_pk' parent_pk %}" method="POST">{% csrf_token %}
+			<button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border:solid 1px #229ec3;width:7.5em;white-space:nowrap;font-size:95%;color:white;border-radius:4px;">isko jawab do</button></form>&nbsp;&nbsp;
 			<a href="{% url 'x_notif' parent_pk user.id 5 %}"><button style="font-size:90%;background-color:#FF1A1A;border-color:#cc0000;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);width:1.7em;"><b>X</b></button></a>
 		</div>
 		<p style="margin-top:.5em;"></p>

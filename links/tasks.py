@@ -361,6 +361,18 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 		owner_url = None
 	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
 		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+	if photo_owner_id == user_id:
+		is_seen = True
+		unseen_activity = True
+		single_notif = None
+		same_writer = True
+	else:
+		is_seen = False
+		unseen_activity = True
+		single_notif = True
+		same_writer = False
+	create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
+		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
 	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
 		values_list('submitted_by', flat=True)[:25]))
 	if photo_owner_id not in all_commenter_ids:

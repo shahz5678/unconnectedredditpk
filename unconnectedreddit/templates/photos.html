@@ -33,15 +33,17 @@
 				<p style="margin-top:.3em;"></p>
 			{% endif %}	
 			
-			<a href="{% url 'reply_pk' parent_pk %}" ><bdi>{{ parent.lrsn }}</bdi>
+			<a href="{% url 'profile' parent.lrsn %}" ><bdi>{{ parent.lrsn }}</bdi>
 				{% if parent.lrsn in girls %}
 			    	<span class="pinkstar" ><b>*</b></span>
-			    {% endif %}
-			:<span class="cm"><bdi class="clb">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			    {% endif %}</a>
+			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>
 				<p style="margin-top:.5em;"></p>
-				<button class="btn nw bl bct mrs">jawab do</button></a>&nbsp;&nbsp;
-				<a href="{% url 'x_notif' parent_pk user.id 0 %}"><button class="btn bxs bcr"><b>X</b></button></a>
+				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
+				{% csrf_token %}
+				<button class="btn nw bl bct mrs" type="submit">jawab do</button></form>&nbsp;&nbsp;
+				<a href="{% url 'x_notif' parent_pk user.id 0 %}"><button class="btn bxs bcr"><b>X</b></button>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>

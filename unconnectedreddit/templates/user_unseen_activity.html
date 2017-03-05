@@ -37,59 +37,60 @@
 	</span>
 
 {% if notif.ot == '2' %}
-<a href="{% url 'reply_pk' notif.oi %}">
+<a href="{% url 'profile' notif.oon %}" class="cgy">
 	{% if notif.ooa != 'None' %}
 	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
 {% if notif.s == 'True' %}
-	<span class="cgy">{{ notif.oon }}</a>:&nbsp;<span class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
+	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span>
+	<div class="mls mtl">
+	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
 	<br>
-	<span class="cgy cs ms">jawab aya {{ notif.lrti|human_time }}:</span>
-	<br>
-		<span class="cgy ms">
+		<a href="{% url 'profile' notif.lrsn %}" class="cgy">
 		{% if notif.lrau != 'None' %}
 		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
-		{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+		{{ notif.lrsn }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 	<br>
-	<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bcgy bl mbs mts"><b>
-	{{ notif.r|add:"0" }}</b> jawab
-	</button></a>
+	<form method="POST" action="{% url 'reply_pk' notif.oi %}">{% csrf_token %}<button class="btn nw bcgy bl mbl mtl" type="submit"><b>
+	{{ notif.r|add:"0" }}</b>&nbsp;&nbsp;jawab</button></form>
 
-	<br>
 	{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
 		<input type="hidden" name="group_reply" value="111">
 		{{ form.comment }}
-		<br><button class="btn bcgy bms mts mbs" name="btn{{ forloop.counter }}" type="submit">OK</button>
+		<br><button class="btn bcgy bms mts" name="btn{{ forloop.counter }}" type="submit">OK</button>
 		</form>
+	</div>
 	<hr size=1 COLOR="#cccccc">
 {% else %}
-<span class="ct">{{ notif.oon }}</a>:&nbsp;<span class="ct bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span></span>
-<a href="{% url 'reply_pk' notif.oi %}" class="ct cs mbs"><br>new jawab aya <b>{{ notif.lrti|human_time }}</b>:</a><br>
-<span class="clb csw mbs"><a href="{% url 'reply_pk' notif.oi %}">	
-	{% if notif.lrau != 'None' %}
-	<img src="{{ notif.lrau|thumbedge }}"  width="22" height="22" alt="no pic" class="ibt"></img>
-	{% else %}
-	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibt"></img>
-	{% endif %}
-{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-<a href="{% url 'reply_pk' notif.oi %}"><button class="btn nw bct mbs bl mts"><b>
-{{ notif.r|add:"0" }}</b> jawab
-</button></a>
-<br>{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="ct cs">Likho:</b>{% endif %}
-	<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
-	{% csrf_token %}
-	<input type="hidden" name="group_reply" value="111">
-	{{ form.comment }}
-	<br><button class="btn bct bms mts" type="submit">OK</button>
-	</form>
-<hr size=1 COLOR="#3cb7dd">
+	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span>
+	<div class="mls mtl">
+	<span class="ct cs mbs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span><br>
+	<span class="clb"><a href="{% url 'profile' notif.lrsn %}">	
+		{% if notif.lrau != 'None' %}
+		<img src="{{ notif.lrau|thumbedge }}"  width="22" height="22" alt="no pic" class="ibt"></img>
+		{% else %}
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibt"></img>
+		{% endif %}
+	{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+	<form method="POST" action="{% url 'reply_pk' notif.oi %}">{% csrf_token%}<button class="btn nw bct mbl bl mtl" type="submit"><b>
+	{{ notif.r|add:"0" }}</b>&nbsp;&nbsp;jawab
+	</button></form>
+		{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% else %}<b class="ct cs">Likho:</b>{% endif %}
+		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
+		{% csrf_token %}
+		<input type="hidden" name="group_reply" value="111">
+		{{ form.comment }}
+		<br><button class="btn bct bms mts" type="submit">OK</button>
+		</form>
+	</div>
+	<hr size=1 COLOR="#3cb7dd">
 {% endif %}
 <br>
 
@@ -100,21 +101,21 @@
 	{% else %}
 	<a href="{% url 'public_group' notif.l %}"><b class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</b></a>
 	{% endif %}
-	<br>
+	<div class="mls mtl">
 	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
 		<br>
 		{% if notif.rp != 'None' %}
 		<img src="{{ notif.rp|photoedge }}" class="ibg">
 		<br>
 		{% endif %}
-		
+		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
 		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
 	
-		<span class="cgy bw">{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+		<span class="cgy bw">{{ notif.lrsn }}</span></a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 		<br>
 
 		{% if notif.g == '1' %}
@@ -127,7 +128,7 @@
 				<br><button class="btn bcgy bms mts" type="submit" >OK</button>
 			</form>
 		{% else %}
-		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcgy bm mbs mts">andr jao</button></a>
+		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcgy bm mbl mtl">andr jao</button></a>
 		<br>{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cgy cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
@@ -136,7 +137,8 @@
 				<br><button class="btn bcgy bms mts" type="submit">OK</button>
 			</form>
 			
-	{% endif %}
+		{% endif %}
+	</div>
 	<hr size=1 COLOR="#cccccc">
 
 	{% else %}
@@ -145,7 +147,7 @@
 	
 		{% if notif.g == '1' %}
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cg bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form>
-		<br>
+		<div class="mls mtl">
 		<span class="cg cs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
 		<br>
 		{% if notif.rp != 'None' %}
@@ -153,13 +155,13 @@
 		<br>
 		{% endif %}
 
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}">
+		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
 		<input type="image" height="22" width="22" src="{{ notif.lrau|thumbedge }}">
 		{% else %}
 		<input type="image" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg">
 		{% endif %}
-		<span class="bw" style="color:blue;">{{ notif.lrsn }}</span></form><span class="clb bw">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		{{ notif.lrsn }}</a><span class="clb bw">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
 		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" class="btn nw bm bcg mbl mtl">andr jao</button></form>
 		{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cg cs">Likho:</b>{% endif %}
@@ -169,12 +171,12 @@
 				{{ form.group_reply }}
 				<br><button class="btn bcg bms mts" type="submit" >OK</button>
 			</form>
+		</div>
 		<hr size=1 COLOR="#2DB92D">
 		{% else %}
 
 		<a href="{% url 'public_group' notif.l %}"><b class="cp bw">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a>
-		<br>
-
+		<div class="mls mtl">
 		<span class="cp cs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
 		<br>
 		{% if notif.rp != 'None' %}
@@ -182,7 +184,7 @@
 		<br>
 		{% endif %}
 
-		<a href="{% url 'public_group' notif.l %}">
+		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
 		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" class="ibp"></img>
 		{% else %}
@@ -192,7 +194,7 @@
 		{{ notif.lrsn }}</a><span class="clb bw">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		<br>
 
-		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcp bm mbs mts">andr jao</button></a>
+		<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcp bm mbl mtl">andr jao</button></a>
 		<br>{% if form.group_reply.errors %}<span class="cr">{{ form.group_reply.errors.0 }}</span>{% else %}<b class="cp cs">Likho:</b>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
@@ -200,6 +202,7 @@
 				{{ form.group_reply }}
 				<br><button class="btn bcp bms mts" type="submit">OK</button>
 			</form>
+		</div>
 		<hr size=1 COLOR="#765989">
 		{% endif %}
 		
@@ -252,7 +255,7 @@
 		{% endif %}
 
 	<br>
-	<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}" class="cgy csw cm">
+	<a href="{% url 'profile' notif.oon %}" class="cgy mls">
 	{% if notif.ooa != 'None' %}
 	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
@@ -260,17 +263,18 @@
 	{% endif %}
 	{% if notif.s == 'True' %}
 		{{ notif.oon }}</a>:
-		<span class="cgy csw bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span><br class="mbl">
+		<span class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span>
+		<div class="mls mtl">
 		{% if notif.nc != 'True' %}
 			<span class="cgy cs">tabsra aya {{ notif.lrti|human_time }}:</span><br>
-			<span class="cgy">
+			<a href="{% url 'profile' notif.lrsn %}">
 			{% if notif.lrau != 'None' %}
 			<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 			{% endif %}
-			{{ notif.lrsn }}: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-			<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user.id %}"><button class="btn nw bcgy bl mts mbs">
+			<span class="cgy">{{ notif.lrsn }}</span></a><span class="cgy">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+			<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user.id %}"><button class="btn nw bcgy bl mtl mbl">
 			{% if notif.r|add:"0" > 1 %}
 			<b>{{ notif.r }}</b> tabsrey
 			{% elif notif.r|add:"0" == 1 %}
@@ -286,20 +290,23 @@
 		{{ form.comment }}
 		<br><button class="btn bcgy bms mts" type="submit">OK</button>
 		</form>
+		</div>
 	<hr size=1 COLOR="#cccccc">
 	{% else %}
 	<span class="co">{{ notif.oon }}</a></span><span class="co bw">:
-	{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span><br class="mbl">
+	{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span>
+	<div class="mls mtl">
 	{% if notif.nc != 'True' %}
-		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}" class="co cs">new tabsra hua <b>{{ notif.lrti|human_time }}</b>:</a><br>
-		<span class="clb csw"><a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}">
+
+		<span class="co cs">new tabsra hua <b>{{ notif.lrti|human_time }}</b>:</span><br>
+		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
 		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" class="ibo"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibo"></img>
 		{% endif %}
-		{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
-		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}"><button class="btn nw bco bl mts mbs">
+		{{ notif.lrsn }}</a><span class="clb">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
+		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}"><button class="btn nw bco bl mtl mbl">
 		{% if notif.r|add:"0" > 1 %}
 		<b>{{ notif.r }}</b> tabsrey
 		{% elif notif.r|add:"0" == 1 %}
@@ -315,6 +322,7 @@
 		{{ form.comment }}
 		<br><button class="btn bco bms mts" type="submit">OK</button>
 		</form>
+	</div>
 	<hr size=1 COLOR="#ff9933">
 	
 	{% endif %}

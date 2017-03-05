@@ -37,14 +37,16 @@
 				<p style="margin-top:.3em;"></p>
 			{% endif %}	
 			
-			<a href="{% url 'reply_pk' parent_pk %}"><bdi>{{ parent.lrsn }}</bdi>
+			<a href="{% url 'profile' parent.lrsn %}"><bdi>{{ parent.lrsn }}</bdi>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar" ><b>*</b></span>
-			    {% endif %}
-			:<span class="cm"><bdi class="clb">{% emoticons %} {{ parent.lrtx|truncatechars:70 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			    {% endif %}</a>
+			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>
 				<p style="margin-top:.5em;"></p>
-				<button class="btn nw bl bct mrs">jawab do</button></a>&nbsp;&nbsp;
+				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
+				{% csrf_token %}
+				<button class="btn nw bl bct mrs" type="submit">jawab do</button></form>&nbsp;&nbsp;
 				<a href="{% url 'x_notif' parent_pk ident 1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
@@ -382,7 +384,7 @@
 			<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{{ link.dc|safe }}
-			{{ link.rb|safe }}
+			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 		
 			{% if link.1h and link.2h %}
 				<div class="clb mts mbs mls">

@@ -5,7 +5,7 @@
 {% block content %}
 <div class="margin clb">
 {% if error %}
-    <span class="co"><b>Ye jumla mojood nahi!</b></span>
+    <span class="co"><b>Jawab nahi de sakte!</b></span>
 {% else %}
     <a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
     {% if authenticated and score > 25 %}
@@ -55,6 +55,7 @@
             {% else %}
             <span class="cs ct"><b>Jawab likho:</b>
             {% endif %}
+            <input type="hidden" name="link_id" value="{{ parent.id }}">
             <br class="mbs">
             </span>{{ form.description }}
             {% if warned %}
@@ -168,6 +169,6 @@
     {% endif %}
     {% endfor %}
     {% endif %}
-</div>
+</div><br><br>
 {% endblock %}
 

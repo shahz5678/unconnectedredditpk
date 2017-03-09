@@ -139,8 +139,7 @@
 			<a name="section{{ forloop.counter  }}"></a> 
 		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 			
-			{{ link.rb|safe }}
-			
+			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 
 			{% if link.1h and link.2h %}
 				<div class="clb mts mbs mls">

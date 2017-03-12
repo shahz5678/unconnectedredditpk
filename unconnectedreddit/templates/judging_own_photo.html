@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load thumbedge %}
+{% block content %}
+<div class="margin cgy"> 
+<img src="{{ purl }}" style="border: 1px solid #A9A9A9;"></img>&nbsp;
+Tum apni photo par faisla nahi kr sakte<br>
+<a href="{% url 'cull_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
+</div><br><br>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+Tum apni photo pe vote nahi kr sakte {% emoticons %}.i5.i6.i7.i8{% endemoticons %}<br>
+<a href="{% url 'best_photo' %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+</div>
+<br><br>
+{% endblock %}

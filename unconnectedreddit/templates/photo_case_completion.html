@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2>Faisla karne ka shukriya!</h2>
+Har faisle ke baad <span class="cg"><b>+{{ points_added }}</b></span> score milta hai<br>
+<img src="{{ purl }}" style="border: 1px solid #A9A9A9;" class="mtl"></img>
+<span class="cgy">
+{% if dec == '1' %}
+Is photo ko report karne waley ko report ki qeemat <b>wapis</b> kr di gayee
+{% elif dec == '2' %}
+Is photo ko report karne waley ko report ki qeemat <b>wapis</b> kr di gayee
+{% elif dec == '3' %}
+Is photo ko report karne waley ko report ki qeemat wapis <b>nahi</b> ki gayee
+{% endif %}
+</span>
+<br>
+<br>
+{% if further_action %}
+	<hr size=1 COLOR="#A9A9A9">
+	<b class="cxl">Mujrim ke khilaaf karwaee karne ke liye OK dabao:</b>&nbsp;
+	<form method="POST" action="{% url 'cull_photo' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="scr" value="2"><input type="hidden" name="purl" value="{{ purl }}"><button type="submit" name="pid" value="{{ pid }}" class="btn bco bm mts">OK</button></form>
+{% else %}
+	<a href="{% url 'cull_photo' %}"><button class="btn bco bm">wapis</button></a>
+{% endif %}
+</div><br><br>
+{% endblock %}

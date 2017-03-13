@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb cl">
+Ab tum ek aesi screen pe chaley jao ge jahan woh tamam photos nazr aien gi jin ko Damadam ke users ne <b>report</b> kiya<br><span class="cgy">Tumharey pas in photos pe <b>faisla</b> karne ka ikhtiyar ho ga</span><br><br>
+<a href="{% url 'cull_photo' %}"><button class="btn bl bco">Samajh lia</button></a>
+</div>
+<br><br>
+{% endblock %}

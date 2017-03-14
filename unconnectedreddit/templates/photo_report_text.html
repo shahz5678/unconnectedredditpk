@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<img src="{{ purl }}" style="border: 1px solid #A9A9A9;"></img>
+<h2>Photo ka masla apne alfaz mein biyan kro:</h2>
+{% if form.description.errors %}<span class="cr">{{ form.description.errors.0 }}</span>{% else %}<span class="cgy">(tip: 250 characters se ziyada nahi likh sakte)</span>{% endif %}
+<br>
+		<form method="post" action="{% url 'curate_photo' %}">
+			{% csrf_token %}
+			<input type="hidden" name="scr" value="2">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="dec" value="{{ dec }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="isr" value="{{ isr }}">
+			<input type="hidden" name="prc" value="{{ prc }}">
+			<input type="hidden" name="pid" value="{{ pid }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			{{ form.description }}<br>
+			<button class="btn bm bcr mbs mtl" type="submit">OK</button>
+		</form>
+
+</div><br><br>
+{% endblock %}

@@ -39,7 +39,7 @@
         {% elif origin == '4' %}
         <a href="{% url 'unseen_activity' username %}#section0">
         {% elif origin == '5' %}
-        <a href="{% url 'see_special_photo_pk' photo.id %}#section0">
+        <a href="{% url 'photo_detail' photo.id %}#section0">
         {% elif origin == '6' %}
         <a href="{% url 'home' %}#section0">
         {% else %}
@@ -120,7 +120,7 @@
     {% endif %}
 {% if count > 0 %}
     {% if count > 25 %}
-      <span class="cs csw co">Pichley <b>25</b> tabsrey:</span><br>
+      <span class="cs csw co">Latest <b>25</b> tabsrey:</span><br>
       {% elif count == 1 %}
       <span class="cs csw co"><b>1</b> tabsra:</span><br>
       {% else %}

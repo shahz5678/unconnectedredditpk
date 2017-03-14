@@ -11,7 +11,8 @@ from scraper import read_image
 from cricket_score import cricket_scr
 from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
-CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES
+CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,\
+PHOTO_CASE_COMPLETION_BONUS
 from django.db import connection
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
@@ -24,7 +25,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task
+fan_recount, vote_tasks, registration_task, process_reporter_payables
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
@@ -38,12 +39,11 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, \
+from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
 public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
-save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications, get_clones,\
-set_site_ban
+save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications, get_clones
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, document_link_abuse, posting_allowed, document_nick_abuse, remove_key, document_publicreply_abuse, \
 publicreply_allowed, document_comment_abuse, comment_allowed, document_group_cyberbullying_abuse, document_report_reason, \
@@ -56,11 +56,13 @@ bulk_check_group_membership, first_time_refresher, add_refresher, in_defenders, 
 add_to_photo_vote_ban, add_user_to_photo_vote_ban, add_to_photo_upload_ban, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
 add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, \
 first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
-add_password_change, voted_for_photo_qs, voted_for_link, get_link_writer, can_vote_on_link, account_creation_disallowed, account_created, \
+add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, account_creation_disallowed, account_created, \
 ban_photo, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, remove_group_for_all_members, first_time_photo_uploader, \
 add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-add_home_replier, first_time_home_replier#, test_lua
+first_time_home_replier, voted_for_single_photo, set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,\
+remove_from_photo_upload_ban, remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,\
+add_photo_judger,first_time_photo_curator,add_photo_curator#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -80,7 +82,7 @@ SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackF
 VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, \
 AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
 AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
-BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm
+BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, PhotoReportForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1190,15 +1192,30 @@ class PhotoDetailView(DetailView):
 		try:
 			pk = self.kwargs["pk"]
 			photo = Photo.objects.get(id=pk)
-			#stream_id = PhotoStream.objects.get(cover_id=photo.id).id
 			context["photo_id"] = pk
 			context["photo"] = photo
 			context["own_photo"] = False
 		except:
 			context["absent"] = True
 			return context
+		try:
+			context["av_url"] = photo.owner.userprofile.avatar.url
+		except:
+			context["av_url"] = None
+		context["defender"] = False
+		context["from_cull_queue"] = False
+		context["latest_photocomments"] = None
 		if self.request.user.is_authenticated():
+			if 'origin' in self.kwargs:
+				if self.kwargs['origin'] == '6':
+					context["from_cull_queue"] = True
+				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
+				context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id')[:10] #list of dictionaries
+				# test = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').only('id','image_file')[:10] #list of dictionaries
+				# print test
 			context["authenticated"] = True
+			if in_defenders(self.request.user.id):
+				context["defender"] = True
 			if self.request.user == photo.owner:
 				context["own_photo"] = True
 			else:
@@ -1206,7 +1223,7 @@ class PhotoDetailView(DetailView):
 				score = self.request.user.userprofile.score 
 				if score > 9:
 					context["can_vote"] = True
-					if PhotoVote.objects.filter(voter=self.request.user,photo=photo).exists():
+					if voted_for_single_photo(pk,self.request.user.username):
 						context["voted"] = True
 					else:
 						context["voted"] = False
@@ -1214,25 +1231,7 @@ class PhotoDetailView(DetailView):
 					context["can_vote"] = False
 		return context
 
-# class LinkDetailView(DetailView):
-# 	model = Link
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(LinkDetailView, self).get_context_data(**kwargs)
-# 		token = '?'+self.object.description.replace(" ", "")[:3]+self.object.submitter.username[:3]#creating a 'token' context comprising the submitter and the link description
-# 		context["token"] = token
-# 		if self.request.user.is_authenticated():
-# 			voted = Vote.objects.filter(voter=self.request.user) #all links user voted on
-# 			link_in_page = self.object.id #the link.id of the link shown on the detailview
-# 			voted = voted.filter(link_id=link_in_page) #is the current link in that list of objects?
-# 			voted = voted.values_list('link_id', flat=True) #strips aways everything other than the id of the link
-# 			context["voted"] = voted #a mapping between "voted" and the link id gotten above is set up, and passed as context to the template
-# 		return context
-
 def skip_presalat(request, *args, **kwargs):
-	# now = datetime.utcnow()+timedelta(hours=5)
-	# current_minute = now.hour * 60 + now.minute
-	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 		'LOCATION': MEMLOC, 'TIMEOUT': 70,
 	})
@@ -1461,6 +1460,10 @@ def home_list(request, items_per_page, notif=None):
 		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary
 	# return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum
 	return photo_links, list_of_dictionaries, page_obj, replyforms, addendum
+
+def home_location_pk(request,pk=None,*args,**kwargs):
+	request.session['target_id'] = pk
+	return redirect("home_loc")
 
 def home_location(request, *args, **kwargs):
 	try:
@@ -2030,7 +2033,7 @@ class UserProfilePhotosView(ListView):
 		context = self.get_context_data(object_list=self.object_list)
 		try:
 			target_id = self.request.session["photograph_id"]
-			self.request.session["photograph_id"] = None
+			del self.request.session["photograph_id"]
 		except:
 			target_id = None
 		if target_id:
@@ -3406,7 +3409,6 @@ class VideoScoreView(FormView):
 		context["girls"] = FEMALES
 		return context
 
-
 class PhotoScoreView(FormView):
 	form_class = PhotoScoreForm
 	template_name = "photo_score_breakdown.html"
@@ -3422,10 +3424,13 @@ class PhotoScoreView(FormView):
 				context["slug"] = self.kwargs["slug"]
 			except:
 				context["slug"] = self.request.user.username
+		context["defender"] = False
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
 		else:
 			context["authenticated"] = False
+		if in_defenders(self.request.user.id):
+			context["defender"] = True
 		cover_photo = Photo.objects.get(id=key)
 		context["photo"] = cover_photo
 		usernames_and_votes = get_photo_votes(key)
@@ -4322,6 +4327,7 @@ def photo_list(request,*args, **kwargs):
 			context["username"] = request.user.username
 			context["score"] = user.userprofile.score
 			context["voted"] = []
+			context["girls"] = FEMALES
 			if request.user_banned:
 				context["notification"] = 0
 				context["banned"] = True
@@ -4517,7 +4523,6 @@ def unauth_best_photos(request,*args,**kwargs):
 	else:
 		context = {}
 		form = BestPhotosListForm()
-		# newrelic.agent.add_custom_parameter("unauth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		if 'unauth_best_photos' in request.session and 'unauth_best_photo_page' in request.session:
 			if request.session['unauth_best_photos'] and request.session['unauth_best_photo_page']:
 				# called when user has redirect from a photo comment
@@ -4549,7 +4554,6 @@ def best_photos_list(request,*args,**kwargs):
 		else:
 			context = {}
 			form = BestPhotosListForm()
-			# newrelic.agent.add_custom_parameter("auth_best photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 			if 'best_photos' in request.session and 'best_photo_page' in request.session:
 				if request.session['best_photos'] and request.session['best_photo_page']:
 					# called when user has voted
@@ -4578,6 +4582,7 @@ def best_photos_list(request,*args,**kwargs):
 			context["ident"] = user.id
 			context["score"] = user.userprofile.score
 			context["voted"] = []
+			context["girls"] = FEMALES
 			if request.user_banned:
 				context["notification"] = 0
 				context["banned"] = True
@@ -7043,20 +7048,6 @@ def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
 # 		else:
 # 			return redirect("link_create_pk")
 
-def process_photo_vote(pk, ident, val, voter_id):
-	if int(val) > 0:
-		vote_score_increase = 1
-		visible_score_increase = 1
-		media_score_increase = 1
-		score_increase = 1
-		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
-	else:
-		vote_score_increase = -1
-		visible_score_increase = -1
-		media_score_increase = -1
-		score_increase = -1
-		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
-
 @ratelimit(rate='3/s')
 def photo_vote(request, pk=None, val=None, origin=None, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
@@ -7627,6 +7618,476 @@ class FanTutorialView(FormView):
 				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
 			return redirect("top_photo")
 
+def find_time_to_go(photo_owner_id):
+	banned, time_remaining = check_photo_upload_ban(photo_owner_id)
+	return ('0' if not banned else ('-1' if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining)))
+
+def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_owner_id,photo_owner_username,link_id,origin):
+	if in_defenders(user_id):
+		if decision == '1':
+			# edit the photo uploading ban
+			context = {'purl':photo_url,'pid':photo_id,'poid':photo_owner_id,'oun':photo_owner_username,\
+			'already_banned':find_time_to_go(photo_owner_id),'origin':origin,'link_id':link_id,'dec':decision}
+		elif decision == '2':
+			# edit the vote ban
+			photovote_usernames_and_values = get_photo_votes(photo_id)
+			number_of_voters = len(photovote_usernames_and_values)
+			context={'nameandval':photovote_usernames_and_values,'purl':photo_url,'oun':photo_owner_username,'num':number_of_voters,\
+			'pid':photo_id,'origin':origin,'link_id':link_id,'dec':decision}
+		elif decision == '3':
+			# edit both photo uploading and vote ban together in one giant screen!
+			photovote_usernames_and_values = get_photo_votes(photo_id)
+			number_of_voters = len(photovote_usernames_and_values)
+			context={'already_banned':find_time_to_go(photo_owner_id),'nameandval':photovote_usernames_and_values,'num':number_of_voters,\
+			'poid':photo_owner_id,'oun':photo_owner_username,'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
+		return context
+	else:
+		return []
+
+def process_photo_upload_ban(duration,photo_id,photo_owner_id,ban_time,unban=False):
+	if unban:
+		remove_from_photo_upload_ban(photo_owner_id) #removing uploading ban
+		remove_from_photo_vote_ban(photo_owner_id) #removing voting ban
+	else:
+		photo = Photo.objects.filter(id=photo_id).update(vote_score = -100) #to censor the photo from the list
+		update_object(object_id=photo_id,object_type='0',vote_score=-100)
+		ban_photo(photo_id=photo_id,ban=True)
+		add_to_photo_upload_ban(photo_owner_id, ban_time) #to impede from adding more photos
+		add_user_to_photo_vote_ban(photo_owner_id, ban_time) #to impede from voting on other photos
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def ban_photo_upload_and_voters(request,*args,**kwargs):
+	if request.method == 'POST':
+		if in_defenders(request.user.id):
+			dec = request.POST.get('dec',None)
+			if dec == '1':
+				# only ban photo uploader
+				dur = request.POST.get('dur',None)
+				pid = request.POST.get('pid',None)
+				oun = request.POST.get('oun',None)
+				orig = request.POST.get('orig',None)
+				poid = request.POST.get('poid',None)
+				lid = request.POST.get('lid',None)
+				if dur == '1':
+					#i.e. ban for 24 hrs
+					process_photo_upload_ban(dur,pid,poid,'1')
+				elif dur == '2':
+					#i.e. ban for 1 week
+					process_photo_upload_ban(dur,pid,poid,'7')
+				elif dur == '3':
+					#i.e. ban forever
+					process_photo_upload_ban(dur,pid,poid,'-1')
+				elif dur == '0':
+					#i.e. unban
+					process_photo_upload_ban(dur,pid,poid,'0',True)
+				else:
+					pass
+			elif dec == '2':
+				# only ban photo voters
+				unames = request.POST.getlist('unames',[])
+				pid = request.POST.get('pid',None)
+				oun = request.POST.get('oun',None)
+				orig = request.POST.get('orig',None)
+				lid = request.POST.get('lid',None)
+				vdur = request.POST.get('vdur',None)
+				if unames and vdur != '0':
+					targets = User.objects.filter(username__in=unames).values_list('id',flat=True)
+					if vdur == '1':
+						add_to_photo_vote_ban(targets, '0.1')
+					elif vdur == '2':
+						add_to_photo_vote_ban(targets, '3')
+					elif vdur == '3':
+						add_to_photo_vote_ban(targets, '7')
+					elif vdur == '4':
+						add_to_photo_vote_ban(targets, '-1')
+				else:
+					pass
+			elif dec == '3':
+				# ban both photo uploader and voters
+				dur = request.POST.get('dur',None)
+				vdur = request.POST.get('vdur',None)
+				pid = request.POST.get('pid',None)
+				oun = request.POST.get('oun',None)
+				orig = request.POST.get('orig',None)
+				poid = request.POST.get('poid',None)
+				lid = request.POST.get('lid',None)
+				unames = request.POST.getlist('unames',[])
+				if dur == '1':
+					#i.e. ban for 24 hrs
+					process_photo_upload_ban(dur,pid,poid,'1')
+				elif dur == '2':
+					#i.e. ban for 1 week
+					process_photo_upload_ban(dur,pid,poid,'7')
+				elif dur == '3':
+					#i.e. ban forever
+					process_photo_upload_ban(dur,pid,poid,'-1')
+				elif dur == '0':
+					#i.e. unban
+					process_photo_upload_ban(dur,pid,poid,'0',True)
+				else:
+					pass
+				if unames and vdur != '0':
+					targets = User.objects.filter(username__in=unames).values_list('id',flat=True)
+					if vdur == '1':
+						add_to_photo_vote_ban(targets, '0.1')
+					elif vdur == '2':
+						add_to_photo_vote_ban(targets, '3')
+					elif vdur == '3':
+						add_to_photo_vote_ban(targets, '7')
+					elif vdur == '4':
+						add_to_photo_vote_ban(targets, '-1')
+				else:
+					pass
+			else:
+				pass
+			return return_to_photo(request,orig,pid,lid,oun)
+		else:
+			#user not a defender!
+			context = {'pk': 'pk'}
+			return render(request, 'not_defender.html', context)
+	else:
+		#no GET requests allowed, redirect user
+		return render(request,"404.html",{})
+
+def return_to_photo(request,origin,photo_id=None,link_id=None,target_uname=None):
+	if origin == '1':
+		# originated from taza photos page
+		request.session["target_photo_id"] = photo_id
+		return redirect("photo_loc")
+	elif origin == '2':
+		# originated from best photos page
+		request.session["target_best_photo_id"] = photo_id
+		return redirect("best_photo_loc")
+	elif origin == '3':
+		# originated from home
+		request.session["target_id"] = link_id
+		return redirect("home_loc")
+	elif origin == '4':
+		# originated from user profile
+		request.session["photograph_id"] = photo_id
+		return redirect("profile", target_uname)
+	elif origin == '5':
+		# originated from photo detail
+		return redirect("photo_detail", photo_id)
+	elif origin == '6':
+		# originated from 'cull_photos' (a defender view)
+		if in_defenders(request.user.id):
+			return redirect("cull_photo")
+		else:
+			return redirect("best_photo")
+	else:
+		# take the voter to best photos by default
+		return redirect("best_photo")
+
+def cull_photo_loc(request,photo_id,*args,**kwargs):
+	complaints = get_photo_complaints()
+	try:
+		index = complaints.index("phr:"+str(photo_id))
+	except:
+		index = 0
+	page_num, addendum = get_addendum(index,ITEMS_PER_PAGE)
+	page_obj = get_page_obj(page_num,complaints,ITEMS_PER_PAGE)
+	detailed_complaints = get_complaint_details(page_obj.object_list)
+	object_list = sorted(detailed_complaints,key=itemgetter('nc'),reverse=True) #sorting by the number of complaints
+	url = reverse_lazy("cull_photo")+addendum
+	request.session['page_object'] = page_obj
+	request.session['oblst'] = object_list
+	request.session['total'] = len(complaints)
+	return redirect(url)
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def cull_photo(request,*args,**kwargs):
+	if in_defenders(request.user.id):
+		if request.method == 'POST':
+			posted_from_screen = request.POST.get("scr",None)
+			if posted_from_screen == '1':
+				pid = request.POST.get("pid",None)
+				dec = request.POST.get("dec",None) #decision (radio button number)
+				purl = request.POST.get("purl",None)
+				poid = Photo.objects.values_list('owner_id',flat=True).get(id=pid) #photo owner id
+				if poid == request.user.id:
+					return render(request,'judging_own_photo.html',{'purl':purl})
+				elif first_time_photo_judger(request.user.id):
+					add_photo_judger(request.user.id)
+					return render(request,'judgement_tutorial.html',{'pid':pid})
+				else:	
+					if pid and dec == '1':
+						#complaints were justified
+						payables, case_closed = delete_photo_report(pid,True)
+						if case_closed:
+							process_reporter_payables.delay(payables)
+							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')+PHOTO_CASE_COMPLETION_BONUS)
+							context={'points_added':PHOTO_CASE_COMPLETION_BONUS,'dec':dec,'pid':pid,'purl':purl,'further_action':True}
+							return render(request,'photo_case_completion.html',context)
+						else:
+							context={'purl':purl}
+							return render(request,'photo_case_preclosed.html',context)
+					elif pid and dec == '2':
+						#complaints weren't justified - but return the price they paid
+						payables, case_closed = delete_photo_report(pid,True)
+						if case_closed:
+							process_reporter_payables.delay(payables)
+							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')+PHOTO_CASE_COMPLETION_BONUS)
+							context={'points_added':PHOTO_CASE_COMPLETION_BONUS,'dec':dec,'pid':pid,'purl':purl,'further_action':False}
+							return render(request,'photo_case_completion.html',context)
+						else:
+							context={'purl':purl}
+							return render(request,'photo_case_preclosed.html',context)
+					elif pid and dec == '3':
+						#complaints weren't justfied, so don't return the price they paid
+						payables, case_closed = delete_photo_report(pid,False)
+						if case_closed:
+							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')+PHOTO_CASE_COMPLETION_BONUS)
+							context={'points_added':PHOTO_CASE_COMPLETION_BONUS,'dec':dec,'pid':pid,'purl':purl,'further_action':False}
+							return render(request,'photo_case_completion.html',context)
+						else:
+							context={'purl':purl}
+							return render(request,'photo_case_preclosed.html',context)
+						return render(request,'photo_case_completion.html',context)
+					else:
+						# there was no pid or no dec, is this a malicious user? return user to their own profile
+						return redirect("profile",request.user)
+			elif posted_from_screen == '2':
+				#render screen that gives options of vote ban, photo ban, both ban
+				pid = request.POST.get("pid",None)
+				poid = Photo.objects.values_list('owner_id',flat=True).get(id=pid)
+				oun = User.objects.get(id=poid).username
+				return render(request,'photo_case_punishment.html',{'pid':pid,'purl':request.POST.get("purl",None),'poid':poid,'oun':oun,\
+					'already_banned':find_time_to_go(poid)})
+			elif posted_from_screen == '3':
+				#render voting punishment options
+				context = process_photo_punishment_options(request.user.id,request.POST.get("dec",None),request.POST.get("purl",None),\
+					request.POST.get("pid",None),request.POST.get("poid",None),request.POST.get("oun",None),0,6)
+				if context:
+					return render(request,'ban_photo_upload_and_voters.html',context)
+				else:
+					return render(request,'404.html',{})
+			else:
+				# what other possibility is there? maybe the user shouldn't be here! revert user to their profile
+				return redirect("profile",request.user)
+		else:
+			if first_time_photo_culler(request.user.id):
+				add_photo_culler(request.user.id)
+				return render(request,'photo_culler_tutorial.html',{})
+			elif 'page_object' in request.session and 'oblst' in request.session and 'total' in request.session:
+				if request.session['page_object'] and request.session['oblst'] and request.session['total']:
+					page_obj = request.session['page_object']
+					object_list = request.session['oblst']
+					total = request.session['total']
+				else:
+					complaints = get_photo_complaints()
+					page_num = request.GET.get('page', '1')
+					page_obj = get_page_obj(page_num,complaints,ITEMS_PER_PAGE)
+					detailed_complaints = get_complaint_details(page_obj.object_list)
+					object_list = sorted(detailed_complaints,key=itemgetter('nc'),reverse=True) #sorting by the number of complaints
+					total = len(complaints)
+				del request.session["page_object"]
+				del request.session["oblst"]
+				del request.session["total"]
+			else:
+				complaints = get_photo_complaints()
+				page_num = request.GET.get('page', '1')
+				page_obj = get_page_obj(page_num,complaints,ITEMS_PER_PAGE)
+				detailed_complaints = get_complaint_details(page_obj.object_list)
+				object_list = sorted(detailed_complaints,key=itemgetter('nc'),reverse=True) #sorting by the number of complaints
+				total = len(complaints)
+			context = {'object_list':object_list,'page':page_obj,'total':total}
+			return render(request,'photo_complaints.html',context)
+	else:
+		return render(request,'404.html',{})
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def cull_single_photo(request,*args,**kwargs):
+	if request.method == 'POST':
+		context = process_photo_punishment_options(request.user.id,request.POST.get("dec",None),request.POST.get("purl",None),\
+			request.POST.get("pid",None),request.POST.get("poid",None),request.POST.get("oun",None),request.POST.get("lid",None),\
+			request.POST.get("orig",None))
+		if context:
+			return render(request,'ban_photo_upload_and_voters.html',context)
+		else:
+			return render(request,'404.html',{})	
+	else:
+		return render(request,'404.html',{})
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def curate_photo(request,*args,**kwargs):
+	if request.method == 'POST':
+		own_id = request.user.id
+		defender = in_defenders(own_id)
+		if defender:
+			if first_time_photo_defender(own_id):
+				add_photo_defender_tutorial(own_id)
+				context = {'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+				'oid':request.POST.get("oid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None)}
+				return render(request, 'photo_defender_tutorial.html', context)
+			else:
+				poid = request.POST.get("oid",None)
+				if poid == str(request.user.id):
+					return render(request,'reporting_own_photo.html',{'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),\
+						'pid':request.POST.get("curate",None),'lid':request.POST.get("lid",None),'oun':request.POST.get("oun",None),\
+						'complaints':get_num_complaints()})
+				context={'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+				'poid':poid,'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),'already_banned':find_time_to_go(poid),\
+				'single_photo':True,'complaints':get_num_complaints()}
+				return render(request,'photo_case_punishment.html',context)
+		else:
+			posted_from_screen = request.POST.get("scr",None)
+			if first_time_photo_curator(request.user.id):
+				add_photo_curator(request.user.id)
+				return render(request,'photo_curator_tutorial.html',{'pid':request.POST.get("curate",None),'cap':request.POST.get("cap",None),\
+					'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),'poid':request.POST.get("oid",None),\
+					'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None)})
+			elif posted_from_screen == '1':
+			# progress user to screen 2. Include variables gotten from screen 1
+				dec = request.POST.get("dec",None) #decision (radio button number)
+				if dec == '0':
+					#nevermind
+					return return_to_photo(request,request.POST.get("orig",""),request.POST.get("pid",""),\
+						request.POST.get("lid",""),request.POST.get("oun",""))
+				else:
+					orig = request.POST.get("orig","") #origin 
+					cap = request.POST.get("cap","") #caption
+					isr = request.POST.get("isr","") #is_resident flag
+					prc = request.POST.get("prc","") #price of reporting
+					pid = request.POST.get("pid","") #photo_id
+					lid = request.POST.get("lid","") #link_id (if originating from home)
+					oun = request.POST.get("oun","") #username (if originating from a profile)
+					purl = request.POST.get("purl","") #photo_url
+					form = PhotoReportForm()
+					context={'dec':dec, 'orig':orig, 'isr':isr, 'prc':prc, 'pid':pid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl,\
+					'cap':cap}
+					return render(request,'photo_report_text.html',context)
+			elif posted_from_screen == '2':
+			# finalize user report. Get all variables
+				form = PhotoReportForm(request.POST)
+				if form.is_valid():
+					isr = request.POST.get("isr","") #is_resident flag
+					purl = request.POST.get("purl","") #photo_url
+					orig = request.POST.get("orig","") #origin
+					pid = request.POST.get("pid","") #photo_id
+					cap = request.POST.get("cap","") #caption
+					lid = request.POST.get("lid","") #link_id (if originating from home)
+					oun = request.POST.get("oun","") #username (if originating from a profile)
+					if isr == 'False':
+						return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
+					else:	
+						decision = request.POST.get("dec",None) #decision (radio button number)
+						prc = request.POST.get("prc","") #price of reporting
+						description = form.cleaned_data.get("description")
+						try:
+							set_photo_complaint(PHOTO_REPORT_PROMPT[decision], description, cap, purl, pid, prc, request.user.id)
+							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
+							return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
+						except:
+							return return_to_photo(request,orig,pid,lid,oun)
+				else:
+					# form is invalid, reload
+					dec = request.POST.get("dec","") #decision (radio button number)
+					orig = request.POST.get("orig","") #origin 
+					isr = request.POST.get("isr","") #is_resident flag
+					prc = request.POST.get("prc","") #price of reporting
+					pid = request.POST.get("pid","") #photo_id
+					lid = request.POST.get("lid","") #link_id (if originating from home)
+					oun = request.POST.get("oun","") #username (if originating from a profile)
+					purl = request.POST.get("purl","") #photo_url
+					context={'dec':dec, 'orig':orig, 'isr':isr, 'prc':prc, 'pid':pid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl}
+					return render(request,'photo_report_text.html',context)
+			else:
+			# show options with radio buttons to user (screen 1)
+				score = request.user.userprofile.score
+				price_of_report = get_price(request.user.userprofile.score)
+				if score > PERMANENT_RESIDENT_SCORE:
+					#give options 
+					photo_id = request.POST.get("curate","")
+					caption = request.POST.get("cap","")
+					orig = request.POST.get("orig","") #origin
+					purl = request.POST.get("purl","") #photo_url
+					reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
+					# reporting_cooldown = is user reporting again within 20 mins?
+					context={'is_resident':True,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+					'purl':purl, 'cap':caption}
+					return render(request,"photo_report.html",context)
+				else:
+					# give options, but report doesn't count
+					photo_id = request.POST.get("curate","")
+					orig = request.POST.get("orig","") #origin 
+					caption = request.POST.get("cap","")
+					purl = request.POST.get("purl","") #photo_url
+					reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
+					# reporting_cooldown = is user reporting again within 20 mins? 
+					context={'is_resident':False,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+					'purl':purl, 'cap':caption}
+					return render(request,"photo_report.html",context)
+	else:
+		return render(request,'404.html',{})
+
+def process_photo_vote(pk, ident, val, voter_id):
+	if int(val) > 0:
+		vote_score_increase = 1
+		visible_score_increase = 1
+		media_score_increase = 1
+		score_increase = 1
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
+	else:
+		vote_score_increase = -1
+		visible_score_increase = -1
+		media_score_increase = -1
+		score_increase = -1
+		photo_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id)
+
+@csrf_protect
+def cast_photo_vote(request,*args,**kwargs):
+	if request.method == 'POST':
+		photo_id = request.POST.get("pid","")
+		photo_owner_id = request.POST.get("oid","")
+		if photo_id and photo_owner_id:
+			own_id = request.user.id
+			own_username = request.user.username
+			banned_from_voting,time_remaining = check_photo_vote_ban(own_id) #was this person banned by a defender?
+			cool_down_time, can_vote = can_vote_on_photo(request.user.id) #defenders are exempt from timing out currently
+			origin = request.POST.get("origin","")
+			if own_id == photo_owner_id:
+				# voted own photo - dismiss
+				return render(request,'penalty_self_photo_vote.html')
+			elif not can_vote:
+				# needs to cool down
+				cool_down_time = timezone.now()+timedelta(seconds=cool_down_time)
+				context={'time_remaining':cool_down_time, 'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
+				'lid':request.POST.get("lid","")}
+				return render(request, 'photovote_cooldown.html', context)
+			elif banned_from_voting:
+				# not allowed to vote - notify
+				to_go = ('-1' if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining))
+				context = {'time_remaining':to_go,'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
+				'lid':request.POST.get("lid","")}
+				return render(request, 'photovote_disallowed.html', context)
+			elif voted_for_single_photo(photo_id,own_username):
+				# double voted photo - dismiss
+				return render(request,'already_photovoted.html')
+			else:
+				#process the vote
+				value = request.POST.get("photo_vote","")
+				if value == '1':
+					added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False))
+				elif value == '0':
+					added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False))
+				else:
+					added = 0
+				if added:
+					process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
+				#return the user to origin
+				return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))
+		else:
+			return render(request, 'penalty_suspicious.html', {})
+	else:
+		return render(request, 'penalty_suspicious.html', {})
+
 @csrf_protect
 @ratelimit(rate='3/s')
 def cast_vote(request,*args,**kwargs):
@@ -7638,16 +8099,14 @@ def cast_vote(request,*args,**kwargs):
 	else:
 		if request.method == 'POST':
 			link_id = request.POST.get("lid","")
-			if link_id:
+			target_user_id = request.POST.get("oid","")
+			if link_id and target_user_id:
 				own_id = request.user.id
-				try:
-					target_user_id = int(get_link_writer(link_id))
-				except:
-					return redirect("home")
+				own_name = request.user.username
 				if own_id == target_user_id:
 					#voting for own self
 					return render(request, 'penalty_self_vote.html', {})
-				elif voted_for_link(link_id,request.user.username):
+				elif voted_for_link(link_id,own_name):
 					#already voted for link
 					return render(request,'already_voted.html',{})
 				else:
@@ -7659,41 +8118,41 @@ def cast_vote(request,*args,**kwargs):
 						context = {'time_remaining':time_remaining}
 						return render(request,'vote_cool_down.html',context)
 					else:
-						is_pinkstar = (True if request.user.username in FEMALES else False)
+						is_pinkstar = (True if own_name in FEMALES else False)
 						value = request.POST.get("vote","")
 						if value == '1':
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
 							# username = u'سلمہ'
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						elif value == '-1':
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						##############################Cricket Voting###########################
 						#######################################################################
 						elif value == '4':
 							vote_tasks.delay(own_id, target_user_id,link_id,'1')
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						elif value == '-4':
 							vote_tasks.delay(own_id, target_user_id,link_id,'-1')
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						elif value == '5' and is_pinkstar:
 							#is the user a verified female? If so, process the super cricket upvote
 							vote_tasks.delay(own_id, target_user_id,link_id,'2')
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						elif value == '-5' and is_pinkstar:
 							#is the user a verified female? If so, process the super cricket downvote
 							vote_tasks.delay(own_id, target_user_id,link_id,'-2')
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						#######################################################################
 						#######################################################################
 						elif value == '2' and is_pinkstar:
 							#is the user a verified female? If so, process the super upvote
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						elif value == '-2' and is_pinkstar:
 							#is the user a verified female? If so, process the super downvote
 							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, request.user.username,is_pinkstar)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						else:
 							pass
 						origin = request.POST.get("origin","")
@@ -8468,6 +8927,27 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 
 ###############################################################
+
+# Report run on 14/3/2017
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5886 MB | 3024 MB
+#  links_photocomment               | 2858 MB | 1371 MB
+#  links_photo                      | 2496 MB | 2170 MB
+#  links_link                       | 1400 MB | 367 MB
+#  links_reply                      | 875 MB  | 660 MB
+#  links_salatinvite                | 439 MB  | 319 MB
+#  links_groupseen                  | 394 MB  | 362 MB
+#  links_photo_which_stream         | 233 MB  | 156 MB
+#  links_photostream                | 222 MB  | 117 MB
+#  links_userprofile                | 130 MB  | 54 MB
+#  links_userfan                    | 104 MB  | 66 MB
+#  auth_user                        | 99 MB   | 37 MB
+#  links_totalfanandphotos          | 85 MB   | 76 MB
+#  links_report                     | 82 MB   | 67 MB
+#  links_photovote                  | 49 MB   | 49 MB
+
 
 # Report run on 4/3/2017
 #               Table               |  Size   | External Size 

@@ -13,15 +13,14 @@ reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_privat
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
 salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, repnick, reprofile, \
 rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
-first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, ban_photo_uploader, \
-redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, process_public_group_invite, non_fbs_vid, \
-unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, \
-create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote,\
-unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, \
-cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, cricket_reply, \
-first_time_cricket_refresh, home_reply, curate_photo, home_location_pk, cull_photo, cull_photo_loc, ban_photo_upload_and_voters,\
-cull_single_photo
+first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, cull_single_photo,\
+process_private_group_invite, process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
+click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, create_nick, create_password,create_account, reset_password, \
+unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_location_pk, best_photo_location, photo_location, \
+see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, \
+cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
+first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, curate_photo, home_location_pk, cull_photo,\
+cull_photo_loc, ban_photo_upload_and_voters
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, \
@@ -67,7 +66,6 @@ urlpatterns = patterns('',
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/(?P<is_notif>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='user_profile'),
-	# url(r'^vote_or_user/(?P<pk>\d+)/(?P<id>\d+)/(?P<slug>[\w.@+-]+)/$', auth(VoteOrProfView.as_view()), name='vote_or_prof'),
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
 	url(r'^unseen_fans/$', auth(unseen_fans), name='unseen_fans'),
@@ -93,8 +91,6 @@ urlpatterns = patterns('',
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
 	url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
-	#url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	#url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<photostream>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
@@ -118,7 +114,6 @@ urlpatterns = patterns('',
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
-	# url(r'^users/(?P<slug>[\w.@+-]+)/unseen/$', auth(UnseenActivityView.as_view()), name='unseen_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
 	url(r'^top_photo/help/$', auth(top_photo_help), name='top_photo_help'),
@@ -130,7 +125,6 @@ urlpatterns = patterns('',
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
-	#url(r'^comment_prof_pk/(?P<pk>\d+)/(?P<user_id>\d+)/(?P<from_photos>\d+)/$', comment_profile_pk, name='comment_profile_pk'), #from_photos is an optional variable
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
@@ -224,13 +218,8 @@ urlpatterns = patterns('',
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
 	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),
 	url(r'^facespage/$', faces_pages, name='faces_pages'), 
-	url(r'^resurrect_photo/(?P<pk>\d+)/(?P<ident>\d+)/(?P<dec>\d+)/(?P<uname>[\w.@+-]+)/(?P<origin>\d+)/(?P<link_id>\d+)/$', auth(resurrect_photo), name='resurrect_photo'),
-	url(r'^ban_photo_voter/$', auth(ban_photo_voter), name='ban_photo_voter'),
 	url(r'^bpuv/$', auth(ban_photo_upload_and_voters), name='ban_photo_upload_and_voters'),
-	url(r'^ban_photo_uploader/(?P<pk>\d+)/(?P<uname>[\w.@+-]+)/(?P<ident>\d+)/(?P<duration>\d+)/(?P<origin>\d+)/(?P<link_id>\d+)/(?P<val>\d+)/$', auth(ban_photo_uploader), name='ban_photo_uploader'),
-	url(r'^redirect_ban_photo_uploader/(?P<pk>\d+)/(?P<uname>[\w.@+-]+)/(?P<ident>\d+)/(?P<origin>\d+)/(?P<link_id>\d+)/(?P<val>\d+)/$', auth(redirect_ban_or_resurrect_page), name='redirect_ban_or_resurrect_page'),
 	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
-	#url(r'^link/delete/(?P<pk>\d+)/$', auth(LinkDeleteView.as_view()), name='link_delete'),
 	url(r'^pic_expiry/(?P<slug>[\w.@+-]+)/$', PicExpiryView.as_view(), name='pic_expiry'),
 	url(r'^delete_pic/(?P<slug>[\w.@+-]+)/$', DeletePicView.as_view(), name='delete_pic'),
 	url(r'^pic_upload/$', PicsChatUploadView.as_view(), name='pic_upload'),
@@ -251,14 +240,10 @@ urlpatterns = patterns('',
 	url(r'^caption/(?P<num>\d+)/(?P<slug>[\w.@+-]+)/(?P<err>\d+)/$', CaptionView.as_view(), name='caption'),
 	url(r'^bool_caption/(?P<num>\d+)/(?P<slug>[\w.@+-]+)/$', CaptionDecView.as_view(), name='captionview'),
 	url(r'^user_phonenumber/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/(?P<err>\d+)/(?P<id>\d+)/$', UserPhoneNumberView.as_view(), name='user_phonenumber'),
-	#url(r'^send_pic_sms/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/$', SendPicSMSView.as_view(), name='send_pic_sms'),
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
-	# url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
 	url(r'^cast_photo_vote/$', auth(cast_photo_vote), name='cast_photo_vote'),
-	# url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
-	# url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),

@@ -674,8 +674,10 @@ def add_vote_to_home_photo(link_id, value, username,is_pinkstar):
 
 def resurrect_home_photo(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "lk:"+str(link_id) #lk is 'link'
-	my_server.hset(hash_name,'v',0)
+	if link_id:
+		hash_name = "lk:"+str(link_id) #lk is 'link'
+		my_server.hset(hash_name,'v',0)
+
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)

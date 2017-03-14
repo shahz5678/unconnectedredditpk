@@ -8015,26 +8015,24 @@ def curate_photo(request,*args,**kwargs):
 			# show options with radio buttons to user (screen 1)
 				score = request.user.userprofile.score
 				price_of_report = get_price(request.user.userprofile.score)
-				if score > PERMANENT_RESIDENT_SCORE:
+				photo_id = request.POST.get("curate","")
+				orig = request.POST.get("orig","") #origin 
+				caption = request.POST.get("cap","")
+				purl = request.POST.get("purl","") #photo_url
+				reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
+				if price_of_report > score:
+					#disallow reporting
+					context={'is_resident':False,'pid':photo_id,'orig':orig,'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None),\
+					'purl':purl}
+					return render(request,'photo_rep_scr_req.html',context)
+				elif score > PERMANENT_RESIDENT_SCORE:
 					#give options 
-					photo_id = request.POST.get("curate","")
-					caption = request.POST.get("cap","")
-					orig = request.POST.get("orig","") #origin
-					purl = request.POST.get("purl","") #photo_url
-					reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
-					# reporting_cooldown = is user reporting again within 20 mins?
 					context={'is_resident':True,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
 					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
 					'purl':purl, 'cap':caption}
 					return render(request,"photo_report.html",context)
 				else:
 					# give options, but report doesn't count
-					photo_id = request.POST.get("curate","")
-					orig = request.POST.get("orig","") #origin 
-					caption = request.POST.get("cap","")
-					purl = request.POST.get("purl","") #photo_url
-					reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
-					# reporting_cooldown = is user reporting again within 20 mins? 
 					context={'is_resident':False,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
 					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
 					'purl':purl, 'cap':caption}

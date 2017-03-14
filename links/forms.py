@@ -674,6 +674,29 @@ class ChangeGroupRulesForm(forms.ModelForm):
 		model = Group
 		fields = ("rules",)
 
+class PhotoReportForm(forms.Form):
+	description = forms.CharField(widget=forms.Textarea(attrs=\
+		{'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid red;border-radius:5px;color: #404040;'}),\
+		validators=[validators.RegexValidator(regex="^[A-Za-z0-9._~()'!*:@, ;+?-]*$")],error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
+		'required':_("(tip: report ko khali nahi chore sakte)")})
+	class Meta:
+		fields = ("description",)
+
+	def __init__(self, *args, **kwargs):
+		super(PhotoReportForm, self).__init__(*args, **kwargs)
+		self.fields['description'].widget.attrs['class'] = 'cxl'
+		self.fields['description'].widget.attrs['autofocus'] = 'autofocus'
+
+	def clean_description(self):
+		description = self.cleaned_data.get("description")
+		description = description.strip()
+		if len(description) < 5:
+			raise forms.ValidationError('(tip: itni choti report nahi likh sakte)')
+		elif len(description) > 250:
+			raise forms.ValidationError('(tip: inti barri report nahi likh sakte)')
+		description = clear_zalgo_text(description)
+		return description
+
 class HomeLinkListForm(forms.Form):
 	reply = forms.CharField(max_length=250)
 	

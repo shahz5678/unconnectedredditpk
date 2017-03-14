@@ -139,7 +139,7 @@ def trim_whose_online():
 #ensuring photo reports dont have photo_id related complaints
 @celery_app1.task(name='tasks.sanitize_photo_report')
 def sanitize_photo_report(photo_id):#return price paid (as a default)
-	payable,case_closed = delete_photo_report(photo_id,True)
+	payables,case_closed = delete_photo_report(photo_id,True)
 	if case_closed and payables:
 		for user_id,payable_score in payables:
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)

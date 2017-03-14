@@ -129,8 +129,6 @@ def get_photo_complaints():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zrevrange("reported_photos",0,-1)
 
-
-
 def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	#is reporter_id allowed to report?

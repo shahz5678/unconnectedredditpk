@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load photoedge %}
+{% load thumbedge %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
@@ -128,7 +129,9 @@
                           <b>{{ photo.comment_count }}</b> tabsrey
                           {% endif %}
                           </button>
-                          </a><br>
+                          </a>
+                          &nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="4"><input type="hidden" name="oun" value="{{ subject.username }}"><input type="hidden" name="purl" value="{{ photo.image_file.url|thumbedge }}"><input type="hidden" name="oid" value="{{ star_id }}"><input type="hidden" name="cap" value="{{ photo.caption }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.id }}" name="curate" type="submit">&nbsp;</button></form>
+                          <br>
                           <img class="iw ibg" src="{{ photo.image_file.url|photoedge }}"></img>
                           <br>
                           <span class="cxs cgy">charhai {{ photo.upload_time|naturaltime }}</span><br>
@@ -144,7 +147,14 @@
                                 </a>
 
                           {% if not own_profile and can_vote and photo.id not in voted %}
-                          <a href="{% url 'photo_vote' photo.id 1 4 slug %}"><button class="btn bm bcg mts mbs">zabrdast</button></a>&nbsp;&nbsp;&nbsp;<a href="{% url 'photo_vote' photo.id 0 4 slug %}"><button class="btn bm bcr mts mbs">bekaar</button></a><br>
+                          <form action="{% url 'cast_photo_vote' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="oun" value="{{ subject.username }}">
+                            <input type="hidden" name="pid" value="{{ photo.id }}">
+                            <input type="hidden" name="oid" value="{{ star_id }}">
+                            <input type="hidden" name="origin" value="4">
+                            <button class="btn bm bcg mts mbs" type="submit" name="photo_vote" value="1">zabrdast</button>&nbsp;&nbsp;&nbsp;<button class="btn bm bcr mts mbs" type="submit" name="photo_vote" value="0">bekaar</button>
+                          </form>
                           {% endif %}
 
 

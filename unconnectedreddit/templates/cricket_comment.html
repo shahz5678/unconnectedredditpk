@@ -68,6 +68,7 @@
 				<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 				{% csrf_token %}
 					<input type="hidden" name="lid" value="{{ comment.l }}">
+					<input type="hidden" name="oid" value="{{ comment.w }}">
 					<input type="hidden" name="origin" value="1">
 					{% if nickname in checked %}
 					<button class="btn bcg bm mbl mts" type="submit" name="vote" value="4">taliyan</button>&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="5">+50</button><br>

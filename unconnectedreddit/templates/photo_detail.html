@@ -1,17 +1,16 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
+{% load humanize %}
+{% load thumbedge %}
+{% load photoedge %}
 {% block content %}
 <div class="margin">
 {% if not absent %}
-	<a href="{% url 'comment_pk' photo.id '1' %}" style="font-size:110%;color:#1947D1;"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-	<span style="color:#ff8000;font-size:90%;">
-	{% if photo.comment_count > 1 %}
-	(<b>{{ photo.comment_count }}</b> tabsrey)
-	{% elif photo.comment_count == 1 %}
-	(<b>1</b> tabsra)
-	{% else %}
-	(tabsra kro)
-	{% endif %}</span>
+
+	{% if defender and from_cull_queue %}
+		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
+
+		<b class="cb"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
 
 		{% if photo.device == '1' %}
 		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
@@ -25,42 +24,106 @@
 		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
 		{% else %}
 		{% endif %}
-	</a><br>
-			{% if photo.vote_score < -7 %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-			{% elif photo.vote_score < -2 %}
+		<br>
+		{% if photo.image_file %}
+		<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
+		{% else %}
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+		{% endif %}
+		<br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|thumbedge }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+		{% if latest_photocomments %}
+		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
+		{% for photocomment in latest_photocomments %}
+		<a href="{% url 'profile' photocomment.submitted_by %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
+		<hr size=1 COLOR="ORANGE">
+		{% endfor %}
+		{% else %}
+		<br><span class="csw co">Is photo pe tabsrey nahi hain...</span><br>
+		<hr size=1 COLOR="ORANGE">
+		{% endif %}
+		{% if other_photos %}
+		<br><span class="csw co"><b>{{ photo.owner }} ki aur photos:</b></span><br><br>
+		{% for pht in other_photos %}
+		<a href="{% url 'photo_detail' pht.id 6 %}"><img src="{{ pht.image_file.url|thumbedge }}" style="max-width:100px;width:100%;" class="mrs mbs"></img></a>
+		{% endfor %}
+		<hr size=1 COLOR="ORANGE">
+		{% else %}
+		<span class="csw co">{{ photo.owner }} ne aur photos nahi charhain...</span><br>
+		<hr size=1 COLOR="ORANGE">
+		{% endif %}
+		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
+	{% else %}
+
+	<a href="{% url 'comment_pk' photo.id '5' %}" class="cl cb"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
+	<button class="btn nw bl bco mbs mts" >
+	{% if photo.comment_count > 1 %}
+	<b>{{ photo.comment_count }}</b> tabsrey
+	{% elif photo.comment_count == 1 %}
+	<b>1</b> tabsra
+	{% else %}
+	tabsra kro
+	{% endif %}</button></a>
+
+		{% if photo.device == '1' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+		{% elif photo.device == '2' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+		{% elif photo.device == '4' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+		{% elif photo.device == '5' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+		{% elif photo.device == '3' %}
+		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+		{% else %}
+		{% endif %}
+	<br>
+
+			{% if photo.vote_score < -2 %}
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+			{% elif photo.vote_score < -1 %}
 				{% if photo.image_file %}
-				<img style="filter:brightness(30%);-webkit-filter: brightness(0.3);width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+				<img class="pht bright" src="{{ photo.image_file.url|photoedge }}"></img>
 				{% else %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% else %}
 				{% if photo.image_file %}
-				
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ photo.image_file.url }}"></img>
+				<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
 				{% else %}
-				<img style="width:100%;max-width:400px;margin-bottom:0.3em;border:1px solid lightgrey" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
-			{% endif %}<br>
-
-			<a href="{% url 'photo_izzat' photo_id 1 %}">
-			{% if photo.visible_score > 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
-			{% elif photo.visible_score == 1 %}
-			<div style="font-size:95%;color:#00B800;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} point</b></div><br>
-			{% else %}
-			<div style="font-size:95%;color:red;margin-bottom:-1em;margin-top:0.3em;"><b>&nbsp;{{ photo.visible_score }} points</b></div><br>
-			{% endif %}
-			</a>
-
-			{% if authenticated and not own_photo and can_vote and not voted %}
-			<a href="{% url 'photo_vote' photo_id 1 1 %}"><button style="background-color:#2DB92D;border-color:#41cc41;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.4em;">jhappee</button></a><br>
-			<a href="{% url 'photo_vote' photo_id 0 1 %}"><button style="background-color:#FF1A1A;border-color:#f99d9d;color:white;width:5em;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">chupair</button></a><br>
 			{% endif %}
 
-			<a href="{% url 'photo_share' photo.id 1 %}"><button style="background-color:#FFEFD5;border:solid 1px orange;color:#1947D1;width:8em;white-space:nowrap;font-size:85%;margin-top:0.25em;margin-bottom:0.3em;">photo share kro</button></a>
+		<br>
+			<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|thumbedge }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner.username }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+
+
+					<a href="{% url 'photo_izzat' photo_id 5 %}">
+					{% if photo.visible_score > 1 %}
+					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
+					{% elif photo.visible_score == 1 %}
+					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;point</b></button><br>
+					{% else %}
+					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
+					{% endif %}
+					</a>
+
+
+				{% if can_vote and not own_photo and not voted %}
+					<form action="{% url 'cast_photo_vote' %}" method="POST">
+						{% csrf_token %}
+						<input type="hidden" name="pid" value="{{ photo_id }}">
+						<input type="hidden" name="oun" value="{{ photo.owner.username }}">
+						<input type="hidden" name="oid" value="{{ photo.owner_id }}">
+						<input type="hidden" name="origin" value="5">
+						<button class="btn bm bcg mts mbs" type="submit" name="photo_vote" value="1">zabrdast</button>&nbsp;&nbsp;&nbsp;<button class="btn bm bcr mts mbs" type="submit" name="photo_vote" value="0">bekaar</button>
+					</form>
+				{% endif %}
+				<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
+	{% endif %}
 {% else %}
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Photo mojood nahi</h2>
+<h2 class="clb">Photo mojood nahi</h2>
 {% endif %}
-</div>
+</div><br><br>
 {% endblock %}

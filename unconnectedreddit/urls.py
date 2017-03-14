@@ -7,7 +7,7 @@ from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
-from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, photo_vote, welcome_reply, \
+from links.views import cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
@@ -257,8 +257,8 @@ urlpatterns = patterns('',
 	# url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
 	url(r'^cast_photo_vote/$', auth(cast_photo_vote), name='cast_photo_vote'),
-	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
-	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
+	# url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
+	# url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),

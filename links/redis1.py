@@ -39,17 +39,20 @@ hash_name = "ph:"+str(photo_id)
 hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
 prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
+photo_report = "phr:"+str(photo_id) #photo report hash - contains all complaints, appended toegether
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+photo_payables = "pp:"+str(photo_id) #photo payables sorted set - contains all point amounts owed to all reporter ids
 prev_replies = "prp5:"+str(user_id) #prp5 is a set containing 5 previous replies
 prev_retort = "pr:"+str(user_id)
-prev_retort = "pr5:"+str(user_id) # set 5 previous retorts
+prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
 prev_times = "pt6:"+str(user_id) # set 6 previous times
 photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
 hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
 sorted_set = "public_group_rankings"
 unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
+reported_photos = "reported_photos" #sorted set containing all reported photos
 hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
 set_name = "ug:"+str(user_id) #ug is user's groups
 sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
@@ -85,6 +88,68 @@ FORTY_FIVE_SECS = 45
 
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
+
+#####################Photo Reports######################
+
+def delete_photo_report(photo_id, return_points=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	photo_payables = "pp:"+str(photo_id)
+	photo_report = "phr:"+str(photo_id)
+	reported_photos = "reported_photos"
+	if my_server.exists(photo_report):
+		if return_points:
+			payables = my_server.zrange(photo_payables,0,-1,withscores=True)
+		else:
+			payables = []
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete(photo_payables) #deleting the payables sorted set
+		pipeline1.delete(photo_report) #deleting the photo report hash
+		pipeline1.zrem(reported_photos,photo_report) #removing the photo report from the sorted set of all reports
+		pipeline1.execute()
+		return payables, True #'True' signifies case closed by user
+	else:
+		return [], None #'None' signifies case was already closed by someone else!
+
+def get_complaint_details(complaint_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	complaints_with_details = []
+	for complaint in complaint_list:
+		pipeline1.hgetall(complaint)
+	result1 = pipeline1.execute()
+	for complaint in result1:
+		complaints_with_details.append(complaint)
+	return complaints_with_details
+
+def get_num_complaints():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zcard("reported_photos")
+
+def get_photo_complaints():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrevrange("reported_photos",0,-1)
+
+def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	#photo report hash - contains all complaints, appended together
+	photo_report = "phr:"+str(photo_id)
+	report_text = '<b class="clb">'+rep_type+'</b>:<br>'+'<span class="bw cgy">'+text+'</span><br>'
+	if my_server.exists(photo_report):
+		existing_reports = my_server.hget(photo_report,'tx')
+		my_server.hset(photo_report,'tx',report_text+existing_reports)
+		nc = my_server.hincrby(photo_report,'nc',amount=1)
+	else:
+		nc = 1
+		mapping = {'tx':report_text,'url':purl,'pid':photo_id,'nc':nc,'c':caption}
+		my_server.hmset(photo_report,mapping)
+	#photo payables sorted set - contains all point amounts owed to all reporter ids - triggered when photo's fate is decided
+	photo_payables = "pp:"+str(photo_id)
+	prev_payable = my_server.zscore(photo_payables,reporter_id)
+	new_amnt_owed = (price_paid if prev_payable is None else prev_payable+int(price_paid))
+	my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
+	#sorted set containing all reported photos
+	reported_photos = "reported_photos"
+	my_server.zadd(reported_photos,photo_report,nc)
 
 #####################Cricket Widget#####################
 
@@ -227,7 +292,7 @@ def ban_time_remaining(ban_time, ban_type):
 
 def check_photo_vote_ban(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "pvb:"+str(user_id) #pub is 'photo upload ban'
+	hash_name = "pvb:"+str(user_id) #pvb is 'photo vote ban'
 	hash_contents = my_server.hgetall(hash_name)
 	if hash_contents:
 		ban_type = hash_contents["b"]
@@ -270,6 +335,16 @@ def check_photo_upload_ban(user_id):
 	else:
 		return False, None
 
+def remove_from_photo_upload_ban(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+	my_server.delete(hash_name)
+
+def remove_from_photo_vote_ban(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
+	my_server.delete(hash_name)
+
 def add_to_photo_upload_ban(user_id, ban_type):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
@@ -305,13 +380,41 @@ def add_to_photo_vote_ban(user_ids, ban_type):
 #######################Tutorials#######################
 
 #mehfil refresh button: '1'
-#photo defender:        '2'
+#photo defender:        '2'    (deprecated)
 #inbox (matka):         '3'
 #fan:                   '4'
 #password change:       '5'
 #photo uploader:        '6'
 #psl supporter:         '7'
 #home replier:          '8'
+#photo defender:        '9'
+#photo culler:          '10'
+#photo judger:          '11'
+#photo curator:          '12'
+
+def first_time_photo_curator(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'12'):
+		return False
+	else:
+		return True	
+
+def first_time_photo_judger(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'11'):
+		return False
+	else:
+		return True	
+
+def first_time_photo_culler(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'10'):
+		return False
+	else:
+		return True	
 
 def first_time_home_replier(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -365,7 +468,7 @@ def first_time_inbox_visitor(user_id):
 def first_time_photo_defender(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name, '2'):
+	if my_server.sismember(set_name, '9'):
 		return False
 	else:
 		return True
@@ -382,7 +485,7 @@ def first_time_refresher(user_id):
 def add_photo_defender_tutorial(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '2')
+	my_server.sadd(set_name, '9')
 
 def add_refresher(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -418,6 +521,22 @@ def add_home_replier(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '8')
+
+def add_photo_culler(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '10')
+
+def add_photo_judger(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '11')
+
+def add_photo_curator(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '12')
+
 
 #####################Publicreplies#####################
 
@@ -534,7 +653,7 @@ def add_vote_to_home_photo(link_id, value, username,is_pinkstar):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	vote_text = my_server.hget(hash_name,'vt')
 	username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
-	index = '3' if value == '1' else '-3'
+	index = '3' if str(value) == '1' else '-3'
 	if vote_text:
 		new_text = username+VOTE_TEXT[index]
 		text = new_text+vote_text.decode('utf-8')
@@ -814,7 +933,7 @@ def update_vsc_in_photo(photo_pk, amnt):
 	my_server = redis.Redis(connection_pool=POOL)
 	link_pk = my_server.hget("plm:"+str(photo_pk), 'l') # get the link id
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	if amnt == '1':
+	if str(amnt) == '1':
 		amnt = 1
 	else:
 		amnt = -1
@@ -902,10 +1021,10 @@ def can_vote_on_link(user_id):
 		pipeline1.execute()
 		return None, True
 
-def get_link_writer(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "lk:"+str(link_id) #lk is 'link'
-	return my_server.hget(hash_name,'w')
+# def get_link_writer(link_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hash_name = "lk:"+str(link_id) #lk is 'link'
+# 	return my_server.hget(hash_name,'w')
 
 # def should_cooldown(user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)

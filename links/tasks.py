@@ -135,7 +135,12 @@ def trim_top_group_rankings():
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():
 	expire_online_users()
-	# expire_whose_online()
+
+#paying back points spent by photo reporters
+@celery_app1.task(name='tasks.process_reporter_payables')
+def process_reporter_payables(payables):
+	for user_id,payable_score in payables:
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 #used to calculate group ranking
 @celery_app1.task(name='tasks.public_group_vote_tasks')

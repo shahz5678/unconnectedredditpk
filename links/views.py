@@ -25,7 +25,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, process_reporter_payables
+fan_recount, vote_tasks, registration_task, process_reporter_payables, sanitize_photo_report
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
@@ -62,7 +62,7 @@ add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, voted_for_single_photo, set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,\
 remove_from_photo_upload_ban, remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,\
-add_photo_judger,first_time_photo_curator,add_photo_curator#, test_lua
+add_photo_judger,first_time_photo_curator,add_photo_curator, resurrect_home_photo#, test_lua
 from .forms import getip
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -7642,7 +7642,14 @@ def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_o
 			'poid':photo_owner_id,'oun':photo_owner_username,'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
 		elif decision == '0':
 			#resurrect photo
-			pass
+			Photo.objects.filter(id=photo_id).update(vote_score=0, visible_score=0)
+			update_object(object_id=photo_id,object_type='0',vote_score=0)
+			ban_photo(photo_id=photo_id,ban=False) #changes photo score in best_photos.html and photos.html
+			resurrect_home_photo(link_id)
+			photovote_usernames_and_values = get_photo_votes(photo_id)
+			number_of_voters = len(photovote_usernames_and_values)
+			context={'nameandval':photovote_usernames_and_values,'num':number_of_voters,'poid':photo_owner_id,'oun':photo_owner_username,\
+			'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
 		return context
 	else:
 		return []
@@ -7686,7 +7693,7 @@ def ban_photo_upload_and_voters(request,*args,**kwargs):
 					process_photo_upload_ban(dur,pid,poid,'0',True)
 				else:
 					pass
-			elif dec == '2':
+			elif dec == '2' or dec == '0':
 				# only ban photo voters
 				unames = request.POST.getlist('unames',[])
 				pid = request.POST.get('pid',None)
@@ -7744,6 +7751,7 @@ def ban_photo_upload_and_voters(request,*args,**kwargs):
 					pass
 			else:
 				pass
+			sanitize_photo_report.delay(pid)
 			return return_to_photo(request,orig,pid,lid,oun)
 		else:
 			#user not a defender!

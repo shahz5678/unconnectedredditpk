@@ -31,3 +31,9 @@ CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings
 CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
 'South Africa':'saf','New Zealand':'nze'}
+###############################################################################################################
+PERMANENT_RESIDENT_SCORE = 300
+PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phela rahi hai',\
+'3':'Photo mein buhut ziyada tashadud hai','4':'Photo takhreeb karoon ki wakalat kr rahi hai',\
+'5':'Photo pe fake accounts ke zariye vote daley gaye hain','6':'Kuch aur masla hai'}
+PHOTO_CASE_COMPLETION_BONUS = 6

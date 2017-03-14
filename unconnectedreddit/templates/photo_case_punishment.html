@@ -5,10 +5,10 @@
 
 {% if single_photo %}
 	{% if complaints|add:"0" > 1 %}
-	<span class="cgy cs"><a href="{% url 'cull_photo' %}"><button class="btn bco bm cs mbs mts"><b>{{ complaints }} photos</b></button></a> pe complaints aien</span><br>
+	<span class="cgy cs"><a href="{% url 'cull_photo' %}"><button class="btn bco bl cs mbs mts"><b>{{ complaints }} photos</b></button></a> pe complaints aien</span><br>
 	<hr size=1 COLOR="#D0D0D0">
 	{% elif complaints|add:"0" > 0 %}
-	<span class="cgy cs"><a href="{% url 'cull_photo' %}"><button class="btn bco bm cs mbs mts"><b>{{ complaints }} photo</b></button></a> pe complaint aee</span><br>
+	<span class="cgy cs"><a href="{% url 'cull_photo' %}"><button class="btn bco bl cs mbs mts"><b>{{ complaints }} photo</b></button></a> pe complaint aee</span><br>
 	<hr size=1 COLOR="#D0D0D0"> 
 	{% endif %}
 	<img src="{{ purl }}" style="border: 1px solid #A9A9A9;" class="mts"></img>&nbsp;
@@ -17,7 +17,7 @@
 	{% if already_banned == '-1' %}
 	Ye pehle se hi <b class="co">hamesha ke liye</b> yahan pr photo charhane se banned hai
 	{% elif already_banned == '0' %}
-	Iske khilaf kia qadm uthana hai?
+	Kia qadm uthana hai?
 	{% else %}
 	Ye pehle se hi banned hai, aur photo charha sake ga <b class="co">{{ already_banned|naturaltime }}</b>
 	{% endif %}
@@ -31,7 +31,7 @@
 		<input type="hidden" name="oun" value="{{ oun }}">
 		<input type="hidden" name="orig" value="{{ orig }}">
 		<input type="hidden" name="lid" value="{{ lid }}">
-		{% if vsc|add:"0" < -2 %}<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="0">{{ oun|truncatechars:12 }} ki photo ka score <b class="cr">{{ vsc }}</b> hai. Isko barha ke <b>0</b> kr do<br><br>{% endif %}
+		{% if vsc|add:"0" < -2 %}<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="0"><span class="cg">{{ oun|truncatechars:12 }} ki photo ka score <b class="cr">{{ vsc }}</b> hai. Score barha ke <b>0</b> krna hai</span><br><br>{% endif %}
 
 		{% if already_banned == '0' %}<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="1" checked>{{ oun|truncatechars:12 }} ko <b>photo</b> charhane se ban krna hai<br><br>{% else %}<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="1" checked>{{ oun|truncatechars:12 }} ki <b>saza ka time</b> change krna hai<br><br>{% endif %}
 

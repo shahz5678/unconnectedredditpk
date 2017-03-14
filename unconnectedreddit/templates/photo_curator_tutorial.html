@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin cg cl"> 
+<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;&nbsp;Ye daba kr tum kisi bhi photo ke charhane wale ko, ya us photo pe vote karne waley ko report kr sakte ho&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic"><br><br>
+<form method="POST" action="{% url 'curate_photo' %}">
+	{% csrf_token %}
+	<input type="hidden" name="curate" value="{{ pid }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="oid" value="{{ poid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<button type="submit" class="btn bl bcg mbs">Samajh lia</button>
+</form>
+</div>
+<br><br>
+{% endblock %}

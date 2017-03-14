@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load thumbedge %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
@@ -16,19 +16,25 @@
 	<a href="{% url 'unauth_best_photo_loc_pk' key %}">
 	{% endif %}
 {% elif origin == '3' %}
-<a href="{% url 'profile_pk' slug key %}">
+	<a href="{% url 'profile_pk' slug key %}">
+{% elif origin == '5' %}
+	<a href="{% url 'photo_detail' key %}">
+{% elif origin == '6' and defender %}
+	<a href="{% url 'cull_photo_loc' key %}">
+{% else %}
+	<a href="{% url 'photo_detail' key %}">
 {% endif %}
-{% if photo.vote_score < -2 %}
+{% if photo.vote_score < -2 and not defender %}
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
-{% elif photo.vote_score < -1 %}
+{% elif photo.vote_score < -1 and not defender %}
     {% if photo.image_file %}
-        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+        <img src="{{ photo.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
     {% else %}
         <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
     {% endif %}
 {% else %}
 	{% if photo.image_file %}
-    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    	<img src="{{ photo.image_file.url|thumbedge }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
     {% else %}
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
     {% endif %}
@@ -77,7 +83,13 @@
 	<a href="{% url 'unauth_best_photo_loc_pk' key %}">
 	{% endif %}
 {% elif origin == '3' %}
-<a href="{% url 'profile_pk' slug key %}">
+	<a href="{% url 'profile_pk' slug key %}">
+{% elif origin == '5' %}
+	<a href="{% url 'photo_detail' key %}">
+{% elif origin == '6' and defender %}
+	<a href="{% url 'cull_photo_loc' key %}">
+{% else %}
+	<a href="{% url 'photo_detail' key %}">
 {% endif %}
 <button class="btn bco bs mtl">wapis</button></a></span>
 </div>

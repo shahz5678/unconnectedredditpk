@@ -239,7 +239,7 @@
 		tabsra kro
 		{% endif %}</button>
 		</a>
-		&nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="2"><input type="hidden" name="purl" value="{{ photo.u|thumbedge }}"><input type="hidden" name="oid" value="{{ photo.oi }}"><input type="hidden" name="cap" value="{{ photo.ca }}"><input type="hidden" name="oun" value="{{ photo.o }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.i }}" name="curate" type="submit">&nbsp;</button></form>
+		&nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="2"><input type="hidden" name="purl" value="{{ photo.u|thumbedge }}"><input type="hidden" name="oid" value="{{ photo.oi }}"><input type="hidden" name="cap" value="{{ photo.ca }}"><input type="hidden" name="oun" value="{{ photo.o }}"><input type="hidden" name="vsc" value="{{ photo.vo }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.i }}" name="curate" type="submit">&nbsp;</button></form>
 
 	<br>	
 			{% if photo.vo|add:"0" < -2 %}

@@ -359,7 +359,7 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
-		&nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="3"><input type="hidden" name="lid" value="{{ link.l }}"><input type="hidden" name="purl" value="{{ link.i|thumbedge }}"><input type="hidden" name="oid" value="{{ link.w }}"><input type="hidden" name="cap" value="{{ link.de }}"><input type="hidden" name="oun" value="{{ link.n }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ link.pi }}" name="curate" type="submit">&nbsp;</button></form>
+		&nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="3"><input type="hidden" name="lid" value="{{ link.l }}"><input type="hidden" name="purl" value="{{ link.i|thumbedge }}"><input type="hidden" name="oid" value="{{ link.w }}"><input type="hidden" name="cap" value="{{ link.de }}"><input type="hidden" name="oun" value="{{ link.n }}"><input type="hidden" name="vsc" value="{{ link.v }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ link.pi }}" name="curate" type="submit">&nbsp;</button></form>
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
 		<form action="{% url 'cast_photo_vote' %}" method="POST">

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb cl">
+<span class="cgy">Failsa karne ka tareeqa:</span><br><br>
+<span class="cg"><b>1)</b></span>&nbsp;Report karne waley ne apne <b>points ki qeemat</b> ada ki hoti hai<br>
+<span class="cg"><b>2)</b></span>&nbsp;Agr report <span class="cg">sahi</span> ho tou woh faisla kro jis se points <b>wapis</b> ho jaien<br>
+<span class="cg"><b>3)</b></span>&nbsp;Agr report <span class="cr">ghalat</span> ho, lekin report karne waley ki <span class="cg">neeyat saaf</span> lagey, tab bhi points <b>wapis</b> kro<br>
+<span class="cg"><b>4)</b></span>&nbsp;Aur agr report <span class="cr">ghalat neeyat</span> se ki gayee ho tou points ki qeemat wapis <b>na</b> kro<br>
+<a href="{% url 'cull_photo' %}"><button class="btn bcg mtl bl mbs">Theek hai</button></a>
+</div>
+<br><br>
+{% endblock %}

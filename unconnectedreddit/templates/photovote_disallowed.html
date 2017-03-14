@@ -4,7 +4,7 @@
 <div class="margin clb">
 {% if time_remaining == '-1' %}
 	Tumhe ab photo pr vote krne ki ijazat nahi!<br><br>
-	<span class="cgy cs">Damadam ke mahol ko saf rakhna zaruri hai. Ye baat yad rakhna</span><br><br>
+	<span class="cgy cs">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
 {% else %}
 	Tumhe photo pr vote krne ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
 	<span class="cgy cs">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
@@ -14,11 +14,11 @@
 	{% elif origin == '2' %}
 	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% elif origin == '3' %}
-	<a href="{% url 'home' %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'home_loc_pk' lid %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% elif origin == '4' %}
-	<a href="{% url 'profile' slug %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'profile_pk' slug pk %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% else %}
 	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
 	{% endif %}
-</div>
+</div><br>
 {% endblock %}

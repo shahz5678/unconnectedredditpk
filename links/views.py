@@ -7640,6 +7640,9 @@ def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_o
 			number_of_voters = len(photovote_usernames_and_values)
 			context={'already_banned':find_time_to_go(photo_owner_id),'nameandval':photovote_usernames_and_values,'num':number_of_voters,\
 			'poid':photo_owner_id,'oun':photo_owner_username,'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
+		elif decision == '0':
+			#resurrect photo
+			pass
 		return context
 	else:
 		return []
@@ -7922,7 +7925,8 @@ def curate_photo(request,*args,**kwargs):
 			if first_time_photo_defender(own_id):
 				add_photo_defender_tutorial(own_id)
 				context = {'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
-				'oid':request.POST.get("oid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None)}
+				'oid':request.POST.get("oid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),\
+				'vsc':request.POST.get("vsc",None)}
 				return render(request, 'photo_defender_tutorial.html', context)
 			else:
 				poid = request.POST.get("oid",None)
@@ -7932,7 +7936,7 @@ def curate_photo(request,*args,**kwargs):
 						'complaints':get_num_complaints()})
 				context={'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
 				'poid':poid,'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),'already_banned':find_time_to_go(poid),\
-				'single_photo':True,'complaints':get_num_complaints()}
+				'single_photo':True,'complaints':get_num_complaints(),'vsc':request.POST.get("vsc",None)}
 				return render(request,'photo_case_punishment.html',context)
 		else:
 			posted_from_screen = request.POST.get("scr",None)

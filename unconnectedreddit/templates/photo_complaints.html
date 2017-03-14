@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl"><span class="co">{{ total }}</span> photos ko report kiya gya:</b>
+<p><hr size=1 COLOR="#D0D0D0"></p>
+{% for complaint in object_list %}
+<a name="section{{ forloop.counter }}"></a>
+<b class="cxl cb">{% emoticons %}{{ complaint.c }}{% endemoticons %}</b><br>
+<img src="{{ complaint.url }}" class="mts pht" width="400px"></img><br>
+<a href="{% url 'photo_izzat' complaint.pid 6 %}"><button class="btn bcgy bm mts mbs"><b>votes</b></button></a>&nbsp;&nbsp;&nbsp;
+<a href="{% url 'photo_detail' complaint.pid 6 %}"><button class="btn bco bm mts mbl"><b>details</b></button></a><br>
+<span class="cr cxl"><b>{{ complaint.nc }}</b> complaint(s):</span><br>
+<div class="mls">{{ complaint.tx|safe }}</div>
+<div class="co mtl">
+<b class="cxl">Tumhara faisla:</b>
+<form method="post" action="{% url 'cull_photo' %}" class="mtl">
+	{% csrf_token %}
+	<input type="hidden" name="scr" value="1">
+	<input type="hidden" name="pid" value="{{ complaint.pid }}">
+	<input type="hidden" name="purl" value="{{ complaint.url }}">
+	<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="1" checked><span class="cg cl"><b>Complaints sahi hain!</b></span>&nbsp;<span class="cgy">(qeemat wapis kr do)</span><br><br>
+	<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="2"><span class="cr cl">Complaints sahi nahi</span>&nbsp;<span class="cgy">(qeemat wapis kr do)</span><br><br>
+	<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dec" value="3"><span class="cr cl">Complaints sahi nahi</span>&nbsp;<span class="cgy">(qeemat wapis <span class="cr">na</span> kro)</span><br>
+	<button class="btn bm bco mtl">OK</button>
+</form>
+</div>
+<p><hr size=1 COLOR="#ff9933"></p>
+{% empty %}
+<span class="co cl">Ye list khali hai...{% emoticons %}.c1.c2.c3.c4{% endemoticons %}</span>
+<p><hr size=1 COLOR="#ff9933"></p>
+{% endfor %}
+	<br><div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+</div><br><br>
+{% endblock %}

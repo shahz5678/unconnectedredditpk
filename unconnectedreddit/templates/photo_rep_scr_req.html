@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load humanize %}
+{% block content %}
+<div class="margin clb">
+
+	<h2>Ye karne ke liye tumhara score ziyada hona chahiye!</h2>{% emoticons %}Abhi chill kro ;){% endemoticons %}<br>
+
+	{% if orig == '1' %}
+	<a href="{% url 'see_photo_pk' pid %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	{% elif orig == '2' %}
+	<a href="{% url 'best_photo_loc_pk' pid %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	{% elif orig == '3' %}
+	<a href="{% url 'home_loc_pk' lid %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
+	{% elif orig == '4' %}
+	<a href="{% url 'profile_pk' oun pid %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
+	{% else %}
+	<a href="{% url 'best_photo_loc_pk' pid %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	{% endif %}
+</div>
+<br><br>
+{% endblock %}

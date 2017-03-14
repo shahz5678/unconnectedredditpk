@@ -129,27 +129,37 @@ def get_photo_complaints():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zrevrange("reported_photos",0,-1)
 
+
+
 def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	#photo report hash - contains all complaints, appended together
-	photo_report = "phr:"+str(photo_id)
-	report_text = '<b class="clb">'+rep_type+'</b>:<br>'+'<span class="bw cgy">'+text+'</span><br>'
-	if my_server.exists(photo_report):
-		existing_reports = my_server.hget(photo_report,'tx')
-		my_server.hset(photo_report,'tx',report_text+existing_reports)
-		nc = my_server.hincrby(photo_report,'nc',amount=1)
+	#is reporter_id allowed to report?
+	cant_photo_report = "cpr:"+str(reporter_id)
+	if my_server.exists(cant_photo_report):
+		return my_server.ttl(cant_photo_report)
 	else:
-		nc = 1
-		mapping = {'tx':report_text,'url':purl,'pid':photo_id,'nc':nc,'c':caption}
-		my_server.hmset(photo_report,mapping)
-	#photo payables sorted set - contains all point amounts owed to all reporter ids - triggered when photo's fate is decided
-	photo_payables = "pp:"+str(photo_id)
-	prev_payable = my_server.zscore(photo_payables,reporter_id)
-	new_amnt_owed = (price_paid if prev_payable is None else prev_payable+int(price_paid))
-	my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
-	#sorted set containing all reported photos
-	reported_photos = "reported_photos"
-	my_server.zadd(reported_photos,photo_report,nc)
+		#photo report hash - contains all complaints, appended together
+		photo_report = "phr:"+str(photo_id)
+		report_text = '<b class="clb">'+rep_type+'</b>:<br>'+'<span class="bw cgy">'+text+'</span><br>'
+		if my_server.exists(photo_report):
+			existing_reports = my_server.hget(photo_report,'tx')
+			my_server.hset(photo_report,'tx',report_text+existing_reports)
+			nc = my_server.hincrby(photo_report,'nc',amount=1)
+		else:
+			nc = 1
+			mapping = {'tx':report_text,'url':purl,'pid':photo_id,'nc':nc,'c':caption}
+			my_server.hmset(photo_report,mapping)
+		#photo payables sorted set - contains all point amounts owed to all reporter ids - triggered when photo's fate is decided
+		photo_payables = "pp:"+str(photo_id)
+		prev_payable = my_server.zscore(photo_payables,reporter_id)
+		new_amnt_owed = (price_paid if prev_payable is None else prev_payable+int(price_paid))
+		my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
+		#sorted set containing all reported photos
+		reported_photos = "reported_photos"
+		my_server.zadd(reported_photos,photo_report,nc)
+		my_server.set(cant_photo_report,1)
+		my_server.expire(cant_photo_report,TEN_MINS)
+		return None
 
 #####################Cricket Widget#####################
 

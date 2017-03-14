@@ -24,7 +24,7 @@
 	{% elif loc == '3' %}
 	<a href="{% url 'user_profile_photo' username ident %}">
 	{% elif loc == '5' %}
-    <a href="{% url 'see_special_photo_pk' ident %}">
+    <a href="{% url 'photo_detail' ident %}">
 	{% else %}
 	<a href="{% url 'best_photo' %}#section0">
 	{% endif %}

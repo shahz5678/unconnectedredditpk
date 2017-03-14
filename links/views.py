@@ -7978,15 +7978,15 @@ def curate_photo(request,*args,**kwargs):
 						decision = request.POST.get("dec",None) #decision (radio button number)
 						prc = request.POST.get("prc","") #price of reporting
 						description = form.cleaned_data.get("description")
-						# try:
-						ttl = set_photo_complaint(PHOTO_REPORT_PROMPT[decision], description, cap, purl, pid, prc, request.user.id)
-						if ttl:
-							return render(request,'cant_photo_report.html',{'orig':orig,'pid':pid,'lid':lid,'oun':oun,'ttl':ttl})
-						else:
-							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
-							return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
-						# except:
-						# 	return return_to_photo(request,orig,pid,lid,oun)
+						try:
+							ttl = set_photo_complaint(PHOTO_REPORT_PROMPT[decision], description, cap, purl, pid, prc, request.user.id)
+							if ttl:
+								return render(request,'cant_photo_report.html',{'orig':orig,'pid':pid,'lid':lid,'oun':oun,'ttl':ttl})
+							else:
+								UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
+								return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
+						except:
+							return return_to_photo(request,orig,pid,lid,oun)
 				else:
 					# form is invalid, reload
 					dec = request.POST.get("dec","") #decision (radio button number)

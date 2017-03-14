@@ -16,11 +16,12 @@ rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unse
 first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, ban_photo_uploader, \
 redirect_ban_or_resurrect_page, ban_photo_voter, resurrect_photo, process_private_group_invite, process_public_group_invite, non_fbs_vid, \
 unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, \
-create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, \
-unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, photo_list, unauth_photos, unauth_photo_location_pk, \
+create_nick, create_password, create_account, reset_password, unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote,\
+unauth_best_photo_location_pk, best_photo_location, photo_location, see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, \
 cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment_page, cricket_comment, login, manage_user, manage_user_help, \
-cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page,\
-cricket_reply, first_time_cricket_refresh, home_reply#, set_usernames, vote_on_vote
+cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, cricket_reply, \
+first_time_cricket_refresh, home_reply, curate_photo, home_location_pk, cull_photo, cull_photo_loc, ban_photo_upload_and_voters,\
+cull_single_photo
 from links.views import home_link_list, TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, \
 BaqiPhotosHelpView, ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, \
 CommentView, UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, \
@@ -47,6 +48,7 @@ urlpatterns = patterns('',
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
 	#############################################Home Related########################################
+	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
@@ -134,6 +136,7 @@ urlpatterns = patterns('',
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
+	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^fan/(?P<star_id>\d+)/(?P<obj_id>\d+)/(?P<origin>\d+)/$', auth(fan), name='fan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', fan_list, name='fan_list'),
 	url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
@@ -146,9 +149,7 @@ urlpatterns = patterns('',
 	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
 	#url(r'^special/$', special_photo, name='special_photo'),
 	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
-	url(r'^photo/$', photo_list, name='see_photo'), # DEPRECATE after 10th Feb 2017
 	url(r'^freshphotos/$', photo_list, name='photo'),
-	url(r'^photo/best/$', best_photos_list, name='see_best_photo'), # DEPRECATE after 10th Feb 2017
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),
 	url(r'^tphredi/(?P<pk>\d+)/$', auth(see_best_photo_pk), name='best_photo_loc_pk'),
@@ -167,6 +168,10 @@ urlpatterns = patterns('',
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
+	url(r'^curate_photo/$', auth(curate_photo), name='curate_photo'),
+	url(r'^cull_photo_loc/(?P<photo_id>\d+)/$', auth(cull_photo_loc), name='cull_photo_loc'),
+	url(r'^cull_photo/$', auth(cull_photo), name='cull_photo'),
+	url(r'^cull_single_photo/$', auth(cull_single_photo), name='cull_single_photo'),
 	#url(r'^upload_photo/(?P<opt>\d+)/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
 	url(r'^upload_video/$', auth(UploadVideoView.as_view()), name='upload_video'),
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
@@ -221,6 +226,7 @@ urlpatterns = patterns('',
 	url(r'^facespage/$', faces_pages, name='faces_pages'), 
 	url(r'^resurrect_photo/(?P<pk>\d+)/(?P<ident>\d+)/(?P<dec>\d+)/(?P<uname>[\w.@+-]+)/(?P<origin>\d+)/(?P<link_id>\d+)/$', auth(resurrect_photo), name='resurrect_photo'),
 	url(r'^ban_photo_voter/$', auth(ban_photo_voter), name='ban_photo_voter'),
+	url(r'^bpuv/$', auth(ban_photo_upload_and_voters), name='ban_photo_upload_and_voters'),
 	url(r'^ban_photo_uploader/(?P<pk>\d+)/(?P<uname>[\w.@+-]+)/(?P<ident>\d+)/(?P<duration>\d+)/(?P<origin>\d+)/(?P<link_id>\d+)/(?P<val>\d+)/$', auth(ban_photo_uploader), name='ban_photo_uploader'),
 	url(r'^redirect_ban_photo_uploader/(?P<pk>\d+)/(?P<uname>[\w.@+-]+)/(?P<ident>\d+)/(?P<origin>\d+)/(?P<link_id>\d+)/(?P<val>\d+)/$', auth(redirect_ban_or_resurrect_page), name='redirect_ban_or_resurrect_page'),
 	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
@@ -250,6 +256,7 @@ urlpatterns = patterns('',
 	url(r'^comments/', include('django.contrib.comments.urls')),
 	# url(r'^vote_on_vote/(?P<vote_id>\d+)/(?P<target_id>\d+)/(?P<link_submitter_id>\d+)/(?P<val>\d+)/$', auth(vote_on_vote), name='vote_on_vote'),
 	url(r'^cast_vote/$', auth(cast_vote), name='cast_vote'),
+	url(r'^cast_photo_vote/$', auth(cast_photo_vote), name='cast_photo_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstote/(?P<pk>\d+)/(?P<val>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', auth(photo_vote), name='photo_vote'),
 	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
@@ -297,6 +304,7 @@ urlpatterns = patterns('',
 	url(r'^ftcr/$', auth(first_time_cricket_refresh), name='first_time_cricket_refresh'),
 	url(r'^cricrep/(?P<pk>\d+)/$', auth(cricket_reply), name='cricket_reply'),
 	#################################################################################################
+	############################################User Management######################################
 	url(r'^manage_user/$', auth(manage_user),name='manage_user'),
 	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
 	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),
@@ -304,4 +312,5 @@ urlpatterns = patterns('',
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
+	#################################################################################################
 )

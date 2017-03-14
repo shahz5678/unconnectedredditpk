@@ -20,7 +20,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_current_cricket_match, \
 del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, \
-set_prev_group_replies#, retrieve_first_page
+set_prev_group_replies, delete_photo_report#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from user_sessions.models import Session
@@ -135,6 +135,14 @@ def trim_top_group_rankings():
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():
 	expire_online_users()
+
+#ensuring photo reports dont have photo_id related complaints
+@celery_app1.task(name='tasks.sanitize_photo_report')
+def sanitize_photo_report(photo_id):#return price paid (as a default)
+	payable,case_closed = delete_photo_report(photo_id,True)
+	if case_closed and payables:
+		for user_id,payable_score in payables:
+			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 #paying back points spent by photo reporters
 @celery_app1.task(name='tasks.process_reporter_payables')

@@ -20,6 +20,7 @@ set_name = "defenders" # set of all Damadam defenders
 ###########
 
 hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
+cant_photo_report = "cpr:"+str(reporter_id)
 cricket = "cricket"
 set_name = "ftux:"+str(user_id)
 hash_name = "giu:"+str(group_id)+str(user_id)#giu is 'group invite for user' - stores the invite_id that was sent to the user (for later retrieval)

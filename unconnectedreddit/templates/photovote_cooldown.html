@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
-{% load humanize %}
+{% load future_time %}
 {% block content %}
 <div class="margin clb">
 
-	<h2>Photos pr dubara voting ho sake gi <b class="co">{{ time_remaining|naturaltime }}</b></h2>{% emoticons %}Abhi chill kro ;){% endemoticons %}<br>
+	<h2>Photos pr dubara voting ho sake gi:&nbsp;<b class="co">{{ time_remaining|future_time }}</b></h2>{% emoticons %}Abhi chill kro ;){% endemoticons %}<br>
 
 	{% if origin == '1' %}
 	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>

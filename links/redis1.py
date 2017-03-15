@@ -361,7 +361,7 @@ def add_to_photo_upload_ban(user_id, ban_type):
 	mapping = {'t':current_time, 'b':ban_type}
 	my_server.hmset(hash_name, mapping)
 
-def add_user_to_photo_vote_ban(user_id, ban_type):
+def add_user_to_photo_vote_ban(user_id, ban_type): #for single user
 	my_server = redis.Redis(connection_pool=POOL)
 	current_time = time.time()
 	hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
@@ -373,7 +373,7 @@ def add_user_to_photo_vote_ban(user_id, ban_type):
 		mapping = {'t':current_time, 'b':ban_type}
 		my_server.hmset(hash_name, mapping)
 
-def add_to_photo_vote_ban(user_ids, ban_type):
+def add_to_photo_vote_ban(user_ids, ban_type): #for multiple users
 	my_server = redis.Redis(connection_pool=POOL)
 	current_time = time.time()
 	for user_id in user_ids:

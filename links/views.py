@@ -55,7 +55,7 @@ bulk_check_group_membership, first_time_refresher, add_refresher, in_defenders, 
 check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link,\
 bulk_check_group_invite, first_time_inbox_visitor, add_inbox, first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, \
 retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, \
-account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo.\
+account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, remove_group_for_all_members
@@ -7288,7 +7288,6 @@ def cast_photo_vote(request,*args,**kwargs):
 				return render(request,'penalty_self_photo_vote.html')
 			elif not can_vote:
 				# needs to cool down
-				cool_down_time = timezone.now()+timedelta(seconds=cool_down_time)
 				context={'time_remaining':cool_down_time, 'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
 				'lid':request.POST.get("lid","")}
 				return render(request, 'photovote_cooldown.html', context)
@@ -7344,7 +7343,6 @@ def cast_vote(request,*args,**kwargs):
 					#process the vote
 					time_remaining, can_vote = can_vote_on_link(own_id)
 					if not can_vote:
-						time_remaining = timezone.now()+timedelta(seconds=time_remaining)
 						request.session["target_id"] = link_id
 						context = {'time_remaining':time_remaining}
 						return render(request,'vote_cool_down.html',context)

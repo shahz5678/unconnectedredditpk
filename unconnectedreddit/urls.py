@@ -27,17 +27,16 @@ UploadPhotoView, AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, Co
 PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, \
 UserPhoneNumberView, PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeMessageView, NotifHelpView, \
 MehfilView, LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, \
-SmsReinviteView, OpenGroupHelpView, SmsInviteView, OutsideMessageCreateView, OutsideMessageView, DirectMessageCreateView, \
-DirectMessageView, PrivateGroupView, PublicGroupView, ReinviteView, LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, \
-ClosedGroupHelpView, ChangeGroupTopicView, GroupOnlineKonView, GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, \
-OpenGroupCreateView, InviteUsersToGroupView, OnlineKonView, UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, \
-LinkUpdateView, LinkDeleteView, ScoreHelpView, UserSettingsEditView, HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, \
-PublicreplyView, ReportreplyView, UserActivityView, ReportView, HistoryHelpView, InviteUsersToPrivateGroupView, AdDescriptionView, \
-TopPhotoView, FanListView, StarListView, FanTutorialView, PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, \
-SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView, SalatRankingView, ReportcommentView, MehfilCommentView, \
-SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView, ReportFeedbackView, UploadVideoView, \
-VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, AdTitleYesNoView, AdImageYesNoView, AdImageView, \
-AdGenderChoiceView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
+SmsReinviteView, OpenGroupHelpView, SmsInviteView, DirectMessageCreateView, DirectMessageView, PrivateGroupView,PublicGroupView, \
+ReinviteView, LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView,GroupOnlineKonView, \
+GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView,OnlineKonView, \
+UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView,UserSettingsEditView, \
+HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
+InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView, FanListView, StarListView, FanTutorialView,PhotoShareView, PhotoDetailView, \
+SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, \
+MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView,ReportFeedbackView, UploadVideoView, \
+VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdGenderChoiceView, \
+AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
 
 admin.autodiscover()
 
@@ -85,7 +84,7 @@ urlpatterns = patterns('',
 	url(r'^ad_gender/$', AdGenderChoiceView.as_view(), name='ad_gender'),
 	url(r'^ad_image/$', AdImageView.as_view(), name='ad_image'),
 	url(r'^ad_title_yesno/$', AdTitleYesNoView.as_view(), name='ad_title_yesno'),
-	url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
+	# url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
 	url(r'^closed_group/help/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
 	url(r'^dm/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
@@ -105,7 +104,7 @@ urlpatterns = patterns('',
 	url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
 	url(r'^mehfil_help/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfil_help), name='mehfilhelp'),
 	url(r'^closed_group/create/(?P<pk>\d+)/$', auth(DirectMessageCreateView.as_view()), name='direct_message_create'),
-	url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
+	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),

@@ -429,12 +429,6 @@ class PublicreplyMiniForm(PublicreplyForm):
 		'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
-class OutsideMessageCreateForm(forms.Form):
-	full_name = forms.CharField(max_length=50)
-	mobile_number = forms.CharField(max_length=50)
-	class Meta:
-		fields = ("full_name","mobile_number")
-
 class CaptionDecForm(forms.Form):
 	class Meta:
 		pass
@@ -861,10 +855,6 @@ class OwnerGroupOnlineKonForm(forms.ModelForm):
 class GroupOnlineKonForm(forms.ModelForm):
 	class Meta:
 		model = GroupTraffic
-
-class OutsideMessageForm(forms.Form):
-	class Meta:
-		pass
 
 class DeviceHelpForm(forms.Form):
 	class Meta:

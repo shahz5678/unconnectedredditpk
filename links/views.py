@@ -27,9 +27,9 @@ VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notif
 fan_recount, vote_tasks, registration_task
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, \
-Unseennotification, GroupTraffic, Group, Reply, GroupInvite, GroupSeen, HotUser, UserFan, Salat, LatestSalat, \
-SalatInvite, TotalFanAndPhotos, Logout, Report, Video, VideoComment#, Vote
+ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
+Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
+VideoComment
 #from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
@@ -59,26 +59,23 @@ account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts,
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, remove_group_for_all_members
-from .forms import getip
+from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
 PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, DeletePicForm, UserPhoneNumberForm, \
-PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, \
-NotifHelpForm, MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, \
-OwnerGroupOnlineKonForm, GroupReportForm, AppointCaptainForm, OutsiderGroupForm, InviteForm, OutsideMessageCreateForm, \
-OutsideMessageForm, DirectMessageCreateForm, DirectMessageForm, KickForm, PrivateGroupReplyForm, PublicGroupReplyForm, TopForm, \
-LoginWalkthroughForm, CreateNickForm, CreatePasswordForm, RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, \
-ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm, GroupListForm, OpenGroupHelpForm, GroupPageForm, \
-ReinviteForm, ScoreHelpForm, HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm, RegisterHelpForm, VerifyHelpForm, \
-PublicreplyForm, ReportreplyForm, ReportForm, UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, \
-CommentForm, clean_image_file, clean_image_file_with_hash, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, \
-PhotoShareForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm, ReportcommentForm, MehfilCommentForm, \
-SpecialPhotoTutorialForm, ReportNicknameForm, ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, \
-VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, \
-AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
-AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, \
-BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm
+PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, \
+MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, \
+GroupReportForm, AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
+PublicGroupReplyForm, TopForm, LoginWalkthroughForm, CreateNickForm, CreatePasswordForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, \
+ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
+HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
+UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, PhotoShareForm, \
+SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, ReportNicknameForm, \
+ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, \
+AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
+AdImageForm, TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, BestPhotosListForm, PhotosListForm, \
+CricketCommentForm,PublicreplyMiniForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -293,10 +290,6 @@ class NeverCacheMixin(object):
 	@method_decorator(never_cache)
 	def dispatch(self, *args, **kwargs):
 		return super(NeverCacheMixin, self).dispatch(*args, **kwargs)
-
-class OutsideMessageView(FormView):
-	form_class = OutsideMessageForm
-	template_name = "outside_message_help.html"
 
 class DeviceHelpView(FormView):
 	form_class = DeviceHelpForm
@@ -956,12 +949,10 @@ def left_private_group(request, pk=None, unique=None, private=None, *args, **kwa
 			if memcount < 1:
 				remove_group_object(pk)
 			reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='leaving group', category='6', device=device)
-			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)	
 		elif check_group_invite(request.user.id, pk):
 			remove_group_invite(request.user.id, pk)
 			remove_group_notification(request.user.id,pk)
 			reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='unaccepted invite', category='7', device=device)
-			GroupSeen.objects.create(seen_user= request.user,which_reply=reply)
 		else:
 			pass
 		return redirect("group_page")
@@ -2417,30 +2408,6 @@ class UserProfileDetailView(DetailView):
 		context["ratified"] = FEMALES
 		return context
 
-class OutsideMessageCreateView(FormView):
-	model = Group
-	form_class = OutsideMessageCreateForm
-	template_name = "outside_message_create.html"
-
-	def form_valid(self, form):
-		try:
-			nickname = self.request.POST.get("full_name")
-			number = self.request.POST.get("mobile_number")
-		except:
-			nickname = "Dost"
-			number = "0345"
-		try:
-			unique = self.kwargs["slug"]
-		except:
-			unique = 0
-		topic = nickname+" se gupshup"
-		unique = uuid.uuid4()
-		group = Group.objects.create(topic=topic, rules='', owner=self.request.user, private ='2', unique=unique)
-		reply = Reply.objects.create(text='kuch likho taakey hamari chat shuru ho jaye',which_group=group,writer=self.request.user)
-		GroupSeen.objects.create(seen_user=self.request.user,which_reply=reply)
-		nickname = nickname.split(' ',1)[0]
-		return redirect("sms_invite", slug=unique, num=number, name=nickname)
-
 class DirectMessageCreateView(FormView):
 	model = Group
 	form_class = DirectMessageCreateForm
@@ -2624,7 +2591,6 @@ def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				#send a notification to this person to check out the group
 				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
 				add_group_invite(pk, group_id,reply.id)
-				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
 		request.session["unique_id"] = None
 		return redirect("invite_private", slug=uuid)
 
@@ -2690,7 +2656,6 @@ def process_public_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				#send a notification to this person to check out the group
 				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
 				add_group_invite(pk, group_id,reply.id)
-				GroupSeen.objects.create(seen_user=request.user, which_reply=reply)
 		return redirect("invite")
 
 class InviteUsersToGroupView(ListView):

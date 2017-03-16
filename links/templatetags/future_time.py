@@ -9,5 +9,7 @@ def future_time(value):
 			return "%s min baad" % int(m)
 		elif s:
 			return "%s secs baad" % int(s)
+		else:
+			return "kuch waqt baad"
 	except:
 		return "kuch waqt baad"

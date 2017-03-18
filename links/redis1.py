@@ -252,11 +252,6 @@ def account_created(ip,username):
 	my_server.set(registered_ip,username)
 	my_server.expire(registered_ip,TWENTY_MINS)
 
-def insert_bulk_nicknames(usernames):
-	my_server = redis.Redis(connection_pool=POOL)
-	print usernames
-	my_server.zadd("nicks",*usernames)
-
 def insert_nickname(username):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.zadd("nicks",username, 0.0)	
@@ -1037,10 +1032,10 @@ def can_vote_on_link(user_id):
 		pipeline1.execute()
 		return None, True
 
-# def get_link_writer(link_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "lk:"+str(link_id) #lk is 'link'
-# 	return my_server.hget(hash_name,'w')
+def get_link_writer(link_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "lk:"+str(link_id) #lk is 'link'
+	return my_server.hget(hash_name,'w')
 
 # def should_cooldown(user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)

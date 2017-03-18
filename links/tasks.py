@@ -23,7 +23,6 @@ del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_tt
 set_prev_group_replies, delete_photo_report#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
-from user_sessions.models import Session
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
 from math import log

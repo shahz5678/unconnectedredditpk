@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+Num of inactive ids:&nbsp;<b>{{ count }}</b><br>
+All inactive ids:&nbsp;
+{{ all_inactive_ids }}
+<br>
+</div>
+<br><br>
+{% endblock %}

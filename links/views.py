@@ -8126,7 +8126,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
 		
 		# never submitted a publicreply
-		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+		# never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
 
 		# never sent a photocomment
 		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
@@ -8140,12 +8140,12 @@ def deprecate_nicks(request,*args,**kwargs):
 		# score is below 200
 		less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
 
-		all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
-			never_fanned,less_than_200)
+		all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_photocomment,never_uploaded_photo,\
+			never_fanned,less_than_200)#,never_publicreply)
 		try:
 			sample = random.sample(all_inactive_ids,30)
 		except:
-			sample = []
+			sample = all_inactive_ids
 		context={'all_inactive_ids':sample,'count':len(all_inactive_ids)}
 		return render(request,'deprecate_nicks.html',context)
 	else:

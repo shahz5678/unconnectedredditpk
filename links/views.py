@@ -38,6 +38,7 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
+# from .redis3 import insert_nick_list, get_nick_likeness
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -58,7 +59,7 @@ retrieve_photo_posts, first_time_password_changer, add_password_change, voted_fo
 account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members
+first_time_home_replier, remove_group_for_all_members, get_link_writer
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -2845,7 +2846,6 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			user = authenticate(username=username,password=password)
 			login(request,user)
 			registration_task.delay(getip(request),username)
-			# account_created(getip(request),username)
 			try:
 				request.session.delete_test_cookie() #cleaning up
 			except:
@@ -6523,7 +6523,7 @@ class LinkCreateView(CreateView):
 				else:
 					f.submitter = user
 					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-				category = self.request.POST.get("btn")
+				category = '1'#self.request.POST.get("btn")
 				f.cagtegory = category
 				if self.request.is_feature_phone:
 					f.device = '1'
@@ -7241,7 +7241,7 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		photo_id = request.POST.get("pid","")
-		photo_owner_id = request.POST.get("oid","")
+		photo_owner_id = request.POST.get("oid","")#get via redis
 		if photo_id and photo_owner_id:
 			own_id = request.user.id
 			own_username = request.user.username
@@ -7284,87 +7284,80 @@ def cast_photo_vote(request,*args,**kwargs):
 		return render(request, 'penalty_suspicious.html', {})
 
 @csrf_protect
-@ratelimit(rate='3/s')
 def cast_vote(request,*args,**kwargs):
-	was_limited = getattr(request,'limits',False)
-	if was_limited:
-		return render(request, 'penalty_vote.html', {})
-	elif request.user_banned:
-		return render(request, 'penalty_banned.html', {})
-	else:
-		if request.method == 'POST':
-			link_id = request.POST.get("lid","")
-			target_user_id = request.POST.get("oid","")
-			if link_id and target_user_id:
-				own_id = request.user.id
-				own_name = request.user.username
-				if own_id == target_user_id:
-					#voting for own self
-					return render(request, 'penalty_self_vote.html', {})
-				elif voted_for_link(link_id,own_name):
-					#already voted for link
-					return render(request,'already_voted.html',{})
-				else:
-					#process the vote
-					time_remaining, can_vote = can_vote_on_link(own_id)
-					if not can_vote:
-						request.session["target_id"] = link_id
-						context = {'time_remaining':time_remaining}
-						return render(request,'vote_cool_down.html',context)
-					else:
-						is_pinkstar = (True if own_name in FEMALES else False)
-						value = request.POST.get("vote","")
-						if value == '1':
-							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							# username = u'سلمہ'
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						elif value == '-1':
-							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						##############################Cricket Voting###########################
-						#######################################################################
-						elif value == '4':
-							vote_tasks.delay(own_id, target_user_id,link_id,'1')
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						elif value == '-4':
-							vote_tasks.delay(own_id, target_user_id,link_id,'-1')
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						elif value == '5' and is_pinkstar:
-							#is the user a verified female? If so, process the super cricket upvote
-							vote_tasks.delay(own_id, target_user_id,link_id,'2')
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						elif value == '-5' and is_pinkstar:
-							#is the user a verified female? If so, process the super cricket downvote
-							vote_tasks.delay(own_id, target_user_id,link_id,'-2')
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						#######################################################################
-						#######################################################################
-						elif value == '2' and is_pinkstar:
-							#is the user a verified female? If so, process the super upvote
-							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						elif value == '-2' and is_pinkstar:
-							#is the user a verified female? If so, process the super downvote
-							vote_tasks.delay(own_id, target_user_id,link_id,value)
-							add_vote_to_link(link_id, value, own_name,is_pinkstar)
-						else:
-							pass
-						origin = request.POST.get("origin","")
-						if origin == '1':
-							#came from cricket_comments
-							request.session["target_id"] = link_id
-							return redirect("cric_loc")
-						elif origin == '0':
-							#came from home page
-							request.session["target_id"] = link_id
-							return redirect("home_loc")
-						else:
-							#came from somewhere else (error?)
-							return redirect("home")
+	if request.method == 'POST':
+		link_id = request.POST.get("lid","")
+		target_user_id = get_link_writer(link_id)#request.POST.get("oid","")
+		if link_id and target_user_id:
+			own_id = request.user.id
+			own_name = request.user.username
+			if str(own_id) == target_user_id:
+				#voting for own self
+				return render(request, 'penalty_self_vote.html', {})
+			elif voted_for_link(link_id,own_name):
+				#already voted for link
+				return render(request,'already_voted.html',{})
 			else:
-				return render(request, 'penalty_suspicious.html', {})
+				#process the vote
+				time_remaining, can_vote = can_vote_on_link(own_id)
+				if not can_vote:
+					request.session["target_id"] = link_id
+					context = {'time_remaining':time_remaining}
+					return render(request,'vote_cool_down.html',context)
+				else:
+					is_pinkstar = (True if own_name in FEMALES else False)
+					value = request.POST.get("vote","")
+					if value == '1':
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
+						# username = u'سلمہ'
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					elif value == '-1':
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					##############################Cricket Voting###########################
+					#######################################################################
+					elif value == '4':
+						vote_tasks.delay(own_id, target_user_id,link_id,'1')
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					elif value == '-4':
+						vote_tasks.delay(own_id, target_user_id,link_id,'-1')
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					elif value == '5' and is_pinkstar:
+						#is the user a verified female? If so, process the super cricket upvote
+						vote_tasks.delay(own_id, target_user_id,link_id,'2')
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					elif value == '-5' and is_pinkstar:
+						#is the user a verified female? If so, process the super cricket downvote
+						vote_tasks.delay(own_id, target_user_id,link_id,'-2')
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					#######################################################################
+					#######################################################################
+					elif value == '2' and is_pinkstar:
+						#is the user a verified female? If so, process the super upvote
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					elif value == '-2' and is_pinkstar:
+						#is the user a verified female? If so, process the super downvote
+						vote_tasks.delay(own_id, target_user_id,link_id,value)
+						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					else:
+						pass
+					origin = request.POST.get("origin","")
+					if origin == '1':
+						#came from cricket_comments
+						request.session["target_id"] = link_id
+						return redirect("cric_loc")
+					elif origin == '0':
+						#came from home page
+						request.session["target_id"] = link_id
+						return redirect("home_loc")
+					else:
+						#came from somewhere else (error?)
+						return redirect("home")
 		else:
 			return render(request, 'penalty_suspicious.html', {})
+	else:
+		return render(request, 'penalty_suspicious.html', {})
 
 @csrf_protect
 def hell_ban(request,*args,**kwargs):
@@ -8119,29 +8112,72 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 	store_click(ad_id, get_user_loc(request.user))
 	return redirect("test_ad")
 
+###############################################################
+
+def deprecate_nicks(request,*args,**kwargs):
+	if request.user.username == 'mhb11':
+		# all user ids who last logged in 7 months ago (or earlier)
+		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=210)).values_list('id',flat=True))
+
+		# user ids not active in past 180 days
+		ids_inactive_within_180 = set(Session.objects.exclude(last_activity__gte=datetime.utcnow()-timedelta(days=180)).values_list('user_id',flat=True))
+
+		# never messaged on home
+		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
+		
+		# never submitted a publicreply
+		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+
+		# never sent a photocomment
+		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+
+		# never uploaded a photo
+		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True)).values_list('id',flat=True))
+		
+		# never fanned anyone
+		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True)).values_list('id',flat=True))
+
+		# score is below 200
+		less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
+
+		all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+			never_fanned,less_than_200)
+		try:
+			sample = random.sample(all_inactive_ids,30)
+		except:
+			sample = []
+		context={'all_inactive_ids':sample,'count':len(all_inactive_ids)}
+		return render(request,'deprecate_nicks.html',context)
+	else:
+		return render(request,'404.html',{})
+
+# def check_nick(request,nick=None,*args,**kwargs):
+# 	nicks = get_nick_likeness(nick)
+# 	for nick in nicks:
+# 		print nick
+
+# def insert_nicks(request,*args,**kwargs):
+# 	nicknames = User.objects.values_list('username',flat=True)
+# 	insert_nick_list(nicknames)
+# 	return True
 
 ###############################################################
 
-# Report run on 14/3/2017
+# Report run on 15/3/2017
 #               Table               |  Size   | External Size 
 # ----------------------------------+---------+---------------
 #  user_sessions_session            | 8578 MB | 6911 MB
-#  links_publicreply                | 5886 MB | 3024 MB
-#  links_photocomment               | 2858 MB | 1371 MB
-#  links_photo                      | 2496 MB | 2170 MB
-#  links_link                       | 1400 MB | 367 MB
+#  links_publicreply                | 5918 MB | 3040 MB
+#  links_photocomment               | 2877 MB | 1381 MB
+#  links_photo                      | 2505 MB | 2180 MB
+#  links_link                       | 1409 MB | 369 MB
 #  links_reply                      | 875 MB  | 660 MB
 #  links_salatinvite                | 439 MB  | 319 MB
 #  links_groupseen                  | 394 MB  | 362 MB
-#  links_photo_which_stream         | 233 MB  | 156 MB
-#  links_photostream                | 222 MB  | 117 MB
+#  links_photo_which_stream         | 234 MB  | 157 MB
+#  links_photostream                | 223 MB  | 118 MB
 #  links_userprofile                | 130 MB  | 54 MB
-#  links_userfan                    | 104 MB  | 66 MB
-#  auth_user                        | 99 MB   | 37 MB
-#  links_totalfanandphotos          | 85 MB   | 76 MB
-#  links_report                     | 82 MB   | 67 MB
-#  links_photovote                  | 49 MB   | 49 MB
-
+#  links_userfan                    | 105 MB  | 66 MB
 
 # Report run on 4/3/2017
 #               Table               |  Size   | External Size 
@@ -8204,7 +8240,7 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 # Setting up new redis instance
 
-# sudo cp redis.conf /etc/redis/redis-2.conf
+# sudo cp redis.conf /etc/redis/redis-2.conf OR sudo cp redis-2.conf /etc/redis/redis-3.conf
 # 	Inside the conf:
 # pidfile /var/run/redis/redis2-server.pid
 # logfile /var/log/redis/redis2-server.log
@@ -8212,10 +8248,11 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 # port 0
 # unixsocket /var/run/redis/redis2.sock
 # unixsocketperm 775
+# set a policy for BG save (e.g. save 3600 1)
 #	Outside the conf:
 #sudo mkdir /var/lib/redis2
 #sudo chown -R redis:redis /var/lib/redis2
-#	Create a cope of redis-server file at /etc/init.d (sudo cp redis-server /etc/init.d/redis2-server)
+#	Create a copy of redis-server file at /etc/init.d (sudo cp redis-server /etc/init.d/redis2-server OR sudo cp redis2-server /etc/init.d/redis3-server)
 # change DAEMON_ARGS, NAME, DESC, and PIDFILE
 # exit file and do:
 # sudo chmod 755 redis2-server

@@ -421,7 +421,6 @@
 			<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
 			{% csrf_token %}
 				<input type="hidden" name="lid" value="{{ link.l }}">
-				<input type="hidden" name="oid" value="{{ link.w }}">
 				<input type="hidden" name="origin" value="0">
 				{% if user.username in checked %}
 				<button class="btn bcg bm mts mbl" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;<button class="btn bcg mbl" type="submit" name="vote" value="2">+50</button><br>

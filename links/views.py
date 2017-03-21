@@ -8119,12 +8119,12 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		# all user ids who last logged in more than 3 months ago
-		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
+		# all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
 		
-		# # user ids not found in Sessions
-		# logged_users = set(Session.objects.values_list('user_id',flat=True))
-		# logged_users = [user_pk for user_pk in logged_users if user_pk is not None]
-		# ids_not_in_sessions = set(User.objects.exclude(id__in=logged_users).values_list('id',flat=True)) #includes active logged out users too!
+		# user ids not found in Sessions
+		logged_users = set(Session.objects.values_list('user_id',flat=True))
+		logged_users = [user_pk for user_pk in logged_users if user_pk is not None]
+		ids_not_in_sessions = set(User.objects.exclude(id__in=logged_users).values_list('id',flat=True)) #includes active logged out users too!
 
 		# # never messaged on home
 		# never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
@@ -8148,8 +8148,8 @@ def deprecate_nicks(request,*args,**kwargs):
 		# inactive = set.intersection(all_old_ids,ids_not_in_sessions,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
 		# 	never_fanned,less_than_200)
 
-		context={'num_old_ids':len(all_old_ids)}#,\
-		# 'num_logged_out':len(ids_not_in_sessions),\
+		context={#'num_old_ids':len(all_old_ids)},\
+		'num_logged_out':len(ids_not_in_sessions)}#,\
 		# 'num_never_link':len(never_home_message),\
 		# 'num_never_publicreply':len(never_publicreply),\
 		# 'num_never_photocomm':len(never_photocomment),\

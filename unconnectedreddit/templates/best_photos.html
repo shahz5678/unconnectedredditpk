@@ -287,7 +287,6 @@
 					{% csrf_token %}
 					<input type="hidden" name="pid" value="{{ photo.i }}">
 					<input type="hidden" name="oun" value="{{ photo.o }}">
-					<input type="hidden" name="oid" value="{{ photo.oi }}">
 					<input type="hidden" name="origin" value="2">
 					<button class="btn bm bcg mts mbs" type="submit" name="photo_vote" value="1">zabrdast</button>&nbsp;&nbsp;&nbsp;<button class="btn bm bcr mts mbs" type="submit" name="photo_vote" value="0">bekaar</button>
 				</form>

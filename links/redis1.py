@@ -90,6 +90,11 @@ FORTY_FIVE_SECS = 45
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
 
+def set_inactives(inactive_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	if inactive_list:
+		my_server.lpush("inactives", *inactive_list)
+
 #####################Photo Reports######################
 
 def delete_photo_report(photo_id, return_points=False):

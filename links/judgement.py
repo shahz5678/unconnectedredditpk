@@ -16,7 +16,7 @@ from .score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMP
 from .redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
 remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,add_photo_judger,\
 first_time_photo_curator,add_photo_curator, resurrect_home_photo, in_defenders, first_time_photo_defender, check_photo_upload_ban,\
-get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban
+get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban, add_photo_defender_tutorial
 from .redis2 import update_object
 
 def find_time_to_go(photo_owner_id):

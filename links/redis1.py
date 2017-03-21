@@ -672,6 +672,14 @@ def resurrect_home_photo(link_id):
 		hash_name = "lk:"+str(link_id) #lk is 'link'
 		my_server.hset(hash_name,'v',0)
 
+def get_photo_owner(photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "ph:"+str(photo_id)
+	owner_id = my_server.hget(hash_name,'oi')
+	if owner_id:
+		return owner_id
+	else:
+		return None, None #i.e. return an error (via returning 2 values where 1 was expected)
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -760,7 +768,6 @@ def save_recent_photo(user_id, photo_id):
 	pipeline1.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos'
 	pipeline1.expire("phts:"+str(user_id),FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
 	pipeline1.execute()
-
 
 #####################Video objects#####################
 

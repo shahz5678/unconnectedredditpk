@@ -8122,16 +8122,13 @@ def deprecate_nicks(request,*args,**kwargs):
 		# all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
 		
 		# user ids not found in Sessions
-		# logged_users = set(Session.objects.values_list('user_id',flat=True))
-		# logged_users = [user_pk for user_pk in logged_users if user_pk is not None]
-		# ids_not_in_sessions = set(User.objects.exclude(id__in=logged_users).values_list('id',flat=True)) #includes active logged out users too!
-		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
-		logged_out_users = User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True).distinct()
-		logged_out_users_count = logged_out_users.count()
+		# logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
+		# logged_out_users = User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True).distinct()
+		# logged_out_users_count = logged_out_users.count()
 
 
 		# # never messaged on home
-		# never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
+		never_home_message = User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # never submitted a publicreply
 		# never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
@@ -8153,8 +8150,8 @@ def deprecate_nicks(request,*args,**kwargs):
 		# 	never_fanned,less_than_200)
 
 		context={#'num_old_ids':len(all_old_ids)},\
-		'num_logged_out':logged_out_users_count}#,\
-		# 'num_never_link':len(never_home_message),\
+		# 'num_logged_out':logged_out_users_count,\
+		'num_never_link':len(never_home_message)}#,\
 		# 'num_never_publicreply':len(never_publicreply),\
 		# 'num_never_photocomm':len(never_photocomment),\
 		# 'num_never_upload':len(never_uploaded_photo),\

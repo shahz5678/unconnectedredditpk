@@ -8118,27 +8118,46 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
-		# all user ids who last logged in more than 6 months ago
-		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=210)).values_list('id',flat=True))
-		# user ids not active in past 60 days
-		ids_inactive_within_180 = set(Session.objects.exclude(last_activity__gte=datetime.utcnow()-timedelta(days=180)).values_list('user_id',flat=True))
-		# never messaged on home
-		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
-		# never submitted a publicreply
-		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
-		# never sent a photocomment
-		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
-		# never uploaded a photo
-		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True)).values_list('id',flat=True))
-		# never fanned anyone
-		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True)).values_list('id',flat=True))
-		# score is below 200
-		less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
-		context={'num_old_ids':len(all_old_ids),'num_inactive':len(ids_inactive_within_180),'num_never_link':len(never_home_message),\
-		'num_never_publicreply':len(never_publicreply),'num_never_photocomm':len(never_photocomment),'num_never_upload':len(never_uploaded_photo),\
-		'num_never_fan':len(never_fanned),'num_less_200':len(less_than_200)}
-		# all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_photocomment,never_uploaded_photo,\
-		# 	never_fanned,less_than_200,never_publicreply)
+		# all user ids who last logged in more than 3 months ago
+		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
+		
+		# # user ids not found in Sessions
+		# logged_users = set(Session.objects.values_list('user_id',flat=True))
+		# logged_users = [user_pk for user_pk in logged_users if user_pk is not None]
+		# ids_not_in_sessions = set(User.objects.exclude(id__in=logged_users).values_list('id',flat=True)) #includes active logged out users too!
+
+		# # never messaged on home
+		# never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
+		
+		# # never submitted a publicreply
+		# never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+		
+		# # never sent a photocomment
+		# never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+		
+		# # never uploaded a photo
+		# never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True)).values_list('id',flat=True))
+		
+		# # never fanned anyone
+		# never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True)).values_list('id',flat=True))
+		
+		# # score is below 200
+		# less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
+		
+		# # intersection of all such ids
+		# inactive = set.intersection(all_old_ids,ids_not_in_sessions,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+		# 	never_fanned,less_than_200)
+
+		context={'num_old_ids':len(all_old_ids)}#,\
+		# 'num_logged_out':len(ids_not_in_sessions),\
+		# 'num_never_link':len(never_home_message),\
+		# 'num_never_publicreply':len(never_publicreply),\
+		# 'num_never_photocomm':len(never_photocomment),\
+		# 'num_never_upload':len(never_uploaded_photo),\
+		# 'num_never_fan':len(never_fanned),\
+		# 'num_less_200':len(less_than_200),\
+		# 'inactive':len(inactive),\
+		# 'inactive_unames':inactive}
 		# try:
 		# 	sample = random.sample(all_inactive_ids,30)
 		# except:

@@ -7241,9 +7241,8 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		photo_id = request.POST.get("pid","")
-		try:
-			photo_owner_id = get_photo_owner(photo_id)
-		except:
+		photo_owner_id = get_photo_owner(photo_id)
+		if not photo_owner_id:
 			photo_owner_id = Photo.objects.get(id=photo_id).owner.id
 		if photo_id and photo_owner_id:
 			own_id = request.user.id

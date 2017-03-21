@@ -59,7 +59,7 @@ retrieve_photo_posts, first_time_password_changer, add_password_change, voted_fo
 account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members, get_link_writer
+first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -3121,7 +3121,7 @@ class PhotostreamView(ListView):
 
 	def get_queryset(self):
 		try:
-			ps = PhotoStream.objects.filter(id=self.request.session["photo_photostream_id"])
+			# ps = PhotoStream.objects.filter(id=self.request.session["photo_photostream_id"])
 			queryset = Photo.objects.filter(which_stream=ps).order_by('-upload_time')[:200]
 		except:
 			querset = []
@@ -3137,7 +3137,7 @@ class PhotostreamView(ListView):
 		pk = self.request.session["photo_photostream_id"]
 		context["stream_id"] = pk
 		context["can_vote"] = False
-		context["number"] = PhotoStream.objects.get(id=pk).photo_count
+		# context["number"] = PhotoStream.objects.get(id=pk).photo_count
 		return context
 
 	def get(self, request, *args, **kwargs):
@@ -3320,7 +3320,7 @@ class UploadPhotoReplyView(CreateView):
 					device = '3'
 				try:
 					#photo being added to the head of a stream
-					photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
+					# photo_stream = PhotoStream.objects.filter(cover=target).latest('creation_time')
 					photo = Photo.objects.create(image_file = f.image_file, owner=user, caption=f.caption, comment_count=0, device=device)
 					####################################
 					try:
@@ -3351,7 +3351,7 @@ class UploadPhotoReplyView(CreateView):
 					####################################
 					tail_photos = Photo.objects.filter(which_stream=target.which_stream.latest('creation_time')).exclude(upload_time__gt=target.upload_time).order_by('upload_time')
 					tail_photos_count = tail_photos.count()
-					stream = PhotoStream.objects.create(cover=photo, show_time=photo.upload_time, photo_count = (tail_photos_count + 1))
+					# stream = PhotoStream.objects.create(cover=photo, show_time=photo.upload_time, photo_count = (tail_photos_count + 1))
 					photo.which_stream.add(stream)
 					#gives you control of the 'through' model
 					through_model = Photo.which_stream.through
@@ -3368,7 +3368,7 @@ class UploadPhotoReplyView(CreateView):
 def photostream_izzat(request, pk=None, *args, **kwargs):
 	if pk:
 		try:
-			stream_object_id = PhotoStream.objects.get(cover_id=pk).id
+			# stream_object_id = PhotoStream.objects.get(cover_id=pk).id
 			return redirect("photo_izzat", stream_object_id)
 		except:
 			return redirect("best_photo")
@@ -4009,7 +4009,7 @@ class SpecialPhotoView(ListView):
 						context["notification"] = 1
 						context["parent"] = freshest_reply.which_photo
 						context["parent_pk"] = freshest_reply.which_photo_id
-						context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
+						# context["photostream_id"]=PhotoStream.objects.get(cover_id=context["parent_pk"]).id
 						context["first_time_user"] = False
 						context["banned"] = False
 					else:
@@ -6983,7 +6983,7 @@ def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs
 				ident = pk
 				photo = Photo.objects.get(id=ident)
 			else:
-				stream = PhotoStream.objects.get(id=pk)
+				# stream = PhotoStream.objects.get(id=pk)
 				ident = stream.cover_id
 				photo = Photo.objects.get(id=ident)
 			if PhotoVote.objects.filter(voter=request.user, photo_id=ident).exists() or request.user == photo.owner:
@@ -7241,14 +7241,17 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		photo_id = request.POST.get("pid","")
-		photo_owner_id = request.POST.get("oid","")#get via redis
+		try:
+			photo_owner_id = get_photo_owner(photo_id)
+		except:
+			photo_owner_id = Photo.objects.get(id=photo_id).owner.id
 		if photo_id and photo_owner_id:
 			own_id = request.user.id
 			own_username = request.user.username
 			banned_from_voting,time_remaining = check_photo_vote_ban(own_id) #was this person banned by a defender?
 			cool_down_time, can_vote = can_vote_on_photo(request.user.id) #defenders are exempt from timing out currently
 			origin = request.POST.get("origin","")
-			if own_id == photo_owner_id:
+			if str(own_id) == photo_owner_id:
 				# voted own photo - dismiss
 				return render(request,'penalty_self_photo_vote.html')
 			elif not can_vote:
@@ -8116,37 +8119,32 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
-		# all user ids who last logged in 7 months ago (or earlier)
+		# all user ids who last logged in more than 6 months ago
 		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=210)).values_list('id',flat=True))
-
-		# user ids not active in past 180 days
+		# user ids not active in past 60 days
 		ids_inactive_within_180 = set(Session.objects.exclude(last_activity__gte=datetime.utcnow()-timedelta(days=180)).values_list('user_id',flat=True))
-
 		# never messaged on home
 		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True)).values_list('id',flat=True))
-		
 		# never submitted a publicreply
-		# never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
-
+		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
 		# never sent a photocomment
 		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
-
 		# never uploaded a photo
 		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True)).values_list('id',flat=True))
-		
 		# never fanned anyone
 		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True)).values_list('id',flat=True))
-
 		# score is below 200
 		less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
-
-		all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_photocomment,never_uploaded_photo,\
-			never_fanned,less_than_200)#,never_publicreply)
-		try:
-			sample = random.sample(all_inactive_ids,30)
-		except:
-			sample = all_inactive_ids
-		context={'all_inactive_ids':sample,'count':len(all_inactive_ids)}
+		context={'num_old_ids':len(all_old_ids),'num_inactive':len(ids_inactive_within_180),'num_never_link':len(never_home_message),\
+		'num_never_publicreply':len(never_publicreply),'num_never_photocomm':len(never_photocomment),'num_never_upload':len(never_uploaded_photo),\
+		'num_never_fan':len(never_fanned),'num_less_200':len(less_than_200)}
+		# all_inactive_ids = set.intersection(all_old_ids,ids_inactive_within_180,never_home_message,never_photocomment,never_uploaded_photo,\
+		# 	never_fanned,less_than_200,never_publicreply)
+		# try:
+		# 	sample = random.sample(all_inactive_ids,30)
+		# except:
+		# 	sample = all_inactive_ids
+		# context={'all_inactive_ids':sample,'count':len(all_inactive_ids)}
 		return render(request,'deprecate_nicks.html',context)
 	else:
 		return render(request,'404.html',{})
@@ -8163,6 +8161,22 @@ def deprecate_nicks(request,*args,**kwargs):
 
 ###############################################################
 
+# Report run on 18/3/2017
+#              Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8583 MB | 6917 MB
+#  links_publicreply                | 5999 MB | 3078 MB
+#  links_photocomment               | 2920 MB | 1401 MB
+#  links_photo                      | 2527 MB | 2202 MB
+#  links_link                       | 1430 MB | 374 MB
+#  links_reply                      | 880 MB  | 664 MB
+#  links_photo_which_stream         | 237 MB  | 159 MB
+#  links_photostream                | 226 MB  | 119 MB
+#  links_userprofile                | 131 MB  | 54 MB
+#  links_userfan                    | 105 MB  | 67 MB
+#  auth_user                        | 99 MB   | 38 MB
+
+
 # Report run on 15/3/2017
 #               Table               |  Size   | External Size 
 # ----------------------------------+---------+---------------
@@ -8173,7 +8187,6 @@ def deprecate_nicks(request,*args,**kwargs):
 #  links_link                       | 1409 MB | 369 MB
 #  links_reply                      | 875 MB  | 660 MB
 #  links_salatinvite                | 439 MB  | 319 MB
-#  links_groupseen                  | 394 MB  | 362 MB
 #  links_photo_which_stream         | 234 MB  | 157 MB
 #  links_photostream                | 223 MB  | 118 MB
 #  links_userprofile                | 130 MB  | 54 MB

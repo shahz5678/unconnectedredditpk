@@ -8119,47 +8119,44 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		# all user ids who last logged in more than 3 months ago
-		# all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
+		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
 		
 		# user ids not found in Sessions
-		# logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
-		# logged_out_users = User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True).distinct()
-		# logged_out_users_count = logged_out_users.count()
-
+		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
+		logged_out_users = set(User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True))
 
 		# # never messaged on home
-		# never_home_message = User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True).distinct()
-		
+		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True))
+
 		# # never submitted a publicreply
-		# never_publicreply = User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
-		# 	.values_list('id',flat=True).distinct()
+		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
+			.values_list('id',flat=True))
 		
 		# never sent a photocomment
-		# never_photocomment = User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True).distinct()
+		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True))
 		
 		# # never uploaded a photo
-		# never_uploaded_photo = User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True).distinct()
+		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True))
 		
 		# # never fanned anyone
-		# never_fanned = User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True).distinct()
+		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True))
 		
 		# # score is below 300
-		less_than_300 = UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True)
-		
-		# # intersection of all such ids
-		# inactive = set.intersection(all_old_ids,ids_not_in_sessions,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
-		# 	never_fanned,less_than_200)
+		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
 
-		context={#'num_old_ids':len(all_old_ids)},\
-		# 'num_logged_out':logged_out_users_count,\
-		# 'num_never_link':len(never_home_message)},\
+		# # intersection of all such ids
+		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+			never_fanned,less_than_300)
+
+		context={#'num_old_ids':len(all_old_ids),\
+		# 'num_logged_out':len(logged_out_users),\
+		# 'num_never_link':len(never_home_message),\
 		# 'num_never_publicreply':len(never_publicreply),\
-		# 'num_never_photocomm':len(never_photocomment)},\
+		# 'num_never_photocomm':len(never_photocomment),\
 		# 'num_never_upload':len(never_uploaded_photo),\
 		# 'num_never_fan':len(never_fanned),\
-		'num_less_300':len(less_than_300)}#,\
-		# 'inactive':len(inactive),\
-		# 'inactive_unames':inactive}
+		# 'num_less_300':len(less_than_300),\
+		'inactive':len(inactive)}
 		# try:
 		# 	sample = random.sample(all_inactive_ids,30)
 		# except:

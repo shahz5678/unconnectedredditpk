@@ -8138,10 +8138,10 @@ def deprecate_nicks(request,*args,**kwargs):
 		# never_photocomment = User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # never uploaded a photo
-		never_uploaded_photo = User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True).distinct()
+		# never_uploaded_photo = User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # never fanned anyone
-		# never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True)).values_list('id',flat=True))
+		never_fanned = User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # score is below 200
 		# less_than_200 = set(User.objects.exclude(id__in=UserProfile.objects.filter(score__gte=200).values_list('user_id',flat=True)).values_list('id',flat=True))
@@ -8155,8 +8155,8 @@ def deprecate_nicks(request,*args,**kwargs):
 		# 'num_never_link':len(never_home_message)},\
 		# 'num_never_publicreply':len(never_publicreply),\
 		# 'num_never_photocomm':len(never_photocomment)},\
-		'num_never_upload':len(never_uploaded_photo)}#,\
-		# 'num_never_fan':len(never_fanned),\
+		# 'num_never_upload':len(never_uploaded_photo),\
+		'num_never_fan':len(never_fanned)}#,\
 		# 'num_less_200':len(less_than_200),\
 		# 'inactive':len(inactive),\
 		# 'inactive_unames':inactive}

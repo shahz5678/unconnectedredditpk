@@ -675,11 +675,7 @@ def resurrect_home_photo(link_id):
 def get_photo_owner(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)
-	owner_id = my_server.hget(hash_name,'oi')
-	if owner_id:
-		return owner_id
-	else:
-		return None, None #i.e. return an error (via returning 2 values where 1 was expected)
+	return my_server.hget(hash_name,'oi')
 
 def get_photo_votes(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -59,7 +59,7 @@ retrieve_photo_posts, first_time_password_changer, add_password_change, voted_fo
 account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner
+first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -8147,22 +8147,13 @@ def deprecate_nicks(request,*args,**kwargs):
 		# # intersection of all such ids
 		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
 			never_fanned,less_than_300)
-
-		context={#'num_old_ids':len(all_old_ids),\
-		# 'num_logged_out':len(logged_out_users),\
-		# 'num_never_link':len(never_home_message),\
-		# 'num_never_publicreply':len(never_publicreply),\
-		# 'num_never_photocomm':len(never_photocomment),\
-		# 'num_never_upload':len(never_uploaded_photo),\
-		# 'num_never_fan':len(never_fanned),\
-		# 'num_less_300':len(less_than_300),\
-		'inactive':len(inactive)}
+		set_inactives(list(inactive))
 		# try:
 		# 	sample = random.sample(all_inactive_ids,30)
 		# except:
 		# 	sample = all_inactive_ids
 		# context={'all_inactive_ids':sample,'count':len(all_inactive_ids)}
-		return render(request,'deprecate_nicks.html',context)
+		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})
 

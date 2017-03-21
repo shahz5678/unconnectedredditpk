@@ -8131,11 +8131,11 @@ def deprecate_nicks(request,*args,**kwargs):
 		# never_home_message = User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # never submitted a publicreply
-		never_publicreply = User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
-			.values_list('id',flat=True).distinct()
+		# never_publicreply = User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
+		# 	.values_list('id',flat=True).distinct()
 		
-		# # never sent a photocomment
-		# never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True)).values_list('id',flat=True))
+		# never sent a photocomment
+		never_photocomment = User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True).distinct()
 		
 		# # never uploaded a photo
 		# never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True)).values_list('id',flat=True))
@@ -8153,8 +8153,8 @@ def deprecate_nicks(request,*args,**kwargs):
 		context={#'num_old_ids':len(all_old_ids)},\
 		# 'num_logged_out':logged_out_users_count,\
 		# 'num_never_link':len(never_home_message)},\
-		'num_never_publicreply':len(never_publicreply)}#,\
-		# 'num_never_photocomm':len(never_photocomment),\
+		# 'num_never_publicreply':len(never_publicreply),\
+		'num_never_photocomm':len(never_photocomment)}#,\
 		# 'num_never_upload':len(never_uploaded_photo),\
 		# 'num_never_fan':len(never_fanned),\
 		# 'num_less_200':len(less_than_200),\

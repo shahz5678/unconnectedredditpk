@@ -59,7 +59,7 @@ retrieve_photo_posts, first_time_password_changer, add_password_change, voted_fo
 account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives
+first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives#, get_inactives
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -8116,6 +8116,17 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 ###############################################################
 
+# def export_nicks(request,*args,**kwargs):
+# 	if request.user.username == 'mhb11':
+# 		inactives = get_inactives()
+# 		import csv
+# 		with open('inactives.csv','wb') as f:
+# 			wtr = csv.writer(f, delimiter=',')
+# 			wtr.writerows(inactives)
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
+
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		# all user ids who last logged in more than 3 months ago
@@ -8150,17 +8161,6 @@ def deprecate_nicks(request,*args,**kwargs):
 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
 		from itertools import chain
 		set_inactives([x for x in chain.from_iterable(inactives)])
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
-
-def export_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		inactives = get_inactives()
-		import csv
-		with open('inactives.csv','wb') as f:
-			wtr = csv.writer(f, delimiter=',')
-			wtr.writerows(inactives)
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

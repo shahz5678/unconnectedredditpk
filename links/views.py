@@ -8156,7 +8156,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
 
 		# # intersection of all such ids
-		inactive = set.intersection(logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+		inactive = set.intersection(all_old_ids, logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
 			never_fanned,less_than_300)
 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
 		from itertools import chain

@@ -93,7 +93,7 @@ PHOTO_VOTE_SPREE_ALWD = 6
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	if inactive_list:
-		my_server.lpush("inactives", *inactive_list)
+		my_server.zadd("inactives", *inactive_list)
 
 #####################Photo Reports######################
 

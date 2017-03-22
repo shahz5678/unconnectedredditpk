@@ -90,6 +90,10 @@ FORTY_FIVE_SECS = 45
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
 
+def get_inactives():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange("inactives",0,-1,withscores=True)
+
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	if inactive_list:

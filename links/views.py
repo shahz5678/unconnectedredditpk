@@ -8187,8 +8187,8 @@ def check_nick(request,nick=None,*args,**kwargs):
 def insert_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		nicknames = User.objects.values_list('username',flat=True)
-		num_added = insert_nick_list(nicknames)
-		return render(request,'deprecate_nicks.html',{'num': num_added })
+		insert_nick_list(nicknames)
+		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})
 

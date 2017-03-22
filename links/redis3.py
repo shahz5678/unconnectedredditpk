@@ -47,7 +47,7 @@ def get_nick_likeness(nickname):
 	if rank is None:
 		my_server.zadd("nicknames",generic_nick,0)
 		rank = my_server.zrank("nicknames",generic_nick)
-	raw_nicknames = my_server.zrange("nicknames",max(rank-4,0),(rank+5))
+	raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
 	nicknames = get_nicknames(raw_nicknames)
 	return nicknames
 
@@ -77,4 +77,4 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 		nicknames.append(specific_nick)
 		nicknames.append(0)
-	my_server.zadd("nicknames",*nicknames)
+	return my_server.zadd("nicknames",*nicknames)

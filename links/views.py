@@ -38,7 +38,7 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-# from .redis3 import insert_nick_list, get_nick_likeness
+from .redis3 import insert_nick_list, get_nick_likeness
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -8116,20 +8116,20 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 ###############################################################
 
-def change_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		inactives = get_inactives()
-		id_list = map(itemgetter(1), inactives)
-		id_len = len(id_list)
-		rand_nums = random.sample(xrange(100000,999999), id_len+10)
-		counter = 0
-		for pk in id_list:
-			nick = "dmdm_"+str(rand_nums[counter])
-			User.objects.filter(id=int(pk)).update(username=nick)
-			counter += 1
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
+# def change_nicks(request,*args,**kwargs):
+# 	if request.user.username == 'mhb11':
+# 		inactives = get_inactives()
+# 		id_list = map(itemgetter(1), inactives)
+# 		id_len = len(id_list)
+# 		rand_nums = random.sample(xrange(100000,999999), id_len+10)
+# 		counter = 0
+# 		for pk in id_list:
+# 			nick = "dmdm_"+str(rand_nums[counter])
+# 			User.objects.filter(id=int(pk)).update(username=nick)
+# 			counter += 1
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
 
 # def export_nicks(request,*args,**kwargs):
 # 	if request.user.username == 'mhb11':
@@ -8171,7 +8171,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
 
 		# # intersection of all such ids
-		inactive = set.intersection(logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
 			never_fanned,less_than_300)
 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
 		from itertools import chain
@@ -8180,15 +8180,17 @@ def deprecate_nicks(request,*args,**kwargs):
 	else:
 		return render(request,'404.html',{})
 
-# def check_nick(request,nick=None,*args,**kwargs):
-# 	nicks = get_nick_likeness(nick)
-# 	for nick in nicks:
-# 		print nick
+def check_nick(request,nick=None,*args,**kwargs):
+	nicks = get_nick_likeness(nick)
+	return render(request,'nick_search.html',{'nicks':nicks})
 
-# def insert_nicks(request,*args,**kwargs):
-# 	nicknames = User.objects.values_list('username',flat=True)
-# 	insert_nick_list(nicknames)
-# 	return True
+def insert_nicks(request,*args,**kwargs):
+	if request.user.username == 'mhb11':
+		nicknames = User.objects.values_list('username',flat=True)
+		num_added = insert_nick_list(nicknames)
+		return render(request,'deprecate_nicks.html',{'num': num_added })
+	else:
+		return render(request,'404.html',{})
 
 ###############################################################
 

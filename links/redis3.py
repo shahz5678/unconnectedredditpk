@@ -77,4 +77,4 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 		nicknames.append(specific_nick)
 		nicknames.append(0)
-	return my_server.zadd("nicknames",*nicknames)
+	my_server.zadd("nicknames",*nicknames)

@@ -8116,16 +8116,31 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 
 ###############################################################
 
-def export_nicks(request,*args,**kwargs):
+def change_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		inactives = get_inactives()
-		import csv
-		with open('inactives.csv','wb') as f:
-			wtr = csv.writer(f, delimiter=',')
-			wtr.writerows(inactives)
+		id_list = map(itemgetter(1), inactives)
+		id_len = len(id_list)
+		rand_nums = random.sample(xrange(100000,999999), id_len+10)
+		counter = 0
+		for pk in id_list:
+			nick = "dmdm_"+str(rand_nums[counter])
+			User.objects.filter(id=int(pk)).update(username=nick)
+			counter += 1
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})
+
+# def export_nicks(request,*args,**kwargs):
+# 	if request.user.username == 'mhb11':
+# 		inactives = get_inactives()
+# 		import csv
+# 		with open('inactives.csv','wb') as f:
+# 			wtr = csv.writer(f, delimiter=',')
+# 			wtr.writerows(inactives)
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
 
 def deprecate_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
@@ -8156,7 +8171,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
 
 		# # intersection of all such ids
-		inactive = set.intersection(all_old_ids, logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+		inactive = set.intersection(logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
 			never_fanned,less_than_300)
 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
 		from itertools import chain

@@ -2,11 +2,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-{% if num|add:"0" > 0 %}
-<h2>Redis set populated with {{ num }} usernames</h2>
-{% else %}
 <h2>Redis set populated</h2>
-{% endif %}
 </div>
 <br><br>
 {% endblock %}

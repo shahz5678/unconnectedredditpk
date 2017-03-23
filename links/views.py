@@ -2917,23 +2917,24 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 # @sensitive_post_parameters()
 @csrf_protect		
 def create_nick(request,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
-		return render(request, 'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		form = CreateNickForm(data=request.POST)
-		if form.is_valid():
-			username = request.POST.get("username")
-			result = username.encode("hex")
-			length = len(result)
-			request.session.set_test_cookie() #set it now, to test it in the next view
-			return redirect('create_password',slug=result,length=length)
-		else:
-			context = {'form':form}
-			return render(request, 'create_nick.html', context)
-	else:
-		form = CreateNickForm()
-		context = {'form':form}	
-		return render(request, 'create_nick.html', context)
+	return render(request, 'penalty_account_create.html',{})
+	# if account_creation_disallowed(getip(request)):
+	# 	return render(request, 'penalty_account_create.html',{})
+	# elif request.method == 'POST':
+	# 	form = CreateNickForm(data=request.POST)
+	# 	if form.is_valid():
+	# 		username = request.POST.get("username")
+	# 		result = username.encode("hex")
+	# 		length = len(result)
+	# 		request.session.set_test_cookie() #set it now, to test it in the next view
+	# 		return redirect('create_password',slug=result,length=length)
+	# 	else:
+	# 		context = {'form':form}
+	# 		return render(request, 'create_nick.html', context)
+	# else:
+	# 	form = CreateNickForm()
+	# 	context = {'form':form}	
+	# 	return render(request, 'create_nick.html', context)
 
 #rate limit this
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

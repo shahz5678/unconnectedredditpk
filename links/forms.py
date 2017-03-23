@@ -1,12 +1,13 @@
 
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies#, should_cooldown
+from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies
+from .redis3 import nick_already_exists,insert_nick
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
-# from django.contrib.auth.forms import AuthenticationForm
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
@@ -991,12 +992,18 @@ class CreateAccountForm(forms.ModelForm):
 
 	def clean_username(self):
 		username = self.cleaned_data.get("username")
-		try:
-			User._default_manager.get(username=username)
-		except User.DoesNotExist:
-			# print "returning username"
+		exists = nick_already_exists(username)
+		if exists is None:
+			# if 'nicknames' sorted set does not exist
+			try:
+				User._default_manager.get(username=username)
+			except User.DoesNotExist:
+				return username
+			raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
+		elif exists:
+			raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
+		else:
 			return username
-		raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
 
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
@@ -1024,7 +1031,9 @@ class CreateAccountForm(forms.ModelForm):
 		password = self.cleaned_data["password"]
 		user.set_password(password)
 		if commit:
-			user.save()
+			with transaction.commit_on_success():
+				user.save()
+				insert_nick(self.cleaned_data.get("username"))
 		return user
 
 class CreatePasswordForm(forms.Form):
@@ -1093,12 +1102,17 @@ class CreateNickForm(forms.Form):
 		
 		"""
 		username = self.cleaned_data['username']
-		if User.objects.filter(username__iexact=username).exists():
+		exists = nick_already_exists(username)
+		if exists is None:
+			# the sorted set "nicknames" doesn't exist, fall-back to DB
+			if User.objects.filter(username__iexact=username).exists():
+				raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
+		elif exists:
 			raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
 		else:
 			for name in BANNED_WORDS:
 				if name in username.lower():
-					raise ValidationError('tip: nick mein "%s" nahi ho sakta' % name)
+					raise ValidationError('(tip: nick mein "%s" nahi ho sakta)' % name)
 			return username
 
 class ReauthForm(forms.Form):

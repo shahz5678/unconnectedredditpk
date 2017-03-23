@@ -8188,9 +8188,18 @@ def insert_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
 		nicknames = User.objects.values_list('username',flat=True)
 		list_len = len(nicknames)
-		start_index = 0
-		end_index = int(list_len/10)
-		insert_nick_list(nicknames[start_index:end_index])
+		each_slice = int(list_len/10)
+		counter = 0
+		slices = []
+		while counter < list_len:
+			slices.append((counter,counter+each_slice))
+			counter += each_slice
+		# print slices
+		for sublist in slices:
+			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
+			insert_nick_list(nicknames[sublist[0]:sublist[1]])
+		#########################################################
+		# insert_nick_list(nicknames)
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

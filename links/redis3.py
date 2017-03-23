@@ -10,12 +10,10 @@ def decode_nick(nickname):
 	nick_and_code = nickname.split("**")
 	lower_case_nick = nick_and_code[0]
 	code = nick_and_code[1]
-	gap = ord("a") - ord("A")
-	positions = [code[i:i+2] for i in range(0,len(code),2)]
-	txt = map(ord, lower_case_nick)
-	for i in positions:
-		txt[int(i)] -= gap 
-	return "".join(map(chr,txt))
+	upper_case_positions = [int(code[i:i+2]) for i in range(0, len(code), 2)]
+	decoded_nick = ''.join(let.upper() if pos in upper_case_positions else let 
+	                           for pos, let in enumerate(lower_case_nick))
+	return decoded_nick
 
 def get_nicknames(raw_nicknames):
 	decoded_nicks = []
@@ -32,7 +30,7 @@ def process_nick(nickname):
 	#############################################
 	position = 0
 	encoding = "**"
-	for l in nickname:
+	for l in nickname.encode('utf-8'):
 		if l.isupper():
 			encoding += "{:0>2}".format(position)
 		position += 1

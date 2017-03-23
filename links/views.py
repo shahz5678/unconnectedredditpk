@@ -1539,6 +1539,7 @@ def home_link_list(request, *args, **kwargs):
 			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 			# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
+		# print type(list_of_dictionaries[0]['n'])
 		context["page"] = page
 		context["replyforms"] = replyforms
 		############################################ Namaz feature #############################################
@@ -8181,8 +8182,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		return render(request,'404.html',{})
 
 def check_nick(request,nick=None,*args,**kwargs):
-	nicks = get_nick_likeness(nick)
-	return render(request,'nick_search.html',{'nicks':nicks})
+	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
 
 def insert_nicks(request,*args,**kwargs):
 	if request.user.username == 'mhb11':
@@ -8194,12 +8194,9 @@ def insert_nicks(request,*args,**kwargs):
 		while counter < list_len:
 			slices.append((counter,counter+each_slice))
 			counter += each_slice
-		# print slices
 		for sublist in slices:
 			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
 			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-		#########################################################
-		# insert_nick_list(nicknames)
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

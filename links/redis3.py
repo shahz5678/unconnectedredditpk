@@ -45,6 +45,7 @@ def get_nick_likeness(nickname):
 	if rank is None:
 		my_server.zadd("nicknames",generic_nick,0)
 		rank = my_server.zrank("nicknames",generic_nick)
+		my_server.zrem("nicknames",generic_nick)
 	raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
 	nicknames = get_nicknames(raw_nicknames)
 	return nicknames

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="margin clb">
 {% for nick in nicks %}
-<a href="{% url 'profile' nick %}#section0">{{ nick }}</a><br>
+<a href="{% url 'profile' slug=nick %}#section0">{{ nick }}</a><br>
 {% endfor %}
 </div>
 <br><br>

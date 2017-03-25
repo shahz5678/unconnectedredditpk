@@ -99,11 +99,9 @@ def username_formatting(username,is_pinkstar,size,is_bold):
 		username = '<bdi>'+username+'</bdi>'
 	return username
 
-def image_thumb_formatting(img_url,uname,pid):
-	img_thumb = '<img src="%s" class="mls mbs">' % img_url
-	clickable_img_head = "<a href='/usrp/%s/%s/'>" % (uname,pid)
-	clickable_img_tail = "</a>"
-	return clickable_img_head+img_thumb+clickable_img_tail
+def image_thumb_formatting(img_url,pid):
+	return '<button class="mls mbs" style="border-radius:0px;background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" height="38"></button>' \
+	% (pid,img_url)
 
 def av_url_formatting(av_url):
 	if av_url:

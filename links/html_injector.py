@@ -99,6 +99,12 @@ def username_formatting(username,is_pinkstar,size,is_bold):
 		username = '<bdi>'+username+'</bdi>'
 	return username
 
+def image_thumb_formatting(img_url,uname,pid):
+	img_thumb = '<img src="%s" class="mls mbs">' % img_url
+	clickable_img_head = "<a href='/usrp/%s/%s/'>" % (uname,pid)
+	clickable_img_tail = "</a>"
+	return clickable_img_head+img_thumb+clickable_img_tail
+
 def av_url_formatting(av_url):
 	if av_url:
 		if 'res/avatars' in av_url:

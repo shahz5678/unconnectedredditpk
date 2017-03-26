@@ -1,8 +1,22 @@
 # coding=utf-8
 import redis
 from location import REDLOC3
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES
+from templatetags.thumbedge import cdnize_target_url
+from html_injector import image_thumb_formatting
+
+'''
+##########Redis Namespace##########
+
+search_history = "sh:"+str(searcher_id)
+user_thumbs = "upt:"+owner_uname
+
+###########
+'''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
+
+TWO_WEEKS = 2*7*24*60*60
 
 #####################Process Nick#######################
 
@@ -50,6 +64,7 @@ def get_nick_likeness(nickname):
 	nicknames = get_nicknames(raw_nicknames)
 	return nicknames
 
+#checking whether nick already exists
 def nick_already_exists(nickname):
 	my_server = redis.Redis(connection_pool=POOL)
 	generic_nick = nickname.lower()+"*"
@@ -62,10 +77,119 @@ def nick_already_exists(nickname):
 		# the nickname has been used before
 		return True
 
+#inserting nickname at the time of registration
 def insert_nick(nickname):
 	my_server = redis.Redis(connection_pool=POOL)
 	generic_nick, specific_nick = process_nick(nickname)
 	my_server.zadd("nicknames",generic_nick,0,specific_nick,0)
+
+#main function resposible for yielding search results
+def find_nickname(target_nick, searcher_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	generic_nick, specific_nick = process_nick(target_nick)
+	rank = my_server.zrank("nicknames",generic_nick)
+	exact_with_pics = []
+	if rank is None:
+		# no match found
+		nick_found = False
+		my_server.zadd("nicknames",generic_nick,0)
+		rank = my_server.zrank("nicknames",generic_nick)
+		my_server.zrem("nicknames",generic_nick)
+		raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
+		similar_nicknames = get_nicknames(raw_nicknames)
+		pipeline1 = my_server.pipeline()
+		for uname in similar_nicknames:
+			user_thumbs = "upt:"+uname
+			pipeline1.get(user_thumbs)
+		result1 = pipeline1.execute()
+		similar_with_pics = []
+		counter = 0
+		for uname in similar_nicknames:
+			similar_with_pics.append((uname,result1[counter]))
+			counter += 1
+	else:
+		# match(es) found
+		exact = []
+		nick_found = True
+		raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
+		similar_nicknames = get_nicknames(raw_nicknames)
+		list_copy = list(similar_nicknames)
+		for nick in list_copy:
+			if nick.lower() == target_nick.encode('utf-8').lower():
+				exact.append(nick)
+				similar_nicknames.remove(nick)
+		search_history = "sh:"+str(searcher_id)
+		pipeline1 = my_server.pipeline()
+		for entry in exact:
+			pipeline1.zincrby(search_history,entry,amount=1)
+		pipeline1.execute()
+		pipeline2 = my_server.pipeline()
+		for uname in similar_nicknames:
+			user_thumbs = "upt:"+uname
+			pipeline2.get(user_thumbs)
+		result2 = pipeline2.execute()
+		similar_with_pics = []
+		counter = 0
+		for uname in similar_nicknames:
+			similar_with_pics.append((uname,result2[counter]))
+			counter += 1
+		pipeline3 = my_server.pipeline()
+		for uname in exact:
+			user_thumbs = "upt:"+uname
+			pipeline3.get(user_thumbs)
+		result3 = pipeline3.execute()
+		counter = 0
+		for uname in exact:
+			exact_with_pics.append((uname,result3[counter]))
+			counter += 1
+	return nick_found, exact_with_pics, similar_with_pics
+
+#used to bump up scores when user clicks the nick after searching it
+def select_nick(nickname, selector_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	search_history = "sh:"+str(selector_id)
+	my_server.zincrby(search_history,nickname,amount=1)
+
+#used to populate search history in search page
+def get_search_history(searcher_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	search_history = "sh:"+str(searcher_id)
+	if my_server.exists(search_history):
+		my_server.expire(search_history,TWO_WEEKS)
+		return my_server.zrevrange(search_history,0,-1)
+	else:
+		return []
+
+def retrieve_history_with_pics(uname_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for uname in uname_list:
+		user_thumbs = "upt:"+uname
+		pipeline1.get(user_thumbs)
+	result1 = pipeline1.execute()
+	history = []
+	counter = 0
+	for uname in uname_list:
+		history.append((uname,result1[counter]))
+		counter += 1
+	return history
+
+#add latest photo to a payload trimmed at 5 photos max
+def add_search_photo(img_url,photo_id,owner_uname):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_thumbs = "upt:"+owner_uname
+	new_payload = image_thumb_formatting(cdnize_target_url(img_url),photo_id)
+	existing_payload = my_server.get(user_thumbs)
+	if existing_payload:
+		payload = new_payload+'&nbsp;'+existing_payload
+	else:
+		payload = new_payload
+	breaks = payload.count('&nbsp;')
+	if breaks > (PHOTOS_WITH_SEARCHED_NICKNAMES-1):
+		#trim from 5th &nbsp; and onwards
+		groups = payload.split('&nbsp;')
+		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
+	my_server.set(user_thumbs,payload)
 
 def insert_nick_list(nickname_list):
 	my_server = redis.Redis(connection_pool=POOL)

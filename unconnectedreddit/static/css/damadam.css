@@ -391,6 +391,16 @@ button color golden
     border:solid 1px orange;
 }
 
+.pak {
+    background-color:#008000;
+    border-color:#006600;
+}
+
+.wid {
+    background-color:#990000;
+    border-color:#660000;
+}
+
 .nze {
     background-color:#404040;
     border-color:black;

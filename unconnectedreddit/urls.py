@@ -19,7 +19,8 @@ click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, crea
 unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_location_pk, best_photo_location, photo_location, \
 see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, \
 cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
-first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, insert_nicks, check_nick
+first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,\
+search_uname_unlocking_dec, search_username, go_to_username, go_to_user_photo
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -41,8 +42,14 @@ AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	url(r'^check_nick/(?P<nick>[\w.@+-]+)/$', auth(check_nick), name='check_nick'),
-	url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
+	url(r'^search_uname_unlocking_dec/$', auth(search_uname_unlocking_dec), name='unamesrc_unldec'),
+	url(r'^feature_unlocked/$', auth(feature_unlocked), name='feature_unlocked'),
+	# url(r'^check_nick/(?P<nick>[\w.@+-]+)/$', auth(check_nick), name='check_nick'),
+	url(r'^khoji/$', auth(search_username), name='search_username'),
+	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
+	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
+	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
+	# url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
 	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
 	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),

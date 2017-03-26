@@ -12,6 +12,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
+from redis3 import add_search_photo
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
@@ -346,6 +347,7 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 	photo.which_stream.add(stream) # CAN REMOVE? m2m field, thus 'append' a stream to the "which_stream" attribute
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
 	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
+	add_search_photo(photo.image_file.url,photo_id,user.username)
 	if hotuser.allowed and hotuser.hot_score > PHOTO_HOT_SCORE_REQ:
 		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream.id)#
 		photo_link_mapping(photo_id, link.id)

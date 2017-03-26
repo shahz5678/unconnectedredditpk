@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin cgy">
+<img src="{{ STATIC_URL }}img/unlocked.png" width="38" height="38"><span class="cxl">&nbsp;Mein azad hoon!&nbsp;</span><img src="{{ STATIC_URL }}img/unlocked.png" width="38" height="38"><br><br>
+<div class="bubble">
+	<span class="clw cxl">
+	Mera naam <b>Khoji Khan</b> hai. Mein Damadam pe kisi bhi nickname ko dhoond sakta hoon.<br>Jab bhi meri zarurat ho tou uper <b>Khoji</b> ka button daba dena...
+	</span>
+</div>
+<br><br>
+<a href="{% url 'online_kon' %}"><button class="btn bcg bl nw">Theek hai</button></a>
+</div>
+<br><br>
+{% endblock %}

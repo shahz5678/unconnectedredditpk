@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="margin cgy">
+...tum Damadam ke ek khufiya room mein a gaye ho. Kisi ke bolne ki awaz a rahi hai...<br><br>
+<div class="bubble">
+<span class="clw cxl"><b>BACHAO! BACHAO! BACHAO!</b><br>
+Mujhe Damadam ke admin ne jail me band kiya hua hai. Mujhe yahan se nikalo! Mein tumhare kaam aoon ga!
+</span><br>
+</div>
+<br>
+<br>Kiya isko azad karna hai?<br>
+<form method="POST" action="{% url 'unamesrc_unldec' %}">
+	{% csrf_token %}
+	<button class="btn mtl bcg bm" name="dec" value="1" type="submit">Haan</button><br>
+	<button class="btn mtl bcr bm" name="dec" value="2" type="submit">Nahi</button><br>
+</form>
+</div>
+<br><br>
+{% endblock %}

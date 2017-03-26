@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+{% if found_flag != None %}
+{% if found_flag %}
+<div class="cxl mbs"><b>Mil gya!</b></div>
+	
+	{% for match in exact_matches %}
+		<b class="cl ct">{{ match.0 }}:</b><br>
+		<form method="POST" action="{% url 'go_to_username' match.0 %}" class="mbs">{% csrf_token %}
+		<button class="btn bco bm mbs" name="dec" value="1" type="submit">photos</button>&nbsp;&nbsp;<button class="btn bct bm mts mbs" name="dec" value="2" type="submit">history</button>&nbsp;&nbsp;<button class="btn bcg bm mts mbs" name="dec" value="3" type="submit">profile</button><br></form>
+		{% if match.1 != None %}
+		<form method="POST" action="{% url 'go_to_user_photo' match.0 %}">{% csrf_token %}
+		{{ match.1|safe }}
+		</form>
+		{% endif %}
+		<hr size=1 COLOR="#1f8cad">
+	{% endfor %}
+		
+	<b class="cl cgy">Is jaise aur nicknames ye hain:</b><br><br>
+	{% for nick in similar %}
+		<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
+		<span class="cl cgy mls">{{ nick.0 }}</span>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
+		</form>
+		{% if nick.1 != None %}
+		<form method="POST" action="{% url 'go_to_user_photo' nick.0 %}">{% csrf_token %}
+		{{ nick.1|safe }}
+		</form>
+		{% endif %}
+		<hr size=1 COLOR="#cccccc">
+	{% endfor %}
+
+{% else %}
+
+	<b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b><br><span class="cgy">Is se milte julte nicknames dekh lo:</span><br><br>
+	{% for nick in similar %}
+	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
+	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
+	</form>
+	{% if nick.1 != None %}
+	<form method="POST" action="{% url 'go_to_user_photo' nick.0 %}">{% csrf_token %}
+	{{ nick.1|safe }}
+	</form>
+	{% endif %}
+	<hr size=1 COLOR="#cccccc">
+	{% endfor %}
+
+{% endif %}
+{% endif %}
+
+{% if form.nickname.errors %}
+<span class="cr cl">{{ form.nickname.errors.0 }}</span><br>
+{% else %}
+{% if found_flag != None %}
+<br><span class="cg cl">Koi aur <b>nickname</b> dhoondun?</span><br>
+{% else %}
+<span class="cg cl">Konsa <b>nickname</b> dhoondun?</span><br>
+{% endif %}
+{% endif %}
+<form method="POST" action="{% url 'search_username' %}" class="mtl">
+{% csrf_token %}
+{{ form.nickname }}<br><br>
+<button type="submit" class="btn bm bcg mbl">OK</button>
+</form>
+<hr size=1 COLOR="#179b36">
+{% if search_history %}
+
+	<b class="cl ct">Pehle tumhare liye Khoji ne ye dhoonda:</b><br><br>
+	{% for nick in search_history %}
+	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
+	<span class="cl ct mls">{{ nick.0 }}</span>:<br><button class="btn bm cs mts mbs mls" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bm cs mts mbs mls" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" style="color:#179b36;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="3" type="submit">profile</button><br>
+	</form>
+		{% if nick.1 != None %}
+		<form method="POST" action="{% url 'go_to_user_photo' nick.0 %}">{% csrf_token %}
+		{{ nick.1|safe }}
+		</form>
+		{% endif %}
+	<hr size=1 COLOR="#cccccc">
+	{% endfor %}
+{% endif %}
+
+	<br>
+	<div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+
+</div>
+<br><br>
+{% endblock %}

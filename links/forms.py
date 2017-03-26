@@ -430,6 +430,25 @@ class PublicreplyMiniForm(PublicreplyForm):
 		'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
+class SearchNicknameForm(forms.Form):
+	nickname = forms.CharField(max_length=71)
+
+	def __init__(self, *args, **kwargs):
+		super(SearchNicknameForm, self).__init__(*args, **kwargs)
+		self.fields['nickname'].widget.attrs['style'] = \
+		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #179b36;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #179b36;'
+		self.fields['nickname'].widget.attrs['class'] = 'cxl'
+		# self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['nickname'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_nickname(self):
+		nickname = self.cleaned_data.get("nickname")
+		nickname = nickname.strip()
+		if len(nickname) > 70:
+			raise forms.ValidationError('tip: inta bara nickname nahi likh sakte')
+		nickname = clear_zalgo_text(nickname)
+		return nickname
+
 class CaptionDecForm(forms.Form):
 	class Meta:
 		pass

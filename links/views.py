@@ -11,7 +11,7 @@ from scraper import read_image
 from cricket_score import cricket_scr
 from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
-CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES
+CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD
 from django.db import connection
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
@@ -38,7 +38,7 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis3 import insert_nick_list, get_nick_likeness
+from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -59,7 +59,8 @@ retrieve_photo_posts, first_time_password_changer, add_password_change, voted_fo
 account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo,\
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives
+first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
+is_uname_search_unlocked
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -76,7 +77,7 @@ SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, M
 ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
 AdImageForm, TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, BestPhotosListForm, PhotosListForm, \
-CricketCommentForm,PublicreplyMiniForm
+CricketCommentForm,PublicreplyMiniForm, SearchNicknameForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -286,6 +287,87 @@ def GetLatest(user):
 					return None, None, False, False, False, False
 	except:
 		return None, None, False, False, False, False
+
+@csrf_protect
+def feature_unlocked(request,*args,**kwargs):
+	if request.method == 'POST':
+		fid = request.POST.get("fid") #the feature_id
+		score = request.user.userprofile.score
+		if fid == '1' and score > SEARCH_FEATURE_THRESHOLD:
+			if is_uname_search_unlocked(request.user.id):
+				# redirect to page showing search feature
+				return redirect("search_username")
+			else:
+				return render(request,"uname_search_tutorial_I.html",{})
+	else:
+		return render(request,"404.html",{})
+
+@csrf_protect
+def search_uname_unlocking_dec(request,*args,**kwargs):
+	if request.method == 'POST':
+		dec = request.POST.get("dec")
+		if dec == '1':
+			unlock_uname_search(request.user.id)
+			return render(request,"uname_search_tutorial_II.html",{})
+		else:
+			return redirect("online_kon")
+	else:
+		return render(request,"404.html",{})		
+
+@csrf_protect
+def search_username(request,*args,**kwargs):
+	if is_uname_search_unlocked(request.user.id):
+		# search_history = get_search_history(request.user.id)
+		page_num = request.GET.get('page', '1')
+		unames = get_search_history(request.user.id)
+		page_obj = get_page_obj(page_num,unames,ITEMS_PER_PAGE)
+		search_history = retrieve_history_with_pics(page_obj.object_list)
+		if request.method == 'POST':
+			#load the page with results
+			form = SearchNicknameForm(request.POST)
+			if form.is_valid():
+				nickname = form.cleaned_data.get("nickname")
+				found_flag,exact_matches,similar = find_nickname(nickname,request.user.id)
+				return render(request,'username_search.html',\
+					{'form':form,'exact_matches':exact_matches, 'similar':similar, 'found_flag':found_flag, \
+					'orig_search':nickname,'search_history':search_history,'page':page_obj})
+			else:
+				return render(request,'username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})	
+		else:
+			#load the page as it ought to be loaded
+			form = SearchNicknameForm()
+			return render(request,'username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})
+	else:
+		return render(request,"404.html",{})
+
+@csrf_protect
+def go_to_username(request,nick,*args,**kwargs):
+	if request.method == 'POST':
+		dec = request.POST.get("dec")
+		select_nick(nick,request.user.id)
+		if dec == '1':
+			# send to profile photos
+			return redirect("profile", nick)
+		elif dec == '2':
+			# send to home history
+			return redirect("user_activity", nick)
+		elif dec == '3':
+			# send to user profile
+			return redirect("user_profile", nick)
+		else:
+			#send to profile photos
+			return redirect("profile", nick)
+	else:
+		return render(request,"404.html",{})
+
+@csrf_protect
+def go_to_user_photo(request,nick,*args,**kwargs):
+	if request.method == 'POST':
+		select_nick(nick,request.user.id)
+		request.session["photograph_id"] = request.POST.get("pid",'')
+		return redirect("profile", nick)
+	else:
+		return render(request,"404.html",{})		
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -1932,6 +2014,8 @@ class OnlineKonView(ListView):
 			else:
 				context["whose_online"] = True
 			context["legit"] = FEMALES
+			context["show_locked_search"] = (not is_uname_search_unlocked(self.request.user.id)) and \
+			(self.request.user.userprofile.score > SEARCH_FEATURE_THRESHOLD)
 		return context
 
 class WhoseOnlineView(FormView):
@@ -8143,63 +8227,63 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 # 	else:
 # 		return render(request,'404.html',{})
 
-def deprecate_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		# all user ids who last logged in more than 3 months ago
-		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
+# def deprecate_nicks(request,*args,**kwargs):
+# 	if request.user.username == 'mhb11':
+# 		# all user ids who last logged in more than 3 months ago
+# 		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
 		
-		# user ids not found in Sessions
-		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
-		logged_out_users = set(User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True))
+# 		# user ids not found in Sessions
+# 		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
+# 		logged_out_users = set(User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True))
 
-		# # never messaged on home
-		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True))
+# 		# # never messaged on home
+# 		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True))
 
-		# # never submitted a publicreply
-		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
-			.values_list('id',flat=True))
+# 		# # never submitted a publicreply
+# 		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
+# 			.values_list('id',flat=True))
 		
-		# never sent a photocomment
-		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True))
+# 		# never sent a photocomment
+# 		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True))
 		
-		# # never uploaded a photo
-		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True))
+# 		# # never uploaded a photo
+# 		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True))
 		
-		# # never fanned anyone
-		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True))
+# 		# # never fanned anyone
+# 		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True))
 		
-		# # score is below 300
-		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
+# 		# # score is below 300
+# 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
 
-		# # intersection of all such ids
-		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
-			never_fanned,less_than_300)
-		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
-		from itertools import chain
-		set_inactives([x for x in chain.from_iterable(inactives)])
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
+# 		# # intersection of all such ids
+# 		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
+# 			never_fanned,less_than_300)
+# 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
+# 		from itertools import chain
+# 		set_inactives([x for x in chain.from_iterable(inactives)])
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
 
-def check_nick(request,nick=None,*args,**kwargs):
-	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
+# def check_nick(request,nick=None,*args,**kwargs):
+# 	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
 
-def insert_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		nicknames = User.objects.values_list('username',flat=True)
-		list_len = len(nicknames)
-		each_slice = int(list_len/10)
-		counter = 0
-		slices = []
-		while counter < list_len:
-			slices.append((counter,counter+each_slice))
-			counter += each_slice
-		for sublist in slices:
-			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
-			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
+# def insert_nicks(request,*args,**kwargs):
+# 	if request.user.username == 'mhb11':
+# 		nicknames = User.objects.values_list('username',flat=True)
+# 		list_len = len(nicknames)
+# 		each_slice = int(list_len/10)
+# 		counter = 0
+# 		slices = []
+# 		while counter < list_len:
+# 			slices.append((counter,counter+each_slice))
+# 			counter += each_slice
+# 		for sublist in slices:
+# 			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
+# 			insert_nick_list(nicknames[sublist[0]:sublist[1]])
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
 
 ###############################################################
 

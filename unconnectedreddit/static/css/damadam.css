@@ -597,3 +597,48 @@ MARGINS
 /*image width*/ .iw2{width:100%;max-width:400px;margin-top:-0.3em;}
 /*filter brightness 50%*/.fbh{filter:brightness(50%);-webkit-filter: brightness(0.5);}
 /*filter brightness 30%*/.fbl{filter:brightness(30%);-webkit-filter: brightness(0.3);}
+
+
+/*===============================================================================================================*/
+/*speech bubble*/
+/*===============================================================================================================*/
+
+.bubble {
+   position: relative;
+   background: #f3961c;
+border: 0px solid #f3961c;  
+   max-width:80%;
+min-width:5%;
+   padding:10px;
+   font-family:arial;
+   margin:0 auto;
+   margin-left: 10px;
+   font-size:14px;
+   border-radius:6px;
+display:inline-block;
+
+}
+.bubble:after,
+.bubble:before {
+   right: 100%;
+   top: 50%;
+ border: solid transparent;
+   content: " ";
+   height: 0;
+   width: 0;
+   position: absolute;
+   pointer-events: none;
+}
+
+.bubble:after {
+   border-color: FFFFCC;
+   border-right-color: #f3961c;
+   border-width: 15px;
+   margin-top: -15px;
+}
+.bubble:before {
+border-color: FFFFCC;
+   border-right-color: FFFFCC;
+   border-width: 16px;
+   margin-top: -16px;
+}

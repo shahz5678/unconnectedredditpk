@@ -32,6 +32,8 @@ CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
 'South Africa':'saf','New Zealand':'nze'}
 ###############################################################################################################
+PHOTOS_WITH_SEARCHED_NICKNAMES = 5
+SEARCH_FEATURE_THRESHOLD = 100
 PERMANENT_RESIDENT_SCORE = 300
 PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phela rahi hai',\
 '3':'Photo mein buhut ziyada tashadud hai','4':'Photo takhreeb karoon ki wakalat kr rahi hai',\

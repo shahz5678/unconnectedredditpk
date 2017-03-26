@@ -51,6 +51,14 @@ def category_formatting(categ):
 		# South Africa
 		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">South Africa</h1>'
 		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
+	elif categ == '12':
+		# Pakistan
+		div_head = '<div style="background-color:#e6ffe6;"><h1 style="font-size:0.7em;background-color:#008000;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Pakistan</h1>'
+		div_tail = '<p><hr size=1 COLOR="#008000"></p></div>'
+	elif categ == '13':
+		# West Indies
+		div_head = '<div style="background-color:#ffe6e6;"><h1 style="font-size:0.7em;background-color:#990000;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">West Indies</h1>'
+		div_tail = '<p><hr size=1 COLOR="#990000"></p></div>'
 	else:
 		div_head = '<span></span>'
 		div_tail = '<span></span>'

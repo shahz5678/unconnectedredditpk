@@ -55,6 +55,7 @@ sorted_set = "public_group_rankings"
 unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 reported_photos = "reported_photos" #sorted set containing all reported photos
 hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+set_name = "unl:"+str(user_id)
 set_name = "ug:"+str(user_id) #ug is user's groups
 sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
 votes_allowed = "va:"+str(user_id) #votes allowed to user_id
@@ -389,6 +390,23 @@ def add_to_photo_vote_ban(user_ids, ban_type): #for multiple users
 		else:
 			mapping = {'t':current_time, 'b':ban_type}
 			my_server.hmset(hash_name, mapping)
+
+###################Feature Unlocked####################
+
+#username search feature: '1'
+
+def is_uname_search_unlocked(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "unl:"+str(user_id)
+	if my_server.sismember(set_name,'1'):
+		return True
+	else:
+		return False
+
+def unlock_uname_search(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "unl:"+str(user_id)
+	my_server.sadd(set_name, '1')
 
 #######################Tutorials#######################
 
@@ -1154,15 +1172,11 @@ def add_vote_to_link(link_pk,value,username,is_pinkstar):
 		username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
 		if vote_text:
 			new_text = username+VOTE_TEXT[value]
-			# print new_text
-			# print vote_text
 			text = new_text+vote_text.decode('utf-8')
-			# print text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 		else:
 			text = username+VOTE_TEXT[value]
-			# print text
 			my_server.hset(hash_name,'vt',text)
 			my_server.zadd(sorted_set, plain_username, value)
 

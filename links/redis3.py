@@ -174,6 +174,14 @@ def retrieve_history_with_pics(uname_list):
 		counter += 1
 	return history
 
+def search_thumbs_missing(username):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_thumbs = "upt:"+username
+	if my_server.exists(user_thumbs):
+		return False
+	else:
+		return True
+
 #add latest photo to a payload trimmed at 5 photos max
 def add_search_photo(img_url,photo_id,owner_uname):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -190,6 +198,16 @@ def add_search_photo(img_url,photo_id,owner_uname):
 		groups = payload.split('&nbsp;')
 		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
 	my_server.set(user_thumbs,payload)
+
+def bulk_add_search_photos(owner_uname, ids_with_urls):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_thumbs = "upt:"+owner_uname
+	ids_with_thumbs = [(item[0],cdnize_target_url(item[1])) for item in ids_with_urls]
+	payload = []
+	for obj in ids_with_thumbs:
+		payload.append(image_thumb_formatting(obj[1],obj[0]))
+	final_payload = '&nbsp;'.join(payload)
+	my_server.set(user_thumbs,final_payload)
 
 def insert_nick_list(nickname_list):
 	my_server = redis.Redis(connection_pool=POOL)

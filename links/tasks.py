@@ -12,7 +12,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
-from redis3 import add_search_photo
+from redis3 import add_search_photo, bulk_add_search_photos
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
@@ -149,6 +149,11 @@ def sanitize_photo_report(photo_id):#return price paid (as a default)
 def process_reporter_payables(payables):
 	for user_id,payable_score in payables:
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+
+#auto-populating photo thumbs in search results (triggered whenever a user profile is visited)
+@celery_app1.task(name='tasks.populate_search_thumbs')
+def populate_search_thumbs(username,ids_with_urls):
+	bulk_add_search_photos(username,ids_with_urls)
 
 #used to calculate group ranking
 @celery_app1.task(name='tasks.public_group_vote_tasks')

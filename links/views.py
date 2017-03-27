@@ -24,7 +24,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task
+fan_recount, vote_tasks, registration_task, populate_search_thumbs
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
@@ -38,7 +38,8 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics
+from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
+search_thumbs_missing
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -2088,6 +2089,9 @@ class UserProfilePhotosView(ListView):
 			context["recent_fans"] = 0
 		context["can_vote"] = False
 		context["manageable"] = False
+		if context["object_list"] and search_thumbs_missing(slug):
+			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
+			populate_search_thumbs.delay(slug,ids_with_urls)
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
 			# newrelic.agent.add_custom_parameter("photoboys", username)

@@ -39,7 +39,7 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing
+search_thumbs_missing, del_search_history
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -369,6 +369,15 @@ def go_to_user_photo(request,nick,*args,**kwargs):
 		return redirect("profile", nick)
 	else:
 		return render(request,"404.html",{})		
+
+@csrf_protect
+def remove_searched_username(request,nick,*args,**kwargs):
+	if request.method == 'POST':
+		searcher_id = request.POST.get("uid",'')
+		del_search_history(searcher_id,nick)
+		return redirect("search_username")
+	else:
+		return render(request,"404.html",{})
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)

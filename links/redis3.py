@@ -160,6 +160,12 @@ def get_search_history(searcher_id):
 	else:
 		return []
 
+#delete an entry from search history
+def del_search_history(searcher_id, nick):
+	my_server = redis.Redis(connection_pool=POOL)
+	search_history = "sh:"+str(searcher_id)
+	my_server.zrem(search_history,nick)
+
 def retrieve_history_with_pics(uname_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()

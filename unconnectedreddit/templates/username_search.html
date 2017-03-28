@@ -67,7 +67,11 @@
 
 	<b class="cl ct">Pehle tumhare liye Khoji ne ye dhoonda:</b><br><br>
 	{% for nick in search_history %}
-	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
+	<form method="POST" action="{% url 'remove_searched_username' nick.0 %}" style="display:inline;">{% csrf_token %}
+	<input type="hidden" name="uid" value="{{ user.id }}">
+	<button class="btn mls" type="submit" style="color:red;background-color:#F8F8F8;border-color:#B8B8B8;">X</button>
+	</form>
+	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs" style="display:inline;">{% csrf_token %}
 	<span class="cl ct mls">{{ nick.0 }}</span>:<br><button class="btn bm cs mts mbs mls" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bm cs mts mbs mls" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" style="color:#179b36;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="3" type="submit">profile</button><br>
 	</form>
 		{% if nick.1 != None %}

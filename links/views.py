@@ -39,7 +39,7 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -3795,6 +3795,7 @@ class CommentView(CreateView):
 			context["count"] = comms.count()
 			comments = comms.order_by('-id')[:25]
 			context["comments"] = comments
+			context["thumbs"] = retrieve_single_thumbs(photo.owner.username)
 			context["verified"] = FEMALES
 			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 			context["authorized"] = True

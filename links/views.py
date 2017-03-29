@@ -39,7 +39,7 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history
+search_thumbs_missing, del_search_history, retrieve_thumbs
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -362,9 +362,10 @@ def go_to_username(request,nick,*args,**kwargs):
 		return render(request,"404.html",{})
 
 @csrf_protect
-def go_to_user_photo(request,nick,*args,**kwargs):
+def go_to_user_photo(request,nick,add_score=None,*args,**kwargs):
 	if request.method == 'POST':
-		select_nick(nick,request.user.id)
+		if add_score == '1':
+			select_nick(nick,request.user.id)
 		request.session["photograph_id"] = request.POST.get("pid",'')
 		return redirect("profile", nick)
 	else:
@@ -2018,6 +2019,7 @@ class OnlineKonView(ListView):
 
 	def get_context_data(self, **kwargs):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)
+		context["with_thumbs"] = False
 		if self.request.user.is_authenticated():
 			if not context["object_list"]:
 				context["whose_online"] = False
@@ -2026,6 +2028,11 @@ class OnlineKonView(ListView):
 			context["legit"] = FEMALES
 			context["show_locked_search"] = (not is_uname_search_unlocked(self.request.user.id)) and \
 			(self.request.user.userprofile.score > SEARCH_FEATURE_THRESHOLD)
+			if self.request.is_feature_phone:
+				on_feature_phone = True
+			if not (self.request.META.get('X-IORG-FBS',False) or self.request.is_feature_phone):
+				context["object_list"] = retrieve_thumbs(context["object_list"])
+				context["with_thumbs"] = True
 		return context
 
 class WhoseOnlineView(FormView):

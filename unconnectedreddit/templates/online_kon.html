@@ -20,7 +20,7 @@
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                 {% endif %}
-                {{ key.username }}
+                <b class="cb">{{ key.username }}</b>
                 {% if key.username in legit %}
                     <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
                 {% endif %}
@@ -32,7 +32,7 @@
                         <span class="cg cs">({{ key.userprofile.score }})</span>
                     {% endif %}
                 {% endif %}
-                <form method="POST" action="{% url 'go_to_user_photo' key.username 0 %}">{% csrf_token %}
+                <form method="POST" action="{% url 'go_to_user_photo' key.username 0 %}" class="mts">{% csrf_token %}
                 {{ value|safe }}
                 </form>
                 <hr size=1 COLOR="#b3e6b3">

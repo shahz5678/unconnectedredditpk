@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load thumbedge %}
 {% load emoticons_tags %}
 {% block content %}
     <div class="margin">
@@ -9,32 +9,32 @@
         {% if not whose_online %}
             <br>
             <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}</span><br>
-        {% elif with_thumbs %}
+        {% elif not with_thumbs %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
-            {% for key,value in object_list.items %}
+            {% for obj in object_list %}
                 <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                 <a href="{% url 'profile' slug=key.username %}#section0">
-                {% if key.userprofile.avatar %}
-                    <img src="{{ key.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+                 <a href="{% url 'profile' slug=obj.username %}#section0">
+                {% if obj.userprofile__avatar %}
+                    <img src='//damadamthumbs.azureedge.net{{ obj.userprofile__avatar|slice:"7:" }}' width="22" height="22" alt="no pic"></img>
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                 {% endif %}
-                <b class="cb">{{ key.username }}</b>
-                {% if key.username in legit %}
+                <b class="cb">{{ obj.username }}</b>
+                {% if obj.username in legit %}
                     <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
                 {% endif %}
                 </a>
-                {% if key.userprofile.score %}
-                    {% if key.userprofile.score < 0 %}
+                {% if obj.userprofile__score %}
+                    {% if obj.userprofile__score|add:"0" < 0 %}
                         <span class="cg cs">(1)</span>
                     {% else %}
-                        <span class="cg cs">({{ key.userprofile.score }})</span>
+                        <span class="cg cs">({{ obj.userprofile__score }})</span>
                     {% endif %}
                 {% endif %}
-                {% if value != None %}
-                <form method="POST" action="{% url 'go_to_user_photo' key.username 0 %}" class="mts">{% csrf_token %}
-                {{ value|safe }}
+                {% if obj.thumbs != None %}
+                <form method="POST" action="{% url 'go_to_user_photo' obj.username 0 %}" class="mts">{% csrf_token %}
+                {{ obj.thumbs|safe }}
                 </form>
                 {% endif %}
                 <hr size=1 COLOR="#b3e6b3">
@@ -43,24 +43,24 @@
         {% else %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
-            {% for visitor in object_list %}
+            {% for obj in object_list %}
                 <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                        <a href="{% url 'profile' slug=visitor.username %}#section0">
-                        {% if visitor.userprofile.avatar %}
-                            <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+                        <a href="{% url 'profile' slug=obj.username %}#section0">
+                        {% if obj.userprofile__avatar %}
+                            <img src='//damadamthumbs.azureedge.net{{ obj.userprofile__avatar|slice:"7:" }}' width="22" height="22" alt="no pic"></img>
                         {% else %}
                             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                         {% endif %}
-                        {{ visitor.username }}
-                            {% if visitor.username in legit %}
+                        {{ obj.username }}
+                            {% if obj.username in legit %}
                                 <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
                             {% endif %}
                         </a>
-                        {% if visitor.userprofile.score %}
-                            {% if visitor.userprofile.score < 0 %}
+                        {% if obj.userprofile__score %}
+                            {% if obj.userprofile__score|add:"0" < 0 %}
                                 <span class="cg cs">(1)</span>
                             {% else %}
-                                <span class="cg cs">({{ visitor.userprofile.score }})</span>
+                                <span class="cg cs">({{ obj.userprofile__score }})</span>
                             {% endif %}
                         {% endif %}
                 <br>

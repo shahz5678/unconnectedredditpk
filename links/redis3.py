@@ -180,6 +180,20 @@ def retrieve_history_with_pics(uname_list):
 		counter += 1
 	return history
 
+def retrieve_thumbs(obj_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for obj in obj_list:
+		user_thumbs = "upt:"+obj.username
+		pipeline1.get(user_thumbs)
+	result1 = pipeline1.execute()
+	counter = 0
+	users_with_thumbs = {}
+	for obj in obj_list:
+		users_with_thumbs[obj] = result1[counter]
+		counter += 1
+	return users_with_thumbs
+
 def search_thumbs_missing(username):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+username
@@ -205,6 +219,7 @@ def add_search_photo(img_url,photo_id,owner_uname):
 		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
 	my_server.set(user_thumbs,payload)
 
+#populates uploaded photo thumbs whenever a profile is visited
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname

@@ -32,9 +32,11 @@
                         <span class="cg cs">({{ key.userprofile.score }})</span>
                     {% endif %}
                 {% endif %}
+                {% if value != None %}
                 <form method="POST" action="{% url 'go_to_user_photo' key.username 0 %}" class="mts">{% csrf_token %}
                 {{ value|safe }}
                 </form>
+                {% endif %}
                 <hr size=1 COLOR="#b3e6b3">
             {% endfor %}
             <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>

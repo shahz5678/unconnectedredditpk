@@ -252,7 +252,15 @@
 <hr size=1 COLOR="ORANGE">
 <p style="margin-top:-0.9em;"></p>
 <hr size=1 COLOR="ORANGE">
-
+{% if thumbs != None %}
+<span class="cgy"><a href="{% url 'profile' photo.owner %}">{{ photo.owner }}</a> ki aur photos:</span>
+<form method="POST" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mts">{% csrf_token %}
+{{ thumbs|safe }}
+</form>
+<hr size=1 COLOR="ORANGE">
+<p style="margin-top:-0.9em;"></p>
+<hr size=1 COLOR="ORANGE">
+{% endif %}
 <span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
 <span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cm">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
 

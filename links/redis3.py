@@ -184,15 +184,15 @@ def retrieve_thumbs(obj_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	for obj in obj_list:
-		user_thumbs = "upt:"+obj.username
+		user_thumbs = "upt:"+obj['username']
 		pipeline1.get(user_thumbs)
 	result1 = pipeline1.execute()
 	counter = 0
 	users_with_thumbs = {}
 	for obj in obj_list:
-		users_with_thumbs[obj] = result1[counter]
+		obj['thumbs'] = result1[counter]
 		counter += 1
-	return users_with_thumbs
+	return obj_list
 
 def search_thumbs_missing(username):
 	my_server = redis.Redis(connection_pool=POOL)

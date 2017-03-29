@@ -10,7 +10,7 @@
 		<form method="POST" action="{% url 'go_to_username' match.0 %}" class="mbs">{% csrf_token %}
 		<button class="btn bco bm mbs" name="dec" value="1" type="submit">photos</button>&nbsp;&nbsp;<button class="btn bct bm mts mbs" name="dec" value="2" type="submit">history</button>&nbsp;&nbsp;<button class="btn bcg bm mts mbs" name="dec" value="3" type="submit">profile</button><br></form>
 		{% if match.1 != None %}
-		<form method="POST" action="{% url 'go_to_user_photo' match.0 %}">{% csrf_token %}
+		<form method="POST" action="{% url 'go_to_user_photo' match.0 1 %}">{% csrf_token %}
 		{{ match.1|safe }}
 		</form>
 		{% endif %}
@@ -23,7 +23,7 @@
 		<span class="cl cgy mls">{{ nick.0 }}</span>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
 		</form>
 		{% if nick.1 != None %}
-		<form method="POST" action="{% url 'go_to_user_photo' nick.0 %}">{% csrf_token %}
+		<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}
 		{{ nick.1|safe }}
 		</form>
 		{% endif %}
@@ -38,7 +38,7 @@
 	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
 	</form>
 	{% if nick.1 != None %}
-	<form method="POST" action="{% url 'go_to_user_photo' nick.0 %}">{% csrf_token %}
+	<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}
 	{{ nick.1|safe }}
 	</form>
 	{% endif %}

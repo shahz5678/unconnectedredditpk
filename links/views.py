@@ -2012,7 +2012,7 @@ class OnlineKonView(ListView):
 		})
 		try:
 			user_ids = cache_mem.get('online')
-			queryset = User.objects.select_related('userprofile').filter(id__in=user_ids)
+			queryset = User.objects.filter(id__in=user_ids).values('username', 'userprofile__score', 'userprofile__avatar')
 		except:
 			queryset = []
 		return queryset

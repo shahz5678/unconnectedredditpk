@@ -2030,7 +2030,9 @@ class OnlineKonView(ListView):
 			(self.request.user.userprofile.score > SEARCH_FEATURE_THRESHOLD)
 			if self.request.is_feature_phone:
 				on_feature_phone = True
-			if not (self.request.META.get('X-IORG-FBS',False) or self.request.is_feature_phone):
+			on_fbs = self.request.META.get('X-IORG-FBS',False)
+			if not (on_fbs or self.request.is_feature_phone):
+				context["on_fbs"] = on_fbs
 				context["object_list"] = retrieve_thumbs(context["object_list"])
 				context["with_thumbs"] = True
 		return context

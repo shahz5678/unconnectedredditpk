@@ -194,6 +194,11 @@ def retrieve_thumbs(obj_list):
 		counter += 1
 	return obj_list
 
+def retrieve_single_thumbs(obj):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_thumbs = "upt:"+obj
+	return my_server.get(user_thumbs)
+
 def search_thumbs_missing(username):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+username

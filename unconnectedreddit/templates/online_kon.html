@@ -9,7 +9,7 @@
         {% if not whose_online %}
             <br>
             <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}</span><br>
-        {% elif not with_thumbs %}
+        {% elif with_thumbs %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
             {% for obj in object_list %}

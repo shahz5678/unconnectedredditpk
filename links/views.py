@@ -4974,10 +4974,11 @@ class UploadPhotoView(CreateView):
 			except:
 				pass
 			if f.image_file:
-				try:
-					on_fbs = self.request.META.get('X-IORG-FBS')
-				except:
-					on_fbs = False
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				# try:
+				# 	on_fbs = self.request.META.get('X-IORG-FBS')
+				# except:
+				# 	on_fbs = False
 				if on_fbs:
 					if f.image_file.size > 200000:
 						context = {'pk':'pk'}

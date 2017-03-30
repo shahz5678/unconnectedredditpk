@@ -408,5 +408,5 @@ REQUEST_TRAFFIC_MODULES = (
 REQUEST_LOG_USER = True
 
 ABSOLUTE_URL_OVERRIDES = {
-	'auth.user': lambda u: "/link/create/"
+	'auth.user': lambda u: "/link/first_time/"
 }

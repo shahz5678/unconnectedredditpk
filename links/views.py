@@ -2036,7 +2036,7 @@ class OnlineKonView(ListView):
 			except:
 				on_fbs = False
 			if not (on_fbs or self.request.is_feature_phone):
-				context["on_fbs"] = on_fbs
+				context["on_fbs"] = self.request.META
 				context["object_list"] = retrieve_thumbs(context["object_list"])
 				context["with_thumbs"] = True
 		return context

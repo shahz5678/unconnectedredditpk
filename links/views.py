@@ -3658,10 +3658,11 @@ class VideoCommentView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(VideoCommentView, self).get_context_data(**kwargs)
 		context["verified"] = FEMALES
-		try:
-			on_fbs = self.request.META.get('X-IORG-FBS')
-		except:
-			on_fbs = False
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		# try:
+		# 	on_fbs = self.request.META.get('X-IORG-FBS')
+		# except:
+		# 	on_fbs = False
 		if on_fbs:
 			context["on_fbs"] = True
 		else:
@@ -4268,10 +4269,11 @@ class SpecialPhotoView(ListView):
 			return self.render_to_response(context)
 
 def non_fbs_vid(request, pk=None, *args, **kwargs):
-	try:
-		on_fbs = self.request.META.get('X-IORG-FBS')
-	except:
-		on_fbs = False
+	# try:
+	# 	on_fbs = self.request.META.get('X-IORG-FBS')
+	# except:
+	# 	on_fbs = False
+	on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 	return redirect("https://damadam.pk/"+"123")
 
 class VideoView(ListView):
@@ -4290,10 +4292,11 @@ class VideoView(ListView):
 		context["authenticated"] = False
 		context["can_vote"] = False
 		context["score"] = None
-		try:
-			on_fbs = self.request.META.get('X-IORG-FBS')
-		except:
-			on_fbs = False
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		# try:
+		# 	on_fbs = self.request.META.get('X-IORG-FBS')
+		# except:
+		# 	on_fbs = False
 		if on_fbs:
 			context["on_fbs"] = True
 		else:
@@ -5229,10 +5232,11 @@ class UserPhoneNumberView(CreateView):
 				ChatPicMessage.objects.create(which_pic=which_image, sender_id=1, expiry_interval=decision, what_number=num)
 			else:
 				return redirect("user_phonenumber", slug=unique, num=decision, err=2, id=ident)
-		try:
-			on_fbs = self.request.META.get('X-IORG-FBS')
-		except:
-			on_fbs = False
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		# try:
+		# 	on_fbs = self.request.META.get('X-IORG-FBS')
+		# except:
+		# 	on_fbs = False
 		if on_fbs:
 				#definitely on a mobile browser, but can't redirect out now, so show the web address they are to send
 				return redirect("user_SMS", fbs=1, num=num)
@@ -5697,10 +5701,11 @@ class PublicGroupView(CreateView):
 			# else:
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 			if f.image:
-				try:
-					on_fbs = self.request.META.get('X-IORG-FBS')
-				except:
-					on_fbs = False
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				# try:
+				# 	on_fbs = self.request.META.get('X-IORG-FBS')
+				# except:
+				# 	on_fbs = False
 				if on_fbs:
 					if f.image.size > 200000:
 						context = {'pk':'pk'}
@@ -5903,10 +5908,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 						context["time_remaining"] = None
 				else:
 					context["time_remaining"] = None
-				try:
-					context["on_fbs"] = self.request.META.get('X-IORG-FBS')
-				except:
-					context["on_fbs"] = False
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				# try:
+				# 	context["on_fbs"] = self.request.META.get('X-IORG-FBS')
+				# except:
+				# 	context["on_fbs"] = False
 				context["switching"] = False
 				context["ensured"] = FEMALES
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]
@@ -5958,10 +5964,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				# else:
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 				if f.image:
-					try:
-						on_fbs = self.request.META.get('X-IORG-FBS')
-					except:
-						on_fbs = False
+					on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+					# try:
+					# 	on_fbs = self.request.META.get('X-IORG-FBS')
+					# except:
+					# 	on_fbs = False
 					if on_fbs:
 						if f.image.size > 200000:
 							context = {'pk':'pk'}
@@ -8001,10 +8008,11 @@ class AdImageView(CreateView):
 	def form_valid(self, form):
 		f = form.save(commit=False)
 		if f.image:
-			try:
-				on_fbs = self.request.META.get('X-IORG-FBS')
-			except:
-				on_fbs = False
+			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+			# try:
+			# 	on_fbs = self.request.META.get('X-IORG-FBS')
+			# except:
+			# 	on_fbs = False
 			if on_fbs:
 				if f.image.size > 200000:
 					context = {'pk':'pk'}

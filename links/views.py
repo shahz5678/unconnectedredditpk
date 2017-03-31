@@ -2958,7 +2958,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			return redirect("link_create_pk") #REDIRECT TO A DIFFERENT PAGE
+			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
 			username = slug1.decode("hex")
@@ -3023,7 +3023,9 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 # @sensitive_post_parameters()
 @csrf_protect		
 def create_nick(request,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
+	if request.user.is_authenticated():
+		return render(request,'404.html',{})
+	elif account_creation_disallowed(getip(request)):
 		return render(request, 'penalty_account_create.html',{})
 	elif request.method == 'POST':
 		form = CreateNickForm(data=request.POST)

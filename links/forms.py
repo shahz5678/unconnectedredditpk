@@ -1032,17 +1032,17 @@ class CreateAccountForm(forms.ModelForm):
 		elif lower_pass.isdigit():
 			raise ValidationError('password mein sirf numbers nahi ho sakte')	
 		elif 'babykobasspasandhai' in lower_pass:
-			raise ValidationError('babykobasspasandhai ke bajai kuch aur password likho')
+			raise ValidationError('"babykobasspasandhai" ke bajai kuch aur password likho')
 		elif 'chaachi420' in lower_pass:
-			raise ValidationError('chaachi420 ke bajai kuch aur password likho')
+			raise ValidationError('"chaachi420" ke bajai kuch aur password likho')
 		elif 'chachi420' in lower_pass:
-			raise ValidationError('chachi420 ke bajai kuch aur password likho')
+			raise ValidationError('"chachi420" ke bajai kuch aur password likho')
 		elif 'garamaanday' in lower_pass:
-			raise ValidationError('garamaanday ke bajai kuch aur password likho')
+			raise ValidationError('"garamaanday" ke bajai kuch aur password likho')
 		elif 'damadam' in lower_pass:
-			raise ValidationError('damadam ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('qwerty ko boojhna aasan hai, kuch aur likho')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
 		return password
 
 	def save(self, commit=True):
@@ -1077,36 +1077,61 @@ class CreatePasswordForm(forms.Form):
 		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
 		if len(password) < 6:
-			raise ValidationError('(tip: kam se kam 6 harf likhna zaruri hai)')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
 		elif lower_pass.isdigit():
-			raise ValidationError('(tip: password mein sirf numbers nahi ho sakte)')
+			raise ValidationError('Password mein sirf numbers nahi ho sakte!')
 		elif lower_nick in lower_pass:
-			raise ValidationError('(tip: %s nahi likh sakte kiyunke nickname mein hai)' % nickname)		
+			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:
-			raise ValidationError('(tip: babykobasspasandhai ke bajai kuch aur likho)')
+			raise ValidationError('"babykobasspasandhai" ke bajai kuch aur likho')
 		elif 'chaachi420' in lower_pass:
-			raise ValidationError('(tip: chaachi420 ke bajai kuch aur likho)')
+			raise ValidationError('"chaachi420" ke bajai kuch aur likho')
 		elif 'chachi420' in lower_pass:
-			raise ValidationError('(tip: chachi420 ke bajai kuch aur likho)')
+			raise ValidationError('"chachi420" ke bajai kuch aur likho')
 		elif 'garamaanday' in lower_pass:
-			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
+			raise ValidationError('"garamaanday" ke bajai kuch aur likho')
 		elif 'damadam' in lower_pass:
-			raise ValidationError('(tip: damadam ko boojhna aasan hai, kuch aur likho)')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('(tip: qwerty ko boojhna aasan hai, kuch aur likho)')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
 		return password
 
 
+def validate_nickname_chars(value):
+	reg = re.compile('^[\w.@+-]+$')
+	if not reg.match(value):
+		raise ValidationError('Sirf english harf, number ya @ _ . + - ho sakta hai')
+
 def validate_whitespaces_in_nickname(value):
     if ' ' in value:
-        raise ValidationError('(tip: nickname mein khali jaga nahi hoti. %s likho)' % value.replace(" ",""))
+    	raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
+    	# clone_a = value
+    	# option_a = clone_a.replace(" ", "-")
+    	# exists_a = nick_already_exists(option_a)
+    	# if exists_a:
+    	# 	clone_b = value
+    	# 	option_b = clone_b.replace(" ", "_")
+    	# 	exists_b = nick_already_exists(option_b)
+    	# 	if exists_b:
+     #    		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
+     #    	else:
+     #    		return option_b
+     #    else:
+     #    	return option_a
 
 class CreateNickForm(forms.Form):
-	username = forms.CharField(max_length=50,error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
-		'required':_("(tip: nickname ko khali nahi chore sakte)")},\
-		validators=[validate_whitespaces_in_nickname, validators.RegexValidator(regex='^[\w.@+-]+$')])
+	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
+		'required':_("Nickname ko khali nahi chore sakte!")},\
+		validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)
+
+# class CreateNickForm(forms.Form):
+# 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
+# 		'required':_("Nickname ko khali nahi chore sakte!")},\
+# 		validators=[validate_whitespaces_in_nickname, validators.RegexValidator(regex='^[\w.@+-]+$')])
+# 	class Meta:
+# 		fields = ('username',)
 
 	def __init__(self, *args, **kwargs):
 		super(CreateNickForm, self).__init__(*args, **kwargs)
@@ -1121,17 +1146,18 @@ class CreateNickForm(forms.Form):
 		
 		"""
 		username = self.cleaned_data['username']
+		validate_nickname_chars(username)
 		exists = nick_already_exists(username)
 		if exists is None:
 			# the sorted set "nicknames" doesn't exist, fall-back to DB
 			if User.objects.filter(username__iexact=username).exists():
-				raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
+				raise ValidationError(_('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)) 
 		elif exists:
-			raise ValidationError(_('(tip: %s kisi aur ka nickname hai. Kuch aur likho)' % username)) 
+			raise ValidationError(_('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)) 
 		else:
 			for name in BANNED_WORDS:
 				if name in username.lower():
-					raise ValidationError('(tip: nick mein "%s" nahi ho sakta)' % name)
+					raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
 			return username
 
 class ReauthForm(forms.Form):

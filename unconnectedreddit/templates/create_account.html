@@ -15,15 +15,16 @@
 			<span class="cr">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% else %}
 			<span class="cxl">{{ username }}, password 3 bar parh ke yad kr lo:</span><br>
-			<div class="mts">
-			<span class="cs cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
-			<span class="cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
-			<span class="cxl cg" style="word-wrap:break-word;"><b>{{ password }}</b></span><br>
+			<div class="mtl">
+			<span class="cg cl" style="word-wrap:break-word;"><b>{{ password }}</b><br>
+			<span class="cg cxl" style="word-wrap:break-word;"><b>{{ password }}</b><br>
+			<span class="cg cl" style="word-wrap:break-word;"><b>{{ password }}</b></span></span></span><br>
 			</div>
 			<input type="hidden" name="username" value="{{ username }}">
 			<input type="hidden" name="password" value="{{ password }}">
-			<button class="btn bcg bs mtl mbs" type="submit">OK</button><br>
-			<span class="cgy cs">(tip: is screen ki photo le lo, ya password apne pas likh lo)</span><br><br>
+			<button class="btn bcg bs mtl mbs cxl" type="submit">OK</button>
+			<hr size=1 COLOR="#99e699">
+			<span class="cgy">(tip: is screen ki photo le lo, ya password apne pas likh lo)</span><br><br>
 		{% endif %}
 	</form>
 {% endif %}

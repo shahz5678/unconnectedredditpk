@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="margin">
+<div class="margin clb">
 {% if form.errors %}
-<span class="cr">Nickname ya password mein ghalti hai. Phir koshish kro...</span>
+<span class="cr cxl">Nickname ya password mein ghalti hai. Phir se likho...</span>
 {% endif %}
 <form method="post" action="{% url 'login' %}">
   {% csrf_token %}
   <input type="hidden" name="next" value="/">
  	
-    <p>Nickname:
+    <p><b class="cxl">Nickname:</b>
       {{ form.username }}</p>
   
-    <p>Password:
+    <p><b class="cxl">Password:</b>
       {{ form.password }}</p>
    
   
-  <button class="btn bcg bm mts mbs" type="submit">OK</button><br>
+  <button class="btn bco bm mts mbs cxl" type="submit">OK</button><br>
   
 </form>
 </div>

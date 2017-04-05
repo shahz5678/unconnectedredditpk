@@ -2,9 +2,11 @@
 {% block content %}
 
 <div class="margin clb">
-<span class="cgy cxl">.</span>&nbsp;Pehle hi wala <b>nickname</b> aur <b>password</b> dalo.<br>
-<span class="cgy cxl">.</span>&nbsp;<b>Baray</b> aur <b>chotay</b> harf ka khyal rakhna.<br><br>
-<a href="{% url 'login' %}"><button class="btn nw bcg bl">Theek hai</button></a><br>
+<span class="cxl">Agli screen pe apna <b>nickname</b> aur <b>password</b> likho</span>
+<div class="mts mbl">
+<span class="cgy cl">(tip: <b>Baray</b> aur <b>chotay</b> harf ka khyal rakhna)</span>
+</div>
+<a href="{% url 'login' %}"><button class="btn nw bco bl cxl mts"><b>Theek hai</b></button></a><br>
 </div>
 <br><br>
 {% endblock %}

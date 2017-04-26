@@ -1103,7 +1103,7 @@ def validate_nickname_chars(value):
 		raise ValidationError('Sirf english harf, number ya @ _ . + - ho sakta hai')
 
 def validate_whitespaces_in_nickname(value):
-    if ' ' in value:
+    if ' ' in value.strip():
     	raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
     	# clone_a = value
     	# option_a = clone_a.replace(" ", "-")
@@ -1146,6 +1146,7 @@ class CreateNickForm(forms.Form):
 		
 		"""
 		username = self.cleaned_data['username']
+		username = username.strip()
 		validate_nickname_chars(username)
 		exists = nick_already_exists(username)
 		if exists is None:

@@ -37,7 +37,7 @@
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
 			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
-			<a href="{% url 'salat_tutorial_init' current_namaz %}">
+			<a href="{% url 'register_login' %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
 			<p><hr size=1 COLOR="#3cb7dd" ></p>
 		{% elif not show_current and show_next %}
@@ -55,7 +55,7 @@
 			
 			{{ link.p|safe }}
 		    
-		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp">shamil ho</button></a> : <a href="{% url 'public_group' slug=link.m %}" class="cm cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'register_login' %}"><button class="btn nw bl bcp">shamil ho</button></a> : <a href="{% url 'register_login' %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		<p><hr size=1 COLOR="#ac39ac"></p>
 		</div>
 	{% elif link.c == '6' %}

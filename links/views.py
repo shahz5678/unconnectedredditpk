@@ -2989,7 +2989,8 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 		if form.is_valid():
 			# show user the password in the next screen
 			if int(length) == len(slug):
-				password = request.POST.get("password")
+				# password = request.POST.get("password")
+				password = form.cleaned_data['password']
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
@@ -3030,7 +3031,8 @@ def create_nick(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickForm(data=request.POST)
 		if form.is_valid():
-			username = request.POST.get("username")
+			# username = request.POST.get("username")
+			username = form.cleaned_data['username']
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view

@@ -11,7 +11,7 @@
             <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}</span><br>
         {% elif with_thumbs %}
             <br>
-            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
+            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' slug=obj.username %}#section0">
@@ -42,7 +42,7 @@
             <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
         {% else %}
             <br>
-            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
+            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">

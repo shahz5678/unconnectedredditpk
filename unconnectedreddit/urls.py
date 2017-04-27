@@ -7,7 +7,7 @@ from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
-from links.ecomm import show_ecomm_choices
+from links.ecomm import show_ecomm_choices, x2lite_details, x32_details
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
@@ -57,7 +57,9 @@ urlpatterns = patterns('',
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
-	url(r'^mobile/', show_ecomm_choices,name='ecomm'),
+	url(r'^mobile/$', show_ecomm_choices,name='ecomm'),
+	url(r'^mobile/x32/$', x32_details,name='x32'),
+	url(r'^mobile/x2lite/$', x2lite_details,name='x2lite'),
 	#############################################Home Related########################################
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),

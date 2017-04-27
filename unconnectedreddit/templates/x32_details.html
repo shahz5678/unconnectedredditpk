@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<div class="cs clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">Tamam offers <b>Friday raat 12 bajay</b> tak hain!</div><br>
+<div class="mtl">
+<b class="cxl">QMobile</b>&nbsp;<span class="cxl">Noir X32</span>
+</div>
+<div class="mtl mbl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
+<span class="cb cl"><b>Internet</b> ke liye <b>sasta</b> aur <b>zabardast</b> touchscreen!</span>
+</div>
+<br><span class="co">
+	Price: <b class="mls">Rs.5000</b>&nbsp;<span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy cs">Rs.5500</span></span><br>
+	RAM: <b class="mls">1&nbsp;GB</b><br>
+	Camera: <b class="mls">5&nbsp;Megapixel</b><br>
+	Memory: <b class="mls">8&nbsp;GB</b><br>
+	Mem Card: <b class="mls">64&nbsp;GB</b>&nbsp;<span class="cs">(supported)</span><br>
+	Internet: <b class="mls">3G</b><br>
+	WiFi: <b class="mls">Yes</b><br>
+	Warranty: <b class="mls">1 year</b><br>
+	Sims: <b class="mls">2</b><br>
+	Screen: <b class="mls">4.0&nbsp;inches</b><br>
+	Touchscreen: <b class="mls">Yes</b><br>
+	Torch: <b class="mls">Yes</b><br>
+	Bluetooth: <b class="mls">Yes</b><br>
+	Android: <b class="mls">6.0&nbsp;Marshmallow</b><br>
+	</span>
+<br><button class="btn bxl bcg cl"><b>Order karo</b></button>
+<br><img class="mtl mbl" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/x32.png" alt="no pic">
+<br><button class="btn bxl bcg cl mbl"><b>Order karo</b></button>
+<br><a href="{% url 'ecomm' %}"><button class="btn bcgy mts bl cm"><b>wapis</b></button></a>
+</div>
+<br><br>
+{% endblock %}

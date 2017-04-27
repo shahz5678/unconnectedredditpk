@@ -322,10 +322,10 @@ Buttons
          width:9.7em;
     }
 
-
-
-
- 
+/*makes labels yellow when input (E.g. radio button) is selected*/
+input:checked + label{
+  background: yellow;  
+}
 
 
 /*button color red*/

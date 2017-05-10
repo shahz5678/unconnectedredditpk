@@ -6604,8 +6604,6 @@ class LinkCreateView(CreateView):
 				context["feature_phone"] = True
 			else:
 				context["feature_phone"] = False
-				if self.request.user.username == 'Shireen':
-					context["token"] = MIXPANEL_TOKEN
 			if banned:
 				m, s = divmod(time_remaining, 60)
 				h, m = divmod(m, 60)

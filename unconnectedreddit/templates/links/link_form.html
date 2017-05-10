@@ -33,7 +33,7 @@
 	<hr size=1>
 	<span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
 	<span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cs">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
-	{{ token }}
+
 	{% emoticons_index as emoticons_list %}
 
 	{% for emoticons in emoticons_list %}

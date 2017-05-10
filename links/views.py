@@ -6858,7 +6858,9 @@ class GroupReportView(FormView):
 					reply_id = self.request.session["groupreport_pk"]
 					self.request.session["groupreport_pk"] = None
 					reply = get_object_or_404(Reply, pk=reply_id)
-					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists():
+					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists() \
+					or reply.text == self.request.user.username: #this checks if this particular captain has reported this particular reply before (doesn't defend against another captain reporting an already-reported group reply)
+						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-100) #punish the hacker
 						return redirect("public_group", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
@@ -8037,7 +8039,7 @@ class AdImageView(CreateView):
 		if f.image:
 			unique = uuid.uuid4()
 			if self.request.user.is_authenticated():
-				ad_image=ChatPic.objects.create(image=f.image, owner=request.user, times_sent=0, unique=unique)
+				ad_image=ChatPic.objects.create(image=f.image, owner=self.request.user, times_sent=0, unique=unique)
 			else:
 				ad_image=ChatPic.objects.create(image=f.image, owner_id=1, times_sent=0, unique=unique)
 			self.request.session["ad_image"] = ad_image.image.url

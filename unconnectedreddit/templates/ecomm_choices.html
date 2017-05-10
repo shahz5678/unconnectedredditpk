@@ -5,7 +5,7 @@
 	<div class="mtl">
 	<b class="cxl">QMobile</b>&nbsp;<span class="cxl">Noir X32</span>
 	<br><div class="mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-	<b class="cb cxl">Price: Rs. 5000</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(old price: Rs. 5500)</span></span>
+	<b class="cb cxl">Price: Rs. 5000</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(shop price: Rs. 5500)</span></span>
 	</div>
 	<br><img class="mbl mtl" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/x32.png" alt="no pic">
 	<br><div>
@@ -13,19 +13,23 @@
 		RAM: <b class="mls">1&nbsp;GB</b><br>
 		Camera: <b class="mls">5&nbsp;Megapixel</b><br>
 		Memory: <b class="mls">8&nbsp;GB</b><br>
-		... (tafseel)
+		<span class="cb">... (tafseel)</span>
 		</a>
 	</div>
 	<div class="mtl">
 	<span class="cgy cs">QMobile X32 Noir ko <b>25 log</b> order kar chukey hain!</span>
 	</div>
-	<button class="btn mtl mbs bxl bcg cl"><b>Order karo</b></button>
+	<form method="POST" action="{% url 'buyer_loc' %}">
+	{% csrf_token %}
+	<input type="hidden" name="merch_id" value="1">
+	<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order karo</b></button>
+	</form>
 	</div>
 <hr size=1 COLOR="#A9A9A9">
 	<div class="mtl">
 	<b class="cxl">QMobile</b>&nbsp;<span class="cxl">X2 Lite</span>
 	<br><div class="mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-	<b class="cb cxl">Price: Rs. 3200</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(old price: Rs. 3700)</span></span>
+	<b class="cb cxl">Price: Rs. 3200</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(shop price: Rs. 3700)</span></span>
 	</div>
 	<br><img class="mbl mtl" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/x2lite.png" alt="no pic">
 	<br><div>
@@ -33,13 +37,17 @@
 		RAM: <b class="mls">256&nbsp;MB</b><br>
 		Camera: <b class="mls">1&nbsp;Megapixel</b><br>
 		Memory: <b class="mls">512&nbsp;MB</b><br>
-		... (tafseel)</span>
+		<span class="cb">... (tafseel)</span>
 		</a>
 	</div>
 	<div class="mtl">
 	<span class="cgy cs">QMobile X2 Lite ko <b>15 log</b> order kar chukey hain!</span>
 	</div>
-	<button class="btn mtl mbs bxl bcg cl"><b>Order karo</b></button>
+	<form method="POST" action="{% url 'buyer_loc' %}">
+	{% csrf_token %}
+	<input type="hidden" name="merch_id" value="2">
+	<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order karo</b></button>
+	</form>
 	</div>
 <hr size=1 COLOR="#A9A9A9">
 Koi aur phone chahiye? Yahan likh do, hum us pe bhi discount dilwane ki koshish karein ge!

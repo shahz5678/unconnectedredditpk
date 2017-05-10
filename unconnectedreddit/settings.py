@@ -9,6 +9,7 @@ ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
 # os.getenv is equivalent, and can also give a default value instead of `None`
 MIXPANEL_TOKEN = os.getenv('MIXPANEL_TOKEN', '1')
+# print MIXPANEL_TOKEN
 
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 

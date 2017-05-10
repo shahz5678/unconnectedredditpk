@@ -7,7 +7,7 @@ MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedreddi
 ON_AZURE = os.environ.get('ON_AZURE')
 ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
-#AZURE_ACCOUNT_KEY = os.environ.get('AZURE_ACCOUNT_KEY')
+MIXPANEL_TOKEN = os.environ.get('MIXPANEL_TOKEN','1')
 
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl co">Apna city batao:</b><br>
+
+<form method="POST" action="{% url 'process_city' %}" class="mtl">
+{% csrf_token %}
+<input type="hidden" name="merch_id" value="{{ merch_id }}">
+<input class="mbl" type="radio" id="radio1" name="loc" value="lhr"><label for="radio1"><b class="cxl">Lahore</b></label><br>
+<input class="mbl" type="radio" id="radio2" name="loc" value="rwp"><label for="radio2"><b class="cxl">Rawalpindi</b></label><br>
+<input class="mbl" type="radio" id="radio3" name="loc" value="isb"><label for="radio3"><b class="cxl">Islamabad</b></label><br>
+<input class="mbl" type="radio" id="radio4" name="loc" value="khi"><label for="radio4"><b class="cxl">Karachi</b></label><br>
+<input class="mbl" type="radio" id="radio5" name="loc" value="other"><label for="radio5"><span class="cxl">In mein se koi nahi</span></label><br>
+<button type="submit" class="btn bcg mtl bm cl"><b>OK</b></button>
+</form>
+
+</div>
+<br><br>
+{% endblock %}

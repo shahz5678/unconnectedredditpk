@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="margin clb">
+<div>
+<b class="cxl">Sirf <span class="co">Lahore</span>, <span class="co">Rawalpindi</span> aur <span class="co">Islamabad</span> mein delivery ki ja rahi hai</b>
+</div><br>
+<div>
+<span class="cxl">Hum <span class="co">{{ loc }}</span> mein abhi delivery nahi kr rahey</span>
+</div><br>
+<div>
+<span class="cm cgy">Agr ziyada orders aye tou {{ loc|truncatechars:30 }} mein bhi delivery start ho jaye gi</span>
+</div><br>
+<a href="{% url 'ecomm' %}"><button class="btn bcg bm mts"><b>wapis</b></button></a>
+</div>
+<br><br>
+{% endblock %}

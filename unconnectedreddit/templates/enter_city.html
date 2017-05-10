@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+
+<form method="POST" action="{% url 'process_city' %}">
+{% csrf_token %}
+<input type="hidden" name="merch_id" value="{{ merch_id }}">
+{% if form.errors %}
+<span class="cr">{{ form.loc.errors.0 }}</span>
+{% else %}
+<b class="cxl co">Apne city ka naam likho:</b>
+{% endif %}
+<br><br>
+{{ form.loc }}
+<br><br>
+<button type="submit" class="btn bcg mts bm cl"><b>OK</b></button>
+</form>
+
+</div>
+<br><br>
+{% endblock %}

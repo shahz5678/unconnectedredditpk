@@ -2,7 +2,7 @@
 import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
 from requests.auth import HTTPBasicAuth
-# from django.forms.formsets import formset_factory
+from mixpanel import Mixpanel
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from location import MEMLOC
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
@@ -97,6 +98,7 @@ from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -6674,6 +6676,7 @@ class LinkCreateView(CreateView):
 					if extras:
 						queue_for_deletion.delay(extras)
 				f.submitter.userprofile.save()
+				mp.track(user_id, 'Sent Message')
 				return super(CreateView, self).form_valid(form) #saves the link automatically
 			else:
 				return redirect("score_help")

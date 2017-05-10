@@ -14,7 +14,7 @@ from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
 from detect_porn import detect
 import PIL
-from PIL import Image, ImageFile, ImageEnhance, ExifTags
+from PIL import Image, ImageFont, ImageDraw, ImageFile, ImageEnhance, ImageChops, ImageFilter, ImageOps, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO, math, re, time
 from user_sessions.models import Session
@@ -23,6 +23,8 @@ from abuse import BANNED_WORDS
 import unicodedata
 from fuzzywuzzy import fuzz
 # import numpy as np
+
+# BACKGROUND_HEIGHT = 32
 
 def can_group_reply(text,user_id):
 	prev_group_replies = get_prev_group_replies(user_id)
@@ -78,8 +80,8 @@ def compute_avg_hash(image):
 	return photo_hash
 
 def restyle_image(image):
+	# width = 400
 	width = 300
-	#height = 38
 	wpercent = (width/float(image.size[0]))
 	hsize = int((float(image.size[1])*float(wpercent)))
 	image_resized = image.resize((width,hsize), PIL.Image.ANTIALIAS)
@@ -99,9 +101,49 @@ def reorient_image(image):
 	except:
 		return image
 
+# def draw_text(img, text, fillcolor):
+# 	text = text.strip()
+# 	base_width, base_height = img.size #The image's size in pixels, as 2-tuple (width,height)
+# 	font_size = base_width/15
+# 	if font_size < 13:
+# 		print "bad result"
+# 	font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+# 	################Converting single-line text into multiple lines#################
+# 	line = ""
+# 	lines = []
+# 	width_of_line = 0
+# 	number_of_lines = 0
+# 	for token in text.split():
+# 		token = token+' '
+# 		token_width = font.getsize(token)[0]
+# 		if width_of_line+token_width < base_width:
+# 			line+=token
+# 			width_of_line+=token_width
+# 		else:
+# 			lines.append(line)
+# 			number_of_lines += 1
+# 			width_of_line = 0
+# 			line = ""
+# 			line+=token
+# 			width_of_line+=token_width
+# 	if line:
+# 		lines.append(line)
+# 		number_of_lines += 1
+# 	#################################################################################
+# 	font_height = font.getsize('|')[1]
+# 	background = Image.new('RGBA', (base_width, font_height*number_of_lines),(0,0,0,146)) #creating the black strip
+# 	draw = ImageDraw.Draw(background)
+# 	y_text = 0#h
+# 	for line in lines:
+# 		width, height = font.getsize(line)
+# 		draw.text(((base_width - width) / 2, y_text), line, font=font, fill=fillcolor)
+# 		y_text += height
+# 	offset = (0,base_height/2) #get from user input (e.g. 'top', 'bottom', 'middle')
+# 	img.paste(background,offset,mask=background)
+
 def MakeThumbnail(filee):
 	img = filee
-	img = restyle_image(img)
+	# img = restyle_image(img) # only use this if you're not utilizing img.thumbnail()
 	if img.mode != 'RGB':
 		img = img.convert("RGB")
 	enhancer = ImageEnhance.Brightness(img)
@@ -110,14 +152,28 @@ def MakeThumbnail(filee):
 	enhancer2 = enhancer2.enhance(1.04)
 	enhancer3 = ImageEnhance.Color(enhancer2)
 	img = enhancer3.enhance(1.15)
-	img.thumbnail((300, 300))
+	#############
+	img.thumbnail((300, 300),Image.ANTIALIAS)
+	# fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue
+	# text = 'This is EXTRA LARGE text that will definitely overflow (yes I swear!)'
+	# draw_text(img,text,fillcolor)
+	############
+	# shadowcolor = (255,255,255)
+	# fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue
+	# draw.text((x-1, y), text, font=font, fill=shadowcolor)
+	# draw.text((x+1, y), text, font=font, fill=shadowcolor)
+	# draw.text((x, y-1), text, font=font, fill=shadowcolor)
+	# draw.text((x, y+1), text, font=font, fill=shadowcolor)
+	# draw.multiline_text((x,y), text, fill=fillcolor, font=font)
+	# img = ImageOps.expand(img,border=2,fill='white')
+	# img = ImageOps.expand(img,border=30,fill='black')
+	#############
 	thumbnailString = StringIO.StringIO()
-	img.save(thumbnailString, 'JPEG', optimize=True)
+	img.save(thumbnailString, 'JPEG', optimize=True,quality=40)
 	newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
 	return newFile
 
 def clean_image_file(image): # where self is the form
-	# print "here"
 	if image:
 		image = Image.open(image)
 		image = reorient_image(image)
@@ -129,10 +185,7 @@ def clean_image_file(image): # where self is the form
 
 def clean_image_file_with_hash(image):#, hashes): # where self is the form
 	if image:
-		# print image
 		image = Image.open(image)
-		# is_porn, rating = detect(image) #check if it's probably porn
-		# print is_porn, rating
 		image = reorient_image(image) #so that it appears the right side up
 		avghash = compute_avg_hash(image) #to ensure a duplicate image hasn't been posted before
 		exists = already_exists(avghash)
@@ -1103,21 +1156,21 @@ def validate_nickname_chars(value):
 		raise ValidationError('Sirf english harf, number ya @ _ . + - ho sakta hai')
 
 def validate_whitespaces_in_nickname(value):
-    if ' ' in value.strip():
-    	raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
-    	# clone_a = value
-    	# option_a = clone_a.replace(" ", "-")
-    	# exists_a = nick_already_exists(option_a)
-    	# if exists_a:
-    	# 	clone_b = value
-    	# 	option_b = clone_b.replace(" ", "_")
-    	# 	exists_b = nick_already_exists(option_b)
-    	# 	if exists_b:
-     #    		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
-     #    	else:
-     #    		return option_b
-     #    else:
-     #    	return option_a
+	if ' ' in value.strip():
+		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
+		# clone_a = value
+		# option_a = clone_a.replace(" ", "-")
+		# exists_a = nick_already_exists(option_a)
+		# if exists_a:
+		# 	clone_b = value
+		# 	option_b = clone_b.replace(" ", "_")
+		# 	exists_b = nick_already_exists(option_b)
+		# 	if exists_b:
+	 #    		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
+	 #    	else:
+	 #    		return option_b
+	 #    else:
+	 #    	return option_a
 
 class CreateNickForm(forms.Form):
 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
@@ -1270,4 +1323,30 @@ class RegisterHelpForm(forms.Form):
 class VerifyHelpForm(forms.Form):
 	class Meta:
 		pass		
+
+class EcommCityForm(forms.Form):
+	loc = forms.RegexField(max_length=250,regex=re.compile("^[A-Za-z0-9._~()'!*:@, ;+?-]*$"),\
+		error_messages={'invalid': _("sirf english harf, number ya @ _ . + - likh sakte ho"),\
+		'required':_("naam ko khali nahi chore sakte")})
+
+	def __init__(self,*args,**kwargs):
+		super(EcommCityForm, self).__init__(*args,**kwargs)
+		self.fields['loc'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;width:1000px;max-width:85%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
+		self.fields['loc'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_loc(self):
+		loc = self.cleaned_data.get("loc")
+		loc = loc.strip()
+		if len(loc) < 3:
+			raise forms.ValidationError('itna chota city ka naam nahi likh sakte!')
+		elif loc.isdigit():
+			raise ValidationError('city ke naam mein sirf numbers nahi ho sakte!')
+		elif loc.lower() == 'islamabad':
+			raise ValidationError('Islamabad ko wapis ja ke list mein se select kro!')
+		elif loc.lower() == 'lahore':
+			raise ValidationError('Lahore ko wapis ja ke list mein se select kro!')
+		elif loc.lower() == 'rawalpindi':
+			raise ValidationError('Rawalpindi ko wapis ja ke list mein se select kro!')
+		return loc
 #####################################################################################################

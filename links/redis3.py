@@ -245,3 +245,16 @@ def insert_nick_list(nickname_list):
 		nicknames.append(specific_nick)
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
+
+#####################E Commerce#######################
+
+# logging orders by users from cities we aren't servicing
+def log_unserviced_city(orderer_id,location,merch):
+	my_server = redis.Redis(connection_pool=POOL)
+	#add composite_id in sorted set that will lexicographically sort itselfs
+	payload = "loc:"+str(location)+":item:"+str(merch)+":uid:"+str(orderer_id)
+	my_server.zadd("unserviced_cities",payload,0)
+
+# logging completed orders: mobile num, user_id, name, address, city, order_time, item
+def log_completed_orders():
+	my_server = redis.Redis(connection_pool=POOL)

@@ -7805,6 +7805,10 @@ def missing_page(request,*args,**kwargs):
 
 ######################### Advertising #########################
 
+def umrah(request,*args,**kwargs):
+	mp.track(request.user.id, 'Clicked Umrah Ad')
+	return render(request,'umrah_package.html',{})
+
 @ratelimit(rate='3/s')
 def make_ad(request,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)

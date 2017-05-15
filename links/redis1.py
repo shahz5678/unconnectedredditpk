@@ -2155,3 +2155,23 @@ def insert_hash(photo_id, photo_hash):
 		   my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
 	except:
 		my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
+
+############################saving ad feedback############################
+
+def set_ad_feedback(advertiser,feedback,username,user_id,submitted_at):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_feedback_counter = "af:"+advertiser
+	# print ad_feedback_counter
+	feedback_id = my_server.incr(ad_feedback_counter)
+	# print feedback_id
+	ad_feedback = advertiser+":"+str(feedback_id)
+	# print ad_feedback
+	mapping = {'username':username,'user_id':user_id,'feedback':feedback,'submitted_at':submitted_at}
+	my_server.hmset(ad_feedback,mapping)
+	return True
+
+# def get_ad_feedback(advertiser):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	ad_feedback_counter = "af:"+advertiser
+# 	feedback_id = my_server.get(ad_feedback_counter)
+# 	for 

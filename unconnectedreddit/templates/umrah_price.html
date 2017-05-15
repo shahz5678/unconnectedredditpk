@@ -1,0 +1,21 @@
+{% extends "base_min.html" %}
+{% block content %}
+{% load cache %}
+{% cache 3600 umrah_price %}
+<div class="margin clb">
+<h2>Tafseel:</h2>
+&nbsp;<b class="co">Call:</b>&nbsp;<b>0320-0000268</b><br>
+&nbsp;<b class="co">Qimat:</b>&nbsp;<b>Rs.13700</b><br>
+&nbsp;<b class="co">Mudat:</b>&nbsp;<b>7 days</b><br>
+&nbsp;<b class="co">Makkah:</b>&nbsp;<b>Hotel Fundaq Maiser 8</b>&nbsp;(Bus service shamil)<br>
+&nbsp;<b class="co">Madina:</b>&nbsp;<b>Hotel Fundaq Umar</b>&nbsp;(Bus service shamil)<br>
+<br>
+<b class="cg">Offer mein shamil:</b><br>
+<b>Visa Fees</b><br>
+<b>Rihaish</b><br>
+<b>AC wali Bus</b><br>
+<a href="{% url 'home' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
+</div>
+<br><br>
+{% endcache %}
+{% endblock %}

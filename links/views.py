@@ -7816,16 +7816,16 @@ def ad_feedback(request,*args,**kwargs):
 		form = SearchAdFeedbackForm(request.POST)
 		if form.is_valid():
 			ad_campaign = form.cleaned_data['ad_campaign']
-			results = get_ad_feedback(ad_campaign)
+			results, feedback_count = get_ad_feedback(ad_campaign)
 			# for feedback in results:
 			# 	seconds_ago = time.time() - float(feedback['submitted_at'])
 			# 	feedback['submitted_at'] = seconds_ago
-			return render(request,'ad_feedback.html',{'form':form,'results':results})
+			return render(request,'ad_feedback.html',{'form':form,'results':results,'feedback_count':feedback_count})
 		else:
-			return render(request,'ad_feedback.html',{'form':form})
+			return render(request,'ad_feedback.html',{'form':form,'feedback_count':0})
 	else:
 		form = SearchAdFeedbackForm()
-		return render(request,'ad_feedback.html',{'form':form})
+		return render(request,'ad_feedback.html',{'form':form,'feedback_count':0})
 
 def umrah_price(request,*args,**kwargs):
 	mp.track(request.user.id, 'Clicked Umrah Price Detail')

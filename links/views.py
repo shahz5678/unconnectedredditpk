@@ -1780,7 +1780,12 @@ def home_link_list(request, *args, **kwargs):
 					context["notification"] = 1
 					context["parent"] = freshest_reply
 					context["parent_pk"] = freshest_reply['oi']
-					if user.username==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
+					# print user.username == parent_link_writer_username
+					# print user.username
+					# print isinstance(user.username,unicode)
+					# print unicode(parent_link_writer_username,"utf-8")
+					# print isinstance(unicode(parent_link_writer_username,"utf-8"),unicode)
+					if user.username==unicode(parent_link_writer_username,"utf-8") and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
 						context["first_time_user"] = True
 					else:
 						context["first_time_user"] = False

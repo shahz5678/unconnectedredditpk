@@ -2181,6 +2181,6 @@ def get_ad_feedback(ad_campaign):
 			pipeline1.hgetall(ad_feedback)
 		results = pipeline1.execute()
 		#returns list of dictionaries
-		return results
+		return results, feedback_id
 	else:
-		return False
+		return [],0

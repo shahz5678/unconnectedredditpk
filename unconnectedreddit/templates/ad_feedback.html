@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% block content %}
+<div class="margin clb">
+<form method="POST" action="{% url 'ad_feedback' %}">
+{% csrf_token %}
+{{ form.ad_campaign }}<br>
+<button type="submit" class="btn bcg bm mtl mbl">OK</button><br>
+</form>
+<hr size=1 COLOR="#b3e6b3">
+{% for result in results reversed %}
+<b class="cgy">{{ result.submitted_at|human_time }}:</b><br>
+<div class="mts mbs">
+<b>{{ result.feedback }}</b><br>
+</div>
+<span class="co mll">by&nbsp;<b>{{ result.username }}</b></span>&nbsp;<span class="cgy cs">(id:{{ result.user_id }})</span><br>
+<hr size=1 COLOR="#b3e6b3">
+{% endfor %}
+</div>
+<br><br>
+{% endblock %}

@@ -2170,8 +2170,17 @@ def set_ad_feedback(advertiser,feedback,username,user_id,submitted_at):
 	my_server.hmset(ad_feedback,mapping)
 	return True
 
-# def get_ad_feedback(advertiser):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	ad_feedback_counter = "af:"+advertiser
-# 	feedback_id = my_server.get(ad_feedback_counter)
-# 	for 
+def get_ad_feedback(ad_campaign):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_feedback_counter = "af:"+ad_campaign
+	if my_server.exists(ad_feedback_counter):
+		feedback_id = my_server.get(ad_feedback_counter)
+		pipeline1 = my_server.pipeline()
+		for index in range(1,int(feedback_id)):
+			ad_feedback = ad_campaign+":"+str(index)
+			pipeline1.hgetall(ad_feedback)
+		results = pipeline1.execute()
+		#returns list of dictionaries
+		return results
+	else:
+		return False

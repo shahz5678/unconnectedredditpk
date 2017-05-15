@@ -1,21 +1,21 @@
 {% extends "base_min.html" %}
 {% block content %}
 <div class="margin clb">
-<h2 class="cg bw">BookMyUmrah Company ki sasti tareen offer!</h2>
+<h2 class="cg bw">BookMyUmrah Company ki taraf se sasti Umrah offer:</h2>
 <div class="mbs">
-<b class="co">Qimat:</b><span class="mls"><b>Rs. 13700</b>&nbsp;<span class="cs">(<a href="{% url 'umrah_price' %}">tafseel</a>)</span></span><br>
+<b class="co">Price:</b><span class="mls"><b>Rs. 13700</b>&nbsp;<span class="cs">(<a href="{% url 'umrah_price' %}">tafseel dekho</a>)</span></span><br>
 </div>
 <div class="mbs">
-<b class="co">Call:</b><span class="mls bw"><b>0320-0000268</b></span><br>
+<b class="co">Booking:</b><span class="mls bw">Call&nbsp;<b>0320-0000268</b></span><br>
 </div>
 <div class="mbs">
-<b class="co">Offer:</b><span class="mls">Call pe bolo ye offer <b>Damadam</b> pe dekhi</span><br>
+<b class="co">Offer:</b><span class="mls">Call pe bolo ke offer <b>Damadam</b> pe dekhi</span><br>
 </div>
 <div class="mbs">
 <b class="co">Time:</b><span class="mls">Subah <b>10 bajay</b> se shaam <b>7 bajay</b> tak</span><br>
 </div>
 <div class="mbs">
-<b class="co">Web:</b><span class="mls bw"><a href="http://www.bookmyumrah.pk/" target="_blank">bookmyumrah.pk</a></span><br>
+<b class="co">Website:</b><span class="mls bw"><a href="http://www.bookmyumrah.pk/" target="_blank">bookmyumrah.pk</a></span><br>
 </div>
 <a href="{% url 'home' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
 <br>
@@ -25,7 +25,7 @@
 		{% if form.feedback.errors %}
 			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
 		{% else %}
-			<b class="cl cg">BookMyUmrah Company ki is offer pe koi <span class="co">shikayat</span> ya <span class="co">mashwara</span> dena hai?</b><br>
+			<b class="cl cg">BookMyUmrah Company ki is offer pe apni <span class="co">shikayat</span> ya <span class="co">mashwara</span> likho:</b><br>
 		{% endif %}
 		<div class="mts">
 	  	{{ form.feedback }}

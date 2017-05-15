@@ -7,6 +7,9 @@
 {{ form.ad_campaign }}<br>
 <button type="submit" class="btn bcg bm mtl mbl">OK</button><br>
 </form>
+{% if feedback_count|add:"0" > 0 %}
+<b class="cg cs">{{ feedback_count }} feedback</b><br>
+{% endif %}
 <hr size=1 COLOR="#b3e6b3">
 {% for result in results reversed %}
 <b class="cgy">{{ result.submitted_at|human_time }}:</b><br>

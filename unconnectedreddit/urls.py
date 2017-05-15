@@ -21,7 +21,7 @@ unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote, un
 see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, \
 cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
 first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,\
-search_uname_unlocking_dec, search_username, go_to_username, go_to_user_photo, remove_searched_username, umrah
+search_uname_unlocking_dec, search_username, go_to_username, go_to_user_photo, remove_searched_username, umrah, umrah_price
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -54,7 +54,9 @@ urlpatterns = patterns('',
 	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
 	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
+	# url(r'^ad_feedback/', auth(ad_feedback), name='ad_feedback'),
 	url(r'^umrah/', auth(umrah), name='umrah'),
+	url(r'^umrah_price/', auth(umrah_price), name='umrah_price'),
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),

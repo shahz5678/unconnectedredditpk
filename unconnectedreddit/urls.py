@@ -8,6 +8,7 @@ from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
+from urls_ads import urlpatterns as urlpatterns_ads
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
@@ -54,9 +55,6 @@ urlpatterns = patterns('',
 	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
 	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
-	# url(r'^ad_feedback/', auth(ad_feedback), name='ad_feedback'),
-	url(r'^umrah/', auth(umrah), name='umrah'),
-	url(r'^umrah_price/', auth(umrah_price), name='umrah_price'),
 	url(r'^ad/suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
@@ -316,3 +314,4 @@ urlpatterns = patterns('',
 	#################################################################################################
 )
 urlpatterns += urlpatterns_ecomm
+urlpatterns += urlpatterns_ads

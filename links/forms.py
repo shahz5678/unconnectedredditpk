@@ -1,4 +1,4 @@
-
+# coding=utf-8
 from django import forms
 from django.forms import Textarea
 from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies
@@ -101,45 +101,72 @@ def reorient_image(image):
 	except:
 		return image
 
-# def draw_text(img, text, fillcolor):
-# 	text = text.strip()
-# 	base_width, base_height = img.size #The image's size in pixels, as 2-tuple (width,height)
-# 	font_size = base_width/15
-# 	if font_size < 13:
-# 		print "bad result"
-# 	font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-# 	################Converting single-line text into multiple lines#################
-# 	line = ""
-# 	lines = []
-# 	width_of_line = 0
-# 	number_of_lines = 0
-# 	for token in text.split():
-# 		token = token+' '
-# 		token_width = font.getsize(token)[0]
-# 		if width_of_line+token_width < base_width:
-# 			line+=token
-# 			width_of_line+=token_width
-# 		else:
-# 			lines.append(line)
-# 			number_of_lines += 1
-# 			width_of_line = 0
-# 			line = ""
-# 			line+=token
-# 			width_of_line+=token_width
-# 	if line:
-# 		lines.append(line)
-# 		number_of_lines += 1
-# 	#################################################################################
-# 	font_height = font.getsize('|')[1]
-# 	background = Image.new('RGBA', (base_width, font_height*number_of_lines),(0,0,0,146)) #creating the black strip
-# 	draw = ImageDraw.Draw(background)
-# 	y_text = 0#h
-# 	for line in lines:
-# 		width, height = font.getsize(line)
-# 		draw.text(((base_width - width) / 2, y_text), line, font=font, fill=fillcolor)
-# 		y_text += height
-# 	offset = (0,base_height/2) #get from user input (e.g. 'top', 'bottom', 'middle')
-# 	img.paste(background,offset,mask=background)
+def text_with_stroke(draw,width,height,line,font,fillcolor,shadowcolor):
+	# print line
+	draw.text((width-1, height), line, font=font, fill=shadowcolor)
+	draw.text((width+1, height), line, font=font, fill=shadowcolor)
+	draw.text((width, height-1), line, font=font, fill=shadowcolor)
+	draw.text((width, height+1), line, font=font, fill=shadowcolor)
+	draw.text((width, height), line, font=font, fill=fillcolor)
+
+def draw_text(img, text, fillcolor, shadowcolor, position='bottom'):
+	text = text.strip()
+	base_width, base_height = img.size #The image's size in pixels, as 2-tuple (width,height)
+	font_size = base_width/15
+	if font_size < 13:
+		print "bad result"
+	font = ImageFont.truetype("/usr/share/fonts/truetype/fonts-jameel/JameelNooriNastaleeq.ttf", font_size)
+	# print font
+	################Converting single-line text into multiple lines#################
+	line = ""
+	lines = []
+	width_of_line = 0
+	number_of_lines = 0
+	for token in text.split():
+		token = token+' '
+		token_width = font.getsize(token)[0]
+		if width_of_line+token_width < base_width:
+			line+=token
+			width_of_line+=token_width
+		else:
+			lines.append(line)
+			number_of_lines += 1
+			width_of_line = 0
+			line = ""
+			line+=token
+			width_of_line+=token_width
+	if line:
+		lines.append(line)
+		number_of_lines += 1
+	#################################################################################
+	draw = ImageDraw.Draw(img)#(background)
+	if position == 'top':
+		y = 2
+		for line in lines:
+			width, height = font.getsize(line)
+			x = (base_width - width) / 2
+			text_with_stroke(draw,x,y,line,font,fillcolor,shadowcolor)
+			y += height
+	elif position == 'middle':
+		font_height = font.getsize('|')[1]
+		text_height = font_height * number_of_lines
+		y = (base_height-text_height)/2
+		for line in lines:
+			width, height = font.getsize(line)
+			x = (base_width - width) / 2
+			text_with_stroke(draw,x,y,line,font,fillcolor,shadowcolor)
+			y += height
+	else:
+		font_height = font.getsize('|')[1]
+		# background = Image.new('RGBA', (base_width, font_height*number_of_lines),(0,0,0,146)) #creating the black strip
+		y = base_height-(font_height+3)#0
+		for line in reversed(lines):
+			width, height = font.getsize(line)
+			x = (base_width - width) / 2
+			text_with_stroke(draw,x,y,line,font,fillcolor,shadowcolor)
+			y -= (height+2)
+		# offset = (0,base_height/2) #get from user input (e.g. 'top', 'bottom', 'middle')
+		# img.paste(background,offset,mask=background)
 
 def MakeThumbnail(filee):
 	img = filee
@@ -155,18 +182,9 @@ def MakeThumbnail(filee):
 	#############
 	img.thumbnail((300, 300),Image.ANTIALIAS)
 	# fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue
-	# text = 'This is EXTRA LARGE text that will definitely overflow (yes I swear!)'
-	# draw_text(img,text,fillcolor)
-	############
-	# shadowcolor = (255,255,255)
-	# fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue
-	# draw.text((x-1, y), text, font=font, fill=shadowcolor)
-	# draw.text((x+1, y), text, font=font, fill=shadowcolor)
-	# draw.text((x, y-1), text, font=font, fill=shadowcolor)
-	# draw.text((x, y+1), text, font=font, fill=shadowcolor)
-	# draw.multiline_text((x,y), text, fill=fillcolor, font=font)
-	# img = ImageOps.expand(img,border=2,fill='white')
-	# img = ImageOps.expand(img,border=30,fill='black')
+	# shadowcolor = (0,0,0)
+	# text = u'مسجد' #urdu se angrezi
+	# draw_text(img,text,fillcolor,shadowcolor)
 	#############
 	thumbnailString = StringIO.StringIO()
 	img.save(thumbnailString, 'JPEG', optimize=True,quality=40)
@@ -1323,6 +1341,29 @@ class RegisterHelpForm(forms.Form):
 class VerifyHelpForm(forms.Form):
 	class Meta:
 		pass		
+
+class AdFeedbackForm(forms.Form):
+	feedback = forms.CharField(widget=forms.Textarea(attrs=\
+		{'cols':40,'rows':3,'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid green;border-radius:5px;color: #404040;'}),\
+		validators=[validators.RegexValidator(regex="^[A-Za-z0-9._~()'!*:@, ;+?-]*$")],error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
+		'required':_("(tip: isko khali nahi chore sakte)")})
+	class Meta:
+		fields = ("feedback",)
+
+	def __init__(self, *args, **kwargs):
+		super(AdFeedbackForm, self).__init__(*args, **kwargs)
+		self.fields['feedback'].widget.attrs['class'] = 'cxl'
+		self.fields['feedback'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_feedback(self):
+		feedback = self.cleaned_data.get("feedback")
+		feedback = feedback.strip()
+		if len(feedback) < 5:
+			raise forms.ValidationError('(tip: is se ziyada likho)')
+		elif len(feedback) > 250:
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
+		feedback = clear_zalgo_text(feedback)
+		return feedback
 
 class EcommCityForm(forms.Form):
 	loc = forms.RegexField(max_length=250,regex=re.compile("^[A-Za-z0-9._~()'!*:@, ;+?-]*$"),\

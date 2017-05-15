@@ -2176,7 +2176,7 @@ def get_ad_feedback(ad_campaign):
 	if my_server.exists(ad_feedback_counter):
 		feedback_id = my_server.get(ad_feedback_counter)
 		pipeline1 = my_server.pipeline()
-		for index in range(1,int(feedback_id)):
+		for index in range(1,int(feedback_id)+1):
 			ad_feedback = ad_campaign+":"+str(index)
 			pipeline1.hgetall(ad_feedback)
 		results = pipeline1.execute()

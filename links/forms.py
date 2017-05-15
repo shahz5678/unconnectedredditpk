@@ -1342,6 +1342,24 @@ class VerifyHelpForm(forms.Form):
 	class Meta:
 		pass		
 
+class SearchAdFeedbackForm(forms.Form):
+	ad_campaign = forms.CharField(max_length=100)
+
+	def __init__(self, *args, **kwargs):
+		super(SearchAdFeedbackForm, self).__init__(*args, **kwargs)
+		self.fields['ad_campaign'].widget.attrs['style'] = \
+		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #179b36;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #179b36;'
+		self.fields['ad_campaign'].widget.attrs['class'] = 'cxl'
+		self.fields['ad_campaign'].widget.attrs['autofocus'] = 'autofocus'
+
+	def clean_ad_campaign(self):
+		ad_campaign = self.cleaned_data.get("ad_campaign")
+		ad_campaign = ad_campaign.strip()
+		if len(ad_campaign) > 100:
+			raise forms.ValidationError('tip: inta bara name nahi likh sakte')
+		ad_campaign = clear_zalgo_text(ad_campaign)
+		return ad_campaign
+
 class AdFeedbackForm(forms.Form):
 	feedback = forms.CharField(widget=forms.Textarea(attrs=\
 		{'cols':40,'rows':3,'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid green;border-radius:5px;color: #404040;'}),\

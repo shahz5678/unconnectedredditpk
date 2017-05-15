@@ -62,7 +62,7 @@ account_creation_disallowed, account_created, set_prev_retort, set_prev_retorts,
 first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, \
 del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
-is_uname_search_unlocked
+is_uname_search_unlocked, set_ad_feedback
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -79,7 +79,7 @@ SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, M
 ReportProfileForm, ReportFeedbackForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, \
 AdImageForm, TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, BestPhotosListForm, PhotosListForm, \
-CricketCommentForm,PublicreplyMiniForm, SearchNicknameForm
+CricketCommentForm,PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -7805,9 +7805,36 @@ def missing_page(request,*args,**kwargs):
 
 ######################### Advertising #########################
 
+# def ad_feedback(request,*args,**kwargs):
+# 	advertiser = 'BookMyUmrah'
+# 	return render(request,'ad_feedback.html',{})
+
+
+def umrah_price(request,*args,**kwargs):
+	mp.track(request.user.id, 'Clicked Umrah Price Detail')
+	return render(request,'umrah_price.html',{})
+
+@csrf_protect
 def umrah(request,*args,**kwargs):
-	mp.track(request.user.id, 'Clicked Umrah Ad')
-	return render(request,'umrah_package.html',{})
+	if request.method == 'POST':
+		form = AdFeedbackForm(request.POST)
+		if form.is_valid():
+			advertiser = 'BookMyUmrah'
+			feedback = form.cleaned_data['feedback']
+			username = request.user.username
+			user_id = request.user.id
+			time_now = timezone.now()
+			submitted_at = convert_to_epoch(time_now)
+			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
+			mp.track(request.user.id, 'Gave Ad Feedback')
+			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
+		else:
+			# form = AdFeedbackForm()
+			return render(request,'umrah_package.html',{'form':form})
+	else:
+		form = AdFeedbackForm()
+		mp.track(request.user.id, 'Clicked Umrah Ad')
+		return render(request,'umrah_package.html',{'form':form})
 
 @ratelimit(rate='3/s')
 def make_ad(request,*args, **kwargs):

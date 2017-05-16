@@ -25,25 +25,7 @@
         {% endfor %}
     {% endif %}
     </span>
-    {% if banned %}
-        <br>
-        <hr size=1 COLOR="#2DB92D">
-        <span class="cm cg">Tum mehfil mein likh sko ge <b>{{ time_remaining }}</b> ke baad</span>
-        <br>
-        {% if ban_type == '1' %}
-        <span class="cm cg">Aesa kuch na kro jis se log tang hon</span>
-         <hr size=1 COLOR="#2DB92D">
-
-        {% elif ban_type == '2' %}
-        <span class="cm cg">>Aese kuch na kro jis se mahol kharab ho</span>
-         <hr size=1 COLOR="#2DB92D">
-
-        {% else %}
-        <span class="cm cg">>Aesa kuch na kro jo logoon ko bura lage</span>
-         <hr size=1 COLOR="#2DB92D">
-
-        {% endif %}
-    {% else %}
+    
     <a href="{% url 'invite_private_group' %}#section0"><button class="btn bm bcg cs mts">invite</button></a>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#2DB92D">
@@ -59,9 +41,6 @@
         <br>{% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
         <br>
         {{ form.text }}
-            {% if warned %}
-            <span class="cs cr"><b>Warning:</b> tumhare khilaf reports a rahi hain, ehtiat kro!</span>
-            {% endif %}
             <br>
     <button class="btn bms bcg mrl" type="submit" id="id_submit">OK</button>
     </form>
@@ -69,7 +48,7 @@
         {% csrf_token %}
         <button class="btn bms bco mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
     </form>
-    {% endif %}
+    
     <p style="margin-top:.2em;"></p>
     <a name="sectionJ"></a> 
     <span class="cg cs">
@@ -233,9 +212,6 @@
         {% else %}
         {% endif %}
             </span>
-        {% if user != reply.writer and user.userprofile.score > 120 %}
-            &nbsp;<a href="{% url 'reprofile' reply.writer_id unique 1 group.id reply.writer.username %}"><button class="btn bcgy bm cxs">report</button></a>
-        {% endif %}
         <hr size=1 COLOR="#2DB92D">
         </td></tr>
     {% endfor %}

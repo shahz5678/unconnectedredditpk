@@ -1530,7 +1530,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 		if form.is_valid():
 			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 			request.session['target_id'] = pk
-			mp.track(user_id, 'Home Reply')
+			# mp.track(user_id, 'Home Reply')
 			if first_time_home_replier(user_id):
 				add_home_replier(user_id)
 				return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
@@ -2028,7 +2028,7 @@ class OnlineKonView(ListView):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)
 		context["with_thumbs"] = False
 		if self.request.user.is_authenticated():
-			mp.track(self.request.user.id, 'Saw Online Kon')
+			# mp.track(self.request.user.id, 'Saw Online Kon')
 			if not context["object_list"]:
 				context["whose_online"] = False
 			else:
@@ -3969,7 +3969,7 @@ class CommentView(CreateView):
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url)
-			mp.track(user.id, 'Left Photo Comment')
+			# mp.track(user.id, 'Left Photo Comment')
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 			elif pk and origin and star_user_id:
@@ -5766,7 +5766,7 @@ class PublicGroupView(CreateView):
 				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
 				image_url=image_url,priority='public_mehfil',from_unseen=False)
 			self.request.session["public_uuid"] = None
-			mp.track(user_id, 'Public Mehfil Reply')
+			# mp.track(user_id, 'Public Mehfil Reply')
 			return redirect("public_group", slug=pk)
 
 
@@ -5993,7 +5993,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
 				from_unseen=False)
 			self.request.session['unique_id'] = unique
-			mp.track(user_id, 'Private Mehfil Reply')
+			# mp.track(user_id, 'Private Mehfil Reply')
 			return redirect("private_group_reply")#, reply.which_group.unique)
 	
 @ratelimit(rate='3/s')
@@ -6460,7 +6460,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			process_publicreply(self.request,link_id,f.description)
-			mp.track(user_id, 'Home Publicreply')
+			# mp.track(user_id, 'Home Publicreply')
 			self.request.session["link_pk"] = link_id
 			return redirect("reply")
 

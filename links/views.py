@@ -1530,6 +1530,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 		if form.is_valid():
 			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 			request.session['target_id'] = pk
+			mp.track(user_id, 'Home Reply')
 			if first_time_home_replier(user_id):
 				add_home_replier(user_id)
 				return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
@@ -2027,6 +2028,7 @@ class OnlineKonView(ListView):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)
 		context["with_thumbs"] = False
 		if self.request.user.is_authenticated():
+			mp.track(self.request.user.id, 'Saw Online Kon')
 			if not context["object_list"]:
 				context["whose_online"] = False
 			else:
@@ -2125,7 +2127,7 @@ class UserProfilePhotosView(ListView):
 			populate_search_thumbs.delay(slug,ids_with_urls)
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
-			# newrelic.agent.add_custom_parameter("photoboys", username)
+			mp.track(self.request.user.id, 'Viewed Profile Photos')
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["manageable"] = True
@@ -3899,9 +3901,6 @@ class CommentView(CreateView):
 					updated_at=time.time(),single_notif=False, unseen_activity=True,priority='photo_tabsra',\
 					bump_ua=False,no_comment=True)
 			if comments:
-				# updated = update_notification(viewer_id=self.request.user.id, object_id=pk,object_type='0',seen=True,\
-				# 	updated_at=time.time(),single_notif=False, unseen_activity=True,priority='photo_tabsra',\
-				# 	bump_ua=False,no_comment=True)
 				if updated:
 					context["unseen"] = True
 					try:
@@ -3970,6 +3969,7 @@ class CommentView(CreateView):
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url)
+			mp.track(user.id, 'Left Photo Comment')
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 			elif pk and origin and star_user_id:
@@ -5711,19 +5711,9 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user_id = self.request.user.id
-			# score = fuzz.ratio(f.text, get_prev_retort(user_id))
-			# if score > 85:
-			# 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
-			# 	self.request.session["public_uuid"] = None
-			# 	return redirect("public_group", slug=pk)
-			# else:
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 			if f.image:
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-				# try:
-				# 	on_fbs = self.request.META.get('X-IORG-FBS')
-				# except:
-				# 	on_fbs = False
 				if on_fbs:
 					if f.image.size > 200000:
 						context = {'pk':'pk'}
@@ -5776,6 +5766,7 @@ class PublicGroupView(CreateView):
 				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
 				image_url=image_url,priority='public_mehfil',from_unseen=False)
 			self.request.session["public_uuid"] = None
+			mp.track(user_id, 'Public Mehfil Reply')
 			return redirect("public_group", slug=pk)
 
 
@@ -5906,26 +5897,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			context["group"] = group
 			if 'private' in self.request.path and group.private=='1':
 				user_id = self.request.user.id
-				# banned, ban_type, time_remaining, warned = private_group_posting_allowed(user_id)			
-				# context["banned"] = banned
-				# context["ban_type"] = ban_type
-				# context["warned"] = warned
-				# if banned:
-				# 	m, s = divmod(time_remaining, 60)
-				# 	h, m = divmod(m, 60)
-				# 	d, h = divmod(h, 24)
-				# 	if d and h and m:
-				# 		context["time_remaining"] = "%s days, %s hours and %s minutes" % (int(d), int(h), int(m))
-				# 	elif h and m:
-				# 		context["time_remaining"] = "%s hours and %s minutes" % (int(h), int(m))
-				# 	elif m and s:
-				# 		context["time_remaining"] = "%s minutes and %s seconds" % (int(m), int(s))
-				# 	elif s:
-				# 		context["time_remaining"] = "%s seconds" % int(s)
-				# 	else:
-				# 		context["time_remaining"] = None
-				# else:
-				# context["time_remaining"] = None
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				context["switching"] = False
 				context["ensured"] = FEMALES
@@ -5966,23 +5937,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				self.request.user.userprofile.score = random.randint(10,71)
 				self.request.user.userprofile.save()
 				return redirect("group_page")
-			# banned, ban_type, time_remaining, warned = private_group_posting_allowed(user_id)
-			# if banned:
-			# 	return redirect("group_page")
-			# else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			text = f.text #text of the reply
-			# score = fuzz.ratio(text, get_prev_retort(user_id))
-			# if score > 85:
-			# 	return redirect("private_group_reply")#, pk= reply.answer_to.id)
-			# else:
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 			if f.image:
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-				# try:
-				# 	on_fbs = self.request.META.get('X-IORG-FBS')
-				# except:
-				# 	on_fbs = False
 				if on_fbs:
 					if f.image.size > 200000:
 						context = {'pk':'pk'}
@@ -6018,8 +5977,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
 				device=device)
 			add_group_member(which_group_id, self.request.user.username)
-			remove_group_invite(self.request.user.id, which_group_id)
-			add_user_group(self.request.user.id, which_group_id)
+			remove_group_invite(user_id, which_group_id)
+			add_user_group(user_id, which_group_id)
 			reply_time = convert_to_epoch(reply.submitted_on)
 			try:
 				url=self.request.user.userprofile.avatar.url
@@ -6029,11 +5988,12 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				image_url = reply.image.url
 			except:
 				image_url = None
-			group_notification_tasks.delay(group_id=which_group_id,sender_id=self.request.user.id,\
-				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
-				poster_username=self.request.user.username,reply_text=text,priv=which_group.private,\
-				slug=which_group.unique,image_url=image_url,priority='priv_mehfil',from_unseen=False)
+			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
+				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
+				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
+				from_unseen=False)
 			self.request.session['unique_id'] = unique
+			mp.track(user_id, 'Private Mehfil Reply')
 			return redirect("private_group_reply")#, reply.which_group.unique)
 	
 @ratelimit(rate='3/s')
@@ -6356,6 +6316,7 @@ def get_object_list_and_forms(request, notif=None):
 	return page_obj, oblist, forms, page_num, addendum
 
 def unseen_activity(request, slug=None, *args, **kwargs):
+	mp.track(request.user.id, 'Entered Matka')
 	if first_time_inbox_visitor(request.user.id):
 		add_inbox(request.user.id)
 		context={'username':request.user.username}
@@ -6499,6 +6460,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			process_publicreply(self.request,link_id,f.description)
+			mp.track(user_id, 'Home Publicreply')
 			self.request.session["link_pk"] = link_id
 			return redirect("reply")
 
@@ -6605,34 +6567,13 @@ class LinkCreateView(CreateView):
 		context = super(LinkCreateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188		
-			# banned, time_remaining, warned = posting_allowed(self.request.user.id)
-			# context["banned"] = banned
-			# context["warned"] = warned
 			if self.request.is_feature_phone:
 				context["feature_phone"] = True
 			else:
 				context["feature_phone"] = False
-			# if banned:
-			# 	m, s = divmod(time_remaining, 60)
-			# 	h, m = divmod(m, 60)
-			# 	d, h = divmod(h, 24)
-			# 	if d and h and m:
-			# 		context["time_remaining"] = "%s days, %s hours and %s minutes" % (int(d), int(h), int(m))
-			# 	elif h and m:
-			# 		context["time_remaining"] = "%s hours and %s minutes" % (int(h), int(m))
-			# 	elif m and s:
-			# 		context["time_remaining"] = "%s minutes and %s seconds" % (int(m), int(s))
-			# 	elif s:
-			# 		context["time_remaining"] = "%s seconds" % int(s)
-			# 	else:
-			# 		context["time_remaining"] = None
-			# else:
-			# 	context["time_remaining"] = None
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		# banned, time_remaining, warned = posting_allowed(self.request.user.id)
-		# if not banned:
 		try:
 			token = self.request.session["link_create_token"]
 		except:
@@ -6688,8 +6629,6 @@ class LinkCreateView(CreateView):
 			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:
 			return redirect("score_help")
-		# else:
-		# 	return redirect("score_help")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")

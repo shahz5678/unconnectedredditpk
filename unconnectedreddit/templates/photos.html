@@ -12,10 +12,9 @@
 
 			<div class="box dbt">
 			{% if first_time_user %}
-				<span class="ct cs">
+				<div class="ct cs mbs">
 				Tumhe <b>welcome</b> kiya:
-				</span>
-				<br>
+				</div>
 			{% else %}
 
 				{% if parent.ooa != 'None' %}
@@ -42,7 +41,11 @@
 				<p style="margin-top:.5em;"></p>
 				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
 				{% csrf_token %}
+				{% if first_time_user %}
+				<button class="btn nw bl bct mrs" type="submit">shukria kro</button></form>&nbsp;&nbsp;
+				{% else %}
 				<button class="btn nw bl bct mrs" type="submit">jawab do</button></form>&nbsp;&nbsp;
+				{% endif %}
 				<a href="{% url 'x_notif' parent_pk user.id 0 %}"><button class="btn bxs bcr"><b>X</b></button>
 			</div>
 			<p style="margin-top:.5em;"></p>

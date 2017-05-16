@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load photoedge %}
 {% load thumbedge %}
+{% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
@@ -15,21 +16,39 @@
 
 {% if page_obj.number == 1 %}
     {% if own_profile %}
-                  <h2 class="cg">Tumhari photos:</h2>
-                  <span class="cgy">
-                  {% if recent_fans > 1 %}
-                  <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
-                  {% elif recent_fans == 1 %}
-                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                  {% if time_remaining == '-2' %}
+                    <h2 class="cg">Tumhari photos:</h2>
+                    <span class="cgy">
+                    {% if recent_fans > 1 %}
+                    <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                    {% elif recent_fans == 1 %}
+                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    {% else %}
+                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    {% endif %}
+                    </span>
+                    <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Profile set kro</button></a>
+                    <br>
+                    {% if subject.userprofile.avatar %}
+                    <b>Profile photo:</b><br>
+                    <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+                    {% endif %}
                   {% else %}
-                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
-                  {% endif %}
-                  </span>
-                  <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Profile set kro</button></a>
-                  <br>
-                  {% if subject.userprofile.avatar %}
-                  <b>Photo photo:</b><br>
-                  <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+                    <span class="cr">
+                      {% if time_remaining == '-1' %}
+                        {% if own_profile %}
+                          <b>BANNED:</b> Tumhari photos <b>hamesha</b> ke liye banned hain
+                        {% else %}
+                          <b>BANNED:</b> {{ slug }} ki photos <b>hamesha</b> ke liye banned hain
+                        {% endif %}
+                      {% else %}
+                        {% if own_profile %}
+                          <b>BANNED:</b> Tumhari photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                        {% else %}
+                          <b>BANNED:</b> {{ slug }} ki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                        {% endif %}
+                      {% endif %}
+                      </span>
                   {% endif %}
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
@@ -66,28 +85,53 @@
                   <hr size=1 COLOR="#ff9933">
                   <br>
     {% else %}
-                  <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
-                  <span class="cgy">
-                  {% if recent_fans > 1 %}
-                  <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
-                  {% elif recent_fans == 1 %}
-                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
-                  {% else %}
-                  <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
-                  {% endif %}
-                  </span>
-                  {% if authenticated and not own_profile and allowed_fan %}
-                    {% if not_fan %}
-                    <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcg bxl mtl mbl">iske fan bano</button></a>
+                  {% if time_remaining == '-2' %}
+                    <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
+                    <span class="cgy">
+                    {% if recent_fans > 1 %}
+                    <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                    {% elif recent_fans == 1 %}
+                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
                     {% else %}
-                    <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bxl mtl mbl">fan khatm kro</button></a>
+                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
                     {% endif %}
-                    <br>
-                  {% endif %}
-                  {% if subject.userprofile.avatar %}
-                  <b>Photo photo:</b><br>
-                  <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
-                  {% endif %}
+                    </span>
+                    {% if authenticated and not own_profile and allowed_fan %}
+                      {% if not_fan %}
+                      <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcg bxl mtl mbl">iske fan bano</button></a>
+                      {% else %}
+                      <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bxl mtl mbl">fan khatm kro</button></a>
+                      {% endif %}
+                      <br>
+                    {% endif %}
+                    {% if subject.userprofile.avatar %}
+                    <b>Profile photo:</b><br>
+                    <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>  
+                    {% endif %}
+                    {% else %}
+                    <span class="cr">
+                      {% if time_remaining == '-1' %}
+                        {% if own_profile %}
+                          <b>BANNED:</b> Tumhari photos hamesha ke liye banned hain
+                        {% else %}
+                          <b>BANNED:</b> {{ slug }} ki photos hamesha ke liye banned hain
+                        {% endif %}
+                      {% else %}
+                        {% if own_profile %}
+                          <b>BANNED:</b> Tumhari photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                        {% else %}
+                          <b>BANNED:</b> {{ slug }} ki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                        {% endif %}
+                      {% endif %}
+                      </span>
+                        {% if authenticated and not own_profile and allowed_fan %}
+                          {% if not not_fan %}
+                          <br>
+                          <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bxl mtl mbl">fan khatm kro</button></a>
+                          {% endif %}
+                          <br>
+                        {% endif %}
+                    {% endif %}
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
                   <hr size=1 COLOR="#b3e6b3">
@@ -113,7 +157,6 @@
     {% endif %}
   {% endif %}
 
-
 {% for photo in object_list %}
   
                           <a name="sectionJ">
@@ -130,9 +173,15 @@
                           {% endif %}
                           </button>
                           </a>
+                          {% if time_remaining == '-2' %}
                           &nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="4"><input type="hidden" name="oun" value="{{ subject.username }}"><input type="hidden" name="purl" value="{{ photo.image_file.url|thumbedge }}"><input type="hidden" name="oid" value="{{ star_id }}"><input type="hidden" name="cap" value="{{ photo.caption }}"><input type="hidden" name="vsc" value="{{ photo.vote_score }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.id }}" name="curate" type="submit">&nbsp;</button></form>
+                          {% endif %}
                           <br>
+                          {% if time_remaining == '-2' %}
                           <img class="iw ibg" src="{{ photo.image_file.url|photoedge }}"></img>
+                          {% else %}
+                          <img class="iw ibg" src="{{ photo.image_file.url|thumbedge }}"></img>
+                          {% endif %}
                           <br>
                           <span class="cxs cgy">charhai {{ photo.upload_time|naturaltime }}</span><br>
 
@@ -146,7 +195,7 @@
                                 {% endif %}
                                 </a>
 
-                          {% if not own_profile and can_vote and photo.id not in voted %}
+                          {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}
                           <form action="{% url 'cast_photo_vote' %}" method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="oun" value="{{ subject.username }}">

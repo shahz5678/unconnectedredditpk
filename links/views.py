@@ -2127,7 +2127,7 @@ class UserProfilePhotosView(ListView):
 			populate_search_thumbs.delay(slug,ids_with_urls)
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
-			mp.track(self.request.user.id, 'Viewed Profile Photos')
+			# mp.track(self.request.user.id, 'Viewed Profile Photos')
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["manageable"] = True

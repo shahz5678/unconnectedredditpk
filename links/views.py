@@ -6631,65 +6631,65 @@ class LinkCreateView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		banned, time_remaining, warned = posting_allowed(self.request.user.id)
-		if not banned:
-			try:
-				token = self.request.session["link_create_token"]
-			except:
-				return redirect("profile", slug=self.request.user.username)
-			self.request.session["link_create_token"] = None
-			if valid_uuid(str(token)):
-				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-				user = self.request.user
-				user_id = user.id
-				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-				if user.userprofile.score < -25:
-					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-						user.userprofile.score = random.randint(10,71)
-						f.submitter = user
-					else:
-						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-				else:
+		# banned, time_remaining, warned = posting_allowed(self.request.user.id)
+		# if not banned:
+		try:
+			token = self.request.session["link_create_token"]
+		except:
+			return redirect("profile", slug=self.request.user.username)
+		self.request.session["link_create_token"] = None
+		if valid_uuid(str(token)):
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			user = self.request.user
+			user_id = user.id
+			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+			if user.userprofile.score < -25:
+				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+					user.userprofile.score = random.randint(10,71)
 					f.submitter = user
-					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-				category = '1'#self.request.POST.get("btn")
-				f.cagtegory = category
-				if self.request.is_feature_phone:
-					f.device = '1'
-				elif self.request.is_phone:
-					f.device = '2'
-				elif self.request.is_tablet:
-					f.device = '4'
-				elif self.request.is_mobile:
-					f.device = '5'
 				else:
-					f.device = '3'
-				set_prev_retorts(user_id,f.description)
-				f.save()
-				try:
-					av_url = user.userprofile.avatar.url
-				except:
-					av_url = None
-				add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
-					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
-					by_pinkstar = (True if user.username in FEMALES else False))
-				if self.request.user_banned:
-					extras = add_unfiltered_post(f.id)
-					if extras:
-						queue_for_deletion.delay(extras)
-				else:
-					add_filtered_post(f.id)
-					extras = add_unfiltered_post(f.id)
-					if extras:
-						queue_for_deletion.delay(extras)
-				f.submitter.userprofile.save()
-				mp.track(user_id, 'Sent Message')
-				return super(CreateView, self).form_valid(form) #saves the link automatically
+					f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 			else:
-				return redirect("score_help")
+				f.submitter = user
+				f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+			category = '1'#self.request.POST.get("btn")
+			f.cagtegory = category
+			if self.request.is_feature_phone:
+				f.device = '1'
+			elif self.request.is_phone:
+				f.device = '2'
+			elif self.request.is_tablet:
+				f.device = '4'
+			elif self.request.is_mobile:
+				f.device = '5'
+			else:
+				f.device = '3'
+			set_prev_retorts(user_id,f.description)
+			f.save()
+			try:
+				av_url = user.userprofile.avatar.url
+			except:
+				av_url = None
+			add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
+				scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
+				by_pinkstar = (True if user.username in FEMALES else False))
+			if self.request.user_banned:
+				extras = add_unfiltered_post(f.id)
+				if extras:
+					queue_for_deletion.delay(extras)
+			else:
+				add_filtered_post(f.id)
+				extras = add_unfiltered_post(f.id)
+				if extras:
+					queue_for_deletion.delay(extras)
+			f.submitter.userprofile.save()
+			mp.track(user_id, 'Sent Message')
+			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:
 			return redirect("score_help")
+		# else:
+		# 	return redirect("score_help")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")

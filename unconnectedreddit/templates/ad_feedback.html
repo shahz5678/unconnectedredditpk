@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load human_time %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
 <form method="POST" action="{% url 'ad_feedback' %}">
@@ -14,7 +15,7 @@
 {% for result in results reversed %}
 <b class="cgy">{{ result.submitted_at|human_time }}:</b><br>
 <div class="mts mbs">
-<b>{{ result.feedback }}</b><br>
+<b>{% emoticons %}{{ result.feedback }}{% endemoticons %}</b><br>
 </div>
 <span class="co mll">by&nbsp;<b>{{ result.username }}</b></span>&nbsp;<span class="cgy cs">(id:{{ result.user_id }})</span><br>
 <hr size=1 COLOR="#b3e6b3">

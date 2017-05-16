@@ -6316,7 +6316,7 @@ def get_object_list_and_forms(request, notif=None):
 	return page_obj, oblist, forms, page_num, addendum
 
 def unseen_activity(request, slug=None, *args, **kwargs):
-	mp.track(request.user.id, 'Entered Matka')
+	# mp.track(request.user.id, 'Entered Matka')
 	if first_time_inbox_visitor(request.user.id):
 		add_inbox(request.user.id)
 		context={'username':request.user.username}

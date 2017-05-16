@@ -1027,10 +1027,6 @@ class ReportNicknameForm(forms.Form):
 	class Meta:
 		pass
 
-class ReportProfileForm(forms.Form):
-	class Meta:
-		pass
-
 class SpecialPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass

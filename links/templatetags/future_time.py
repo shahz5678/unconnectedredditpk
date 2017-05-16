@@ -5,8 +5,14 @@ import time
 def future_time(value):
 	try:
 		m, s = divmod(value, 60)
-		if m:
-			return "%s min baad" % int(m)
+		h, m = divmod(m, 60)
+		d, h = divmod(h, 24)
+		if d:
+			return "%s days baad" % int(d)
+		elif h:
+			return "%s hours baad" % int(h)
+		elif m:
+			return "%s mins baad" % int(m)
 		elif s:
 			return "%s secs baad" % int(s)
 		else:

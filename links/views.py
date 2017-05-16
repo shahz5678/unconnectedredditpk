@@ -2100,6 +2100,13 @@ class UserProfilePhotosView(ListView):
 			context["error"] = True
 			return context
 		star_id = subject.id
+		###########
+		banned, time_remaining = check_photo_upload_ban(star_id)
+		if banned:
+			context["time_remaining"] = time_remaining
+		else:
+			context["time_remaining"] = '-2'
+		###########
 		context["subject"] = subject
 		context["star_id"] = star_id
 		context["legit"] = FEMALES
@@ -7234,28 +7241,30 @@ def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 		UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-5)
 		context={'unique':request.user.username}
 		return render(request,'penalty_fan.html',context)
-	elif never_posted_photo(request.user.id):
-		# show "please first upload at least 1 photo" to be eligible for upload a photo
-		context = {'unique': request.user.username}
-		return render(request, 'fan_requirement.html', context)
 	else:
 		star = User.objects.get(id=star_id)
 		try:
+			# allow unfanning even if never posted photo
 			UserFan.objects.get(fan=request.user, star_id=star_id).delete()
 			remove_from_photo_owner_activity(star_id, request.user.id)
 			fan_recount.delay(owner_id=star_id,fan_increment=False,fan_decrement=True)
 		except:
-			#if not shown tutorial, show tutorial
-			new_to_fan = first_time_fan(request.user.id)
-			if new_to_fan:
-				# show fan tutorial first, then do the rest
-				add_fan(request.user.id) #adding fan tutorial flag
-				context = {'star_id': star_id,'obj_id':obj_id,'origin':origin,'name':star.username}
-				return render(request, 'fan_tutorial.html', context)
+			if never_posted_photo(request.user.id):
+				# show "please first upload at least 1 photo" to be eligible for upload a photo
+				context = {'unique': request.user.username}
+				return render(request, 'fan_requirement.html', context)
 			else:
-				UserFan.objects.create(fan=request.user,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
-				add_to_photo_owner_activity(star_id, request.user.id)
-				fan_recount.delay(owner_id=star_id,fan_increment=True,fan_decrement=False)
+				#if not shown tutorial, show tutorial
+				new_to_fan = first_time_fan(request.user.id)
+				if new_to_fan:
+					# show fan tutorial first, then do the rest
+					add_fan(request.user.id) #adding fan tutorial flag
+					context = {'star_id': star_id,'obj_id':obj_id,'origin':origin,'name':star.username}
+					return render(request, 'fan_tutorial.html', context)
+				else:
+					UserFan.objects.create(fan=request.user,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+					add_to_photo_owner_activity(star_id, request.user.id)
+					fan_recount.delay(owner_id=star_id,fan_increment=True,fan_decrement=False)
 		"""
 		(un)fanned from starlist: '0'
 		(un)fanned from starprofile: '1'

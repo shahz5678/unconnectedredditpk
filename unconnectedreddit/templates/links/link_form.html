@@ -3,11 +3,6 @@
 {% load emoticons_tags %}
 
 <div class="margin">
-{% if banned %}
-	<span class="clb">Tum home pe likh sko ge <b>{{ time_remaining }}</b> ke baad</span>
-	<br>
-	<span class="cs ct">Aesi baatein na likho jin se mahol kharab ho aur log bura manaein</span>
-{% else %}
 
 	<form method="post" action="" enctype="multipart/form-data">
 	  {% csrf_token %}
@@ -21,13 +16,10 @@
 		  {% endif %}
 	  {% endif %}
 	  <br>{{ form.description }}<br>
-	  	{% if warned %}
-		<span class="cs cr"><b>Warning:</b> tumhari posts home pe pasand nahi ki ja rahein</span><br>
-		{% endif %}
 	  	<button class="btn bm bct mtl mbs" name="btn" value="1" type="submit">OK</button>
 	</form>
-	{% if user.userprofile.score and user.userprofile.score < 50 and not warned %}
-	<span class="cs cgy">maslan koi achi si SMS copy kr ke likh do</span><br>
+	{% if user.userprofile.score and user.userprofile.score < 50 %}
+	<span class="cs cgy">maslan koi acha sa shair likho</span><br>
 	{% endif %}
 	<br>
 	<hr size=1>
@@ -42,7 +34,7 @@
 	<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="cm">{{ emoticons.0 }}</b></p>
 	{% endif %}
 	{% endfor %}
-{% endif %}
+
 </div>
 <br><br>
 {% endblock %}

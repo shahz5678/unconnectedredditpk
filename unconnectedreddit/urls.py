@@ -13,12 +13,12 @@ from links.views import home_link_list, cross_notif, cast_vote, cross_comment_no
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
-salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, repnick, reprofile, \
-rep, leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
+salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
+leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
 first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, cricket_comment_page, \
 process_private_group_invite, process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, create_nick, create_password,create_account, reset_password, \
-unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_location_pk, best_photo_location, photo_location, \
+unauth_home_link_list, best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_location_pk, best_photo_location, \
 see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, \
 cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
 first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,\
@@ -37,9 +37,9 @@ UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpd
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
 InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView, FanListView, StarListView, FanTutorialView,PhotoShareView, PhotoDetailView, \
 SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, \
-MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, ReportNicknameView, ReportProfileView,ReportFeedbackView, UploadVideoView, \
-VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdGenderChoiceView, \
-AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
+MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, \
+VideoScoreView, FacesHelpView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, \
+AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
 
 admin.autodiscover()
 
@@ -168,8 +168,8 @@ urlpatterns = patterns('',
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
 	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
-	url(r'^rep/(?P<num>\d+)/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<priv>\d+)/(?P<scr>\d+)/$', auth(rep), name='rep'),
-	url(r'^repback/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<private>\d+)/(?P<scr>\d+)/$', auth(ReportFeedbackView.as_view()), name='report_feedback'),
+	# url(r'^rep/(?P<num>\d+)/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<priv>\d+)/(?P<scr>\d+)/$', auth(rep), name='rep'),
+	# url(r'^repback/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<private>\d+)/(?P<scr>\d+)/$', auth(ReportFeedbackView.as_view()), name='report_feedback'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
@@ -188,8 +188,8 @@ urlpatterns = patterns('',
 	url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
-	url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
-	url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
+	# url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
+	# url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
 	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
@@ -283,9 +283,9 @@ urlpatterns = patterns('',
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),
-	url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
+	# url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
-	url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
+	# url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
 	##########################################Photo Reporting########################################
 	url(r'^bpuv/$', auth(ban_photo_upload_and_voters), name='ban_photo_upload_and_voters'),
 	url(r'^curate_photo/$', auth(curate_photo), name='curate_photo'),

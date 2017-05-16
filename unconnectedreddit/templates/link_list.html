@@ -230,6 +230,13 @@
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
+	{% if forloop.counter == 4 %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<b class="cg cl">Ramadan ke liye saste <span class="co">UMRAH Packages</span> ki tafseel dekho:<a href="{% url 'umrah' %}"><button class="btn bcg bl cl mls mts mbs">tafseel</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
 	{% if forloop.counter == 5 %}
 		{% if enqueued_match %}
 		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">

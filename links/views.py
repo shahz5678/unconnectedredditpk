@@ -11,7 +11,7 @@ from scraper import read_image
 from cricket_score import cricket_scr
 from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
-CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD
+CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD, CITIZEN_THRESHOLD
 from django.db import connection
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
@@ -3965,10 +3965,11 @@ class CommentView(CreateView):
 				url = user.userprofile.avatar.url
 			except:
 				url = None
+			citizen = True if user.userprofile.score > CITIZEN_THRESHOLD else False
 			add_photo_comment(photo_id=which_photo.id,photo_owner_id=which_photo.owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
-				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists)
+				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
-				exists, user.username, url)
+				exists, user.username, url, citizen)
 			# mp.track(user.id, 'Left Photo Comment')
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
@@ -6249,10 +6250,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
+				citizen = True if request.user.userprofile.score > CITIZEN_THRESHOLD else False
 				add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists)
+					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
-					request.user.username, url)
+					request.user.username, url, citizen)
 				return redirect("unseen_activity", request.user.username)
 			else:
 				notification = "np:"+str(request.user.id)+":0:"+str(pk)
@@ -7344,13 +7346,15 @@ def cast_photo_vote(request,*args,**kwargs):
 			else:
 				#process the vote
 				value = request.POST.get("photo_vote","")
+				citizen = (True if request.user.userprofile.score > CITIZEN_THRESHOLD else False)
 				if value == '1':
-					added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False))
+					added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
 				elif value == '0':
-					added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False))
+					added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False),citizen)
 				else:
 					added = 0
-				if added:
+				if added and citizen:
+					# do not process vote if the user is not a 'citizen'
 					process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
 				#return the user to origin
 				return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))

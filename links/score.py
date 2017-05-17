@@ -12,6 +12,7 @@ UPVOTE = 3
 SUPER_UPVOTE = 20
 DOWNVOTE = -3
 SUPER_DOWNVOTE = -20
+CITIZEN_THRESHOLD = 300
 ###############################################################################################################
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group

@@ -370,7 +370,7 @@ def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
 			add_unfiltered_post(link.id)
 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
-def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):
+def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
 	user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
 	photo_owner_id = photo.owner_id
@@ -416,15 +416,16 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-		photo.visible_score = photo.visible_score + 2
-		photo.owner.userprofile.save()
+		if is_citizen:
+			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+			photo.visible_score = photo.visible_score + 2
+			photo.owner.userprofile.save()
 	photo.save()
 	user.userprofile.save()
 
 @celery_app1.task(name='tasks.photo_tasks')
-def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av):
+def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
 	user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
 	photo_owner_id = photo.owner_id
@@ -481,10 +482,11 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-		photo.visible_score = photo.visible_score + 2
-		photo.owner.userprofile.save()
+		if is_citizen:
+			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+			photo.visible_score = photo.visible_score + 2
+			photo.owner.userprofile.save()
 	photo.save()
 	user.userprofile.save()
 

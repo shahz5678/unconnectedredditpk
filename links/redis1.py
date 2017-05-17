@@ -624,7 +624,7 @@ def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None
 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
-	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None):
+	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)
 	if my_server.exists(hash_name):
@@ -637,7 +637,7 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 			'lcwu':latest_comm_writer_uname}
 		my_server.hmset(hash_name, mapping)
 		my_server.hincrby(hash_name,'co',amount=1)
-		if photo_owner_id != latest_comm_writer_id and exists is False: #only give score if writer is not the original photo poster, and hasn't written before
+		if photo_owner_id != latest_comm_writer_id and not exists and citizen: #only give score if writer didn't upload photo, and hasn't written before, and is a citizen
 			my_server.hincrby(hash_name,'vi',amount=2)
 
 def ban_photo(photo_id,ban):
@@ -652,7 +652,7 @@ def ban_photo(photo_id,ban):
 		else:
 			pass
 
-def add_vote_to_photo(photo_id, username, value,is_pinkstar):
+def add_vote_to_photo(photo_id, username, value,is_pinkstar, is_citizen):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
 	hash_name = "ph:"+str(photo_id)
@@ -660,31 +660,36 @@ def add_vote_to_photo(photo_id, username, value,is_pinkstar):
 	if already_exists != 0 and already_exists != 1:
 		#add the voter's username and vote_value (for display later)
 		my_server.zadd(sorted_set, username, value)
-		update_vsc_in_photo(photo_id,value)
 		#add vote to photo_obj
-		if my_server.exists(hash_name):
-			if int(value) == 0:
+		if my_server.exists(hash_name) and is_citizen:
+			# vote score (for photos and top photos pages respectively)
+			if value == 0:
 				my_server.hincrby(hash_name,'vo',amount=-1)
 				my_server.hincrby(hash_name,'vi',amount=-1)
 			else:
 				my_server.hincrby(hash_name,'vo',amount=1)
 				my_server.hincrby(hash_name,'vi',amount=1)
-		##################HTML injection##################
+		##################Updating link vote##################
 		link_id = my_server.hget("plm:"+str(photo_id),'l') # a home_page link corresponds with this photo
 		if link_id:
+			hash_name2 = "lk:"+str(link_id)
+			if my_server.exists(hash_name2) and is_citizen:
+				my_server.hincrby(hash_name2,"v",amount = 1 if value == 1 else -1) #vote score (in case photo got published on home page)
+		##################HTML injection##################
 			add_vote_to_home_photo(link_id,value,username,is_pinkstar)
 		##################################################
 		return True
 	else:
 		return False
 
+#home_photo version of def add_vote_to_link
 def add_vote_to_home_photo(link_id, value, username,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	plain_username = username
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	vote_text = my_server.hget(hash_name,'vt')
 	username = username_formatting(username.encode('utf-8'),is_pinkstar,'small',True)
-	index = '3' if str(value) == '1' else '-3'
+	index = '3' if value == 1 else '-3'
 	if vote_text:
 		new_text = username+VOTE_TEXT[index]
 		text = new_text+vote_text.decode('utf-8')
@@ -914,25 +919,7 @@ def retrieve_home_links(link_id_list):
 		if 'pi' in hash_obj:
 			photo_links.append(hash_obj)
 		count += 1
-	return photo_links, list_of_dictionaries 
-	# my_server = redis.Redis(connection_pool=POOL)
-	# list_of_dictionaries = []
-	# photo_ids = []
-	# non_photo_link_ids = []
-	# pipeline1 = my_server.pipeline()
-	# for link_id in link_id_list:
-	# 	hash_name="lk:"+str(link_id)
-	# 	pipeline1.hgetall(hash_name)
-	# result1 = pipeline1.execute()
-	# count = 0
-	# for hash_obj in result1:
-	# 	list_of_dictionaries.append(hash_obj)
-	# 	if 'pi' in hash_obj:
-	# 		photo_ids.append(hash_obj['pi'])
-	# 	else:
-	# 		non_photo_link_ids.append(link_id_list[count])
-	# 	count += 1
-	# return photo_ids, non_photo_link_ids, list_of_dictionaries 
+	return photo_links, list_of_dictionaries
 
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -969,17 +956,6 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		return amnt
 	else:
 		return 0
-
-def update_vsc_in_photo(photo_pk, amnt):
-	my_server = redis.Redis(connection_pool=POOL)
-	link_pk = my_server.hget("plm:"+str(photo_pk), 'l') # get the link id
-	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	if str(amnt) == '1':
-		amnt = 1
-	else:
-		amnt = -1
-	if my_server.exists(hash_name):
-		my_server.hincrby(hash_name,"v",amount=amnt)
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \

@@ -39,7 +39,7 @@
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
     {% endif %}
 {% endif %}</a>
-<span class="cgy cs">{{ photo.caption|truncatechars:30 }}</span>
+<span class="cgy cs">{% emoticons %}{{ photo.caption|truncatechars:30 }}{% endemoticons %}</span>
 <br><br>
 {% if content %}
 {% for voter,vote in votes %}

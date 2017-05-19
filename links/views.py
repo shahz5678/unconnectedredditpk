@@ -77,8 +77,8 @@ UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, Top
 SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, \
-TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, UnauthHomeLinkListForm, BestPhotosListForm, PhotosListForm, \
-CricketCommentForm,PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm
+TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm,\
+PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1832,15 +1832,14 @@ def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		form = UnauthHomeLinkListForm()
+		# if request.user.is_allocated():
+		# else:
+		# 	pass
 		context = {}
 		context["checked"] = FEMALES
-		context["form"] = form
-		# newrelic.agent.add_custom_parameter("unauth_home", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
-		# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
@@ -1869,6 +1868,13 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
+		# if random.random() < 0.5:
+		# 	form = CreateNickForm()
+		# 	context["form"] = form
+		# 	mp.track(request.user.id, 'Alternative Unauth Page')
+		# 	return render(request, 'unauth_link_list_test1.html', context)
+		# else:
+		# 	mp.track(request.user.id, 'Normal Unauth Page')
 		return render(request, 'unauth_link_list.html', context)
 
 class LinkUpdateView(UpdateView):
@@ -2973,6 +2979,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
+			mp.track(request.user.id, 'Account Creation Successful')
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2988,6 +2995,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
+			mp.track(request.user.id, 'Create Account Page')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -3024,6 +3032,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 	else:
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
+			mp.track(request.user.id, 'Create Password Page')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -3057,6 +3066,7 @@ def create_nick(request,*args,**kwargs):
 			return render(request, 'create_nick.html', context)
 	else:
 		form = CreateNickForm()
+		mp.track(request.user.id, 'Create Nickname Page')
 		context = {'form':form}	
 		return render(request, 'create_nick.html', context)
 

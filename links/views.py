@@ -3027,6 +3027,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 	else:
+		mp.track(getip(request), 'Loading Password Page')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
 			mp.track(getip(request), 'Create Password Page')
@@ -3038,6 +3039,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
+			mp.track(getip(request), 'Penalty Cookie Page')
 			#cookies aren't being set in the browser, so can't make an account!
 			return render(request, 'penalty_cookie.html', {})
 

@@ -1827,7 +1827,7 @@ def home_link_list(request, *args, **kwargs):
 	else:
 		return redirect("unauth_home")
 
-@cache_page(10)
+# @cache_page(10)
 def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
@@ -1871,8 +1871,55 @@ def unauth_home_link_list(request, *args, **kwargs):
 		# 	mp.track(getip(request), 'Alternative Unauth Page')
 		# 	return render(request, 'unauth_link_list_test1.html', context)
 		# else:
-		mp.track(getip(request), 'Normal Unauth Page')
+		mp.track(getip(request), 'Uncached Unauth Page')
 		return render(request, 'unauth_link_list.html', context)
+
+# @cache_page(10)
+# def unauth_home_link_list(request, *args, **kwargs):
+# 	if request.user.is_authenticated():
+# 		return redirect("home")
+# 	else:
+# 		context = {}
+# 		context["checked"] = FEMALES
+# 		enqueued_match = get_current_cricket_match()
+# 		if 'team1' in enqueued_match:
+# 			context["enqueued_match"] = enqueued_match
+# 		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+# 		context["link_list"] = list_of_dictionaries
+# 		context["page"] = page
+# 		now = datetime.utcnow()+timedelta(hours=5)
+# 		day = now.weekday()
+# 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+# 				'LOCATION': MEMLOC, 'TIMEOUT': 70,
+# 			})
+# 		salat_timings = cache_mem.get('salat_timings')
+# 		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+# 		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
+# 			context["current_namaz"] = 'Jummah'
+# 		else:
+# 			context["current_namaz"] = salat_timings['namaz']
+# 		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
+# 			context["next_namaz"] = 'Jummah'	
+# 		else:
+# 			context["next_namaz"] = salat_timings['next_namaz']
+# 		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
+# 			# do not show namaz element at all, some error may have occurred
+# 			context["show_current"] = False
+# 			context["show_next"] = False
+# 		elif not salat_timings['namaz']:
+# 			context["show_current"] = False
+# 			context["show_next"] = True
+# 		else:
+# 			context["show_current"] = True
+# 			context["show_next"] = False
+# 		# if random.random() < 0.5:
+# 		# 	form = CreateNickForm()
+# 		# 	context["form"] = form
+# 		# 	mp.track(getip(request), 'Alternative Unauth Page')
+# 		# 	return render(request, 'unauth_link_list_test1.html', context)
+# 		# else:
+# 		mp.track(getip(request), 'Normal Unauth Page')
+# 		return render(request, 'unauth_link_list.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -2976,7 +3023,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(getip(request), 'Account Creation Successful')
+			mp.track(getip(request), 'Account Created Successfully')
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2992,7 +3039,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			mp.track(getip(request), 'Create Account Page')
+			mp.track(getip(request), 'Create Account Pg')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -3014,6 +3061,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
+				mp.track(getip(request), 'Pass Created Pg')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -3027,10 +3075,10 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 	else:
-		mp.track(getip(request), 'Loading Password Page')
+		mp.track(getip(request), 'Loading Pass Pg')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			mp.track(getip(request), 'Create Password Page')
+			mp.track(getip(request), 'Create Pass Pg')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -3039,7 +3087,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
-			mp.track(getip(request), 'Penalty Cookie Page')
+			mp.track(getip(request), 'Penalty Cookie Pg')
 			#cookies aren't being set in the browser, so can't make an account!
 			return render(request, 'penalty_cookie.html', {})
 
@@ -3065,7 +3113,7 @@ def create_nick(request,*args,**kwargs):
 			return render(request, 'create_nick.html', context)
 	else:
 		form = CreateNickForm()
-		mp.track(getip(request), 'Create Nickname Page')
+		mp.track(getip(request), 'Create Nick Pg')
 		context = {'form':form}	
 		return render(request, 'create_nick.html', context)
 

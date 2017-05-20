@@ -1832,9 +1832,6 @@ def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		# if request.user.is_allocated():
-		# else:
-		# 	pass
 		context = {}
 		context["checked"] = FEMALES
 		enqueued_match = get_current_cricket_match()
@@ -1871,10 +1868,10 @@ def unauth_home_link_list(request, *args, **kwargs):
 		# if random.random() < 0.5:
 		# 	form = CreateNickForm()
 		# 	context["form"] = form
-		# 	mp.track(request.user.id, 'Alternative Unauth Page')
+		# 	mp.track(getip(request), 'Alternative Unauth Page')
 		# 	return render(request, 'unauth_link_list_test1.html', context)
 		# else:
-		# 	mp.track(request.user.id, 'Normal Unauth Page')
+		mp.track(getip(request), 'Normal Unauth Page')
 		return render(request, 'unauth_link_list.html', context)
 
 class LinkUpdateView(UpdateView):
@@ -2979,7 +2976,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			# mp.track(request.user.id, 'Account Creation Successful')
+			mp.track(getip(request), 'Account Creation Successful')
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2995,7 +2992,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			# mp.track(request.user.id, 'Create Account Page')
+			mp.track(getip(request), 'Create Account Page')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -3032,7 +3029,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 	else:
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			# mp.track(request.user.id, 'Create Password Page')
+			mp.track(getip(request), 'Create Password Page')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -3066,7 +3063,7 @@ def create_nick(request,*args,**kwargs):
 			return render(request, 'create_nick.html', context)
 	else:
 		form = CreateNickForm()
-		# mp.track(request.user.id, 'Create Nickname Page')
+		mp.track(getip(request), 'Create Nickname Page')
 		context = {'form':form}	
 		return render(request, 'create_nick.html', context)
 

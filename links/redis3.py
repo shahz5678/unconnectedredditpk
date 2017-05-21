@@ -258,3 +258,14 @@ def log_unserviced_city(orderer_id,location,merch):
 # logging completed orders: mobile num, user_id, name, address, city, order_time, item
 def log_completed_orders():
 	my_server = redis.Redis(connection_pool=POOL)
+	pass
+
+#####################################################
+
+def save_post(text):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.set("optimizely_test",text)
+
+def get_temp_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("temp_user_id")

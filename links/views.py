@@ -96,10 +96,10 @@ from brake.decorators import ratelimit
 
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
-from optimizely import optimizely
-from unconnectedreddit.datafile import datafile
+# from optimizely import optimizely
+# from unconnectedreddit.datafile import datafile
 
-optimizely_client = optimizely.Optimizely(datafile)
+# optimizely_client = optimizely.Optimizely(datafile)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)

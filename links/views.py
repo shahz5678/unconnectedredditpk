@@ -1,8 +1,7 @@
 # coding=utf-8
-import re, urlmarker, StringIO, urlparse, requests, random, string, uuid, pytz, json#, sys
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, sys
 from collections import OrderedDict, defaultdict
-from requests.auth import HTTPBasicAuth
-from mixpanel import Mixpanel
+# from requests.auth import HTTPBasicAuth
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -18,7 +17,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
 from verified import FEMALES
 from location import MEMLOC
-from unconnectedreddit.settings import MIXPANEL_TOKEN
 from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
@@ -40,7 +38,7 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -95,6 +93,13 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
+
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
+from optimizely import optimizely
+from unconnectedreddit.datafile import datafile
+
+optimizely_client = optimizely.Optimizely(datafile)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -1865,13 +1870,41 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-		# if random.random() < 0.5:
+
+		##############setting session key###############
+		# print request.session.session_key
+		# if not request.session.exists(request.session.session_key):
+		# 	request.session.create()
+		# print request.session.session_key
+		
+		####################Optimizely##################
+		# user_ip = str(random.randint(1,1000000))#getip(request)
+		# variation = optimizely_client.activate('landingpagevariations1', user_ip)
+		# print variation
+		# if variation == 'var_control':
+		# 	# execute code for var_control
+
+		# 	return render(request, 'unauth_link_list.html', context)
+		# elif variation == 'var_new':
 		# 	form = CreateNickForm()
 		# 	context["form"] = form
-		# 	mp.track(getip(request), 'Alternative Unauth Page')
+
 		# 	return render(request, 'unauth_link_list_test1.html', context)
 		# else:
-		mp.track(getip(request), 'Uncached Unauth Page')
+		# 	return render(request, 'unauth_link_list.html', context)
+		# response = HttpResponse('blah')
+		#################setting cookies###############
+		# temp_id = request.COOKIES.get('cookie_name',None)
+		# if temp_id:
+		# 	pass
+		# else:
+		# 	response = HttpResponse('blah')
+  		# 	response.set_cookie('cookie_name', 'baigster')
+  		############setting session variable###########
+  		temp_id = request.session.get('temp_id',None)
+  		if not temp_id:
+  			request.session['temp_id'] = get_temp_id()
+  		mp.track(temp_id, 'Unauth Home')
 		return render(request, 'unauth_link_list.html', context)
 
 # @cache_page(10)
@@ -3023,7 +3056,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(getip(request), 'Account Created Successfully')
+			mp.track(request.session.get('temp_id',None), 'Created Acc')
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -3039,7 +3072,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			mp.track(getip(request), 'Create Account Pg')
+			mp.track(request.session.get('temp_id',None), 'Create Acc')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -3061,7 +3094,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(getip(request), 'Pass Created Pg')
+				mp.track(request.session.get('temp_id',None), 'Created Pass')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -3075,10 +3108,10 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 	else:
-		mp.track(getip(request), 'Loading Pass Pg')
+		mp.track(request.session.get('temp_id',None), 'Load Pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			mp.track(getip(request), 'Create Pass Pg')
+			mp.track(request.session.get('temp_id',None), 'Create Pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -3087,7 +3120,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
-			mp.track(getip(request), 'Penalty Cookie Pg')
+			# mp.track(getip(request), 'Penalty Cookie Pg')
 			#cookies aren't being set in the browser, so can't make an account!
 			return render(request, 'penalty_cookie.html', {})
 
@@ -3107,14 +3140,16 @@ def create_nick(request,*args,**kwargs):
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
+			mp.track(request.session.get('temp_id',None), 'Created Nick')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
 			return render(request, 'create_nick.html', context)
 	else:
 		form = CreateNickForm()
-		mp.track(getip(request), 'Create Nick Pg')
-		context = {'form':form}	
+		context = {'form':form}
+  		mp.track(request.session.get('temp_id',None), 'Create Nick')
+		# optimizely_client.track('my_conversion', user_id)
 		return render(request, 'create_nick.html', context)
 
 #rate limit this

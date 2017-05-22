@@ -1,0 +1,196 @@
+{% extends "base_min.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% load emoticons_tags %}
+{% load thumbedge %}
+{% load human_time %}
+{% load photoedge %}
+{% block content %}
+
+<div style="background-color:#00c853;">
+<br>
+	<h1 class="bw mbs" style="color:#ffffff;text-align:center;text-shadow:1px 1px #009940;">Damadam.pk</h1>
+
+	<div class="cxl mbs" style="text-align:center;color:white;text-shadow:1px 1px #009940;margin-left:auto;margin-right:auto;max-width:90%;"><span style="color:#ffeb3b;">New dost</span> banao, unki mazedar <span style="color:#ffeb3b;">photos</span> dekho!</div>
+
+	<div class="mbl bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
+	<h2 class="mbs mts" style="color:#ffeb3b;text-shadow:1px 1px #009940;">NEW ACCOUNT</h2>
+	<b class="cxl" style="color:white;text-shadow:1px 1px #009940;">Apna Nickname Banao:</b>
+		<form method="POST" action="{% url 'create_nick' %}">
+		{% csrf_token %}
+		<input type="hidden" name="variation_key" value="{{ variation_key }}">
+		{{ form.username }}<br>
+		<input class="mtl mbs" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK">
+		</form>
+	</div>
+	<a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:110%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
+<div class="margin mtl" style="background-color:white; margin:0 auto">
+		<br>
+
+<!-- ################################################################################################# -->
+{% for link in link_list %}
+	{% if forloop.counter == 4 %}
+		{% if enqueued_match %}
+		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
+			{% if enqueued_match.ended == '1' %}
+				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
+			{% elif enqueued_match.ended == '0' %}
+				{% if enqueued_match.score1 != 'None' and enqueued_match.score2 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
+				{% elif enqueued_match.score1 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
+				{% elif enqueued_match.score2 != 'None' %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
+				{% else %}
+					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
+				{% endif %}
+			{% endif %}
+				<p><hr size=1 COLOR="#33cc33"></p></div>
+		{% endif %}
+	{% endif %}
+	{% if forloop.counter == 8 %}
+		{% if not show_current and not show_next %}
+			<!-- nothing to show -->
+		{% elif show_current and not show_next %}
+			<span class="ct cm"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
+			<a href="{% url 'register_login' %}">
+			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
+			<p><hr size=1 COLOR="#3cb7dd" ></p>
+		{% elif not show_current and show_next %}
+			<div class="ct cm"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{next_namaz_start_time }}</b> ke baad ho ga<br>Namaz parhna na bhoolna!&nbsp;
+			</div>
+			<p><hr size=1 COLOR="#3cb7dd"></p>
+		{% else %}
+			<!-- nothing to show -->
+		{% endif %}
+	{% endif %}
+	{% if link.c == '2' %}
+		<div style="margin-top:-1em; padding-top:1em;background-color:#faebeb;" >
+		<a href="{% url 'profile' slug=link.n %}#section0">
+		{{ link.au|safe }}{{ link.n }}
+			
+			{{ link.p|safe }}
+		    
+		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'register_login' %}"><button class="btn nw bl bcp">shamil ho</button></a> : <a href="{% url 'register_login' %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<p><hr size=1 COLOR="#ac39ac"></p>
+		</div>
+	{% elif link.c == '6' %}
+	
+		{% if link.aw == '1' and link.h|add:"0" > 7 %}
+	    	{% if link.v|add:"0" < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.v|add:"0" < -1 %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+			{% else %}
+			    {% if link.i %}
+			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
+			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}    
+	    	<br>
+		{% endif %}
+		<a href="{% url 'profile' link.n %}#secton0">
+		{{ link.au|safe }}
+		<span style="font-size:110%;">
+		{{ link.n }}</span>
+			{{ link.p|safe }}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
+		    {% if not link.aw == '1' or not link.h|add:"0" > 7 %}
+		    <a href="{% url 'see_photo_pk' link.pi %}">
+		    {% if link.v|add:"0" < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.v|add:"0" < -1 %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% else %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}
+		    </a>
+		    {% endif %}
+		    <span class="spanemoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+			
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		<br>
+
+	{% if link.aw == '1' and link.h|add:"0" > 7 %}
+		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+	{% else %}
+		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+	{% endif %}
+		<button class="btn nw bl bco mbs mtl">
+		{% if link.pc|add:"0" > 1 %}
+		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
+		{% elif link.pc|add:"0" == 1 %}
+		<b>1</b> tabsra
+		{% else %}tabsra kro
+		{% endif %}
+		</button></a>
+		<br>
+
+	<p><hr size=1 COLOR="#ff9933"></p>
+	
+	{% else %}
+
+		{{ link.ch|safe }}
+
+		<a href="{% url 'profile' slug=link.n %}#section0">
+		{{ link.au|safe }}
+
+			<span class="bigger" ><bdi>{{ link.n }}</bdi></span>
+		
+			{{ link.p|safe }}</a>:
+    	<span class="cl clb bw"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+			<a name="section{{ forloop.counter  }}"></a> 
+		<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+			
+			{% if link.cc|add:"0" > 0 %}&nbsp;&nbsp;<a href="{% url 'register_login' %}"><button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>{% endif %}
+
+			{% if link.1h and link.2h %}
+				<div class="clb mts mbs mls">
+				<b class="ct">Latest Jawab:</b><br>
+				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span><br>
+				{{ link.2h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.2r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.2t|human_time }}</span>
+				</div>
+			{% elif link.1h %}
+				<div class="clb mts mbs mls">
+				<b class="ct">Latest Jawab:</b><br>
+				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span>
+				</div>
+			{% else %}
+				<br>
+			{% endif %}
+		
+			{{ link.vt|safe }}
+			{{ link.ct|safe }}
+   	{% endif %}
+{% empty %}
+<span class="clb">Ao gup lagain!</span>
+{% endfor %}
+
+
+
+<br><div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div>
+</div>
+</div>
+<br><br>
+{% endblock %}

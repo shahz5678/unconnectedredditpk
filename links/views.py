@@ -96,10 +96,11 @@ from brake.decorators import ratelimit
 
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
-# from optimizely import optimizely
-# from unconnectedreddit.datafile import datafile
 
-# optimizely_client = optimizely.Optimizely(datafile)
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID#,API_token
+
+config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -685,293 +686,6 @@ class LogoutReconfirmView(FormView):
 			else:
 				return redirect("score_help")
 
-# class ReportFeedbackView(FormView):
-# 	form_class = ReportFeedbackForm
-# 	template_name = "report_feedback.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(ReportFeedbackView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				if self.request.session["report_feedback"] == '1':
-# 					context["nick"] = self.kwargs["nick"]
-# 					context["pk"] = self.kwargs["pk"]
-# 					context["uuid"] = self.kwargs["uuid"]
-# 					context["private"] = self.kwargs["private"]
-# 					context["scr"] = self.kwargs["scr"]
-# 				else:
-# 					context["nick"] = None
-# 					context["pk"] = None
-# 					context["uuid"] = None
-# 					context["private"] = None
-# 					context["scr"] = None
-# 			except:
-# 				context["nick"] = None
-# 				context["pk"] = None
-# 				context["uuid"] = None
-# 				context["private"] = None
-# 				context["scr"] = None
-# 		return context
-
-# 	def form_valid(self, form):
-# 		try:
-# 			rf = self.request.session["report_feedback"]
-# 			self.request.session["report_feedback"] = None
-# 			if self.request.method == 'POST':
-# 				description = self.request.POST.get("description", '')
-# 				nick = self.request.POST.get("nick", '')
-# 				pk = self.request.POST.get("pk", '')
-# 				uuid = self.request.POST.get("uuid", '')
-# 				private = self.request.POST.get("private", '')
-# 				scr = self.request.POST.get("scr", '')
-# 				if pk == self.request.user.id:
-# 					context={'private':private, 'uuid':uuid}
-# 					return render(self.request, 'penalty_nickselfrep.html', context)
-# 				elif pk == '1':
-# 					context={'private':private, 'uuid':uuid}
-# 					return render(self.request, 'penalty_mhb11rep.html', context)
-# 				else:
-# 					cost = get_price(self.request.user.userprofile.score)
-# 					first_time_feedback = document_report_reason(pk, scr, self.request.user.id, cost, description)
-# 					if first_time_feedback:
-# 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-cost)
-# 						document_group_cyberbullying_abuse(pk, cost)
-# 					else:
-# 						context={'private':private, 'uuid':uuid}
-# 						return render(self.request, 'penalty_nickdoublerep.html', context)
-# 				context={'nickname':nick, 'private':private, 'uuid':uuid}
-# 				return render(self.request, 'reported.html', context)
-# 			else:
-# 				return redirect("profile", self.kwargs["nick"])
-# 		except:
-# 			return redirect("profile", self.kwargs["nick"])
-
-# @ratelimit(rate='3/s')
-# def reprofile(request, pk=None, unique=None, private=None, grp=None, uname=None,*args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	if was_limited:
-# 		try:
-# 			deduction = 5 * -1
-# 			request.user.userprofile.score = request.user.userprofile.score + deduction
-# 			request.user.userprofile.save()
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportprofile.html', context)
-# 		except:
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportprofile.html', context)
-# 	else:
-# 		if pk.isdigit() and check_group_member(grp, request.user.username):
-# 			banned, ban_type, time_remaining, warned = private_group_posting_allowed(request.user.id)
-# 			if banned:
-# 				context={'unique':unique, 'private':private}
-# 				return render(request, 'penalty_groupbanned.html', context)
-# 			else:
-# 				try:
-# 					request.session['target_profile_id'] = pk
-# 					request.session['target_profile_username'] = uname
-# 					request.session['target_mehfil_uuid'] = unique
-# 					request.session['target_mehfil_id'] = grp
-# 					request.session['target_mehfil_type'] = private
-# 					return redirect("report_profile")
-# 				except:
-# 					return redirect("home")
-# 		else:
-# 			return redirect("home")
-
-# class ReportProfileView(FormView):
-# 	form_class = ReportProfileForm
-# 	template_name = "report_profile.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(ReportProfileView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				target_profile_id = self.request.session['target_profile_id']
-# 				target_profile_username = self.request.session['target_profile_username']
-# 				target_mehfil_uuid = self.request.session['target_mehfil_uuid']
-# 				target_mehfil_id = self.request.session['target_mehfil_id']
-# 				target_mehfil_type = self.request.session['target_mehfil_type']
-# 				target_score = UserProfile.objects.get(user_id=target_profile_id).score
-# 				context["target_score"] = target_score
-# 				context["target_username"] = target_profile_username
-# 				context["target_id"] = target_profile_id
-# 				context["mehfil_uuid"] = target_mehfil_uuid
-# 				context["mehfil_type"] = target_mehfil_type
-# 				context["pts"] = get_price(self.request.user.userprofile.score)
-# 				if check_group_member(target_mehfil_id, target_profile_username):
-# 					context["allowed"] = True
-# 				else:
-# 					context["allowed"] = False
-# 				self.request.session['target_profile_id'] = None
-# 				self.request.session['target_profile_username'] = None
-# 				self.request.session['target_mehfil_uuid'] = None
-# 				self.request.session['target_mehfil_id'] = None
-# 				self.request.session['target_mehfil_type'] = None
-# 			except:
-# 				context["allowed"] = False
-# 				context["target_username"] = None
-# 				context["target_id"] = None
-# 				context["target_score"] = None
-# 				context["mehfil_uuid"] = None
-# 				context["mehfil_type"] = None
-# 				context["pts"] = None
-# 		return context
-
-# @ratelimit(rate='3/s')
-# def rep(request, pk=None, num=None, nick=None, uuid=None, priv=None, scr=None, *args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	banned_self, ban_type_self, time_remaining_self, warned_self = private_group_posting_allowed(request.user.id)
-# 	banned_target, ban_type_target, time_remaining_target, warned_target = private_group_posting_allowed(pk)
-# 	if was_limited:
-# 		try:
-# 			deduction = 5 * -1
-# 			request.user.userprofile.score = request.user.userprofile.score + deduction
-# 			request.user.userprofile.save()
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportprofile.html', context)
-# 		except:
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportprofile.html', context)
-# 	elif banned_self:
-# 		context={'unique':uuid, 'private':priv}
-# 		return render(request, 'penalty_groupbanned.html', context)
-# 	elif banned_target:
-# 		m, s = divmod(time_remaining_target, 60)
-# 		h, m = divmod(m, 60)
-# 		d, h = divmod(h, 24)
-# 		if d and h and m:
-# 			time_remaining = "%s days, %s hours and %s minutes" % (int(d), int(h), int(m))
-# 		elif h and m:
-# 			time_remaining = "%s hours and %s minutes" % (int(h), int(m))
-# 		elif m and s:
-# 			time_remaining = "%s minutes and %s seconds" % (int(m), int(s))
-# 		elif s:
-# 			time_remaining = "%s seconds" % int(s)
-# 		else:
-# 			time_remaining = None
-# 		context={'nickname':nick, 'unique':uuid, 'private':priv, 'time_remaining':time_remaining}
-# 		return render(request, 'penalty_alreadyreported.html', context)
-# 	elif request.user.userprofile.score < 121:
-# 		request.user.userprofile.score = request.user.userprofile.score - 120
-# 		request.user.userprofile.save()
-# 		context={'pk':'pk'}
-# 		return render(request, 'penalty_nickreport.html', context)
-# 	elif pk == '1':
-# 		context={'uuid':uuid, 'private':priv}
-# 		return render(request, 'penalty_mhb11rep.html', context)
-# 	else:
-# 		if pk.isdigit() and num.isdigit():
-# 			group = Group.objects.get(unique=uuid)
-# 			if not check_group_member(group.id, nick):
-# 				context={'nickname':nick, 'uuid':uuid, 'private':priv}
-# 				return render(request, 'penalty_groupleft.html', context)
-# 			elif request.user.id == pk:
-# 				context={'uuid':uuid, 'private':priv}
-# 				return render(request, 'penalty_nickselfrep.html', context)
-# 			elif num=='9':
-# 				request.session["report_feedback"] = '1'
-# 				return redirect("report_feedback", pk=pk, nick=nick, uuid=uuid, private=priv, scr=scr)
-# 			else:
-# 				cost = get_price(request.user.userprofile.score)
-# 				first_time_feedback = document_report_reason(pk, scr, request.user.id, cost, num)
-# 				if first_time_feedback:
-# 					UserProfile.objects.filter(user=request.user).update(score=F('score')-cost)
-# 					if num=='1' or num=='4' or num=='7':
-# 						document_group_obscenity_abuse(pk, cost)
-# 					else:
-# 						document_group_cyberbullying_abuse(pk, cost)
-# 					context={'nickname':nick, 'uuid':uuid, 'private':priv}
-# 					return render(request, 'reported.html', context)
-# 				else:
-# 					context={'uuid':uuid, 'private':priv}
-# 					return render(request, 'penalty_nickdoublerep.html', context)
-
-# @ratelimit(rate='3/s')
-# def repnick(request, pk=None, *args, **kwargs):
-# 	was_limited = getattr(request, 'limits', False)
-# 	if was_limited:
-# 		try:
-# 			deduction = 5 * -1
-# 			request.user.userprofile.score = request.user.userprofile.score + deduction
-# 			request.user.userprofile.save()
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportreply.html', context)
-# 		except:
-# 			context = {'pk': 'pk'}
-# 			return render(request, 'penalty_reportreply.html', context)
-# 	else:
-# 		if pk.isdigit():
-# 			try:
-# 				request.session['target_nickname_id'] = pk
-# 				return redirect("report_nickname")
-# 			except:
-# 				return redirect("home")
-# 		else:
-# 			return redirect("home")
-
-# class ReportNicknameView(FormView):
-# 	form_class = ReportNicknameForm
-# 	template_name = "report_nickname.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(ReportNicknameView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				target_id = self.request.session['target_nickname_id']
-# 				target = User.objects.get(id=target_id)
-# 				context["target"] = target
-# 			except:
-# 				context["target"] = None
-# 		return context
-
-# 	def form_valid(self, form):
-# 		if self.request.method == 'POST':
-# 			user = self.request.user
-# 			rep = self.request.POST.get("report")
-# 			if rep == 'Haan':
-# 				target_id = self.request.POST.get("target_id")
-# 				target_id_2 = self.request.session['target_nickname_id']
-# 				self.request.session['target_nickname_id'] = None
-# 				if target_id == target_id_2 and user.userprofile.score > 120:
-# 					#check if not self report, and not double reporting
-# 					if user.id == target_id:
-# 						context={'pk':'pk'}
-# 						return render(self.request, 'penalty_nickselfreport.html', context)
-# 					elif target_id == '1':
-# 						context={'pk':'pk'}
-# 						return render(self.request, 'penalty_mhb11report.html', context)
-# 					else:
-# 						latest_user = User.objects.latest('id')
-# 						if int(latest_user.id) - int(target_id) < 50:#it really is a recent user
-# 							reported = document_nick_abuse(target_id, user.id)
-# 							if reported == 'Falz':
-# 								context={'pk':'pk'}
-# 								return render(self.request, 'penalty_nickdoublereport.html', context)
-# 							else:
-# 								UserProfile.objects.filter(user=user.id).update(score=F('score')-10)
-# 								#reported contains current integrity value of target
-# 								if int(reported) < 0:
-# 									add_to_ban(target_id)
-# 									remove_key("nah:"+str(target_id))
-# 									remove_key("nas:"+str(target_id))
-# 								else:
-# 									pass
-# 								context={'pk':'pk'}
-# 								return render(self.request, 'nick_report.html', context)
-# 						else:#it's not a recent user
-# 							context={'pk':'pk'}
-# 							return render(self.request, 'penalty_nickreport.html', context)
-# 				else:
-# 					try:
-# 						UserProfile.objects.filter(user=user.id).update(score=F('score')-120)
-# 						context={'pk':'pk'}
-# 						return render(self.request, 'penalty_nickreport.html', context)
-# 					except:
-# 						context={'pk':'pk'}
-# 						return render(self.request, 'penalty_nickreport.html', context)
-# 			else:
-# 				return redirect("home")
-
 def leave_public_group(request, pk=None, unique=None, private=None, inside_grp=None, *args, **kwargs):
 	group = Group.objects.get(id=pk)
 	if group.owner == request.user:
@@ -1230,6 +944,7 @@ class ReportcommentView(FormView):
 						self.request.session["photonum_pk"] = None
 						self.request.session["origin_profile"] = None
 						self.request.session["origin"] = None
+						self.request.session.modified = True
 						pk = comment.submitted_by_id
 						ident = self.request.user.id
 						if pk != ident:
@@ -1251,6 +966,7 @@ class ReportcommentView(FormView):
 					self.request.session["photonum_pk"] = None
 					self.request.session["origin"] = None
 					self.request.session["origin_profile"] = None
+					self.request.session.modified = True
 					if slug is not None:
 						return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 					else:
@@ -1584,11 +1300,12 @@ def home_location_pk(request,pk=None,*args,**kwargs):
 	return redirect("home_loc")
 
 def home_location(request, *args, **kwargs):
-	try:
-		link_id = request.session['target_id']
-		del request.session['target_id']
-	except:
-		link_id = 0
+	link_id = request.session.pop("target_id", 0)
+	# try:
+	# 	link_id = request.session['target_id']
+	# 	del request.session['target_id']
+	# except:
+	# 	link_id = 0
 	# photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
 	photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
 	# request.session['home_photo_ids'] = photo_ids
@@ -1870,29 +1587,37 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-
 		##############setting session key###############
 		# print request.session.session_key
 		# if not request.session.exists(request.session.session_key):
 		# 	request.session.create()
 		# print request.session.session_key
 		
-		####################Optimizely##################
-		# user_ip = str(random.randint(1,1000000))#getip(request)
-		# variation = optimizely_client.activate('landingpagevariations1', user_ip)
-		# print variation
-		# if variation == 'var_control':
-		# 	# execute code for var_control
-
-		# 	return render(request, 'unauth_link_list.html', context)
-		# elif variation == 'var_new':
-		# 	form = CreateNickForm()
-		# 	context["form"] = form
-
-		# 	return render(request, 'unauth_link_list_test1.html', context)
-		# else:
-		# 	return render(request, 'unauth_link_list.html', context)
-		# response = HttpResponse('blah')
+		###################Optimizely##################
+		temp_id = request.session.get('tid',None)
+  		if not temp_id:
+  			temp_id = get_temp_id()
+  			request.session['tid'] = temp_id
+  		mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
+		variation_key = config_manager.get_obj().activate('landingpagevariations1', temp_id)
+		# print "temp_id is: %s" % temp_id
+		# print "var_key is: %s" % variation_key
+		if variation_key == 'var_control':
+			# execute code for var_control
+			if "variation_key" not in request.session:
+				request.session["variation_key"] = 'var_control'
+			return render(request, 'unauth_link_list.html', context)
+		elif variation_key == 'var_new':
+			form = CreateNickForm()
+			context["form"] = form
+			if "variation_key" not in request.session:
+				request.session["variation_key"] = 'var_new'
+			return render(request, 'unauth_link_list_test1.html', context)
+		else:
+			# no experiment
+			if "variation_key" not in request.session:
+				request.session["variation_key"] = 'var_noexp'
+			return render(request, 'unauth_link_list.html', context)
 		#################setting cookies###############
 		# temp_id = request.COOKIES.get('cookie_name',None)
 		# if temp_id:
@@ -1901,11 +1626,11 @@ def unauth_home_link_list(request, *args, **kwargs):
 		# 	response = HttpResponse('blah')
   		# 	response.set_cookie('cookie_name', 'baigster')
   		############setting session variable###########
-  		temp_id = request.session.get('temp_id',None)
-  		if not temp_id:
-  			request.session['temp_id'] = get_temp_id()
-  		mp.track(temp_id, 'Unauth Home')
-		return render(request, 'unauth_link_list.html', context)
+  # 		temp_id = request.session.get('temp_id',None)
+  # 		if not temp_id:
+  # 			request.session['temp_id'] = get_temp_id()
+  # 		mp.track(temp_id, 'Unauth Home')
+		# return render(request, 'unauth_link_list.html', context)
 
 # @cache_page(10)
 # def unauth_home_link_list(request, *args, **kwargs):
@@ -2000,6 +1725,7 @@ class AppointCaptainView(FormView):
 			group = Group.objects.get(unique=unique)
 			appoint = self.request.session["appoint_decision"]
 			self.request.session["appoint_decision"] = None
+			self.request.session.modified = True
 			if appoint == '1' and group.owner == self.request.user and not \
 			GroupCaptain.objects.filter(which_user_id = candidate, which_group=group).exists():
 				GroupCaptain.objects.create(which_user_id=candidate,which_group=group)
@@ -2010,6 +1736,7 @@ class AppointCaptainView(FormView):
 					return redirect("owner_group_online_kon")
 			else:
 				self.request.session["public_uuid"] = None
+				self.request.session.modified = True
 				return redirect("public_group", slug=unique)
 			return redirect("owner_group_online_kon")
 
@@ -2755,6 +2482,7 @@ class DirectMessageView(FormView):
 			try:
 				pk = self.request.session["dm"]
 				self.request.session["dm"] = None
+				self.request.session.modified = True
 			except:
 				context["nopk"] = True
 				context["target"] = None
@@ -2798,6 +2526,7 @@ def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
 				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
 				add_group_invite(pk, group_id,reply.id)
 		request.session["unique_id"] = None
+		request.session.modified = True
 		return redirect("invite_private", slug=uuid)
 
 def invite_private(request, slug=None, *args, **kwargs):
@@ -3056,7 +2785,9 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(request.session.get('temp_id',None), 'Created Acc')
+			mp.track(request.session.get('tid',None), 'created_account')
+			request.session.pop("tid", None)
+			request.session.pop("variation_key",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -3072,7 +2803,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			mp.track(request.session.get('temp_id',None), 'Create Acc')
+			mp.track(request.session.get('tid',None), 'create_account')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -3094,7 +2825,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('temp_id',None), 'Created Pass')
+				mp.track(request.session.get('tid',None), 'created_pass')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -3108,10 +2839,10 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 	else:
-		mp.track(request.session.get('temp_id',None), 'Load Pass')
+		mp.track(request.session.get('tid',None), 'load_pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			mp.track(request.session.get('temp_id',None), 'Create Pass')
+			mp.track(request.session.get('tid',None), 'create_pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -3140,15 +2871,19 @@ def create_nick(request,*args,**kwargs):
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
-			mp.track(request.session.get('temp_id',None), 'Created Nick')
+			if "variation_key" in request.session:
+				# print "tracking"
+				config_manager.get_obj().track('nick_successfully_created', request.session.get('tid',None))
+			mp.track(request.session.get('tid',None), 'created_nick')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
 			return render(request, 'create_nick.html', context)
+	#############################################################################
 	else:
 		form = CreateNickForm()
 		context = {'form':form}
-  		mp.track(request.session.get('temp_id',None), 'Create Nick')
+  		mp.track(request.session.get('tid',None), 'create_nick')
 		# optimizely_client.track('my_conversion', user_id)
 		return render(request, 'create_nick.html', context)
 
@@ -3163,10 +2898,11 @@ def reset_password(request,*args,**kwargs):
 			form.save()
 			password = request.POST.get("password")
 			context={'new_pass':password}
-			try:
-				del request.session['authentic_password_owner']
-			except KeyError:
-				pass
+			request.session.pop("authentic_password_owner", None)
+			# try:
+			# 	del request.session['authentic_password_owner']
+			# except KeyError:
+			# 	pass
 			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 			return render(request,'new_password.html',context)
 		else:
@@ -3377,6 +3113,7 @@ class PhotostreamView(ListView):
 		try:
 			target_id = self.request.session["photo_stream_id"]
 			self.request.session["photo_stream_id"] = None
+			self.request.session.modified = True
 		except:
 			target_id = None
 		if target_id:
@@ -3439,6 +3176,7 @@ class ChainPhotoTutorialView(FormView):
 			self.request.session["ftue_chain"] = None
 			pk = self.request.session["reply_photo_id"]
 			self.request.session["reply_photo_id"] = None
+			self.request.session.modified = True
 			if self.request.user_banned:
 				return redirect("best_photo")
 			else:
@@ -3495,6 +3233,7 @@ class UploadPhotoReplyView(CreateView):
 		try:
 			pk = self.request.session["reply_photo_id"]
 			self.request.session["reply_photo_id"] = None
+			self.request.session.modified = True
 			target = Photo.objects.get(id=pk)
 		except:
 			return redirect("best_photo")
@@ -3705,6 +3444,7 @@ class PhotoReplyView(FormView):
 		try:
 			pk = self.request.session["photo_id"]
 			self.request.session["photo_id"] = None
+			self.request.session.modified = True
 			which_photo = Photo.objects.get(id=pk)
 			if self.request.user_banned:
 				return redirect("best_photo")
@@ -3798,6 +3538,7 @@ class VideoCommentView(CreateView):
 			try:
 				pk = self.request.session["video_pk"]
 				self.request.session["video_pk"] = None
+				self.request.session.modified = True
 				which_video = Video.objects.get(id=pk)
 			except:
 				user.userprofile.score = user.userprofile.score - 3
@@ -3945,6 +3686,7 @@ class CommentView(CreateView):
 				else:
 					#if originating from a notification
 					self.request.session['target_id'] = None
+				self.request.session.modified = True
 			else:
 				context["origin"] = '1'
 		except:
@@ -3952,6 +3694,7 @@ class CommentView(CreateView):
 		try:
 			is_first = self.request.session["first_time"]
 			self.request.session["first_time"] = False
+			self.request.session.modified = True
 			context["is_first"] = is_first
 		except:
 			context["is_first"] = False
@@ -4024,6 +3767,7 @@ class CommentView(CreateView):
 			try:
 				pk = self.request.session["photo_id"]
 				self.request.session["photo_id"] = None
+				self.request.session.modified = True
 				which_photo = Photo.objects.get(id=pk)
 			except:
 				user.userprofile.score = user.userprofile.score - 3
@@ -4033,12 +3777,14 @@ class CommentView(CreateView):
 				try:
 					star_user_id = self.request.session["user_ident"]
 					self.request.session["user_ident"] = None
+					self.request.session.modified = True
 				except:
 					star_user_id = None
 			elif origin == '6':
 				link_id = self.request.session["user_ident"]
 				self.request.session["user_ident"] = None
-				self.request.session["target_id"] = link_id				
+				self.request.session["target_id"] = link_id	
+				self.request.session.modified = True			
 			exists = PhotoComment.objects.filter(which_photo=which_photo, submitted_by=user).exists()
 			update_cc_in_home_photo(which_photo.id)
 			if self.request.is_feature_phone:
@@ -4139,6 +3885,7 @@ class SpecialPhotoTutorialView(FormView):
 				if choice == 'samajh gaya':
 					flag = TutorialFlag.objects.filter(user=self.request.user).update(seen_special_photo_option=True)
 					self.request.session["ftue_special_photo_option"] = None
+					self.request.session.modified = True
 					return redirect("see_special_photo")
 				else:
 					return redirect("best_photo")
@@ -4325,6 +4072,7 @@ class SpecialPhotoView(ListView):
 		try:
 			target_id = self.request.session["target_special_photo_id"]
 			self.request.session["target_special_photo_id"] = None
+			self.request.session.modified = True
 		except:
 			target_id = None
 		if target_id:
@@ -5858,7 +5606,8 @@ class PublicGroupView(CreateView):
 				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
 				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
 				image_url=image_url,priority='public_mehfil',from_unseen=False)
-			self.request.session["public_uuid"] = None
+			# self.request.session["public_uuid"] = None
+			self.request.session.pop("public_uuid",None)
 			# mp.track(user_id, 'Public Mehfil Reply')
 			return redirect("public_group", slug=pk)
 
@@ -6086,6 +5835,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
 				from_unseen=False)
 			self.request.session['unique_id'] = unique
+			self.request.session.modified = True
 			# mp.track(user_id, 'Private Mehfil Reply')
 			return redirect("private_group_reply")#, reply.which_group.unique)
 	
@@ -6193,6 +5943,7 @@ class MehfilCommentView(FormView):
 			self.request.session['mehfilcomment_pk'] = None
 			self.request.session['mehfilphoto_pk'] = None
 			self.request.session['mehfilfrom_photos'] = None
+			self.request.session.modified = True
 			if report == 'Haan':
 				if user.userprofile.score < 500:
 					if photo_id is not None and origin is not None:
@@ -6215,6 +5966,7 @@ class MehfilCommentView(FormView):
 						add_group_invite(target_id, group.id,reply.id)
 						add_user_group(user.id, group.id)
 						self.request.session["unique_id"] = unique
+						self.request.session.modified = True
 						return redirect("private_group_reply")#, slug=unique)
 					except:
 						if photo_id is not None:
@@ -6291,6 +6043,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				request.session["forms"] = forms
 				request.session["oblist"] = oblist
 				request.session["page_obj"] = page_obj
+				request.session.modified = True
 				return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
@@ -6356,6 +6109,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				request.session["forms"] = forms
 				request.session["oblist"] = oblist
 				request.session["page_obj"] = page_obj
+				request.session.modified = True
 				return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
@@ -6384,6 +6138,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				request.session["forms"] = forms
 				request.session["oblist"] = oblist
 				request.session["page_obj"] = page_obj
+				request.session.modified = True
 				return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
@@ -6556,6 +6311,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			process_publicreply(self.request,link_id,f.description)
 			# mp.track(user_id, 'Home Publicreply')
 			self.request.session["link_pk"] = link_id
+			self.request.session.modified = True
 			return redirect("reply")
 
 class UserActivityView(ListView):
@@ -6673,6 +6429,7 @@ class LinkCreateView(CreateView):
 		except:
 			return redirect("profile", slug=self.request.user.username)
 		self.request.session["link_create_token"] = None
+		self.request.session.modified = True
 		if valid_uuid(str(token)):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			user = self.request.user
@@ -6787,6 +6544,7 @@ class KickView(FormView):
 				try:
 					unique = self.request.session["kick_slug"]
 					self.request.session["kick_slug"] = None
+					self.request.session.modified = True
 					group = Group.objects.get(unique=unique)
 				except:
 					return redirect("profile", self.request.user.username)
@@ -6796,6 +6554,7 @@ class KickView(FormView):
 					else:
 						pk = self.request.session["kick_pk"]
 						self.request.session["kick_pk"] = None
+						self.request.session.modified = True
 						culprit = User.objects.get(id=pk)
 						group_id = group.id
 						if GroupBanList.objects.filter(which_user=culprit, which_group_id=group_id).exists():# already kicked and banned
@@ -6883,6 +6642,7 @@ class GroupReportView(FormView):
 			try:
 				unique = Group.objects.get(unique=self.request.session["groupreport_slug"])
 				self.request.session["groupreport_slug"] = None
+				self.request.session.modified = True
 			except:
 				return redirect("home")
 			if unique.private != '0':
@@ -6901,6 +6661,7 @@ class GroupReportView(FormView):
 				if report == 'Haan mita do':
 					reply_id = self.request.session["groupreport_pk"]
 					self.request.session["groupreport_pk"] = None
+					self.request.session.modified = True
 					reply = get_object_or_404(Reply, pk=reply_id)
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists() \
 					or reply.text == self.request.user.username: #this checks if this particular captain has reported this particular reply before (doesn't defend against another captain reporting an already-reported group reply)
@@ -6939,6 +6700,7 @@ class ReportView(FormView):
 						if pk != ident:
 							document_publicreply_abuse(pk)
 						self.request.session["link_pk"] = reply.answer_to.id
+						self.request.session.modified = True
 						return redirect("reply")
 					else:
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-3)
@@ -6949,6 +6711,7 @@ class ReportView(FormView):
 					self.request.session["report_pk"] = None
 					self.request.session["linkreport_pk"] = None
 					self.request.session["link_pk"] = link.id
+					self.request.session.modified = True
 					return redirect("reply")
 			else:
 				return render(self.request,'500.html',{})
@@ -7307,12 +7070,15 @@ def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 			return redirect("profile", star.username)
 		elif origin == '2':
 			request.session["target_photo_id"] = obj_id
+			request.session.modified = True
 			return redirect("photo_loc")
 		elif origin == '3':
 			request.session["target_best_photo_id"] = obj_id
+			request.session.modified = True
 			return redirect("best_photo_loc")
 		elif origin == '4':
 			request.session['target_id'] = obj_id
+			request.session.modified = True
 			return redirect("home_loc")
 		else:
 			return redirect("home")
@@ -7355,6 +7121,7 @@ class FanTutorialView(FormView):
 				self.request.session["ftue_fan_option"] = None
 				user = self.request.session["ftue_fan_user"]
 				self.request.session["ftue_fan_user"] = None
+				self.request.session.modified = True
 				if self.request.method == 'POST':
 					option = self.request.POST.get("choice", '')
 					if option == 'samajh gaya':
@@ -7518,10 +7285,12 @@ def cast_vote(request,*args,**kwargs):
 					if origin == '1':
 						#came from cricket_comments
 						request.session["target_id"] = link_id
+						request.session.modified = True
 						return redirect("cric_loc")
 					elif origin == '0':
 						#came from home page
 						request.session["target_id"] = link_id
+						request.session.modified = True
 						return redirect("home_loc")
 					else:
 						#came from somewhere else (error?)
@@ -8137,6 +7906,7 @@ class AdImageView(CreateView):
 		else:
 			self.request.session["ad_image"] = None
 		self.request.session["ad_gender_token"] = uuid.uuid4()
+		self.request.session.modified = True
 		return redirect("ad_gender")
 
 # class AdLinkURLView(FormView):

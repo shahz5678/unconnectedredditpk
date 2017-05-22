@@ -72,17 +72,20 @@ def delete_notifications(user_id):
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
 	two_days = datetime.utcnow()-timedelta(hours=24*2)
-	photos_score_list = Photo.objects.filter(upload_time__gte=two_days).annotate(unique_comments=Count('photocomment__submitted_by', distinct=True)).values_list('owner_id','vote_score','unique_comments')
-	if photos_score_list:
-		photos_total_score_list= [ (k,(VOTE_WEIGHT*v1)+v2) for k,v1,v2 in photos_score_list]
-		total_photos = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
-		total_scores = defaultdict(int)
+	photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','visible_score')
+	# print photos_total_score_list
+	if photos_total_score_list:
+		total_photos_per_user = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
+		# print "total photos per user: %s" % total_photos_per_user
+		total_scores_per_user = defaultdict(int)
 		for key,val in photos_total_score_list:
-			total_scores[key] += val
+			total_scores_per_user[key] += val
+		# print "total scores per user: %s" % total_scores_per_user
 		uploader_scores = []
-		for key,val in total_scores.items():
+		for key,val in total_scores_per_user.items():
 			uploader_scores.append(key)
-			uploader_scores.append(val/total_photos[key])
+			uploader_scores.append(float(val)/total_photos_per_user[key])
+		# print uploader_scores
 		set_benchmark(uploader_scores)
 
 @celery_app1.task(name='tasks.bulk_create_notifications')

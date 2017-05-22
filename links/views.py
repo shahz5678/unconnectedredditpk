@@ -4816,9 +4816,9 @@ class UploadPhotoView(CreateView):
 				photos = []
 				total_score = 0
 				photo_ids = get_recent_photos(self.request.user.id)
-				photos_qs = Photo.objects.filter(id__in=photo_ids).order_by('-id').annotate(unique_comment_count=Count('photocomment__submitted_by', distinct=True))
+				photos_qs = Photo.objects.filter(id__in=photo_ids).order_by('-id')#.annotate(unique_comment_count=Count('photocomment__submitted_by', distinct=True))
 				for photo in photos_qs:
-					total_score += ((VOTE_WEIGHT*photo.vote_score) + photo.unique_comment_count)
+					total_score += photo.visible_score#((VOTE_WEIGHT*photo.vote_score) + photo.unique_comment_count)
 					photos.append((photo.vote_score, photo.upload_time, photo.visible_score)) #list of dictionaries
 					number_of_photos += 1
 				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)

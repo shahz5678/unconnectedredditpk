@@ -9,6 +9,7 @@ from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_ads import urlpatterns as urlpatterns_ads
+from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
@@ -62,6 +63,7 @@ urlpatterns = patterns('',
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
+	url(r'^ohook/$', webhook_event, name='webhook_event'),
 	# url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
 	url(r'^home_unauth/', unauth_home_link_list, name='unauth_home'),
 	#################################################################################################

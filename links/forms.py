@@ -1199,7 +1199,7 @@ class CreateNickForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(CreateNickForm, self).__init__(*args, **kwargs)
 		self.fields['username'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;max-width:90%;border: 1px solid #fdd835;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		'background-color:#fffce6;width:1000px;max-width:90%;border: none;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
 		# self.fields['username'].widget.attrs['style'] = 'max-width:95%;background-color:#fffce6;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'

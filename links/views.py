@@ -1251,7 +1251,6 @@ def home_reply(request,pk=None,*args,**kwargs):
 		if form.is_valid():
 			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 			request.session['target_id'] = pk
-			# mp.track(user_id, 'Home Reply')
 			if first_time_home_replier(user_id):
 				add_home_replier(user_id)
 				return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
@@ -1598,12 +1597,9 @@ def unauth_home_link_list(request, *args, **kwargs):
   		if not temp_id:
   			temp_id = get_temp_id()
   			request.session['tid'] = temp_id
-  		mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
+  		# mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
 		variation_key = config_manager.get_obj().activate('landingpagevariations1', temp_id)
-		# print "temp_id is: %s" % temp_id
-		# print "var_key is: %s" % variation_key
 		if variation_key == 'var_control':
-			# execute code for var_control
 			if "variation_key" not in request.session:
 				request.session["variation_key"] = 'var_control'
 			return render(request, 'unauth_link_list.html', context)
@@ -1618,19 +1614,6 @@ def unauth_home_link_list(request, *args, **kwargs):
 			if "variation_key" not in request.session:
 				request.session["variation_key"] = 'var_noexp'
 			return render(request, 'unauth_link_list.html', context)
-		#################setting cookies###############
-		# temp_id = request.COOKIES.get('cookie_name',None)
-		# if temp_id:
-		# 	pass
-		# else:
-		# 	response = HttpResponse('blah')
-  		# 	response.set_cookie('cookie_name', 'baigster')
-  		############setting session variable###########
-  # 		temp_id = request.session.get('temp_id',None)
-  # 		if not temp_id:
-  # 			request.session['temp_id'] = get_temp_id()
-  # 		mp.track(temp_id, 'Unauth Home')
-		# return render(request, 'unauth_link_list.html', context)
 
 # @cache_page(10)
 # def unauth_home_link_list(request, *args, **kwargs):
@@ -1838,7 +1821,6 @@ class OnlineKonView(ListView):
 		context = super(OnlineKonView, self).get_context_data(**kwargs)
 		context["with_thumbs"] = False
 		if self.request.user.is_authenticated():
-			# mp.track(self.request.user.id, 'Saw Online Kon')
 			if not context["object_list"]:
 				context["whose_online"] = False
 			else:
@@ -1937,7 +1919,6 @@ class UserProfilePhotosView(ListView):
 			populate_search_thumbs.delay(slug,ids_with_urls)
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
-			# mp.track(self.request.user.id, 'Viewed Profile Photos')
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["manageable"] = True
@@ -2785,7 +2766,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(request.session.get('tid',None), 'created_account')
+			# mp.track(request.session.get('tid',None), 'created_account')
 			request.session.pop("tid", None)
 			request.session.pop("variation_key",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
@@ -2803,7 +2784,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			mp.track(request.session.get('tid',None), 'create_account')
+			# mp.track(request.session.get('tid',None), 'create_account')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -2825,7 +2806,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('tid',None), 'created_pass')
+				# mp.track(request.session.get('tid',None), 'created_pass')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2839,10 +2820,10 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 	else:
-		mp.track(request.session.get('tid',None), 'load_pass')
+		# mp.track(request.session.get('tid',None), 'load_pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			mp.track(request.session.get('tid',None), 'create_pass')
+			# mp.track(request.session.get('tid',None), 'create_pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -2851,7 +2832,6 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
-			# mp.track(getip(request), 'Penalty Cookie Pg')
 			#cookies aren't being set in the browser, so can't make an account!
 			return render(request, 'penalty_cookie.html', {})
 
@@ -2874,7 +2854,7 @@ def create_nick(request,*args,**kwargs):
 			if "variation_key" in request.session:
 				# print "tracking"
 				config_manager.get_obj().track('nick_successfully_created', request.session.get('tid',None))
-			mp.track(request.session.get('tid',None), 'created_nick')
+			# mp.track(request.session.get('tid',None), 'created_nick')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
@@ -2883,8 +2863,7 @@ def create_nick(request,*args,**kwargs):
 	else:
 		form = CreateNickForm()
 		context = {'form':form}
-  		mp.track(request.session.get('tid',None), 'create_nick')
-		# optimizely_client.track('my_conversion', user_id)
+  		# mp.track(request.session.get('tid',None), 'create_nick')
 		return render(request, 'create_nick.html', context)
 
 #rate limit this
@@ -3808,7 +3787,6 @@ class CommentView(CreateView):
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url, citizen)
-			# mp.track(user.id, 'Left Photo Comment')
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 			elif pk and origin and star_user_id:
@@ -5608,7 +5586,6 @@ class PublicGroupView(CreateView):
 				image_url=image_url,priority='public_mehfil',from_unseen=False)
 			# self.request.session["public_uuid"] = None
 			self.request.session.pop("public_uuid",None)
-			# mp.track(user_id, 'Public Mehfil Reply')
 			return redirect("public_group", slug=pk)
 
 
@@ -5836,7 +5813,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				from_unseen=False)
 			self.request.session['unique_id'] = unique
 			self.request.session.modified = True
-			# mp.track(user_id, 'Private Mehfil Reply')
 			return redirect("private_group_reply")#, reply.which_group.unique)
 	
 @ratelimit(rate='3/s')
@@ -6165,7 +6141,6 @@ def get_object_list_and_forms(request, notif=None):
 	return page_obj, oblist, forms, page_num, addendum
 
 def unseen_activity(request, slug=None, *args, **kwargs):
-	# mp.track(request.user.id, 'Entered Matka')
 	if first_time_inbox_visitor(request.user.id):
 		add_inbox(request.user.id)
 		context={'username':request.user.username}
@@ -6309,7 +6284,6 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			process_publicreply(self.request,link_id,f.description)
-			# mp.track(user_id, 'Home Publicreply')
 			self.request.session["link_pk"] = link_id
 			self.request.session.modified = True
 			return redirect("reply")
@@ -6476,7 +6450,6 @@ class LinkCreateView(CreateView):
 				if extras:
 					queue_for_deletion.delay(extras)
 			f.submitter.userprofile.save()
-			mp.track(user_id, 'Sent Message')
 			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:
 			return redirect("score_help")

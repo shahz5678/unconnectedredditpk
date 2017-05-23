@@ -1549,73 +1549,6 @@ def home_link_list(request, *args, **kwargs):
 		return redirect("unauth_home")
 
 # @cache_page(10)
-def unauth_home_link_list(request, *args, **kwargs):
-	if request.user.is_authenticated():
-		return redirect("home")
-	else:
-		context = {}
-		context["checked"] = FEMALES
-		enqueued_match = get_current_cricket_match()
-		if 'team1' in enqueued_match:
-			context["enqueued_match"] = enqueued_match
-		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
-		context["link_list"] = list_of_dictionaries
-		context["page"] = page
-		now = datetime.utcnow()+timedelta(hours=5)
-		day = now.weekday()
-		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-				'LOCATION': MEMLOC, 'TIMEOUT': 70,
-			})
-		salat_timings = cache_mem.get('salat_timings')
-		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
-		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
-			context["current_namaz"] = 'Jummah'
-		else:
-			context["current_namaz"] = salat_timings['namaz']
-		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
-			context["next_namaz"] = 'Jummah'	
-		else:
-			context["next_namaz"] = salat_timings['next_namaz']
-		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
-			# do not show namaz element at all, some error may have occurred
-			context["show_current"] = False
-			context["show_next"] = False
-		elif not salat_timings['namaz']:
-			context["show_current"] = False
-			context["show_next"] = True
-		else:
-			context["show_current"] = True
-			context["show_next"] = False
-		##############setting session key###############
-		# print request.session.session_key
-		# if not request.session.exists(request.session.session_key):
-		# 	request.session.create()
-		# print request.session.session_key
-		
-		###################Optimizely##################
-		temp_id = request.session.get('tid',None)
-  		if not temp_id:
-  			temp_id = get_temp_id()
-  			request.session['tid'] = temp_id
-  		# mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
-		variation_key = config_manager.get_obj().activate('landingpagevariations1', temp_id)
-		if variation_key == 'var_control':
-			if "variation_key" not in request.session:
-				request.session["variation_key"] = 'var_control'
-			return render(request, 'unauth_link_list.html', context)
-		elif variation_key == 'var_new':
-			form = CreateNickForm()
-			context["form"] = form
-			if "variation_key" not in request.session:
-				request.session["variation_key"] = 'var_new'
-			return render(request, 'unauth_link_list_test1.html', context)
-		else:
-			# no experiment
-			if "variation_key" not in request.session:
-				request.session["variation_key"] = 'var_noexp'
-			return render(request, 'unauth_link_list.html', context)
-
-# @cache_page(10)
 # def unauth_home_link_list(request, *args, **kwargs):
 # 	if request.user.is_authenticated():
 # 		return redirect("home")
@@ -1653,14 +1586,79 @@ def unauth_home_link_list(request, *args, **kwargs):
 # 		else:
 # 			context["show_current"] = True
 # 			context["show_next"] = False
-# 		# if random.random() < 0.5:
-# 		# 	form = CreateNickForm()
-# 		# 	context["form"] = form
-# 		# 	mp.track(getip(request), 'Alternative Unauth Page')
-# 		# 	return render(request, 'unauth_link_list_test1.html', context)
-# 		# else:
-# 		mp.track(getip(request), 'Normal Unauth Page')
-# 		return render(request, 'unauth_link_list.html', context)
+# 		##############setting session key###############
+# 		# print request.session.session_key
+# 		# if not request.session.exists(request.session.session_key):
+# 		# 	request.session.create()
+# 		# print request.session.session_key
+		
+# 		###################Optimizely##################
+# 		temp_id = request.session.get('tid',None)
+#   		if not temp_id:
+#   			temp_id = get_temp_id()
+#   			request.session['tid'] = temp_id
+#   		# mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
+# 		variation_key = config_manager.get_obj().activate('landingpagevariations1', temp_id)
+# 		if variation_key == 'var_control':
+# 			if "variation_key" not in request.session:
+# 				request.session["variation_key"] = 'var_control'
+# 			return render(request, 'unauth_link_list.html', context)
+# 		elif variation_key == 'var_new':
+# 			form = CreateNickForm()
+# 			context["form"] = form
+# 			if "variation_key" not in request.session:
+# 				request.session["variation_key"] = 'var_new'
+# 			return render(request, 'unauth_link_list_test1.html', context)
+# 		else:
+# 			# no experiment
+# 			if "variation_key" not in request.session:
+# 				request.session["variation_key"] = 'var_noexp'
+# 			return render(request, 'unauth_link_list.html', context)
+
+# @cache_page(10)
+def unauth_home_link_list(request, *args, **kwargs):
+	if request.user.is_authenticated():
+		return redirect("home")
+	else:
+		context = {}
+		context["checked"] = FEMALES
+		enqueued_match = get_current_cricket_match()
+		if 'team1' in enqueued_match:
+			context["enqueued_match"] = enqueued_match
+		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
+		context["link_list"] = list_of_dictionaries
+		context["page"] = page
+		now = datetime.utcnow()+timedelta(hours=5)
+		day = now.weekday()
+		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,
+			})
+		salat_timings = cache_mem.get('salat_timings')
+		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
+			context["current_namaz"] = 'Jummah'
+		else:
+			context["current_namaz"] = salat_timings['namaz']
+		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
+			context["next_namaz"] = 'Jummah'	
+		else:
+			context["next_namaz"] = salat_timings['next_namaz']
+		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
+			# do not show namaz element at all, some error may have occurred
+			context["show_current"] = False
+			context["show_next"] = False
+		elif not salat_timings['namaz']:
+			context["show_current"] = False
+			context["show_next"] = True
+		else:
+			context["show_current"] = True
+			context["show_next"] = False
+		form = CreateNickForm()
+		context["form"] = form
+		# mp.track(getip(request), 'unauth_home')
+		return render(request, 'unauth_link_list_test1.html', context)
+		# else:
+		# 	return render(request, 'unauth_link_list.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link

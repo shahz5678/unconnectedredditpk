@@ -38,7 +38,7 @@ def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
 
 def set_rank(netvotes,upload_time):
-	# Based on reddit ranking algo at http://amix.dk/blog/post/19588
+	# Based on reddit ranking algo at https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
 	if netvotes == None:
 		netvotes = 0
 	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0

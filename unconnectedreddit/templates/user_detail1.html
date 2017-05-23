@@ -173,7 +173,7 @@
                           {% endif %}
                           </button>
                           </a>
-                          {% if time_remaining == '-2' %}
+                          {% if time_remaining == '-2' or defender %}
                           &nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="4"><input type="hidden" name="oun" value="{{ subject.username }}"><input type="hidden" name="purl" value="{{ photo.image_file.url|thumbedge }}"><input type="hidden" name="oid" value="{{ star_id }}"><input type="hidden" name="cap" value="{{ photo.caption }}"><input type="hidden" name="vsc" value="{{ photo.vote_score }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.id }}" name="curate" type="submit">&nbsp;</button></form>
                           {% endif %}
                           <br>

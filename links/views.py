@@ -59,7 +59,7 @@ set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, vo
 add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
-is_uname_search_unlocked, set_ad_feedback, get_ad_feedback
+is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, in_defenders
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -1917,8 +1917,11 @@ class UserProfilePhotosView(ListView):
 		if context["object_list"] and search_thumbs_missing(slug):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(slug,ids_with_urls)
+		context["defender"] = False
 		if self.request.user.is_authenticated():
 			username = self.request.user.username
+			if in_defenders(self.request.user.id):
+				context["defender"] = True
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["manageable"] = True

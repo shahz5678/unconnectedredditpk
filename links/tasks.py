@@ -43,7 +43,7 @@ def set_rank(netvotes,upload_time):
 		netvotes = 0
 	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
 	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
-	secs = upload_time - 1432201843 #a recent date, coverted to epoch time
+	secs = upload_time - 1432201843 # Thu, 21 May 2015 09:50:43 GMT coverted to epoch time
 	return round(sign * order + secs / 45000, 8)
 
 def fans_targeted(current_percentile):

@@ -2859,12 +2859,13 @@ def create_nick(request,*args,**kwargs):
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
+			mp.track(request.session.get('tid',None), 'retry_new_nick')
 			return render(request, 'create_nick.html', context)
 	#############################################################################
 	else:
 		form = CreateNickForm()
 		context = {'form':form}
-  		mp.track(request.session.get('tid',None), 'create_new_nick')
+  		# mp.track(request.session.get('tid',None), 'create_new_nick')
 		return render(request, 'create_nick.html', context)
 
 #rate limit this

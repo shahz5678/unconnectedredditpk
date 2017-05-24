@@ -6068,11 +6068,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					device = '5'
 				else:
 					device = '3'
+				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
 				# Photo.objects.filter(id=pk).update(comment_count=F('comment_count')+1)
 				update_cc_in_home_photo(pk)
 				photo = Photo.objects.get(id=pk)
-				exists = PhotoComment.objects.filter(which_photo=photo, submitted_by=request.user).exists() #i.e. user commented before
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url

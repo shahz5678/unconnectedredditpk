@@ -1655,11 +1655,11 @@ def unauth_home_link_list(request, *args, **kwargs):
 			context["show_next"] = False
 		form = CreateNickForm()
 		context["form"] = form
-		# temp_id = request.session.get('tid',None)
-  # 		if not temp_id:
-  # 			temp_id = get_temp_id()
-  # 			request.session['tid'] = temp_id
-  # 		mp.track(temp_id, 'unauth_new_home') # not disrupting the Mixpanel event
+		temp_id = request.session.get('tid',None)
+  		if not temp_id:
+  			temp_id = get_temp_id()
+  			request.session['tid'] = temp_id
+  		mp.track(temp_id, 'unauth_new_home') # not disrupting the Mixpanel event
 		return render(request, 'unauth_link_list_test1.html', context)
 
 class LinkUpdateView(UpdateView):
@@ -2769,7 +2769,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			# mp.track(request.session.get('tid',None), 'created_new_account')
+			mp.track(request.session.get('tid',None), 'created_new_account')
 			request.session.pop("tid", None)
 			request.session.pop("variation_key",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
@@ -2787,7 +2787,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			password = slug2.decode("hex")
 			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			# mp.track(request.session.get('tid',None), 'create_new_account')
+			mp.track(request.session.get('tid',None), 'create_new_account')
 			return render(request, 'create_account.html', context)
 		else:
 			# some tinerking in the link has taken place
@@ -2809,7 +2809,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				# mp.track(request.session.get('tid',None), 'created_new_pass')
+				mp.track(request.session.get('tid',None), 'created_new_pass')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2826,7 +2826,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 		# mp.track(request.session.get('tid',None), 'load_pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			# mp.track(request.session.get('tid',None), 'create_new_pass')
+			mp.track(request.session.get('tid',None), 'create_new_pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -2855,7 +2855,7 @@ def create_nick(request,*args,**kwargs):
 			request.session.set_test_cookie() #set it now, to test it in the next view
 			# if "variation_key" in request.session:
 			# 	config_manager.get_obj().track('nick_successfully_created', request.session.get('tid',None))
-			# mp.track(request.session.get('tid',None), 'created_new_nick')
+			mp.track(request.session.get('tid',None), 'created_new_nick')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
@@ -2864,7 +2864,7 @@ def create_nick(request,*args,**kwargs):
 	else:
 		form = CreateNickForm()
 		context = {'form':form}
-  		# mp.track(request.session.get('tid',None), 'create_new_nick')
+  		mp.track(request.session.get('tid',None), 'create_new_nick')
 		return render(request, 'create_nick.html', context)
 
 #rate limit this

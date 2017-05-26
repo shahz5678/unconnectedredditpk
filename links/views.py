@@ -1365,7 +1365,7 @@ def home_link_list(request, *args, **kwargs):
 		# print not feedback_given
 		old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=7))
 		# print old_user
-		context["show_feedback_form"] = not feedback_given and old_user
+		context["show_feedback_form"] = False#not feedback_given and old_user
 		# print context["show_feedback_form"]
 		############################################ Namaz feature #############################################
 		now = datetime.utcnow()+timedelta(hours=5)

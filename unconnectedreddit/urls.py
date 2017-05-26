@@ -10,6 +10,7 @@ from django.views.generic.base import TemplateView
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_ads import urlpatterns as urlpatterns_ads
 from links.webhooks import webhook_event
+from links.export_website_feedback import export_website_feedback
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
@@ -46,6 +47,7 @@ AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^export_website_feedback/$', auth(export_website_feedback), name='export_website_feedback'),
 	url(r'^feedback/$', auth(website_feedback), name='website_feedback'),
 	url(r'^see_website_feedback/$', auth(see_website_feedback), name='see_website_feedback'),
 	url(r'^search_uname_unlocking_dec/$', auth(search_uname_unlocking_dec), name='unamesrc_unldec'),

@@ -276,6 +276,16 @@
 			<!-- nothing to show -->
 		{% endif %}
 	{% endif %}
+	{% if forloop.counter == 13 and show_feedback_form %}
+		<div style="background-color:#ffff8d;margin-top:-1em;padding-top:1em;">
+		&nbsp;<b class="cg cl">Damadam ke barey mein apni rai do:</b>
+		<form method="POST" action="{% url 'website_feedback' %}" style="display:inline;">
+		{% csrf_token %}
+		<input type="submit" class="mls mts mbs bm" style="background:#00c853;color:white;font-weight:bold;" value="OK">
+		</form>
+		<p><hr size=1 COLOR="#3cb7dd"></p>
+		</div>
+	{% endif %}
 	{% if link.c == '2' %}
 		
 		{{ link.ch|safe }}

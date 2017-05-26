@@ -59,7 +59,9 @@ set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, vo
 add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
 first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
-is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, in_defenders
+is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, in_defenders, first_time_feedbacker, add_website_feedbacker, save_website_feedback,\
+website_feedback_given, save_website_feedback_user_details, get_website_feedback
+from .website_feedback_form import WebsiteFeedbackForm, WebsiteFeedbackUserDetailsForm
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -1358,6 +1360,13 @@ def home_link_list(request, *args, **kwargs):
 		# print type(list_of_dictionaries[0]['n'])
 		context["page"] = page
 		context["replyforms"] = replyforms
+		############################################ Website Feedback #############################################
+		feedback_given = website_feedback_given(context["ident"])
+		# print not feedback_given
+		old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=7))
+		# print old_user
+		context["show_feedback_form"] = not feedback_given and old_user
+		# print context["show_feedback_form"]
 		############################################ Namaz feature #############################################
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
@@ -8079,6 +8088,94 @@ def click_ad(request, ad_id=None, *args,**kwargs):
 	return redirect("test_ad")
 
 ###############################################################
+
+def see_website_feedback(request,*args,**kwargs):
+	total_feedback = get_website_feedback()
+	total_feedback.sort(key=lambda k : k['time_of_feedback'])
+	count = len(total_feedback)
+	return render(request,"see_website_feedback.html",{'total_feedback':total_feedback,'count':count})
+
+@csrf_protect
+def website_feedback(request,*args,**kwargs):
+	if request.method == 'POST':
+		if first_time_feedbacker(request.user.id):
+			add_website_feedbacker(request.user.id)
+			return render(request,"website_feedback_tutorial.html",{})
+		else:
+			answered = request.POST.get('answered',None)
+			if answered == '1':
+				form = WebsiteFeedbackForm(request.POST)
+				question1 = request.POST.get("question1")
+				question2 = request.POST.get("question2")
+				question3 = request.POST.get("question3")
+				question4 = request.POST.get("question4")
+				question5 = request.POST.get("question5")
+				if form.is_valid():
+					data = {} 
+					data["question1"] = question1
+					data["question2"] = question2
+					data["question3"] = question3
+					data["question4"] = question4
+					data["question5"] = question5
+					data["feedback1"] = form.cleaned_data.get("feedback1")
+					data["feedback2"] = form.cleaned_data.get("feedback2")
+					data["feedback3"] = form.cleaned_data.get("feedback3")
+					data["feedback4"] = form.cleaned_data.get("feedback4")
+					data["feedback5"] = form.cleaned_data.get("feedback5")
+					data["username"] = request.user.username
+					data["user_id"] = request.user.id
+					data["score"] = request.user.userprofile.score
+					data["date_joined"] = request.user.date_joined
+					data["time_of_feedback"] = time.time()
+					if request.is_feature_phone:
+						data["device"] = '1'
+					elif request.is_phone:
+						data["device"] = '2'
+					elif request.is_tablet:
+						data["device"] = '4'
+					elif request.is_mobile:
+						data["device"] = '5'
+					else:
+						data["device"] = '3'
+					data_saved = save_website_feedback(data)
+					if data_saved:
+						form = WebsiteFeedbackUserDetailsForm()
+						return render(request,"website_feedback_thanks.html",{'form':form})
+					else:
+						return redirect("home")
+				else:
+					context = {}
+					context["form"] = form
+					context["question1"] = question1
+					context["question2"] = question2
+					context["question3"] = question3
+					context["question4"] = question4
+					context["question5"] = question5
+					return render(request,"website_feedback.html",context)
+			if answered == '2':
+				form = WebsiteFeedbackUserDetailsForm(request.POST)
+				if form.is_valid():
+					data = {}
+					data["user_id"] = request.user.id
+					data["mobile"] = form.cleaned_data.get("mobile")
+					data["gender"] = form.cleaned_data.get("gender")
+					data["city"] = form.cleaned_data.get("loc")
+					data["age"] = form.cleaned_data.get("age")
+					save_website_feedback_user_details(data)
+					return redirect("home")
+				else:
+					return render(request,"website_feedback_thanks.html",{'form':form})
+			else:
+				context = {}
+				context["form"] = WebsiteFeedbackForm()
+				context["question1"] = "1) Agr ap Damadam choro, tou kis wajah se choro ge?"
+				context["question2"] = "2) Ap Damadam mein sab se ziyada kiya istimal kartey ho?"
+				context["question3"] = "3) Damadam mein aisa kuch hai jo Facebook mein nahi?"
+				context["question4"] = "4) Damadam mein aisa kuch hai jo Whatsapp mein nahi?"
+				context["question5"] = "5) Damadam ki sab se ziyada mazedar baat kiya hai?"
+				return render(request,"website_feedback.html",context)
+	else:
+		return render(request,"404.html",{})
 
 # def change_nicks(request,*args,**kwargs):
 # 	if request.user.username == 'mhb11':

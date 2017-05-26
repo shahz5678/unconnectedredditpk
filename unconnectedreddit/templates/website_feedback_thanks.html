@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb mtl">
+<b class="cxl">Rai dene ka shukriya!</b><br>
+<form action="{% url 'website_feedback' %}" method="POST" class="mtl">
+{% csrf_token %}
+<input type="hidden" name="answered" value="2">
+<span class="cl">Agr ap chahtey ho ke hum rabta karein, tou apni details hamey bata do:</span>
+<div class="mtl mbl">
+<b class="cl cg">Mobile Number:</bileb><br>
+{% if form.mobile.errors %}
+<span class="cr cs">{{ form.mobile.errors.0 }}</span><br>
+{% endif %}
+{{ form.mobile }}
+</div>
+<div class="mtl mbl">
+<b class="cl cg">City:</b><br>
+{% if form.loc.errors %}
+<span class="cr cs">{{ form.loc.errors.0 }}</span><br>
+{% endif %}
+{{ form.loc }}
+</div>
+<div class="mtl mbl">
+<b class="cl cg">Gender:</b><br>
+{% if form.gender.errors %}
+<span class="cr cs">{{ form.gender.errors.0 }}</span><br>
+{% endif %}
+	{% for radio in form.gender %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+	{% endfor %}
+</div>
+<div class="mtl mbl">
+<b class="cl cg">Age:</b><br>
+{% if form.age.errors %}
+<span class="cr cs">{{ form.age.errors.0 }}</span><br>
+{% endif %}
+{{ form.age }}
+</div>
+<input class="mls mts mbs bm" style="background:#00c853;color:white;font-weight:bold;" type="submit" value="OK">
+</form>
+</div>
+<br><br>
+{% endblock %}

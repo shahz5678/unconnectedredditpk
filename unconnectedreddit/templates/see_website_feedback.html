@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb mtl">
+<b>Total Feedback: {{ count }}</b><br>
+<hr size=1 COLOR="#b3e6b3">
+{% for feedback in total_feedback reversed %}
+<br>
+<div class="mbs mtl">
+<span class="cgy">{{ feedback.question1 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer1 }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy">{{ feedback.question2 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer2 }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy">{{ feedback.question3 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer3 }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy">{{ feedback.question4 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer4 }}{% endemoticons %}</span><br>
+</div>
+<div class="mbl">
+<span class="cgy">{{ feedback.question5 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer5 }}{% endemoticons %}</span><br>
+</div>
+<span class="cgy cs mls">by</span>&nbsp;<a href="{% url 'profile' feedback.username %}">{{ feedback.username }}</a>&nbsp;<span class="cs cg">({{ feedback.score }})</span>
+		{% if feedback.device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif feedback.device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif feedback.device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif feedback.device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif feedback.device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}
+<span class="cs cgy">,&nbsp;<b>{{ feedback.time_of_feedback|human_time }}</b></span><br>
+<span class="cgy cs mls">Date of joining: <b>{{ feedback.date_joined }}</b></span><br>
+{% if feedback.city %}
+<span class="cgy cs mls">Mobile: <b class="co">{{ feedback.mobile }}</b></span><br>
+<span class="cgy cs mls">City: <b class="co">{{ feedback.city }}</b></span><br>
+<span class="cgy cs mls">Age: <b class="co">{{ feedback.age }}</b></span><br>
+<span class="cgy cs mls">Gender: <b class="co">{% if feedback.gender == '1' %}
+Female
+{% else %}
+Male
+{% endif %}</b></span>
+{% endif %}
+<hr size=1 COLOR="#b3e6b3">
+{% endfor %}
+</div>
+<br><br>
+{% endblock %}

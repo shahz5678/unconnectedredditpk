@@ -78,7 +78,7 @@ SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, M
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, \
 TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm,\
-PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm
+PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm, CreateNickNewForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -96,8 +96,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 from optimizely_config_manager import OptimizelyConfigManager
 from unconnectedreddit.optimizely_settings import PID#,API_token
@@ -105,7 +105,7 @@ from unconnectedreddit.optimizely_settings import PID#,API_token
 config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -1604,16 +1604,16 @@ def home_link_list(request, *args, **kwargs):
 #   			temp_id = get_temp_id()
 #   			request.session['tid'] = temp_id
 #   		# mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
-# 		variation_key = config_manager.get_obj().activate('landingpagevariations1', temp_id)
-# 		if variation_key == 'var_control':
+# 		variation_key = config_manager.get_obj().activate('username_recommendation', temp_id)
+# 		if variation_key == 'off':
 # 			if "variation_key" not in request.session:
 # 				request.session["variation_key"] = 'var_control'
 # 			return render(request, 'unauth_link_list.html', context)
-# 		elif variation_key == 'var_new':
+# 		elif variation_key == 'on':
 # 			form = CreateNickForm()
 # 			context["form"] = form
-# 			if "variation_key" not in request.session:
-# 				request.session["variation_key"] = 'var_new'
+			# if "variation_key" not in request.session:
+			# 	request.session["variation_key"] = 'var_new'
 # 			return render(request, 'unauth_link_list_test1.html', context)
 # 		else:
 # 			# no experiment
@@ -1659,14 +1659,30 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-		form = CreateNickForm()
-		context["form"] = form
-		temp_id = request.session.get('tid',None)
-  		if not temp_id:
-  			temp_id = get_temp_id()
-  			request.session['tid'] = temp_id
-  		mp.track(temp_id, 'saw_home') # not disrupting the Mixpanel event
-		return render(request, 'unauth_link_list_test1.html', context)
+  		# mp.track(temp_id, 'saw_home') # not disrupting the Mixpanel event
+  		unreg_id = request.session.get('unreg_id',None)
+  		if not unreg_id:
+  			unreg_id = get_temp_id()
+  			request.session['unreg_id'] = unreg_id
+  		# print unreg_id
+  		variation_key = config_manager.get_obj().activate('username_recommendation', unreg_id)
+  		# print variation_key
+  		if variation_key == 'on':
+  			form = CreateNickNewForm()
+			context["form"] = form
+			if "var_key" not in request.session:
+				request.session["var_key"] = True
+  			return render(request, 'unauth_link_list_test2.html', context)
+  		elif variation_key == 'off':
+  			form = CreateNickForm()
+			context["form"] = form
+			if "var_key" not in request.session:
+				request.session["var_key"] = True
+  			return render(request, 'unauth_link_list_test1.html', context)
+  		else:
+  			form = CreateNickForm()
+			context["form"] = form
+			return render(request, 'unauth_link_list_test1.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -2776,8 +2792,8 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			# mp.track(request.session.get('tid',None), 'created_new_account')
-			request.session.pop("tid", None)
-			# request.session.pop("variation_key",None)
+			request.session.pop("unreg_id", None)
+			request.session.pop("var_key",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2810,7 +2826,6 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 		if form.is_valid():
 			# show user the password in the next screen
 			if int(length) == len(slug):
-				# password = request.POST.get("password")
 				password = form.cleaned_data['password']
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
@@ -2844,8 +2859,8 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 			#cookies aren't being set in the browser, so can't make an account!
 			return render(request, 'penalty_cookie.html', {})
 
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
+############################################################################################################
+
 @csrf_protect		
 def create_nick(request,*args,**kwargs):
 	if request.user.is_authenticated():
@@ -2854,26 +2869,78 @@ def create_nick(request,*args,**kwargs):
 		return render(request, 'penalty_account_create.html',{})
 	elif request.method == 'POST':
 		form = CreateNickForm(data=request.POST)
-		mp.track(request.session.get('tid',None), 'typed_nick')
 		if form.is_valid():
 			username = form.cleaned_data['username']
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
-			# if "variation_key" in request.session:
-			# 	config_manager.get_obj().track('nick_successfully_created', request.session.get('tid',None))
-			mp.track(request.session.get('tid',None), 'successful_nick')
+			if "var_key" in request.session:
+				config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
 			# mp.track(request.session.get('tid',None), 'retry_new_nick')
 			return render(request, 'create_nick.html', context)
-	#############################################################################
 	else:
 		form = CreateNickForm()
 		context = {'form':form}
   		# mp.track(request.session.get('tid',None), 'create_new_nick')
 		return render(request, 'create_nick.html', context)
+
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+@csrf_protect		
+def create_nick_new(request,*args,**kwargs):
+	if request.user.is_authenticated():
+		return render(request,'404.html',{})
+	elif account_creation_disallowed(getip(request)):
+		return render(request, 'penalty_account_create.html',{})
+	elif request.method == 'POST':
+		form = CreateNickNewForm(data=request.POST)
+		sys_sugg = request.POST.get('system_suggestion',None)
+		# print sys_sugg
+		# mp.track(request.session.get('tid',None), 'typed_nick')
+		if sys_sugg:
+			#process system suggestion
+			result = sys_sugg.encode("hex")
+			length = len(result)
+			request.session.set_test_cookie()
+			if "var_key" in request.session:
+				config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
+			return redirect('create_password',slug=result,length=length)
+		else:
+			if form.is_valid():
+				alt_choices, altered, original = form.cleaned_data['username']
+				if altered:
+					if len(alt_choices) == 1:
+						#show single suggestion
+						return render(request,'recreate_nick.html',{'original':original,'single':True,'alternatives':alt_choices,\
+							'status':altered["status"]})
+					else:
+						#show multiple suggestions
+						return render(request,'recreate_nick.html',{'original':original,'single':False,'alternatives':alt_choices,\
+							'status':altered["status"]})
+				else:
+					# divide between suggestion and actual nick
+					result = original.encode("hex")
+					length = len(result)
+					request.session.set_test_cookie() #set it now, to test it in the next view
+					# 	config_manager.get_obj().track('nick_successfully_created', request.session.get('tid',None))
+					#mp.track(request.session.get('tid',None), 'successful_nick')
+					if "var_key" in request.session:
+						config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
+					return redirect('create_password',slug=result,length=length)
+			else:
+				context = {'form':form}
+				# mp.track(request.session.get('tid',None), 'retry_new_nick')
+				return render(request, 'create_nick_new.html', context)
+	else:
+		form = CreateNickNewForm()
+		context = {'form':form}
+  		# mp.track(request.session.get('tid',None), 'create_new_nick')
+		return render(request, 'create_nick_new.html', context)
+
+############################################################################################################
 
 #rate limit this
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -7623,7 +7690,7 @@ def ad_feedback(request,*args,**kwargs):
 		return render(request,'ad_feedback.html',{'form':form,'feedback_count':0})
 
 def umrah_price(request,*args,**kwargs):
-	mp.track(request.user.id, 'Clicked Umrah Price Detail')
+	# mp.track(request.user.id, 'Clicked Umrah Price Detail')
 	return render(request,'umrah_price.html',{})
 
 @csrf_protect
@@ -7638,14 +7705,14 @@ def umrah(request,*args,**kwargs):
 			time_now = timezone.now()
 			submitted_at = convert_to_epoch(time_now)
 			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
-			mp.track(request.user.id, 'Gave Ad Feedback')
+			# mp.track(request.user.id, 'Gave Ad Feedback')
 			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
 		else:
 			# form = AdFeedbackForm()
 			return render(request,'umrah_package.html',{'form':form})
 	else:
 		form = AdFeedbackForm()
-		mp.track(request.user.id, 'Clicked Umrah Ad')
+		# mp.track(request.user.id, 'Clicked Umrah Ad')
 		return render(request,'umrah_package.html',{'form':form})
 
 @ratelimit(rate='3/s')

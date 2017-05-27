@@ -2,7 +2,7 @@
 from django import forms
 from django.forms import Textarea
 from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies
-from .redis3 import nick_already_exists,insert_nick
+from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -516,7 +516,7 @@ class SearchNicknameForm(forms.Form):
 		nickname = self.cleaned_data.get("nickname")
 		nickname = nickname.strip()
 		if len(nickname) > 70:
-			raise forms.ValidationError('tip: inta bara nickname nahi likh sakte')
+			raise forms.ValidationError('tip: inta bara naam nahi likh sakte')
 		nickname = clear_zalgo_text(nickname)
 		return nickname
 
@@ -1059,14 +1059,8 @@ class RegisterLoginForm(forms.Form):
 	class Meta:
 		pass
 
-# class LoginForm(AuthenticationForm):
-# 	username = forms.CharField(max_length=254)
-# 	password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
-# 	class Meta:
-# 		fields = ('username','password',)	
-
 class CreateAccountForm(forms.ModelForm):
-	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': _("ye nickname sahi nahi hai")})
+	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': _("ye naam sahi nahi hai")})
 	password = forms.CharField(widget=forms.PasswordInput)
 	class Meta:
 		model = User
@@ -1081,9 +1075,9 @@ class CreateAccountForm(forms.ModelForm):
 				User._default_manager.get(username=username)
 			except User.DoesNotExist:
 				return username
-			raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s naam tum se pehle kisi aur ne rakh liya' % username)
 		elif exists:
-			raise forms.ValidationError('%s nick tum se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s naam tum se pehle kisi aur ne rakh liya' % username)
 		else:
 			return username
 
@@ -1127,9 +1121,12 @@ class CreatePasswordForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(CreatePasswordForm, self).__init__(*args,**kwargs)
-		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
+		# self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
+		self.fields['password'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['password'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_username(self):
 		return self.cleaned_data.get("username")
@@ -1144,7 +1141,7 @@ class CreatePasswordForm(forms.Form):
 		elif lower_pass.isdigit():
 			raise ValidationError('Password mein sirf numbers nahi ho sakte!')
 		elif lower_nick in lower_pass:
-			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)		
+			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:
 			raise ValidationError('"babykobasspasandhai" ke bajai kuch aur likho')
 		elif 'chaachi420' in lower_pass:
@@ -1159,6 +1156,7 @@ class CreatePasswordForm(forms.Form):
 			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
 		return password
 
+############################################################################################################
 
 def validate_nickname_chars(value):
 	reg = re.compile('^[\w.@+-]+$')
@@ -1167,34 +1165,14 @@ def validate_nickname_chars(value):
 
 def validate_whitespaces_in_nickname(value):
 	if ' ' in value.strip():
-		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
-		# clone_a = value
-		# option_a = clone_a.replace(" ", "-")
-		# exists_a = nick_already_exists(option_a)
-		# if exists_a:
-		# 	clone_b = value
-		# 	option_b = clone_b.replace(" ", "_")
-		# 	exists_b = nick_already_exists(option_b)
-		# 	if exists_b:
-	 #    		raise ValidationError('Nickname mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
-	 #    	else:
-	 #    		return option_b
-	 #    else:
-	 #    	return option_a
+		raise ValidationError('Naam mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
 
 class CreateNickForm(forms.Form):
 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Nickname ko khali nahi chore sakte!")},\
+		'required':_("Naam ko khali nahi chore sakte!")},\
 		validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)
-
-# class CreateNickForm(forms.Form):
-# 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
-# 		'required':_("Nickname ko khali nahi chore sakte!")},\
-# 		validators=[validate_whitespaces_in_nickname, validators.RegexValidator(regex='^[\w.@+-]+$')])
-# 	class Meta:
-# 		fields = ('username',)
 
 	def __init__(self, *args, **kwargs):
 		super(CreateNickForm, self).__init__(*args, **kwargs)
@@ -1217,14 +1195,136 @@ class CreateNickForm(forms.Form):
 		if exists is None:
 			# the sorted set "nicknames" doesn't exist, fall-back to DB
 			if User.objects.filter(username__iexact=username).exists():
-				raise ValidationError(_('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)) 
+				raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username)) 
 		elif exists:
-			raise ValidationError(_('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)) 
+			raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username)) 
 		else:
 			for name in BANNED_WORDS:
 				if name in username.lower():
-					raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
+					raise ValidationError('Naam mein "%s" nahi ho sakta!' % name)
 			return username
+
+############################################################################################################
+
+def process_choices(alternatives):
+	chunks = [alternatives[x:x+3] for x in xrange(0, len(alternatives), 3)]
+	alt_choices = []
+	for chunk in chunks:
+		nicks = bulk_nicks_exist(chunk)
+		for nick in nicks:
+			if not nick[1]:
+				alt_choices.append(nick[0])
+			if len(alt_choices) > 2:
+				return alt_choices
+	return alt_choices
+
+def validate_nickname_chars(value):
+	reg = re.compile('^[\w\s.@+-]+$')
+	if not reg.match(value):
+		raise ValidationError('Naam mein sirf english harf, number ya @ _ . + - ho sakta hai')
+	for name in BANNED_WORDS:
+		if name in value.lower():
+			raise ValidationError('Naam mein "%s" nahi ho sakta!' % name)
+
+def form_variants(username):
+	if username[-1].isdigit():
+		words = username.split()
+		return ['_'.join(words),'.'.join(words),''.join(words),'-'.join(words),\
+		''.join(words)+'_hi',''.join(words)+'_me',''.join(words)+'_pk',''.join(words)+'_007',\
+		'_'.join(words)+'_me','_'.join(words)+'_hi','_'.join(words)+'_007','_'.join(words)+'_pk'] #14 suggestions
+	else:
+		words = username.split()
+		return ['_'.join(words),'.'.join(words),''.join(words),'-'.join(words),\
+		''.join(words)+'11',''.join(words)+'22',''.join(words)+'33',\
+		''.join(words)+'44',''.join(words)+'55',''.join(words)+'66',\
+		''.join(words)+'77',''.join(words)+'786',''.join(words)+'007'] #13 suggestions
+
+def form_suggestions(username):
+	if len(username) < 3: #small nickname
+		if username[-1].isdigit():
+			return [username+'pk',username+'_hi',username+'_me',username+'hi',\
+			username+'me',username+'_pk',username+'-hi',username+'-me',\
+			username+'.hi',username+'.me',username+'-pk'] #11 suggestions
+		else:
+			return [username+'1',username+'2',username+'3',username+'4',\
+			username+'5',username+'6',username+'7',username+'8',username+'9',\
+			username+'0',username+'007',username+'786'] #12 suggestions
+	elif username[-1].isdigit():
+		return [username+'_pk',username+'_me',username+'_hi',username+'pk',\
+		'mr_'+username,'am_'+username,username+'_pm',username+'hum',\
+		username+'-pk',username+'_00',username+'oye',username+'_007'] #12 suggestions
+	else:
+		return [username+'11',username+'22',username+'33',username+'44',\
+		username+'55',username+'66',username+'77',username+'88',\
+		username+'99',username+'00',username+'786',username+'007'] #12 suggestions
+
+class CreateNickNewForm(forms.Form):
+	username = forms.CharField(max_length=50,error_messages={'invalid': _("Naam mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
+		'required':_("Naam ko khali nahi chore sakte!")})#,validators=[validate_whitespaces_in_nickname])
+	class Meta:
+		fields = ('username',)
+
+	def __init__(self, *args, **kwargs):
+		super(CreateNickNewForm, self).__init__(*args, **kwargs)
+		self.fields['username'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_username(self):
+		"""
+		Validate that the username is not already in use, etc.
+		'status':'joined' the nickname has been concatenated together, removing any whitespaces
+		'status':'replaced' means the nickname has been replaced by a different one
+		"""
+		username = self.cleaned_data['username']
+		username = username.strip()
+		validate_nickname_chars(username)
+		exists = nick_already_exists(username)
+		altered = {}
+		if exists is None:
+			#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it
+			if ' ' in username:
+				username_original = username
+				username = ''.join(username.split())
+				altered = {'status':'joined'}
+				if User.objects.filter(username__iexact=username).exists():
+					raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username_original))
+			else:
+				if User.objects.filter(username__iexact=username).exists():
+					raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username))
+			return [username], altered, username
+		############################################
+		else:
+			# form variants and suggestions
+			# check al against redis DB
+			if ' ' in username:
+				alternatives = form_variants(username) #returns list of tuples containing variants and their statuses
+				alt_choices = process_choices(alternatives)
+				if not alt_choices:
+					# no suggestions could be unearthed
+					raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username))
+				else:
+					# some suggestions unearthed
+					altered = {'status':'joined'}
+					return alt_choices, altered, username
+			else:
+				if exists:
+					# nick is not available
+					alternatives = form_suggestions(username) #returns list of tuples containing suggestions and their statuses
+					alt_choices = process_choices(alternatives)
+					if not alt_choices:
+						raise ValidationError(_('"%s" kisi aur ka naam hai. Kuch aur likho' % username))
+					else:
+						altered = {'status':'replaced'}
+						return alt_choices, altered, username
+				else:
+					#nick is available
+					# altered = False
+					return [username], altered, username
+
+############################################################################################################
 
 class ReauthForm(forms.Form):
 	password = forms.CharField(widget=forms.TextInput(attrs={'placeholder':''}))
@@ -1380,7 +1480,7 @@ class AdFeedbackForm(forms.Form):
 class EcommCityForm(forms.Form):
 	loc = forms.RegexField(max_length=250,regex=re.compile("^[A-Za-z0-9._~()'!*:@, ;+?-]*$"),\
 		error_messages={'invalid': _("sirf english harf, number ya @ _ . + - likh sakte ho"),\
-		'required':_("naam ko khali nahi chore sakte")})
+		'required':_("isko khali nahi chore sakte")})
 
 	def __init__(self,*args,**kwargs):
 		super(EcommCityForm, self).__init__(*args,**kwargs)
@@ -1402,4 +1502,4 @@ class EcommCityForm(forms.Form):
 		elif loc.lower() == 'rawalpindi':
 			raise ValidationError('Rawalpindi ko wapis ja ke list mein se select kro!')
 		return loc
-#####################################################################################################
+#####################################################################################################	

@@ -1,14 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_min.html" %}
 {% block content %}
 
-<div class="margin clb">
+<div class="margin clb mtl">
 <form method="POST" action="{% url 'create_nick' %}#section0">
 	{% csrf_token %}
 	{% if form.username.errors %}
 	<span class="cr cxl">{{ form.username.errors.0 }}</span><br><br>
 	{% else %}
-	<span class="cxl">Pehle ek acha sa nickname likho:</span><br>
-	<span class="cgy">Nickname mein khali jagah nahi dalni</span><br><br>
+	<b class="cxl cg">Neya naam likho:</b><br>
 	{% endif %}
 	{{ form.username }}<br><br>
 	<button class="btn bs bcg cxl" type="submit">OK</button>

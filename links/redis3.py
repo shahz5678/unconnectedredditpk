@@ -77,6 +77,28 @@ def nick_already_exists(nickname):
 		# the nickname has been used before
 		return True
 
+#bulk checking whether nicks exist
+def bulk_nicks_exist(nickname_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.exists("nicknames"):
+		return [None,None,None]
+	else:
+		generic_nicks = [nickname.lower()+"*" for nickname in nickname_list]
+		pipeline1 = my_server.pipeline()
+		for nick in generic_nicks:
+			pipeline1.zrank("nicknames",nick)
+		result1 = pipeline1.execute()
+		nicks = []
+		counter = 0
+		for exist in result1:
+			if exist is None:
+				nicks.append((nickname_list[counter],False))
+			else:
+				nicks.append((nickname_list[counter],True))
+			counter += 1
+		return nicks
+
+
 #inserting nickname at the time of registration
 def insert_nick(nickname):
 	my_server = redis.Redis(connection_pool=POOL)

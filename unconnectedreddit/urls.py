@@ -25,7 +25,7 @@ see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_
 cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
 first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,\
 search_uname_unlocking_dec, search_username, go_to_username, go_to_user_photo, remove_searched_username, website_feedback, umrah, umrah_price,\
-see_website_feedback
+see_website_feedback, create_nick_new
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -229,6 +229,7 @@ urlpatterns = patterns('',
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
 	url(r'^create_pass/(?P<slug>[\w.@+-]+)/(?P<length>\d+)/$', create_password, name='create_password'), #[\w.?)&;[\]}:${@+-]+
 	url(r'^create_nick/$', create_nick, name='create_nick'),
+	url(r'^createnick/$', create_nick_new, name='create_nick_new'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
 	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),

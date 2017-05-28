@@ -96,16 +96,16 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-# from optimizely_config_manager import OptimizelyConfigManager
-# from unconnectedreddit.optimizely_settings import PID
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
 
-# config_manager = OptimizelyConfigManager(PID)
+config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -1554,72 +1554,12 @@ def home_link_list(request, *args, **kwargs):
 	else:
 		return redirect("unauth_home")
 
-# @cache_page(10)
-# def unauth_home_link_list(request, *args, **kwargs):
-# 	if request.user.is_authenticated():
-# 		return redirect("home")
-# 	else:
-# 		context = {}
-# 		context["checked"] = FEMALES
-# 		enqueued_match = get_current_cricket_match()
-# 		if 'team1' in enqueued_match:
-# 			context["enqueued_match"] = enqueued_match
-# 		photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
-# 		context["link_list"] = list_of_dictionaries
-# 		context["page"] = page
-# 		now = datetime.utcnow()+timedelta(hours=5)
-# 		day = now.weekday()
-# 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-# 				'LOCATION': MEMLOC, 'TIMEOUT': 70,
-# 			})
-# 		salat_timings = cache_mem.get('salat_timings')
-# 		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
-# 		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
-# 			context["current_namaz"] = 'Jummah'
-# 		else:
-# 			context["current_namaz"] = salat_timings['namaz']
-# 		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
-# 			context["next_namaz"] = 'Jummah'	
-# 		else:
-# 			context["next_namaz"] = salat_timings['next_namaz']
-# 		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
-# 			# do not show namaz element at all, some error may have occurred
-# 			context["show_current"] = False
-# 			context["show_next"] = False
-# 		elif not salat_timings['namaz']:
-# 			context["show_current"] = False
-# 			context["show_next"] = True
-# 		else:
-# 			context["show_current"] = True
-# 			context["show_next"] = False
 # 		##############setting session key###############
 # 		# print request.session.session_key
 # 		# if not request.session.exists(request.session.session_key):
 # 		# 	request.session.create()
 # 		# print request.session.session_key
-		
-# 		###################Optimizely##################
-# 		temp_id = request.session.get('tid',None)
-#   		if not temp_id:
-#   			temp_id = get_temp_id()
-#   			request.session['tid'] = temp_id
-#   		# mp.track(temp_id, 'unauth_home') # not disrupting the Mixpanel event
-# 		variation_key = config_manager.get_obj().activate('username_recommendation', temp_id)
-# 		if variation_key == 'off':
-# 			if "variation_key" not in request.session:
-# 				request.session["variation_key"] = 'var_control'
-# 			return render(request, 'unauth_link_list.html', context)
-# 		elif variation_key == 'on':
-# 			form = CreateNickForm()
-# 			context["form"] = form
-			# if "variation_key" not in request.session:
-			# 	request.session["variation_key"] = 'var_new'
-# 			return render(request, 'unauth_link_list_test1.html', context)
-# 		else:
-# 			# no experiment
-# 			if "variation_key" not in request.session:
-# 				request.session["variation_key"] = 'var_noexp'
-# 			return render(request, 'unauth_link_list.html', context)
+# 		################################################
 
 # @cache_page(10)
 def unauth_home_link_list(request, *args, **kwargs):
@@ -1659,31 +1599,27 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-  		new_id = request.session.get('new_id',None)
-  		if not new_id:
-  			new_id = get_temp_id()
-  			request.session['new_id'] = new_id
-  		mp.track(new_id, 'hit_home')
+  		unreg_id = request.session.get('unreg_id',None)
+  		if not unreg_id:
+  			unreg_id = get_temp_id()
+  			request.session['unreg_id'] = unreg_id
+  		# mp.track(new_id, 'hit_home')
   		form = CreateNickNewForm()
 		context["form"] = form
-		return render(request, 'unauth_link_list_test2.html', context)
-  	# 	variation_key = config_manager.get_obj().activate('username_recommendation', unreg_id)
-  	# 	if variation_key == 'on':
-  	# 		form = CreateNickNewForm()
-			# context["form"] = form
-			# if "var_key" not in request.session:
-			# 	request.session["var_key"] = True
-  	# 		return render(request, 'unauth_link_list_test2.html', context)
-  	# 	elif variation_key == 'off':
-  	# 		form = CreateNickForm()
-			# context["form"] = form
-			# if "var_key" not in request.session:
-			# 	request.session["var_key"] = True
-  	# 		return render(request, 'unauth_link_list_test1.html', context)
-  	# 	else:
-  	# 		form = CreateNickForm()
-			# context["form"] = form
-			# return render(request, 'unauth_link_list_test1.html', context)
+		# return render(request, 'unauth_link_list_test2.html', context)
+  		variation_key = config_manager.get_obj().activate('cosmetic_changes', unreg_id)
+  		# print variation_key
+  		# print unreg_id
+  		if variation_key == 'old_layout':
+			if "var_key" not in request.session:
+				request.session["var_key"] = True
+  			return render(request, 'unauth_link_list_test1.html', context)
+  		elif variation_key == 'new_layout':
+			if "var_key" not in request.session:
+				request.session["var_key"] = True
+  			return render(request, 'unauth_link_list_test2.html', context)
+  		else:
+			return render(request, 'unauth_link_list_test1.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -2793,7 +2729,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			# mp.track(request.session.get('tid',None), 'created_new_account')
-			request.session.pop("new_id",None)
+			request.session.pop("unreg_id",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2898,15 +2834,15 @@ def create_nick_new(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
-		mp.track(request.session.get('new_id',None), 'wrote_nick')
+		# mp.track(request.session.get('new_id',None), 'wrote_nick')
+		if "var_key" in request.session:
+			config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 		if sys_sugg:
 			#process system suggestion
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			mp.track(request.session.get('new_id',None), 'made_nick')
-			# if "var_key" in request.session:
-			# 	config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
+			# mp.track(request.session.get('new_id',None), 'made_nick')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			if form.is_valid():
@@ -2925,9 +2861,9 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					mp.track(request.session.get('new_id',None), 'made_nick')
+					# mp.track(request.session.get('new_id',None), 'made_nick')
 					# if "var_key" in request.session:
-					# 	config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
+					# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 					return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}

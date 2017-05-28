@@ -99,10 +99,10 @@ from brake.decorators import ratelimit
 # from mixpanel import Mixpanel
 # from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-from optimizely_config_manager import OptimizelyConfigManager
-from unconnectedreddit.optimizely_settings import PID
+# from optimizely_config_manager import OptimizelyConfigManager
+# from unconnectedreddit.optimizely_settings import PID
 
-config_manager = OptimizelyConfigManager(PID)
+# config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 # mp = Mixpanel(MIXPANEL_TOKEN)
@@ -1599,27 +1599,25 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-  		unreg_id = request.session.get('unreg_id',None)
-  		if not unreg_id:
-  			unreg_id = get_temp_id()
-  			request.session['unreg_id'] = unreg_id
+  		# new_id = request.session.get('new_id',None)
+  		# if not new_id:
+  		# 	new_id = get_temp_id()
+  		# 	request.session['new_id'] = new_id
   		# mp.track(new_id, 'hit_home')
   		form = CreateNickNewForm()
 		context["form"] = form
-		# return render(request, 'unauth_link_list_test2.html', context)
-  		variation_key = config_manager.get_obj().activate('cosmetic_changes', unreg_id)
-  		# print variation_key
-  		# print unreg_id
-  		if variation_key == 'old_layout':
-			if "var_key" not in request.session:
-				request.session["var_key"] = True
-  			return render(request, 'unauth_link_list_test1.html', context)
-  		elif variation_key == 'new_layout':
-			if "var_key" not in request.session:
-				request.session["var_key"] = True
-  			return render(request, 'unauth_link_list_test2.html', context)
-  		else:
-			return render(request, 'unauth_link_list_test1.html', context)
+		return render(request, 'unauth_link_list_test2.html', context)
+  	# 	variation_key = config_manager.get_obj().activate('cosmetic_changes', unreg_id)
+  	# 	if variation_key == 'old_layout':
+			# if "var_key" not in request.session:
+			# 	request.session["var_key"] = True
+  	# 		return render(request, 'unauth_link_list_test1.html', context)
+  	# 	elif variation_key == 'new_layout':
+			# if "var_key" not in request.session:
+			# 	request.session["var_key"] = True
+  	# 		return render(request, 'unauth_link_list_test2.html', context)
+  	# 	else:
+			# return render(request, 'unauth_link_list_test1.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -2810,8 +2808,6 @@ def create_nick(request,*args,**kwargs):
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
-			# if "var_key" in request.session:
-			# 	config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
 			return redirect('create_password',slug=result,length=length)
 		else:
 			context = {'form':form}
@@ -2835,8 +2831,8 @@ def create_nick_new(request,*args,**kwargs):
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
 		# mp.track(request.session.get('new_id',None), 'wrote_nick')
-		if "var_key" in request.session:
-			config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
+		# if "var_key" in request.session:
+		# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 		if sys_sugg:
 			#process system suggestion
 			result = sys_sugg.encode("hex")
@@ -2862,8 +2858,6 @@ def create_nick_new(request,*args,**kwargs):
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
 					# mp.track(request.session.get('new_id',None), 'made_nick')
-					# if "var_key" in request.session:
-					# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 					return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}

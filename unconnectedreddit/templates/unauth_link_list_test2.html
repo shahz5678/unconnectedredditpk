@@ -10,11 +10,11 @@
 <div style="background-color:#00c853;overflow: auto;">
 	<h1 class="bw mbs" style="color:#ffffff;text-align:center;text-shadow:1px 1px #009940;">Damadam.pk</h1>
 
-	<div class="cxl mbs" style="text-align:center;color:white;text-shadow:1px 1px #009940;margin-left:auto;margin-right:auto;max-width:90%;"><span style="color:#ffeb3b;">New dost</span> banao, unki mazedar <span style="color:#ffeb3b;">photos</span> dekho</div>
+	<div class="cxl mbs" style="text-align:center;color:white;text-shadow:1px 1px #009940;margin-left:auto;margin-right:auto;max-width:90%;">Naye <span style="color:#ffeb3b;">dost</span>, unki <span style="color:#ffeb3b;">fotos</span>, aur <span style="color:#ffeb3b;">chat!</span></div>
 
 	<div class="mbl bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
 	<h2 class="mbs mts" style="color:#ffeb3b;text-shadow:2px 2px #009940;">NEW ACCOUNT</h2>
-	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna Nickname Banao:</b>
+	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna koi mazay ka naam rakho:</b>
 		<form method="POST" action="{% url 'create_nick_new' %}">
 		{% csrf_token %}
 		{{ form.username }}<br>
@@ -181,17 +181,27 @@
 <span class="clb">Ao gup lagain!</span>
 {% endfor %}
 
-
 <br><div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg mtl"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
+<br>
+<!--                      -->
+	<div class="bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
+	<h2 class="mbs mts" style="color:#ffeb3b;text-shadow:2px 2px #009940;">NEW ACCOUNT</h2>
+	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna koi mazay ka naam rakho:</b>
+		<form method="POST" action="{% url 'create_nick_new' %}">
+		{% csrf_token %}
+		{{ form.username }}<br>
+		<input class="mtl mbs" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1.5px 1.5px #b39500;" type="submit" value="OK">
+		</form>
+	</div>
+<!--                      -->
 </div>
 </div>
-<br><br>
 {% endblock %}

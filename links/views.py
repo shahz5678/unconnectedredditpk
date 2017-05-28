@@ -96,8 +96,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -105,7 +105,7 @@ from brake.decorators import ratelimit
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-# mp = Mixpanel(MIXPANEL_TOKEN)
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -1599,11 +1599,11 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-  		# new_id = request.session.get('new_id',None)
-  		# if not new_id:
-  		# 	new_id = get_temp_id()
-  		# 	request.session['new_id'] = new_id
-  		# mp.track(new_id, 'hit_home')
+  		new_id = request.session.get('new_id',None)
+  		if not new_id:
+  			new_id = get_temp_id()
+  			request.session['new_id'] = new_id
+  		mp.track(new_id, 'at_home')
   		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list_test2.html', context)
@@ -2726,8 +2726,8 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			# mp.track(request.session.get('tid',None), 'created_new_account')
-			request.session.pop("unreg_id",None)
+			mp.track(request.session.get('new_id',None), 'account_completed')
+			request.session.pop("new_id",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2764,7 +2764,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				# mp.track(request.session.get('tid',None), 'created_new_pass')
+				mp.track(request.session.get('new_id',None), 'pass_completed')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2838,7 +2838,7 @@ def create_nick_new(request,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			# mp.track(request.session.get('new_id',None), 'made_nick')
+			mp.track(request.session.get('new_id',None), 'nick_completed')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			if form.is_valid():
@@ -2857,7 +2857,7 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('new_id',None), 'made_nick')
+					mp.track(request.session.get('new_id',None), 'nick_completed')
 					return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}

@@ -5,7 +5,6 @@
 {% load thumbedge %}
 {% load human_time %}
 {% load photoedge %}
-{% load cache %}
 {% block content %}
 
 <div style="background-color:#00c853;overflow: auto;">
@@ -31,7 +30,6 @@
 		<br>
 
 <!-- ################################################################################################# -->
-{% cache 10 unauth_home %}
 {% for link in link_list %}
 	{% if forloop.counter == 4 %}
 		{% if enqueued_match %}
@@ -182,7 +180,6 @@
 {% empty %}
 <span class="clb">Ao gup lagain!</span>
 {% endfor %}
-{% endcache %}
 
 
 <br><div style="text-align: center;">

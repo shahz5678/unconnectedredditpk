@@ -96,8 +96,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -105,7 +105,7 @@ from brake.decorators import ratelimit
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-# mp = Mixpanel(MIXPANEL_TOKEN)
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -1659,14 +1659,14 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
+  		new_id = request.session.get('new_id',None)
+  		if not new_id:
+  			new_id = get_temp_id()
+  			request.session['new_id'] = new_id
+  		mp.track(new_id, 'hit_home')
   		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list_test2.html', context)
-  		# mp.track(temp_id, 'saw_home') # not disrupting the Mixpanel event
-  	# 	unreg_id = request.session.get('unreg_id',None)
-  	# 	if not unreg_id:
-  	# 		unreg_id = get_temp_id()
-  	# 		request.session['unreg_id'] = unreg_id
   	# 	variation_key = config_manager.get_obj().activate('username_recommendation', unreg_id)
   	# 	if variation_key == 'on':
   	# 		form = CreateNickNewForm()
@@ -2793,8 +2793,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			# mp.track(request.session.get('tid',None), 'created_new_account')
-			request.session.pop("unreg_id", None)
-			request.session.pop("var_key",None)
+			request.session.pop("new_id",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2899,12 +2898,13 @@ def create_nick_new(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
-		# mp.track(request.session.get('tid',None), 'typed_nick')
+		mp.track(request.session.get('new_id',None), 'wrote_nick')
 		if sys_sugg:
 			#process system suggestion
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
+			mp.track(request.session.get('new_id',None), 'made_nick')
 			# if "var_key" in request.session:
 			# 	config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
 			return redirect('create_password',slug=result,length=length)
@@ -2925,6 +2925,7 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
+					mp.track(request.session.get('new_id',None), 'made_nick')
 					# if "var_key" in request.session:
 					# 	config_manager.get_obj().track('nick_created', request.session.get('unreg_id',None))
 					return redirect('create_password',slug=result,length=length)

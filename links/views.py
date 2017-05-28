@@ -2830,7 +2830,7 @@ def create_nick_new(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
-		# mp.track(request.session.get('new_id',None), 'wrote_nick')
+		mp.track(request.session.get('new_id',None), 'nick_typing_completed')
 		# if "var_key" in request.session:
 		# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 		if sys_sugg:

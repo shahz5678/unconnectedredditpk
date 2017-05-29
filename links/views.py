@@ -4831,6 +4831,161 @@ class UploadVideoView(FormView):
 				context = {'pk':'pk'}
 				return render(self.request,'video_upload.html',context)
 
+##################################################################
+
+@csrf_protect
+def upload_public_photo(request,*args,**kwargs):
+	if request.method == 'POST':
+		user = request.user
+		if user.userprofile.score < 3:#
+			return render(request, 'score_photo.html', {'score': '3'})
+		elif request.user_banned:
+			return render(request,'500.html',{})
+		else:
+			banned, time_remaining = check_photo_upload_ban(user.id)
+			if banned:
+				if time_remaining == '-1':
+					to_go = time_remaining
+				else:
+					to_go = timezone.now()+timedelta(seconds=time_remaining)
+				return render(self.request, 'forbidden_photo.html', {'time_remaining': to_go})
+			else:
+				number_of_photos = 0
+				photos = []
+				total_score = 0
+				photo_ids = get_recent_photos(user.id)
+				photos_qs = Photo.objects.filter(id__in=photo_ids).order_by('-id')#.annotate(unique_comment_count=Count('photocomment__submitted_by', distinct=True))
+				for photo in photos_qs:
+					total_score += photo.visible_score#((VOTE_WEIGHT*photo.vote_score) + photo.unique_comment_count)
+					photos.append((photo.vote_score, photo.upload_time, photo.visible_score)) #list of dictionaries
+					number_of_photos += 1
+				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
+				if forbidden:
+					return render(self.request, 'forbidden_photo.html', {'time_remaining': time_remaining})
+			time_now = timezone.now()
+			try:
+				difference = time_now - photos[0][1]
+				seconds = difference.total_seconds()
+				if seconds < 60:
+					context = {'time': round((60 - seconds),0)}
+					return render(request, 'error_photo.html', context)
+			except:
+				pass
+			form = UploadPhotoForm(request.POST,request.FILES)
+			if form.is_valid():
+				image_file = request.FILES['image_file']
+			else:
+				image_file = None
+			if image_file:
+				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+				# try:
+				# 	on_fbs = self.request.META.get('X-IORG-FBS')
+				# except:
+				# 	on_fbs = False
+				if on_fbs:
+					if image_file.size > 200000:
+						return render(request,'big_photo_fbs.html',{'pk':'pk'})
+					else:
+						pass
+				else:
+					if image_file.size > 10000000:
+						return render(request,'big_photo_regular.html',{'pk':'pk'})
+					else:
+						pass
+				image_file_new, avghash, pk = clean_image_file_with_hash(image_file)#, recent_hashes)
+				if isinstance(pk,float):
+					try:
+						photo = Photo.objects.get(id=int(pk))
+						return render(request, 'duplicate_photo.html', {'photo': photo, 'females': FEMALES})
+					except:
+						image_file = None
+				else:
+					if image_file_new:
+						image_file = image_file_new
+					else:
+						image_file = None
+			if image_file:
+				if request.is_feature_phone:
+					device = '1'
+				elif request.is_phone:
+					device = '2'
+				elif request.is_tablet:
+					device = '4'
+				elif request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				invisible_score = set_rank()
+				caption = request.POST.get('caption',None)
+				photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, \
+					device=device, avg_hash=avghash, invisible_score=invisible_score)
+				photo_id = photo.id
+				user_id = user.id
+				time = photo.upload_time
+				epochtime = convert_to_epoch(time)
+				timestring = time.isoformat()
+				banned = '1' if request.user_banned else '0'
+				photo_upload_tasks.delay(banned, user_id,photo_id, timestring, device)
+				insert_hash(photo_id, photo.avg_hash) #perceptual hash of the photo
+				add_photo(photo_id) #adding in photo feed
+				save_recent_photo(user_id, photo_id) #saving 5 recent ones
+				try:
+					owner_url = user.userprofile.avatar.url
+				except:
+					owner_url = None
+				name = user.username
+				add_photo_entry(photo_id=photo_id,owner_id=user_id,image_url=photo.image_file.url,upload_time=epochtime,\
+					invisible_score=invisible_score,caption=caption,photo_owner_username=name,owner_av_url=owner_url,\
+					device=device)
+				create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=user_id,\
+					object_owner_name=name,object_desc=caption,photourl=photo.image_file.url,vote_score=0,res_count=0)
+				# create_notification(viewer_id=user_id, object_id=photo_id, object_type='0',seen=True,updated_at=epochtime,\
+				# 	unseen_activity=True)
+				if number_of_photos:
+					set_uploader_score(user_id, ((total_score*1.0)/number_of_photos)) #only from last 5 photos!
+				bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
+				return redirect("photo")
+			else:
+				return render(request, 'big_photo.html', {'photo':'photo'})
+	else:
+		context = {}
+		banned, time_remaining = check_photo_upload_ban(request.user.id)
+		if banned:
+			context["forbidden"] = True
+			if time_remaining == '-1':
+				to_go = time_remaining
+			else:
+				to_go = timezone.now()+timedelta(seconds=time_remaining)
+			context["time_remaining"] = to_go
+		else:
+			photos = Photo.objects.filter(id__in=get_recent_photos(request.user.id)).order_by('-id').values_list('vote_score','upload_time','visible_score')
+			number_of_photos = photos.count()
+			forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
+			if forbidden:
+				context["forbidden"] = forbidden
+				context["time_remaining"] = time_remaining
+			else:
+				context["form"] = UploadPhotoForm()
+				post_big_photo_in_home = True
+				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
+					post_big_photo_in_home = False
+				else:
+					for photo in photos:
+						if photo[0] < 0: #can't post BIG photo in home if even 1 previous photo had negative score
+							post_big_photo_in_home = False
+				total_visible_score = sum(photo[2] for photo in photos)
+				now = timezone.now()
+				hotuser = HotUser.objects.filter(which_user=request.user).update(hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
+				if hotuser:
+					pass
+				else:
+					HotUser.objects.create(which_user=request.user, hot_score=total_visible_score, updated_at=now, allowed=post_big_photo_in_home)
+				context["score"] = request.user.userprofile.score
+				context["threshold"] = UPLOAD_PHOTO_REQ
+		return render(request,"upload_public_photo.html",context)
+
+##################################################################
+
 class UploadPhotoView(CreateView):
 	model = Photo
 	form_class = UploadPhotoForm

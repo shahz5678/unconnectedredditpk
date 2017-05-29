@@ -2773,6 +2773,7 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 				length1 = len(slug)
 				length2 = len(result)
 				# mp.track(request.session.get('new_id',None), 'pass_created')
+				config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2818,6 +2819,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				length1 = len(slug)
 				length2 = len(result)
 				# mp.track(request.session.get('new_id',None), 'pass_created')
+				# if "var_key" in request.session:
 				config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
@@ -2899,8 +2901,12 @@ def create_nick_new(request,*args,**kwargs):
 			# print clientid
 			# print variation_key
 			if variation_key == 'new_ver':
+				# if "var_key" not in request.session:
+				# 	request.session["var_key"] = True
 				return redirect('create_password_new',slug=result,length=length)
 			elif variation_key == 'old_ver':
+				# if "var_key" not in request.session:
+				# 	request.session["var_key"] = True
 				return redirect('create_password',slug=result,length=length)
 			else:
 				return redirect('create_password',slug=result,length=length)
@@ -2926,8 +2932,12 @@ def create_nick_new(request,*args,**kwargs):
 					# print clientid
 					# print variation_key
 					if variation_key == 'new_ver':
+						# if "var_key" not in request.session:
+						# 	request.session["var_key"] = True
 						return redirect('create_password_new',slug=result,length=length)
 					elif variation_key == 'old_ver':
+						# if "var_key" not in request.session:
+						# 	request.session["var_key"] = True
 						return redirect('create_password',slug=result,length=length)
 					else:
 						return redirect('create_password',slug=result,length=length)

@@ -96,16 +96,16 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-# from optimizely_config_manager import OptimizelyConfigManager
-# from unconnectedreddit.optimizely_settings import PID
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
 
-# config_manager = OptimizelyConfigManager(PID)
+config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -2732,8 +2732,8 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(request.session.get('new_id',None), 'account_created')
-			request.session.pop("new_id",None)
+			# mp.track(request.session.get('new_id',None), 'account_created')
+			request.session.pop("clientid",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2755,6 +2755,53 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			# some tinerking in the link has taken place
 			return render(request,'penalty_link_tinkered.html',{})
 
+############################################################################################################
+
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+@csrf_protect
+def create_password_new(request,slug=None,length=None,*args,**kwargs):
+	if account_creation_disallowed(getip(request)):
+		return render(request,'penalty_account_create.html',{})
+	elif request.method == 'POST':
+		form = CreatePasswordForm(data=request.POST,request=request)
+		if form.is_valid():
+			# show user the password in the next screen
+			if int(length) == len(slug):
+				password = form.cleaned_data['password']
+				result = password.encode('utf-8').encode("hex")
+				length1 = len(slug)
+				length2 = len(result)
+				# mp.track(request.session.get('new_id',None), 'pass_created')
+				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
+			else:
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
+		else:
+			if int(length) == len(slug):
+				username = slug.decode("hex")
+				context={'form':form,'username':username,'uhex':slug,'length':length}
+				return render(request, 'create_password_new.html', context)
+			else:
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
+	else:
+		# mp.track(request.session.get('tid',None), 'load_pass')
+		if request.session.test_cookie_worked():
+			form = CreatePasswordForm()
+			# mp.track(request.session.get('tid',None), 'create_new_pass')
+			if int(length) == len(slug):
+				username = slug.decode("hex")
+				context={'form':form,'username':username,'uhex':slug,'length':length}
+				return render(request, 'create_password_new.html', context)
+			else:
+				# some tinerking in the link has taken place
+				return render(request,'penalty_link_tinkered.html',{})
+		else:
+			#cookies aren't being set in the browser, so can't make an account!
+			return render(request, 'penalty_cookie.html', {})
+
+
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 # @sensitive_post_parameters()
 @csrf_protect
@@ -2770,7 +2817,8 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('new_id',None), 'pass_created')
+				# mp.track(request.session.get('new_id',None), 'pass_created')
+				config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2836,16 +2884,27 @@ def create_nick_new(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
-		mp.track(request.session.get('new_id',None), 'username_posted')
-		# if "var_key" in request.session:
-		# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
+		# mp.track(request.session.get('new_id',None), 'username_posted')
+		clientid = request.session.get('clientid',None)
+  		if not clientid:
+  			clientid = get_temp_id()
+  			request.session['clientid'] = clientid
+		variation_key = config_manager.get_obj().activate('testing_pass', clientid)
 		if sys_sugg:
 			#process system suggestion
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			mp.track(request.session.get('new_id',None), 'username_created')
-			return redirect('create_password',slug=result,length=length)
+			##############################################################################################
+			# print clientid
+			# print variation_key
+			if variation_key == 'new_ver':
+				return redirect('create_password_new',slug=result,length=length)
+			elif variation_key == 'old_ver':
+				return redirect('create_password',slug=result,length=length)
+			else:
+				return redirect('create_password',slug=result,length=length)
+			# return redirect('create_password',slug=result,length=length)
 		else:
 			if form.is_valid():
 				alt_choices, altered, original = form.cleaned_data['username']
@@ -2863,8 +2922,16 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					mp.track(request.session.get('new_id',None), 'username_created')
-					return redirect('create_password',slug=result,length=length)
+					# mp.track(request.session.get('new_id',None), 'username_created')
+					# print clientid
+					# print variation_key
+					if variation_key == 'new_ver':
+						return redirect('create_password_new',slug=result,length=length)
+					elif variation_key == 'old_ver':
+						return redirect('create_password',slug=result,length=length)
+					else:
+						return redirect('create_password',slug=result,length=length)
+					# return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}
 				# mp.track(request.session.get('tid',None), 'retry_new_nick')
@@ -4247,7 +4314,7 @@ def unauth_photos(request,*args,**kwargs):
   		if not new_id:
   			new_id = get_temp_id()
   			request.session['new_id'] = new_id
-  		mp.track(new_id, 'on_photos')
+  		# mp.track(new_id, 'on_photos')
 		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request,'unauth_photos.html',context)
@@ -4508,7 +4575,7 @@ def unauth_best_photos(request,*args,**kwargs):
   		if not new_id:
   			new_id = get_temp_id()
   			request.session['new_id'] = new_id
-  		mp.track(new_id, 'on_photos')
+  		# mp.track(new_id, 'on_photos')
 		return render(request,'unauth_best_photos.html',context)
 
 def best_photos_list(request,*args,**kwargs):

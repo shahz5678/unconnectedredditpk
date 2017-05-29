@@ -173,8 +173,10 @@
                           {% endif %}
                           </button>
                           </a>
-                          {% if time_remaining == '-2' or defender %}
-                          &nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="4"><input type="hidden" name="oun" value="{{ subject.username }}"><input type="hidden" name="purl" value="{{ photo.image_file.url|thumbedge }}"><input type="hidden" name="oid" value="{{ star_id }}"><input type="hidden" name="cap" value="{{ photo.caption }}"><input type="hidden" name="vsc" value="{{ photo.vote_score }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.id }}" name="curate" type="submit">&nbsp;</button></form>
+                          {% if not own_profile %}
+                            {% if time_remaining == '-2' or defender %}
+                            &nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="4"><input type="hidden" name="oun" value="{{ subject.username }}"><input type="hidden" name="purl" value="{{ photo.image_file.url|thumbedge }}"><input type="hidden" name="oid" value="{{ star_id }}"><input type="hidden" name="cap" value="{{ photo.caption }}"><input type="hidden" name="vsc" value="{{ photo.vote_score }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ photo.id }}" name="curate" type="submit">&nbsp;</button></form>
+                            {% endif %}
                           {% endif %}
                           <br>
                           {% if time_remaining == '-2' %}
@@ -187,13 +189,14 @@
 
                                 <a href="{% url 'photo_izzat' photo.id 3 slug %}">
                                 {% if photo.visible_score > 1 %}
-                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button><br>
+                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button>
                                 {% elif photo.visible_score == 1 %}
-                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> point</button><br>
+                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> point</button>
                                 {% else %}
-                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button><br>
+                                <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
+                                <br>
 
                           {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}
                           <form action="{% url 'cast_photo_vote' %}" method="POST">
@@ -212,7 +215,7 @@
                           <p><hr size=1 COLOR="#ff9933"></p>                        
 {% empty %}
   {% if own_profile %}
-  <span class="cgy">Damadam pe&nbsp;<a href="{% url 'upload_photo' %}#section0"><button class="btn nw bco mts" style="width:11em;">photos charhao</button></a></span>
+  <span class="cgy">Damadam pe&nbsp;<a href="{% url 'upload_public_photo' %}#section0"><button class="btn nw bco mts" style="width:11em;">photos charhao</button></a></span>
   {% else %}
   <span class="cgy">{{ slug }} ne photos nahi lagain, kisi aur ki&nbsp;<a href="{% url 'best_photo' %}#section0"><button class="btn nw bco bxl mts">photos dekho</button></a></span>
   {% endif %}

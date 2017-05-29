@@ -4243,7 +4243,7 @@ def unauth_photos(request,*args,**kwargs):
 			page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
 			context["page"] = page_obj
 			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-		form = CreateNickForm()
+		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request,'unauth_photos.html',context)
 
@@ -4497,7 +4497,7 @@ def unauth_best_photos(request,*args,**kwargs):
 			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
 			context["page"] = page_obj
 			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-		form = CreateNickForm()
+		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request,'unauth_best_photos.html',context)
 

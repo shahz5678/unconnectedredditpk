@@ -2891,7 +2891,7 @@ def create_nick_new(request,*args,**kwargs):
   		if not clientid:
   			clientid = get_temp_id()
   			request.session['clientid'] = clientid
-		variation_key = config_manager.get_obj().activate('testing_pass', clientid)
+		variation_key = config_manager.get_obj().activate('pass_test', clientid)
 		if sys_sugg:
 			#process system suggestion
 			result = sys_sugg.encode("hex")

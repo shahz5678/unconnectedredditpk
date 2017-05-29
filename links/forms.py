@@ -1342,7 +1342,7 @@ class ReauthForm(forms.Form):
 		if check_password(password=entered_password,encoded=real_password):
 			return entered_password
 		else:
-			raise forms.ValidationError('(tip: password theek nahi, phir se likho)')
+			raise forms.ValidationError('Password theek nahi, phir se likho')
 
 
 class ResetPasswordForm(forms.Form):

@@ -557,10 +557,10 @@ class RegisterLoginView(FormView):
 	form_class = RegisterLoginForm
 	template_name = "register_login.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(RegisterLoginView, self).get_context_data(**kwargs)
-		mp.track(self.request.session.get('new_id',None), 'inside_register_login')
-		return context
+	# def get_context_data(self, **kwargs):
+	# 	context = super(RegisterLoginView, self).get_context_data(**kwargs)
+	# 	mp.track(self.request.session.get('new_id',None), 'inside_register_login')
+	# 	return context
 
 class OpenGroupHelpView(FormView):
 	form_class = OpenGroupHelpForm
@@ -1566,7 +1566,8 @@ def home_link_list(request, *args, **kwargs):
 # 		# print request.session.session_key
 # 		################################################
 
-# @cache_page(10)
+@cache_page(10)
+@csrf_protect
 def unauth_home_link_list(request, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
@@ -1608,7 +1609,7 @@ def unauth_home_link_list(request, *args, **kwargs):
   		if not new_id:
   			new_id = get_temp_id()
   			request.session['new_id'] = new_id
-  		mp.track(new_id, 'at_unauth_home')
+  		mp.track(new_id, 'on_home_page')
   		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list.html', context)
@@ -2731,7 +2732,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			# mp.track(request.session.get('new_id',None), 'account_completed')
+			mp.track(request.session.get('new_id',None), 'account_written')
 			request.session.pop("new_id",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
@@ -2769,7 +2770,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				# mp.track(request.session.get('new_id',None), 'pass_completed')
+				mp.track(request.session.get('new_id',None), 'password_written')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2843,7 +2844,7 @@ def create_nick_new(request,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			# mp.track(request.session.get('new_id',None), 'nick_completed')
+			mp.track(request.session.get('new_id',None), 'nick_written')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			if form.is_valid():
@@ -2862,7 +2863,7 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('new_id',None), 'nick_completed')
+					mp.track(request.session.get('new_id',None), 'nick_written')
 					return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}
@@ -4214,7 +4215,7 @@ def photo_location(request,*args,**kwargs):
 		request.session['photo_page'] = page_obj
 		return redirect(url)
 
-@cache_page(10)
+@cache_page(15)
 @csrf_protect
 def unauth_photos(request,*args,**kwargs):
 	if request.user.is_authenticated():
@@ -4467,7 +4468,7 @@ def best_photo_location(request, *args, **kwargs):
 		request.session['best_photo_page'] = page_obj
 		return redirect(url)
 
-@cache_page(10)
+@cache_page(60)
 @csrf_protect
 def unauth_best_photos(request,*args,**kwargs):
 	if request.user.is_authenticated():

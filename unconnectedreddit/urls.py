@@ -25,7 +25,7 @@ see_best_photo_pk, unauth_photos, photo_list, unauth_photo_location_pk, cricket_
 cricket_comment, login, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, \
 first_time_unseen_refresh, missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,\
 search_uname_unlocking_dec, search_username, go_to_username, go_to_user_photo, remove_searched_username, website_feedback, umrah, umrah_price,\
-see_website_feedback, create_nick_new, create_password_new
+see_website_feedback, upload_public_photo, create_nick_new, create_password_new
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -176,12 +176,12 @@ urlpatterns = patterns('',
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
 	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
 	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
-	# url(r'^rep/(?P<num>\d+)/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<priv>\d+)/(?P<scr>\d+)/$', auth(rep), name='rep'),
-	# url(r'^repback/(?P<pk>\d+)/(?P<nick>[\w.@+-]+)/(?P<uuid>[\w.@+-]+)/(?P<private>\d+)/(?P<scr>\d+)/$', auth(ReportFeedbackView.as_view()), name='report_feedback'),
 	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
 	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
+	############################################################################################################################
 	url(r'^upload_photo/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
-	#url(r'^upload_photo/(?P<opt>\d+)/$', auth(UploadPhotoView.as_view()), name='upload_photo'),
+	url(r'^upload_public_photo/$', auth(upload_public_photo), name='upload_public_photo'),
+	############################################################################################################################
 	url(r'^upload_video/$', auth(UploadVideoView.as_view()), name='upload_video'),
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^kuch/likho/$', auth(LinkCreateView.as_view()), name='link_create'),

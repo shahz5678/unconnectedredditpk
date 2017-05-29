@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="margin">
-<b style="font-size:100%;color:red;">Is photo ka size buhut bara hai!</b><br><hr size=1>
-<a href="{% url 'upload_photo' %}" style="font-size:90%;">Koi aur photo lagao</a><p style="margin-bottom:-0.5em;"></p>
-<a href="{% url 'home' %}" style="font-size:90%;">Muft chat karo</a>
-
+<div class="margin clb">
+<b class="cxl">Is photo ka size buhut bara hai!</b><br>
+<a href="{% url 'upload_public_photo' %}"><button class="btn bco mtl mbl bm">wapis</button>
 </div>
-
+<br><br>
 {% endblock %}

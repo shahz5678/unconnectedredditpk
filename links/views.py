@@ -4215,7 +4215,6 @@ def photo_location(request,*args,**kwargs):
 		return redirect(url)
 
 @cache_page(10)
-@csrf_protect
 def unauth_photos(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("photo")

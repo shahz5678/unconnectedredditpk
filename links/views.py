@@ -1606,7 +1606,7 @@ def unauth_home_link_list(request, *args, **kwargs):
   		mp.track(new_id, 'at_home')
   		form = CreateNickNewForm()
 		context["form"] = form
-		return render(request, 'unauth_link_list_test2.html', context)
+		return render(request, 'unauth_link_list.html', context)
   	# 	variation_key = config_manager.get_obj().activate('cosmetic_changes', unreg_id)
   	# 	if variation_key == 'old_layout':
 			# if "var_key" not in request.session:

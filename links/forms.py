@@ -1139,17 +1139,17 @@ class CreatePasswordForm(forms.Form):
 		if len(password) < 6:
 			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
 		elif lower_pass.isdigit():
-			raise ValidationError('Password mein sirf numbers nahi ho sakte!')
+			raise ValidationError('Password mein sirf numbers nahi dalo')
 		elif lower_nick in lower_pass:
 			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:
-			raise ValidationError('"babykobasspasandhai" ke bajai kuch aur likho')
+			raise ValidationError('"babykobasspasandhai" pehle se istmal ho chuka hai')
 		elif 'chaachi420' in lower_pass:
-			raise ValidationError('"chaachi420" ke bajai kuch aur likho')
+			raise ValidationError('"chaachi420" pehle se istimal ho chuka hai')
 		elif 'chachi420' in lower_pass:
-			raise ValidationError('"chachi420" ke bajai kuch aur likho')
+			raise ValidationError('"chachi420" pehle se istimal ho chuka hai')
 		elif 'garamaanday' in lower_pass:
-			raise ValidationError('"garamaanday" ke bajai kuch aur likho')
+			raise ValidationError('"garamaanday" pehle se istimal ho chuka hai')
 		elif 'damadam' in lower_pass:
 			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
@@ -1362,27 +1362,27 @@ class ResetPasswordForm(forms.Form):
 		nickname = self.request.user.username
 		lower_nick = nickname.lower()
 		if check_password(password,old_password):
-			raise ValidationError('(tip: new password purane password se mukhtalif rakho)')
-		elif len(password) < 6:
-			raise ValidationError('(tip: kam se kam 6 harf likhna zaruri hai)')
+			raise ValidationError('New password purane password se mukhtalif rakho')
+		if len(password) < 6:
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
 		elif lower_pass.isdigit():
-			raise ValidationError('(tip: password mein sirf numbers nahi ho sakte)')
+			raise ValidationError('Password mein sirf numbers nahi dalo')
 		elif lower_nick in lower_pass:
-			raise ValidationError('(tip: %s nahi likh sakte kiyunke nickname mein hai)' % nickname)		
+			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:
-			raise ValidationError('(tip: babykobasspasandhai ke bajai kuch aur likho)')
+			raise ValidationError('"babykobasspasandhai" pehle se istmal ho chuka hai')
 		elif 'chaachi420' in lower_pass:
-			raise ValidationError('(tip: chaachi420 ke bajai kuch aur likho)')
+			raise ValidationError('"chaachi420" pehle se istimal ho chuka hai')
 		elif 'chachi420' in lower_pass:
-			raise ValidationError('(tip: chachi420 ke bajai kuch aur likho)')
+			raise ValidationError('"chachi420" pehle se istimal ho chuka hai')
 		elif 'garamaanday' in lower_pass:
-			raise ValidationError('(tip: garamaanday ke bajai kuch aur likho)')
+			raise ValidationError('"garamaanday" pehle se istimal ho chuka hai')
 		elif 'damadam' in lower_pass:
-			raise ValidationError('(tip: password mein damadam nahi likh sakte)')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('(tip: qwerty ko boojhna aasan hai, kuch aur likho)')	
-		else:
-			return password
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
+		return password
+
 
 	def save(self, commit=True):
 		user = self.request.user

@@ -2732,7 +2732,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			mp.track(request.session.get('new_id',None), 'account_made')
+			mp.track(request.session.get('new_id',None), 'account_created')
 			request.session.pop("new_id",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
@@ -2770,7 +2770,7 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('new_id',None), 'password_made')
+				mp.track(request.session.get('new_id',None), 'pass_created')
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
 				# some tinerking in the link has taken place
@@ -2836,7 +2836,7 @@ def create_nick_new(request,*args,**kwargs):
 	elif request.method == 'POST':
 		form = CreateNickNewForm(data=request.POST)
 		sys_sugg = request.POST.get('system_suggestion',None)
-		mp.track(request.session.get('new_id',None), 'nick_typing_completed')
+		mp.track(request.session.get('new_id',None), 'username_posted')
 		# if "var_key" in request.session:
 		# 	config_manager.get_obj().track('entered_username', request.session.get('unreg_id',None))
 		if sys_sugg:
@@ -2844,7 +2844,7 @@ def create_nick_new(request,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			mp.track(request.session.get('new_id',None), 'nickname_made')
+			mp.track(request.session.get('new_id',None), 'username_created')
 			return redirect('create_password',slug=result,length=length)
 		else:
 			if form.is_valid():
@@ -2863,7 +2863,7 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					mp.track(request.session.get('new_id',None), 'nickname_made')
+					mp.track(request.session.get('new_id',None), 'username_created')
 					return redirect('create_password',slug=result,length=length)
 			else:
 				context = {'form':form}

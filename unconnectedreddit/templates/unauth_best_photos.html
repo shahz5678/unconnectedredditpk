@@ -14,7 +14,7 @@
 	<div class="mbl bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
 	<h2 class="mbs mts" style="color:#ffeb3b;text-shadow:2px 2px #009940;">NEW ACCOUNT</h2>
 	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna Nickname Banao:</b>
-		<form method="POST" action="{% url 'create_nick' %}">
+		<form method="POST" action="{% url 'create_nick_new' %}">
 		{% csrf_token %}
 		{{ form.username }}<br>
 		<input class="mtl mbs" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1.5px 1.5px #b39500;" type="submit" value="OK">
@@ -113,16 +113,29 @@
 	<p><hr size=1 COLOR="#ff9933"></p>
 {% endfor %}
 
-<br><div style="text-align: center;">
+<div style="text-align: center;">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg mtl"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
+<br>
+
+<!--                      -->
+	<div class="bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
+	<h2 class="mbs mts" style="color:#ffeb3b;text-shadow:2px 2px #009940;">NEW ACCOUNT</h2>
+	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna koi mazay ka naam rakho:</b>
+		<form method="POST" action="{% url 'create_nick_new' %}">
+		{% csrf_token %}
+		{{ form.username }}<br>
+		<input class="mtl mbs" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1.5px 1.5px #b39500;" type="submit" value="OK">
+		</form>
+	</div>
+<!--                      -->
 </div>
-<br><br>
+
 {% endblock %}
 

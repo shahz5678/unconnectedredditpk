@@ -559,7 +559,7 @@ class RegisterLoginView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(RegisterLoginView, self).get_context_data(**kwargs)
-		mp.track(self.request.session.get('new_id',None), 'entered_register_login')
+		mp.track(self.request.session.get('new_id',None), 'inside_register_login')
 		return context
 
 class OpenGroupHelpView(FormView):
@@ -1608,7 +1608,7 @@ def unauth_home_link_list(request, *args, **kwargs):
   		if not new_id:
   			new_id = get_temp_id()
   			request.session['new_id'] = new_id
-  		mp.track(new_id, 'at_home')
+  		mp.track(new_id, 'at_unauth_home')
   		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list.html', context)

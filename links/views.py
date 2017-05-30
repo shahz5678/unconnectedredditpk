@@ -2928,24 +2928,17 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('new_id',None), 'username_created')
-					# if variation_key == 'new_ver':
-					# 	return redirect('create_password_new',slug=result,length=length)
-					# elif variation_key == 'old_ver':
-					# 	return redirect('create_password',slug=result,length=length)
-					# else:
-					# 	return redirect('create_password',slug=result,length=length)
 					return redirect('create_password_new',slug=result,length=length)
 			else:
 				context = {'form':form}
 				##########################Logging Erroneous Usernames##########################
-				try:
-					username = request.POST.get("username",None)
-					username = 'specificity' if username == '' else username
-					error_string = str(dict(form.errors)["username"]).split('<li>')[1].split('</li>')[0]
-					log_erroneous_passwords(username,error_string)
-				except:
-					pass
+				# try:
+				# 	username = request.POST.get("username",None)
+				# 	username = 'specificity' if username == '' else username
+				# 	error_string = str(dict(form.errors)["username"]).split('<li>')[1].split('</li>')[0]
+				# 	log_erroneous_passwords(username,error_string)
+				# except:
+				# 	pass
 				###############################################################################	
 				# mp.track(request.session.get('tid',None), 'retry_new_nick')
 				return render(request, 'create_nick_new.html', context)

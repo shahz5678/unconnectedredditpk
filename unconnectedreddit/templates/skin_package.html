@@ -1,32 +1,34 @@
 {% extends "base_min.html" %}
 {% block content %}
 <div class="margin clb">
-<h2 class="cg bw">Sasti tareen Umrah Deals<br><span class="clb cs">by BookMyUmrah Company</span></h2>
-<div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="cg">Tafseel ke liye call karo <span class="clb">0321-1111268</span></b><br>
+<h2 class="cg bw">Kala rung, daaney, zakham, khushki, daagh, keel mahasey ka ilaj</h2>
+<img class="pht" src="{{ STATIC_URL }}img/dr.png" style="max-width:150px;"><br>
+<div class="mbl mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
+<b class="cg"><span class="clb">'Doctor'</span> likh ke <span class="clb">0336-5885441</span> pe SMS karien</span></b><br>
+</div>
+<b class="co">TAREEQA:</b>
+<div class="mbs">
+<b class="co">1)</b><span class="mls">Dr. aap say SMS per masley ke barey mein sawal poochien gi</span><br>
 </div>
 <div class="mbs">
-<b class="co">Price:</b><span class="mls"><b>Rs. 21000</b> se shuru&nbsp;<span class="cs cgy">(visa, hotel, transport shamil)</span></span><br>
+<b class="co">2)</b><span class="mls">Aap ko bata diya jaye ga ke masley ka ilaj mumkin hai ke nahi</span><br>
 </div>
 <div class="mbs">
-<b class="co">Air Ticket:</b><span class="mls">Ye price mein shamil nahi. Ticket price ke liye call kr ke apna <b>city</b> batao</span><br>
-</div>
-<div class="mbs">
-<b class="co">Offer:</b><span class="mls">Call pe bolo ke <b>Damadam</b> user ho</span><br>
+<b class="co">3)</b><span class="mls">Ager ilaj mumkin hua tou aap ko Easypaisa se payment karni ho gi</span><br>
 </div>
 <div class="mbs mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<span class="clb">Apni ma ka <b class="cg">Umrah ka khuwab</b> poora kro!</span><br>
+<span class="clb"><b>Ramzan discount price <span class="cg">Rs. 200</span></b><br><span class="cgy cs">(real price: Rs.500)</span></span><br>
 </div><br>
 <a href="{% url 'home' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
 <br>
 <hr size=3 COLOR="#bfbfbf">
-	<form method="post" action="{% url 'umrah' %}" class="mtl">
+	<form method="post" action="{% url 'skin_clinic' %}" class="mtl">
 	{% csrf_token %}
 		{% if form.feedback.errors %}
 			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
 		{% else %}
-			<b class="cl cg">BookMyUmrah ko call karne ke bad neechay is Company ki service ke barey mein tabsra likho:</b><br>
-			<span class="cgy cs">(apna <b>city</b> sath mein likhna)</span>
+			<b class="cl cg">Is service ko istimal kar ke is par tabsra likho:</b><br>
+			<span class="cgy cs">(takey Dr. ki yeh service behtar banaee ja sakey)</span>
 		{% endif %}
 		<div class="mts">
 	  	{{ form.feedback }}

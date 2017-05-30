@@ -96,8 +96,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -1423,6 +1423,11 @@ def home_link_list(request, *args, **kwargs):
 				context["show_current"] = True
 				context["show_next"] = False
 		################################################################################################################
+		if request.META.get('HTTP_X_IORG_FBS',False):
+			mp.track(user.id, 'On FBS')
+		else:
+			mp.track(user.id, 'Off FBS')
+		################################################################################################################
 		num = random.randint(1,4)
 		context["random"] = num #determines which message to show at header
 		if num > 2:
@@ -1613,17 +1618,6 @@ def unauth_home_link_list(request, *args, **kwargs):
   		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list.html', context)
-  	# 	variation_key = config_manager.get_obj().activate('cosmetic_changes', unreg_id)
-  	# 	if variation_key == 'old_layout':
-			# if "var_key" not in request.session:
-			# 	request.session["var_key"] = True
-  	# 		return render(request, 'unauth_link_list_test1.html', context)
-  	# 	elif variation_key == 'new_layout':
-			# if "var_key" not in request.session:
-			# 	request.session["var_key"] = True
-  	# 		return render(request, 'unauth_link_list_test2.html', context)
-  	# 	else:
-			# return render(request, 'unauth_link_list_test1.html', context)
 
 class LinkUpdateView(UpdateView):
 	model = Link
@@ -1747,7 +1741,7 @@ class GroupOnlineKonView(ListView):
 				context["groupies"] = []
 				return context
 			if group.private == '0':
-				all_online_ids = get_attendance(group.id)
+				all_online_ids = get_atteundance(group.id)
 				visitors = User.objects.select_related('userprofile').filter(id__in=all_online_ids)
 				captain_ids = GroupCaptain.objects.filter(which_group=group, which_user_id__in=all_online_ids).values_list('which_user_id', flat=True)
 				captains = {captain:captain for captain in captain_ids}

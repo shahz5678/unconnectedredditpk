@@ -4,6 +4,10 @@
 {% block content %}
 <div class="margin clb mtl">
 <b>Total Feedback: {{ count }}</b><br>
+<form method="POST" action="{% url 'see_website_feedback' %}" class="mtl mbl">
+{% csrf_token %}
+<input type="submit" class="bl" style="background:#00c853;color:white;font-weight:bold;" name="delete" value="Delete All">
+</form>
 <hr size=1 COLOR="#b3e6b3">
 {% for feedback in total_feedback reversed %}
 <br>

@@ -1366,9 +1366,9 @@ def home_link_list(request, *args, **kwargs):
 		context["page"] = page
 		context["replyforms"] = replyforms
 		############################################ Website Feedback #############################################
-		feedback_given = website_feedback_given(context["ident"])
-		old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=3))
-		context["show_feedback_form"] = not feedback_given and old_user
+		# feedback_given = website_feedback_given(context["ident"])
+		# old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=3))
+		# context["show_feedback_form"] = not feedback_given and old_user
 		############################################ Namaz feature #############################################
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
@@ -7867,16 +7867,16 @@ def ad_feedback(request,*args,**kwargs):
 		form = SearchAdFeedbackForm()
 		return render(request,'ad_feedback.html',{'form':form,'feedback_count':0})
 
-def umrah_price(request,*args,**kwargs):
+def skin_doctor_price(request,*args,**kwargs):
 	# mp.track(request.user.id, 'Clicked Umrah Price Detail')
-	return render(request,'umrah_price.html',{})
+	return render(request,'skin_price.html',{})
 
 @csrf_protect
-def umrah(request,*args,**kwargs):
+def skin_clinic(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = AdFeedbackForm(request.POST)
 		if form.is_valid():
-			advertiser = 'BookMyUmrah'
+			advertiser = 'SkinClub'
 			feedback = form.cleaned_data['feedback']
 			username = request.user.username
 			user_id = request.user.id
@@ -7887,11 +7887,13 @@ def umrah(request,*args,**kwargs):
 			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
 		else:
 			# form = AdFeedbackForm()
-			return render(request,'umrah_package.html',{'form':form})
+			return render(request,'skin_package.html',{'form':form})
 	else:
 		form = AdFeedbackForm()
 		# mp.track(request.user.id, 'Clicked Umrah Ad')
-		return render(request,'umrah_package.html',{'form':form})
+		return render(request,'skin_package.html',{'form':form})
+
+###############################################################
 
 @ratelimit(rate='3/s')
 def make_ad(request,*args, **kwargs):

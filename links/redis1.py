@@ -1794,3 +1794,12 @@ def get_website_feedback():
 	for user_id in feedback_users:
 		pipeline1.hgetall("wf:"+str(user_id))
 	return pipeline1.execute()
+
+def clean_up_feedback():
+	my_server = redis.Redis(connection_pool=POOL)
+	feedback_set = "website_feedback"
+	feedback_users = my_server.smembers(feedback_set)
+	complaints_with_details = []
+	for user_id in feedback_users:
+		my_server.delete("wf:"+str(user_id))
+	my_server.delete("website_feedback")

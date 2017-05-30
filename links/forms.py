@@ -1169,7 +1169,7 @@ def validate_whitespaces_in_nickname(value):
 
 class CreateNickForm(forms.Form):
 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Naam ko khali nahi chore sakte!")},\
+		'required':_("Is safed patti mein naam likh kar OK dabao:")},\
 		validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)
@@ -1260,7 +1260,7 @@ def form_suggestions(username):
 
 class CreateNickNewForm(forms.Form):
 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Naam mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Naam ko khali nahi chore sakte!")})#,validators=[validate_whitespaces_in_nickname])
+		'required':_("Is safed patti mein naam likh kar OK dabao:")})#,validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)
 

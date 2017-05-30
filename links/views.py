@@ -38,7 +38,7 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -2776,6 +2776,15 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 				# some tinerking in the link has taken place
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
+			###############################Logging Erroneous Password#####################################
+			try:
+				password = request.POST.get("password",None)
+				password = 'specificity' if password == '' else password
+				error_string = str(dict(form.errors)["password"]).split('<li>')[1].split('</li>')[0]
+				log_erroneous_passwords(password,error_string)
+			except:
+				pass
+			##############################################################################################
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}

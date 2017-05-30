@@ -2704,11 +2704,14 @@ class GroupListView(ListView):
 		return trending_groups
 
 def login(request,*args,**kwargs):
-	if request.method == 'POST':
-		# opportunity to block entry here
-		return log_me_in(request=request,template_name='login.html')
+	if request.user.is_authenticated():
+		return redirect("home")
 	else:
-		return log_me_in(request=request,template_name='login.html')
+		if request.method == 'POST':
+			# opportunity to block entry here
+			return log_me_in(request=request,template_name='login.html')
+		else:
+			return log_me_in(request=request,template_name='login.html')
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()

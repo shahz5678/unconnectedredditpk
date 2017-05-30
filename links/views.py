@@ -105,7 +105,7 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-# mp = Mixpanel(MIXPANEL_TOKEN)
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)

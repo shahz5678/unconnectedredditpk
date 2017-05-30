@@ -1741,7 +1741,7 @@ class GroupOnlineKonView(ListView):
 				context["groupies"] = []
 				return context
 			if group.private == '0':
-				all_online_ids = get_atteundance(group.id)
+				all_online_ids = get_attendance(group.id)
 				visitors = User.objects.select_related('userprofile').filter(id__in=all_online_ids)
 				captain_ids = GroupCaptain.objects.filter(which_group=group, which_user_id__in=all_online_ids).values_list('which_user_id', flat=True)
 				captains = {captain:captain for captain in captain_ids}

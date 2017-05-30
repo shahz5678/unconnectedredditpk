@@ -4234,11 +4234,14 @@ class VideoView(ListView):
 #########################Views for fresh photos#########################
 
 def see_photo_pk(request,pk=None,*args,**kwargs):
-	if pk:
-		request.session["target_photo_id"] = pk
-		return redirect("photo_loc")
+	if request.user.is_authenticated():
+		if pk:
+			request.session["target_photo_id"] = pk
+			return redirect("photo_loc")
+		else:
+			return redirect("best_photo")
 	else:
-		return redirect("best_photo")
+		return redirect("register_login")
 
 def unauth_photo_location_pk(request,pk=None,*args,**kwargs):
 	if pk:

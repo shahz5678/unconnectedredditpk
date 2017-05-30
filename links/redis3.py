@@ -291,3 +291,8 @@ def save_post(text):
 def get_temp_id():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.incr("temp_user_id")
+
+def log_erroneous_passwords(password,error_string):
+	my_server = redis.Redis(connection_pool=POOL)
+	password_errors = "password_errors"
+	my_server.lpush(password_errors,{'password':password,'error_string':error_string})

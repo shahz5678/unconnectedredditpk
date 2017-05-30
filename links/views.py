@@ -2777,13 +2777,13 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 				return render(request,'penalty_link_tinkered.html',{})
 		else:
 			###############################Logging Erroneous Password#####################################
-			try:
-				password = request.POST.get("password",None)
-				password = 'specificity' if password == '' else password
-				error_string = str(dict(form.errors)["password"]).split('<li>')[1].split('</li>')[0]
-				log_erroneous_passwords(password,error_string)
-			except:
-				pass
+			# try:
+			# 	password = request.POST.get("password",None)
+			# 	password = 'specificity' if password == '' else password
+			# 	error_string = str(dict(form.errors)["password"]).split('<li>')[1].split('</li>')[0]
+			# 	log_erroneous_passwords(password,error_string)
+			# except:
+			# 	pass
 			##############################################################################################
 			if int(length) == len(slug):
 				username = slug.decode("hex")

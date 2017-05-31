@@ -282,6 +282,24 @@ def log_completed_orders():
 	my_server = redis.Redis(connection_pool=POOL)
 	pass
 
+#####################Advertiser!!!###################
+
+def save_advertiser(name, detail, mobile, loc, publishing_time, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	advertiser_details = "advertiser_details"
+	payload = {"name":name,"detail":detail,"mobile":mobile,"city":loc,"publishing_time":publishing_time,"nickname":username}
+	my_server.lpush(advertiser_details,str(payload))
+
+def get_advertisers():
+	my_server = redis.Redis(connection_pool=POOL)
+	advertiser_details = "advertiser_details"
+	return my_server.lrange(advertiser_details,0,-1)
+
+def purge_advertisers():
+	my_server = redis.Redis(connection_pool=POOL)
+	advertiser_details = "advertiser_details"
+	my_server.delete(advertiser_details)
+
 #####################################################
 
 def save_post(text):

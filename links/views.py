@@ -2731,9 +2731,9 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			###############################################################
-			unreg_id = get_temp_id()
-			mp.track(unreg_id,'signup')
-			mp.alias(request.user.id, unreg_id)
+			# unreg_id = get_temp_id()
+			mp.track(request.user.id,'fresh_signup')
+			# mp.alias(request.user.id, unreg_id)
 			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:

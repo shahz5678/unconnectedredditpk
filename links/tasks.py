@@ -19,14 +19,19 @@ get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_i
 get_recent_online, expire_online_users#, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, insert_nickname, set_prev_retort, get_current_cricket_match, \
-del_cricket_match, update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, \
-set_prev_group_replies, delete_photo_report#, retrieve_first_page
+add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
+update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
+delete_photo_report#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
 from math import log
+
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
+
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 VOTE_WEIGHT = 1.5 # used for calculating daily benchmark
 FLOOR_PERCENTILE = 0.5
@@ -545,9 +550,10 @@ def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
 		pass
 
 @celery_app1.task(name='tasks.registration_task')
-def registration_task(ip,username):
+def registration_task(ip,username,user_id):
 	account_created(ip,username)
-	insert_nickname(username)
+	# insert_nickname(username)
+	mp.track(user_id,'sign_ups')
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):

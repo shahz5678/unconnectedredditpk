@@ -2731,7 +2731,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			# mp.track(request.session.get('new_id',None), 'account_created')
-			request.session.pop("clientid",None)
+			# request.session.pop("clientid",None)
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2741,6 +2741,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
 			return render(request, 'create_account.html', context)
 	else:
+		request.session.pop("new_id", None)
 		if len(slug1) == int(length1) and len(slug2) == int(length2):
 			form = CreateAccountForm()
 			username = slug1.decode("hex")
@@ -2817,6 +2818,11 @@ def create_password(request,slug=None,length=None,*args,**kwargs):
 	if account_creation_disallowed(getip(request)):
 		return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
+		new_id = request.session.get('new_id',None)
+  		if not new_id:
+  			new_id = get_temp_id()
+  			request.session['new_id'] = new_id
+		mp.track(request.session.get('new_id',None), 'old_pass_creation_funnel')
 		form = CreatePasswordForm(data=request.POST,request=request)
 		if form.is_valid():
 			# show user the password in the next screen
@@ -2865,13 +2871,18 @@ def create_nick(request,*args,**kwargs):
 	elif account_creation_disallowed(getip(request)):
 		return render(request, 'penalty_account_create.html',{})
 	elif request.method == 'POST':
+		new_id = request.session.get('new_id',None)
+  		if not new_id:
+  			new_id = get_temp_id()
+  			request.session['new_id'] = new_id
+		mp.track(request.session.get('new_id',None), 'old_nick_creation_funnel')
 		form = CreateNickForm(data=request.POST)
 		if form.is_valid():
 			username = form.cleaned_data['username']
 			result = username.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie() #set it now, to test it in the next view
-			return redirect('create_password',slug=result,length=length)
+			return redirect('create_password_new',slug=result,length=length)
 		else:
 			context = {'form':form}
 			# mp.track(request.session.get('tid',None), 'retry_new_nick')

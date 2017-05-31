@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<h2>Kya aap Damadam pe advertise karna chahtey ho?</h2>
+<h2>Kya aap Damadam pe apne business ka ad lagana chahtey ho?</h2>
 <div class="mbl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
 Damadam pe har month <b class="cg">2 lakh</b> se ziyada users aatey hain
 </div><br>
 
-<span class="cl">Apni malumat de dain takey hamara numainda contact kar sakey:</span><br>
+<span class="cl">Apni aur apne business ki details de dain, takey hamara numainda contact kar le:</span><br>
 
 <form method="POST" action="{% url 'advertise_with_us' %}">
 {% csrf_token %}
@@ -22,7 +22,7 @@ Damadam pe har month <b class="cg">2 lakh</b> se ziyada users aatey hain
 {% if form.mobile.errors %}<span class="cr">{{ form.mobile.errors.0 }}</span><br>{% endif %}
 {{ form.mobile }}
 </div>
-<div class="cxl co mbs">Ad Detail:<br>
+<div class="cxl co mbs">Business Detail:<br>
 {% if form.detail.errors %}<span class="cr">{{ form.detail.errors.0 }}</span><br>{% endif %}
 {{ form.detail }}
 </div>

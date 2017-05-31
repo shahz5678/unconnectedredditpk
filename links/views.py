@@ -97,8 +97,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -106,7 +106,7 @@ from brake.decorators import ratelimit
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-# mp = Mixpanel(MIXPANEL_TOKEN)
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -7884,14 +7884,13 @@ def skin_clinic(request,*args,**kwargs):
 			time_now = timezone.now()
 			submitted_at = convert_to_epoch(time_now)
 			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
-			# mp.track(request.user.id, 'Gave Ad Feedback')
+			mp.track(request.user.id, 'Gave Skin Ad Feedback')
 			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
 		else:
-			# form = AdFeedbackForm()
 			return render(request,'skin_package.html',{'form':form})
 	else:
 		form = AdFeedbackForm()
-		# mp.track(request.user.id, 'Clicked Umrah Ad')
+		mp.track(request.user.id, 'Clicked Skin Ad')
 		return render(request,'skin_package.html',{'form':form})
 
 ###############################################################

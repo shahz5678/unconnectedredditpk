@@ -2730,8 +2730,11 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			# mp.track(request.session.get('new_id',None), 'account_created')
-			# request.session.pop("clientid",None)
+			new_id = request.session.get('new_id',None)
+	  		if not new_id:
+	  			new_id = get_temp_id()
+	  			request.session['new_id'] = new_id
+			mp.track(request.session.get('new_id',None), 'new_signup')
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -2811,87 +2814,87 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 			return render(request, 'penalty_cookie.html', {})
 
 
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
-@csrf_protect
-def create_password(request,slug=None,length=None,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
-		return render(request,'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		new_id = request.session.get('new_id',None)
-  		if not new_id:
-  			new_id = get_temp_id()
-  			request.session['new_id'] = new_id
-		mp.track(request.session.get('new_id',None), 'old_pass_creation_funnel')
-		form = CreatePasswordForm(data=request.POST,request=request)
-		if form.is_valid():
-			# show user the password in the next screen
-			if int(length) == len(slug):
-				password = form.cleaned_data['password']
-				result = password.encode('utf-8').encode("hex")
-				length1 = len(slug)
-				length2 = len(result)
-				# mp.track(request.session.get('new_id',None), 'pass_created')
-				# if "var_key" in request.session:
-				# config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
-				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-		else:
-			if int(length) == len(slug):
-				username = slug.decode("hex")
-				context={'form':form,'username':username,'uhex':slug,'length':length}
-				return render(request, 'create_password.html', context)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-	else:
-		# mp.track(request.session.get('tid',None), 'load_pass')
-		if request.session.test_cookie_worked():
-			form = CreatePasswordForm()
-			# mp.track(request.session.get('tid',None), 'create_new_pass')
-			if int(length) == len(slug):
-				username = slug.decode("hex")
-				context={'form':form,'username':username,'uhex':slug,'length':length}
-				return render(request, 'create_password.html', context)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-		else:
-			#cookies aren't being set in the browser, so can't make an account!
-			return render(request, 'penalty_cookie.html', {})
+# # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# # @sensitive_post_parameters()
+# @csrf_protect
+# def create_password(request,slug=None,length=None,*args,**kwargs):
+# 	if account_creation_disallowed(getip(request)):
+# 		return render(request,'penalty_account_create.html',{})
+# 	elif request.method == 'POST':
+# 		new_id = request.session.get('new_id',None)
+#   		if not new_id:
+#   			new_id = get_temp_id()
+#   			request.session['new_id'] = new_id
+# 		mp.track(request.session.get('new_id',None), 'old_pass_creation_funnel')
+# 		form = CreatePasswordForm(data=request.POST,request=request)
+# 		if form.is_valid():
+# 			# show user the password in the next screen
+# 			if int(length) == len(slug):
+# 				password = form.cleaned_data['password']
+# 				result = password.encode('utf-8').encode("hex")
+# 				length1 = len(slug)
+# 				length2 = len(result)
+# 				# mp.track(request.session.get('new_id',None), 'pass_created')
+# 				# if "var_key" in request.session:
+# 				# config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
+# 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
+# 			else:
+# 				# some tinerking in the link has taken place
+# 				return render(request,'penalty_link_tinkered.html',{})
+# 		else:
+# 			if int(length) == len(slug):
+# 				username = slug.decode("hex")
+# 				context={'form':form,'username':username,'uhex':slug,'length':length}
+# 				return render(request, 'create_password.html', context)
+# 			else:
+# 				# some tinerking in the link has taken place
+# 				return render(request,'penalty_link_tinkered.html',{})
+# 	else:
+# 		# mp.track(request.session.get('tid',None), 'load_pass')
+# 		if request.session.test_cookie_worked():
+# 			form = CreatePasswordForm()
+# 			# mp.track(request.session.get('tid',None), 'create_new_pass')
+# 			if int(length) == len(slug):
+# 				username = slug.decode("hex")
+# 				context={'form':form,'username':username,'uhex':slug,'length':length}
+# 				return render(request, 'create_password.html', context)
+# 			else:
+# 				# some tinerking in the link has taken place
+# 				return render(request,'penalty_link_tinkered.html',{})
+# 		else:
+# 			#cookies aren't being set in the browser, so can't make an account!
+# 			return render(request, 'penalty_cookie.html', {})
 
 ############################################################################################################
 
-@csrf_protect		
-def create_nick(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return render(request,'404.html',{})
-	elif account_creation_disallowed(getip(request)):
-		return render(request, 'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		new_id = request.session.get('new_id',None)
-  		if not new_id:
-  			new_id = get_temp_id()
-  			request.session['new_id'] = new_id
-		mp.track(request.session.get('new_id',None), 'old_nick_creation_funnel')
-		form = CreateNickForm(data=request.POST)
-		if form.is_valid():
-			username = form.cleaned_data['username']
-			result = username.encode("hex")
-			length = len(result)
-			request.session.set_test_cookie() #set it now, to test it in the next view
-			return redirect('create_password_new',slug=result,length=length)
-		else:
-			context = {'form':form}
-			# mp.track(request.session.get('tid',None), 'retry_new_nick')
-			return render(request, 'create_nick.html', context)
-	else:
-		form = CreateNickForm()
-		context = {'form':form}
-  		# mp.track(request.session.get('tid',None), 'create_new_nick')
-		return render(request, 'create_nick.html', context)
+# @csrf_protect		
+# def create_nick(request,*args,**kwargs):
+# 	if request.user.is_authenticated():
+# 		return render(request,'404.html',{})
+# 	elif account_creation_disallowed(getip(request)):
+# 		return render(request, 'penalty_account_create.html',{})
+# 	elif request.method == 'POST':
+# 		new_id = request.session.get('new_id',None)
+#   		if not new_id:
+#   			new_id = get_temp_id()
+#   			request.session['new_id'] = new_id
+# 		mp.track(request.session.get('new_id',None), 'old_nick_creation_funnel')
+# 		form = CreateNickForm(data=request.POST)
+# 		if form.is_valid():
+# 			username = form.cleaned_data['username']
+# 			result = username.encode("hex")
+# 			length = len(result)
+# 			request.session.set_test_cookie() #set it now, to test it in the next view
+# 			return redirect('create_password_new',slug=result,length=length)
+# 		else:
+# 			context = {'form':form}
+# 			# mp.track(request.session.get('tid',None), 'retry_new_nick')
+# 			return render(request, 'create_nick.html', context)
+# 	else:
+# 		form = CreateNickForm()
+# 		context = {'form':form}
+#   		# mp.track(request.session.get('tid',None), 'create_new_nick')
+# 		return render(request, 'create_nick.html', context)
 
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 # @sensitive_post_parameters()

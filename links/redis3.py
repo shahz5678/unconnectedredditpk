@@ -312,5 +312,5 @@ def get_temp_id():
 
 def log_erroneous_passwords(password,error_string):
 	my_server = redis.Redis(connection_pool=POOL)
-	password_errors = "username_errors"#"password_errors"
+	password_errors = "likho_errors"#"password_errors"
 	my_server.lpush(password_errors,{'password':password,'error_string':error_string})

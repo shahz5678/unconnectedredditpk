@@ -1611,12 +1611,12 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-  		# new_id = request.session.get('new_id',None)
-  		# if not new_id:
-  		# 	new_id = get_temp_id()
-  		# 	request.session['new_id'] = new_id
-  		# mp.track(new_id, 'on_home_page')
-  		form = CreateNickNewForm()
+		# new_id = request.session.get('new_id',None)
+		# if not new_id:
+		# 	new_id = get_temp_id()
+		# 	request.session['new_id'] = new_id
+		# mp.track(new_id, 'on_home_page')
+		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list.html', context)
 
@@ -2960,7 +2960,7 @@ def create_nick_new(request,*args,**kwargs):
 	else:
 		form = CreateNickNewForm()
 		context = {'form':form}
-  		# mp.track(request.session.get('tid',None), 'create_new_nick')
+		# mp.track(request.session.get('tid',None), 'create_new_nick')
 		return render(request, 'create_nick_new.html', context)
 
 ############################################################################################################
@@ -4335,10 +4335,10 @@ def unauth_photos(request,*args,**kwargs):
 			context["page"] = page_obj
 			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
 		new_id = request.session.get('new_id',None)
-  		if not new_id:
-  			new_id = get_temp_id()
-  			request.session['new_id'] = new_id
-  		# mp.track(new_id, 'on_photos')
+		if not new_id:
+			new_id = get_temp_id()
+			request.session['new_id'] = new_id
+		# mp.track(new_id, 'on_photos')
 		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request,'unauth_photos.html',context)
@@ -4596,10 +4596,10 @@ def unauth_best_photos(request,*args,**kwargs):
 		form = CreateNickNewForm()
 		context["form"] = form
 		new_id = request.session.get('new_id',None)
-  		if not new_id:
-  			new_id = get_temp_id()
-  			request.session['new_id'] = new_id
-  		# mp.track(new_id, 'on_photos')
+		if not new_id:
+			new_id = get_temp_id()
+			request.session['new_id'] = new_id
+		# mp.track(new_id, 'on_photos')
 		return render(request,'unauth_best_photos.html',context)
 
 def best_photos_list(request,*args,**kwargs):
@@ -6669,6 +6669,17 @@ class LinkCreateView(CreateView):
 			else:
 				context["feature_phone"] = False
 		return context
+
+	def form_invalid(self, form):
+		"""
+		If the form is invalid, re-render the context data with the
+		data-filled form and errors.
+		"""
+		description = self.request.POST.get("description",None)
+		description = 'specificity' if description == '' else description
+		error_string = str(dict(form.errors)["description"]).split('<li>')[1].split('</li>')[0]
+		log_erroneous_passwords(description,error_string)
+		return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		try:

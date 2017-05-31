@@ -68,7 +68,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script><!-- end Mixpanel -->
 {% if user.is_authenticated %}
 <li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Photos</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'reauth' %}#section0">Password Badlo</a></li><li><a href="{% url 'logout_penalty' %}#section0">Bahir Niklo</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% else %}
-<li><a href="{% url 'unauth_home' %}">Home</a></li><li><a href="{% url 'create_nick_new' %}#section0">New Account</a></li><li><a href="{% url 'login_walkthrough' %}#section0">Purana Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
+<li><a href="{% url 'unauth_home' %}">Home</a></li><li><a href="{% url 'create_nick_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Purana Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% endif %}
 </ul>
 

@@ -1,4 +1,4 @@
-{% extends "base_min.html" %}
+{% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
 <h2 class="cg bw">Kala rung, daaney, zakham, khushki, daagh, keel mahasey ka ilaj</h2>
@@ -6,9 +6,10 @@
 <div class="mbl mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
 <b class="cg"><span class="clb">'Doctor'</span> likh ke <span class="clb">0336-5885441</span> pe SMS karien</span></b><br>
 </div>
+<br>
 <b class="co">TAREEQA:</b>
 <div class="mbs">
-<b class="co">1)</b><span class="mls">Dr. aap say SMS per masley ke barey mein sawal poochien gi</span><br>
+<b class="co">1)</b><span class="mls">Dr. aap say SMS pe masley ke barey mein sawal poochien gi</span><br>
 </div>
 <div class="mbs">
 <b class="co">2)</b><span class="mls">Aap ko bata diya jaye ga ke masley ka ilaj mumkin hai ke nahi</span><br>
@@ -22,8 +23,11 @@
 <div class="mbs mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
 <span class="clb"><b>Ramzan discount price <span class="cg">Rs. 200</span></b><br><span class="cgy cs">(real price: Rs.500)</span></span><br>
 </div><br>
-<a href="{% url 'home' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
+<a href="{% url 'home' %}"><button class="btn bco bm mtl mbl"><b>wapis</b></button></a>
 <br>
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/boyface_small.png" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/skin_small.png" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/boyskin_small.png" style="max-width:204px;">
 <hr size=3 COLOR="#bfbfbf">
 	<form method="post" action="{% url 'skin_clinic' %}" class="mtl">
 	{% csrf_token %}

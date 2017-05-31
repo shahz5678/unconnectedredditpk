@@ -97,8 +97,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -106,7 +106,7 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -1424,10 +1424,10 @@ def home_link_list(request, *args, **kwargs):
 				context["show_current"] = True
 				context["show_next"] = False
 		################################################################################################################
-		if request.META.get('HTTP_X_IORG_FBS',False):
-			mp.track(user.id, 'On FBS')
-		else:
-			mp.track(user.id, 'Off FBS')
+		# if request.META.get('HTTP_X_IORG_FBS',False):
+		# 	mp.track(user.id, 'On FBS')
+		# else:
+		# 	mp.track(user.id, 'Off FBS')
 		################################################################################################################
 		num = random.randint(1,4)
 		context["random"] = num #determines which message to show at header

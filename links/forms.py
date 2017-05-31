@@ -1133,13 +1133,16 @@ class CreatePasswordForm(forms.Form):
 
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
+		password = password.strip()
 		lower_pass = password.lower()
 		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
 		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
-		elif lower_pass.isdigit():
-			raise ValidationError('Password mein sirf numbers nahi dalo')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
+		elif lower_pass in '1234567890':
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
 		elif lower_nick in lower_pass:
 			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:
@@ -1374,6 +1377,7 @@ class ResetPasswordForm(forms.Form):
 
 	def clean_password(self):
 		password = self.cleaned_data["password"]
+		password = password.strip()
 		old_password = self.request.user.password
 		lower_pass = password.lower()
 		nickname = self.request.user.username
@@ -1381,9 +1385,11 @@ class ResetPasswordForm(forms.Form):
 		if check_password(password,old_password):
 			raise ValidationError('New password purane password se mukhtalif rakho')
 		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
-		elif lower_pass.isdigit():
-			raise ValidationError('Password mein sirf numbers nahi dalo')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
+		elif lower_pass in '1234567890':
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
 		elif lower_nick in lower_pass:
 			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)		
 		elif 'babykobasspasandhai' in lower_pass:

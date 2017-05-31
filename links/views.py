@@ -38,7 +38,8 @@ from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords, save_advertiser,\
+get_advertisers, purge_advertisers
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -61,7 +62,7 @@ incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, cu
 first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
 is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, in_defenders, first_time_feedbacker, add_website_feedbacker, save_website_feedback,\
 website_feedback_given, save_website_feedback_user_details, get_website_feedback, clean_up_feedback
-from .website_feedback_form import WebsiteFeedbackForm, WebsiteFeedbackUserDetailsForm
+from .website_feedback_form import WebsiteFeedbackForm, WebsiteFeedbackUserDetailsForm, AdvertiseWithUsForm
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
@@ -8330,6 +8331,44 @@ class TestReportView(FormView):
 def click_ad(request, ad_id=None, *args,**kwargs):
 	store_click(ad_id, get_user_loc(request.user))
 	return redirect("test_ad")
+
+###############################################################
+
+@csrf_protect
+def advertise_with_us(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = AdvertiseWithUsForm(request.POST)
+		if form.is_valid():
+			name = form.cleaned_data.get("name")
+			detail = form.cleaned_data.get("detail")
+			mobile = form.cleaned_data.get("mobile")
+			loc = form.cleaned_data.get("loc")
+			submission_time = time.time()
+			username = request.user.username if request.user.is_authenticated() else None
+			save_advertiser(name, detail, mobile, loc, submission_time, username)
+			return render(request,"thank_advertiser.html",{})
+		else:
+			return render(request,"advertise_with_us.html",{'form':form})
+	else:
+		form = AdvertiseWithUsForm()
+		return render(request,"advertise_with_us.html",{'form':form})
+
+@csrf_protect
+def show_advertisers(request,*args,**kwargs):
+	if request.method == 'POST':
+		delete = request.POST.get('delete',None)
+		if delete == 'Delete All':
+			purge_advertisers()
+		return redirect("show_advertisers")
+	else:
+		list_ = get_advertisers()
+		import ast
+		list_of_advertisers = []
+		for elem in list_:
+			list_of_advertisers.append(ast.literal_eval(elem))
+		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
+			'num':len(list_of_advertisers)})
+
 
 ###############################################################
 

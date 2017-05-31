@@ -2730,11 +2730,11 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			new_id = request.session.get('new_id',None)
-	  		if not new_id:
-	  			new_id = get_temp_id()
-	  			request.session['new_id'] = new_id
-			mp.track(request.session.get('new_id',None), 'new_signup')
+			###############################################################
+			unreg_id = get_temp_id()
+			mp.track(unreg_id,'signup')
+			mp.alias(request.user.id, unreg_id)
+			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values

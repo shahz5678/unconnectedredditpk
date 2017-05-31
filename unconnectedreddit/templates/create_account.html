@@ -1,34 +1,35 @@
-{% extends "base.html" %}
+{% extends "base_min.html" %}
 {% block content %}
-
-<div class="margin clb">
+<div style="background-color:#00c853;overflow: auto;">
+<div class="mbl bw mll mtl mrl mbl" style="max-width:96%;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
 {% if no_credentials %}
 	{% load emoticons_tags %}
-	<span class="cl">Damadam tumhara nickname bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
-	<a href="{% url 'home' %}#section0"><button class="btn bs bcg mtl">home</button></a>
+	<span class="cl" style="text-shadow:1.5px 1.5px #009940;color:white;">Damadam tumhara nickname bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
+	<a href="{% url 'unauth_home' %}#section0"><button class="btn bs bco mtl">home</button></a>
 {% else %}
-	<form method="post" action="{% url 'create_account' uhex ulen phex plen %}#section0">
+	<form method="post" action="{% url 'create_account' uhex ulen phex plen %}#section0" class="mtl">
 	{% csrf_token %}
 		{% if form.username.errors %}
 			<span class="cr">{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% elif form.password.errors %}
 			<span class="cr">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% else %}
-			<span class="cxl"><b>{{ username }}</b> tum apna password 3 bar parh ke yad kr lo:</span><br>
+			<span class="cxl" style="text-shadow:1.5px 1.5px #009940;color:white;"><b>{{ username }}</b> tum apna password 3 bar parh ke yad kr lo:</span><br>
 			<div class="mtl">
-			<span class="cg cl" style="word-wrap:break-word;"><b>{{ password }}</b><br>
-			<span class="cg cxl" style="word-wrap:break-word;"><b>{{ password }}</b><br>
-			<span class="cg cl" style="word-wrap:break-word;"><b>{{ password }}</b></span></span></span><br>
+			<span class="cl" style="color:#ffff00;text-shadow:1.5px 1.5px #009940;word-wrap:break-word;"><b>{{ password }}</b><br>
+			<span class="cxl" style="color:#ffff00;text-shadow:1.5px 1.5px #009940;word-wrap:break-word;"><b>{{ password }}</b><br>
+			<span class="cl" style="color:#ffff00;text-shadow:1.5px 1.5px #009940;word-wrap:break-word;"><b>{{ password }}</b></span></span></span><br>
 			</div>
 			<input type="hidden" name="username" value="{{ username }}">
 			<input type="hidden" name="password" value="{{ password }}">
-			<button class="btn bcg bs mtl mbs cxl" type="submit">OK</button>
-			<hr size=1 COLOR="#99e699">
-			<span class="cgy">(tip: is screen ki photo le lo, ya password apne pas likh lo)</span><br><br>
+			<input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;font-size:120%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1.5px 1.5px #b39500;" value="OK">
+			<hr size=1 COLOR="#ffeb3b">
+			<span style="text-shadow:1.5px 1.5px #009940;color:white;">is screen ki photo le lo, ya password apne pas likh lo</span><br><br>
 		{% endif %}
 	</form>
 {% endif %}
+<br>
 </div>
-<br><br>
+</div>
 
 {% endblock %}

@@ -1252,11 +1252,22 @@ def form_suggestions(username):
 	elif username[-1].isdigit():
 		return [username+'_pk',username+'_me',username+'_hi',username+'pk',\
 		'mr_'+username,'am_'+username,username+'_pm',username+'hum',\
-		username+'-pk',username+'_00',username+'oye',username+'_007'] #12 suggestions
+		username+'-pk',username+'_00',username+'oye',username+'_007',\
+		username+'pak',username+'.me',username+'.hi',username+'_yo'] #16 suggestions
 	else:
-		return [username+'11',username+'22',username+'33',username+'44',\
-		username+'55',username+'66',username+'77',username+'88',\
-		username+'99',username+'00',username+'786',username+'007'] #12 suggestions
+		return [username+'11',username+'_11',username+'22',username+'_22',\
+		'mr_'+username,username+'33',username+'_33',username+'44',\
+		username+'_44',username+'55',username+'_55',username+'66',\
+		username+'_66',username+'77',username+'_77',username+'88',\
+		username+'_88',username+'99',username+'_99',username+'00',\
+		username+'_00',username+'007',username+'_007',username+'786',\
+		username+'_786',username+'.11',username+'-11',username+'.22',\
+		username+'-22',username+'.33',username+'-33',username+'.44',\
+		username+'-44',username+'.55',username+'-55',username+'.66',\
+		username+'-66',username+'.77',username+'-77',username+'.88',\
+		username+'-88',username+'.99',username+'-99',username+'.00',\
+		username+'-00',username+'.007',username+'-007',username+'.786',\
+		username+'-786'] #49 suggestions
 
 class CreateNickNewForm(forms.Form):
 	username = forms.CharField(max_length=50,error_messages={'invalid': _("Naam mein sirf english harf, number ya @ _ . + - ho sakta hai"),\

@@ -1235,9 +1235,15 @@ def form_variants(username):
 	else:
 		words = username.split()
 		return ['_'.join(words),'.'.join(words),''.join(words),'-'.join(words),\
-		''.join(words)+'11',''.join(words)+'22',''.join(words)+'33',\
-		''.join(words)+'44',''.join(words)+'55',''.join(words)+'66',\
-		''.join(words)+'77',''.join(words)+'786',''.join(words)+'007'] #13 suggestions
+		''.join(words)+'11',''.join(words)+'_11',\
+		''.join(words)+'22',''.join(words)+'_22',\
+		''.join(words)+'33',''.join(words)+'_33',\
+		''.join(words)+'44',''.join(words)+'_44',\
+		''.join(words)+'55',''.join(words)+'_55',\
+		''.join(words)+'66',''.join(words)+'_66',\
+		''.join(words)+'77',''.join(words)+'_77',\
+		''.join(words)+'007',''.join(words)+'_007',\
+		''.join(words)+'786',''.join(words)+'_786'] #22 suggestions
 
 def form_suggestions(username):
 	if len(username) < 3: #small nickname

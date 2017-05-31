@@ -28,10 +28,10 @@ from django.contrib.auth.models import User
 from facebook_api import photo_poster
 from math import log
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 VOTE_WEIGHT = 1.5 # used for calculating daily benchmark
 FLOOR_PERCENTILE = 0.5
@@ -553,7 +553,7 @@ def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
 def registration_task(ip,username,user_id):
 	account_created(ip,username)
 	# insert_nickname(username)
-	mp.track(user_id,'sign_ups')
+	# mp.track(user_id,'sign_ups')
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):

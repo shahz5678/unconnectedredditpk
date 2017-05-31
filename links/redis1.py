@@ -261,11 +261,11 @@ def account_created(ip,username):
 	my_server = redis.Redis(connection_pool=POOL)
 	registered_ip = "ip:"+str(ip)
 	my_server.set(registered_ip,username)
-	my_server.expire(registered_ip,TWENTY_MINS)
+	my_server.expire(registered_ip,TEN_MINS)
 
-def insert_nickname(username):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zadd("nicks",username, 0.0)	
+# def insert_nickname(username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.zadd("nicks",username, 0.0)	
 
 #######################Defenders#######################
 

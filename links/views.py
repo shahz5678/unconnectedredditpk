@@ -97,8 +97,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -106,7 +106,7 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -2724,7 +2724,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			form.save() # creating the user
 			user = authenticate(username=username,password=password)
 			login(request,user)
-			registration_task.delay(getip(request),username)
+			registration_task.delay(getip(request),username,user.id)
 			try:
 				request.session.delete_test_cookie() #cleaning up
 			except:
@@ -2732,7 +2732,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			request.session["first_time_user"] = 1
 			###############################################################
 			# unreg_id = get_temp_id()
-			mp.track(request.user.id,'fresh_signup')
+			# mp.track(request.user.id,'fresh_signup')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
@@ -7898,13 +7898,13 @@ def skin_clinic(request,*args,**kwargs):
 			time_now = timezone.now()
 			submitted_at = convert_to_epoch(time_now)
 			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
-			mp.track(request.user.id, 'Gave Skin Ad Feedback')
+			# mp.track(request.user.id, 'Gave Skin Ad Feedback')
 			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
 		else:
 			return render(request,'skin_package.html',{'form':form})
 	else:
 		form = AdFeedbackForm()
-		mp.track(request.user.id, 'Clicked Skin Ad')
+		# mp.track(request.user.id, 'Clicked Skin Ad')
 		return render(request,'skin_package.html',{'form':form})
 
 ###############################################################

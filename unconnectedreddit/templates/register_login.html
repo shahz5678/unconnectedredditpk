@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "base_min.html" %}
 {% block content %}
-
-
-<div class="margin clb">
-<b class="cxl">Damadam pe pehle account banaya hai?</b><br><br>
-&nbsp;<a href="{% url 'create_nick_new' %}#section0"><button class="btn bcg bm mts cxl"><b>Nahi</b></button></a><br>
-&nbsp;<a href="{% url 'login_walkthrough' %}#section"><button class="btn bco bm mtl mbs cxl"><b>Haan</b></button></a><br>
-</div>
+<div style="background-color:#00c853;overflow: auto;">
+<div class="mbl bw mll mtl mrl mbl" style="max-width:96%;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
+<br><b class="cxl" style="text-shadow:1.5px 1.5px #009940;color:white;">Damadam pe pehle account banaya hai?</b><br><br>
+&nbsp;<a href="{% url 'create_nick_new' %}#section0"><button class="btn bm mts cxl" style="background-color:#ffd600;border:solid 1px #e6bf00;text-shadow:1.5px 1.5px #b39500;"><b>Nahi</b></button></a><br>
+&nbsp;<a href="{% url 'login_walkthrough' %}#section"><button class="btn bm mtl mbs cxl" style="background-color:#9e9e9e;border:solid 1px #757575;text-shadow:1.5px 1.5px #757575;"><b>Haan</b></button></a><br>
 <br><br>
+</div>
+</div>
 
 {% endblock %}

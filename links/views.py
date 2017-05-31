@@ -97,8 +97,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -106,7 +106,7 @@ from brake.decorators import ratelimit
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-# mp = Mixpanel(MIXPANEL_TOKEN)
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -2732,7 +2732,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			request.session["first_time_user"] = 1
 			###############################################################
 			# unreg_id = get_temp_id()
-			# mp.track(request.user.id,'fresh_signup')
+			mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE

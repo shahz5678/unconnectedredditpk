@@ -1,13 +1,12 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
-# from brake.decorators import ratelimit
-# from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
+from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_ads import urlpatterns as urlpatterns_ads
 from links.webhooks import webhook_event
 from links.export_website_feedback import export_website_feedback
@@ -69,7 +68,6 @@ urlpatterns = patterns('',
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^ohook/$', webhook_event, name='webhook_event'),
-	# url(r'^unauth/', unauth_home_link_list, name='unauth_home'),
 	url(r'^home_unauth/', unauth_home_link_list, name='unauth_home'),
 	#################################################################################################
 	url(r'^login/$',login, name="login"),
@@ -325,3 +323,4 @@ urlpatterns = patterns('',
 )
 urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads
+urlpatterns += urlpatterns_adv

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+<b>Total: {{ num }}</b><br>
+<form method="POST" action="{% url 'show_advertisers' %}" class="mtl mbl">
+{% csrf_token %}
+<input type="submit" class="bl" style="background:#00c853;color:white;font-weight:bold;" name="delete" value="Delete All">
+</form>
+<hr size=1 COLOR="#b3e6b3">
+{% for advertiser in advertisers %}
+<div class="mbs mtl">
+<span class="cgy"><b>Name:</b></span><br>
+<span class="cl cg">{% emoticons %}{{ advertiser.name }}{% endemoticons %}</span><br>
+</div>
+{% if advertiser.nickname %}
+<div class="mbs">
+<span class="cgy"><b>Nickname:</b></span><br>
+<span class="cl cg">{% emoticons %}{{ advertiser.nickname }}{% endemoticons %}</span><br>
+</div>
+{% endif %}
+<div class="mbs">
+<span class="cgy"><b>City:</b></span><br>
+<span class="cl cg">{% emoticons %}{{ advertiser.city }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy"><b>Mobile:</b></span><br>
+<span class="cl cg">{% emoticons %}{{ advertiser.mobile }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy"><b>Detail:</b></span><br>
+<span class="cl cg">{% emoticons %}{{ advertiser.detail }}{% endemoticons %}</span><br>
+</div>
+<div class="mbs">
+<span class="cgy"><b>Contacted:</b></span><br>
+<span class="cl co">{% emoticons %}{{ advertiser.publishing_time|human_time }}{% endemoticons %}</span><br>
+</div>
+<hr size=1 COLOR="#ffb300">
+{% endfor %}
+
+</div>
+<br><br>
+
+{% endblock %}

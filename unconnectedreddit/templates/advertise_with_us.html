@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2>Kya aap Damadam pe advertise karna chahtey ho?</h2>
+<div class="mbl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
+Damadam pe har month <b class="cg">2 lakh</b> se ziyada users aatey hain
+</div><br>
+
+<span class="cl">Apni malumat de dain takey hamara numainda contact kar sakey:</span><br>
+
+<form method="POST" action="{% url 'advertise_with_us' %}">
+{% csrf_token %}
+<div class="cxl co mtl mbs">Name:<br>
+{% if form.name.errors %}<span class="cr">{{ form.name.errors.0 }}</span><br>{% endif %}
+{{ form.name }}
+</div>
+<div class="cxl co mbs">City:<br>
+{% if form.loc.errors %}<span class="cr">{{ form.loc.errors.0 }}</span><br>{% endif %}
+{{ form.loc }}
+</div>
+<div class="cxl co mbs">Mobile:<br>
+{% if form.mobile.errors %}<span class="cr">{{ form.mobile.errors.0 }}</span><br>{% endif %}
+{{ form.mobile }}
+</div>
+<div class="cxl co mbs">Ad Detail:<br>
+{% if form.detail.errors %}<span class="cr">{{ form.detail.errors.0 }}</span><br>{% endif %}
+{{ form.detail }}
+</div>
+<input type="submit" class="mtl mbs bl cxl" style="background:#00c853;color:white;font-weight:bold;" value="Submit">
+</form>
+
+</div>
+<br><br>
+
+{% endblock %}

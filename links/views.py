@@ -4847,7 +4847,7 @@ def upload_public_photo(request,*args,**kwargs):
 					to_go = time_remaining
 				else:
 					to_go = timezone.now()+timedelta(seconds=time_remaining)
-				return render(self.request, 'forbidden_photo.html', {'time_remaining': to_go})
+				return render(request, 'forbidden_photo.html', {'time_remaining': to_go})
 			else:
 				number_of_photos = 0
 				photos = []
@@ -4860,7 +4860,7 @@ def upload_public_photo(request,*args,**kwargs):
 					number_of_photos += 1
 				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 				if forbidden:
-					return render(self.request, 'forbidden_photo.html', {'time_remaining': time_remaining})
+					return render(request, 'forbidden_photo.html', {'time_remaining': time_remaining})
 			time_now = timezone.now()
 			try:
 				difference = time_now - photos[0][1]

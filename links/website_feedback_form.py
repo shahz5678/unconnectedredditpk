@@ -219,3 +219,64 @@ class WebsiteFeedbackUserDetailsForm(forms.Form):
 			raise ValidationError('city ke naam mein sirf numbers nahi ho sakte!')
 		else:
 			return loc
+
+class AdvertiseWithUsForm(forms.Form):
+	name = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:90%;'}),\
+		error_messages={'required':_("isko khali nahi chore sakte")})
+	detail = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':3,'style':'max-width:90%;'}),\
+		error_messages={'required':_("isko khali nahi chore sakte")})
+	mobile = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:90%;'}),\
+		error_messages={'required':_("isko khali nahi chore sakte")})
+	loc = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:90%;'}),\
+		error_messages={'required':_("isko khali nahi chore sakte")})
+
+	class Meta:
+		fields = ("name","detail","mobile","loc",)
+
+	def __init__(self, *args, **kwargs):
+		super(AdvertiseWithUsForm, self).__init__(*args, **kwargs)
+		self.fields['name'].widget.attrs['class'] = 'cxl'
+		self.fields['name'].widget.attrs['autocomplete'] = 'off'
+		self.fields['detail'].widget.attrs['class'] = 'cxl'
+		self.fields['detail'].widget.attrs['autocomplete'] = 'off'
+		self.fields['mobile'].widget.attrs['class'] = 'cxl'
+		self.fields['mobile'].widget.attrs['autocomplete'] = 'off'
+		self.fields['loc'].widget.attrs['class'] = 'cxl'
+		self.fields['loc'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_mobile(self):
+		mobile = self.cleaned_data.get("mobile")
+		mobile = mobile.strip()
+		if not mobile.isdigit():
+			raise forms.ValidationError('number sahi se likhein')
+		if len(mobile) < 11:
+			raise forms.ValidationError('poora mobile number likhein')
+		mobile = clear_zalgo_text(mobile)
+		return mobile
+
+	def clean_name(self):
+		name = self.cleaned_data.get("name")
+		name = name.strip()
+		if name.isdigit():
+			raise forms.ValidationError('name sahi se likhein')
+		name = clear_zalgo_text(name)
+		return name
+
+	def clean_loc(self):
+		loc = self.cleaned_data.get("loc")
+		loc = loc.strip()
+		loc = clear_zalgo_text(loc)
+		if len(loc) < 3:
+			raise forms.ValidationError('itna chota city name nahi likh sakte')
+		elif loc.isdigit():
+			raise ValidationError('city name mein sirf numbers nahi ho sakte')
+		else:
+			return loc
+
+	def clean_detail(self):
+		detail = self.cleaned_data.get("detail")
+		detail = detail.strip()
+		if detail.isdigit():
+			raise forms.ValidationError('detail sahi se likhein')
+		detail = clear_zalgo_text(detail)
+		return detail

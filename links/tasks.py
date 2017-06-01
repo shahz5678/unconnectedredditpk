@@ -74,9 +74,7 @@ def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
 def capture_urdu(text):
 	# 0600-06FF Unicode range for Urdu
 	for c in text:
-		print c
 		if u'\u0600' <= c <= u'\u06FF':
-			print True
 			log_urdu(text)
 			break
 

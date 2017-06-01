@@ -2,7 +2,7 @@
 from django import forms
 from django.forms import Textarea
 from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies, many_short_messages, log_short_message
-from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist
+from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -349,6 +349,8 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				raise forms.ValidationError('ziyada spaces daal di hain')
 			else:	
 				raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
+		if len_>11 and ' ' not in description:
+			log_erroneous_passwords(self.user_id,description)
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

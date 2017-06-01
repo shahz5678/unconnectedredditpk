@@ -26,7 +26,7 @@ def decode_nick(nickname):
 	code = nick_and_code[1]
 	upper_case_positions = [int(code[i:i+2]) for i in range(0, len(code), 2)]
 	decoded_nick = ''.join(let.upper() if pos in upper_case_positions else let 
-	                           for pos, let in enumerate(lower_case_nick))
+							   for pos, let in enumerate(lower_case_nick))
 	return decoded_nick
 
 def get_nicknames(raw_nicknames):
@@ -321,11 +321,18 @@ def log_erroneous_passwords(password,error_string):
 
 def retrieve_erroneous_passwords():
 	my_server = redis.Redis(connection_pool=POOL)
+	# list_ = my_server.lrange(PASSWORD_ERRORS,0 ,-1)
+	# import pandas as pd
+	# import ast
+	# df = pd.DataFrame(list_)
+	# print df
 	import csv, ast
 	password_errors = PASSWORD_ERRORS
 	list_ = my_server.lrange(password_errors,0 ,-1)
+	# keys = ['password','error_string']
 	with open('likho_errors.csv','wb') as f:
 		wtr = csv.writer(f)
 		for string in list_:
 			dictionary = ast.literal_eval(string)
-			wtr.writerows([dictionary["password"],dictionary["error_string"]])
+			to_write = [dictionary["password"].encode('utf-8'),dictionary["error_string"].encode('utf-8')]
+			wtr.writerow(to_write)

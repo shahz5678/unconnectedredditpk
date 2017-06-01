@@ -7909,13 +7909,13 @@ def skin_clinic(request,*args,**kwargs):
 			time_now = timezone.now()
 			submitted_at = convert_to_epoch(time_now)
 			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
-			# mp.track(request.user.id, 'Gave Skin Ad Feedback')
+			mp.track(request.user.id, 'Gave Skin Ad Feedback')
 			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
 		else:
 			return render(request,'skin_package.html',{'form':form})
 	else:
 		form = AdFeedbackForm()
-		# mp.track(request.user.id, 'Clicked Skin Ad')
+		mp.track(request.user.id, 'Clicked Skin Ad')
 		return render(request,'skin_package.html',{'form':form})
 
 ###############################################################

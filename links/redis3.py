@@ -333,6 +333,9 @@ def retrieve_erroneous_passwords():
 	with open('likho_errors.csv','wb') as f:
 		wtr = csv.writer(f)
 		for string in list_:
-			dictionary = ast.literal_eval(string)
-			to_write = [dictionary["password"].encode('utf-8'),dictionary["error_string"].encode('utf-8')]
-			wtr.writerow(to_write)
+			try:
+				dictionary = ast.literal_eval(string)
+				to_write = [dictionary["password"].encode('utf-8'),dictionary["error_string"].encode('utf-8')]
+				wtr.writerow(to_write)
+			except:
+				pass

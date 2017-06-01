@@ -7894,7 +7894,7 @@ def ad_feedback(request,*args,**kwargs):
 		return render(request,'ad_feedback.html',{'form':form,'feedback_count':0})
 
 def skin_doctor_price(request,*args,**kwargs):
-	# mp.track(request.user.id, 'Clicked Umrah Price Detail')
+	mp.track(request.user.id, 'Clicked Dr. Detail')
 	return render(request,'skin_price.html',{})
 
 @csrf_protect

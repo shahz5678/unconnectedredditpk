@@ -23,7 +23,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, populate_search_thumbs
+fan_recount, vote_tasks, registration_task, populate_search_thumbs, capture_urdu
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
@@ -6733,6 +6733,9 @@ class LinkCreateView(CreateView):
 				extras = add_unfiltered_post(f.id)
 				if extras:
 					queue_for_deletion.delay(extras)
+			#######################
+			capture_urdu.delay(f.description)#0600–06FF Unicode range for Urdu
+			#######################
 			f.submitter.userprofile.save()
 			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:

@@ -1782,3 +1782,10 @@ def clean_up_feedback():
 	for user_id in feedback_users:
 		my_server.delete("wf:"+str(user_id))
 	my_server.delete("website_feedback")
+
+###################################################
+
+def log_urdu(text):
+	my_server = redis.Redis(connection_pool=POOL)
+	urdu_logs = "urdu_logs"
+	my_server.lpush(urdu_logs,text)

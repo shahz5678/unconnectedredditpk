@@ -21,7 +21,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report#, retrieve_first_page
+delete_photo_report, log_urdu#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
@@ -69,6 +69,16 @@ def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
 		return remaining_fan_ids, fan_ids_to_notify
 	except:
 		return fan_ids_list,0
+
+@celery_app1.task(name='tasks.capture_urdu')
+def capture_urdu(text):
+	# 0600-06FF Unicode range for Urdu
+	for c in text:
+		print c
+		if u'\u0600' <= c <= u'\u06FF':
+			print True
+			log_urdu(text)
+			break
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):

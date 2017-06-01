@@ -15,13 +15,25 @@
 <audio controls>
   <source src="{{ STATIC_URL }}sound/SkinDoc.ogg" type="audio/ogg">
   <source src="{{ STATIC_URL }}sound/SkinDoc.mp3" type="audio/mpeg">
-<span class="cr">Ye browser awaz nahi play karta</span>
+<span class="cr">Ye <b>browser</b> awaz nahi play karta</span>
 </audio> 
 </div>
 <div class="mbs">
 &nbsp;<b class="co">Website:</b>&nbsp;<b><a href="http://www.skinclub.com.pk" target="_blank">www.skinclub.com.pk</a></b>
 </div>
-<a href="{% url 'home' %}"><button class="btn bcg bm mts mbl">wapis</button></a>
+<div class="mbs">
+&nbsp;<b class="co">Photos:</b><br>
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/SkinClubBuilding2.jpeg" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/SkinClubBuilding3.jpeg" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/at_work.jpeg" style="max-width:204px;">
+</div>
+<div class="mbs">
+&nbsp;<b class="co">Certificates:</b><br>
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/dr_cert3.png" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/dr_cert5.png" style="max-width:204px;">
+<img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/dr_cert4.png" style="max-width:204px;">
+</div>
+<a href="{% url 'home' %}"><button class="btn bcg bm mtl mbl">wapis</button></a>
 </div>
 <br><br>
 {% endcache %}

@@ -231,15 +231,6 @@
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-	{% if forloop.counter == 4 %}
-		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
-		<div class="mls">
-		<a href="{% url 'skin_clinic' %}#section0"><img class="pht" style="max-width:233px;" src="{{ STATIC_URL }}img/girlskin_small.png"></a><br>
-		<span class="cg cl"><b>Jild ke masloon</b> ke liye doctor se ghar baithey mashwara karien</span>
-		<a href="{% url 'skin_clinic' %}"><button class="btn bcg bl cl mls mts mbs">tafseel</button></a>
-		</div>
-		<p><hr size=1 COLOR="#33cc33"></p></div>
-	{% endif %}
 	{% if forloop.counter == 5 %}
 		{% if enqueued_match %}
 		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">

@@ -6670,16 +6670,16 @@ class LinkCreateView(CreateView):
 				context["feature_phone"] = False
 		return context
 
-	def form_invalid(self, form):
-		"""
-		If the form is invalid, re-render the context data with the
-		data-filled form and errors.
-		"""
-		description = self.request.POST.get("description",None)
-		description = 'specificity' if description == '' else description
-		error_string = str(dict(form.errors)["description"]).split('<li>')[1].split('</li>')[0]
-		log_erroneous_passwords(description,error_string)
-		return self.render_to_response(self.get_context_data(form=form))
+	# def form_invalid(self, form):
+	# 	"""
+	# 	If the form is invalid, re-render the context data with the
+	# 	data-filled form and errors.
+	# 	"""
+	# 	description = self.request.POST.get("description",None)
+	# 	description = 'specificity' if description == '' else description
+	# 	error_string = str(dict(form.errors)["description"]).split('<li>')[1].split('</li>')[0]
+	# 	log_erroneous_passwords(description,error_string)
+	# 	return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		try:

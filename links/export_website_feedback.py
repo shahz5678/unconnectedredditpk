@@ -1,6 +1,11 @@
 from .redis1 import get_website_feedback
+from .redis3 import retrieve_erroneous_passwords
 from django.shortcuts import redirect, render
 import csv
+
+def export_error_feedback(request,*args,**kwargs):
+	retrieve_erroneous_passwords()
+	return redirect("home")
 
 def export_website_feedback(request,*args,**kwargs):
 	feedback = get_website_feedback()

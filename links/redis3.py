@@ -310,7 +310,22 @@ def get_temp_id():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.incr("temp_user_id")
 
+#####################################################
+
+PASSWORD_ERRORS = "likho_errors"#"password_errors"
+
 def log_erroneous_passwords(password,error_string):
 	my_server = redis.Redis(connection_pool=POOL)
-	password_errors = "likho_errors"#"password_errors"
+	password_errors = PASSWORD_ERRORS
 	my_server.lpush(password_errors,{'password':password,'error_string':error_string})
+
+def retrieve_erroneous_passwords():
+	my_server = redis.Redis(connection_pool=POOL)
+	import csv, ast
+	password_errors = PASSWORD_ERRORS
+	list_ = my_server.lrange(password_errors,0 ,-1)
+	with open('likho_errors.csv','wb') as f:
+		wtr = csv.writer(f)
+		for string in list_:
+			dictionary = ast.literal_eval(string)
+			wtr.writerows([dictionary["password"],dictionary["error_string"]])

@@ -55,6 +55,7 @@ sorted_set = "public_group_rankings"
 unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
 reported_photos = "reported_photos" #sorted set containing all reported photos
 hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+short_message = "sm:"+str(user_id)
 set_name = "unl:"+str(user_id)
 set_name = "ug:"+str(user_id) #ug is user's groups
 sorted_set = "v:"+str(link_pk) #set of all votes cast against a 'home link'.
@@ -91,6 +92,8 @@ FORTY_FIVE_SECS = 45
 
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
+
+SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
 
 def get_inactives():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1065,35 +1068,6 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
-# def should_cooldown(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	prev_times = "pt6:"+str(user_id) # set 6 previous times
-# 	times_list = my_server.lrange(prev_times,0,-1)
-# 	if len(times_list) > 5:
-# 		diff1 = int(times_list[0]) - int(times_list[1])
-# 		diff2 = int(times_list[1]) - int(times_list[2]) 
-# 		diff3 = int(times_list[2]) - int(times_list[3])
-# 		diff4 = int(times_list[3]) - int(times_list[4])
-# 		diff5 = int(times_list[4]) - int(times_list[5])
-# 		avgdiff = (diff1+diff2+diff3+diff4+diff5)/5
-# 		if avgdiff < 16:
-# 			set_site_ban(user_id,ONE_HOUR)
-# 			return 2 #kick out the person, reduce random.randint(500,1000) points
-# 		elif avgdiff < 23:
-# 			set_home_ban(user_id,TWENTY_MINS)
-# 			return 1 #ban from writing on home for twenty mins
-# 		else:
-# 			return 0
-# 	else:
-# 		return 0
-
-# def set_prev_times(user_id,time):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	prev_times = "pt6:"+str(user_id) # set 6 previous times
-# 	my_server.lpush(prev_times,time)
-# 	my_server.ltrim(prev_times, 0, 5)
-# 	my_server.expire(prev_times,FOUR_MINS)
-
 def set_prev_group_replies(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
@@ -1193,20 +1167,6 @@ def add_photos_to_best(photo_scores):
 		pipeline1.execute()
 	except:
 		pass
-		
-# def add_photo_to_best(photo_id, score):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	try:
-# 		size = my_server.zcard("bestphotos:1000")
-# 		limit = 1000
-# 		if size < 1001:
-# 			my_server.zadd("bestphotos:1000", photo_id, score)
-# 		else:
-# 			# if size is bigger than 1000
-# 		   	my_server.zremrangebyrank("bestphotos:1000", 0, 899)
-# 		   	my_server.zadd("bestphotos:1000", photo_id, score)
-# 	except:
-# 		my_server.zadd("bestphotos:1000", photo_id, score)
 
 def get_best_photo():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1728,6 +1688,25 @@ def insert_hash(photo_id, photo_hash):
 		   my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
 	except:
 		my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
+
+##############################short messages##############################
+
+def log_short_message(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	short_message = "sm:"+str(user_id)
+	my_server.incr(short_message)
+	my_server.expire(short_message,THREE_MINS)
+
+def many_short_messages(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	short_message = "sm:"+str(user_id)
+	if not my_server.exists(short_message):
+		return False
+	elif int(my_server.get(short_message)) > SHORT_MESSAGES_ALWD:
+		my_server.expire(short_message,TEN_MINS) #now ban the person for 10 mins
+		return True
+	else:
+		return False
 
 ############################saving ad feedback############################
 

@@ -1,7 +1,7 @@
 # coding=utf-8
 from django import forms
 from django.forms import Textarea
-from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies
+from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies, many_short_messages, log_short_message
 from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
@@ -38,30 +38,24 @@ def can_group_reply(text,user_id):
 
 def can_reply(text,user_id):
 	prev_publicreplies = get_prev_replies(user_id)
-	# print prev_publicreplies
 	for publicreply in prev_publicreplies:
 		score = fuzz.partial_ratio(text,publicreply.decode('utf-8'))
-		# print score
 		if score > 95:
 			return False
 	return True
 
 def can_post(text,user_id):
 	prev_retorts = get_prev_retorts(user_id)
-	# print prev_retorts
 	for retort in prev_retorts:
 		score = fuzz.partial_ratio(text,retort.decode('utf-8'))
-		# print score
 		if score > 85:
 			return False
 	return True
 
 def uniform_string(text,n=7):
 	text = text.lower()
-	# print text
 	for i, c in enumerate(text):
 		if text[i:i+n] == c * n:
-			# print text[i:i+n]
 			return text[i:i+n]
 	return False
 
@@ -336,19 +330,25 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		if len(description) < 10:
-			raise forms.ValidationError('tip: home pr itni choti baat nahi likh sakte')
-		elif len(description) > 500:
-			raise forms.ValidationError('tip: home pr inti barri baat nahi likh sakte')
+		len_ = len(description)
+		if len_ < 2:
+			raise forms.ValidationError('itni choti baat nahi likh sakte')
+		elif len_ < 10:
+			if many_short_messages(self.user_id):
+				raise forms.ValidationError('har thori deir baad choti baat nah likho')
+			else:
+				log_short_message(self.user_id)
+		elif len_ > 500:
+			raise forms.ValidationError('itni barri baat nahi likh sakte')
 		description = clear_zalgo_text(description)
+		if not can_post(description,self.user_id):
+			raise forms.ValidationError('milti julti batein nah likho, kuch new likho')
 		uni_str = uniform_string(description)
 		if uni_str:
 			if uni_str.isspace():
-				raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				raise forms.ValidationError('ziyada spaces daal di hain')
 			else:	
-				raise forms.ValidationError('tip: "%s" is terhan bar bar ek hi harf nah likho' % uni_str)
-		if not can_post(description,self.user_id):
-			raise forms.ValidationError('tip: milti julti batein nah likho, kuch new likho')
+				raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

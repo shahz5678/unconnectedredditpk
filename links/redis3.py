@@ -8,6 +8,7 @@ from html_injector import image_thumb_formatting
 '''
 ##########Redis Namespace##########
 
+gibberish_writers = 'gibberish_writers'
 search_history = "sh:"+str(searcher_id)
 user_thumbs = "upt:"+owner_uname
 
@@ -309,6 +310,25 @@ def save_post(text):
 def get_temp_id():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.incr("temp_user_id")
+
+##########Logging Home Gibberish Writers#############
+
+def log_gibberish_text_writer(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	gibberish_writers = 'gibberish_writers'
+	my_server.zincrby(gibberish_writers,user_id,amount=1)
+
+def get_gibberish_text_writers():
+	my_server = redis.Redis(connection_pool=POOL)
+	gibberish_writers = 'gibberish_writers'
+	gibberish_writers_and_scores = my_server.zrange(gibberish_writers,0,-1, withscores=True)
+	my_server.delete(gibberish_writers)
+	return gibberish_writers_and_scores
+
+def bulk_insert_gibberish_text_writers(list_of_writers):
+	my_server = redis.Redis(connection_pool=POOL)
+	gibberish_writers = 'gibberish_writers'
+	my_server.zadd(gibberish_writers,*list_of_writers)
 
 #####################################################
 

@@ -335,7 +335,7 @@ def retrieve_erroneous_passwords():
 		for string in list_:
 			try:
 				dictionary = ast.literal_eval(string)
-				to_write = [dictionary["password"].encode('utf-8'),dictionary["error_string"].encode('utf-8')]
+				to_write = [dictionary["password"],dictionary["error_string"]]
 				wtr.writerow(to_write)
 			except:
 				pass

@@ -47,7 +47,7 @@ public_group_ranking, retrieve_latest_notification, delete_salat_notification, p
 save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications, get_clones
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, remove_key, document_publicreply_abuse, publicreply_allowed, document_comment_abuse, comment_allowed, \
-document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
+document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, all_unfiltered_posts, \
 all_filtered_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, all_videos, add_video, \
 video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, get_recent_photos, \
@@ -6316,14 +6316,31 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
+			# if "unseen_comment_rate" in request.session:
+			# 	overheat_score = request.session['unseen_comment_rate']['overheat']
+			# 	last_posting_time = request.session['unseen_comment_rate']['posting_time']
+			# 	time_now = time.time()
+			# 	time_diff = time_now - last_posting_time
+			# 	if overheat_score > 3:
+			# 		if time_diff < TEN_MINS:
+			# 			return render(request,"comment_blocked.html",{'block_remaining':TEN_MINS-time_diff})
+			# 		else:
+			# 			request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
+			# 			request.session.modified = True
+			# 	else:
+			# 		if time_diff < 7:
+			# 			request.session['unseen_comment_rate']['overheat'] += 1
+			# 			request.session['unseen_comment_rate']['posting_time'] = time_now
+			# 		else:
+			# else:
+			# 	request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
+			# 	if time_now - last_posting_time < 5:
+			# 		overheat_score += 1
+			# request.session["unseen_comment_rate"] = {'posting_time':time.time(),'overheat':}
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				description = form.cleaned_data.get("comment")
 				user_id = request.user.id
-				# score = fuzz.ratio(description, get_prev_retort(user_id))
-				# if score > 85:
-				# 	return redirect("unseen_activity", slug=request.user.username)
-				# else:
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -6734,7 +6751,7 @@ class LinkCreateView(CreateView):
 				if extras:
 					queue_for_deletion.delay(extras)
 			#######################
-			capture_urdu.delay(f.description)#0600–06FF Unicode range for Urdu
+			# capture_urdu.delay(f.description)#0600–06FF Unicode range for Urdu
 			#######################
 			f.submitter.userprofile.save()
 			return super(CreateView, self).form_valid(form) #saves the link automatically

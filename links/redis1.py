@@ -1108,7 +1108,7 @@ def get_prev_replies(user_id):
 def get_prev_retorts(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_retorts = "pr5:"+str(user_id)
-	return my_server.lrange(prev_retorts,0,-1)
+	return my_server.lrange(prev_retorts,0,4)
 
 def get_prev_retort(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

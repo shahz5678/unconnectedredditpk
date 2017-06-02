@@ -23,7 +23,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, populate_search_thumbs, capture_urdu
+fan_recount, vote_tasks, registration_task, populate_search_thumbs#, capture_urdu
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
@@ -249,6 +249,52 @@ def process_publicreply(request,link_id,text,origin=None):
 			reply_poster_username=username,reply_desc=text,is_welc=False,priority='home_jawab',\
 			from_unseen=(True if origin == 'from_unseen' else False))
 	return parent_username
+
+# def can_interact_with_feature(dict_name,request):
+# 	if "unseen_comment_rate" in request.session:
+# 		overheat_score = request.session['unseen_comment_rate']['overheat']
+# 		last_posting_time = request.session['unseen_comment_rate']['posting_time']
+# 		time_now = time.time()
+# 		time_diff = time_now - last_posting_time
+# 		if overheat_score > 3:
+# 			if time_diff < TEN_MINS:
+# 				# banned
+# 				return render(request,"comment_blocked.html",{'block_remaining':TEN_MINS-time_diff})
+# 			else:
+# 				# expire ban
+# 				request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
+# 				request.session.modified = True
+# 		else:
+# 			if time_diff < 7:
+# 				# posting too soon, up the overheating score
+# 				request.session['unseen_comment_rate']['overheat'] += 1
+# 				request.session['unseen_comment_rate']['posting_time'] = time_now
+# 			else:
+# 	else:
+# 		request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
+# 		if time_now - last_posting_time < 5:
+# 			overheat_score += 1
+# 	request.session["unseen_comment_rate"] = {'posting_time':time.time(),'overheat':}
+
+# my_server = redis.Redis(connection_pool=POOL)
+# 	votes_allowed = "va:"+str(user_id) #votes allowed to user_id
+# 	current_spree = my_server.get(votes_allowed)
+# 	if current_spree is None:
+# 		pipeline1 = my_server.pipeline()
+# 		my_server.incr(votes_allowed)
+# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
+# 		pipeline1.execute()
+# 		return None, True
+# 	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
+# 		ttl = my_server.ttl(votes_allowed)
+# 		return ttl, False
+# 	else:
+# 		pipeline1 = my_server.pipeline()
+# 		my_server.incr(votes_allowed)
+# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+# 		pipeline1.execute()
+# 		return None, True
+
 
 def GetLatest(user):
 	try:
@@ -6316,27 +6362,6 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
-			# if "unseen_comment_rate" in request.session:
-			# 	overheat_score = request.session['unseen_comment_rate']['overheat']
-			# 	last_posting_time = request.session['unseen_comment_rate']['posting_time']
-			# 	time_now = time.time()
-			# 	time_diff = time_now - last_posting_time
-			# 	if overheat_score > 3:
-			# 		if time_diff < TEN_MINS:
-			# 			return render(request,"comment_blocked.html",{'block_remaining':TEN_MINS-time_diff})
-			# 		else:
-			# 			request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-			# 			request.session.modified = True
-			# 	else:
-			# 		if time_diff < 7:
-			# 			request.session['unseen_comment_rate']['overheat'] += 1
-			# 			request.session['unseen_comment_rate']['posting_time'] = time_now
-			# 		else:
-			# else:
-			# 	request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-			# 	if time_now - last_posting_time < 5:
-			# 		overheat_score += 1
-			# request.session["unseen_comment_rate"] = {'posting_time':time.time(),'overheat':}
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				description = form.cleaned_data.get("comment")

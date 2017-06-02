@@ -321,21 +321,17 @@ def log_erroneous_passwords(password,error_string):
 
 def retrieve_erroneous_passwords():
 	my_server = redis.Redis(connection_pool=POOL)
-	# list_ = my_server.lrange(PASSWORD_ERRORS,0 ,-1)
-	# import pandas as pd
-	# import ast
-	# df = pd.DataFrame(list_)
-	# print df
+	# import unicodecsv as ucsv
 	import csv, ast
 	password_errors = PASSWORD_ERRORS
 	list_ = my_server.lrange(password_errors,0 ,-1)
-	# keys = ['password','error_string']
 	with open('likho_errors.csv','wb') as f:
 		wtr = csv.writer(f)
+		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
 		for string in list_:
 			try:
 				dictionary = ast.literal_eval(string)
-				to_write = [dictionary["password"],dictionary["error_string"]]
-				wtr.writerow(to_write)
+				to_write = [dictionary["password"],dictionary["error_string"].encode('utf-8')]
+				wtr.writerows([to_write])
 			except:
 				pass

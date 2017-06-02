@@ -1,6 +1,7 @@
 # coding=utf-8
 from django import forms
 from django.forms import Textarea
+from .tasks import log_gibberish_writer
 from .redis1 import already_exists, get_prev_retorts, get_prev_replies, get_prev_group_replies, many_short_messages, log_short_message
 from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoVote, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
@@ -349,10 +350,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				raise forms.ValidationError('ziyada spaces daal di hain')
 			else:	
 				raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
-		# if len_>10 and ' ' not in description:
-		# 	log_erroneous_passwords(self.user_id,description)
-		# if len(set(description.split())) == 1:
-		# 	log_repetitions(self.user_id,description)
+		log_gibberish_writer.delay(self.user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

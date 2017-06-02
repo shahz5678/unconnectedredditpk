@@ -372,6 +372,10 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.calc_photo_quality_benchmark',
 		'schedule': timedelta(seconds=86400), # execute every 24 hours
 	},
+	'tasks.calc_gibberish_punishment': {
+		'task': 'tasks.calc_gibberish_punishment',
+		'schedule': timedelta(seconds=6*60*60), # execute every 6 hours
+	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
 		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks

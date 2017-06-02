@@ -349,8 +349,10 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				raise forms.ValidationError('ziyada spaces daal di hain')
 			else:	
 				raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
-		if len_>10 and ' ' not in description:
-			log_erroneous_passwords(self.user_id,description)
+		# if len_>10 and ' ' not in description:
+		# 	log_erroneous_passwords(self.user_id,description)
+		# if len(set(description.split())) == 1:
+		# 	log_repetitions(self.user_id,description)
 		return description
 
 class PublicGroupReplyForm(forms.ModelForm):

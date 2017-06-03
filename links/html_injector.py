@@ -1,5 +1,64 @@
 import string
 
+def create_gibberish_punishment_text(amount):
+	outer_div_head = '<div style="background-color:#0091ea;color:white;padding:5px 5px 5px 5px;border-radius:4px;">'
+	inner_div_1 = '<div class="mts mbs">'
+	inner_div_2 = '<div class="mts mbs cl">'
+	div_tail = '</div>'
+	line = '<hr size=1 COLOR="#ffeb3b">'
+	span_colored = '<span style="color:#ffeb3b;">'
+	span_tail = '</span>'
+	bold_head = '<b>'
+	bold_cxl = '<b class="cxl">'
+	bold_colored = '<b style="color:#ffeb3b;">'
+	bold_tail = '</b>'
+	line_break = '<br>'
+	button_head = '<button class="btn bco mbl mtl bm">'
+	button_tail = '</button>'
+	a_href_head = "<a href='/rhr/'>"
+	a_href_tail = '</a>'
+	#################################################
+	header = bold_cxl+'Ap ke '+span_colored+str(amount)+' points'+span_tail+' cut gaye!'+bold_tail
+	sub_header1 = 'Ap ko home ke rules break kartay huay report kiya gaya.'
+	sub_header2 = 'Home Rules:'
+	sub_header3 = '... aur last rule...'
+	one = bold_head+'1) '+bold_tail
+	two = bold_head+'2) '+bold_tail
+	three = bold_head+'3) '+bold_tail
+	four = bold_head+'4) '
+	rule_one = 'Points barhaney ke liye home ka najaiz istimal na karein'
+	rule_two = 'Gandi baatoon aur galiyun se dur rehain'
+	rule_three = 'Kisi ko bila waja chupair na marein'
+	rule_four = 'Boring hona mana hai.'+bold_tail+' Dil khol ke mazedar gup shup, jokes, shairi aur news share karein ;-)'
+	button_text = bold_head+'OK'+bold_tail
+	#################################################
+	return outer_div_head+header+line_break+inner_div_1+sub_header1+line_break+div_tail+line+\
+	inner_div_2+bold_colored+sub_header2+bold_tail+line_break+div_tail+one+rule_one+line_break+\
+	two+rule_two+line_break+three+rule_three+line_break+inner_div_2+bold_colored+sub_header3+\
+	bold_tail+line_break+div_tail+four+rule_four+line_break+a_href_head+button_head+button_text+\
+	button_tail+a_href_tail+div_tail
+
+
+# <div style="background-color:#0091ea;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+# <b class="cxl">Ap ke <span style="color:#ffeb3b;">12 points</span> cut ho gaye!</b>
+# <br>
+# 	<div class="mts mbs">
+# 	Ap ko home ke rules break kartay huay report kiya gaya.<br>
+# 	</div>
+# <hr size=1 COLOR="#ffeb3b">
+# <div class="mts mbs cl">
+# <b style="color:#ffeb3b;">Home Rules:</b><br>
+# </div>
+# <b>1)</b> Points barhaney ke liye home ka najaiz istimal nah karein<br>
+# <b>2)</b> Gandi baatoon aur galiyun se dur rehain<br>
+# <b>3)</b> Kisi ko bila waja chupair na marien<br>
+# <div class="mts mbs cl">
+# <b style="color:#ffeb3b;">... aur last rule...</b><br>
+# </div>
+# <b>4) Boring hona mana hai.</b> Dil khol ke mazedar gup shup, lateefay, shairi aur khabrein sunaien!<br>
+# <a href="{% url 'retire_home_rules' %}"><button class="btn bco mbl mtl bm"><b>OK</b></button></a>
+# </div>
+
 def pinkstar_formatting(pinkstar):
 	if pinkstar:
 		return '<img src="/static/img/pstar.png" alt="*" width="13" height="13"></img>'

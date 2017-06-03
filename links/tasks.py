@@ -13,7 +13,7 @@ SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
-bulk_insert_gibberish_text_writers
+queue_punishment_amount
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
@@ -71,6 +71,13 @@ def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
 	except:
 		return fan_ids_list,0
 
+def punish_gibberish_writers(dict_of_targets):
+	for user_id, score_penalty in dict_of_targets.items():
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
+		queue_punishment_amount(user_id,score_penalty)
+	# for user_id,payable_score in payables:
+	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+
 @celery_app1.task(name='tasks.log_gibberish')
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
@@ -92,21 +99,12 @@ def delete_notifications(user_id):
 def calc_gibberish_punishment():
 	all_gibberish_writers = get_gibberish_text_writers()
 	if all_gibberish_writers:
-		all_gibberish_writers_above_threshold = {}
-		all_gibberish_writers_below_threshold = []  #redis accepts lists
-		for k,v in all_gibberish_writers:
-			if v>3:
-				all_gibberish_writers_above_threshold[k] = v
-			else:
-				all_gibberish_writers_below_threshold.append(k)
-				all_gibberish_writers_below_threshold.append(v)
+		all_gibberish_writers_above_threshold = {k:v for k,v in all_gibberish_writers if v>3}
 		if all_gibberish_writers_above_threshold:
 			gibberish_punishment = {}
 			for k in all_gibberish_writers_above_threshold.keys():
 				all_gibberish_writers_above_threshold[k] *= GIBBERISH_PUNISHMENT_MULTIPLIER
-			# now queue the punishment!
-		if all_gibberish_writers_below_threshold:
-			bulk_insert_gibberish_text_writers(all_gibberish_writers_below_threshold)
+			punish_gibberish_writers(all_gibberish_writers_above_threshold)
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():

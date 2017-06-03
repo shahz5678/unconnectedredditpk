@@ -374,7 +374,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.calc_gibberish_punishment': {
 		'task': 'tasks.calc_gibberish_punishment',
-		'schedule': timedelta(seconds=2*60*60), # execute every 2 hours
+		'schedule': timedelta(seconds=1*60*60), # execute every 1 hour
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',

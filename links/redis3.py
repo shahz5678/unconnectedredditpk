@@ -9,6 +9,7 @@ from html_injector import image_thumb_formatting
 ##########Redis Namespace##########
 
 gibberish_writers = 'gibberish_writers'
+punishment_text = "pt:"+str(user_id)
 search_history = "sh:"+str(searcher_id)
 user_thumbs = "upt:"+owner_uname
 
@@ -17,6 +18,7 @@ user_thumbs = "upt:"+owner_uname
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
+ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 
 #####################Process Nick#######################
@@ -325,10 +327,28 @@ def get_gibberish_text_writers():
 	my_server.delete(gibberish_writers)
 	return gibberish_writers_and_scores
 
-def bulk_insert_gibberish_text_writers(list_of_writers):
+def queue_punishment_amount(user_id, penalty):
 	my_server = redis.Redis(connection_pool=POOL)
-	gibberish_writers = 'gibberish_writers'
-	my_server.zadd(gibberish_writers,*list_of_writers)
+	punishment_text = "pt:"+str(user_id)
+	try:
+		my_server.incrby(punishment_text,amount=int(penalty))
+		my_server.expire(punishment_text,ONE_WEEK)
+	except:
+		pass
+
+def get_gibberish_punishment_amount(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	punishment_text = "pt:"+str(user_id)
+	amount = my_server.get(punishment_text)
+	if amount:
+		return float(amount)
+	else:
+		return None
+
+def retire_gibberish_punishment_amount(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	punishment_text = "pt:"+str(user_id)
+	my_server.delete(punishment_text)
 
 #####################################################
 

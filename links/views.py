@@ -23,7 +23,8 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, populate_search_thumbs#, capture_urdu
+fan_recount, vote_tasks, registration_task, populate_search_thumbs, calc_gibberish_punishment#, capture_urdu
+from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
@@ -39,7 +40,7 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from salutations import SALUTATIONS
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords, save_advertiser,\
-get_advertisers, purge_advertisers
+get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
 viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
 remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
@@ -171,6 +172,13 @@ def return_to_photo(request,origin,photo_id=None,link_id=None,target_uname=None)
 	else:
 		# take the voter to best photos by default
 		return redirect("best_photo")
+
+def spammer_punishment_text(user_id):
+	amnt = get_gibberish_punishment_amount(user_id)
+	if amnt:
+		return create_gibberish_punishment_text(int(amnt))
+	else:
+		return None
 
 def get_price(points):
 	if points < 120:
@@ -344,6 +352,10 @@ def GetLatest(user):
 					return None, None, False, False, False, False
 	except:
 		return None, None, False, False, False, False
+
+def retire_home_rules(request,*args,**kwargs):
+	retire_gibberish_punishment_amount(request.user.id)
+	return redirect("home")
 
 @csrf_protect
 def feature_unlocked(request,*args,**kwargs):
@@ -1416,7 +1428,9 @@ def home_link_list(request, *args, **kwargs):
 		# feedback_given = website_feedback_given(context["ident"])
 		# old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=3))
 		# context["show_feedback_form"] = not feedback_given and old_user
-		############################################ Namaz feature #############################################
+		############################################# Home Rules #################################################
+		context["home_rules"] = spammer_punishment_text(context["ident"])
+		############################################ Namaz feature ###############################################
 		now = datetime.utcnow()+timedelta(hours=5)
 		day = now.weekday()
 		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
@@ -4397,6 +4411,7 @@ def photo_list(request,*args, **kwargs):
 			return render(request, 'photo_uploader_tutorial.html', {})
 		else:
 			context = {}
+			calc_gibberish_punishment()
 			form = PhotosListForm()
 			if 'photos' in request.session and 'photo_page' in request.session:
 				if request.session['photos'] and request.session['photo_page']:
@@ -4422,6 +4437,9 @@ def photo_list(request,*args, **kwargs):
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			context["girls"] = FEMALES
+			############################################# Home Rules #################################################
+			context["home_rules"] = spammer_punishment_text(user.id)
+			##########################################################################################################
 			if request.user_banned:
 				context["notification"] = 0
 				context["banned"] = True
@@ -4685,6 +4703,9 @@ def best_photos_list(request,*args,**kwargs):
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			context["girls"] = FEMALES
+			############################################# Home Rules #################################################
+			context["home_rules"] = spammer_punishment_text(context["ident"])
+			##########################################################################################################
 			if request.user_banned:
 				context["notification"] = 0
 				context["banned"] = True

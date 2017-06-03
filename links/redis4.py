@@ -10,7 +10,7 @@ from location import REDLOC3
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-def test_functional_redis_server(payload_list):
+def set_test_payload(payload_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	try:
 		return my_server.lpush(my_server,payload_list)

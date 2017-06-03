@@ -13,6 +13,6 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 def set_test_payload(payload_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	try:
-		return my_server.lpush(my_server,payload_list)
+		return my_server.lpush("my_test",payload_list)
 	except:
 		return None

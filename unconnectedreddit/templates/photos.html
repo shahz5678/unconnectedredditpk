@@ -7,6 +7,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
+	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 

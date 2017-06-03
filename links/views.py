@@ -38,15 +38,15 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import set_test_payload
+from .redis4 import get_clones
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount
-from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, set_site_ban, \
-viewer_salat_notifications, update_notification, create_notification, update_object, create_object, remove_group_notification, \
-remove_from_photo_owner_activity, add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, \
-public_group_ranking, retrieve_latest_notification, delete_salat_notification, prev_unseen_activity_visit, SEEN, \
-save_user_presence,get_latest_presence, get_replies_with_seen, remove_group_object, retrieve_unseen_notifications, get_clones
+from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
+update_notification, create_notification, update_object, create_object, remove_group_notification, remove_from_photo_owner_activity, \
+add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
+delete_salat_notification, prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, get_replies_with_seen, \
+remove_group_object, retrieve_unseen_notifications
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, remove_key, document_publicreply_abuse, publicreply_allowed, document_comment_abuse, comment_allowed, \
 document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
@@ -8758,10 +8758,10 @@ def website_feedback(request,*args,**kwargs):
 # TO CONNECT TO REDIS CLI:
 # sudo redis-cli -s /var/run/redis/redis2.sock
 
-def test_functional_redis_server(request,*args,**kwargs):
-	payload = "This is test payload".split()
-	result = set_test_payload(payload)
-	return render(request,"redis_successfuly.html",{'result':result})
+# def test_functional_redis_server(request,*args,**kwargs):
+# 	payload = "This is test payload".split()
+# 	result = set_test_payload(payload)
+# 	return render(request,"redis_successfuly.html",{'result':result})
 
 # Example test function to be used within redis[new].py:
 

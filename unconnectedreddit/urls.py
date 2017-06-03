@@ -24,7 +24,7 @@ unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
 missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, \
 search_username, go_to_username, go_to_user_photo, remove_searched_username, website_feedback, see_website_feedback, upload_public_photo, \
-create_nick_new, create_password_new, retire_home_rules
+create_nick_new, create_password_new, retire_home_rules, test_functional_redis_server
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -294,7 +294,7 @@ urlpatterns = patterns('',
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),
 	# url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
-	# url(r'^reprofile/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<grp>\d+)/(?P<uname>[\w.@+-]+)/$', auth(reprofile), name='reprofile'),
+	url(r'^tfrs/$', auth(test_functional_redis_server), name='test_functional_redis_server'),
 	##########################################Photo Reporting########################################
 	url(r'^bpuv/$', auth(ban_photo_upload_and_voters), name='ban_photo_upload_and_voters'),
 	url(r'^curate_photo/$', auth(curate_photo), name='curate_photo'),

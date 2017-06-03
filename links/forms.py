@@ -1291,7 +1291,7 @@ class CreateNickNewForm(forms.Form):
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
-		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		# self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_username(self):

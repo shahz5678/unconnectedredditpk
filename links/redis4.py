@@ -1,13 +1,15 @@
 # coding=utf-8
-import redis, time
+import redis, time, random
 from location import REDLOC3
 
 '''
 ##########Redis Namespace##########
 
 latest_user_ip = "lip:"+str(user_id)
+logged_users = "logged_users"
 sorted_set = "online_users"
 user_ban = "ub:"+str(user_id)
+user_times = "user_times:"+str(user_id)
 
 ###########
 '''
@@ -26,6 +28,20 @@ FIVE_MINS = 5*60
 # 	except:
 # 		return None
 
+#####################Retention Logger#####################
+def log_retention(server_instance, user_id):
+	time_now = time.time()
+	if time_now - float(server_instance.lrange("user_times:"+str(user_id),0,0)[0]) > TEN_MINS:
+		server_instance.lpush("user_times:"+str(user_id),time_now)
+		server_instance.sadd("logged_users",user_id)
+
+# def reduce_retention_data():
+	"""
+	to delete, get ids of really old "last_active"
+	dates from session table in DB (to ensure it's 
+	an old user). Then delete those "user_times"+str(user_id)
+	"""
+
 #######################Whose Online#######################
 
 #expires online_users from tasks.py
@@ -42,7 +58,8 @@ def set_online_users(user_id,user_ip):
 	my_server.zadd(sorted_set,str(user_id)+":"+str(user_ip),time.time())
 	my_server.set(latest_user_ip,user_ip)
 	my_server.expire(latest_user_ip,FIVE_MINS)
-	# storelogin(keys=[sorted_set,latest_user_ip],args=[time.time(),user_id,user_ip])
+	if random.random() < 0.5:
+		log_retention(my_server,user_id)
 
 # invoked by tasks.py to show whoever is online in OnlineKon
 def get_recent_online():

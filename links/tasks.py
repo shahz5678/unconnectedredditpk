@@ -14,10 +14,10 @@ from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publ
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount
+from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
-get_recent_online, expire_online_users#, get_latest_online
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100#, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \

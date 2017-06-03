@@ -23,7 +23,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, populate_search_thumbs, calc_gibberish_punishment#, capture_urdu
+fan_recount, vote_tasks, registration_task, populate_search_thumbs#, capture_urdu
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -4411,7 +4411,6 @@ def photo_list(request,*args, **kwargs):
 			return render(request, 'photo_uploader_tutorial.html', {})
 		else:
 			context = {}
-			calc_gibberish_punishment()
 			form = PhotosListForm()
 			if 'photos' in request.session and 'photo_page' in request.session:
 				if request.session['photos'] and request.session['photo_page']:

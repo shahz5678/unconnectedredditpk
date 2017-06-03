@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin">
+{% if result %}
+<h2 style="color:#0d47a1;">redis-server is operational</h2>
+{% else %}
+<h2 style="color:#d50000;">redis-server not operational</h2>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

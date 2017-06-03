@@ -38,6 +38,7 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
+from .redis4 import test_functional_redis_server
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, log_erroneous_passwords, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount
@@ -8756,3 +8757,19 @@ def website_feedback(request,*args,**kwargs):
 # sudo /etc/init.d/redis2-server start
 # TO CONNECT TO REDIS CLI:
 # sudo redis-cli -s /var/run/redis/redis2.sock
+
+def test_functional_redis_server(request,*args,**kwargs):
+	payload = "This is test payload".split()
+	result = set_test_payload(payload)
+	return render(request,"redis_successfuly.html",{'result':result})
+
+# Example test function to be used within redis[new].py:
+
+# POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
+
+# def test_functional_redis_server(payload_list):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	try:
+# 		return my_server.lpush(my_server,payload_list)
+# 	except:
+# 		return None

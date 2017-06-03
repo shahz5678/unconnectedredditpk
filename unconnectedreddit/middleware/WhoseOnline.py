@@ -1,5 +1,5 @@
 import random
-from links.redis2 import set_online_users#,set_whose_online
+from links.redis4 import set_online_users
 
 class WhoseOnlineMiddleware(object):
 

@@ -1746,10 +1746,12 @@ def save_website_feedback(data):
 	feedback_set = "website_feedback"
 	if not my_server.sismember(feedback_set,data["user_id"]):
 		website_feedback = "wf:"+str(data["user_id"])
+		# remove 'answer6':data["feedback6"] and 'question6':data["question6"] if only running 5 questions
 		mapping = {'question1':data["question1"],'question2':data["question2"],'question3':data["question3"],\
 		'question4':data["question4"],'question5':data["question5"],'answer1':data["feedback1"],'answer2':data["feedback2"],\
 		'answer3':data["feedback3"],'answer4':data["feedback4"],'answer5':data["feedback5"],'username':data["username"],\
-		'score':data["score"],"date_joined":data["date_joined"],"device":data["device"],"time_of_feedback":data["time_of_feedback"]}
+		'score':data["score"],"date_joined":data["date_joined"],"device":data["device"],"time_of_feedback":data["time_of_feedback"],\
+		'answer6':data["feedback6"],'question6':data["question6"]}
 		my_server.hmset(website_feedback,mapping)
 		my_server.sadd(feedback_set,data["user_id"])
 		return True

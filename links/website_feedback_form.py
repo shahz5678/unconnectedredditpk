@@ -8,7 +8,75 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 def clear_zalgo_text(text):
 	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
-class WebsiteFeedbackForm(forms.Form):
+class WebsiteChoicesFeedbackForm(forms.Form):
+	CHOICES1 = (('a','Users ki baatein parhna'),
+			   ('b','Home pe laggi photos dekhna'),
+			   ('c','Jhappi/Chupair'),
+			   ('d','Jawab dena'),
+			   ('e','Points banana'),
+			   ('f','Welcome mithai bhejna'),)
+	CHOICES2 = (('a','Home'),
+			   ('b','Photos'),
+			   ('c','Open Mehfil'),
+			   ('d','Private Mehfil'),
+			   ('e','Matka'),)
+	CHOICES3 = (('a','Home ki chat pe'),
+			   ('b','Open mehfil ki chat mein'),
+			   ('c','Prvaite mehfil ki chat mein'),
+			   ('d','Photo tabsrey mein'),
+			   ('e','Jawab do mein'),
+			   ('e','Chupeir maar ke'),)
+	CHOICES4 = (('a','Block system'),
+			   ('b','Videos'),
+			   ('c','Friend list'),
+			   ('d','Search'),
+			   ('e','Private photos'),)
+	CHOICES5 = (('a','Koi jawab nahi deta'),
+			   ('b','Points ke liye users bar bar fazool cheezain likhte hai'),
+			   ('c','Gandey names ya gandi baatein likhtay hain users'),)
+	CHOICES6 = (('a','Home pe kuch likh ke'),
+			   ('b','Home pe jawab de ke'),
+			   ('c','Open mehfil mein gup ghup lafa ke'),
+			   ('d','Private mehfil mein guo '),
+			   ('e','Photo tabsra kartay huay'),)
+	feedback1 = forms.MultipleChoiceField(choices=CHOICES1, widget=forms.CheckboxSelectMultiple())
+	feedback2 = forms.MultipleChoiceField(choices=CHOICES2, widget=forms.CheckboxSelectMultiple())
+	feedback3 = forms.MultipleChoiceField(choices=CHOICES3, widget=forms.CheckboxSelectMultiple())
+	feedback4 = forms.MultipleChoiceField(choices=CHOICES4, widget=forms.CheckboxSelectMultiple())
+	feedback5 = forms.MultipleChoiceField(choices=CHOICES5, widget=forms.CheckboxSelectMultiple())
+	feedback6 = forms.MultipleChoiceField(choices=CHOICES6, widget=forms.CheckboxSelectMultiple())
+
+	def clean_feedback1(self):
+		if len(self.cleaned_data['feedback1']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback1']
+
+	def clean_feedback2(self):
+		if len(self.cleaned_data['feedback2']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback2']
+
+	def clean_feedback3(self):
+		if len(self.cleaned_data['feedback3']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback3']
+
+	def clean_feedback4(self):
+		if len(self.cleaned_data['feedback4']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback4']
+
+	def clean_feedback5(self):
+		if len(self.cleaned_data['feedback5']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback5']
+
+	def clean_feedback6(self):
+		if len(self.cleaned_data['feedback6']) > 3:
+			raise forms.ValidationError('3 se ziyada select na karo')
+		return self.cleaned_data['feedback6']
+
+class WebsiteDescriptiveFeedbackForm(forms.Form):
 	feedback1 = forms.CharField(widget=forms.Textarea(attrs=\
 		{'cols':40,'rows':3,'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid green;border-radius:5px;color: #404040;'}),\
 		validators=[validators.RegexValidator(regex="^[A-Za-z0-9._~()'!*:@, ;+?-]*$")],error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
@@ -54,7 +122,7 @@ class WebsiteFeedbackForm(forms.Form):
 		# exclude = ("feedback6","feedback7","feedback8","feedback9","feedback10",)
 
 	def __init__(self, *args, **kwargs):
-		super(WebsiteFeedbackForm, self).__init__(*args, **kwargs)
+		super(WebsiteDescriptiveFeedbackForm, self).__init__(*args, **kwargs)
 		self.fields['feedback1'].widget.attrs['class'] = 'cxl'
 		self.fields['feedback1'].widget.attrs['autocomplete'] = 'off'
 		self.fields['feedback2'].widget.attrs['class'] = 'cxl'

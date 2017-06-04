@@ -2961,7 +2961,7 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 # @sensitive_post_parameters()
 @csrf_protect		
 def create_nick_new(request,*args,**kwargs):
-	if request.user.is_authenticated():
+	if request.user.is_authenticated() or 1:
 		return render(request,'404.html',{})
 	elif account_creation_disallowed(getip(request)):
 		return render(request, 'penalty_account_create.html',{})

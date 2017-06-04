@@ -31,6 +31,10 @@
 <span class="cgy">{{ feedback.question5 }}</span><br>
 <span class="cl cg">{% emoticons %}{{ feedback.answer5 }}{% endemoticons %}</span><br>
 </div>
+<div class="mbl">
+<span class="cgy">{{ feedback.question6 }}</span><br>
+<span class="cl cg">{% emoticons %}{{ feedback.answer6 }}{% endemoticons %}</span><br>
+</div>
 <span class="cgy cs mls">by</span>&nbsp;<a href="{% url 'profile' feedback.username %}">{{ feedback.username }}</a>&nbsp;<span class="cs cg">({{ feedback.score }})</span>
 		{% if feedback.device == '1' %}
         &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>

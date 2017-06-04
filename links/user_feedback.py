@@ -1,3 +1,4 @@
+import time
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from .redis1 import clean_up_feedback, get_website_feedback, save_website_feedback_user_details, save_website_feedback, first_time_feedbacker, \
@@ -30,9 +31,49 @@ def website_choices_feedback(request,*args,**kwargs):
 			if answered == '1':
 				form = WebsiteChoicesFeedbackForm(request.POST)
 				if form.is_valid():
-					pass
+					data = {}
+					data["question1"] = request.POST.get("question1",None)
+					data["feedback1"] = form.cleaned_data.get("feedback1",None)
+					data["question2"] = request.POST.get("question2",None)
+					data["feedback2"] = form.cleaned_data.get("feedback2",None)
+					data["question3"] = request.POST.get("question3",None)
+					data["feedback3"] = form.cleaned_data.get("feedback3",None)
+					data["question4"] = request.POST.get("question4",None)
+					data["feedback4"] = form.cleaned_data.get("feedback4",None)
+					data["question5"] = request.POST.get("question5",None)
+					data["feedback5"] = form.cleaned_data.get("feedback5",None)
+					data["question6"] = request.POST.get("question6",None)
+					data["feedback6"] = form.cleaned_data.get("feedback6",None)
+					data["username"] = request.user.username
+					data["user_id"] = request.user.id
+					data["score"] = request.user.userprofile.score
+					data["date_joined"] = request.user.date_joined
+					data["time_of_feedback"] = time.time()
+					if request.is_feature_phone:
+						data["device"] = '1'
+					elif request.is_phone:
+						data["device"] = '2'
+					elif request.is_tablet:
+						data["device"] = '4'
+					elif request.is_mobile:
+						data["device"] = '5'
+					else:
+						data["device"] = '3'
+					data_saved = save_website_feedback(data)
+					if data_saved:
+						form = WebsiteFeedbackUserDetailsForm()
+						return render(request,"website_feedback_thanks.html",{'form':form})
+					else:
+						return redirect("home")
 				else:
-					pass
+					context = {'form':form}
+					context["question1"] = request.POST.get("question1",None)
+					context["question2"] = request.POST.get("question2",None)
+					context["question3"] = request.POST.get("question3",None)
+					context["question4"] = request.POST.get("question4",None)
+					context["question5"] = request.POST.get("question5",None)
+					context["question6"] = request.POST.get("question6",None)
+					return render(request,"website_choices_feedback.html",context)
 			elif answered == '2':
 				form = WebsiteFeedbackUserDetailsForm(request.POST)
 				if form.is_valid():
@@ -42,12 +83,12 @@ def website_choices_feedback(request,*args,**kwargs):
 			else:
 				context = {}
 				context["form"] = WebsiteChoicesFeedbackForm()
-				context["question1"] = "1) Aap ko Home pe ziyada acha kia lagta hai?"
-				context["question2"] = "2) Aap ko ziada kia pasand hai?"
-				context["question3"] = "3) Damadam ke buray users tang kahan kartay hain?"
+				context["question1"] = "1) Aap ko Damadam mein ziada kia pasand hai?"
+				context["question2"] = "2) Aap ko Home pe ziada kia pasand hai?"
+				context["question3"] = "3) Damadam ke buray users logon ko kahan tang kartay hain?"
 				context["question4"] = "4) Agar ap Damadam main kuch niya dalo to wo kia ho?"
 				context["question5"] = "5) Home ki sab se boring baat kia hia?"
-				context["question6"] = "6) Damadam pe sab se asani se dost kaisey bante hain?"
+				context["question6"] = "6) Damadam pe sab se asani se dost kahan bante hain?"
 				return render(request,"website_choices_feedback.html",context)
 	else:
 		return render(request,"404.html",{})

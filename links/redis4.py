@@ -14,7 +14,7 @@ user_times = "user_times:"+str(user_id)
 ###########
 '''
 
-POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60

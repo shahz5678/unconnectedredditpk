@@ -8757,6 +8757,10 @@ def website_feedback(request,*args,**kwargs):
 # sudo /etc/init.d/redis2-server start
 # TO CONNECT TO REDIS CLI:
 # sudo redis-cli -s /var/run/redis/redis2.sock
+# then make an entry in location.py for REDLOC[next_value]
+# ensure redis[next_value].py refers to this new REDLOC, and also its CONNECTION_POOL
+
+###################################################
 
 # def test_functional_redis_server(request,*args,**kwargs):
 # 	payload = "This is test payload".split()

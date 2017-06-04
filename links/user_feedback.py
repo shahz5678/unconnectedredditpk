@@ -86,7 +86,7 @@ def website_choices_feedback(request,*args,**kwargs):
 				context["question1"] = "1) Aap ko Damadam mein ziada kia pasand hai?"
 				context["question2"] = "2) Aap ko Home pe ziada kia pasand hai?"
 				context["question3"] = "3) Damadam ke buray users logon ko kahan tang kartay hain?"
-				context["question4"] = "4) Agar ap Damadam main kuch niya dalo to wo kia ho?"
+				context["question4"] = "4) Agar ap Damadam main kuch neya dalo to wo kia ho?"
 				context["question5"] = "5) Home ki sab se boring baat kia hia?"
 				context["question6"] = "6) Damadam pe sab se asani se dost kahan bante hain?"
 				return render(request,"website_choices_feedback.html",context)

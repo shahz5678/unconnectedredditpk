@@ -8624,22 +8624,22 @@ def website_feedback(request,*args,**kwargs):
 # def check_nick(request,nick=None,*args,**kwargs):
 # 	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
 
-# def insert_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		nicknames = User.objects.values_list('username',flat=True)
-# 		list_len = len(nicknames)
-# 		each_slice = int(list_len/10)
-# 		counter = 0
-# 		slices = []
-# 		while counter < list_len:
-# 			slices.append((counter,counter+each_slice))
-# 			counter += each_slice
-# 		for sublist in slices:
-# 			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
-# 			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
+def insert_nicks(request,*args,**kwargs):
+	if request.user.username == 'mhb11':
+		nicknames = User.objects.values_list('username',flat=True)
+		list_len = len(nicknames)
+		each_slice = int(list_len/10)
+		counter = 0
+		slices = []
+		while counter < list_len:
+			slices.append((counter,counter+each_slice))
+			counter += each_slice
+		for sublist in slices:
+			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
+			insert_nick_list(nicknames[sublist[0]:sublist[1]])
+		return render(request,'nicks_populated.html',{})
+	else:
+		return render(request,'404.html',{})
 
 ###############################################################
 

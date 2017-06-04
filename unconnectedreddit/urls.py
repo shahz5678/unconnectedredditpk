@@ -24,7 +24,7 @@ unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
 missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, \
 search_username, go_to_username, go_to_user_photo, remove_searched_username, website_feedback, see_website_feedback, upload_public_photo, \
-create_nick_new, create_password_new, retire_home_rules
+create_nick_new, create_password_new, retire_home_rules, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -55,7 +55,7 @@ urlpatterns = patterns('',
 	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
 	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
 	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/(?P<add_score>\d+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
-	# url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
+	url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
 	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
 	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),

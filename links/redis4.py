@@ -1,6 +1,6 @@
 # coding=utf-8
 import redis, time, random
-from location import REDLOC3
+from location import REDLOC4
 
 '''
 ##########Redis Namespace##########

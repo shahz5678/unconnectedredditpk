@@ -13,4 +13,4 @@ else:
 	REDLOC1 = '/var/run/redis/redis.sock'
 	REDLOC2 = '/var/run/redis/redis2.sock'
 	REDLOC3 = '/var/run/redis/redis3.sock'
-	REDLOC3 = '/var/run/redis/redis4.sock'
+	REDLOC4 = '/var/run/redis/redis4.sock'

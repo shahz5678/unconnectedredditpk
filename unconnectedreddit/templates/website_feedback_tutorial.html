@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb mtl">
-<div class="mbl"><span class="cl cg">Agli screen pr Damadam ke barey mien 5 sawal hain</span></div>
-<div class="mbl"><span class="cl cg">In sawaloon ka jawab de kr sab se neechay OK daba dena</span></div>
-<div class="mbl"><span class="cl cg">Tumharey jawab kisi ko nahi dikhaye jaien ge</span></div>
+<div class="mbl"><span class="cl cg">Agli screen pr Damadam ke barey mien <b>6</b> sawal hain</span></div>
+<div class="mbl"><span class="cl cg">In sawaloon ka jawab de kr sab se neechay <b>OK</b> daba dena</span></div>
+<div class="mbl"><span class="cl cg">Aap ke jawab kisi ko nahi dikhaye jaien ge</span></div>
 <form method="POST" action="{% url 'website_feedback' %}">
 {% csrf_token %}
 <input type="submit" class="mts mbl mls bl" style="background:#00c853;color:white;font-weight:bold;" value="Theek hai">

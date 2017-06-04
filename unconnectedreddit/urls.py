@@ -23,8 +23,8 @@ best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_locatio
 unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, login, \
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
 missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, \
-search_username, go_to_username, go_to_user_photo, remove_searched_username, website_feedback, see_website_feedback, upload_public_photo, \
-create_nick_new, create_password_new, retire_home_rules#, insert_nicks
+search_username, go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, create_nick_new, create_password_new, \
+retire_home_rules#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -46,8 +46,6 @@ AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	url(r'^feedback/$', auth(website_feedback), name='website_feedback'),
-	url(r'^see_website_feedback/$', auth(see_website_feedback), name='see_website_feedback'),
 	url(r'^search_uname_unlocking_dec/$', auth(search_uname_unlocking_dec), name='unamesrc_unldec'),
 	url(r'^feature_unlocked/$', auth(feature_unlocked), name='feature_unlocked'),
 	url(r'^remnick/(?P<nick>[\w.@+-]+)/$', auth(remove_searched_username), name='remove_searched_username'),

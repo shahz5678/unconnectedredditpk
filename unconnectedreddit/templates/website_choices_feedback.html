@@ -1,7 +1,7 @@
 {% extends "base_min.html" %}
 {% block content %}
 <div class="margin clb mtl">
-<form action="{% url 'website_feedback' %}" method="POST">
+<form action="{% url 'website_choices_feedback' %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="answered" value="1">
 <input type="hidden" name="question1" value="{{ question1 }}">
@@ -13,7 +13,7 @@
 <div class="mtl mbl">
 <b class="cl cg">{{ question1 }}</b><br>
 {% if form.feedback1.errors %}
-<span class="cr cs">{{ form.feedback1.errors.0 }}</span><br>
+<br><b class="cr cs">{{ form.feedback1.errors.0 }}</b><br>
 {% endif %}
 {{ form.feedback1 }}
 </div>
@@ -21,15 +21,23 @@
 <div class="mtl mbl">
 <b class="cl cg">{{ question2 }}</b><br>
 {% if form.feedback2.errors %}
-<span class="cr cs">{{ form.feedback2.errors.0 }}</span><br>
+<br><b class="cr cs">{{ form.feedback2.errors.0 }}</b><br>
 {% endif %}
 {{ form.feedback2 }}
 </div>
 <hr size=1 COLOR="#ffbf00">
 <div class="mtl mbl">
+<b class="cl cg">{{ question6 }}</b><br>
+{% if form.feedback6.errors %}
+<br><b class="cr cs">{{ form.feedback6.errors.0 }}</b><br>
+{% endif %}
+{{ form.feedback6 }}
+</div>
+<hr size=1 COLOR="#ffbf00">
+<div class="mtl mbl">
 <b class="cl cg">{{ question3 }}</b><br>
 {% if form.feedback3.errors %}
-<span class="cr cs">{{ form.feedback3.errors.0 }}</span><br>
+<br><b class="cr cs">{{ form.feedback3.errors.0 }}</b><br>
 {% endif %}
 {{ form.feedback3 }}
 </div>
@@ -37,7 +45,7 @@
 <div class="mtl mbl">
 <b class="cl cg">{{ question4 }}</b><br>
 {% if form.feedback4.errors %}
-<span class="cr cs">{{ form.feedback4.errors.0 }}</span><br>
+<br><b class="cr cs">{{ form.feedback4.errors.0 }}</b><br>
 {% endif %}
 {{ form.feedback4 }}
 </div>
@@ -45,17 +53,9 @@
 <div class="mtl mbl">
 <b class="cl cg">{{ question5 }}</b><br>
 {% if form.feedback5.errors %}
-<span class="cr cs">{{ form.feedback5.errors.0 }}</span><br>
+<br><b class="cr cs">{{ form.feedback5.errors.0 }}</b><br>
 {% endif %}
 {{ form.feedback5 }}
-</div>
-<hr size=1 COLOR="#ffbf00">
-<div class="mtl mbl">
-<b class="cl cg">{{ question6 }}</b><br>
-{% if form.feedback6.errors %}
-<span class="cr cs">{{ form.feedback6.errors.0 }}</span><br>
-{% endif %}
-{{ form.feedback6 }}
 </div>
 <hr size=1 COLOR="#ffbf00">
 <input class="mls mts mbs bm" style="background:#00c853;color:white;font-weight:bold;" type="submit" value="OK">

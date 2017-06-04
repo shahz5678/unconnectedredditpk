@@ -9,72 +9,72 @@ def clear_zalgo_text(text):
 	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
 class WebsiteChoicesFeedbackForm(forms.Form):
-	CHOICES1 = (('a','Users ki baatein parhna'),
-			   ('b','Home pe laggi photos dekhna'),
-			   ('c','Jhappi/Chupair'),
-			   ('d','Jawab dena'),
-			   ('e','Points banana'),
-			   ('f','Welcome mithai bhejna'),)
-	CHOICES2 = (('a','Home'),
-			   ('b','Photos'),
-			   ('c','Open Mehfil'),
-			   ('d','Private Mehfil'),
-			   ('e','Matka'),)
-	CHOICES3 = (('a','Home ki chat pe'),
-			   ('b','Open mehfil ki chat mein'),
-			   ('c','Prvaite mehfil ki chat mein'),
-			   ('d','Photo tabsrey mein'),
-			   ('e','Jawab do mein'),
-			   ('e','Chupeir maar ke'),)
-	CHOICES4 = (('a','Block system'),
-			   ('b','Videos'),
-			   ('c','Friend list'),
-			   ('d','Search'),
-			   ('e','Private photos'),)
-	CHOICES5 = (('a','Koi jawab nahi deta'),
-			   ('b','Points ke liye users bar bar fazool cheezain likhte hai'),
-			   ('c','Gandey names ya gandi baatein likhtay hain users'),)
-	CHOICES6 = (('a','Home pe kuch likh ke'),
-			   ('b','Home pe jawab de ke'),
-			   ('c','Open mehfil mein gup ghup lafa ke'),
-			   ('d','Private mehfil mein guo '),
-			   ('e','Photo tabsra kartay huay'),)
-	feedback1 = forms.MultipleChoiceField(choices=CHOICES1, widget=forms.CheckboxSelectMultiple())
-	feedback2 = forms.MultipleChoiceField(choices=CHOICES2, widget=forms.CheckboxSelectMultiple())
-	feedback3 = forms.MultipleChoiceField(choices=CHOICES3, widget=forms.CheckboxSelectMultiple())
-	feedback4 = forms.MultipleChoiceField(choices=CHOICES4, widget=forms.CheckboxSelectMultiple())
-	feedback5 = forms.MultipleChoiceField(choices=CHOICES5, widget=forms.CheckboxSelectMultiple())
-	feedback6 = forms.MultipleChoiceField(choices=CHOICES6, widget=forms.CheckboxSelectMultiple())
+	CHOICES1 = (('Home','Home'),
+			   ('Photos','Photos'),
+			   ('Open Mehfil','Open Mehfil'),
+			   ('Private Mehfil','Private Mehfil'),)
+			   # ('e','Matka'),)
+	CHOICES2 = (('Home ki chat parhna','Home ki chat parhna'),
+			   ('Home pe laggi photos dekhna','Home pe laggi photos dekhna'),
+			   ('Jhappi / Chupair','Jhappi / Chupair'),
+			   ('Jawab dena','Jawab dena'),
+			   ('Points banana','Points banana'),)
+			   # ('f','Welcome mithai bhejna'),)
+	CHOICES3 = (('Home ki chat pe','Home ki chat pe'),
+			   ('Open mehfil ki chat mein','Open mehfil ki chat mein'),
+			   ('Prvaite mehfil ki chat mein','Prvaite mehfil ki chat mein'),
+			   ('Photo tabsrey mein','Photo tabsrey mein'),
+			   ('Jawab do mein','Jawab do mein'),
+			   ('Chupeir maar ke','Chupeir maar ke'),)
+	CHOICES4 = (('Block system','Block system'),
+			   ('Videos','Videos'),
+			   ('Friend list','Friend list'),
+			   ('Search','Search'),
+			   ('Private photos','Private photos'),)
+	CHOICES5 = (('Koi jawab nahi deta','Koi jawab nahi deta'),
+			   ('Points ke liye users bar bar fazool cheezain likhte hain','Points ke liye users bar bar fazool cheezain likhte hain'),
+			   ('Gandey names ya gandi baatein likhtay hain users','Gandey names ya gandi baatein likhtay hain users'),)
+	CHOICES6 = (('Home pe kuch likh ke','Home pe kuch likh ke'),
+			   ('Home pe jawab de ke','Home pe jawab de ke'),
+			   ('Open mehfil mein','Open mehfil mein'),
+			   ('Private mehfil mein','Private mehfil mein'),
+			   ('Photo tabsra mein','Photo tabsra mein'),)
+	feedback1 = forms.TypedChoiceField(choices=CHOICES1, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
+	feedback2 = forms.TypedChoiceField(choices=CHOICES2, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
+	feedback3 = forms.TypedChoiceField(choices=CHOICES3, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
+	feedback4 = forms.TypedChoiceField(choices=CHOICES4, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
+	feedback5 = forms.TypedChoiceField(choices=CHOICES5, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
+	feedback6 = forms.TypedChoiceField(choices=CHOICES6, widget=forms.RadioSelect(), error_messages={'required':"iska jawab dein"})
 
-	def clean_feedback1(self):
-		if len(self.cleaned_data['feedback1']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback1']
+	# def clean_feedback1(self):
+	# 	if len(self.cleaned_data['feedback1']) == 0:
+	# 		raise forms.ValidationError('(iska jawab dein)')
+	# 	return self.cleaned_data['feedback1']
 
-	def clean_feedback2(self):
-		if len(self.cleaned_data['feedback2']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback2']
+	# def clean_feedback2(self):
+	# 	if len(self.cleaned_data['feedback2']) > 3:
+	# 		raise forms.ValidationError('3 se ziyada select na karo')
+	# 	return self.cleaned_data['feedback2']
 
-	def clean_feedback3(self):
-		if len(self.cleaned_data['feedback3']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback3']
+	# def clean_feedback3(self):
+	# 	if len(self.cleaned_data['feedback3']) > 3:
+	# 		raise forms.ValidationError('3 se ziyada select na karo')
+	# 	return self.cleaned_data['feedback3']
 
-	def clean_feedback4(self):
-		if len(self.cleaned_data['feedback4']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback4']
+	# def clean_feedback4(self):
+	# 	if len(self.cleaned_data['feedback4']) > 3:
+	# 		raise forms.ValidationError('3 se ziyada select na karo')
+	# 	return self.cleaned_data['feedback4']
 
-	def clean_feedback5(self):
-		if len(self.cleaned_data['feedback5']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback5']
+	# def clean_feedback5(self):
+	# 	if len(self.cleaned_data['feedback5']) > 3:
+	# 		raise forms.ValidationError('3 se ziyada select na karo')
+	# 	return self.cleaned_data['feedback5']
 
-	def clean_feedback6(self):
-		if len(self.cleaned_data['feedback6']) > 3:
-			raise forms.ValidationError('3 se ziyada select na karo')
-		return self.cleaned_data['feedback6']
+	# def clean_feedback6(self):
+	# 	if len(self.cleaned_data['feedback6']) > 3:
+	# 		raise forms.ValidationError('3 se ziyada select na karo')
+	# 	return self.cleaned_data['feedback6']
 
 class WebsiteDescriptiveFeedbackForm(forms.Form):
 	feedback1 = forms.CharField(widget=forms.Textarea(attrs=\

@@ -1425,9 +1425,9 @@ def home_link_list(request, *args, **kwargs):
 		context["page"] = page
 		context["replyforms"] = replyforms
 		############################################ Website Feedback #############################################
-		feedback_given = website_feedback_given(context["ident"])
-		old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=1))
-		context["show_feedback_form"] = not feedback_given and old_user
+		# feedback_given = website_feedback_given(context["ident"])
+		# old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=1))
+		# context["show_feedback_form"] = not feedback_given and old_user
 		############################################# Home Rules #################################################
 		context["home_rules"] = spammer_punishment_text(context["ident"])
 		############################################ Namaz feature ###############################################

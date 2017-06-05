@@ -24,7 +24,7 @@ unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
 missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, \
 search_username, go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, create_nick_new, create_password_new, \
-retire_home_rules#, insert_nicks
+retire_home_rules, unauth_home_new#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -66,6 +66,7 @@ urlpatterns = patterns('',
 	url(r'^$', home_link_list, name='home'),
 	url(r'^ohook/$', webhook_event, name='webhook_event'),
 	url(r'^home_unauth/', unauth_home_link_list, name='unauth_home'),
+	url(r'^signup/', unauth_home_new, name='unauth_home_new'),
 	#########################################Logging out############################################
 	url(r'^login/$',login, name="login"),
 	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),

@@ -101,10 +101,10 @@ from brake.decorators import ratelimit
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-# from optimizely_config_manager import OptimizelyConfigManager
-# from unconnectedreddit.optimizely_settings import PID
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
 
-# config_manager = OptimizelyConfigManager(PID)
+config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -1623,7 +1623,21 @@ def home_link_list(request, *args, **kwargs):
 			return render(request, 'link_list.html', context)
 		return render(request, 'link_list.html', context)
 	else:
-		return redirect("unauth_home")
+		unauth_id = request.session.get('unauth_id',None)
+  		if not unauth_id:
+  			unauth_id = get_temp_id()
+  			request.session['unauth_id'] = unauth_id
+		variation_key = config_manager.get_obj().activate('exclusive_signup', unauth_id)
+		if variation_key == 'new_signup':
+			return redirect("unauth_home_new")
+		elif variation_key == 'old_signup':
+			return redirect("unauth_home")
+		else:
+			return redirect("unauth_home")
+
+def unauth_home_new(request,*args,**kwargs):
+	form = CreateNickNewForm()
+	return render(request,"unauth_home.html",{'form':form})
 
 # 		##############setting session key###############
 # 		# print request.session.session_key
@@ -2791,7 +2805,9 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			###############################################################
-			# unreg_id = get_temp_id()
+			# print request.session.get('unauth_id',None)
+			config_manager.get_obj().track('signup', request.session.get('unauth_id',None))
+			request.session.pop("unauth_id", None)
 			mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
@@ -2804,7 +2820,7 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
 			return render(request, 'create_account.html', context)
 	else:
-		request.session.pop("new_id", None)
+		# request.session.pop("new_id", None)
 		if len(slug1) == int(length1) and len(slug2) == int(length2):
 			form = CreateAccountForm()
 			username = slug1.decode("hex")

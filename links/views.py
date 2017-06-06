@@ -1640,6 +1640,11 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
+		unauth = request.session.get('unauth',None)
+  		if not unauth:
+  			unauth = get_temp_id()
+  			request.session['unauth'] = unauth
+  		mp.track(unauth, 'visited_new_home')
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
 
@@ -2809,9 +2814,9 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			###############################################################
-			# print request.session.get('unauth_id',None)
-			# config_manager.get_obj().track('signup', request.session.get('unauth_id',None))
-			# request.session.pop("unauth_id", None)
+			mp.track(request.session.get('unauth',None), 'created_new_acc')
+			request.session.pop("unauth", None)
+			###############################################################
 			mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
@@ -2854,7 +2859,7 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				# mp.track(request.session.get('new_id',None), 'pass_created')
+				mp.track(request.session.get('unauth',None), 'created_new_password')
 				# config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
@@ -2998,13 +3003,7 @@ def create_nick_new(request,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			##############################################################################################
-			# if variation_key == 'new_ver':
-			# 	return redirect('create_password_new',slug=result,length=length)
-			# elif variation_key == 'old_ver':
-			# 	return redirect('create_password',slug=result,length=length)
-			# else:
-			# 	return redirect('create_password',slug=result,length=length)
+			mp.track(request.session.get('unauth',None), 'created_new_nickname')
 			return redirect('create_password_new',slug=result,length=length)
 		else:
 			if form.is_valid():

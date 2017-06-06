@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% block content %}
+<div class="margin clb mtl">
+<form method="POST" action="{% url 'calculator' %}">
+{% csrf_token %}
+<b class="cl co">Price:</b><br>
+{{ form.base_price}}<br>
+<div class="mts mbl">
+<b class="cl co">Months:</b><br>
+{{ form.time_period_in_months }}<br>
+</div>
+<input type="submit" class="mtl mbl bm" style="background:#00c853;color:white;font-weight:bold;" value="OK">
+</form>
+<hr size=1 COLOR="#ff9933">
+{% if installment %}
+<span class="cxl">
+Installment per month: <b class="cl cg">Rs. {{ installment|floatformat:"0" }}</b><br>
+Number of months: <b class="cl cg">{{ months }}</b><br>
+</span>
+<hr size=1 COLOR="#ff9933">
+{% endif %}
+<br>
+{% if history %}
+<span class="cgy">History:</span><br><br>
+{% for calc in history reversed %}
+	<div class="mbs">
+	<span class="cgy"><span class="cs">{{ forloop.counter }})</span> Rs. {{ calc.bp }} ka mobile <b>Rs. {{ calc.mi|floatformat:"0" }}</b> ki <b>{{ calc.tpim }} installments</b> mein miley ga (total: Rs. {{ calc.ev|floatformat:"0" }})&nbsp;&nbsp;<span class="cs">-- {{ calc.t|human_time }}</span></span><br>
+	</div>
+{% endfor %}
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

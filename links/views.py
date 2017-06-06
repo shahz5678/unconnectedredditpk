@@ -1640,11 +1640,11 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		unauth = request.session.get('unauth',None)
-  		if not unauth:
-  			unauth = get_temp_id()
-  			request.session['unauth'] = unauth
-  		mp.track(unauth, 'new_home_page')
+		# unauth = request.session.get('unauth',None)
+  # 		if not unauth:
+  # 			unauth = get_temp_id()
+  # 			request.session['unauth'] = unauth
+  # 		mp.track(unauth, 'new_home_page')
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
 
@@ -2814,8 +2814,8 @@ def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args
 				pass
 			request.session["first_time_user"] = 1
 			###############################################################
-			mp.track(request.session.get('unauth',None), 'account_finalized')
-			request.session.pop("unauth", None)
+			# mp.track(request.session.get('unauth',None), 'account_finalized')
+			# request.session.pop("unauth", None)
 			###############################################################
 			mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
@@ -2859,7 +2859,7 @@ def create_password_new(request,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('unauth',None), 'password_finalized')
+				# mp.track(request.session.get('unauth',None), 'password_finalized')
 				# config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
 				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
 			else:
@@ -2920,7 +2920,7 @@ def create_nick_new(request,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			mp.track(request.session.get('unauth',None), 'nick_finalized')
+			# mp.track(request.session.get('unauth',None), 'nick_finalized')
 			return redirect('create_password_new',slug=result,length=length)
 		else:
 			if form.is_valid():
@@ -2939,7 +2939,7 @@ def create_nick_new(request,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					mp.track(request.session.get('unauth',None), 'nick_finalized')
+					# mp.track(request.session.get('unauth',None), 'nick_finalized')
 					return redirect('create_password_new',slug=result,length=length)
 			else:
 				context = {'form':form}

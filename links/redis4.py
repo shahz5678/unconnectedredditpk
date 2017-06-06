@@ -5,6 +5,7 @@ from location import REDLOC4
 '''
 ##########Redis Namespace##########
 
+"historical_calcs"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
 sorted_set = "online_users"
@@ -99,3 +100,25 @@ def get_clones(user_id):
 # 	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
 # 	my_server.set(user_ban,1)
 # 	my_server.expire(user_ban,ONE_HOUR)
+
+#########################################################
+
+def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_installment=None, ending_value=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	if base_price is None:
+		id_ = my_server.get("historical_calcs")
+		if id_ is not None:
+			for x in range(1,(int(id_)+1)):
+				pipeline1.hgetall("cd:"+str(x))
+			return pipeline1.execute()
+		else:
+			return None
+	else:
+		id_ = my_server.incr("historical_calcs")
+		calc_details = "cd:"+str(id_)
+		mapping = {'id':id_,'bp':base_price,'tpim':time_period_in_months,'mi':monthly_installment,'ev':ending_value, 't':time.time()}
+		my_server.hmset(calc_details,mapping)
+		for x in range(1,(id_+1)):
+			pipeline1.hgetall("cd:"+str(x))
+		return pipeline1.execute()

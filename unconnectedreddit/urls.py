@@ -9,6 +9,7 @@ from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_feedback import urlpatterns as urlpatterns_feedback
+from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
@@ -64,6 +65,7 @@ urlpatterns = patterns('',
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
+	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^ohook/$', webhook_event, name='webhook_event'),
 	url(r'^home_unauth/', unauth_home_link_list, name='unauth_home'),
 	url(r'^signup/', unauth_home_new, name='unauth_home_new'),

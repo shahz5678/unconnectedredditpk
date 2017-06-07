@@ -365,7 +365,7 @@ def retrieve_erroneous_passwords():
 	import csv, ast
 	password_errors = PASSWORD_ERRORS
 	list_ = my_server.lrange(password_errors,0 ,-1)
-	with open('likho_errors.csv','wb') as f:
+	with open('nickname_errors.csv','wb') as f:
 		wtr = csv.writer(f)
 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
 		for string in list_:

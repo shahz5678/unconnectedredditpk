@@ -2944,13 +2944,13 @@ def create_nick_new(request,*args,**kwargs):
 			else:
 				context = {'form':form}
 				##########################Logging Erroneous Usernames##########################
-				try:
-					username = request.POST.get("username",None)
-					username = 'specificity' if username == '' else username
-					error_string = str(dict(form.errors)["username"]).split('<li>')[1].split('</li>')[0]
-					log_erroneous_passwords(username,error_string)
-				except:
-					pass
+				# try:
+				# 	username = request.POST.get("username",None)
+				# 	username = 'specificity' if username == '' else username
+				# 	error_string = str(dict(form.errors)["username"]).split('<li>')[1].split('</li>')[0]
+				# 	log_erroneous_passwords(username,error_string)
+				# except:
+				# 	pass
 				###############################################################################	
 				# mp.track(request.session.get('tid',None), 'retry_new_nick')
 				return render(request, 'create_nick_new.html', context)

@@ -352,7 +352,7 @@ def retire_gibberish_punishment_amount(user_id):
 
 #####################################################
 
-PASSWORD_ERRORS = "password_errors"#"likho_errors"
+PASSWORD_ERRORS = "nickname_errors"#"likho_errors"
 
 def log_erroneous_passwords(password,error_string):
 	my_server = redis.Redis(connection_pool=POOL)

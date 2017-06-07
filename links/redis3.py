@@ -352,7 +352,7 @@ def retire_gibberish_punishment_amount(user_id):
 
 #####################################################
 
-PASSWORD_ERRORS = "nickname_errors"#"likho_errors"
+PASSWORD_ERRORS = "password_errors"#"likho_errors"
 
 def log_erroneous_passwords(password,error_string):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -365,7 +365,7 @@ def retrieve_erroneous_passwords():
 	import csv, ast
 	password_errors = PASSWORD_ERRORS
 	list_ = my_server.lrange(password_errors,0 ,-1)
-	with open('nickname_errors.csv','wb') as f:
+	with open('password_errors.csv','wb') as f:
 		wtr = csv.writer(f)
 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
 		for string in list_:

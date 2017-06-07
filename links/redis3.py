@@ -357,7 +357,6 @@ PASSWORD_ERRORS = "password_errors"#"likho_errors"
 def log_erroneous_passwords(password,error_string):
 	my_server = redis.Redis(connection_pool=POOL)
 	password_errors = PASSWORD_ERRORS
-	print my_server
 	my_server.lpush(password_errors,{'password':password,'error_string':error_string})
 
 def retrieve_erroneous_passwords():

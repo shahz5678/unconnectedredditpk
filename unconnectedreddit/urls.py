@@ -5,6 +5,7 @@ from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
+from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_ads import urlpatterns as urlpatterns_ads
@@ -19,13 +20,11 @@ salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_s
 leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
 first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, cricket_comment_page, \
 process_private_group_invite, process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
-click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth,create_account, reset_password, unauth_home_link_list, \
-best_photos_list, unauth_best_photos, cast_photo_vote, unauth_best_photo_location_pk, best_photo_location, see_best_photo_pk, \
-unauth_photos, photo_list, unauth_photo_location_pk, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, login, \
-manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
-missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, \
-search_username, go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, create_nick_new, create_password_new, \
-retire_home_rules, unauth_home_new#, insert_nicks
+click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, best_photos_list, cast_photo_vote, \
+best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, manage_user, \
+manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
+cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
+go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -67,10 +66,7 @@ urlpatterns = patterns('',
 	url(r'^$', home_link_list, name='home'),
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^ohook/$', webhook_event, name='webhook_event'),
-	url(r'^home_unauth/', unauth_home_link_list, name='unauth_home'),
-	url(r'^signup/', unauth_home_new, name='unauth_home_new'),
 	#########################################Logging out############################################
-	url(r'^login/$',login, name="login"),
 	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
@@ -166,10 +162,6 @@ urlpatterns = patterns('',
 	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),
 	url(r'^tphredi/(?P<pk>\d+)/$', auth(see_best_photo_pk), name='best_photo_loc_pk'),
 	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
-	url(r'^uphredi/(?P<pk>\d+)/$', unauth_photo_location_pk, name='unauth_photo_loc_pk'),
-	url(r'^utphredi/(?P<pk>\d+)/$', unauth_best_photo_location_pk, name='unauth_best_photo_loc_pk'),
-	url(r'^seetopphotos/$', unauth_best_photos, name='unauth_best_photo'),
-	url(r'^seefreshphotos/$', unauth_photos, name='unauth_photo'),
 	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
@@ -225,12 +217,7 @@ urlpatterns = patterns('',
 	url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
 	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
 	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
-	url(r'^create_acc/(?P<slug1>[\w.@+-]+)/(?P<length1>\d+)/(?P<slug2>[\w.@+-]+)/(?P<length2>\d+)/$', create_account, name='create_account'),
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
-	url(r'^create_pass/(?P<slug>[\w.@+-]+)/(?P<length>\d+)/$', create_password_new, name='create_password'), #[\w.?)&;[\]}:${@+-]+
-	url(r'^create_pass_new/(?P<slug>[\w.@+-]+)/(?P<length>\d+)/$', create_password_new, name='create_password_new'),
-	url(r'^create_nick/$', create_nick_new, name='create_nick'),
-	url(r'^createnick/$', create_nick_new, name='create_nick_new'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
 	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
@@ -327,3 +314,4 @@ urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
+urlpatterns += urlpatterns_unauth

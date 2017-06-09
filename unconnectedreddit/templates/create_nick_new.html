@@ -16,7 +16,9 @@
 {% extends "base_signup.html" %}
 {% block content %}
 
-<div class="signup mbl" style="margin-top: 5%;">
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'unauth_home_new_ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
+<div class="signup mbl">
 
 <div style="background-color:#00c853;overflow: auto;padding:10px 5px 10px 5px;">
 
@@ -28,10 +30,11 @@
 	<b class="cxl" style="text-shadow:1px 1px #009940;color:white;">Apna koi mazey ka naam rakho:</b><br><br>
 	{% endif %}
 	{{ form.username }}<br><br>
-	<input type="submit" class="mts" style="color:white;background-color:#ffd600;font-size:120%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">
+	<input type="submit" class="mts mbl" style="color:white;background-color:#ffd600;font-size:120%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">
 </form>
 </div>
 </div>
 <br>
 <a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
+</div>
 {% endblock %}

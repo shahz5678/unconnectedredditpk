@@ -1,0 +1,51 @@
+
+<style>
+
+
+.signup  {
+	background-color: green;
+	border-radius: 6px;
+	width:90%;
+	margin: 0 auto;
+	text-align: center;
+	padding:5px;
+	max-width: 300px;
+}
+</style>
+
+{% extends "base_signup.html" %}
+{% block content %}
+<div class="signup" style="margin-top: 5%;">
+
+<div style="background-color:#00c853;overflow: auto;padding:10px 5px 10px 5px;">
+
+{% if no_credentials %}
+	{% load emoticons_tags %}
+	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">دمادم آپکا نام بھول گیا</span><br>
+	<a href="{% url 'unauth_home_new_ur' %}#section0"><button class="btn bs bco mtl">واپس</button></a>
+{% else %}
+	<form method="post" action="{% url 'create_account' uhex ulen phex plen %}#section0" class="mtl">
+	{% csrf_token %}
+		{% if form.username.errors %}
+			<span class="cr">{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
+		{% elif form.password.errors %}
+			<span class="cr">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
+		{% else %}
+			<span class="cxl" style="text-shadow:1px 1px #009940;color:white;">:یہ پاس ورڈ یاد رکھنا<br>
+			<div class="mts">
+			<b style="color:#ffff00;text-shadow:1px 1px #009940;word-wrap:break-word;">{{ password }}</b>
+			</div>
+			</span>
+			<input type="hidden" name="username" value="{{ username }}">
+			<input type="hidden" name="password" value="{{ password }}">
+			<input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;font-size:120%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">
+			<hr size=1 COLOR="#ffeb3b">
+			<span style="text-shadow:1px 1px #009940;color:white;">اپنا پاس ورڈ اپنے پاس لکھ لو تاکے یاد رھے</span><br>
+		{% endif %}
+	</form>
+{% endif %}
+<br>
+
+</div>
+</div>
+{% endblock %}

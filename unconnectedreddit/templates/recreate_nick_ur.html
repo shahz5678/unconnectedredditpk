@@ -1,0 +1,62 @@
+
+<style>
+
+
+.signup  {
+	background-color: green;
+	border-radius: 6px;
+	width:90%;
+	margin: 0 auto;
+	text-align: center;
+	padding:5px;
+	max-width: 300px;
+}
+</style>
+
+{% extends "base_signup.html" %}
+{% load emoticons_tags %}
+{% block content %}
+
+
+<div class="signup mbl" style="margin-top: 5%;">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+
+<div class="mtl mbl cxl" style="color:#ffff00;text-shadow:1.5px 1.5px #009940;">
+{% if status == 'joined' %}
+	{% emoticons %}:( ... نام میں خالی جگہ نہ ڈالو{% endemoticons %}<br>
+{% else %}
+	{% emoticons %}:( ... کسی اور کا نام ہے <b>{{ original }}</b>{% endemoticons %}<br>
+{% endif %}
+</div>
+<hr size=1 COLOR="#ffeb3b">
+<div class="mtl cxl" style="color:white;">
+{% if single %}
+
+<span style="text-shadow:1.5px 1.5px #009940;color:white;">... رکھ لو <b>{{ alternatives.0 }}</b></span><br>
+<form method="POST" action="{% url 'create_nick_new' %}#section0" class="mtl">
+	{% csrf_token %}
+	<input type="hidden" name="system_suggestion" value="{{ alternatives.0 }}">
+	<input type="submit" class="mts" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;font-size:90%;" value="ہاں"><br>
+</form>
+	<a href="{% url 'create_nick_new' %}"><button style="width:4em;font-weight:bold;text-shadow:1px 1px #808080;font-size:90%;" class="btn bcgy mts">نہیں</button></a>
+{% else %}
+
+<span style="text-shadow:1.5px 1.5px #009940;">:ان میں سے کوئ نام رکھ لو</span><br>
+<form method="POST" action="{% url 'create_nick_new' %}#section0" class="mtl">
+	{% csrf_token %}
+	{% for nick in alternatives reversed %}
+	<input class="mbl" type="radio" name="system_suggestion" class="mbs" value="{{ nick }}" checked><b style="color:white;">&nbsp;{{ nick }}</b><br>
+	{% endfor %}
+	<input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;font-size:100%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">
+</form>
+<hr size=1 COLOR="#ffeb3b">
+<span class="cs" style="text-shadow:1px 1px #009940;">اگر اوپر والا نام پسند نہیں تو <a href="{% url 'create_nick_new' %}"><button class="btn bcgy mtl" style="text-shadow:1px 1px #808080;"><b>&nbsp;&nbsp;یہ دباؤ&nbsp;&nbsp;</b></button></a></span>
+
+{% endif %}
+</div>
+<br><br>
+</div>
+</div>
+<br>
+<a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;پرانا اکاؤنٹ&nbsp;&nbsp;</button></a><br>
+{% endblock %}

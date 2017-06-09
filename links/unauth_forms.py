@@ -141,9 +141,7 @@ class CreateNickForm(forms.Form):
 ############################################################################################################
 
 def process_choices(alternatives):
-	print alternatives
 	chunks = [alternatives[x:x+3] for x in xrange(0, len(alternatives), 3)]
-	print chunks
 	alt_choices = []
 	for chunk in chunks:
 		nicks = bulk_nicks_exist(chunk)

@@ -1,27 +1,44 @@
-{% extends "base_min.html" %}
+
+<style>
+
+
+.signup  {
+	background-color: green;
+	border-radius: 6px;
+	width:90%;
+	margin: 0 auto;
+	text-align: center;
+	padding:5px;
+	max-width: 300px;
+}
+</style>
+
+{% extends "base_signup.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div style="background-color:#00c853;overflow: auto;">
-<div class="mbl bw mll mtl mrl mbl" style="max-width:90%;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
 
-<div class="mls mtl cxl" style="color:#ffff00;text-shadow:1.5px 1.5px #009940;">
+
+<div class="signup mbl" style="margin-top: 5%;">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+
+<div class="mtl mbl cxl" style="color:#ffff00;text-shadow:1px 1px #009940;">
 {% if status == 'joined' %}
 	{% emoticons %}Naam mein khali jaga nahi dal sakte...:({% endemoticons %}<br>
 {% else %}
 	{% emoticons %}<b>{{ original }}</b> kisi aur ka naam hai...:({% endemoticons %}<br>
 {% endif %}
 </div>
-
-<div class="mls mtl cxl" style="color:white;">
+<hr size=1 COLOR="#ffeb3b">
+<div class="mtl cxl" style="color:white;">
 {% if single %}
 
-<span style="text-shadow:1.5px 1.5px #009940;color:white;"><b>{{ alternatives.0 }}</b> rakhna hai?</span><br>
+<span style="text-shadow:1px 1px #009940;color:white;"><b>{{ alternatives.0 }}</b> rakhna hai?</span><br>
 <form method="POST" action="{% url 'create_nick_new' %}#section0" class="mtl">
 	{% csrf_token %}
 	<input type="hidden" name="system_suggestion" value="{{ alternatives.0 }}">
-	<input type="submit" class="mts mbs" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1.5px 1.5px #b39500;font-size:90%;" value="Haan"><br>
+	<input type="submit" class="mts" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;font-size:90%;" value="Haan"><br>
 </form>
-	<a href="{% url 'create_nick_new' %}"><button style="width:4em;font-weight:bold;text-shadow:1.5px 1.5px #808080;font-size:90%;" class="btn bcgy mtl">Nahi</button></a>
+	<a href="{% url 'create_nick_new' %}"><button style="width:4em;font-weight:bold;text-shadow:1px 1px #808080;font-size:90%;" class="btn bcgy mts">Nahi</button></a>
 {% else %}
 
 <span style="text-shadow:1.5px 1.5px #009940;">In mein se koi naam rakh lo:</span><br>
@@ -30,14 +47,16 @@
 	{% for nick in alternatives reversed %}
 	<input class="mbl" type="radio" name="system_suggestion" class="mbs" value="{{ nick }}" checked><b style="color:white;">&nbsp;{{ nick }}</b><br>
 	{% endfor %}
-	<input type="submit" class="mts mbl" style="color:white;background-color:#ffd600;font-size:100%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1.5px 1.5px #b39500;" value="OK">
+	<input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;font-size:100%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">
 </form>
 <hr size=1 COLOR="#ffeb3b">
-<span class="cs" style="text-shadow:1.5px 1.5px #009940;">Agr uper waley naam pasand nahi tou <a href="{% url 'create_nick_new' %}"><button class="btn bcgy mtl mbl" style="text-shadow:1px 1px #808080;"><b>&nbsp;&nbsp;ye dabao&nbsp;&nbsp;</b></button></a></span>
+<span class="cs" style="text-shadow:1px 1px #009940;">Agr uper waley naam pasand nahi tou <a href="{% url 'create_nick_new' %}"><button class="btn bcgy mtl" style="text-shadow:1px 1px #808080;"><b>&nbsp;&nbsp;ye dabao&nbsp;&nbsp;</b></button></a></span>
 
 {% endif %}
 </div>
 <br><br>
 </div>
 </div>
+<br>
+<a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
 {% endblock %}

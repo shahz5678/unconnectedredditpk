@@ -15,7 +15,9 @@
 
 {% extends "base_signup.html" %}
 {% block content %}
-<div class="signup" style="margin-top: 5%;">
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'create_account' lang='ur' slug1=uhex length1=ulen slug2=phex length2=plen %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
+<div class="signup">
 
 <div style="background-color:#00c853;overflow: auto;padding:10px 5px 10px 5px;">
 
@@ -24,12 +26,12 @@
 	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">Damadam tumhara naam bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
 	<a href="{% url 'unauth_home_new' %}#section0"><button class="btn bs bco mtl">wapis</button></a>
 {% else %}
-	<form method="post" action="{% url 'create_account' uhex ulen phex plen %}#section0" class="mtl">
+	<form method="post" action="{% url 'create_account' slug1=uhex length1=ulen slug2=phex length2=plen %}#section0" class="mtl">
 	{% csrf_token %}
 		{% if form.username.errors %}
-			<span class="cr">{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
+			<span class="cl" style="color:#ffff00;text-shadow:1px 1px #009940;">{{ form.username.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% elif form.password.errors %}
-			<span class="cr">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
+			<span class="cl" style="color:#ffff00;text-shadow:1px 1px #009940;">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% else %}
 			<span class="cxl" style="text-shadow:1px 1px #009940;color:white;"><b>{{ username }}</b> tumhara password <b style="color:#ffff00;text-shadow:1px 1px #009940;word-wrap:break-word;">{{ password }}</b> hai. Yad rakhna!</span><br>
 			<input type="hidden" name="username" value="{{ username }}">
@@ -42,6 +44,7 @@
 {% endif %}
 <br>
 
+</div>
 </div>
 </div>
 {% endblock %}

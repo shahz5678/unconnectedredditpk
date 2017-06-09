@@ -11,7 +11,6 @@ from cricket_score import cricket_scr
 from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
 CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD, CITIZEN_THRESHOLD
-from django.db import connection
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -23,7 +22,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, registration_task, populate_search_thumbs#, capture_urdu
+fan_recount, vote_tasks, populate_search_thumbs#, capture_urdu
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -33,8 +32,7 @@ VideoComment
 #from links.azurevids.azurevids import uploadvid
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model, login, authenticate
-from django.contrib.auth.views import login as log_me_in
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
@@ -57,30 +55,30 @@ get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_che
 in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
 add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, \
 first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
-add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, account_creation_disallowed, account_created, \
-set_prev_retort, set_prev_retorts, get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_photo_uploader, \
-add_photo_uploader, first_time_psl_supporter, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
-incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link,\
-first_time_home_replier, remove_group_for_all_members, get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search,\
-is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, in_defenders,website_feedback_given
+add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, set_prev_retort, set_prev_retorts, \
+get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
+add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
+current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
+get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
+in_defenders,website_feedback_given
 from .website_feedback_form import AdvertiseWithUsForm
 from .forms import getip, clean_image_file, clean_image_file_with_hash
 from .forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
-PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, CreateAccountForm, DeletePicForm, UserPhoneNumberForm, \
-PicExpiryForm, PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, \
-MehfilForm, MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, \
-GroupReportForm, AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
-PublicGroupReplyForm, TopForm, LoginWalkthroughForm, CreateNickForm, CreatePasswordForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, \
-ChangeGroupTopicForm, GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
+PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
+PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, \
+MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
+AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
+PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
+GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
 HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
 UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, FanListForm, StarListForm, FanTutorialForm, \
 SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, \
 UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, \
 AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, \
 TestAdsForm,TestReportForm, HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm,\
-PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm, CreateNickNewForm
+PublicreplyMiniForm, SearchNicknameForm, AdFeedbackForm, SearchAdFeedbackForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1636,17 +1634,6 @@ def home_link_list(request, *args, **kwargs):
 		# else:
 		# 	return redirect("unauth_home")
 
-def unauth_home_new(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("home")
-	else:
-		# unauth = request.session.get('unauth',None)
-  # 		if not unauth:
-  # 			unauth = get_temp_id()
-  # 			request.session['unauth'] = unauth
-  # 		mp.track(unauth, 'new_home_page')
-		form = CreateNickNewForm()
-		return render(request,"unauth_home.html",{'form':form})
 
 # 		##############setting session key###############
 # 		# print request.session.session_key
@@ -2780,185 +2767,6 @@ class GroupListView(ListView):
 		trending_groups.sort(key=itemgetter(1), reverse=True)
 		trending_groups = map(itemgetter(0), trending_groups)
 		return trending_groups
-
-def login(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("home")
-	else:
-		if request.method == 'POST':
-			# opportunity to block entry here
-			return log_me_in(request=request,template_name='login.html')
-		else:
-			return log_me_in(request=request,template_name='login.html')
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@sensitive_post_parameters()
-@csrf_protect
-def create_account(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
-		return render(request,'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		form = CreateAccountForm(data=request.POST)
-		# print "recieved data"
-		if form.is_valid():
-			# ensured username is unique, no one else has booked it
-			password = slug2.decode("hex")
-			username = slug1.decode("hex")
-			form.save() # creating the user
-			user = authenticate(username=username,password=password)
-			login(request,user)
-			registration_task.delay(getip(request),username,user.id)
-			try:
-				request.session.delete_test_cookie() #cleaning up
-			except:
-				pass
-			request.session["first_time_user"] = 1
-			###############################################################
-			# mp.track(request.session.get('unauth',None), 'account_finalized')
-			# request.session.pop("unauth", None)
-			###############################################################
-			mp.track(user.id,'sign_ups')
-			# mp.alias(request.user.id, unreg_id)
-			###############################################################
-			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
-		else:
-			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
-			username = slug1.decode("hex")
-			password = slug2.decode("hex")
-			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
-			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			return render(request, 'create_account.html', context)
-	else:
-		# request.session.pop("new_id", None)
-		if len(slug1) == int(length1) and len(slug2) == int(length2):
-			form = CreateAccountForm()
-			username = slug1.decode("hex")
-			password = slug2.decode("hex")
-			context={'no_credentials':False,'password':password,'username':username,'uhex':slug1,\
-			'ulen':length1,'phex':slug2,'plen':length2,'form':form}
-			# mp.track(request.session.get('tid',None), 'create_new_account')
-			return render(request, 'create_account.html', context)
-		else:
-			# some tinerking in the link has taken place
-			return render(request,'penalty_link_tinkered.html',{})
-
-############################################################################################################
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
-@csrf_protect
-def create_password_new(request,slug=None,length=None,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
-		return render(request,'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		form = CreatePasswordForm(data=request.POST,request=request)
-		if form.is_valid():
-			# show user the password in the next screen
-			if int(length) == len(slug):
-				password = form.cleaned_data['password']
-				result = password.encode('utf-8').encode("hex")
-				length1 = len(slug)
-				length2 = len(result)
-				# mp.track(request.session.get('unauth',None), 'password_finalized')
-				# config_manager.get_obj().track('comp_pass', request.session.get('clientid',None))
-				return redirect('create_account',slug1=slug,length1=length1,slug2=result,length2=length2)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-		else:
-			###############################Logging Erroneous Password#####################################
-			# try:
-			# 	password = request.POST.get("password",None)
-			# 	password = 'specificity' if password == '' else password
-			# 	error_string = str(dict(form.errors)["password"]).split('<li>')[1].split('</li>')[0]
-			# 	log_erroneous_passwords(password,error_string)
-			# except:
-			# 	pass
-			##############################################################################################
-			if int(length) == len(slug):
-				username = slug.decode("hex")
-				context={'form':form,'username':username,'uhex':slug,'length':length}
-				return render(request, 'create_password_new.html', context)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-	else:
-		# mp.track(request.session.get('tid',None), 'load_pass')
-		if request.session.test_cookie_worked():
-			form = CreatePasswordForm()
-			# mp.track(request.session.get('tid',None), 'create_new_pass')
-			if int(length) == len(slug):
-				username = slug.decode("hex")
-				context={'form':form,'username':username,'uhex':slug,'length':length}
-				return render(request, 'create_password_new.html', context)
-			else:
-				# some tinerking in the link has taken place
-				return render(request,'penalty_link_tinkered.html',{})
-		else:
-			#cookies aren't being set in the browser, so can't make an account!
-			return render(request, 'penalty_cookie.html', {})
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
-@csrf_protect		
-def create_nick_new(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return render(request,'404.html',{})
-	elif account_creation_disallowed(getip(request)):
-		return render(request, 'penalty_account_create.html',{})
-	elif request.method == 'POST':
-		form = CreateNickNewForm(data=request.POST)
-		sys_sugg = request.POST.get('system_suggestion',None)
-		# mp.track(request.session.get('new_id',None), 'username_posted')
-		# clientid = request.session.get('clientid',None)
-  # 		if not clientid:
-  # 			clientid = get_temp_id()
-  # 			request.session['clientid'] = clientid
-		# variation_key = config_manager.get_obj().activate('pass_test', clientid)
-		if sys_sugg:
-			#process system suggestion
-			result = sys_sugg.encode("hex")
-			length = len(result)
-			request.session.set_test_cookie()
-			# mp.track(request.session.get('unauth',None), 'nick_finalized')
-			return redirect('create_password_new',slug=result,length=length)
-		else:
-			if form.is_valid():
-				alt_choices, altered, original = form.cleaned_data['username']
-				if altered:
-					if len(alt_choices) == 1:
-						#show single suggestion
-						return render(request,'recreate_nick.html',{'original':original,'single':True,'alternatives':alt_choices,\
-							'status':altered["status"]})
-					else:
-						#show multiple suggestions
-						return render(request,'recreate_nick.html',{'original':original,'single':False,'alternatives':alt_choices,\
-							'status':altered["status"]})
-				else:
-					# divide between suggestion and actual nick
-					result = original.encode("hex")
-					length = len(result)
-					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('unauth',None), 'nick_finalized')
-					return redirect('create_password_new',slug=result,length=length)
-			else:
-				context = {'form':form}
-				##########################Logging Erroneous Usernames##########################
-				# try:
-				# 	username = request.POST.get("username",None)
-				# 	username = 'specificity' if username == '' else username
-				# 	error_string = str(dict(form.errors)["username"]).split('<li>')[1].split('</li>')[0]
-				# 	log_erroneous_passwords(username,error_string)
-				# except:
-				# 	pass
-				###############################################################################	
-				# mp.track(request.session.get('tid',None), 'retry_new_nick')
-				return render(request, 'create_nick_new.html', context)
-	else:
-		form = CreateNickNewForm()
-		context = {'form':form}
-		# mp.track(request.session.get('tid',None), 'create_new_nick')
-		return render(request, 'create_nick_new.html', context)
 
 ############################################################################################################
 
@@ -4516,7 +4324,7 @@ def photo_list(request,*args, **kwargs):
 					context["first_time_user"] = False
 			return render(request,'photos.html',context)
 	else:
-		return redirect("unauth_photo")
+		return redirect("unauth_home_new")
 
 #########################Views for best photos#########################
 
@@ -4781,7 +4589,7 @@ def best_photos_list(request,*args,**kwargs):
 					context["first_time_user"] = False
 			return render(request,'best_photos.html',context)
 	else:
-		return redirect("unauth_best_photo")
+		return redirect("unauth_home_new")
 
 def see_best_photo_pk(request,pk=None,*args,**kwargs):
 	if pk:

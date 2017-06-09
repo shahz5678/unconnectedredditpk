@@ -11,13 +11,14 @@
 	text-align: center;
 	padding:5px;
 	max-width: 300px;
-	margin-top: 5%;
 }
 </style>
 
 
 {% extends "base_signup.html" %}
 {% block content %}
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'login' 'ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
 <div class="signup mbs">
 <div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
 {% if form.errors %}
@@ -39,10 +40,11 @@
       {{ form.password }}
    </div>
   
-  <input class="mts" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK"><br>
+  <input class="mts mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK"><br>
   
 </form>
 </div>
 </div><br>
 <a href="{% url 'unauth_home_new' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;New Account&nbsp;&nbsp;</button></a><br>
+</div>
 {% endblock %}

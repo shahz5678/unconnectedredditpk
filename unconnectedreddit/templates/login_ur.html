@@ -22,7 +22,7 @@
 <div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
 {% if form.errors %}
 <div class="mts mbs">
-<span style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">... نام یا پاس ورڈ میں غلطی ہے۔ پھر سے لکھو</span>
+<span style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">نام یا پاس ورڈ میں غلطی ہے۔ پھر سے لکھو</span>
 </div>
 <hr size=1 COLOR="#ffeb3b">
 {% endif %}
@@ -31,11 +31,11 @@
   <input type="hidden" name="next" value="/">
  	
  	<div class="mtl mbl">
-    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:نام</b>
+    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:نام</b><br>
       {{ form.username }}
   	</div>
   	<div class="mbl">
-    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:پاس ورڈ</b>
+    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:پاس ورڈ</b><br>
       {{ form.password }}
    </div>
   
@@ -44,5 +44,5 @@
 </form>
 </div>
 </div><br>
-<a href="{% url 'unauth_home_new' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;نیا اکاؤنٹ&nbsp;&nbsp;</button></a><br>
+<a href="{% url 'unauth_home_new_ur' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;نیا اکاؤنٹ&nbsp;&nbsp;</button></a><br>
 {% endblock %}

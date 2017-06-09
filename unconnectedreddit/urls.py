@@ -65,7 +65,7 @@ urlpatterns = patterns('',
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^calculator/$', auth(calculator), name='calculator'),
-	url(r'^ohook/$', webhook_event, name='webhook_event'),
+	url(r'^whook/$', webhook_event, name='webhook_event'),
 	#########################################Logging out############################################
 	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),

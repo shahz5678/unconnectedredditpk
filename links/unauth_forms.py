@@ -33,8 +33,10 @@ class CreateAccountForm(forms.ModelForm):
 		lower_pass = password.lower()
 		if len(password) < 6:
 			raise ValidationError('password mein kam se kam 6 harf zaruri hai')
-		elif lower_pass.isdigit():
-			raise ValidationError('password mein sirf numbers nahi ho sakte')
+		elif lower_pass in '1234567890':
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
 		elif 'damadam' in lower_pass:
 			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
 		elif 'qwerty' in lower_pass:
@@ -50,6 +52,8 @@ class CreateAccountForm(forms.ModelForm):
 				user.save()
 				insert_nick(self.cleaned_data.get("username"))
 		return user
+
+############################################################################################################
 
 class CreatePasswordForm(forms.Form):
 	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'))
@@ -92,51 +96,51 @@ class CreatePasswordForm(forms.Form):
 
 ############################################################################################################
 
-def validate_nickname_chars(value):
-	reg = re.compile('^[\w.@+-]+$')
-	if not reg.match(value):
-		raise ValidationError('Sirf english harf, number ya @ _ . + - ho sakta hai')
+# def validate_nickname_chars(value):
+# 	reg = re.compile('^[\w.@+-]+$')
+# 	if not reg.match(value):
+# 		raise ValidationError('Sirf english harf, number ya @ _ . + - ho sakta hai')
 
-def validate_whitespaces_in_nickname(value):
-	if ' ' in value.strip():
-		raise ValidationError('Naam mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
+# def validate_whitespaces_in_nickname(value):
+# 	if ' ' in value.strip():
+# 		raise ValidationError('Naam mein khali jaga nah dalo. "%s" likho' % value.replace(" ",""))
 
-class CreateNickForm(forms.Form):
-	username = forms.CharField(max_length=50,error_messages={'invalid': "Sirf english harf, number ya @ _ . + - ho sakta hai",\
-		'required':"Is safed patti mein naam likh kar OK dabao:"},\
-		validators=[validate_whitespaces_in_nickname])
-	class Meta:
-		fields = ('username',)
+# class CreateNickForm(forms.Form):
+# 	username = forms.CharField(max_length=50,error_messages={'invalid': "Sirf english harf, number ya @ _ . + - ho sakta hai",\
+# 		'required':"Is safed patti mein naam likh kar OK dabao:"},\
+# 		validators=[validate_whitespaces_in_nickname])
+# 	class Meta:
+# 		fields = ('username',)
 
-	def __init__(self, *args, **kwargs):
-		super(CreateNickForm, self).__init__(*args, **kwargs)
-		self.fields['username'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;max-width:90%;border: none;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
-		# self.fields['username'].widget.attrs['style'] = 'max-width:95%;background-color:#fffce6;'
-		self.fields['username'].widget.attrs['class'] = 'cxl'
-		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
-		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+# 	def __init__(self, *args, **kwargs):
+# 		super(CreateNickForm, self).__init__(*args, **kwargs)
+# 		self.fields['username'].widget.attrs['style'] = \
+# 		'background-color:#fffce6;width:1000px;max-width:90%;border: none;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+# 		# self.fields['username'].widget.attrs['style'] = 'max-width:95%;background-color:#fffce6;'
+# 		self.fields['username'].widget.attrs['class'] = 'cxl'
+# 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+# 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 
-	def clean_username(self):
-		"""
-		Validate that the username is not already in use, etc.
+# 	def clean_username(self):
+# 		"""
+# 		Validate that the username is not already in use, etc.
 		
-		"""
-		username = self.cleaned_data['username']
-		username = username.strip()
-		validate_nickname_chars(username)
-		exists = nick_already_exists(username)
-		if exists is None:
-			# the sorted set "nicknames" doesn't exist, fall-back to DB
-			if User.objects.filter(username__iexact=username).exists():
-				raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
-		elif exists:
-			raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
-		else:
-			for name in BANNED_WORDS:
-				if name in username.lower():
-					raise ValidationError('Naam mein "%s" nahi ho sakta!' % name)
-			return username
+# 		"""
+# 		username = self.cleaned_data['username']
+# 		username = username.strip()
+# 		validate_nickname_chars(username)
+# 		exists = nick_already_exists(username)
+# 		if exists is None:
+# 			# the sorted set "nicknames" doesn't exist, fall-back to DB
+# 			if User.objects.filter(username__iexact=username).exists():
+# 				raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
+# 		elif exists:
+# 			raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
+# 		else:
+# 			for name in BANNED_WORDS:
+# 				if name in username.lower():
+# 					raise ValidationError('Naam mein "%s" nahi ho sakta!' % name)
+# 			return username
 
 ############################################################################################################
 

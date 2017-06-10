@@ -42,6 +42,23 @@ def log_retention(server_instance, user_id):
 		# contains all user_ids that have ever been logged
 		server_instance.sadd("logged_users",user_id)
 
+def retrieve_retention_ids():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.smembers("logged_users")
+
+def retrieve_retention_data(user_ids):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for id_ in user_ids:
+		pipeline1.lrange("user_times:"+id_,0,-1)
+	result1 = pipeline1.execute()
+	user_times = []
+	counter = 0
+	for id_ in user_ids:
+		user_times.append((id_,result1[counter]))
+		counter += 1
+	return user_times
+
 # def reduce_retention_data():
 	"""
 	to delete, get ids of really old "last_active"

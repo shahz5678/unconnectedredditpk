@@ -52,11 +52,11 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		guest_id = request.session.get('guest_id',None)
-  		if not guest_id:
-  			guest_id = get_temp_id()
-  			request.session['guest_id'] = guest_id
-  		mp.track(guest_id, 'new_signup_page')
+		# guest_id = request.session.get('guest_id',None)
+  # 		if not guest_id:
+  # 			guest_id = get_temp_id()
+  # 			request.session['guest_id'] = guest_id
+  # 		mp.track(guest_id, 'new_signup_page')
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
 		#########################################################################
@@ -98,8 +98,8 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 				pass
 			request.session["first_time_user"] = 1
 			###############################################################
-			mp.track(request.session.get('guest_id',None), 'acc_finalized')
-			request.session.pop("guest_id", None)
+			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
+			# request.session.pop("guest_id", None)
 			###############################################################
 			mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
@@ -155,7 +155,7 @@ def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
 				result = password.encode('utf-8').encode("hex")
 				length1 = len(slug)
 				length2 = len(result)
-				mp.track(request.session.get('guest_id',None), 'pass_finalized')
+				# mp.track(request.session.get('guest_id',None), 'pass_finalized')
 				if lang == "ur":
 					return redirect('create_account',lang=lang,slug1=slug,length1=length1,slug2=result,length2=length2)
 				else:
@@ -233,7 +233,7 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			mp.track(request.session.get('guest_id',None), 'name_finalized')
+			# mp.track(request.session.get('guest_id',None), 'name_finalized')
 			if lang == "ur":
 				return redirect('create_password_new', lang=lang, slug=result,length=length)
 			else:
@@ -263,7 +263,7 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					mp.track(request.session.get('guest_id',None), 'name_finalized')
+					# mp.track(request.session.get('guest_id',None), 'name_finalized')
 					if lang == "ur":
 						return redirect('create_password_new',lang=lang, slug=result,length=length)
 					else:

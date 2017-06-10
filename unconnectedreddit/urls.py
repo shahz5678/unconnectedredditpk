@@ -8,6 +8,7 @@ from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_advertiser import urlpatterns as urlpatterns_adv
+from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from links.installment_calculator import calculator
@@ -315,3 +316,4 @@ urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
+urlpatterns += urlpatterns_ret

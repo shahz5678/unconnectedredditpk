@@ -37,7 +37,9 @@ def log_retention(server_instance, user_id):
 			server_instance.lpush("user_times:"+user_id,time_now)
 			server_instance.sadd("logged_users",user_id)
 	else:
+		# contains a user's times of browsing Damadam
 		server_instance.lpush("user_times:"+user_id,time_now)
+		# contains all user_ids that have ever been logged
 		server_instance.sadd("logged_users",user_id)
 
 # def reduce_retention_data():
@@ -64,8 +66,9 @@ def set_online_users(user_id,user_ip):
 	my_server.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
 	my_server.set(latest_user_ip,user_ip)
 	my_server.expire(latest_user_ip,FIVE_MINS)
-	if random.random() < 0.45:
-		log_retention(my_server,user_id)
+	############ logging user retention ############
+	# if random.random() < 0.45:
+	# 	log_retention(my_server,user_id)
 
 # invoked by tasks.py to show whoever is online in OnlineKon
 def get_recent_online():
@@ -103,6 +106,7 @@ def get_clones(user_id):
 
 #########################################################
 
+#calculating installment amount for mobile devices
 def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_installment=None, ending_value=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()

@@ -27,13 +27,14 @@ CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
 'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
 'South Africa':'South Africa','New Zealand':'New Zealand', 'Pakistan':'Pakistan',\
-'West Indies':'West Indies', 'India':'India'}
+'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka'}
 CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
 'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10',\
-'Pakistan':'12','West Indies':'13', 'India':'14'}
+'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15'}
 CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
-'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind'}
+'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind',\
+'Sri Lanka':'slk'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 SEARCH_FEATURE_THRESHOLD = 100
@@ -44,3 +45,6 @@ PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phel
 PHOTO_CASE_COMPLETION_BONUS = 6
 ###############################################################################################################
 GIBBERISH_PUNISHMENT_MULTIPLIER = 5
+###############################################################################################################
+#Ecomm cities
+CITIES = ["Rawalpindi","Islamabad"]

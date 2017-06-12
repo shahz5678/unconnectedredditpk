@@ -318,7 +318,7 @@ def export_advertisers():
 			for advertiser in list_of_dict:
 				dictionary = ast.literal_eval(advertiser)
 				time_string = datetime.fromtimestamp(dictionary["publishing_time"]).strftime("%Y-%m-%d %H:%M:%S")
-				name = [dictionary["name"].encode('utf-8')
+				name = dictionary["name"].encode('utf-8')
 				if dictionary["nickname"] is not None:
 					nickname = dictionary["nickname"].encode('utf-8')
 				else:

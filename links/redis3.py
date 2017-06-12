@@ -1,5 +1,6 @@
 # coding=utf-8
-import redis
+import redis, time
+from datetime import datetime
 from location import REDLOC3
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES
 from templatetags.thumbedge import cdnize_target_url
@@ -302,6 +303,27 @@ def purge_advertisers():
 	my_server = redis.Redis(connection_pool=POOL)
 	advertiser_details = "advertiser_details"
 	my_server.delete(advertiser_details)
+
+def export_advertisers():
+	my_server = redis.Redis(connection_pool=POOL)
+	advertiser_details = "advertiser_details"
+	list_of_dict = my_server.lrange(advertiser_details,0,-1)
+	filename = 'advertisers_'+str(int(time.time()))+'.csv'
+	if list_of_dict:
+		import csv, ast
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = ["name","nickname","mobile","city","detail","submission_time"]
+			wtr.writerow(columns) # writing the columns
+			for advertiser in list_of_dict:
+				dictionary = ast.literal_eval(advertiser)
+				time_string = datetime.fromtimestamp(dictionary["publishing_time"]).strftime("%Y-%m-%d %H:%M:%S")
+				to_write = [dictionary["name"],dictionary["nickname"],dictionary["mobile"],dictionary["city"],dictionary["detail"],time_string]
+				wtr.writerows([to_write])
+		my_server.delete(advertiser_details)
+		return True
+	else:
+		return False
 
 #####################################################
 

@@ -425,8 +425,8 @@ def unlock_uname_search(user_id):
 #photo defender:        '9'
 #photo culler:          '10'
 #photo judger:          '11'
-#photo curator:          '12'
-#ebsite feedbacker:      '13'
+#photo curator:         '12'
+#website feedbacker:    '13'
 
 def first_time_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1041,6 +1041,10 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '14':
 		# this is a link about Indian Cricket
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
+	elif categ == '15':
+		# this is a link about Sri Lankan Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash

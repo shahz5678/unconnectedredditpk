@@ -318,8 +318,15 @@ def export_advertisers():
 			for advertiser in list_of_dict:
 				dictionary = ast.literal_eval(advertiser)
 				time_string = datetime.fromtimestamp(dictionary["publishing_time"]).strftime("%Y-%m-%d %H:%M:%S")
-				to_write = [dictionary["name"].encode('utf-8'),dictionary["nickname"].encode('utf-8'),\
-				dictionary["mobile"].encode('utf-8'),dictionary["city"].encode('utf-8'),dictionary["detail"].encode('utf-8'),time_string]
+				name = [dictionary["name"].encode('utf-8')
+				if dictionary["nickname"] is not None:
+					nickname = dictionary["nickname"].encode('utf-8')
+				else:
+					nickname = dictionary["nickname"]
+				mobile = dictionary["mobile"].encode('utf-8')
+				city = dictionary["city"].encode('utf-8')
+				detail = dictionary["detail"].encode('utf-8')
+				to_write = [name,nickname,mobile,city,detail,time_string]
 				wtr.writerows([to_write])
 		my_server.delete(advertiser_details)
 		return True

@@ -6,7 +6,8 @@
 <b>Total: {{ num }}</b><br>
 <form method="POST" action="{% url 'show_advertisers' %}" class="mtl mbl">
 {% csrf_token %}
-<input type="submit" class="bl" style="background:#00c853;color:white;font-weight:bold;" name="delete" value="Delete All">
+<input type="submit" class="bl" style="background:#00c853;border-color:#009940;color:white;font-weight:bold;" name="action" value="Delete All"><br>
+<input type="submit" class="mtl" style="background:#ef6c00;border-color:#e65100;color:white;font-weight:bold;" name="action" value="Export & Delete">
 </form>
 <hr size=1 COLOR="#b3e6b3">
 {% for advertiser in advertisers %}

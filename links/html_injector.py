@@ -122,6 +122,10 @@ def category_formatting(categ):
 		# India
 		div_head = '<div style="background-color:#e8f7fd;"><h1 style="font-size:0.7em;background-color:#1293CC;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">India</h1>'
 		div_tail = '<p><hr size=1 COLOR="#1293CC"></p></div>'
+	elif categ == '15':
+		# Sri Lanka
+		div_head = '<div style="background-color:#ebf2fa;"><h1 style="font-size:0.7em;background-color:#26548B;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Sri Lanka</h1>'
+		div_tail = '<p><hr size=1 COLOR="#26548B"></p></div>'
 	else:
 		div_head = '<span></span>'
 		div_tail = '<span></span>'

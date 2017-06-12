@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+{% if export %}
+<span class="cg">Export successful. {% emoticons %}Please download the file from the server :){% endemoticons %}</span>
+{% else %}
+<span class="cr">Export did not proceed as planned, because there was nothing to export!</span>
+{% endif %}
+</div>
+<br><br>
+
+{% endblock %}

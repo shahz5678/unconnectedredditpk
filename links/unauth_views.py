@@ -1,6 +1,7 @@
 from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth import login, authenticate
 from django.shortcuts import redirect, render
+from django.middleware import csrf
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.csrf import csrf_protect
@@ -22,6 +23,17 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 # config_manager = OptimizelyConfigManager(PID)
 
 ######################################################################################
+
+def login_test(request,*args,**kwargs):
+	if request.user.is_authenticated():
+		return redirect("home")
+	else:
+		CSRF = csrf.get_token(request)
+		if request.method == 'POST':
+			# opportunity to block entry here
+			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
+		else:
+			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
 
 def login(request, lang=None, *args,**kwargs):
 	if request.user.is_authenticated():

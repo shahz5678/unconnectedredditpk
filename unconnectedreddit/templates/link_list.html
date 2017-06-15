@@ -9,6 +9,7 @@
 {% load human_time %}
 {% load photoedge %}
 {% block content %}
+<body style="background-image: url({{ STATIC_URL }}img/wallpaper.png);">
 <div class="margin">
 {% if home_rules %}{{ home_rules|safe }}{% endif %}
 	{% if notification %}
@@ -231,6 +232,25 @@
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
+	{% if forloop.counter == 4 %}
+		{% if rand <= 0.5 %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'skin_clinic' %}#section0"><img class="pht" style="max-width:233px;" src="{{ STATIC_URL }}img/girlskin.png"></a><br>
+		<span class="cg cl"><b>Skin ke masloon</b> ke liye doctor se ghar baithey mashwara karien</span>
+		<a href="{% url 'skin_clinic' %}#section0"><button class="btn bcg bl cl mls mts mbs">tafseel</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+		{% else %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'virgin_tees' %}#section0"><img class="pht" style="max-width:205px;" src="{{ STATIC_URL }}img/damadam_tshirt2.png"></a><br>
+		<span class="cg cl"><b>Stylish T-Shirts</b> khareednay ke liye click karien</span>
+		<a href="{% url 'virgin_tees' %}#section0"><button class="btn bcg bl cl mls mts mbs">T-Shirts</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+		{% endif %}
+	{% endif %}
 	{% if forloop.counter == 5 %}
 		{% if enqueued_match %}
 		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">

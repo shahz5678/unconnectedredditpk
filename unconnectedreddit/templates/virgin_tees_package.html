@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2 class="cg bw">Stylish T-Shirts</h2>
+<b class="cs">by VirginTeez Company</b><br>
+<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/damadam_tshirt1.png" style="max-width:70px;">
+<img class="pht" src="{{ STATIC_URL }}img/damadam_tshirt2.png" style="max-width:205px;"><br>
+<hr size=1 COLOR="#00c853">
+<div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
+<b class="cg">Damadam ki T-Shirt dastyab </b><br>
+<b class="clb">0331-1730723 pe call karien!</b>
+</div>
+<br>
+<div class="mbs">
+<b class="co">Price:</b><span class="mls"> Rs. 500/-</span><br>
+</div>
+<div class="mbs">
+<b class="co">Delivery:</b><span class="mls"> Free</span><br>
+</div>
+<div class="mbs">
+<b class="co">Size:</b><span class="mls"> Small, Medium, Large, X-Large</span><br>
+</div>
+<div class="mbs">
+<b class="co">Office:</b><span class="mls"> Big City Plaza, Liberty, Lahore</span><br>
+</div>
+<a href="{% url 'home' %}"><button class="btn bco bm mtl mbl"><b>wapis</b></button></a>
+<br>
+<span class="cgy">Aur designs bhi dastyab hain:</span><br>
+<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/superman_tshirt1.png" style="max-width:72px;">
+<img class="pht" src="{{ STATIC_URL }}img/superman_tshirt2.png" style="max-width:205px;"><br>
+<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/beast_tshirt1.png" style="max-width:72px;">
+<img class="pht" src="{{ STATIC_URL }}img/beast_tshirt2.png" style="max-width:205px;"><br>
+<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/furious_tshirt1.png" style="max-width:72px;">
+<img class="pht" src="{{ STATIC_URL }}img/furious_tshirt2.png" style="max-width:205px;"><br>
+<hr size=3 COLOR="#bfbfbf">
+	<form method="post" action="{% url 'virgin_tees' %}" class="mtl">
+	{% csrf_token %}
+		{% if form.feedback.errors %}
+			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
+		{% else %}
+			<b class="cl cg">Is service ko istimal karne ke baad is par tabsra likho:</b><br>
+		{% endif %}
+		<div class="mts">
+	  	{{ form.feedback }}
+	  	</div>
+	  	<button class="btn bcg bm mtl" type="submit">OK</button><br>
+	</form>
+</div>
+<br><br>
+{% endblock %}

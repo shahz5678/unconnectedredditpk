@@ -1426,7 +1426,7 @@ def home_link_list(request, *args, **kwargs):
 		# feedback_given = website_feedback_given(context["ident"])
 		# old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=1))
 		# context["show_feedback_form"] = not feedback_given and old_user
-		context["rand"] = random.random()
+		# context["rand"] = random.random()
 		############################################# Home Rules #################################################
 		context["home_rules"] = spammer_punishment_text(context["ident"])
 		############################################ Namaz feature ###############################################

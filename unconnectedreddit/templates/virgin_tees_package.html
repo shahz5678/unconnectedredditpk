@@ -2,7 +2,7 @@
 {% block content %}
 <div class="margin clb">
 <h2 class="cg bw">Stylish T-Shirts</h2>
-<b class="cs">by VirginTeez Company</b><br>
+<b class="clb cs">Damadam T-Shirt, Price Rs. 500/-</b><br>
 <img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/damadam_tshirt1.png" style="max-width:70px;">
 <img class="pht" src="{{ STATIC_URL }}img/damadam_tshirt2.png" style="max-width:205px;"><br>
 <hr size=1 COLOR="#00c853">
@@ -12,26 +12,29 @@
 </div>
 <br>
 <div class="mbs">
-<b class="co">Price:</b><span class="mls"> Rs. 500/-</span><br>
-</div>
-<div class="mbs">
 <b class="co">Delivery:</b><span class="mls"> Free</span><br>
 </div>
 <div class="mbs">
 <b class="co">Size:</b><span class="mls"> Small, Medium, Large, X-Large</span><br>
 </div>
 <div class="mbs">
+<b class="co">Company:</b><span class="mls"> VirginTeez</span><br>
+</div>
+<div class="mbs">
 <b class="co">Office:</b><span class="mls"> Big City Plaza, Liberty, Lahore</span><br>
 </div>
 <a href="{% url 'home' %}"><button class="btn bco bm mtl mbl"><b>wapis</b></button></a>
 <br>
-<span class="cgy">Aur designs bhi dastyab hain:</span><br>
-<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/superman_tshirt1.png" style="max-width:72px;">
-<img class="pht" src="{{ STATIC_URL }}img/superman_tshirt2.png" style="max-width:205px;"><br>
-<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/beast_tshirt1.png" style="max-width:72px;">
-<img class="pht" src="{{ STATIC_URL }}img/beast_tshirt2.png" style="max-width:205px;"><br>
-<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/furious_tshirt1.png" style="max-width:72px;">
-<img class="pht" src="{{ STATIC_URL }}img/furious_tshirt2.png" style="max-width:205px;"><br>
+<span class="cgy">Aur designs bhi dastyab hain:</span><br><br>
+<b class="clb cs">Superman T-Shirt, Price Rs. 600/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/superman_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/superman_tshirt2.png" style="max-width:205px;"><br>
+<b class="clb cs">Beast T-Shirt, Price Rs. 600/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/beast_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/beast_tshirt2.png" style="max-width:205px;"><br>
+<b class="clb cs">Fast & Furious T-Shirt, Price Rs. 800/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/furious_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/furious_tshirt2.png" style="max-width:205px;"><br>
 <hr size=3 COLOR="#bfbfbf">
 	<form method="post" action="{% url 'virgin_tees' %}" class="mtl">
 	{% csrf_token %}

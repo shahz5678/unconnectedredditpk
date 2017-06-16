@@ -1054,3 +1054,29 @@ class AdFeedbackForm(forms.Form):
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
 		feedback = clear_zalgo_text(feedback)
 		return feedback
+
+class EcommCityForm(forms.Form):
+	loc = forms.RegexField(max_length=250,regex=re.compile("^[A-Za-z0-9._~()'!*:@, ;+?-]*$"),\
+		error_messages={'invalid': _("sirf english harf, number ya @ _ . + - likh sakte ho"),\
+		'required':_("isko khali nahi chore sakte")})
+
+	def __init__(self,*args,**kwargs):
+		super(EcommCityForm, self).__init__(*args,**kwargs)
+		self.fields['loc'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;width:1000px;max-width:85%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
+		self.fields['loc'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_loc(self):
+		loc = self.cleaned_data.get("loc")
+		loc = loc.strip()
+		if len(loc) < 3:
+			raise forms.ValidationError('itna chota city ka naam nahi likh sakte!')
+		elif loc.isdigit():
+			raise ValidationError('city ke naam mein sirf numbers nahi ho sakte!')
+		elif loc.lower() == 'islamabad':
+			raise ValidationError('Islamabad ko wapis ja ke list mein se select kro!')
+		elif loc.lower() == 'lahore':
+			raise ValidationError('Lahore ko wapis ja ke list mein se select kro!')
+		elif loc.lower() == 'rawalpindi':
+			raise ValidationError('Rawalpindi ko wapis ja ke list mein se select kro!')
+		return loc

@@ -108,7 +108,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			except:
 				pass
 			image = Image.open(image)
-			image = make_thumbnail(image)
+			image = make_thumbnail(image,None)
 			return image
 		else:
 			return 0

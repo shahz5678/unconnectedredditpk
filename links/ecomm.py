@@ -206,35 +206,35 @@ def init_classified(request,*args,**kwargs):
 
 #################################################################
 
-@csrf_protect
-def add_shop(request,*args,**kwargs):
-	if request.method == 'POST':
-		form = AddShopForm(data=request.POST)
-	else:
-		form = AddShopForm()
-		return render(request,"add_shop.html",{'form':form})
+# @csrf_protect
+# def add_shop(request,*args,**kwargs):
+# 	if request.method == 'POST':
+# 		form = AddShopForm(data=request.POST)
+# 	else:
+# 		form = AddShopForm()
+# 		return render(request,"add_shop.html",{'form':form})
 
-def shops_by_city(request,city,*args,**kwargs):
-	if city in CITIES:
-		listing = get_city_shop_listing(city)
-		return render(request,"shops_by_city.html",{'listing':listing})
-	else:
-		return redirect("ecomm")
+# def shops_by_city(request,city,*args,**kwargs):
+# 	if city in CITIES:
+# 		listing = get_city_shop_listing(city)
+# 		return render(request,"shops_by_city.html",{'listing':listing})
+# 	else:
+# 		return redirect("ecomm")
 
-@csrf_protect
-def show_shop_choices(request,*args,**kwargs):
-	if first_time_shopper(request.user.id):
-		add_shopper(request.user.id)
-		return render(request,"shops_welcome.html",{})
-	else:
-		if request.method == 'POST':
-			if request.POST.get('listing',None):
-				city = request.POST.get('city',None)
-				return redirect("shops_by_city",city)
-			else:
-				return render(request,"shop_locations.html",{})
-		else:
-			return render(request,"shop_locations.html",{})
+# @csrf_protect
+# def show_shop_choices(request,*args,**kwargs):
+# 	if first_time_shopper(request.user.id):
+# 		add_shopper(request.user.id)
+# 		return render(request,"shops_welcome.html",{})
+# 	else:
+# 		if request.method == 'POST':
+# 			if request.POST.get('listing',None):
+# 				city = request.POST.get('city',None)
+# 				return redirect("shops_by_city",city)
+# 			else:
+# 				return render(request,"shop_locations.html",{})
+# 		else:
+# 			return render(request,"shop_locations.html",{})
 
 #################################################################
 

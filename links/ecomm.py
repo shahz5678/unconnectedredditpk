@@ -203,35 +203,6 @@ def init_classified(request,*args,**kwargs):
 	else:
 		return render(request,"basic_classified_instructions.html",{})
 
-	# Sell Item
-# -Item name, description (kitna purana hai? condition kesi hai ya kitna istamal shuda hai? Agar koi nuqs hai tou woh kiya hai?)	
-# -Name: First name, last name
-# -Location: City
-# -Bike, Phone, Computer, Home Items
-#     -Bike (Model, Mileage, ask asad)
-#     - Phone( brand, model, price)
-#      - Home Item (Name, Description) 
-# -Used/New
-# - Rate
-# - Contact number
-# -Photos
-
-"""
-1) Kiya baichna chahte ho? Name aur model likho
-2) Ye new hai ya used?
-if used: 
-	1) Ye kitna istamal shuda hai?
-3) Kam az kam kitni price ka baichna chahtey ho?
-4) Sirf paisey chahiyen ya iske saath kuch exchange bhi kar lo gey?
-
-5) Iski achi si photos upload karo. Photos dekh kar khareednay waley ka trust barhta hai.
-
-6) Apna naam likho
-7) Apna city likho
-8) Apna phone number verify karo (if not already verified within last 1 week)
-
-9) Agr kuch aur information deni hai tou yahan likho, warna skip ka button daba dou.
-"""
 
 #################################################################
 
@@ -264,6 +235,8 @@ def show_shop_choices(request,*args,**kwargs):
 				return render(request,"shop_locations.html",{})
 		else:
 			return render(request,"shop_locations.html",{})
+
+#################################################################
 
 def x32_details(request,*args,**kwargs):
 	return render(request,"x32_details.html",{})

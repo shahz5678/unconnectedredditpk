@@ -5,6 +5,7 @@ from location import REDLOC4
 '''
 ##########Redis Namespace##########
 
+city_shops = "city_shops"
 "historical_calcs"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
@@ -120,6 +121,21 @@ def get_clones(user_id):
 # 	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
 # 	my_server.set(user_ban,1)
 # 	my_server.expire(user_ban,ONE_HOUR)
+
+#########################################################
+
+def get_city_shop_listing(city):
+	my_server = redis.Redis(connection_pool=POOL)
+	city_shops = "city_shops"
+	shop_ids = my_server.smembers(city_shops)
+	pipeline1 = my_server.pipeline()
+	for shop_id in shop_ids:
+		shop_detail = "sd:"+str(shop_id)
+		pipeline1.hgetall(shop_detail)
+	return pipeline1.execute()
+
+def initialize_shop(information):
+	my_server = redis.Redis(connection_pool=POOL)
 
 #########################################################
 

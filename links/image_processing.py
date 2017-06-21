@@ -38,7 +38,7 @@ def reorient_image(image):
     except:
         return image
 
-def make_thumbnail(filee):
+def make_thumbnail(filee,quality):
     img = filee
     # img = restyle_image(img) # only use this if you're not utilizing img.thumbnail()
     if img.mode != 'RGB':
@@ -57,32 +57,36 @@ def make_thumbnail(filee):
     # draw_text(img,text,fillcolor,shadowcolor)
     #############
     thumbnailString = StringIO.StringIO()
-    img.save(thumbnailString, 'JPEG', optimize=True,quality=40)
+    if quality:
+        img.save(thumbnailString, 'JPEG', optimize=True,quality=80)
+    else:
+        img.save(thumbnailString, 'JPEG', optimize=True,quality=40)
     newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
+    # print newFile
+    # print newFile.file
     return newFile
 
 # used in PhotoReplyView (unreleased), PicsChatUploadView, PublicGroupView, PrivateGroupView, AdImageView
-def clean_image_file(image): # where self is the form
+def clean_image_file(image,quality=None):
     if image:
         image = Image.open(image)
         image = reorient_image(image)
-        image = make_thumbnail(image)
-        #print "thumbnailed image is %s" % image.size
+        image = make_thumbnail(image,quality)
         return image
     else:
         return 0
 
 # used by upload_public_photo in views
-def clean_image_file_with_hash(image):#, hashes): # where self is the form
+def clean_image_file_with_hash(image,quality=None,categ=None):
     if image:
         image = Image.open(image)
         image = reorient_image(image) #so that it appears the right side up
         avghash = compute_avg_hash(image) #to ensure a duplicate image hasn't been posted before
-        exists = already_exists(avghash)
+        exists = already_exists(avghash, categ)
         if exists:
             return image, avghash, exists
         else:
-            image = make_thumbnail(image)
+            image = make_thumbnail(image,quality)
             return image, avghash, None
     else:
         return (0,-1)

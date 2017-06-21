@@ -24,16 +24,17 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
-def login_test(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("home")
-	else:
-		CSRF = csrf.get_token(request)
-		if request.method == 'POST':
-			# opportunity to block entry here
-			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
-		else:
-			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
+# def login_test(request,*args,**kwargs):
+# 	if request.user.is_authenticated():
+# 		return redirect("home")
+# 	else:
+# 		CSRF = csrf.get_token(request)
+# 		request.session["csrf"] = CSRF
+# 		if request.method == 'POST':
+# 			# opportunity to block entry here
+# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
+# 		else:
+# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
 
 def login(request, lang=None, *args,**kwargs):
 	if request.user.is_authenticated():

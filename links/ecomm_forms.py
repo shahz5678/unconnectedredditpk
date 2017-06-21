@@ -115,28 +115,28 @@ class EcommCityForm(forms.Form):
 			raise ValidationError('Rawalpindi ko wapis ja ke list mein se select kro!')
 		return loc
 
-class AddShopForm(forms.Form):
-	LOCATIONS = (  
-    ('Rawalpindi', 'Rawalpindi'),
-    ('Islamabad', 'Islamabad'),
-    ('Lahore', 'Lahore'),
-    ('Karachi', 'Karachi'),)
+# class AddShopForm(forms.Form):
+# 	LOCATIONS = (  
+#     ('Rawalpindi', 'Rawalpindi'),
+#     ('Islamabad', 'Islamabad'),
+#     ('Lahore', 'Lahore'),
+#     ('Karachi', 'Karachi'),)
 	
-	# Should we add photos?
+# 	# Should we add photos?
 
-	shop_name = forms.RegexField(max_length=250,regex=re.compile("^[a-zA-Z\s]+$"),\
-		error_messages={'invalid': _("Shop name mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Is mein shop name likhein:")})
-	city = forms.ChoiceField(choices=LOCATIONS, required=True)
-	address = forms.CharField(max_length=50,\
-		error_messages={'invalid': _("Address mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Is mein address likhein:")})
-	mobile = forms.CharField(max_length=13,\
-		error_messages={'required':_("Is mein mobile number likhein:")})
-	owner_name = forms.RegexField(max_length=43, regex=re.compile("^[a-zA-Z\s]+$"),\
-		error_messages={'invalid': _("Name mein sirf english harf ho sakta hai"),\
-		'required':_("Is mein name likhein:")})
-	owner_cnic = forms.CharField(max_length=50,\
-		error_messages={'invalid': _("CNIC mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
-		'required':_("Is mein CNIC likhein:")})
-#####################################################################################################	
+# 	shop_name = forms.RegexField(max_length=250,regex=re.compile("^[a-zA-Z\s]+$"),\
+# 		error_messages={'invalid': _("Shop name mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
+# 		'required':_("Is mein shop name likhein:")})
+# 	city = forms.ChoiceField(choices=LOCATIONS, required=True)
+# 	address = forms.CharField(max_length=50,\
+# 		error_messages={'invalid': _("Address mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
+# 		'required':_("Is mein address likhein:")})
+# 	mobile = forms.CharField(max_length=13,\
+# 		error_messages={'required':_("Is mein mobile number likhein:")})
+# 	owner_name = forms.RegexField(max_length=43, regex=re.compile("^[a-zA-Z\s]+$"),\
+# 		error_messages={'invalid': _("Name mein sirf english harf ho sakta hai"),\
+# 		'required':_("Is mein name likhein:")})
+# 	owner_cnic = forms.CharField(max_length=50,\
+# 		error_messages={'invalid': _("CNIC mein sirf english harf, number ya @ _ . + - ho sakta hai"),\
+# 		'required':_("Is mein CNIC likhein:")})
+# #####################################################################################################	

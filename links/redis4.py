@@ -124,18 +124,18 @@ def get_clones(user_id):
 
 #########################################################
 
-def get_city_shop_listing(city):
-	my_server = redis.Redis(connection_pool=POOL)
-	city_shops = "city_shops"
-	shop_ids = my_server.smembers(city_shops)
-	pipeline1 = my_server.pipeline()
-	for shop_id in shop_ids:
-		shop_detail = "sd:"+str(shop_id)
-		pipeline1.hgetall(shop_detail)
-	return pipeline1.execute()
+# def get_city_shop_listing(city):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	city_shops = "city_shops"
+# 	shop_ids = my_server.smembers(city_shops)
+# 	pipeline1 = my_server.pipeline()
+# 	for shop_id in shop_ids:
+# 		shop_detail = "sd:"+str(shop_id)
+# 		pipeline1.hgetall(shop_detail)
+# 	return pipeline1.execute()
 
-def initialize_shop(information):
-	my_server = redis.Redis(connection_pool=POOL)
+# def initialize_shop(information):
+# 	my_server = redis.Redis(connection_pool=POOL)
 
 #########################################################
 

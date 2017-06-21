@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2 class="cg">STEP 1 <span class="cs">(out of 4)</span></h2>
+
+<form method="POST" action="{% url 'post_basic_item' %}">
+{% csrf_token %}
+
+<div class="mtl mbl">
+<b class="cl">Baichnay wali cheez ki tafseel likho:</b>
+<div class="mbs">
+{% if form.description.errors %}
+<span class="cr">{{ form.description.errors.0 }}</span>
+{% else %}
+<span class="cgy cs">(Sab likho jo khareednay wala poochna chahey ga)</span>
+{% endif %}
+</div>
+{{ form.description }}
+</div>
+<hr size=1 COLOR="#b3e6b3">
+
+<div class="mtl mbl">
+<b class="cl">Yeh istamal shuda hai ya bilkul new hai?</b>
+{% if form.new.errors %}
+<br><span class="cr">{{ form.new.errors.0 }}</span>
+{% endif %}
+{% for radio in form.new %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+  {% endfor %}
+</div>
+<hr size=1 COLOR="#b3e6b3">
+
+<div class="mtl mbl">
+<div class="mbs">
+<b class="cl">Kitni price ka baichna chahtey ho?</b>
+{% if form.ask.errors %}
+<br><span class="cr">{{ form.ask.errors.0 }}</span>
+{% endif %}
+</div>
+{{ form.ask }}
+</div>
+<hr size=1 COLOR="#b3e6b3">
+
+<div class="mtl mbl">
+<b class="cl">Sirf paisey chahiyen ya iske saath kuch exchange bhi kar lo gey?</b>
+{% if form.barter.errors %}
+<br><span class="cr">{{ form.barter.errors.0 }}</span>
+{% endif %}
+{% for radio in form.barter %}
+    <table>
+      <tr>
+        <label for="{{ radio.id_for_label }}">
+          <td>
+            <span>{{ radio.tag }}</span>
+            <span class="clb">{{ radio.choice_label }}</span>
+          </td>
+        </label>
+      </tr>
+    </table>
+  {% endfor %}
+</div>
+<hr size=1 COLOR="#b3e6b3">
+<input class="btn bm bcg mbs mts" type="submit" value="Agey">
+</form>
+<!-- 
+<hr size=2 COLOR="#b3e6b3">
+<form method="POST" class="mtl" action="{% url 'post_basic_item' %}">{% csrf_token %}
+<span class="cgy">Agar kuch ghalat ho gaya hai aur dobara se shuru karna hai tou ye dabao:</span><br>
+<input type="submit" class="btn bm bcg mbs mts" value="Restart">
+</form> -->
+</div>
+<br><br>
+{% endblock %}

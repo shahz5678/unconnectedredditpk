@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2 class="cg">STEP 4 <span class="cs">(out of 4)</span></h2>
+
+<b class="cxl clb">Ab ham aap ke mobile number ki tasdeeq karien ge</b><br>
+<span class="cl cgy">Neechay <b>OK</b> ka button dabao, aur agli screen par apna mobile number likho</span><br>
+
+<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=true>
+  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vsn/">
+  <input type="hidden" name="state" value="{{ csrf }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:120%;font-weight:bold;text-shadow:1px 1px #003315;" value="OK">
+</form><br>
+<b class="cgy cs">Tasdiq karney mein hamari partner company <b>Facebook</b> shamil hai</b>
+
+<!-- 
+<hr size=2 COLOR="#b3e6b3">
+<form method="POST" class="mtl" action="{% url 'post_basic_item' %}">{% csrf_token %}
+<span class="cgy">Agar kuch ghalat ho gaya hai aur dobara se shuru karna hai tou ye dabao:</span><br>
+<input type="submit" class="btn bm bcg mbs mts" value="Restart">
+</form> -->
+</div>
+<br><br>
+{% endblock %}

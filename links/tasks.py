@@ -8,12 +8,14 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
+from imagestorage import delete_from_blob
+from image_processing import clean_image_file_with_hash
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
-queue_punishment_amount
+queue_punishment_amount, pre_add_used_item_photo, del_orphaned_classified_photos
 from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
@@ -22,7 +24,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, log_urdu#, retrieve_first_page
+delete_photo_report, insert_hash, delete_avg_hash, log_urdu#, retrieve_first_page
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
@@ -77,6 +79,26 @@ def punish_gibberish_writers(dict_of_targets):
 		queue_punishment_amount(user_id,score_penalty)
 	# for user_id,payable_score in payables:
 	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+
+@celery_app1.task(name='tasks.upload_ecomm_photo')
+def upload_ecomm_photo(photo_id, user_id, avghash, ad_id):
+	# epochtime = convert_to_epoch(time)
+	insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
+	pre_add_used_item_photo(user_id, ad_id, photo_id)
+
+# schedule this every 2.5 hours
+@celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
+def sanitize_unused_ecomm_photos():
+	photo_ids = del_orphaned_classified_photos()
+	if photo_ids:
+		# deleting model objects
+		qset = Photo.objects.filter(id__in=photo_ids)
+		images_and_hashes = qset.values_list('image_file','avg_hash')#flat=True)
+		image_names, avg_hashes= zip(*images_and_hashes)
+		qset.delete()
+		# deleting actual images+thumbnails in azure storage
+		delete_avg_hash(avg_hashes,categ='ecomm')
+		delete_from_blob(image_names)
 
 @celery_app1.task(name='tasks.log_gibberish')
 def log_gibberish_writer(user_id,text,length_of_text):

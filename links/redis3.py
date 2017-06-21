@@ -11,14 +11,17 @@ from html_injector import image_thumb_formatting
 
 gibberish_writers = 'gibberish_writers'
 punishment_text = "pt:"+str(user_id)
+my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
 user_thumbs = "upt:"+owner_uname
+"unfinalized_used_item_ads"
 
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
+FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 
@@ -271,6 +274,78 @@ def insert_nick_list(nickname_list):
 		nicknames.append(specific_nick)
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
+
+###############Saving User Mobile Data#################
+
+# def save_seller_credentials(account_kit_user_id, mobile_data):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# print account_kit_user_id #connected to a mobile number, time of phone number verification
+# 	# print mobile_data {'national_number': '3335196812', 'number': '+923335196812', 'country_prefix': '92'}
+# 	# need to tie running ad's ad_id to the user (list containing ad_id, user_id pairs as values)
+# 	return True
+
+# def save_new_user_credentials(account_kit_user_id, mobile_data):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# create a table(hash??) of user_id and complete_mobile_num (hash will allow multiple numbers, e.g. if seller's personal number and seller number are different)
+# 	# create hash tables headlined by phone numbers, containing other features
+# 	# 	including: nick, gender, account_kit_id, user_id,  
+
+#####################Classifieds#######################
+
+def cleanup(my_server,ad_id):
+	my_server.zrem("unfinalized_used_item_ads",ad_id)
+	my_server.delete("rc:"+str(ad_id))
+
+def save_basic_ad_data(submitted_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	photo_ids = my_server.lrange("rc:"+str(submitted_data["ad_id"]),0,-1)
+	if photo_ids:
+		submitted_data["photos"] = photo_ids
+	my_server.lpush("unapproved_ads",submitted_data)
+	cleanup(my_server,submitted_data["ad_id"])
+	return True
+
+def pre_add_used_item_photo(user_id, ad_id, photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_id = str(ad_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zadd("unfinalized_used_item_ads",ad_id,time.time()) #removed deployed ad_ids from here
+	pipeline1.lpush("rc:"+ad_id,photo_id) #remove deployed photo_ids from here
+	pipeline1.execute()
+	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
+
+# def get_used_item_photos(user_id,ad_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# str(user_id)+":"+str(ad_id)
+
+def get_basic_item_ad_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("basic_item_ad_id")
+
+def del_orphaned_classified_photos():
+	import operator
+	my_server = redis.Redis(connection_pool=POOL)
+	# deleting orphaned photos from 45 mins ago
+	ad_ids_with_times = my_server.zrangebyscore("unfinalized_used_item_ads",'-inf','('+str(time.time()-FORTY_FIVE_MINS), withscores=True)
+	if ad_ids_with_times:
+		score_range = []
+		ad_ids = []
+		for ad_and_time in ad_ids_with_times:
+			ad_ids.append(ad_and_time[0])
+			score_range.append(ad_and_time[1])
+		pipeline1 = my_server.pipeline()
+		for ad_id in ad_ids:
+			pipeline1.lrange("rc:"+ad_id,0,-1)
+		photo_ids_to_delete = reduce(operator.add, pipeline1.execute())
+		pipeline2 = my_server.pipeline()
+		for ad_id in ad_ids:
+			pipeline2.delete("rc:"+ad_id)
+		pipeline2.execute()
+		my_server.zremrangebyscore("unfinalized_used_item_ads",min(score_range),max(score_range))
+		return photo_ids_to_delete
+	else:
+		return None
+
 
 #####################E Commerce#######################
 

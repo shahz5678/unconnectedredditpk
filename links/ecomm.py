@@ -1,11 +1,11 @@
 from models import Photo
 from tasks import upload_ecomm_photo
-from redis4 import get_city_shop_listing
-from redis1 import first_time_shopper, add_shopper
+# from redis4 import get_city_shop_listing
+# from redis1 import first_time_shopper, add_shopper
 from image_processing import clean_image_file_with_hash
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id
-from ecomm_forms import EcommCityForm, AddShopForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm
+from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm#, AddShopForm 
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect

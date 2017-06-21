@@ -1351,12 +1351,10 @@ def home_list(request, items_per_page, notif=None):
 		addendum = '?page=1#section0'
 		page_num = request.GET.get('page', '1')
 	page_obj = get_page_obj(page_num,obj_list,items_per_page)
-	# photo_ids, non_photo_link_ids, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 	photo_links, list_of_dictionaries = retrieve_home_links(page_obj.object_list)
 	replyforms = {}
 	for obj in list_of_dictionaries:
 		replyforms[obj['l']] = PublicreplyMiniForm() #passing link_id to forms dictionary
-	# return photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum
 	return photo_links, list_of_dictionaries, page_obj, replyforms, addendum
 
 def home_location_pk(request,pk=None,*args,**kwargs):
@@ -1365,15 +1363,7 @@ def home_location_pk(request,pk=None,*args,**kwargs):
 
 def home_location(request, *args, **kwargs):
 	link_id = request.session.pop("target_id", 0)
-	# try:
-	# 	link_id = request.session['target_id']
-	# 	del request.session['target_id']
-	# except:
-	# 	link_id = 0
-	# photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
-	photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,link_id)
-	# request.session['home_photo_ids'] = photo_ids
-	# request.session['home_non_photo_link_ids'] = non_photo_link_ids	
+	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request,ITEMS_PER_PAGE,link_id)
 	request.session['photo_links'] = photo_links
 	request.session['list_of_dictionaries'] = list_of_dictionaries
 	request.session['page'] = page_obj
@@ -1401,26 +1391,19 @@ def home_link_list(request, *args, **kwargs):
 			if request.session['list_of_dictionaries'] and request.session['page'] and request.session['replyforms']:
 				#don't check for photo_links in if clause, since this can be [] in certain allowable situations
 				photo_links = request.session['photo_links']
-				# photo_ids = request.session['home_photo_ids']
-				# non_photo_link_ids = request.session['home_non_photo_link_ids']
 				list_of_dictionaries = request.session['list_of_dictionaries']
 				page = request.session['page']
 				replyforms = request.session['replyforms']
 			else:
-				# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 			del request.session['photo_links']
-			# del request.session['home_photo_ids']
-			# del request.session['home_non_photo_link_ids']
 			del request.session['list_of_dictionaries']
 			del request.session['page']
 			del request.session['replyforms']
 		else:
 			# normal refresh or toggling between pages (via agey or wapis)
 			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
-			# photo_ids, non_photo_link_ids, list_of_dictionaries, page, replyforms, addendum = home_list(request,ITEMS_PER_PAGE)
 		context["link_list"] = list_of_dictionaries
-		# print type(list_of_dictionaries[0]['n'])
 		context["page"] = page
 		context["replyforms"] = replyforms
 		############################################ Website Feedback #############################################
@@ -4719,7 +4702,7 @@ def upload_public_photo(request,*args,**kwargs):
 						return render(request,'big_photo_regular.html',{'pk':'pk'})
 					else:
 						pass
-				image_file_new, avghash, pk = clean_image_file_with_hash(image_file)#, recent_hashes)
+				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, recent_hashes)
 				if isinstance(pk,float):
 					try:
 						photo = Photo.objects.get(id=int(pk))
@@ -4754,7 +4737,7 @@ def upload_public_photo(request,*args,**kwargs):
 				banned = '1' if request.user_banned else '0'
 				photo_upload_tasks.delay(banned, user_id,photo_id, timestring, device)
 				insert_hash(photo_id, photo.avg_hash) #perceptual hash of the photo
-				add_photo(photo_id) #adding in photo feed
+				add_photo(photo_id) #adding into photo feed so that it shows up
 				save_recent_photo(user_id, photo_id) #saving 5 recent ones
 				try:
 					owner_url = user.userprofile.avatar.url

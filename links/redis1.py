@@ -427,6 +427,15 @@ def unlock_uname_search(user_id):
 #photo judger:          '11'
 #photo curator:         '12'
 #website feedbacker:    '13'
+#shopper:               '14'
+
+def first_time_shopper(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'14'):
+		return False
+	else:
+		return True	
 
 def first_time_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -585,6 +594,11 @@ def add_website_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '13')
+
+def add_shopper(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '14')
 
 #####################Publicreplies#####################
 
@@ -1676,30 +1690,42 @@ def document_publicreply_abuse(user_id):
 
 #####################checking image perceptual hashes#####################
 
-def already_exists(photo_hash):
+def already_exists(photo_hash,categ=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	try:
+	if categ == 'ecomm':
+		exists = my_server.zscore("perceptual_hash_used_item_set", photo_hash)
+	else:
 		exists = my_server.zscore("perceptual_hash_set", photo_hash)
-		if exists:
-			return exists
-		else:
-			return False
-	except:
-		return False
+	return exists
 
-def insert_hash(photo_id, photo_hash):
+def insert_hash(photo_id, photo_hash,categ=None):
 	my_server = redis.Redis(connection_pool=POOL)
+	if categ == 'ecomm':
+		set_name = "perceptual_hash_used_item_set"
+	else:
+		set_name = "perceptual_hash_set"
+	##########################
 	try:
-		size = my_server.zcard("perceptual_hash_set")
-		# limit = 3000
-		limit = 10000
-		if size < (limit+1):
-			my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
+		size = my_server.zcard(set_name)
+		if categ == 'ecomm':
+			limit = 500
 		else:
-		   my_server.zremrangebyrank("perceptual_hash_set", 0, (size-limit-1))
-		   my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
+			limit = 10000
+		if size < (limit+1):
+			my_server.zadd(set_name, photo_hash, photo_id)
+		else:
+		   my_server.zremrangebyrank(set_name, 0, (size-limit-1))
+		   my_server.zadd(set_name, photo_hash, photo_id)
 	except:
-		my_server.zadd("perceptual_hash_set", photo_hash, photo_id)
+		my_server.zadd(set_name, photo_hash, photo_id)
+
+def delete_avg_hash(hash_list, categ=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if hash_list:
+		if categ == 'ecomm':
+			my_server.zrem("perceptual_hash_used_item_set", *hash_list)
+		else:
+			my_server.zrem("perceptual_hash_set", *hash_list)
 
 ##############################short messages##############################
 

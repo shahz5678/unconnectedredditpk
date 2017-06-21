@@ -429,13 +429,13 @@ def unlock_uname_search(user_id):
 #website feedbacker:    '13'
 #shopper:               '14'
 
-def first_time_shopper(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'14'):
-		return False
-	else:
-		return True	
+# def first_time_shopper(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	set_name = "ftux:"+str(user_id)
+# 	if my_server.sismember(set_name,'14'):
+# 		return False
+# 	else:
+# 		return True	
 
 def first_time_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -595,10 +595,10 @@ def add_website_feedbacker(user_id):
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '13')
 
-def add_shopper(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '14')
+# def add_shopper(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	set_name = "ftux:"+str(user_id)
+# 	my_server.sadd(set_name, '14')
 
 #####################Publicreplies#####################
 

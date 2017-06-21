@@ -210,3 +210,11 @@ def upload_photocomment_to_location(instance, filename):
 	except Exception as e:
 		print '%s (%s)' % (e.message, type(e))
 		return 0
+
+def delete_from_blob(image_list):
+	blob_service = BlobService(account_name=accountName, account_key=accountKey)
+	if image_list:
+		for image_name in image_list:
+			thumbnail_name = image_name.replace("photos","thumbnails")
+			blob_service.delete_blob(container_name='pictures', blob_name=image_name)
+			blob_service.delete_blob(container_name='pictures', blob_name=thumbnail_name)

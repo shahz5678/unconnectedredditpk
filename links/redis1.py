@@ -1408,7 +1408,7 @@ def get_group_members(group_id):
 	if my_server.exists(set_name):
 		members = my_server.smembers(set_name)
 	else:
-		members = None
+		members = []
 	return members
 
 #####################checking abuse and punishing#####################

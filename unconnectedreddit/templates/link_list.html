@@ -260,6 +260,15 @@
 				<p><hr size=1 COLOR="#33cc33"></p></div>
 		{% endif %}
 	{% endif %}
+	{% if forloop.counter == 6 %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'virgin_tees' %}#section0"><img class="pht" style="max-width:205px;" src="{{ STATIC_URL }}img/wordart_tshirt2.png"></a><br>
+		<span class="cg cl"><b>Stylish T-Shirts</b> khareednay ke liye click karien</span>
+		<a href="{% url 'virgin_tees' %}#section0"><button class="btn bcg bl cl mls mts mbs">T-Shirts</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
 	{% if forloop.counter == 8 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->

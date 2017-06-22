@@ -2,12 +2,12 @@
 {% block content %}
 <div class="margin clb">
 <h2 class="cg bw">Stylish T-Shirts</h2>
-<b class="clb cs">Damadam T-Shirt, Price Rs. 500/-</b><br>
-<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/damadam_tshirt1.png" style="max-width:70px;">
-<img class="pht" src="{{ STATIC_URL }}img/damadam_tshirt2.png" style="max-width:205px;"><br>
+<b class="clb cs">Grey T-Shirt, Price Rs. 400/-</b><br>
+<img class="pht mrs mbs mtl" src="{{ STATIC_URL }}img/grey_tshirt1.png" style="max-width:72px;">
+<img class="pht" src="{{ STATIC_URL }}img/grey_tshirt2.png" style="max-width:205px;"><br>
 <hr size=1 COLOR="#00c853">
 <div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="cg">Damadam ki T-Shirt dastyab </b><br>
+<b class="cg">Stylish T-Shirts dastyab hain</b><br>
 <b class="clb">0331-1730723 pe call karien!</b>
 </div>
 <br>
@@ -18,23 +18,22 @@
 <b class="co">Size:</b><span class="mls"> Small, Medium, Large, X-Large</span><br>
 </div>
 <div class="mbs">
-<b class="co">Company:</b><span class="mls"> VirginTeez</span><br>
+<b class="co">Company:</b><a href="http://www.virginteez.com" target="_blank" class="mls"> www.virginteez.com</a><br>
 </div>
-<div class="mbs">
+<div class="mbl">
 <b class="co">Office:</b><span class="mls"> Big City Plaza, Liberty, Lahore</span><br>
 </div>
-<a href="{% url 'home' %}"><button class="btn bco bm mtl mbl"><b>wapis</b></button></a>
-<br>
-<span class="cgy">Aur designs bhi dastyab hain:</span><br><br>
-<b class="clb cs">Superman T-Shirt, Price Rs. 600/-</b><br>
-<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/superman_tshirt1.png" style="max-width:72px;">
-<img class="pht mbl" src="{{ STATIC_URL }}img/superman_tshirt2.png" style="max-width:205px;"><br>
-<b class="clb cs">Beast T-Shirt, Price Rs. 600/-</b><br>
-<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/beast_tshirt1.png" style="max-width:72px;">
-<img class="pht mbl" src="{{ STATIC_URL }}img/beast_tshirt2.png" style="max-width:205px;"><br>
-<b class="clb cs">Fast & Furious T-Shirt, Price Rs. 800/-</b><br>
-<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/furious_tshirt1.png" style="max-width:72px;">
-<img class="pht mbl" src="{{ STATIC_URL }}img/furious_tshirt2.png" style="max-width:205px;"><br>
+<span class="cgy">Kaee aur designs bhi dastyab hain, maslan:</span><br><br>
+<b class="clb cs">Word Art T-Shirt, Price Rs. 600/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/wordart_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/wordart_tshirt2.png" style="max-width:205px;"><br>
+<b class="clb cs">Big Talk T-Shirt, Price Rs. 600/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/bigtalk_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/bigtalk_tshirt2.png" style="max-width:205px;"><br>
+<b class="clb cs">Funny Batman T-Shirt, Price Rs. 800/-</b><br>
+<img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/funnybatman_tshirt1.png" style="max-width:72px;">
+<img class="pht mbl" src="{{ STATIC_URL }}img/funnybatman_tshirt2.png" style="max-width:205px;"><br>
+<a href="{% url 'home' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
 <hr size=3 COLOR="#bfbfbf">
 	<form method="post" action="{% url 'virgin_tees' %}" class="mtl">
 	{% csrf_token %}

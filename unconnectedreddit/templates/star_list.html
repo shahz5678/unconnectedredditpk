@@ -2,43 +2,45 @@
 {% load thumbnail %}
 {% block content %}
     <div class="margin">
-    {% if allowed %}
         {% if not users %}
-        <b class="clb csw"class="clb csw">Stars woh hote hain jin ke tum fan ho</b><br>
-        <span class="clb csw">Is waqt tum kisi star ke fan nahi</span>
+        <b class="clb csw">Stars woh hote hain jin ke tum fan ho</b><br>
+        <span class="clb csw">Is waqt tum kisi ke bhi fan nahi</span>
         <br><br>
         <a href="{% url 'profile' user.username %}#section0">
         <button class="btn bcg bs cs">wapis</button>
         </a>
         {% else %}
-        <b class="clb csw">Stars jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
+        <b class="clb csw">Users jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
-            {% for star in users %}
-            <span class="co cs">{{ forloop.counter }}.</span>
-            <a href="{% url 'profile' slug=star.0.username %}#section0">
-                {% if star.0.userprofile.avatar %}
-                    <img src="{{ star.0.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            {% for star,total_photos,thumbs in users reversed %}
+            <span class="cs">{{ forloop.counter }}.</span>
+            <a href="{% url 'profile' slug=star.username %}#section0">
+                {% if star.userprofile.avatar %}
+                    <img src="{{ star.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                 {% endif %}
-            {{ star.0.username }}</a>{% if star.0.username in girls %}<b class="pkstr">*</b>{% endif %}
-                {% if star.0.userprofile.score %}
-                    {% if star.0.userprofile.score < 0 %}
-                        <span class="cg cs">(1)</span>
+            {{ star.username }}</a>{% if star.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
+                {% if star.userprofile.score %}
+                    <span class="cg cs">
+                    {% if star.userprofile.score < 0 %}
+                        (1)
                     {% else %}
-                        <span class="cg cs">({{ star.0.userprofile.score }})</span>
-                    {% endif %}:
+                        ({{ star.userprofile.score }})
+                    {% endif %}</span>:
                 {% else %}
                 {% endif %}
-            <span class="co cm"> <a href="{% url 'profile' slug=star.0.username %}#section0" class="co"><b>{{ star.1 }}</b> photos</a></span>&nbsp;&nbsp;
-            <a href="{% url 'fan' star.0.id 0 0 %}"><button class="btn bcr bm cs">khatm</button></a>
-            <br>
+            <span class="co cm"> <a href="{% url 'profile' slug=star.username %}#section0" class="co"><b>{{ total_photos }}</b> photos</a></span>&nbsp;&nbsp;
+            <a href="{% url 'fan' star.id 0 0 %}"><button class="btn bcr bm cs mbs mts">khatm</button></a>
+                {% if thumbs != None %}
+                <form method="POST" action="{% url 'go_to_user_photo' star.username 0 %}" class="mts">{% csrf_token %}
+                {{ thumbs|safe }}
+                </form>
+                {% endif %}
+            <hr size=1 COLOR="#ff9933">
             {% endfor %}
         {% endif %}
 
-    {% else %}
-        <b class="clb csw">Ye is terah nahi chalta!</b><br><br>    
-    {% endif %}
     </div>
     <br><br>
 {% endblock %}

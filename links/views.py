@@ -1,5 +1,5 @@
 # coding=utf-8
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, sys
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, itertools#, sys
 from collections import OrderedDict, defaultdict
 # from requests.auth import HTTPBasicAuth
 from operator import attrgetter,itemgetter
@@ -517,15 +517,12 @@ def fan_list(request, pk=None, *args, **kwargs):
 	all_fan_ids, total_count, new_fan_ids_and_count = get_all_fans(pk)
 	new_fan_ids = new_fan_ids_and_count[0]
 	new_count = new_fan_ids_and_count[1]
-	combined_users = []
-	for user_id in all_fan_ids:
-	    if user_id in new_fan_ids:
-	        combined_users.append((user_id,1))
-	    else:
-	        combined_users.append((user_id,0))
 	star = User.objects.get(id=pk)
-	if all_fan_ids:
-		page_obj = get_page_obj(page_num,combined_users,FANS_PER_PAGE)
+	existing_users = [(id,False) for id in all_fan_ids if id not in set(new_fan_ids)]
+	new_users = [(id,True) for id in new_fan_ids]
+	all_users = new_users + existing_users
+	if all_users:
+		page_obj = get_page_obj(page_num,all_users,FANS_PER_PAGE)
 		fan_dict = User.objects.select_related('userprofile').in_bulk(map(itemgetter(0),page_obj.object_list))
 		fans = []
 		for (user_id,is_new) in page_obj.object_list:

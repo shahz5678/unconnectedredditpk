@@ -12,14 +12,15 @@ from imagestorage import delete_from_blob
 from image_processing import clean_image_file_with_hash
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
-from .models import Photo, UserFan, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
+from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, pre_add_used_item_photo, del_orphaned_classified_photos
 from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100#, get_latest_online
+get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
+get_fan_counts_in_bulk, get_all_fans, is_fan#, get_latest_online
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
@@ -149,9 +150,8 @@ def calc_photo_quality_benchmark():
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, caption):
-	fan_ids_list = UserFan.objects.filter(star_id=user_id).values_list('fan',flat=True)
+	fan_ids_list, total_fans, recent_fans = get_all_fans(user_id)
 	if fan_ids_list:
-		total_fans = len(fan_ids_list)
 		fans_notified_in_ua = 0
 		percentage_of_users_beaten = get_uploader_percentile(user_id)
 		if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
@@ -341,14 +341,17 @@ def whoseonline():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	top_100_ids_wscr = get_top_100() #list of top 100 photo uploaders (with scores)
-	user_ids = map(itemgetter(0),top_100_ids_wscr)
-	object_list = User.objects.select_related('totalfanandphotos','userprofile').in_bulk(user_ids) #in_bulk() returns a dictionary
-	sorted_list = [object_list[int(x)] for x in user_ids]# if x in object_list]
+	user_ids = get_top_100()
+	user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
+	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').in_bulk(user_ids)
+	top_list = []
+	for user_id in user_ids:
+		top_list.append((user_ids_and_user_objects[int(user_id)],user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
+			user_ids_and_user_objects[int(user_id)].userprofile,user_ids_and_fan_counts[user_id]))
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 660,
+			'LOCATION': MEMLOC, 'TIMEOUT': 1260,
 		})
-	cache_mem.set('fans', sorted_list)
+	cache_mem.set('fans', top_list)
 
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
@@ -474,7 +477,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	set_prev_replies(user_id,text)
-	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
+	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
@@ -540,7 +543,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	set_prev_replies(user_id,text)
-	if UserFan.objects.filter(star=photo_owner_id,fan=user_id).exists():
+	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
@@ -563,7 +566,7 @@ def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_incre
 	v_scr = Photo.objects.get(id=photo_id).vote_score
 	update_object(object_id=photo_id,object_type='0',vote_score=v_scr, just_vote=True)
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
-	if UserFan.objects.filter(star=user_id,fan=voter_id).exists():
+	if is_fan(user_id,voter_id):
 		add_to_photo_owner_activity(user_id, voter_id)
 
 @celery_app1.task(name='tasks.vote_tasks')

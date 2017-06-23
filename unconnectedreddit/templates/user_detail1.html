@@ -20,11 +20,11 @@
                     <h2 class="cg">Tumhari photos:</h2>
                     <span class="cgy">
                     {% if recent_fans > 1 %}
-                    <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
                     {% elif recent_fans == 1 %}
-                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% else %}
-                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% endif %}
                     </span>
                     <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Profile set kro</button></a>
@@ -73,15 +73,10 @@
                   </a>
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Stars:</b>
-                  <a href="{% url 'star_list' user.id %}" class="cs">
-                  <button class="btn bcg">
-                  {% if stars == 0 %}
-                  {{ stars }}
-                  {% else %}
-                  {{ stars }}
-                  {% endif %}
-                  </button>
-                  </a>
+                  <form method="POST" action="{% url 'star_list' %}" style="display: inline;">
+                  {% csrf_token %}
+                  <input type="submit" class="btn bcg" value="{{ stars }}">
+                  </form>
                   <hr size=1 COLOR="#ff9933">
                   <br>
     {% else %}
@@ -89,11 +84,11 @@
                     <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
                     <span class="cgy">
                     {% if recent_fans > 1 %}
-                    <b>{{ recent_fans }} fans</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
                     {% elif recent_fans == 1 %}
-                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% else %}
-                    <b>{{ recent_fans }} fan</b> pichle 5 hours mein<br>
+                    <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% endif %}
                     </span>
                     {% if authenticated and not own_profile and allowed_fan %}

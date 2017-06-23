@@ -3,42 +3,56 @@
 {% load emoticons_tags %}
 {% block content %}
     <div class="margin">
-    {% if not error %}
-        {% if not fan_list %}
-        <b style="text-shadow: 0 0 0.3px rgba(0,0,0,0.3);color:#404040;">
+        {% if not fans %}
+        <b class="clb">
         {% emoticons %}Abhi tak koi fan nahi hai ;({% endemoticons %}</b>
         <br><br>
             <a href="{% url 'profile' star.username %}#section0">
-            <button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#2DB92D;border:solid 1px #179b36;color:white;white-space:nowrap;font-size:90%;margin-top:0.25em;margin-bottom:0.3em;">< wapis</button>
+            <button class="btn bcg mtl mbl bm">wapis</button>
             </a>
         {% else %}
         {% if user == star %}
-        <b><a href="{% url 'profile' user.username %}#section0">Tumhare</a> fans:</b><br><br>
+        <b><a href="{% url 'profile' user.username %}#section0">Tumhare</a> {{count}} fans:</b><br>
         {% else %}
-        <b><a href="{% url 'profile' star.username %}#section0">{{ star.username }}</a> ke fans:</b><br><br>
+        <b><a href="{% url 'profile' star.username %}#section0">{{ star.username }}</a> ke {{ count }} fans:</b><br>
         {% endif %}
-        {% for fan in fan_list %}
-        <b class="numbers">{{ forloop.counter }}.</b>
-        <a href="{% url 'profile' slug=fan.fan.username %}#section0">
-    	{% if fan.fan.userprofile.avatar %}
-    		<img src="{{ fan.fan.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        {% if new_count %}
+        <span class="cg cs">(<b>{{ new_count }} new fans</b> pichle 1 day mein)</span><br>
+        {% endif  %}
+        <br>
+        {% for fan,is_new in fans %}
+        <b class="numbers cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>
+        <a href="{% url 'profile' slug=fan.username %}#section0">
+    	{% if fan.userprofile.avatar %}
+    		<img src="{{ fan.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
     	{% else %}
     		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
     	{% endif %}
-        {{ fan.fan.username }}</a>{% if fan.fan.username in girls %}<b style="color:deeppink;font-size:125%;">*</b>{% endif %}
-    	{% if fan.fan.userprofile.score %}
-    		{% if fan.fan.userprofile.score < 0 %}
-    	    	<span style="color:#18A018;">(1)</span>
+        {{ fan.username }}</a>{% if fan.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
+    	{% if fan.userprofile.score %}
+    		<span class="cg">
+            {% if fan.userprofile.score < 0 %}
+    	    	(1)
     	    {% else %}
-    	    	<span style="color:#18A018;">({{ fan.fan.userprofile.score }})</span>
+    	    	({{ fan.userprofile.score }})
     		{% endif %}
-        {% else %}
+            </span>
+        {% endif %}
+        {% if is_new == 1 %}
+        <b class="cs co">(new)</b>
         {% endif %}
         <br>
         {% endfor %}
         {% endif %}
-    {% else %}
-        <span style="color:#404040;">Fans ki list dar kr bhag gayee hai! Kuch deir baad koshish krna</span>
-    {% endif %}
     </div>
+    <br>
+    <div class="pagination" style="text-align: center;">
+  {% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div><br>
 {% endblock %}

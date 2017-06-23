@@ -38,11 +38,10 @@ LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpVi
 GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView,OnlineKonView, \
 UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView,UserSettingsEditView, \
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
-InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView, FanListView, StarListView, FanTutorialView,PhotoShareView, PhotoDetailView, \
-SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, \
-MehfilCommentView, SpecialPhotoView, SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, \
-VideoScoreView, FacesHelpView, AdTitleView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, \
-AdCallPrefView, AdMobileNumView, TestAdsView #LinkListView, VoteOrProfView
+InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView,PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, \
+SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, \
+SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, \
+AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#LinkListView, VoteOrProfView
 
 admin.autodiscover()
 
@@ -148,16 +147,16 @@ urlpatterns = patterns('',
 	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^fan/(?P<star_id>\d+)/(?P<obj_id>\d+)/(?P<origin>\d+)/$', auth(fan), name='fan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', fan_list, name='fan_list'),
-	url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
-	url(r'^starlist/(?P<pk>\d+)/$', star_list, name='star_list'),
-	url(r'^star_list/$', StarListView.as_view(), name='star_list_view'),
+	# url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
+	url(r'^starlist/$', star_list, name='star_list'),
+	# url(r'^star_list/$', StarListView.as_view(), name='star_list_view'),
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^videos/$', VideoView.as_view(), name='see_video'),
 	url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
 	url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
 	#url(r'^special/$', special_photo, name='special_photo'),
-	url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
+	# url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
 	url(r'^freshphotos/$', photo_list, name='photo'),
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),

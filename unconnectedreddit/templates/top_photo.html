@@ -4,24 +4,24 @@
 
     <div class="margin clb">
     <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>
-    {% for user in object_list %}
+    {% for user,total_photos,userprofile,total_fans in object_list %}
     <span class="co cs">{{ forloop.counter }}.</span>
     <a href="{% url 'profile' slug=user.username %}#section0" class="cb">
-	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+	{% if userprofile.avatar %}
+		<img src="{{ userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
-    {{ user.username }}</a>{% if user.username in verified %}<b class="pinkstar">*</b>{% endif %}
-	{% if user.userprofile.media_score %}
-		{% if user.userprofile.media_score < 0 %}
+    {{ user.username }}</a>{% if user.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
+	{% if userprofile.media_score %}
+		{% if userprofile.media_score < 0 %}
 	    	<span class="cs" style="color:#9900cc;">(1)</span>
 	    {% else %}
-	    	<span class="cs" style="color:#9900cc;">({{ user.userprofile.media_score }})</span>
+	    	<span class="cs" style="color:#9900cc;">({{ userprofile.media_score }})</span>
 		{% endif %}
     {% else %}
-    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.username %}#section0" class="co">{{ user.totalfanandphotos.total_fans }} fans</a></b>
-    <span class="co cs">({{ user.totalfanandphotos.total_photos }} photos)</a></span>
+    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.username %}#section0" class="co">{{ total_fans }} fans</a></b>
+    <span class="co cs">({{ total_photos }} photos)</a></span>
     <br>
     
     {% endfor %}

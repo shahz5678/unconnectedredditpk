@@ -487,9 +487,9 @@ def star_list(request, *args, **kwargs):
 	if request.method == "POST":
 		pk = request.user.id
 		context = {}
-		context["star_list"] = UserFan.objects.filter(fan_id=pk).order_by('star')
-		ids = [star.star.id for star in context["star_list"]]
-		users = User.objects.annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
+		star_list = UserFan.objects.filter(fan_id=pk).order_by('star')
+		ids = [star.star_id for star in star_list]
+		users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
 		users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
 		users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
 		context["users"] = users_with_photo_thumbs
@@ -500,9 +500,9 @@ def star_list(request, *args, **kwargs):
 		try:
 			pk = request.session.pop("star_list_owner_id",None)
 			context = {}
-			context["star_list"] = UserFan.objects.filter(fan_id=pk).order_by('star')
-			ids = [star.star.id for star in context["star_list"]]
-			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
+			star_list = UserFan.objects.filter(fan_id=pk).order_by('star')
+			ids = [star.star_id for star in star_list]
+			users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
 			users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
 			users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
 			context["users"] = users_with_photo_thumbs

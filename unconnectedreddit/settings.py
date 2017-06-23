@@ -263,7 +263,7 @@ LOGGING = {
 
 import dj_database_url
 if ON_AZURE == '1':
-	# DATABASE_URL = 'postgres://mhb11:asdasdASFDA234@40.114.247.165:5432/damadam'
+	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/damadam'
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
 	# }
@@ -391,7 +391,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.fans': {
 		'task': 'tasks.fans',
-		'schedule': timedelta(seconds=600),  # execute every 10 mins
+		'schedule': timedelta(seconds=1200),  # execute every 20 mins
 		'args': (),
 	},
 	'tasks.salat_streaks': {

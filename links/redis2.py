@@ -12,6 +12,7 @@ hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' i
 hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
 photos_benchmark = "photos_benchmark"
 sorted_set = "public_group_rankings"
+recent_fans = "rf:"+photo_owner_id
 user_score_hash = "us:"+str(user_id)
 sorted_set = "si:"+str(viewer_id) #salat invites sent to viewer_id
 sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
@@ -38,6 +39,7 @@ FUTURE_EPOCH = 1609406042 #Human time (GMT): Thu, 31 Dec 2020 09:14:02 GMT
 
 TEN_MINS = 10*60
 ONE_HOUR = 60*60
+ONE_DAY = 1*24*60*60
 THREE_DAYS = 3*24*60*60
 HALF_LIFE = THREE_DAYS #used in ranking public groups
 
@@ -462,13 +464,20 @@ def get_latest_presence(group_id, user_id_list):
 
 def remove_from_photo_owner_activity(photo_owner_id,fan_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	fans = "f:"+str(photo_owner_id)
-	my_server.zrem(fans,fan_id)
+	photo_owner_id = str(photo_owner_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zrem("f:"+photo_owner_id,fan_id)
+	pipeline1.zrem("rf:"+photo_owner_id,fan_id)
+	pipeline1.execute()
 
-def add_to_photo_owner_activity(photo_owner_id,fan_id):
+def add_to_photo_owner_activity(photo_owner_id,fan_id,new=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	fans = "f:"+str(photo_owner_id) # after 30 days, remove .exists() query from tasks.py's photo_tasks function
-	my_server.zadd(fans,fan_id,time.time())
+	photo_owner_id = str(photo_owner_id)
+	fans = "f:"+photo_owner_id # after 30 days, remove .exists() query from tasks.py's photo_tasks function
+	time_now = time.time()
+	my_server.zadd(fans,fan_id,time_now)
+	if new:
+		my_server.zadd("rf:"+photo_owner_id,fan_id, time_now)
 
 def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -477,6 +486,52 @@ def get_active_fans(photo_owner_id, num_of_fans_to_notify):
 		return my_server.zrevrange(fans,0,(num_of_fans_to_notify-1))
 	else:
 		return None
+
+def is_fan(photo_owner_id, fan_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	fans = "f:"+str(photo_owner_id)
+	if my_server.zscore(fans,fan_id):
+		return True
+	else:
+		return False
+
+def get_all_fans(photo_owner_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	fans = "f:"+str(photo_owner_id)
+	return my_server.zrevrange(fans,0,-1), my_server.zcard(fans), get_recent_fans(photo_owner_id,server=my_server)
+
+def get_recent_fans(photo_owner_id, server=None):
+	if not server:
+		server = redis.Redis(connection_pool=POOL)
+	photo_owner_id = str(photo_owner_id)
+	recent_fans = "rf:"+photo_owner_id
+	server.zremrangebyscore(recent_fans,'-inf',time.time()-ONE_DAY)
+	return server.zrange(recent_fans,0,-1), server.zcard(recent_fans)
+
+def get_photo_fan_count(photo_owner_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	photo_owner_id = str(photo_owner_id)
+	fans = "f:"+photo_owner_id
+	return my_server.zcard(fans), get_recent_photo_fan_count(photo_owner_id,my_server)
+
+def get_recent_photo_fan_count(photo_owner_id,server=None):
+	if not server:
+		server = redis.Redis(connection_pool=POOL)
+	server.zremrangebyscore("rf:"+photo_owner_id,'-inf',time.time()-ONE_DAY)
+	return server.zcard("rf:"+photo_owner_id)
+
+def get_fan_counts_in_bulk(user_ids):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.zcard("f:"+user_id)
+	result = pipeline1.execute()
+	fan_counts = {}
+	counter = 0
+	for user_id in user_ids:
+		fan_counts[user_id] = result[counter]
+		counter += 1
+	return fan_counts 
 
 #######################Photos Benchmarking#######################
 
@@ -512,4 +567,4 @@ def get_uploader_percentile(user_id):
 def get_top_100():
 	my_server = redis.Redis(connection_pool=POOL)
 	photos_benchmark = "photos_benchmark"
-	return my_server.zrevrange(photos_benchmark,0,99,withscores=True)
+	return my_server.zrevrange(photos_benchmark,0,99)

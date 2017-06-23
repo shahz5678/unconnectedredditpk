@@ -497,7 +497,20 @@ def star_list(request, *args, **kwargs):
 		context["girls"] = FEMALES
 		return render(request,"star_list.html",context)
 	else:
-		return render(request,"404.html",{})
+		try:
+			pk = request.session.pop("star_list_owner_id",None)
+			context = {}
+			context["star_list"] = UserFan.objects.filter(fan_id=pk).order_by('star')
+			ids = [star.star.id for star in context["star_list"]]
+			users = User.objects.annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
+			users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
+			users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
+			context["users"] = users_with_photo_thumbs
+			context["fan"] = User.objects.get(id=pk)
+			context["girls"] = FEMALES
+			return render(request,"star_list.html",context)
+		except:
+			return render(request,"404.html",{})
 
 def fan_list(request, pk=None, *args, **kwargs):
 	page_num = request.GET.get('page', '1')
@@ -6938,7 +6951,8 @@ def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 		(un)fanned from home: '4'
 		"""
 		if origin == '0':
-			return redirect("star_list",request.user.id)
+			request.session["star_list_owner_id"] = request.user.id
+			return redirect("star_list")
 		elif origin == '1':
 			return redirect("profile", star.username)
 		elif origin == '2':

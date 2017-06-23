@@ -697,10 +697,6 @@ class DirectMessageForm(forms.Form):
 	class Meta:
 		pass
 
-class StarListForm(forms.Form):
-	class Meta:
-		pass
-
 class SalatInviteForm(forms.Form):
 	class Meta:
 		pass

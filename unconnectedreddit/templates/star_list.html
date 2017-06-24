@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load complete_url %}
 {% block content %}
     <div class="margin">
         {% if not users %}
@@ -12,29 +12,29 @@
         {% else %}
         <b class="clb csw">Users jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
-            {% for star,total_photos,thumbs in users %}
+            {% for star in users %}
             <b class="cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>
             <a href="{% url 'profile' slug=star.username %}#section0">
-                {% if star.userprofile.avatar %}
-                    <img src="{{ star.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                {% if star.userprofile__avatar %}
+                    <img src="{{ star.userprofile__avatar|complete_url }}" alt="no pic"></img>
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                 {% endif %}
             {{ star.username }}</a>{% if star.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
-                {% if star.userprofile.score %}
+                {% if star.userprofile__score %}
                     <span class="cg cs">
-                    {% if star.userprofile.score < 0 %}
+                    {% if star.userprofile__score < 0 %}
                         (1)
                     {% else %}
-                        ({{ star.userprofile.score }})
+                        ({{ star.userprofile__score }})
                     {% endif %}</span>:
                 {% else %}
                 {% endif %}
-            <span class="co cm"> <a href="{% url 'profile' slug=star.username %}#section0" class="co"><b>{{ total_photos }}</b> photos</a></span>&nbsp;&nbsp;
+            <span class="co cm"> <a href="{% url 'profile' slug=star.username %}#section0" class="co"><b>{{ star.photo_count }}</b> photos</a></span>&nbsp;&nbsp;
             <a href="{% url 'fan' star.id 0 0 %}"><button class="btn bcr bm cs mbs mts">khatm</button></a>
-                {% if thumbs != None %}
+                {% if star.thumbs != None %}
                 <form method="POST" action="{% url 'go_to_user_photo' star.username 0 %}" class="mts">{% csrf_token %}
-                {{ thumbs|safe }}
+                {{ star.thumbs|safe }}
                 </form>
                 {% endif %}
             <hr size=1 COLOR="#ff9933">

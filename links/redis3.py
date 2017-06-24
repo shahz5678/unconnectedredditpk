@@ -209,31 +209,18 @@ def retrieve_history_with_pics(uname_list):
 		counter += 1
 	return history
 
-def retrieve_thumbs(obj_list,tuple_list=False):
+def retrieve_thumbs(obj_list):
 	my_server = redis.Redis(connection_pool=POOL)
-	if tuple_list:
-		pipeline1 = my_server.pipeline()
-		for user_obj, photo_count in obj_list:
-			user_thumbs = "upt:"+user_obj.username
-			pipeline1.get(user_thumbs)
-		result1 = pipeline1.execute()
-		obj_list_with_thumbs = []
-		counter = 0
-		for user_obj, photo_count in obj_list:
-			obj_list_with_thumbs.append((user_obj,photo_count,result1[counter]))
-			counter += 1
-		return obj_list_with_thumbs
-	else:
-		pipeline1 = my_server.pipeline()
-		for obj in obj_list:
-			user_thumbs = "upt:"+obj['username']
-			pipeline1.get(user_thumbs)
-		result1 = pipeline1.execute()
-		counter = 0
-		for obj in obj_list:
-			obj['thumbs'] = result1[counter]
-			counter += 1
-		return obj_list
+	pipeline1 = my_server.pipeline()
+	for obj in obj_list:
+		user_thumbs = "upt:"+obj['username']
+		pipeline1.get(user_thumbs)
+	result1 = pipeline1.execute()
+	counter = 0
+	for obj in obj_list:
+		obj['thumbs'] = result1[counter]
+		counter += 1
+	return obj_list
 
 def retrieve_single_thumbs(obj):
 	my_server = redis.Redis(connection_pool=POOL)

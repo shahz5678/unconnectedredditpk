@@ -12,8 +12,8 @@
         {% else %}
         <b class="clb csw">Users jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
 
-            {% for star,total_photos,thumbs in users reversed %}
-            <span class="cs">{{ forloop.counter }}.</span>
+            {% for star,total_photos,thumbs in users %}
+            <b class="cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>
             <a href="{% url 'profile' slug=star.username %}#section0">
                 {% if star.userprofile.avatar %}
                     <img src="{{ star.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
@@ -42,7 +42,15 @@
         {% endif %}
 
     </div>
-    <br><br>
+    <br><div class="pagination" style="text-align: center;">
+  {% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div><br>
 {% endblock %}
 
 

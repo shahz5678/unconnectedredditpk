@@ -488,10 +488,11 @@ def star_list(request, *args, **kwargs):
 	ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('-fanning_time')
 	page_num = request.GET.get('page', '1')
 	page_obj = get_page_obj(page_num,ids,STARS_PER_PAGE)
-	users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(page_obj.object_list)
-	users_with_photo_counts = [(users[id], users[id].photo_count) for id in page_obj.object_list]
+	users1 = {x['id']:x for x in User.objects.select_related('userprofile').filter(id__in=page_obj.object_list).\
+	values('id','username','userprofile__score','userprofile__avatar').annotate(photo_count=Count('photo', distinct=True))}
+	users_with_photo_counts = [users1[id] for id in page_obj.object_list]
 	context["page_obj"] = page_obj
-	users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
+	users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts)
 	context["users"] = users_with_photo_thumbs
 	context["fan"] = User.objects.get(id=pk)
 	context["girls"] = FEMALES

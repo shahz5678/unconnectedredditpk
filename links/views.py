@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
-from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE, FANS_PER_PAGE
+from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
 CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD, CITIZEN_THRESHOLD
 from django.core.cache import get_cache, cache
@@ -482,34 +482,20 @@ class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
 
-@csrf_protect
 def star_list(request, *args, **kwargs):
-	if request.method == "POST":
-		page_num = request.GET.get('page', '1')
-		pk = request.user.id
-		context = {}
-		ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('fanning_time')
-		users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
-		users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
-		users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
-		context["users"] = users_with_photo_thumbs
-		context["fan"] = User.objects.get(id=pk)
-		context["girls"] = FEMALES
-		return render(request,"star_list.html",context)
-	else:
-		try:
-			pk = request.session.pop("star_list_owner_id",None)
-			context = {}
-			ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('fanning_time')
-			users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
-			users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
-			users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
-			context["users"] = users_with_photo_thumbs
-			context["fan"] = User.objects.get(id=pk)
-			context["girls"] = FEMALES
-			return render(request,"star_list.html",context)
-		except:
-			return render(request,"404.html",{})
+	context = {}
+	pk = request.user.id
+	ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('-fanning_time')
+	page_num = request.GET.get('page', '1')
+	page_obj = get_page_obj(page_num,ids,STARS_PER_PAGE)
+	users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(page_obj.object_list)
+	users_with_photo_counts = [(users[id], users[id].photo_count) for id in page_obj.object_list]
+	context["page_obj"] = page_obj
+	users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
+	context["users"] = users_with_photo_thumbs
+	context["fan"] = User.objects.get(id=pk)
+	context["girls"] = FEMALES
+	return render(request,"star_list.html",context)
 
 def fan_list(request, pk=None, *args, **kwargs):
 	page_num = request.GET.get('page', '1')
@@ -6947,7 +6933,6 @@ def fan(request,star_id=None,obj_id=None,origin=None,*args,**kwargs):
 		(un)fanned from home: '4'
 		"""
 		if origin == '0':
-			request.session["star_list_owner_id"] = request.user.id
 			return redirect("star_list")
 		elif origin == '1':
 			return redirect("profile", star.username)

@@ -2870,8 +2870,9 @@ class GroupPageView(ListView):
 		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
 		replies_qs = Reply.objects.select_related('writer__userprofile','which_group').filter(id__in=invite_reply_ids).\
 			order_by('-id')[:60]
-		replies = get_replies_with_seen(group_replies=replies_qs,viewer_id=self.request.user.id,object_type='3')
-		return replies
+		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
+			'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:60]
+		return get_replies_with_seen(group_replies=replies_qset,viewer_id=self.request.user.id,object_type='3')
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupPageView, self).get_context_data(**kwargs)

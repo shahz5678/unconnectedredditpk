@@ -298,7 +298,7 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 	replies_list = []
 	pipeline1 = my_server.pipeline()
 	for reply in group_replies:
-		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply.which_group_id)
+		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply["which_group"])
 		pipeline1.hget(hash_name,'s')
 	result1 = pipeline1.execute()
 	count = 0

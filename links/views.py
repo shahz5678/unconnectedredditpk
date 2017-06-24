@@ -485,10 +485,10 @@ class ScoreHelpView(FormView):
 @csrf_protect
 def star_list(request, *args, **kwargs):
 	if request.method == "POST":
+		page_num = request.GET.get('page', '1')
 		pk = request.user.id
 		context = {}
-		star_list = UserFan.objects.filter(fan_id=pk).order_by('star')
-		ids = [star.star_id for star in star_list]
+		ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('fanning_time')
 		users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
 		users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
 		users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)
@@ -500,8 +500,7 @@ def star_list(request, *args, **kwargs):
 		try:
 			pk = request.session.pop("star_list_owner_id",None)
 			context = {}
-			star_list = UserFan.objects.filter(fan_id=pk).order_by('star')
-			ids = [star.star_id for star in star_list]
+			ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('fanning_time')
 			users = User.objects.select_related('userprofile').annotate(photo_count=Count('photo', distinct=True)).in_bulk(ids)
 			users_with_photo_counts = [(users[id], users[id].photo_count) for id in ids]
 			users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts,tuple_list=True)

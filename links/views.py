@@ -2596,7 +2596,7 @@ class InviteUsersToGroupView(ListView):
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
 				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
-				return User.objects.select_related('userprofile').filter(id__in=non_invited_non_member_online_ids)
+				return User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
 			except:
 				return []
 

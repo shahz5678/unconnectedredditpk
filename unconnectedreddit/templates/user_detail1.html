@@ -63,20 +63,13 @@
                   <b>Fans:</b>
                   {% endif %}
                   <a href="{% url 'fan_list' star_id %}" class="cs">
-                  <button class="btn bcg">
-                  {% if fans == 0 %}
-                  {{ fans }}
-                  {% else %}
-                  {{ fans }}
-                  {% endif %}
-                  </button>
+                  <button class="btn bcg">{{ fans }}</button>
                   </a>
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Stars:</b>
-                  <form method="POST" action="{% url 'star_list' %}" style="display: inline;">
-                  {% csrf_token %}
-                  <input type="submit" class="btn bcg" value="{{ stars }}">
-                  </form>
+                  <a href="{% url 'star_list' %}" class="cs">
+                  <button class="btn bcg">{{ stars }}</button>
+                  </a>
                   <hr size=1 COLOR="#ff9933">
                   <br>
     {% else %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load thumbnail %}
+{% load complete_url %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
@@ -12,23 +13,23 @@
 	<br>
 	<span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
 	{% for visitor in object_list %}
-	{% if visitor.userprofile.score > 0 and visitor != user %}
+	{% if visitor.userprofile__score > 0 and visitor.username != user.username %}
 		<span class="cgy">{{ forloop.counter0|add:page_obj.start_index }}. </span>
 
-		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor.pk }}">
-			{% if visitor.userprofile.avatar %}
-		        <img src="{{ visitor.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
+			{% if visitor.userprofile__avatar %}
+		        <img src="{{ visitor.userprofile__avatar|complete_url }}" alt="no pic"></img>
 		    {% else %}
 		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		    {% endif %}
 			{{ visitor.username }}
-		    <span class="cg">({{ visitor.userprofile.score }})</span>
+		    <span class="cg">({{ visitor.userprofile__score }})</span>
 			{% for person in legit %}
 			    {% if person == visitor.username %}
 			        <span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 			{% endfor %}	
-			<a href="{% url 'process_public_group_invite' unique visitor.pk %}"><button class="btn bcp bm mbl mtl">invite</button></a><br>
+			<a href="{% url 'process_public_group_invite' unique visitor.id %}"><button class="btn bcp bm mbl mtl">invite</button></a><br>
 
 
 	{% endif %}

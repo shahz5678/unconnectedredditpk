@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load thumbnail %}
+{% load complete_url %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
@@ -15,85 +15,87 @@
 <a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
 <a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a>
 <br><br>
+<!-- reply.category, reply.which_group.private, reply.writer, reply.which_group_id, reply.which_group.unique, reply.writer.userprofile.avatar, reply.writer.username, 
+	reply.which_group.topic, reply.submitted_on, reply.text -->
 {% for reply in object_list %}
 
+	
 	{% if reply.0.category == '1' %}
 
-
-		{% if reply.0.which_group.private == '1' and reply.0.writer != user %}
+		{% if reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}
 			
-			<a href="{% url 'leave_private_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<b class="cs cg">(INVITE)</b>
-			{% if reply.0.writer.userprofile.avatar %}
-				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% if reply.0.writer__userprofile__avatar %}
+				<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
 
 			<span class="cm cgy">
-				<a href="{% url 'profile' slug=reply.0.writer.username %}">
-				{{ reply.0.writer }}
+				<a href="{% url 'profile' slug=reply.0.writer__username %}">
+				{{ reply.0.writer__username }}
 				</a>
-			{% if reply.0.writer.username in verified %}
-					<span class="pkstr"><b>*</b></span>
+			{% if reply.0.writer__username in verified %}
+					&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
 				{% endif %}</span>&nbsp;<span class="cgy">ne tumhe</span>
 				<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}
-				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-				<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
+				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+				<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}
 				<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label>
 				</form>
 				<span class="cgy">mein bulaya</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
 
 				<p><hr size=1 COLOR="#2DB92D"></p>
 
-		{% elif reply.0.which_group.private == '1' and reply.0.writer == user %}
+		{% elif reply.0.which_group__private == '1' and reply.0.writer__username == user.username %}
 
-			<a href="{% url 'leave_private_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<span class="cgy">Tum&nbsp;ne</span>
 			<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
-			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}
+			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}
 			<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 			</form>
 			<span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
 
 			<p><hr size=1 COLOR="#2DB92D"></p>
 
-		{% elif reply.0.which_group.private == '0' and reply.0.writer != user %}
+		{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
 
-			<a href="{% url 'leave_public_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<b class="cp cs">(INVITE)</b>
-			{% if reply.0.writer.userprofile.avatar %}
-				<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			{% if reply.0.writer__userprofile__avatar %}
+				<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
 			
 			<span class="cgy">
-				<a href="{% url 'profile' slug=reply.0.writer.username %}">
-				{{ reply.0.writer }}
+				<a href="{% url 'profile' slug=reply.0.writer__username %}">
+				{{ reply.0.writer__username }}
 				</a>
-			{% if reply.0.writer.username in verified %}
-					<span class="pkstr"><b>*</b></span>
+			{% if reply.0.writer__username in verified %}
+					&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
 				{% endif %} ne tumhe
 			</span>
 
-			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
-			<span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+			<span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
 			<span class="cgy">mein bulaya</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#ac39ac"></p>
-		{% elif reply.0.which_group.private == '0' and reply.0.writer == user %}
+		{% elif reply.0.which_group__private == '0' and reply.0.writer__username == user.username %}
 
-			<a href="{% url 'leave_public_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			
 			<span class="cgy">
 			Tum ne
 			</span>
 
-			<a href="{% url 'public_group' slug=reply.0.which_group.unique %}">
-			<span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span>
+			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+			<span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span>
 			</a>
 			<span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
 			<p><hr size=1 COLOR="#ac39ac"></p>
@@ -103,53 +105,53 @@
 
 	{% else %}
 
-	{% if reply.0.which_group.private == '1' and reply.0.writer == user %}
-		<a href="{% url 'leave_private_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+	{% if reply.0.which_group__private == '1' and reply.0.writer__username == user.username %}
+		<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
 		<span class="cgy">Tum&nbsp;ne</span>
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
-			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
+			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#2DB92D"></p>
-	{% elif reply.0.which_group.private == '1' and reply.0.writer != user %}
-		<a href="{% url 'leave_private_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+	{% elif reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}
+		<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
 		
-		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
+		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %}&nbsp;ne</span>
+		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer__username %}">{{ reply.0.writer__username }}</a>{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}&nbsp;ne</span>
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
-			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group.unique }}">
-			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
+			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#2DB92D"></p>
 
-	{% elif reply.0.which_group.private == '0' and reply.0.writer == user %}
+	{% elif reply.0.which_group__private == '0' and reply.0.writer__username == user.username %}
 
-		<a href="{% url 'leave_public_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+		<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 		<span class="cgy">Tum&nbsp;ne</span>
 
-		<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
+		<a href="{% url 'public_group' slug=reply.0.which_group__unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
 		<p><hr size=1 COLOR="#ac39ac"></p>
 	
-	{% elif reply.0.which_group.private == '0' and reply.0.writer != user %}
+	{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
 
-		<a href="{% url 'leave_public_group' pk=reply.0.which_group_id unique=reply.0.which_group.unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
-		{% if reply.0.writer.userprofile.avatar %}<img src="{{ reply.0.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
+		<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
-		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer.username %}">{{ reply.0.writer }}</a>{% if reply.0.writer.username in verified %}<span class="pkstr"><b>*</b></span>{% endif %} ne</span>&nbsp;
+		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer__username %}">{{ reply.0.writer__username }}</a>{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %} ne</span>&nbsp;
 
-		<a href="{% url 'public_group' slug=reply.0.which_group.unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group.topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
+		<a href="{% url 'public_group' slug=reply.0.which_group__unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
 		
@@ -181,4 +183,3 @@
 {% endif %}
 <br><br>
 {% endblock %}
-

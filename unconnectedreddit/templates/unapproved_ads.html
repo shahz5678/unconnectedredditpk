@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% block content %}
+<div class="margin clb">
+{% for submission in submissions %}
+<b>Tafseel:</b> {{ submission.desc }}<br>
+<b>Haalat:</b> {{ submission.is_new }}<br>
+<b>Price:</b> {{ submission.ask }}&nbsp;
+<span class="co">{% if submission.is_barter == 'Paisa aur Exchange dono' %}(kisi aur cheez ke sath exchange bhi kar loon ga){% endif %}</span><br>
+<b>Name:</b> {{ submission.seller_name }}<br>
+<b>Mobile:</b> 0{{ submission.MN_data.national_number }}<br>
+<b>City:</b> {{ submission.city }}<br>
+{% for photo in submission.photos reversed %}
+<img class="pht mrs mts" src="{{ photo.image_file.url }}">
+{% endfor %}
+<br><span class="cgy">{{ submission.submission_time|human_time }}</span>
+<hr size=1 COLOR="#b3e6b3">
+{% endfor %}
+<br>
+<div style="text-align: center;">
+		{% if page.has_previous %}
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    {% endif %}
+	    &nbsp;&nbsp;
+	    {% if page.has_next %}
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    {% endif %}
+	</div><br>
+{% endblock %}

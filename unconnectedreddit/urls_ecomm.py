@@ -1,5 +1,5 @@
 from links.ecomm import x2lite_details, x32_details, buyer_loc, process_city, post_basic_item, post_seller_info, \
-post_basic_item_photos, init_classified #add_shop, shops_by_city, show_shop_choices, ecomm_welcome
+post_basic_item_photos, init_classified, approve_classifieds #add_shop, shops_by_city, show_shop_choices, ecomm_welcome
 from links.number_verification import verify_basic_item_seller_number
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
@@ -8,6 +8,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^classified_approval_dashboard/$', auth(approve_classifieds),name='approve_classifieds'),
 	#############################################E Commerce##########################################
 	url(r'^item_ki_detail_likho/$', auth(post_basic_item),name='post_basic_item'),
 	url(r'^baichney_waley_ki_detail_likho/$', auth(post_seller_info),name='post_seller_info'),

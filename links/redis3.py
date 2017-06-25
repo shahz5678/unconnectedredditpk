@@ -300,6 +300,7 @@ def save_basic_ad_data(submitted_data):
 	photo_ids = my_server.lrange("rc:"+str(submitted_data["ad_id"]),0,-1)
 	if photo_ids:
 		submitted_data["photos"] = photo_ids
+	submitted_data["submission_time"] = time.time()
 	my_server.lpush("unapproved_ads",submitted_data)
 	cleanup(my_server,submitted_data["ad_id"])
 	return True
@@ -320,6 +321,10 @@ def pre_add_used_item_photo(user_id, ad_id, photo_id):
 def get_basic_item_ad_id():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.incr("basic_item_ad_id")
+
+def get_unapproved_ads():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("unapproved_ads",0,-1)
 
 def del_orphaned_classified_photos():
 	import operator

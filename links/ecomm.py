@@ -1,10 +1,13 @@
+import ast
 from models import Photo
+from views import get_page_obj
 from tasks import upload_ecomm_photo
+from page_controls import ADS_TO_APPROVE_PER_PAGE
 # from redis4 import get_city_shop_listing
 # from redis1 import first_time_shopper, add_shopper
 from image_processing import clean_image_file_with_hash
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD
-from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id
+from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm#, AddShopForm 
 
 from django.middleware import csrf
@@ -12,6 +15,28 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 #################################################################
+
+def get_photo_ids(string_list):
+	photos = []
+	for obj in string_list:
+		obj = ast.literal_eval(obj)
+		if "photos" in obj:
+			photos.append(obj["photos"])
+	return [item for sublist in photos for item in sublist]
+
+def insert_photos_in_object_list(obj_list, photos):
+	ads = []
+	for obj in obj_list:
+		obj = ast.literal_eval(obj)
+		if "photos" in obj:
+			number_of_photos = len(obj["photos"])
+			counter = 0
+			while counter < number_of_photos:
+				index = int(obj["photos"][counter])
+				obj["photos"][counter] = photos[index]
+				counter += 1
+		ads.append(obj)
+	return ads
 
 def get_device(request):
 	if request.is_feature_phone:
@@ -80,6 +105,20 @@ def photo_size_exceeded(on_fbs,image):
 		else:
 			# return True, OFF_FBS_PHOTO_THRESHOLD
 			return False, 0
+
+def approve_classifieds(request,*args,**kwargs):
+	page_num = request.GET.get('page', '1')
+	photos, submissions = [], []
+	ads = get_unapproved_ads()
+	page_obj = get_page_obj(page_num,ads,ADS_TO_APPROVE_PER_PAGE)
+	photo_ids = get_photo_ids(page_obj.object_list)
+	if photo_ids:
+		photos = Photo.objects.in_bulk(photo_ids)
+		submissions = insert_photos_in_object_list(page_obj.object_list, photos)
+	else:
+		for obj in page_obj.object_list:
+			submissions.append(ast.literal_eval(obj))
+	return render(request,"unapproved_ads.html",{'submissions':submissions,'page':page_obj})
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect

@@ -1,17 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<h2 class="cg bw">Face per daney, kala rung, khushki, dagh, dhabbey, keel, mahasey ka ilaj</h2>
+<h2 class="cg bw">Daney, kala rung, khushki, dagh, dhabbey, keel, mahasey ka ilaj</h2>
+
 <div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="cg">Abhi <span class="clb">0336-5885441</span> pe call karien!</b><br>
-<b class="cs cgy">(missed call na karien)</b>
+<div class="mbs" style="text-align:center;">
+<span class="cxl">Muft Mashwara Karwain!</span><br>
+</div>
+<div class="mbs">
+<li class="mll">Sirf dawaii ke paise dein<br>
+<li class="mll">Abhi <b>0336-5885441</b> pe call karien<br>
+<li class="mll">SMS and missed call pe jawab nahi<br>
+</div>
+<!-- <li class="mll"><b class="cg">Abhi <span class="clb">0336-5885441</span> pe call karien!</b><br>
+<li class="mll"><b class="cs">(SMS and missed call pe jawab nahi)</b> -->
+
 </div>
 <br>
 <img class="pht mrs mbs" src="{{ STATIC_URL }}img/dr_saiqa.png" style="max-width:121px;">
-<img class="pht" src="{{ STATIC_URL }}img/dr_crt1.png" style="max-width:194px;"><br>
-<b class="cs">Doctor ki <a href="{% url 'skin_doctor_price' %}#section0"><button class="btn bcg mts">&nbsp;tafseel&nbsp;</button></a></b><br>
+<!-- <img class="pht" src="{{ STATIC_URL }}img/dr_crt1.png" style="max-width:194px;">-->
+<br><b class="cs">Doctor ki <a href="{% url 'skin_doctor_price' %}#section0"><button class="btn bcg mts">&nbsp;tafseel&nbsp;</button></a></b><br>
+<div class="mts mbs">
+<span class="cs"><b>Clinic ka address:</b><br>
+Plaza# 12, Block A, CIVIC CENTER PHASE 4,
+BAHRIA TOWN, ISLAMABAD
+</span>
+</div>
 <hr size=1 COLOR="#00c853">
-<div class="mtl mbs">
+<!-- <div class="mtl mbs">
 <b class="cg">Tareeqa:</b>
 </div>
 <div class="mbs">
@@ -31,9 +47,9 @@
 </div>
 <div class="mbs mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
 <span class="clb"><b>Ramzan discount price <span class="cg">Rs. 200</span></b><br><span class="cgy cs">(real price: Rs.500)</span></span><br>
-</div><br>
+</div><br> -->
 <a href="{% url 'home' %}"><button class="btn bco bm mtl mbl"><b>wapis</b></button></a>
-<br><b style="color:#0091ea;">Damadam user GlassShoe:</b>&nbsp;<span class="clb cgy">"achi servc ha. dr nay cal kr ke kafi sawal pooch kr illaj bataya. Mujhe dwai nhi mili tuo TCS sy bheji dr nay"</span><br>
+<!-- <br><b style="color:#0091ea;">Damadam user GlassShoe:</b>&nbsp;<span class="clb cgy">"achi servc ha. dr nay cal kr ke kafi sawal pooch kr illaj bataya. Mujhe dwai nhi mili tuo TCS sy bheji dr nay"</span><br>
 <img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/reception.png" style="max-width:204px;">
 <img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/working.jpeg" style="max-width:204px;">
 <img class="pht mts mbl mrs" src="{{ STATIC_URL }}img/dr_crt2.png" style="max-width:204px;">
@@ -50,7 +66,7 @@
 	  	{{ form.feedback }}
 	  	</div>
 	  	<button class="btn bcg bm mtl" type="submit">OK</button><br>
-	</form>
+	</form> -->
 </div>
 <br><br>
 {% endblock %}

@@ -260,6 +260,16 @@
 				<p><hr size=1 COLOR="#33cc33"></p></div>
 		{% endif %}
 	{% endif %}
+	{% if forloop.counter == 6 %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'skin_clinic' %}#section0"><img class="pht" style="max-width:180px;" src="{{ STATIC_URL }}img/boyskin_small.png"></a><br>
+		<span class="cg cl"><b>Skin ke masloon</b> ke liye doctor se ghar baithey mashwara karien</span>
+		<a href="{% url 'skin_clinic' %}"><button class="btn bcg bl cl mls mts mbs">Call now</button></a>
+		<!-- <br><b style="color:#0091ea;">Damadam user GlassShoe:</b>&nbsp;<span class="clb cgy">"achi servc ha. dr nay cal kr ke kafi sawal pooch kr illaj bataya. Mujhe dwai nhi mili tuo TCS sy bheji"</span> -->
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
 	{% if forloop.counter == 8 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->

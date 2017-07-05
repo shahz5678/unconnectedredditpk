@@ -231,7 +231,7 @@
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-	{% if forloop.counter == 5 %}
+	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
 		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
 			{% if enqueued_match.ended == '1' %}
@@ -260,7 +260,26 @@
 				<p><hr size=1 COLOR="#33cc33"></p></div>
 		{% endif %}
 	{% endif %}
-	{% if forloop.counter == 8 %}
+	{% if forloop.counter == 5 %}
+		<div style="background-color:#ffffb3;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'bykea' %}#section0"><img class="pht" style="max-width:133px;" src="{{ STATIC_URL }}img/bykea_ad.jpg"></a><br>
+		<span class="cg cl">Motor cycle chala ke Rs.50,000 kamaney ka mauqa! <span class="cgy">(Offer by Bykea Company)</span></span>
+		<a href="{% url 'bykea' %}"><button class="btn bcg bl cl mls mts mbs">Tafseel</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
+	{% if forloop.counter == 9 %}
+		<div style="background-color:#e6faff;margin-top:-1em;padding-top:1em;">
+		<div class="mls">
+		<a href="{% url 'skin_clinic' %}#section0"><img class="pht" style="max-width:180px;" src="{{ STATIC_URL }}img/boyskin_small.png"></a><br>
+		<span class="cg cl"><b>Skin ke masloon</b> ke liye doctor se ghar baithey mashwara karien</span>
+		<a href="{% url 'skin_clinic' %}"><button class="btn bcg bl cl mls mts mbs">Tafseel</button></a>
+		<!-- <br><b style="color:#0091ea;">Damadam user GlassShoe:</b>&nbsp;<span class="clb cgy">"achi servc ha. dr nay cal kr ke kafi sawal pooch kr illaj bataya. Mujhe dwai nhi mili tuo TCS sy bheji"</span> -->
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
+	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}

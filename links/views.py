@@ -1878,7 +1878,7 @@ class UserProfilePhotosView(ListView):
 		slug = self.kwargs["slug"]
 		try:
 			user = User.objects.get(username=slug)
-			return Photo.objects.select_related('owner__userprofile').filter(owner=user).order_by('-upload_time')
+			return Photo.objects.select_related('owner__userprofile').filter(owner=user,category='1').order_by('-upload_time')
 		except:
 			return []
 
@@ -7553,6 +7553,27 @@ def virgin_tees(request,*args,**kwargs):
 		form = AdFeedbackForm()
 		mp.track(request.user.id, 'Clicked VirginTeez Ad')
 		return render(request,'virgin_tees_package.html',{'form':form})
+
+@csrf_protect
+def bykea(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = AdFeedbackForm(request.POST)
+		if form.is_valid():
+			advertiser = 'Bykea'
+			feedback = form.cleaned_data['feedback']
+			username = request.user.username
+			user_id = request.user.id
+			time_now = timezone.now()
+			submitted_at = convert_to_epoch(time_now)
+			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
+			mp.track(request.user.id, 'Gave Bykea Ad Feedback')
+			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
+		else:
+			return render(request,'bykea_package.html',{'form':form})
+	else:
+		form = AdFeedbackForm()
+		mp.track(request.user.id, 'Clicked Bykea Ad')
+		return render(request,'bykea_package.html',{'form':form})
 
 ###############################################################
 

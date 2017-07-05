@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2 class="bw"><span class="cg">Karachi</span> aur <span class="cg">Rawalpindi</span> walo, Rs. 50,000 kamaney hain?</h2>
+<span class="cgy">Bykea ke sath motor cycle chalao!</span><br>
+<div class="mts">
+<span class="cg"><b>Touchscreen phone</b>, <b>motor cycle</b> aur <b>driving license</b> hona zaruri hai</span><br>
+</div>
+
+<div class="clb mbs mtl" style="border: 1px dashed #00c853;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#ffff8d;">
+<span class="cg">Abhi <b>0311-111-1700</b> pe call kar ke batao ke ye offer <b>Damadam</b> pe dekhi</span><br><span class="cs cgy">SMS ya missed call pe jawab nahi diya jaye ga</span>
+</div>
+
+<br><a href="{% url 'home' %}"><button class="btn bco bm mtl mbs"><b>wapis</b></button></a>
+
+<hr size=3 COLOR="#bfbfbf">
+	<form method="post" action="{% url 'bykea' %}" class="mtl">
+	{% csrf_token %}
+		{% if form.feedback.errors %}
+			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
+		{% else %}
+			<span class="cl cg">Bykea ko call karne ke baad is par tabsra likho:</span><br>
+		{% endif %}
+		<div class="mts">
+	  	{{ form.feedback }}
+	  	</div>
+	  	<button class="btn bcg bm mtl" type="submit">OK</button><br>
+	</form>
+</div>
+<br><br>
+{% endblock %}

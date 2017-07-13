@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2 class="cg bw">Aasan Doctor</h2>
+<b class="clb cs">Her Cheez ka Illaj Yes kerao</b><br>
+<hr size=1 COLOR="#00c853">
+<div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
+<b class="clb">Her beemari ka illaj!</b>
+<b class="clb">0336-5885441 pe call karien!</b>
+</div>
+<br>
+<div class="mbs">
+<b class="co">Fees:</b><span class="mls"> Rs. 200 (Ager Illaj phone per ho sakta hoa) </span><br>
+</div>
+<a href="{% url 'home' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
+<hr size=3 COLOR="#bfbfbf">
+	<form method="post" action="{% url 'asan_doc' %}" class="mtl">
+	{% csrf_token %}
+		{% if form.feedback.errors %}
+			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
+		{% else %}
+			<b class="cl cg">Is service ko istimal karne ke baad is par tabsra likho:</b><br>
+		{% endif %}
+		<div class="mts">
+	  	{{ form.feedback }}
+	  	</div>
+	  	<button class="btn bcg bm mtl" type="submit">OK</button><br>
+	</form>
+</div>
+<br><br>
+{% endblock %}

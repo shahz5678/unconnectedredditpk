@@ -7512,6 +7512,29 @@ def skin_doctor_price(request,*args,**kwargs):
 	mp.track(request.user.id, 'Clicked Dr. Detail')
 	return render(request,'skin_price.html',{})
 
+def asan_doc(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = AdFeedbackForm(request.POST)
+		if form.is_valid():
+			advertiser = 'Aasandoc'
+			feedback = form.cleaned_data['feedback']
+			username = request.user.username
+			user_id = request.user.id
+			time_now = timezone.now()
+			submitted_at = convert_to_epoch(time_now)
+			set_ad_feedback(advertiser,feedback,username,user_id,submitted_at)
+			mp.track(request.user.id, 'Gave Aasandoc Feedback')
+#			print("in Aasandoc")
+			return render(request,'ad_feedback_submitted.html',{'company':advertiser})
+		else:
+			return render(request,'asan_doc.html',{'form':form})
+	else:
+		form = AdFeedbackForm()
+		mp.track(request.user.id, 'Clicked Aasandoc ad')
+#		print("in Aasandoc feedback")
+		return render(request,'asan_doc.html',{'form':form})
+
+
 @csrf_protect
 def skin_clinic(request,*args,**kwargs):
 	if request.method == 'POST':

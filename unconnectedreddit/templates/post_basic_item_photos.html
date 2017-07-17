@@ -3,141 +3,182 @@
 {% block content %}
 <div class="margin clb">
 <h2 class="cg">STEP 2 <span class="cs">(out of 4)</span></h2>
-
 <b class="cl">Baichnay wali cheez ki 3 fotos lagao:</b><br>
 <hr size=1 COLOR="#b3e6b3">
 <span class="cgy cs">(Fotos zaruri nahi, lekin agr laga lo tou khardeednay waley ka trust barhey ga)</span>
 <form method="POST" enctype="multipart/form-data" action="{% url 'post_basic_item_photos' %}">
-{% csrf_token %}
-<div class="mtl mbl">
-<b class="cl co">Pehli Foto:</b>
-<div class="mbs">
-{% if form.photo1.errors %}
-<span class="cr">{{ form.photo1.errors.0 }}</span>
-{% endif %}
-</div>
-{% if photo1 == True %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/done.png">
-</div>
-{% elif photo1 == False %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/X.png">
-</div>
-  {% if repeated %}
-  <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
-  {% elif duplicate %}
-  <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
-  {% elif size == 200000 %}
-  <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
-  {% elif size == 10000000 %}
-  <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
-  {% endif %}
+  {% csrf_token %}
   <div class="mtl mbl">
-  {{ form.photo1 }}
+    <b class="cl co">Pehli Foto:</b>
+    <div class="mbs">
+    {% if form.photo1.errors %}
+    <span class="cr">{{ form.photo1.errors.0 }}</span>
+    {% endif %}
+    </div>
+    {% if photo1 == True %}
+    <div class="mts mbl">
+    <img src="{{ STATIC_URL }}img/done.png">
+    </div>
+    {% elif photo1 == 'repeated' %}
+    <div class="mts mbl">
+    <img src="{{ STATIC_URL }}img/X.png">
+    </div>
+    <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
+    <div class="mtl mbl">
+    {{ form.photo1 }}
+    </div>
+    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+    {% elif photo1 == 'duplicate' %}
+    <div class="mts mbl">
+    <img src="{{ STATIC_URL }}img/X.png">
+    </div>
+    <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
+    <div class="mtl mbl">
+    {{ form.photo1 }}
+    </div>
+    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+    {% elif photo1 == 'size_exceeded_on_fbs' %}
+    <div class="mts mbl">
+    <img src="{{ STATIC_URL }}img/X.png">
+    </div>
+    <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
+    <div class="mtl mbl">
+    {{ form.photo1 }}
+    </div>
+    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+    {% elif photo1 == 'size_exceeded_off_fbs' %}
+    <div class="mts mbl">
+    <img src="{{ STATIC_URL }}img/X.png">
+    </div>
+    <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
+    <div class="mtl mbl">
+    {{ form.photo1 }}
+    </div>
+    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+    {% else %}
+    <div class="mtl mbl">
+    {{ form.photo1 }}
+    </div>
+    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+    {% endif %}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-{% else %}
-<div class="mtl mbl">
-{{ form.photo1 }}
-</div>
-<input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-</div>
-{% endif %}
-</form>
 <hr size=1 COLOR="#b3e6b3">
 
-<form method="POST" enctype="multipart/form-data" action="{% url 'post_basic_item_photos' %}">
-{% csrf_token %}
+
 <div class="mtl mbl">
-<b class="cl co">Dusri Foto:</b>
-<div class="mbs">
-{% if form.photo2.errors %}
-<span class="cr">{{ form.photo2.errors.0 }}</span>
-{% endif %}
-</div>
-{% if photo2 == True %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/done.png">
-</div>
-{% elif photo2 == False %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/X.png">
-</div>
-  {% if repeated %}
-  <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
-  {% elif duplicate %}
-  <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
-  {% elif size == 200000 %}
-  <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
-  {% elif size == 10000000 %}
-  <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
+  <b class="cl co">Dusri Foto:</b>
+  <div class="mbs">
+  {% if form.photo2.errors %}
+  <span class="cr">{{ form.photo2.errors.0 }}</span>
   {% endif %}
+  </div>
+  {% if photo2 == True %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/done.png">
+  </div>
+  {% elif photo2 == 'repeated' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
   <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-{% else %}
-<div class="mtl mbl">
-{{ form.photo2 }}
-</div>
-<input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-</div>
-{% endif %}
-</form>
+  {% elif photo2 == 'duplicate' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo2 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% elif photo2 == 'size_exceeded_on_fbs' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo2 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% elif photo2 == 'size_exceeded_off_fbs' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo2 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% else %}
+  <div class="mtl mbl">
+  {{ form.photo2 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% endif %}
+  </div>
 <hr size=1 COLOR="#b3e6b3">
 
-<form method="POST" enctype="multipart/form-data" action="{% url 'post_basic_item_photos' %}">
-{% csrf_token %}
 <div class="mtl mbl">
-<b class="cl co">Teesri Foto:</b>
-<div class="mbs">
-{% if form.photo3.errors %}
-<span class="cr">{{ form.photo3.errors.0 }}</span>
-{% endif %}
-</div>
-{% if photo3 == True %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/done.png">
-</div>
-{% elif photo3 == False %}
-<div class="mts mbl">
-<img src="{{ STATIC_URL }}img/X.png">
-</div>
-  {% if repeated %}
-  <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
-  {% elif duplicate %}
-  <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
-  {% elif size == 200000 %}
-  <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
-  {% elif size == 10000000 %}
-  <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
+  <b class="cl co">Teesri Foto:</b>
+  <div class="mbs">
+  {% if form.photo3.errors %}
+  <span class="cr">{{ form.photo3.errors.0 }}</span>
   {% endif %}
+  </div>
+  {% if photo3 == True %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/done.png">
+  </div>
+  {% elif photo3 == 'repeated' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Yeh foto tum ne abhi abhi lagai hai. Koi aur foto lagao {% emoticons %}.l2{% endemoticons %}</b><br>
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
   <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-{% else %}
-<div class="mtl mbl">
-{{ form.photo3 }}
-</div>
-<input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
-</div>
-{% endif %}
+  {% elif photo3 == 'duplicate' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Yeh foto kisi aur ishtihar pe lag chuki hai. Taza foto le kar lagao {% emoticons %}.a2{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo3 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% elif photo3 == 'size_exceeded_on_fbs' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr">Freebasics pe <span class="clb">200KB</span> se bari foto nahi lagti {% emoticons %}.j8{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo3 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% elif photo3 == 'size_exceeded_off_fbs' %}
+  <div class="mts mbl">
+  <img src="{{ STATIC_URL }}img/X.png">
+  </div>
+  <b class="cl cr"><span class="clb">10MB</span> se bari photo Damadam pe nahi lgti {% emoticons %}.k4{% endemoticons %}</b><br>
+  <div class="mtl mbl">
+  {{ form.photo3 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% else %}
+  <div class="mtl mbl">
+  {{ form.photo3 }}
+  </div>
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  {% endif %}
+  </div>
+  <hr size=1 COLOR="#b3e6b3">
+  <input type="submit" class="btn bl cl bcg mbs mtl" name="next" value="Agey">
 </form>
-<hr size=1 COLOR="#b3e6b3">
 
-<form method="POST" action="{% url 'post_basic_item_photos' %}">
-{% csrf_token %}
-<input type="hidden" name="next" value="1">
-<input type="submit" class="btn bm bcg mbs mtl" value="Agey">
-</form>
-<!-- 
-<hr size=2 COLOR="#b3e6b3">
-<form method="POST" class="mtl" action="{% url 'post_basic_item' %}">{% csrf_token %}
-<span class="cgy">Agar kuch ghalat ho gaya hai aur dobara se shuru karna hai tou ye dabao:</span><br>
-<input type="submit" class="btn bm bcg mbs mts" value="Restart">
-</form> -->
 </div>
 <br><br>
 {% endblock %}

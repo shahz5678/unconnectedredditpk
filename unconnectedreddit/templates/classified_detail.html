@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load complete_url %}
+{% block content %}
+<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+<div class="margin clb">
+<div class="mbl" style=" width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+<span style="font-size: 1.5625rem; padding-bottom: .625rem; max-width: 90%; line-height: 1.875rem;">{{ ad_body.title }}&nbsp;<span style="font-size:12px" class="cgy">({{ ad_body.is_new }})</span><br>
+
+<span style="font-size: 1.375rem; font-weight: 700;">{{ ad_body.ask }}{% if ad_body.is_barter == 'Paisa aur Exchange dono' %}&nbsp;<span style="font-size:12px">- exchange bhi ho jaye ga{% endif %}<br>
+<span style=" font-family:arial; font-size:15px; color:grey" >{{ ad_body.city }}</span><br>
+<span style="font-size:30px; font-size: 10px; color: grey">{{ ad_body.submission_time|human_time }}</span><br>
+{% if ad_body.photos %}
+<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>
+{% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
+<hr size=1 COLOR="lightgrey">
+{% for photo in ad_body.photos %}
+<img src="{{ photo.0|complete_url }}" style="display:block;margin: 0 auto; padding-bottom:0.5em;">
+{% endfor %}
+<hr size=1 COLOR="lightgrey">
+{% endif %}
+
+
+
+
+
+<span style="font-size:18px; font-weight:lighter;"> Description:<br> {{ ad_body.desc }}<br>
+
+
+
+<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>
+{% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
+</div>
+<br><br>
+{% endblock %}

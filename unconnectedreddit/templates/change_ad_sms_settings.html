@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+{% if current_setting == '1' %}
+	<span class="cl">Kiya khareedarun ke mobile numbers waley SMS <b class="cr">off</b> kar dein?</span><br>
+{% elif current_setting == '0' %}
+	<span class="cl">Kiya khareedarun ke mobile numbers waley SMS <b class="cg">on</b> kar dein?</span><br>
+{% endif %}
+	<form method="POST" action="{% url 'change_my_sms_settings' %}" class="mtl">
+	{% csrf_token %}
+	<input type="hidden" name="ad_score" value="{{ ad_id }}">
+	<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1">Haan</button><br>
+	<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0">Nahi</button>
+	</form>
+
+</div>
+<br><br>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<span class="cl">Kiya is ishtihar ko khatam kar diya jaye?</span><br>
+<form method="POST" action="{% url 'expire_my_ad' %}" class="mtl">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ ad_id }}">
+<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1">Haan</button><br>
+<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0">Nahi</button>
+</form>
+</div>
+<br><br>
+{% endblock %}

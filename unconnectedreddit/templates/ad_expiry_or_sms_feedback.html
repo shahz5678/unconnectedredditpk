@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+{% if type == 'expiry' %}
+<span class="cl">Ishtihar khatam karney ki wajah kiya hai?</span><br><span class="cgy cs">Kiya Damadam ke zariye aap ki cheez bik gayee?</span><br>
+{% elif type == 'sms' %}
+<span class="cl">SMS off karney ki wajah kiya hai?</span><br><span class="cgy cs">Hum apki rai se apni service behtar banien ge</span><br>
+{% endif %}
+<form method="POST" action="{% url 'process_ad_expiry_or_sms_feedback' %}" class="mtl">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ ad_id }}">
+<input type="hidden" name="type" value="{{ type }}">
+{% if form.text_field.errors %}
+<span class="cr">{{ form.text_field.errors.0 }}</span><br>
+{% endif %}
+{{ form.text_field }}<br>
+<input type="submit" class="btn bcg bm mtl mbs" name="dec" value="OK"><br>
+</form>
+</div>
+<br><br>
+{% endblock %}

@@ -10,12 +10,14 @@ from django.utils import timezone
 from cricket_score import cricket_scr
 from imagestorage import delete_from_blob
 from image_processing import clean_image_file_with_hash
+from send_sms import process_sms, bind_user_to_twilio_notify_service
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
-queue_punishment_amount, pre_add_used_item_photo, del_orphaned_classified_photos
+queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
+process_ad_final_deletion, process_ad_expiry
 from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
@@ -81,16 +83,25 @@ def punish_gibberish_writers(dict_of_targets):
 	# for user_id,payable_score in payables:
 	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
+@celery_app1.task(name='tasks.save_consumer_credentials')
+def save_consumer_credentials(account_kit_id, mobile_data, user_id):
+	save_consumer_number(account_kit_id,mobile_data,user_id)
+
+@celery_app1.task(name='tasks.save_unfinished_ad')
+def save_unfinished_ad(context):
+	save_single_unfinished_ad(context)
+
 @celery_app1.task(name='tasks.upload_ecomm_photo')
 def upload_ecomm_photo(photo_id, user_id, avghash, ad_id):
 	# epochtime = convert_to_epoch(time)
 	insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
-	pre_add_used_item_photo(user_id, ad_id, photo_id)
+	save_used_item_photo(user_id, ad_id, photo_id)
 
 # schedule this every 2.5 hours
 @celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
-def sanitize_unused_ecomm_photos():
-	photo_ids = del_orphaned_classified_photos()
+def sanitize_unused_ecomm_photos(photo_ids=None):
+	if not photo_ids:
+		photo_ids = del_orphaned_classified_photos()
 	if photo_ids:
 		# deleting model objects
 		qset = Photo.objects.filter(id__in=photo_ids)
@@ -100,6 +111,20 @@ def sanitize_unused_ecomm_photos():
 		# deleting actual images+thumbnails in azure storage
 		delete_avg_hash(avg_hashes,categ='ecomm')
 		delete_from_blob(image_names)
+
+@celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
+def set_user_binding_with_twilio_notify_service(user_id,phone_number):
+	bind_user_to_twilio_notify_service(user_id,phone_number)
+
+# execute every 55 mins
+@celery_app1.task(name='tasks.expire_classifieds')
+def expire_classifieds():
+	process_ad_expiry()
+
+# execute every 2 days
+@celery_app1.task(name='tasks.delete_expired_classifieds')
+def delete_expired_classifieds():
+	process_ad_final_deletion()
 
 @celery_app1.task(name='tasks.log_gibberish')
 def log_gibberish_writer(user_id,text,length_of_text):
@@ -113,6 +138,10 @@ def capture_urdu(text):
 		if u'\u0600' <= c <= u'\u06FF':
 			log_urdu(text)
 			break
+
+@celery_app1.task(name='tasks.enqueue_sms')
+def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):
+	process_sms(mobile_number,ad_id,status, buyer_number)
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):

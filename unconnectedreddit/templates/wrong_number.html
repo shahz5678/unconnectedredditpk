@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<span class="cxl">Ye number kisi aur profile ke sath munsalik hai</span><br><span class="cgy">Isko sirf ussi profile se use kiya ja sakta hai</span><br>
+
+{% if referrer %}
+<a href="{{ referrer }}">
+{% else %}
+<a href="{% url 'buy_and_sell' %}">
+{% endif %}
+<button class="btn bcg mtl bm">wapis</button></a>
+
+</div>
+<br><br>
+{% endblock %}

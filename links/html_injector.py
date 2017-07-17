@@ -192,17 +192,5 @@ def av_url_formatting(av_url):
 	else:
 		return '<img src="/static/img/default-avatar-min.jpg" alt="no pic"  width="22" height="22"></img>'
 
-# def comment_count_formatting(comment_count, link_id):
-# 	form_head = '<form method="POST" action="/link/%s/" style="display:inline;">' % link_id
-# 	csrf = '{%% csrf_token %}'
-# 	form_tail = '</form>'
-# 	button_head = '<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;">'
-# 	button_tail = '</button>'
-# 	# a_href_head = '<a href="/link/%s/">' % link_id
-# 	# a_href_tail = '</a>'
-# 	if comment_count > 0:
-# 		button = form_head+csrf+button_head+'<b>'+str(comment_count)+'</b>&nbsp;&nbsp;jawab'+button_tail+form_tail
-# 		# button = '&nbsp;&nbsp;'+a_href_head+button_head+'<b>'+str(comment_count)+'</b>&nbsp;&nbsp;jawab'+button_tail+a_href_tail
-# 	else:
-# 		button = ''
-# 	return button
+# def contacter_string(phone_number):
+# 	return '<span class="cg"><b>%s</b> ne tumhara mobile number hasil kiya</span><br>' % phone_number

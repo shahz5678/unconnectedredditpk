@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<h2>Pehlay aap apne mobile number ki tasdiq karwao</h2>
+Agli screen pe number aur country code 92 dalo. Hamari partner company Facebook number ki tasdiq karey gi.<br>
+<span class="cgy cs">(Facebook account ki zarurat nahi)</span><br>
+
+<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=true>
+  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vcn/">
+  <input type="hidden" name="state" value="{{ csrf }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;" value="  Theek hai  ">
+</form><br>
+</div>
+<br><br>
+{% endblock %}

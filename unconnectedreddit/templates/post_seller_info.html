@@ -12,12 +12,13 @@
 {% if form.seller_name.errors %}
 <span class="cr">{{ form.seller_name.errors.0 }}</span>
 {% else %}
-<span class="cgy cs">(Ye naam khareednay waloon ko bataya jaye ga)</span>
+<span class="cgy cs">(Ye naam khareedar ko bataya jaye ga)</span>
 {% endif %}
 </div>
 {{ form.seller_name }}
 </div>
 <hr size=1 COLOR="#b3e6b3">
+
 
 <div class="mtl mbl">
 <div class="mbs">
@@ -30,14 +31,27 @@
 </div>
 <hr size=1 COLOR="#b3e6b3">
 
-<input class="btn bm bcg mbs mts" type="submit" value="Agey">
+
+{% if mobile_num %}
+<div class="mtl mbl">
+<b class="cl">Khareedar kis number pe contact karien?</b>
+<div class="mbs">
+{% if form.mobile.errors %}
+<span class="cr">{{ form.mobile.errors.0 }}</span>
+{% endif %}
+</div>
+{% for radio in form.mobile %}
+<div class="mts">
+{{ radio }}
+</div>
+{% endfor %}
+</div>
+<hr size=1 COLOR="#b3e6b3">
+{% endif %}
+
+<input class="btn bl cl bcg mbs mts" type="submit" value="Agey">
 </form>
-<!-- 
-<hr size=2 COLOR="#b3e6b3">
-<form method="POST" class="mtl" action="{% url 'post_basic_item' %}">{% csrf_token %}
-<span class="cgy">Agar kuch ghalat ho gaya hai aur dobara se shuru karna hai tou ye dabao:</span><br>
-<input type="submit" class="btn bm bcg mbs mts" value="Restart">
-</form> -->
+
 </div>
 <br><br>
 {% endblock %}

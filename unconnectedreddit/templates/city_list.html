@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load join_string %}
+{% block content %}
+<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+<div class="margin clb">
+
+{% include "baich_do.html" %}
+
+<div class="mts">
+<ul class="navbar_classifieds">
+<li><a href="{% url 'show_user_ads' %}#section0">Meray ads</a></li>
+<li><a href="{% url 'classified_listing' %}#section0">All Pakistan ({{ ad_count }} ads)</a></li>
+</ul>
+</div>
+<br>
+
+	<div class="mbl" style="line-height:25px; letter-spacing:0.05px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+	<h2 style="text-align:center;">All cities</h2>
+	<hr size=2 COLOR="#ffab91">
+		<div class="mtl mbl">
+		{% for city, ad_count in cities %}
+			{% if ad_count > 0 %}
+			<div class="mbl">
+			<span class="cgy cs">{{ forloop.counter }}.</span>&nbsp;<a href="{% url 'city_classified_listing' city|join_string %}#section0" class="clb cl hov">{{ city }}&nbsp;<span class="cs">(<span class="cb">{{ ad_count|floatformat:"0" }} {% if ad_count > 1 %}ads{% else %}ad{% endif %}</span>)</span></a><br>
+			</div>
+			{% endif %}
+		{% endfor %}
+		</div>
+	</div>
+
+</div>
+<br><br>
+{% endblock %}

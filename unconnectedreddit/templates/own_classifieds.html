@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load complete_url %}
+{% load human_time %}
+{% load get_ecomm_navbar %}
+{% load join_string %}
+{% block content %}
+<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+<div class="margin clb">
+
+{% include "baich_do.html" %}
+
+
+{% ecomm_navbar 'seller_number' is_feature_phone %}
+
+<br>
+
+{% if unfinished %}
+<div class="mbl" style="line-height: 25px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+<div style="text-align:center;">
+<span class="cr" style="font-size:20px;">Ye ad na-mukammal hai!</span><br>
+<span class="cm cgy">Mobile number verify karwana zaruri hai</span>
+</div>
+<hr size=2 COLOR="#ffab91">
+<form method="POST" action="{% url 'edit_classified' %}">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ unfinished.ad_id }}">
+<input type="hidden" name="EID" value="{{ unfinished.user_id }}">
+
+<span style="font-size:15px"><b>Tafseel:</b> {{ unfinished.desc|truncatechars:35 }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_desc" value="{{ unfinished.desc }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>Price:</b> {{ unfinished.ask }}</span></span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_ask" value="{{ unfinished.ask }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>Haalat:</b> {{ unfinished.is_new }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_is_new" value="{{ unfinished.is_new }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>Exchange:</b> {{ unfinished.is_barter }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_is_barter" value="{{ unfinished.is_barter }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>Name:</b> {{ unfinished.seller_name }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_name" value="{{ unfinished.seller_name }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>City:</b> {{ unfinished.city }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_city" value="{{ unfinished.city }}" type="submit">&nbsp;</button><br>
+</form>
+<hr size=1 COLOR="#e0e0e0">
+<b style="font-size:15px">Fotos:</b><br>
+	{% for photo in unfinished.photos %}
+	<img class="mrs" src="{{ photo.0|complete_url:'True' }}">
+	{% empty %}
+	<span class="cr cs">Fotos laganey ke liye ad delete kar ke phir se banao</span>
+	{% endfor %}<br>
+<form method="POST" action="{% url 'process_unfinished_ad' %}">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ unfinished.ad_id }}">
+<input type="hidden" name="EID" value="{{ unfinished.user_id }}">
+<input type="hidden" name="desc" value="{{ unfinished.desc }}">
+<input type="hidden" name="ask" value="{{ unfinished.ask }}">
+<input type="hidden" name="is_new" value="{{ unfinished.is_new }}">
+<input type="hidden" name="is_barter" value="{{ unfinished.is_barter }}">
+<input type="hidden" name="seller_name" value="{{ unfinished.seller_name }}">
+<input type="hidden" name="city" value="{{ unfinished.city }}">
+<input type="hidden" name="from_meray_ads" value="1">
+<input class="btn mts cxl" type="submit" style="background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block;width:68%; min-width:180px;" name="next_step" value="verify mobile">
+<input class="btn mts" type="submit" style="background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block;width:30%; min-width:80px;" name="next_step" value="delete">
+</form>
+</div>
+{% endif %}
+
+
+
+
+{% if approved %}
+<div class="mbl" style="line-height: 25px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+<div style="text-align:center;">
+<span  class="cxl">Apke manzur shuda ads <span class="co">({{approved_count}})</span></span><br>
+{% if is_feature_phone != '1' %}<span class="cgy">Ye ads is waqt chal rehay hain</span>{% endif %}
+</div>
+<hr size=2 COLOR="#ffab91">
+{% for ad in approved %}
+<span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
+<span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
+<span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<form method="POST" class="mts mbs" action="{% url 'expire_my_ad' %}" style="display:inline;">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ ad.ad_id }}">
+<input type="submit" class="mrs" style="border-radius:0px;background-color:#ba68c8;border-color:#ba68c8;color:white;" value="delete ad">
+</form>
+<form method="POST" class="mts mbs" action="{% url 'change_my_sms_settings' %}" style="display:inline;">
+{% csrf_token %}
+<input type="hidden" name="ad_score" value="{{ ad.ad_id }}">
+<input type="submit" class="mts" style="border-radius:0px;background-color:#00b1cc;border-color:#00b1cc;color:white;" value="sms settings"><br>
+</form>
+<b style="font-size:15px">Fotos:</b><br>
+	{% for photo in ad.photos %}
+	<img class="mrs mts mbs" src="{{ photo.0|complete_url:'True' }}">
+	{% empty %}
+	<span class="mls cr cs">Foto nahi hai</span>
+	{% endfor %}
+	<br>
+<b style="font-size:15px">Khareedar:</b><br>
+	{% for click in ad.click_details %}
+	<div class="mbs">
+	<span class="cg" style="font-size:15px;"><b>{{ click.0 }}</b> ne apka mobile number liya,&nbsp;<span class="cs cgy">{{ click.1|human_time }}</span></span>{% if is_feature_phone != '3' %}&nbsp;<a href="tel:{{ click.0 }}"><button class="mls mrs" style="border-radius:0px;border-color:#ff5722;color:white;background-color:#ff5722;">Call</button></a>&nbsp;&nbsp;<a href="sms:{{ click.0 }}?body=Salam! Damadam pe meray ad '{{ ad.title }}' kay barey mein aap se baat karni hai. Abhi baat kar lein?"><button style="border-radius:0px;border-color:#0091ea;color:white;background-color:#0091ea;">SMS</button></a>{% endif %}<br>
+	</div>
+	{% empty %}
+	<span class="mls cr cs">Abhi tak koi nahi hai</span>
+	{% endfor %}
+<hr size=1 COLOR="#ffab91">
+	{% empty %}
+
+{% endfor %}
+</div>
+{% endif %}
+
+{% if unapproved %}
+<div class="mbl" style="line-height: 25px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+<div style="text-align:center;">
+<span  class="cxl">Apke na-manzur ads <span class="co">({{unapproved_count}})</span></span><br>
+<span class="cm cgy">manzuri mein kuch waqt lagey ga</span>
+</div>
+<hr size=2 COLOR="#ffab91">
+{% for ad in unapproved %}
+<span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
+<span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
+<span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<b style="font-size:15px">Fotos:</b><br>
+	{% for photo in ad.photos %}
+	<img class="mrs" src="{{ photo.0|complete_url:'True' }}">
+	{% empty %}
+	<span class="mls cr cs">Foto nahi hai</span>
+	{% endfor %}
+<hr size=1 COLOR="#ffab91">
+	{% empty %}
+{% endfor %}
+
+</div>
+{% endif %}
+
+{% if expired %}
+<div class="mbl mts" style="line-height: 25px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+<div style="text-align:center;">
+<span  class="cxl">Apke khatam ads <span class="co">({{ expired_count }})</span></span><br>
+</div>
+<hr size=2 COLOR="#ffab91">
+{% for ad in expired %}
+<span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
+<span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
+<span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<b style="font-size:15px">Fotos:</b><br>
+	{% for photo in ad.photos %}
+	<img class="mrs mts mbs" src="{{ photo.0|complete_url:'True' }}">
+	{% empty %}
+	<span class="mls cr cs">Foto nahi hai</span>
+	{% endfor %}
+	<br>
+<b style="font-size:15px">Khareedar:</b><br>
+	{% for click in ad.click_details %}
+	<div class="mbs">
+	<span class="cg" style="font-size:15px;"><b>{{ click.0 }}</b> ne apka mobile number liya,&nbsp;<span class="cs cgy">{{ click.1|human_time }}</span></span>{% if is_feature_phone != '3' %}&nbsp;<a href="tel:{{ click.0 }}"><button class="mls mrs mbs" style="border-radius:0px;border-color:#ff5722;color:white;background-color:#ff5722;">Call</button></a>&nbsp;&nbsp;<a href="sms:{{ click.0 }}?body=Salam! Damadam pe meray ad '{{ ad.title }}' kay barey mein aap se baat karni hai. Abhi baat kar lein?"><button style="border-radius:0px;border-color:#0091ea;color:white;background-color:#0091ea;">SMS</button></a>{% endif %}<br>
+	</div>
+	{% empty %}
+	<span class="mls cr cs">Abhi tak koi nahi hai</span>
+	{% endfor %}
+<hr size=1 COLOR="#ffab91">
+	{% empty %}
+
+{% endfor %}
+</div>
+{% endif %}
+
+
+</div><br><br>
+{% endblock %}

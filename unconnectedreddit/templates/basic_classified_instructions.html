@@ -2,30 +2,30 @@
 {% block content %}
 <div class="margin clb">
 
-<h2>Saaz-o-samaan baichnay ka ishtihar lagao (bilkul muft)</h2>
-<span class="cgy">Iskey liye <b>4 steps</b> darkar hain:</span>
+<h2>Saaz-o-samaan baichnay ka ad lagao (bilkul muft)</h2>
+<span class="cgy">Iskey liye <b>4 steps</b> pooray karo:</span>
 
 <div class="mtl mbs">
-<b class="co">Step 1:</b>&nbsp;<span class="cg cl">Jo cheez baichni hai uski <b>tafseel</b> likho</span>
+<b class="co">Step 1:</b>&nbsp;<span class="clb cl">Jo baichna hai uski <b>tafseel</b> likho</span>
 </div>
 <div class="mbs">
-<b class="co">Step 2:</b>&nbsp;<span class="cg cl">Cheez ki <b>3 fotos</b> lagao</span>
+<b class="co">Step 2:</b>&nbsp;<span class="clb cl">Cheez ki <b>3 fotos</b> tak laga saktey ho</span>
 </div>
 <div class="mbs">
-<b class="co">Step 3:</b>&nbsp;<span class="cg cl">Apna <b>naam</b> aur <b>city</b> batao</span>
+<b class="co">Step 3:</b>&nbsp;<span class="clb cl">Apna <b>naam</b>, <b>city</b> aur <b>mobile number</b> likho</span>
 </div>
 <div class="mbl">
-<b class="co">Step 4:</b>&nbsp;<span class="cg cl"><b>Mobile number</b> ki tasdiq karo</span>
+<b class="co">Step 4:</b>&nbsp;<span class="clb cl"><b>Mobile number</b> ki SMS ke zariye tasdiq karwao</span>
 </div>
 
-<span class="cgy">Agr sab maloomat theek hui tou ishtihar laga diya jaye ga</span>
+<span class="cg">Agr sab theek hua tou ad laga diya jaye ga</span>
 
 <hr size=1 COLOR="#b3e6b3">
 
 <form method="POST" class="mts" action="{% url 'init_classified' %}">
 {% csrf_token %}
 <input type="hidden" name="category" value="1">
-<input class="btn bm bcg mbs mts" type="submit" value="Agey">
+<input class="btn bl cl bcg mbs mts" type="submit" value="Agey">
 </form>
 
 </div>

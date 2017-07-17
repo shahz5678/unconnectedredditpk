@@ -105,6 +105,99 @@ S1: Html styling
         background-color: #e67300;
     }
 
+    /* ul-based navigation bar for classifieds*/
+
+    ul.navbar_classifieds {
+    list-style-type: none;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #E8E8E8;
+    font-size: 0.8em;
+    text-align: center;
+    width: 95%;
+    padding-left:5px;
+    padding-right:5px;
+    border-radius:4px;
+    box-shadow:0 1px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d9d9d9;
+    max-width: 400px;
+    }
+
+    ul.navbar_classifieds li {
+        margin: auto;
+        display: inline-block;
+        border-right: 1px solid #E8E8E8;
+    }
+
+    ul.navbar_classifieds li:first-child {
+        border-left: 1px solid #E8E8E8;
+    }
+
+    ul.navbar_classifieds li a {
+        display: inline-block;
+        color: #424242;
+        text-align: center;
+        padding-left: 1em;
+        padding-right: 1em;
+        padding-top: 0.6em;
+        padding-bottom: 0.6em;
+        text-decoration: none;
+    }
+
+    ul.navbar_classifieds li a:hover {
+        background-color: #d9d9d9;
+        color:#14852e;
+    }
+
+
+    /* div-based navigation bar for classifieds*/
+
+    div.navbar_classifieds {
+    list-style-type: none;
+    overflow: hidden;
+    background-color: #E8E8E8;
+    font-size: 0.8em;
+    border-radius:4px;
+    box-shadow:0 1px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d9d9d9;
+    width: 95%;
+    padding-left:5px;
+    padding-right:5px;
+    max-width: 400px;
+    }
+
+    div.navbar_classifieds span {
+        border-right: 1px solid #E8E8E8;
+    }
+
+    div.navbar_classifieds span:first-child {
+        border-left: 1px solid #E8E8E8;
+    }
+
+    div.navbar_classifieds span a {
+        display: inline-block;
+        color: #424242;
+        padding-left: 1em;
+        padding-right: 1em;
+        padding-top: 0.7em;
+        padding-bottom: 0.7em;
+        text-decoration: none;
+    }
+
+    div.navbar_classifieds span a:hover {
+        background-color: #d9d9d9;
+        color:#14852e;
+    }
+
+    .hov:hover {
+        
+        padding-right: 1em;
+        padding-top: 0.6em;
+        padding-bottom: 0.6em;
+        background-color: #e6e6e6;
+    }
+
     /*font san serif*/ .fss{font-family:sans-serif;}
 
     .emoji-table{
@@ -119,7 +212,6 @@ S1: Html styling
 .bgc{
     background-color:#FFFFE0;
 }
-    
 
 /*=================================================
 S2 Text formatting: Headings and Captions etc.

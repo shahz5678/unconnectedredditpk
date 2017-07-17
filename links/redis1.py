@@ -428,6 +428,7 @@ def unlock_uname_search(user_id):
 #photo curator:         '12'
 #website feedbacker:    '13'
 #shopper:               '14'
+#classified_contacter:  '15'
 
 # def first_time_shopper(user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)
@@ -436,6 +437,14 @@ def unlock_uname_search(user_id):
 # 		return False
 # 	else:
 # 		return True	
+
+def first_time_classified_contacter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'15'):
+		return False
+	else:
+		return True	
 
 def first_time_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -594,6 +603,11 @@ def add_website_feedbacker(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '13')
+
+def add_classified_contacter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '15')
 
 # def add_shopper(user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)

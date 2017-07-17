@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+How long should the ad stay live?
+	<form class="mtl mbs" method="POST" action="{% url 'process_ad_approval' %}"}>
+	{% csrf_token %}
+	<input type="hidden" name="ad_score" value="{{ score }}">
+	<input class="mbl" type="radio" name="dur" value="{{ most_dur }}">&nbsp;<b class="cg">Two Weeks</b> <span class="cs cgy">(recommended for individuals selling used items)</span><br>
+	<input class="mbl" type="radio" name="dur" value="{{ least_dur }}">&nbsp;<b class="cg">One Week</b> <span class="cs cgy">(recommended for individuals selling used items)</span><br>
+	<input class="mbl" type="radio" name="dur" value="{{ most_clicks }}">&nbsp;<b class="co">{{ most_clicks }} clicks</b> <span class="cs cgy">(recommended for businesses)</span><br>
+	<input class="mbl" type="radio" name="dur" value="{{ medium_clicks }}">&nbsp;<b class="co">{{ medium_clicks }} clicks</b> <span class="cs cgy">(recommended for businesses)</span><br>
+	<input class="mbl" type="radio" name="dur" value="{{ least_clicks }}" checked>&nbsp;<b class="co">{{ least_clicks }} clicks</b> <span class="cs cgy">(recommended for businesses)</span><br>
+	<input type="submit" class="btn bcg bm mtl" value="Done">
+	</form>
+</div>
+<br><br>
+{% endblock %}

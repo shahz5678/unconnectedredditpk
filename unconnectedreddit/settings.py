@@ -378,7 +378,15 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',
-		'schedule': timedelta(seconds=15*10*60), # execute every 2.5 hour
+		'schedule': timedelta(seconds=15*10*60), # execute every 2.5 hours
+	},
+	'tasks.expire_classifieds': {
+		'task': 'tasks.expire_classifieds',
+		'schedule': timedelta(seconds=55*60), # execute every 55 mins
+	},
+	'tasks.delete_expired_classifieds': {
+		'task': 'tasks.delete_expired_classifieds',
+		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',

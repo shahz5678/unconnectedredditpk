@@ -16,7 +16,7 @@
             <b class="cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>
             <a href="{% url 'profile' slug=star.username %}#section0">
                 {% if star.userprofile__avatar %}
-                    <img src="{{ star.userprofile__avatar|complete_url }}" alt="no pic"></img>
+                    <img src="{{ star.userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                 {% endif %}

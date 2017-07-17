@@ -27,7 +27,7 @@
 			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<b class="cs cg">(INVITE)</b>
 			{% if reply.0.writer__userprofile__avatar %}
-				<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>
+				<img src="{{ reply.0.writer__userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
@@ -67,7 +67,7 @@
 			<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<b class="cp cs">(INVITE)</b>
 			{% if reply.0.writer__userprofile__avatar %}
-				<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>
+				<img src="{{ reply.0.writer__userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 			{% endif %}
@@ -121,7 +121,7 @@
 		<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
 		
-		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
+		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
 		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer__username %}">{{ reply.0.writer__username }}</a>{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}&nbsp;ne</span>
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
@@ -147,7 +147,7 @@
 	{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
 
 		<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
-		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
+		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
 		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer__username %}">{{ reply.0.writer__username }}</a>{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %} ne</span>&nbsp;
 

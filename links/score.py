@@ -51,3 +51,9 @@ CITIES = ["Rawalpindi","Islamabad"]
 ###############################################################################################################
 ON_FBS_PHOTO_THRESHOLD = 200000
 OFF_FBS_PHOTO_THRESHOLD = 10000000
+LEAST_CLICKS = 5
+MOST_CLICKS = 45
+MEDIUM_CLICKS = 15
+MOST_DURATION = 336 # Two weeks in hours
+LEAST_DURATION = 168 # One week in hours
+TWILIO_NOTIFY_THRESHOLD = 20

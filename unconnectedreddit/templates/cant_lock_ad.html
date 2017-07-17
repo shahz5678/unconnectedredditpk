@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+This entry is locked by <b class="cg">{{ locked_by }}</b>. If required, please ask them to unlock it<br>
+<a href="{% url 'approve_classified' %}"><button class="btn bcg bm mtl">back</button></a>
+</div>
+<br><br>
+{% endblock %}

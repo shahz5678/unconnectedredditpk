@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load get_ecomm_navbar %}
+{% block content %}
+<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+<div class="margin clb">
+
+{% ecomm_navbar 'seller_number' is_feature_phone %}
+<br>
+<div class="mbl" style="line-height:25px; letter-spacing:0.05px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+
+<div class="mbs mts">
+<b>Seller Name:</b> {{ seller_details.seller_name }}<br>
+</div>
+<div class="mbs">
+<b>Number:</b> 0{{ MN_data.national_number}}{% if device != '3' %}&nbsp;<a href="tel:0{{ MN_data.national_number}}"><button class="mls mrs" style="border-radius:0px;border-color:#ff5722;color:white;background-color:#ff5722;">Call</button></a>&nbsp;&nbsp;<a href="sms:0{{ MN_data.national_number}}?body=Salam {{ seller_details.seller_name }}, Damadam pe apke ishtihar ke barey mein poochna hai."><button style="border-radius:0px;border-color:#0091ea;color:white;background-color:#0091ea;">SMS</button></a>{% endif %}<br>
+</div>
+<div class="mbs">
+<b>City:</b> {{ seller_details.city }}<br>
+</div>
+<div class="mbs">
+<b>Item:</b> {{ seller_details.title }} <span class="cgy">({{ seller_details.is_new }})</span><br>
+</div>
+<div class="mbs">
+<b>Price:</b> {{ seller_details.ask }}{% if is_barter == 'Paisa aur Exchange dono' %}<span class="cgy">(exchange bhi ho jaye ga)</span><br>{% endif %}
+</div>
+
+</div>
+</div><br><br>
+{% endblock %}

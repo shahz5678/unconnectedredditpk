@@ -1,20 +1,38 @@
 # coding=utf-8
-import redis, time
-from datetime import datetime
+import redis, time, ast
 from location import REDLOC3
-from score import PHOTOS_WITH_SEARCHED_NICKNAMES
+from datetime import datetime
 from templatetags.thumbedge import cdnize_target_url
-from html_injector import image_thumb_formatting
+from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
+from html_injector import image_thumb_formatting#, contacter_string
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 
 '''
 ##########Redis Namespace##########
 
+pipeline1.lpush("aa:"+city,ad_id)
+pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
+pipeline1.zincrby("approved_locations",city,amount=1)
+my_server.incr("cb:"+closed_by)
+my_server.hset('cn:'+user_id,mapping) # saving consumber number data in hash
+pipeline1.sadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
 gibberish_writers = 'gibberish_writers'
+pipeline1.lpush("global_ads_list",ad_id) # used for global view
+pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
+pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global list of expired ads, stays alive for 1 month
 punishment_text = "pt:"+str(user_id)
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
+my_server.lpush("unc:"+submitted_data["user_id"])
+pipeline1.lpush("uaa:"+seller_id,ad_hash) - user approved ads
+pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
+unfinished_classified = "uuc:"+str(user_id)
 user_thumbs = "upt:"+owner_uname
-"unfinalized_used_item_ads"
+my_server.hgetall("um:"+str(user_id)) # user mobile number data
+my_server.zadd("unapproved_ads",ad,ad_id)
+"unfinalized_used_item_photos"
+my_server.sadd("unfinished_classifieds",ad_id)
 
 ###########
 '''
@@ -24,6 +42,13 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
+ONE_MONTH = 30*24*60*60
+
+def string_tokenizer(string):
+	return string.replace("_"," ")
+
+def string_joiner(string):
+	return string.replace(" ", "_")
 
 #####################Process Nick#######################
 
@@ -274,81 +299,620 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
 
-###############Saving User Mobile Data#################
-
-# def save_seller_credentials(account_kit_user_id, mobile_data):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# print account_kit_user_id #connected to a mobile number, time of phone number verification
-# 	# print mobile_data {'national_number': '3335196812', 'number': '+923335196812', 'country_prefix': '92'}
-# 	# need to tie running ad's ad_id to the user (list containing ad_id, user_id pairs as values)
-# 	return True
-
-# def save_new_user_credentials(account_kit_user_id, mobile_data):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# create a table(hash??) of user_id and complete_mobile_num (hash will allow multiple numbers, e.g. if seller's personal number and seller number are different)
-# 	# create hash tables headlined by phone numbers, containing other features
-# 	# 	including: nick, gender, account_kit_id, user_id,  
-
 #####################Classifieds#######################
 
+
+def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
+	my_server = redis.Redis(connection_pool=POOL)
+	if which_feedback == 'expiry':
+		sorted_set = 'ad_expiry_feedback'
+	elif which_feedback == 'sms':
+		sorted_set = 'sms_setting_feedback'
+	else:
+		return None
+	my_server.zadd(sorted_set,feedback, ad_id)
+
+
+
+def get_SMS_setting(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget("ad:"+ad_id,'SMS_setting')
+
+
+def toggle_SMS_setting(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	original_setting = my_server.hget('ad:'+ad_id,'SMS_setting')
+	if original_setting == '1':
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset('ad:'+ad_id,'SMS_setting','0')
+		pipeline1.incr("sms_turned_off")
+		pipeline1.execute()
+	elif original_setting == '0':
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset('ad:'+ad_id,'SMS_setting','1')
+		pipeline1.decr("sms_turned_off")
+		pipeline1.execute()
+	return original_setting
+
+
+def ad_owner_id(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget("ad:"+ad_id,"user_id")
+
+
+# takes care of expired ads' final deletion (auto-run once a day or so)
+def process_ad_final_deletion():
+	my_server = redis.Redis(connection_pool=POOL)
+	current_time = time.time()
+	ad_ids = my_server.zrangebyscore("global_expired_ads_list",'-inf', current_time)
+	if ad_ids:
+		pipeline1 = my_server.pipeline()
+		for ad_id in ad_ids:
+			pipeline1.hget("ad:"+ad_id,"user_id")
+		user_ids = pipeline1.execute()
+		counter = 0
+		pipeline2 = my_server.pipeline()
+		for ad_id in ad_ids:
+			user_id = user_ids[counter]
+			pipeline2.delete("ad:"+ad_id)
+			pipeline2.delete("sn:"+ad_id) # contains ids of all who've already seen the seller's number
+			pipeline2.lrem("uea:"+user_id,ad_id,num=-1)
+			counter += 1
+		pipeline2.execute()
+		my_server.zremrangebyscore("global_expired_ads_list",'-inf', current_time)
+
+
+def process_expiry_sms_in_bulk(user_ids):
+	if len(user_ids) <= TWILIO_NOTIFY_THRESHOLD:
+		send_expiry_sms_in_bulk(user_ids)
+	else:
+		chunks = [user_ids[x:x+TWILIO_NOTIFY_THRESHOLD] for x in xrange(0, len(user_ids), TWILIO_NOTIFY_THRESHOLD)]
+		for user_id_list in chunks:
+			send_expiry_sms_in_bulk(user_id_list)
+
+# moves approved ads into the expired phase (used for both time expiry and click based expiry)
+def process_ad_expiry(ad_ids=None, type_list=True):
+	my_server = redis.Redis(connection_pool=POOL)
+	current_time = time.time()
+	if type_list:
+		if not ad_ids:
+			# used for time-based ad expiry
+			ad_ids = my_server.zrangebyscore("ad_expiry_queue",'-inf',current_time)
+			if ad_ids:
+				pipeline1 = my_server.pipeline()
+				for ad_id in ad_ids:
+					pipeline1.hmget("ad:"+ad_id,"user_id","city","is_barter","MN_data")
+				result1 = pipeline1.execute() # result1 will contain a list of lists
+				pipeline2 = my_server.pipeline()
+				# expired_numbers = []
+				user_ids_of_expired_ads = []
+				counter = 0
+				for ad_id in ad_ids:
+					user_id, city, is_barter, MN_data = result1[counter][0], string_joiner(result1[counter][1]), result1[counter][2], result1[counter][3]
+					pipeline2.lrem("global_ads_list",ad_id,num=-1)
+					pipeline2.lrem("aa:"+city,ad_id,num=1)
+					if is_barter == 'Paisa aur Exchange dono':
+						pipeline2.lrem("global_exchange_ads_list",ad_id,num=-1)
+						pipeline2.lrem("aea:"+city, ad_id, num=-1)
+					pipeline2.lrem("uaa:"+user_id,ad_id)
+					pipeline2.zincrby("approved_locations",city,amount=-1)
+					pipeline2.lpush("uea:"+user_id,ad_id) # used in user_expired_ads
+					pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) # global list of expired ads, used to sanitize expired ads after 1 month
+					# expired_numbers.append(ast.literal_eval(MN_data)["number"])
+					user_ids_of_expired_ads.append(user_id)
+					counter += 1
+				pipeline2.execute()
+				my_server.zremrangebyscore("ad_expiry_queue",'-inf',current_time)
+				# process_bulk_sms(expired_numbers)
+				process_expiry_sms_in_bulk(user_ids_of_expired_ads)
+	else:
+		if ad_ids:
+			# ad_ids contains a single ad_id
+			user_id, city, is_barter = my_server.hmget("ad:"+ad_ids,"user_id","city","is_barter")
+			city = string_joiner(city)
+			pipeline1 = my_server.pipeline()
+			pipeline1.lrem("global_ads_list",ad_ids,num=-1)
+			pipeline1.lrem("aa:"+city,ad_ids,num=1)
+			if is_barter == 'Paisa aur Exchange dono':
+				pipeline1.lrem("global_exchange_ads_list",ad_ids,num=-1)
+				pipeline1.lrem("aea:"+city, ad_ids, num=-1)
+			pipeline1.lrem("uaa:"+user_id,ad_ids)
+			pipeline1.zrem("ad_expiry_queue",ad_ids) # remove ad from ad_expiry_queue
+			pipeline1.zincrby("approved_locations",city,amount=-1)
+			pipeline1.lpush("uea:"+user_id,ad_ids) # used in user_expired_ads
+			pipeline1.zadd("global_expired_ads_list",ad_ids,current_time+ONE_MONTH)
+			pipeline1.execute()
+		else:
+			# do nothing if ad_id wasn't passed, because this is not going to be listed in the ad_expirty_queue
+			pass
+
+
+
+# helper function for get_seller_details
+def log_ad_click(server, ad_hash, clicker_id, ad_id):
+	is_unique, clicker_number, expire_ad = False, None, False
+	if not server.sismember("sn:"+ad_id,clicker_id):
+		click_details, is_unique = [], True
+		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
+		click_details.append((clicker_number,time.time()))
+		if 'unique_clicks' in ad_hash:
+			ad_hash["unique_clicks"] = int(ad_hash["unique_clicks"]) + 1
+		else:
+			ad_hash["unique_clicks"] = 1
+		#add ad's click information alongwith timestamp
+		if "click_details" in ad_hash:
+			ad_hash["click_details"] = click_details+ast.literal_eval(ad_hash["click_details"])
+		else:
+			ad_hash["click_details"] = click_details
+		if "expiration_clicks" in ad_hash:
+			if int(ad_hash["unique_clicks"]) > int(ad_hash["expiration_clicks"]):
+				expire_ad = True
+		pipeline1 = server.pipeline()
+		pipeline1.hmset("ad:"+ad_id,ad_hash) #saving latest number of clicks
+		pipeline1.sadd("sn:"+ad_id,clicker_id) #saving all who've already seen the seller's number
+		pipeline1.execute()
+		if expire_ad:
+			process_ad_expiry(ad_id,type_list=False) # expire ad if enough clicks have happened (only for click-rated ad expiry, not time-related)
+	return ad_hash, is_unique, clicker_number, expire_ad
+
+
+# called when buyer clicks the button to get seller's contact details
+def get_seller_details(clicker_id, ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_id = str(float(ad_id))
+	clicker_id = str(clicker_id)
+	return log_ad_click(my_server,my_server.hgetall("ad:"+ad_id), clicker_id, ad_id)
+
+
+# return True if user has any number on file
+def is_mobile_verified(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return True if my_server.exists("um:"+str(user_id)) else False
+
+
+def someone_elses_number(national_number, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	rival_id = my_server.zscore("verified_numbers", national_number)
+	if rival_id is None or int(rival_id) == user_id:
+		# either own number, or available number, either way NOT someone else's number
+		return False
+	else:
+		# someone else's number
+		return True
+
+
+def get_user_verified_number(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	numbers = my_server.lrange('um:'+user_id,0,-1)
+	if numbers:
+		mob_nums = []
+		for number in numbers:
+			mob_nums.append(ast.literal_eval(number)["national_number"])
+		return mob_nums
+	else:
+		return []
+
+
+# this mechanism saves up to TWO user numbers, trimming the 3rd
+def save_consumer_number(account_kit_id, mobile_data, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	user_mobile = "um:"+user_id
+	verif_time = time.time()
+	mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
+	'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush(user_mobile, mapping)
+	pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+	pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+	pipeline1.execute()
+	if my_server.llen(user_mobile) > 2:
+		removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
+		my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
+
+
+# helper function for move_to_approved_ads
+# incrementing ad agent "closing" score (coffee is for closers)
+def increment_agent_score(server, username):
+	pipeline1 = server.pipeline()
+	pipeline1.incr("total_ads_closed") # keeping a count of all ads ever approved
+	pipeline1.incr("cb:"+username) # incrementing the score of the closing agent
+	pipeline1.expire("cb:"+username, ONE_WEEK) # score expires in 1 week if agent isn't at work
+	pipeline1.execute()
+
+# helper function for move_to_approved_ads
+def process_ad_approval(server,ad_id, ad_hash, ad_city, seller_id):
+	pipeline1 = server.pipeline()
+	pipeline1.zincrby("approved_locations",ad_city,amount=1) # when getting: first get all locations, then all approved ads related to that location, and then all ads' hashes
+	pipeline1.lpush("global_ads_list",ad_id) # used for global view
+	pipeline1.lpush("aa:"+ad_city,ad_id) # used for city-wide view
+	if ad_hash["is_barter"] == 'Paisa aur Exchange dono':
+		pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
+		pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+	pipeline1.hmset("ad:"+ad_id,ad_hash)
+	pipeline1.zremrangebyscore("unc:"+str(seller_id),ad_id,ad_id) # sanitizing unapproved ad queue
+	pipeline1.lpush("uaa:"+str(seller_id),ad_id) # used for seller's own view
+	pipeline1.zadd("classified_categories",ad_hash["categ"],0) # adding the category to its own table, ensuring alphabetical sort
+	pipeline1.zadd("ad_expiry_queue",ad_id,ad_hash["expiration_time"]) # queuing the ad for expiry according to its expiration time
+	pipeline1.execute()
+
+
+# main function used by agents to make an ad live after approving it
+def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, closed_by=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id, ad_id)[0])
+	time_now = time.time()
+	if expiration_time:
+		ad["expiration_time"] = expiration_time
+	elif expiration_clicks:
+		ad["expiration_clicks"], ad["expiration_time"] = expiration_clicks, time_now+ONE_MONTH # give it a hard 30 day expiry any way
+	ad["SMS_setting"], ad["submission_time"], ad["closed_by"] = '1', time_now, closed_by #renewing submission time (i.e. replacing it with approval time)
+	ad.pop("locked_by",None) #removing locked_by field
+	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), ad["user_id"])
+	my_server.zremrangebyscore("unapproved_ads",ad_id,ad_id)
+	increment_agent_score(my_server, closed_by)
+	return ad["MN_data"]["number"]
+
+# helper function for save_basic_ad_data
 def cleanup(my_server,ad_id):
-	my_server.zrem("unfinalized_used_item_ads",ad_id)
+	my_server.zrem("unfinalized_used_item_photos",ad_id)
 	my_server.delete("rc:"+str(ad_id))
+
+# helper function for process_ad_verification
+def get_MN_data(server, user_id, national_number):
+	num_list = []
+	pre_existing_numbers = server.lrange("um:"+user_id, 0, -1)
+	if pre_existing_numbers:
+		for num_info in pre_existing_numbers:
+			num_info = ast.literal_eval(num_info)
+			if num_info["national_number"] == national_number:
+				return num_info["AK_ID"], {'national_number':num_info['national_number'],'country_prefix':num_info["country_prefix"],'number':num_info["number"]}, True
+			num_list.append(num_info)
+		# send something if no number identified - can't leave a listing without a contact number can we?
+		return num_list[0]["AK_ID"],{'national_number':num_list[0]["national_number"],'country_prefix':num_list[0]["country_prefix"],'number':num_list[0]["number"]}, False
+	else:
+		return None, None, False
+
+
+# helper function for save_basic_ad_data
+# saving seller number and ad data right after mobile verification
+def process_ad_verification(server, submitted_data):
+	user_id = str(submitted_data["user_id"])
+	################### Check if pre-existing number is to be used ####################
+	national_number = submitted_data["MN_data"] if submitted_data["AK_ID"] == 'just_number' else submitted_data["MN_data"]["national_number"] # 'just_number' value comes from 'post_seller_info' in ecomm.py
+	AK_ID, MN_data, already_exists = get_MN_data(server, user_id, national_number)
+	if already_exists:
+		# no need to save number, just save the ad later. Fill correct values in this step
+		submitted_data["AK_ID"], submitted_data["MN_data"] = AK_ID, MN_data
+	else:
+		# save the number against the user's profile
+		save_consumer_number(submitted_data["AK_ID"],submitted_data["MN_data"],submitted_data["user_id"]) #called 'consumer' number, but same as 'seller' number
+	##################################### Save AD #####################################
+	pipeline1 = server.pipeline()
+	pipeline1.zadd("unapproved_ads",submitted_data,submitted_data["ad_id"])
+	pipeline1.zadd("unc:"+user_id,submitted_data,submitted_data["ad_id"]) #unapproved_user_classified (unc:)
+	pipeline1.delete("uuc:"+user_id) # sanitizing unfinished user ad saved previously
+	pipeline1.execute()
+
+
 
 def save_basic_ad_data(submitted_data):
 	my_server = redis.Redis(connection_pool=POOL)
 	photo_ids = my_server.lrange("rc:"+str(submitted_data["ad_id"]),0,-1)
+	submitted_data["photo_count"] = 0
 	if photo_ids:
+		photo_ids = [(photo_id, False) for photo_id in photo_ids]
+		photo_ids[0] = (photo_ids[0][0],True)
 		submitted_data["photos"] = photo_ids
+		submitted_data["photo_count"] = len(photo_ids)
 	submitted_data["submission_time"] = time.time()
-	my_server.lpush("unapproved_ads",submitted_data)
+	process_ad_verification(my_server, submitted_data)
 	cleanup(my_server,submitted_data["ad_id"])
 	return True
 
-def pre_add_used_item_photo(user_id, ad_id, photo_id):
+
+def save_used_item_photo(user_id, ad_id, photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad_id = str(ad_id)
 	pipeline1 = my_server.pipeline()
-	pipeline1.zadd("unfinalized_used_item_ads",ad_id,time.time()) #removed deployed ad_ids from here
+	pipeline1.zadd("unfinalized_used_item_photos",ad_id,time.time()) #removed deployed ad_ids from here
 	pipeline1.lpush("rc:"+ad_id,photo_id) #remove deployed photo_ids from here
 	pipeline1.execute()
 	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
 
-# def get_used_item_photos(user_id,ad_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# str(user_id)+":"+str(ad_id)
+
+def get_approved_loc(withscores=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	locs = my_server.zrevrange("approved_locations",0,-1,withscores=withscores)
+	if withscores:
+		return [(string_tokenizer(city),score) for (city,score) in locs]
+	else:
+		return [string_tokenizer(city) for city in locs]
+
+# used to show total ads' count
+def get_all_pakistan_ad_count():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.llen("global_ads_list")
+
+# this is the list of all categories entered by agents for classifieds they approve
+def get_classified_categories():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrevrange("classified_categories",0,-1)
+
+
+# keeps track of who visited the classified approval dashboard, in order to avoid agent collisions
+def get_and_set_classified_dashboard_visitors(username, withtime=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd("classified_dashboard_visitors",username,time.time())
+	username_and_time = my_server.zrevrange("classified_dashboard_visitors",0,-1,withscores=withtime)
+	pipeline1 = my_server.pipeline()
+	for username, visit_time in username_and_time:
+		pipeline1.get("cb:"+username)
+	scores = pipeline1.execute()
+	usernames_times_scores = []
+	counter = 0
+	for item in username_and_time:
+		if scores[counter]:
+			usernames_times_scores.append((item[0],item[1],scores[counter]))
+		else:
+			usernames_times_scores.append((item[0],item[1]))
+		counter += 1
+	return usernames_times_scores
+
+
+def get_user_unfinished_ad(server,user_id):
+	if server.exists("uuc:"+user_id):
+		unfinished_user_ad = server.hgetall("uuc:"+user_id)
+		# the following deletes ad hash if it has been wiped
+		if not server.zscore("unfinished_classifieds",unfinished_user_ad["ad_id"]):
+			server.delete("uuc:"+user_id)
+			unfinished_user_ad = {}
+		return unfinished_user_ad
+	else:
+		return {}
+
+
+def get_all_approved_user_ads(server,user_id):
+	approved_user_ad_ids = server.lrange("uaa:"+user_id,0,-1)
+	pipeline1 = server.pipeline()
+	for ad_id in approved_user_ad_ids:
+		pipeline1.hgetall("ad:"+ad_id)
+	result1 = pipeline1.execute()
+	for ad in result1:
+		if "click_details" in ad:
+			ad["click_details"] = ast.literal_eval(ad["click_details"])
+	return result1
+
+
+def get_all_unapproved_user_ads(server,user_id,withscores):
+	unapproved_user_ad_strings = server.zrange("unc:"+user_id,0,-1,withscores=withscores)
+	unapproved_ads = []
+	for ad in unapproved_user_ad_strings:
+		ad = ast.literal_eval(ad)
+		ad_id = ad["ad_id"]
+		if server.zcount("unapproved_ads",ad_id,ad_id):
+			unapproved_ads.append(ad)
+		else:
+			# delete the entry if it doesn't exist in unapproved_ads
+			server.zremrangebyscore("unc:"+user_id,ad_id,ad_id)
+	return unapproved_ads
+
+
+def get_all_expired_user_ads(server, user_id):
+	expired_ad_ids = server.lrange("uea:"+user_id,0,-1)
+	pipeline1 = server.pipeline()
+	for ad_id in expired_ad_ids:
+		pipeline1.hgetall("ad:"+ad_id)
+	result1 = pipeline1.execute()
+	for ad in result1:
+		if "click_details" in ad:
+			ad["click_details"] = ast.literal_eval(ad["click_details"])
+	return result1
+
+
+def get_all_user_ads(user_id,withscores=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	unfinished_user_ad = get_user_unfinished_ad(my_server,user_id)
+	unapproved_user_ads = get_all_unapproved_user_ads(my_server, user_id, withscores)
+	approved_user_ads = get_all_approved_user_ads(my_server, user_id)
+	expired_user_ads = get_all_expired_user_ads(my_server, user_id)
+	return unfinished_user_ad, unapproved_user_ads, approved_user_ads, expired_user_ads
+
+
+# used to show ad details for a single ad (when potential buyer clicks 'contact' in an ad's listing)
+def get_single_approved_ad(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hgetall("ad:"+str(ad_id))
+
+# return entire ad details for all ids passed (used in global and city-wise ad listings)
+def get_ad_objects(id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for id in id_list:
+		pipeline1.hgetall("ad:"+id)
+	return pipeline1.execute()
+
+# used to show all ads in our "global" ad listing page
+def get_approved_ad_ids(exchange=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	if exchange:
+		return my_server.lrange("global_exchange_ads_list",0,-1)
+	else:
+		return my_server.lrange("global_ads_list",0,-1)
+
+
+def get_city_ad_ids(city_name, exchange=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	if exchange:
+		return my_server.lrange("aea:"+city_name, 0, -1) # used for city-wide view
+	else:
+		return my_server.lrange("aa:"+city_name, 0, -1) # used for city-wide view
+
 
 def get_basic_item_ad_id():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.incr("basic_item_ad_id")
 
-def get_unapproved_ads():
+def who_locked_ad(ad_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("unapproved_ads",0,-1)
-
-def del_orphaned_classified_photos():
-	import operator
-	my_server = redis.Redis(connection_pool=POOL)
-	# deleting orphaned photos from 45 mins ago
-	ad_ids_with_times = my_server.zrangebyscore("unfinalized_used_item_ads",'-inf','('+str(time.time()-FORTY_FIVE_MINS), withscores=True)
-	if ad_ids_with_times:
-		score_range = []
-		ad_ids = []
-		for ad_and_time in ad_ids_with_times:
-			ad_ids.append(ad_and_time[0])
-			score_range.append(ad_and_time[1])
-		pipeline1 = my_server.pipeline()
-		for ad_id in ad_ids:
-			pipeline1.lrange("rc:"+ad_id,0,-1)
-		photo_ids_to_delete = reduce(operator.add, pipeline1.execute())
-		pipeline2 = my_server.pipeline()
-		for ad_id in ad_ids:
-			pipeline2.delete("rc:"+ad_id)
-		pipeline2.execute()
-		my_server.zremrangebyscore("unfinalized_used_item_ads",min(score_range),max(score_range))
-		return photo_ids_to_delete
+	ad_list = my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)
+	if ad_list:
+		ad = ast.literal_eval(ad_list[0])
+		if "locked_by" in ad:
+			return ad["locked_by"]
+		else:
+			return None
 	else:
 		return None
+
+# used by agents in classified approval process, so that other agents don't erroneously edit the ad
+def lock_unapproved_ad(ad_id, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
+	if "locked_by" in ad:
+		# already locked
+		return False, ad["locked_by"]
+	else:
+		# lock it
+		ad["locked_by"] = username
+		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+		my_server.zadd("unapproved_ads",ad,ad_id)
+		return True, username
+
+
+def unlock_unapproved_ad(ad_id, username):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
+	if "locked_by" in ad and ad["locked_by"] == username:
+		ad.pop("locked_by")
+		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+		my_server.zadd("unapproved_ads",ad,ad_id)
+		return True, username
+	elif "locked_by" not in ad:
+		return False, False
+	elif ad["locked_by"] != username:
+		return False, ad["locked_by"]
+	else:
+		return False,False
+
+
+# used to populate the classified approval dashboard for agents
+def get_unapproved_ads(withscores = False):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange("unapproved_ads",0,-1,withscores=withscores)
+
+# used when seller himself deletes an ad (of the 'unverified' variety)
+def get_unfinished_photo_ids_to_delete(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("rc:"+ad_id,0,-1)
+
+
+# used by seller to edit ad fields while it's in an 'unverified' state
+def edit_unfinished_ad_field(ad_id,user_id,field,new_text):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	if my_server.exists("uuc:"+user_id):
+		if field == 'is_new':
+			if new_text == '1':
+				my_server.hset("uuc:"+user_id,field,'Istimal Shuda')
+			elif new_text == '2':
+				my_server.hset("uuc:"+user_id,field,'Bilkul New')
+		elif field == 'is_barter':
+			if new_text == '1':
+				my_server.hset("uuc:"+user_id,field,'Paisa aur Exchange dono')
+			elif new_text == '2':
+				my_server.hset("uuc:"+user_id,field,'Sirf Paisa')
+		# elif field == 'outer_leads':
+		# 	if new_text == '1':
+		# 		my_server.hset("uuc:"+user_id,field,'Dusrey cities ke log bhi call kar lein')
+		# 	elif new_text == '2':
+		# 		my_server.hset("uuc:"+user_id,field,'City se bahir ke log call nah karien')
+		else:
+			my_server.hset("uuc:"+user_id,field,new_text)
+		# update submission time of advert too, so that it doesn't get expired all of a sudden
+		my_server.zadd("unfinished_classifieds",ad_id,time.time())
+
+
+# used by agents to 'clean up' spelling mistakes (etc) in ads before approving them
+def edit_single_unapproved_ad(ad_id,field,new_text):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
+	if field == 'is_new':
+		if new_text == '0':
+			ad.pop('is_new',None)
+		elif new_text == '1':
+			ad['is_new'] = 'Istamal Shuda'
+		elif new_text == '2':
+			ad['is_new'] = 'Bilkul New'
+	elif field == 'photos':
+		if "photos" in ad:
+			counter = 0
+			for photo,status in ad["photos"]:
+				if photo == new_text:
+					ad["photos"][counter] = (photo,True)
+				elif status == True:
+					ad["photos"][counter] = (photo,False)
+				counter += 1
+	else:
+		ad[field] = new_text
+	my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+	my_server.zadd("unapproved_ads",ad,ad_id)
+
+
+# temporarily saving ad that seller hasn't verified mobile number for yet
+def save_single_unfinished_ad(context):
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_id = context["ad_id"]
+	photo_ids = my_server.lrange("rc:"+str(ad_id),0,-1)
+	if photo_ids:
+		context["photos"] = photo_ids
+	unfinished_classified = "uuc:"+str(context["user_id"])
+	my_server.delete(unfinished_classified)
+	my_server.hmset(unfinished_classified,context) #over-write previous ad (if exists)
+	my_server.zadd("unfinished_classifieds",ad_id,time.time())
+
+# used by agents to delete rejected ads from the ad approval dashboard
+def del_single_unapproved_ad(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+
+# used to delete 'unfinished' (i.e 'unverified') ads, either by the seller herself, or initiated periodically by the system (schedule set in settings.py)
+def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if user_id and ad_id:
+		my_server.delete("uuc:"+user_id)
+		my_server.zrem("unfinished_classified",ad_id)
+		my_server.zrem("unfinalized_used_item_photos",ad_id)
+		my_server.delete("rc:"+ad_id)
+	else:
+		import operator
+		# deleting orphaned ads from 45 mins ago
+		cut_off_time = time.time() - time_ago
+		ad_ids = my_server.zrangebyscore("unfinished_classifieds",'-inf','('+str(cut_off_time))
+		if ad_ids:
+			my_server.zrem("unfinished_classifieds",*ad_ids)
+		# deleting orphaned photos from 45 mins ago
+		ad_ids_with_times = my_server.zrangebyscore("unfinalized_used_item_photos",'-inf','('+str(cut_off_time), withscores=True)
+		if ad_ids_with_times:
+			score_range = []
+			ad_ids = []
+			for ad_and_time in ad_ids_with_times:
+				ad_ids.append(ad_and_time[0])
+				score_range.append(ad_and_time[1])
+			pipeline1 = my_server.pipeline()
+			for ad_id in ad_ids:
+				pipeline1.lrange("rc:"+ad_id,0,-1)
+			photo_ids_to_delete = reduce(operator.add, pipeline1.execute())
+			pipeline2 = my_server.pipeline()
+			for ad_id in ad_ids:
+				pipeline2.delete("rc:"+ad_id)
+			pipeline2.execute()
+			my_server.zremrangebyscore("unfinalized_used_item_photos",min(score_range),max(score_range))
+			return photo_ids_to_delete
+		else:
+			return None
 
 
 #####################E Commerce#######################

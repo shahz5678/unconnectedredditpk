@@ -17,7 +17,7 @@
 			<span class="cgy">{{ forloop.counter0|add:page_obj.start_index }}. </span>
 			
 			{% if visitor.userprofile__avatar %}
-		        <img src="{{ visitor.userprofile__avatar|complete_url }}" alt="no pic"></img>
+		        <img src="{{ visitor.userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
 		    {% else %}
 		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		    {% endif %}

@@ -18,7 +18,7 @@
 
 		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
 			{% if visitor.userprofile__avatar %}
-		        <img src="{{ visitor.userprofile__avatar|complete_url }}" alt="no pic"></img>
+		        <img src="{{ visitor.userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
 		    {% else %}
 		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		    {% endif %}

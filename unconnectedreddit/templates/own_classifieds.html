@@ -37,6 +37,8 @@
 <span style="font-size:15px"><b>Name:</b> {{ unfinished.seller_name }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_name" value="{{ unfinished.seller_name }}" type="submit">&nbsp;</button><br>
 <hr size=1 COLOR="#e0e0e0">
 <span style="font-size:15px"><b>City:</b> {{ unfinished.city }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_city" value="{{ unfinished.city }}" type="submit">&nbsp;</button><br>
+<hr size=1 COLOR="#e0e0e0">
+<span style="font-size:15px"><b>Ilaka:</b> {{ unfinished.town }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_town" value="{{ unfinished.town }}" type="submit">&nbsp;</button><br>
 </form>
 <hr size=1 COLOR="#e0e0e0">
 <b style="font-size:15px">Fotos:</b><br>
@@ -55,6 +57,7 @@
 <input type="hidden" name="is_barter" value="{{ unfinished.is_barter }}">
 <input type="hidden" name="seller_name" value="{{ unfinished.seller_name }}">
 <input type="hidden" name="city" value="{{ unfinished.city }}">
+<input type="hidden" name="town" value="{{ unfinished.town }}">
 <input type="hidden" name="from_meray_ads" value="1">
 <input class="btn mts cxl" type="submit" style="background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block;width:68%; min-width:180px;" name="next_step" value="verify mobile">
 <input class="btn mts" type="submit" style="background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block;width:30%; min-width:80px;" name="next_step" value="delete">
@@ -76,7 +79,8 @@
 <span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
 <span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
 <span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
-<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}</span><br>
+<span style="font-size:15px"><b>City:</b> {{ ad.city }}&nbsp;<span class="cgy">(from {{ ad.town }})</span></span><br>
 <form method="POST" class="mts mbs" action="{% url 'expire_my_ad' %}" style="display:inline;">
 {% csrf_token %}
 <input type="hidden" name="ad_score" value="{{ ad.ad_id }}">
@@ -120,7 +124,8 @@
 <span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
 <span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
 <span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
-<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}</span><br>
+<span style="font-size:15px"><b>City:</b> {{ ad.city }}&nbsp;<span class="cgy">(from {{ ad.town }})</span></span><br>
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in ad.photos %}
 	<img class="mrs" src="{{ photo.0|complete_url:'True' }}">
@@ -144,7 +149,8 @@
 <span style="font-size:15px"><b>Tafseel:</b> {{ ad.desc|truncatechars:35 }}<br></span>
 <span style="font-size:15px"><b>Price:</b> {{ ad.ask }}&nbsp;<span class="cgy">({{ ad.is_new }})</span></span><br>
 <span style="font-size:15px"><b>Exchange:</b> {{ ad.is_barter }}</span><br>
-<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}&nbsp;<span class="cgy">(from {{ ad.city }})</span></span><br>
+<span style="font-size:15px"><b>Name:</b> {{ ad.seller_name }}</span><br>
+<span style="font-size:15px"><b>City:</b> {{ ad.city }}&nbsp;<span class="cgy">(from {{ ad.town }})</span></span><br>
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in ad.photos %}
 	<img class="mrs mts mbs" src="{{ photo.0|complete_url:'True' }}">

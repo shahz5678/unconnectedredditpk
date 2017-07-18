@@ -6,11 +6,11 @@
 	<span><a href="{% url 'show_user_ads' %}#section0">Meray ads</a></span>
 	</div>
 	<div style="width: 49%;float: right; display: inline block;">
-	<span><a href="{% url 'city_list' %}#section0">All cities ({{ other_cities|add:"3" }})</a></span>
+	<span><a href="{% url 'city_list' %}#section0">All cities ({{ all_cities }})</a></span>
 	</div>
 </div>
-	{% if origin == 'my_ads' %}
-	{% elif origin == 'global' or origin == 'seller_number' %}
+	{% if origin == 'my_ads' or origin == 'seller_number' or origin == 'ad_detail' %}
+	{% elif origin == 'global' %}
 	<div class="mtl mbs" style="text-align:center;width:97%; max-width:400px;">
 	<b style="font-size:1.2em;">All Pakistan</b>
 	</div>
@@ -32,7 +32,7 @@
 <span><a href="{% url 'city_list' %}#section0">{{ other_cities }} more cities</a></span><br>
 </div>
 </div>
-	{% if origin == 'my_ads' or origin == 'seller_number' %}
+	{% if origin == 'my_ads' or origin == 'seller_number' or origin == 'ad_detail' %}
 	{% elif origin == 'global' %}
 	<div class="mtl mbs" style="text-align:center;width:97%; max-width:400px;">
 	<b style="font-size:1.6em;">All Pakistan</b>

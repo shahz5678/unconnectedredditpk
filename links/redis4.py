@@ -124,19 +124,20 @@ def get_clones(user_id):
 
 #########################################################
 
-# def get_city_shop_listing(city):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	city_shops = "city_shops"
-# 	shop_ids = my_server.smembers(city_shops)
-# 	pipeline1 = my_server.pipeline()
-# 	for shop_id in shop_ids:
-# 		shop_detail = "sd:"+str(shop_id)
-# 		pipeline1.hgetall(shop_detail)
-# 	return pipeline1.execute()
-
-# def initialize_shop(information):
-# 	my_server = redis.Redis(connection_pool=POOL)
-
+def save_careem_data(careem_data):
+	my_server = redis.Redis(connection_pool=POOL)
+#	my_server.lpush("careem_data",careem_data)
+#	my_server.hmset("name",careem_data)
+	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
+		# it already exists
+		return False
+	else:
+		# it does not exist
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
+		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
+		pipeline1.execute()
+		return True
 #########################################################
 
 #calculating installment amount for mobile devices

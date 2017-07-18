@@ -1,14 +1,63 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from redis3 import save_basic_ad_data, someone_elses_number
+from redis4 import save_careem_data
 from account_kit_config_manager import account_kit_handshake
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service
 
-def get_requirements(request):
+def get_requirements(request, careem=False):
 	status = request.GET.get('status', None)
 	auth_code = request.GET.get('code', None) #authorization code which our server may exchange for a user access token.
 	state = request.GET.get('state', None) #to verify that FB's servers returned with the response
-	return account_kit_handshake(request.session["csrf"], state, status, auth_code)
+	if careem:
+		return account_kit_handshake(request.session["csrf_careem"], state, status, auth_code)
+	else:
+		return account_kit_handshake(request.session["csrf"], state, status, auth_code)
+
+
+def verify_careem_applicant(request,*args,**kwargs):
+	AK_ID, MN_data = get_requirements(request, careem=True)
+	# print "AK_ID is: %s" % AK_ID
+	# print "MN_data is: %s" % MN_data
+	# print request.session['firstname']
+	# print request.session['lastname']
+	# print request.session['cnic']
+	# print request.session['city']
+	# print request.session['license']
+	print MN_data['number']
+	car_phonenumber = MN_data['number']
+	car_firstname = request.session['firstname']
+	car_lastname = request.session['lastname']
+	car_cnic = request.session['cnic']
+	car_city = request.session['city']
+	car_license = request.session['license']
+
+	# print car_phonenumber
+	# print car_firstname  
+	# print car_lastname 
+	# print car_cnic  
+	# print car_city 
+	# print car_license  
+	# print request.user.id
+	careem_data = {'firstname':car_firstname,'lastname':car_lastname,'cnic':car_cnic,\
+	'city':car_city,'license':car_license,'phonenumber':car_phonenumber,'user_id':request.user.id}
+	# print careem_data
+
+	saved = save_careem_data(careem_data)
+	print saved
+	request.session.pop('firstname',None) 
+	request.session.pop('lastname',None)
+	request.session.pop('cnic',None)
+	request.session.pop('city',None)
+	request.session.pop('license',None)
+	request.session.pop('csrf_careem',None)
+	if saved:
+		return render(request,"careem_application_submitted.html",{})
+	else:
+		return render(request,"careem_number_already_used.html",{})
+	# print
+	# print
+
 
 
 def verify_consumer_number(request,*args,**kwargs):

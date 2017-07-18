@@ -15,7 +15,7 @@
 <b>Number:</b> 0{{ MN_data.national_number}}{% if device != '3' %}&nbsp;<a href="tel:0{{ MN_data.national_number}}"><button class="mls mrs" style="border-radius:0px;border-color:#ff5722;color:white;background-color:#ff5722;">Call</button></a>&nbsp;&nbsp;<a href="sms:0{{ MN_data.national_number}}?body=Salam {{ seller_details.seller_name }}, Damadam pe apke ishtihar ke barey mein poochna hai."><button style="border-radius:0px;border-color:#0091ea;color:white;background-color:#0091ea;">SMS</button></a>{% endif %}<br>
 </div>
 <div class="mbs">
-<b>City:</b> {{ seller_details.city }}<br>
+<b>City:</b> {{ seller_details.city }}&nbsp;<span class="cgy">({{ seller_details.town }})</span><br>
 </div>
 <div class="mbs">
 <b>Item:</b> {{ seller_details.title }} <span class="cgy">({{ seller_details.is_new }})</span><br>

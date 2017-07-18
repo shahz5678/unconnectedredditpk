@@ -32,6 +32,16 @@
 		</div>
 		{% endfor %}
 		</div>
+	{% elif towns %}
+		Here are all the existing towns for <b>{{ mother_ship }}</b><br>
+		<span class="cgy cs">If a town is in list below, use the spelling and the case provided:</span><br>
+		<div class="mtl">
+		{% for town in towns %}
+		<div class="mbs mls cg">
+		{{ town }}<br>
+		</div>
+		{% endfor %}
+		</div>
 	{% elif categs %}
 		If a category is in the list below, use the spelling and the case provided:<br>
 		<div class="mtl">

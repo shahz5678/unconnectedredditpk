@@ -234,7 +234,7 @@ def ad_detail(request,ad_id,*args,**kwargs):
 	ad_body = get_single_approved_ad(float(ad_id))
 	if ad_body:
 		approved_user_ad = process_ad_objects(ad_list = [ad_body],must_eval_photo_list=True,photo_tup=True)[0]
-		return render(request,"classified_detail.html",{'ad_body':approved_user_ad,'referrer':request.META.get('HTTP_REFERER',None)})
+		return render(request,"classified_detail.html",{'is_feature_phone':get_device(request),'ad_body':approved_user_ad,'referrer':request.META.get('HTTP_REFERER',None)})
 	else:
 		# id ad_id doesn't exist (E.g. deleted, or never existed)
 		return render(request,"404.html",{})
@@ -351,7 +351,8 @@ def show_seller_number(request,*args,**kwargs):
 					send_sms = get_SMS_setting(str(float(ad_id)))
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request)})
+			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
+				'referrer':request.META.get('HTTP_REFERER',None)})
 	elif "redirect_to" in request.session:
 		ad_id = request.session.pop("redirect_to",None) # user is now verified
 		referrer = request.session.pop("referrer",None)
@@ -369,7 +370,8 @@ def show_seller_number(request,*args,**kwargs):
 					send_sms = get_SMS_setting(str(float(ad_id)))
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request)})
+			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
+				'referrer':request.META.get('HTTP_REFERER',None)})
 	else:
 		return render(request,"404.html",{})
 

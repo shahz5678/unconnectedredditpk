@@ -12,6 +12,7 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 
 pipeline1.lpush("aa:"+city,ad_id)
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
@@ -522,9 +523,10 @@ def increment_agent_score(server, username):
 	pipeline1.execute()
 
 # helper function for move_to_approved_ads
-def process_ad_approval(server,ad_id, ad_hash, ad_city, seller_id):
+def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 	pipeline1 = server.pipeline()
-	pipeline1.zincrby("approved_locations",ad_city,amount=1) # when getting: first get all locations, then all approved ads related to that location, and then all ads' hashes
+	pipeline1.zincrby("approved_locations",ad_city,amount=1) # first get all locations, then all approved ads related to that location, and then all ads' hashes
+	pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 	pipeline1.lpush("global_ads_list",ad_id) # used for global view
 	pipeline1.lpush("aa:"+ad_city,ad_id) # used for city-wide view
 	if ad_hash["is_barter"] == 'Paisa aur Exchange dono':
@@ -549,7 +551,7 @@ def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, clos
 		ad["expiration_clicks"], ad["expiration_time"] = expiration_clicks, time_now+ONE_MONTH # give it a hard 30 day expiry any way
 	ad["SMS_setting"], ad["submission_time"], ad["closed_by"] = '1', time_now, closed_by #renewing submission time (i.e. replacing it with approval time)
 	ad.pop("locked_by",None) #removing locked_by field
-	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), ad["user_id"])
+	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), string_joiner(ad["town"]), ad["user_id"])
 	my_server.zremrangebyscore("unapproved_ads",ad_id,ad_id)
 	increment_agent_score(my_server, closed_by)
 	return ad["MN_data"]["number"]
@@ -622,13 +624,17 @@ def save_used_item_photo(user_id, ad_id, photo_id):
 	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
 
 
-def get_approved_loc(withscores=False):
+def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	locs = my_server.zrevrange("approved_locations",0,-1,withscores=withscores)
-	if withscores:
-		return [(string_tokenizer(city),score) for (city,score) in locs]
+	if city == 'all_cities':
+		locs = my_server.zrevrange("approved_locations",0,-1,withscores=withscores)
 	else:
-		return [string_tokenizer(city) for city in locs]
+		locs = my_server.zrevrange("at:"+city,0,-1,withscores=withscores)
+	if withscores:
+		return [(string_tokenizer(loc),score) for (loc,score) in locs]
+	else:
+		return [string_tokenizer(loc) for loc in locs]
+
 
 # used to show total ads' count
 def get_all_pakistan_ad_count():

@@ -11,7 +11,7 @@ from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
-move_to_approved_ads, get_approved_loc, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, \
+move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback
@@ -26,7 +26,7 @@ from django.views.decorators.cache import cache_control
 def get_current_ad_details(user_id, sess_dict):
 	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,\
 	'seller_name':sess_dict["seller_name"],'is_new':sess_dict["basic_item_new"],'ask':sess_dict["basic_item_ask"],\
-	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"]}#,'outer_leads':sess_dict["outer_leads_allowed"]}
+	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'town':sess_dict["town"]}
 
 
 def get_photo_urls(photo_ids):
@@ -262,7 +262,7 @@ def process_unfinished_ad(request,*args,**kwargs):
 			request.session["basic_item_barter"] = request.POST.get('is_barter',None)
 			request.session["seller_name"] = request.POST.get('seller_name',None)
 			request.session["city"] = request.POST.get('city',None)
-			# request.session["outer_leads_allowed"] = request.POST.get('outer_leads',None)
+			request.session["town"] = request.POST.get('town',None)
 			request.session.modified = True
 			from_meray_ads = request.POST.get('from_meray_ads',None)
 			return render(request,"verify_seller_number.html",{'csrf':CSRF,'form':form,'from_meray_ads':from_meray_ads})
@@ -272,9 +272,9 @@ def process_unfinished_ad(request,*args,**kwargs):
 		return render(request,"404.html",{})
 
 def show_user_ads(request,*args,**kwargs):
-	# get_all_bindings_to_date()
+	
 	unapproved_user_ads = []
-	locations_and_counts = get_approved_loc(withscores=True)
+	locations_and_counts = get_approved_places(withscores=True)
 	ads = get_all_user_ads(request.user.id)
 	unfinished_user_ad, unapproved_user_ads, approved_user_ads, expired_user_ads = ads[0], ads[1], ads[2], ads[3]
 	unapproved_count, approved_count, expired_count = 0, 0, 0
@@ -393,7 +393,7 @@ def classified_listing(request,city=None,*args,**kwrags):
 
 
 def city_list(request,*args,**kwargs):
-	locs_and_ad_counts = get_approved_loc(withscores=True)
+	locs_and_ad_counts = get_approved_places(withscores=True)
 	return render(request,"city_list.html",{'cities':locs_and_ad_counts,'ad_count':get_all_pakistan_ad_count()})
 
 
@@ -405,30 +405,32 @@ def get_field(query_dict):
 	edit_desc = query_dict.get('edit_desc',None)
 	edit_is_new = query_dict.get('edit_is_new',None)
 	edit_is_barter = query_dict.get('edit_is_barter',None)
-	# edit_outer_leads = query_dict.get('edit_outer_leads',None)
+	edit_town = query_dict.get('edit_town',None)
 	edit_ask = query_dict.get('edit_ask',None)
 	edit_name = query_dict.get('edit_name',None)
 	edit_city = query_dict.get('edit_city',None)
 	edit_title = query_dict.get('edit_title',None)
 	edit_categ = query_dict.get('edit_categ',None)
+	# city name is needed in one special case (for ascertaining towns). Other than that, this is a waste
+	ad_city = query_dict.get('ad_city',None)
 	if edit_desc:
-		return edit_desc, 'desc'
+		return edit_desc, 'desc', ad_city
 	if edit_is_new:
-		return edit_is_new, 'is_new'
+		return edit_is_new, 'is_new', ad_city
 	if edit_is_barter:
-		return edit_is_barter, 'is_barter'
-	# if edit_outer_leads:
-	# 	return edit_outer_leads, 'outer_leads'
+		return edit_is_barter, 'is_barter', ad_city
+	if edit_town:
+		return edit_town, 'town', ad_city
 	if edit_ask:
-		return edit_ask, 'ask'
+		return edit_ask, 'ask', ad_city
 	if edit_name:
-		return edit_name, 'seller_name'
+		return edit_name, 'seller_name', ad_city
 	if edit_city:
-		return edit_city, 'city'
+		return edit_city, 'city', ad_city
 	if edit_title:
-		return edit_title, 'title'
+		return edit_title, 'title', ad_city
 	if edit_categ:
-		return edit_categ, 'categ'
+		return edit_categ, 'categ', ad_city
 
 def get_help_text(text,admin_mode):
 	if text == 'desc':
@@ -437,14 +439,14 @@ def get_help_text(text,admin_mode):
 		return 'Edit item condition' if admin_mode else 'Yeh istamal shuda hai ya bilkul new hai'
 	elif text == 'is_barter':
 		return 'Edit barter condition' if admin_mode else 'Sirf paisey chahiyen ya iske sath kuch exchange bhi kar lo gey'
-	# elif text == 'outer_leads':
-	# 	return 'Edit city restrictions' if admin_mode else 'Kiya dusrey cities se bhi log call kar lein'
+	elif text == 'town':
+		return 'Edit locality' if admin_mode else 'Apna ilaka ya mohalla likho'
 	elif text == 'ask':
 		return 'Edit asking price' if admin_mode else 'Kitni price ka baichna chahtey ho'
 	elif text == 'seller_name':
-		return 'Edit seller name' if admin_mode else 'Apna naam batao'
+		return 'Edit seller name' if admin_mode else 'Apna naam likho'
 	elif text == 'city':
-		return 'Edit city' if admin_mode else 'Apna city batao'
+		return 'Edit city' if admin_mode else 'Apna city likho'
 	elif text == 'title':
 		return 'Edit title' if admin_mode else 'Apne ad ka aik acha sa unwaan rakho'
 	elif text == 'categ':
@@ -461,7 +463,7 @@ def edit_classified(request,*args,**kwargs):
 			# ad_id = request.POST.get('ad_id',None)
 			field = request.POST.get('which_field',None)
 			unfinished = request.POST.get('unfinished',None)
-			if field == "is_new" or field == "is_barter":# or field == "outer_leads":
+			if field == "is_new" or field == "is_barter":
 				status = request.POST.get('status',None)
 				if unfinished:
 					edit_unfinished_ad_field(ad_id,request.user.id,field,status)
@@ -486,12 +488,16 @@ def edit_classified(request,*args,**kwargs):
 			editor_id = request.POST.get('EID',None)
 			if editor_id == 'admin' or int(editor_id) == request.user.id:
 				admin_mode = 1 if editor_id == 'admin' else 0
-				which_field, text_string = get_field(request.POST)
+				which_field, text_string, city = get_field(request.POST)
 				help_text = get_help_text(text_string,admin_mode)
 				f = EditFieldForm(initial={'text_field': which_field})
 				if text_string == 'city':
-					locs = get_approved_loc()
+					locs = get_approved_places()
 					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'locs':locs,'admin_mode':admin_mode})
+				elif text_string == 'town':
+					towns = get_approved_places(city=city)
+					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'towns':towns,'mother_ship':city,\
+						'admin_mode':admin_mode})
 				elif text_string == 'categ':
 					categs = get_classified_categories()
 					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'categs':categs,'admin_mode':admin_mode})
@@ -618,13 +624,13 @@ def post_seller_info(request,*args,**kwargs):
 		if form.is_valid():
 			seller_name = form.cleaned_data.get("seller_name",None)
 			city = form.cleaned_data.get("city",None)
-			# outer_leads_allowed = form.cleaned_data.get("city_restriction",None)
+			town = form.cleaned_data.get("town",None)
 			mobile = form.cleaned_data.get("mobile",None)
 			if mobile is None or mobile == 'Kisi aur number pe':
 				# time to verify a new number
 				request.session["seller_name"] = seller_name
 				request.session["city"]  = city
-				# request.session["outer_leads_allowed"] = outer_leads_allowed
+				request.session["town"] = town
 				form = VerifySellerMobileForm()
 				CSRF = csrf.get_token(request)
 				request.session["csrf"] = CSRF
@@ -636,7 +642,7 @@ def post_seller_info(request,*args,**kwargs):
 				user_id = request.user.id
 				context={'desc':request.session["basic_item_description"],'is_new':request.session["basic_item_new"],'ask':request.session["basic_item_ask"],\
 				'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':seller_name,'city':city,\
-				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username}#,'outer_leads':outer_leads_allowed}
+				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'town':town}
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile[-10:])
 				save_basic_ad_data(context)
@@ -649,7 +655,7 @@ def post_seller_info(request,*args,**kwargs):
 				request.session.pop("ad_id",None)
 				request.session.pop("city",None)
 				request.session.pop("seller_name",None)
-				# request.session.pop("outer_leads_allowed",None)
+				request.session.pop("town",None)
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			if "mob_num_on_file" in request.session:
@@ -774,7 +780,7 @@ def init_classified(request,*args,**kwargs):
 			request.session.pop("photo3_hash",None)
 			request.session.pop("seller_name",None)
 			request.session.pop("city",None)
-			# request.session.pop("outer_leads_allowed",None)
+			request.session.pop("town",None)
 			request.session.pop("csrf",None)
 			return render(request,"post_basic_item.html",{'form':form})
 		else:

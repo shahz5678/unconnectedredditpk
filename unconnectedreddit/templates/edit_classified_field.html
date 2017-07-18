@@ -24,11 +24,21 @@
 </form>
 <hr size=1 COLOR="#b3e6b3">
 	{% if locs %}
-		If the city is in the list below, use the spelling and the case provided:<br>
+		If the city is listed below, use the spelling and the case provided:<br>
 		<div class="mtl">
 		{% for loc in locs %}
 		<div class="mbs mls cg">
 		{{ loc }}<br>
+		</div>
+		{% endfor %}
+		</div>
+	{% elif towns %}
+		Here are all the existing towns for <b>{{ mother_ship }}</b><br>
+		<span class="cgy cs">If the town is listed below, use the spelling and the case provided:</span><br>
+		<div class="mtl">
+		{% for town in towns %}
+		<div class="mbs mls cg">
+		{{ town }}<br>
 		</div>
 		{% endfor %}
 		</div>

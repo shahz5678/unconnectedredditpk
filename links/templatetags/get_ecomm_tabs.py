@@ -1,5 +1,4 @@
 from django import template
-from links.redis3 import get_approved_loc, get_all_pakistan_ad_count
 
 register = template.Library()
 

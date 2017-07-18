@@ -31,12 +31,12 @@
 <div class="mbs">
 <span class="cs" style="color:#9e9e9e; float:right; margin-right:0px">{{ ad.submission_time|human_time }}</span><br>
 </div>
-{% if ad.photo_count > 1 %}<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span><br>{% endif %}
+{% if ad.photo_count|add:"0" > 1 %}<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span><br>{% endif %}
 <span style="font-size:25px;"> {{ ad.title }}</span>
 {% if ad.is_new %}<span class="cgy" style="font-size:13px;">({{ ad.is_new }})</span>{% endif %}
 <br><b style="font-size:25px">{{ ad.ask }}</b>&nbsp;<b style="font-size:14px;" class="co">{% if ad.is_barter == 'Paisa aur Exchange dono' %}(or exchange){% endif %}</b><br>
 
-<b style="color:#9e9e9e;" class="cm">{{ ad.city }}</b><br>
+<b style="color:#9e9e9e;" class="cm">{{ ad.town }}, {{ ad.city }}</b><br>
 
 </div>
 

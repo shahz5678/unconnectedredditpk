@@ -1,11 +1,11 @@
 from django import template
-from links.redis3 import get_approved_loc, get_all_pakistan_ad_count
+from links.redis3 import get_approved_places, get_all_pakistan_ad_count
 
 register = template.Library()
 
 @register.inclusion_tag(file_name='classifieds_navbar.html')
 def ecomm_navbar(origin=None, is_feature_phone=None):
-	locations_and_counts = get_approved_loc(withscores=True)
+	locations_and_counts = get_approved_places(withscores=True)
 	ad_count = get_all_pakistan_ad_count()
 	if len(locations_and_counts) < 3:
 		is_feature_phone = '1'

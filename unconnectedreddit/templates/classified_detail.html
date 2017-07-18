@@ -17,7 +17,7 @@
 <span style=" font-family:arial; font-size:15px; color:grey" >{{ ad_body.town }}, {{ ad_body.city }}</span><br>
 <span style="font-size:30px; font-size: 10px; color: grey">{{ ad_body.submission_time|human_time }}</span><br>
 {% if ad_body.photos %}
-<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
+<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:124px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
 {% if referrer %}{% if referrer|slice:"-15:" == '/seller_number/' %}<a href="{% url 'classified_listing' %}">{% else %}<a href="{{ referrer }}">{% endif %}{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
 <hr size=1 COLOR="lightgrey">
 {% for photo in ad_body.photos %}
@@ -30,11 +30,11 @@
 
 
 
-<span style="font-size:18px; font-weight:lighter;"> Description:<br> {{ ad_body.desc }}<br>
+<span style="font-size:18px; font-weight:lighter;">Detail:<br> {{ ad_body.desc }}<br>
 
 
 
-<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
+<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:124px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
 {% if referrer %}{% if referrer|slice:"-15:" == '/seller_number/' %}<a href="{% url 'classified_listing' %}">{% else %}<a href="{{ referrer }}">{% endif %}{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
 </div>
 <br><br>

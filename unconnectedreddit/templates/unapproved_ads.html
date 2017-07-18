@@ -43,6 +43,7 @@
 		<form method="POST" class="mbs" action="{% url 'edit_classified' %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
+		<input type="hidden" name="ad_city" value="{{ submission.city }}">
 		<input type="hidden" name="EID" value="admin">
 		<b>Title:</b> {% if submission.title %}<span class="cg">{{ submission.title }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_title" value="{{ submission.title }}" type="submit">&nbsp;</button>{% else %}<b class="cr">-- Give a proper title --</b>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_title" value="Give a proper title" type="submit">&nbsp;</button>{% endif %}<br>
 		<hr size=1 COLOR="#b3e6b3">
@@ -69,6 +70,8 @@
 		<hr size=1 COLOR="#b3e6b3">
 
 		<b>City:</b> <span class="cg">{{ submission.city }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_city" value="{{ submission.city }}" type="submit">&nbsp;</button><br>
+		<hr size=1 COLOR="#b3e6b3">
+		<b>Town:</b> <span class="cg">{{ submission.town }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_town" value="{{ submission.town }}" type="submit">&nbsp;</button><br>
 		</form>
 
 	<table cellpadding="5">	
@@ -129,6 +132,8 @@
 		<hr size=1 COLOR="#b3e6b3">
 
 		<b>City:</b> <span class="cg">{{ submission.city }}</span><br>
+		<hr size=1 COLOR="#b3e6b3">
+		<b>Town:</b> <span class="cg">{{ submission.town }}</span><br>
 
 	<table cellpadding="5">	
 	<tr style="vertical-align: top;">

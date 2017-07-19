@@ -11,6 +11,7 @@ class AccountKitManager(object):
 
 	def get_user_cred(self, auth_code):
 		if not self.obj:
+			# Rretrieving user access token...
 			self.set_user_cred(auth_code)
 		return self.obj
 
@@ -20,6 +21,7 @@ class AccountKitManager(object):
 			format(auth_code,self.app_access_token,self.get_appsecret_proof(self.app_access_token))
 		data = self.retrieve_data(url)
 		data = self.evaluate_data(data)
+		# print "The user access token is: %s" % data["access_token"] # this is returned in lieu of the auth_code
 		string_obj = self.retrieve_user_cred(data["access_token"])
 		self.obj = self.evaluate_data(string_obj)
 
@@ -50,11 +52,12 @@ class AccountKitManager(object):
 		return requests.get(url).text
 
 
-mobile_data = AccountKitManager(FAID, AKAS)
+# mobile_data = AccountKitManager(FAID, AKAS)
 
 
 def account_kit_handshake(csrf, state, status, auth_code):
 	if csrf == state and status=='PARTIALLY_AUTHENTICATED':
+		mobile_data = AccountKitManager(FAID, AKAS)
 		user_data = mobile_data.get_user_cred(auth_code)
 		if FAID == user_data["application"]["id"]:
 			return user_data["id"], user_data["phone"]

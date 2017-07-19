@@ -392,7 +392,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 					user_id, city, is_barter, MN_data = result1[counter][0], string_joiner(result1[counter][1]), result1[counter][2], result1[counter][3]
 					pipeline2.lrem("global_ads_list",ad_id,num=-1)
 					pipeline2.lrem("aa:"+city,ad_id,num=1)
-					if is_barter == 'Paisa aur Exchange dono':
+					if is_barter == 'Paisey aur badley mein cheez dono':
 						pipeline2.lrem("global_exchange_ads_list",ad_id,num=-1)
 						pipeline2.lrem("aea:"+city, ad_id, num=-1)
 					pipeline2.lrem("uaa:"+user_id,ad_id)
@@ -414,7 +414,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			pipeline1 = my_server.pipeline()
 			pipeline1.lrem("global_ads_list",ad_ids,num=-1)
 			pipeline1.lrem("aa:"+city,ad_ids,num=1)
-			if is_barter == 'Paisa aur Exchange dono':
+			if is_barter == 'Paisey aur badley mein cheez dono':
 				pipeline1.lrem("global_exchange_ads_list",ad_ids,num=-1)
 				pipeline1.lrem("aea:"+city, ad_ids, num=-1)
 			pipeline1.lrem("uaa:"+user_id,ad_ids)
@@ -529,7 +529,7 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 	pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 	pipeline1.lpush("global_ads_list",ad_id) # used for global view
 	pipeline1.lpush("aa:"+ad_city,ad_id) # used for city-wide view
-	if ad_hash["is_barter"] == 'Paisa aur Exchange dono':
+	if ad_hash["is_barter"] == 'Paisey aur badley mein cheez dono':
 		pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
 		pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
 	pipeline1.hmset("ad:"+ad_id,ad_hash)
@@ -822,19 +822,14 @@ def edit_unfinished_ad_field(ad_id,user_id,field,new_text):
 	if my_server.exists("uuc:"+user_id):
 		if field == 'is_new':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Istimal Shuda')
+				my_server.hset("uuc:"+user_id,field,'Istamal shuda')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Bilkul New')
+				my_server.hset("uuc:"+user_id,field,'Bilkul new')
 		elif field == 'is_barter':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Paisa aur Exchange dono')
+				my_server.hset("uuc:"+user_id,field,'Paisey aur badley mein cheez dono')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Sirf Paisa')
-		# elif field == 'outer_leads':
-		# 	if new_text == '1':
-		# 		my_server.hset("uuc:"+user_id,field,'Dusrey cities ke log bhi call kar lein')
-		# 	elif new_text == '2':
-		# 		my_server.hset("uuc:"+user_id,field,'City se bahir ke log call nah karien')
+				my_server.hset("uuc:"+user_id,field,'Sirf paisey')
 		else:
 			my_server.hset("uuc:"+user_id,field,new_text)
 		# update submission time of advert too, so that it doesn't get expired all of a sudden
@@ -849,9 +844,9 @@ def edit_single_unapproved_ad(ad_id,field,new_text):
 		if new_text == '0':
 			ad.pop('is_new',None)
 		elif new_text == '1':
-			ad['is_new'] = 'Istamal Shuda'
+			ad['is_new'] = 'Istamal shuda'
 		elif new_text == '2':
-			ad['is_new'] = 'Bilkul New'
+			ad['is_new'] = 'Bilkul new'
 	elif field == 'photos':
 		if "photos" in ad:
 			counter = 0

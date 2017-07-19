@@ -117,18 +117,18 @@ class BasicItemPhotosForm(forms.Form):
 
 class BasicItemDetailForm(forms.Form):
 	NEWORUSED = (
-		('Istamal Shuda','Istamal Shuda'),
-		('Bilkul New','Bilkul New'),
+		('Istamal shuda','Istamal shuda'),
+		('Bilkul new','Bilkul new'),
 		)
 	BARTER = (
-		('Sirf Paisa','Sirf Paisa'),
-		('Paisa aur Exchange dono','Paisa aur Exchange dono'),
+		('Sirf paisey','Sirf paisey'),
+		('Paisey aur badley mein cheez dono','Paisey aur badley mein cheez dono'),
 		)
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}),\
 	error_messages={'required': 'Isko khali nahi chore saktey'})
-	new = forms.TypedChoiceField(choices=NEWORUSED, initial='Istamal Shuda',widget=forms.RadioSelect,error_messages={'required': 'In mein se aik chunno'})
+	new = forms.TypedChoiceField(choices=NEWORUSED, initial='Istamal shuda',widget=forms.RadioSelect,error_messages={'required': 'In mein se aik chunno'})
 	ask = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':1,'class': 'cxl'}),error_messages={'required': 'Isko khali nahi chore saktey'})
-	barter = forms.TypedChoiceField(choices=BARTER, initial='Paisa aur Exchange dono',widget=forms.RadioSelect,error_messages={'required': 'In mein se aik chunno'})
+	barter = forms.TypedChoiceField(choices=BARTER, initial='Paisey aur badley mein cheez dono',widget=forms.RadioSelect,error_messages={'required': 'In mein se aik chunno'})
 
 	def __init__(self, *args, **kwargs):
 		super(BasicItemDetailForm, self).__init__(*args, **kwargs)
@@ -141,9 +141,9 @@ class BasicItemDetailForm(forms.Form):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
 		if len(description) < 10:
-			raise forms.ValidationError('Aur tafseel likho takey khareednay waley ka trust barhey')
+			raise forms.ValidationError('Aur tafseel likho takey khareedar ka trust barhey')
 		elif len(description) > 500:
-			raise forms.ValidationError('Tafseel ko chota karo takey khareednay wala asani se parh sakey')
+			raise forms.ValidationError('Tafseel ko chota karo takey khareedar asani se parh sakey')
 		description = clear_zalgo_text(description)
 		uni_str = uniform_string(description)
 		if uni_str:

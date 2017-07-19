@@ -198,6 +198,33 @@ S1: Html styling
         background-color: #e6e6e6;
     }
 
+    /* Classified tabs*/
+
+    div.tab {
+    overflow: hidden;
+    background-color: white;
+    text-align:center;
+    display:inline-block;
+    width:95%; 
+    max-width:400px; 
+    padding:5px;
+
+    }
+
+    div.tab button {
+        background-color: #eeeeee;
+        float: left;
+        padding: 0.5em;
+        border: none;
+        width:49.5%;
+           
+    }
+
+    div.tab button:hover{
+        border-bottom: 2px solid #ffa726;
+        color:#fb8c00;
+    }
+
     /*font san serif*/ .fss{font-family:sans-serif;}
 
     .emoji-table{

@@ -22,7 +22,12 @@
 	<b>Item:</b> {{ seller_details.title }} <span class="cgy">({{ seller_details.is_new }})</span><br>
 	</div>
 	<div class="mbl">
-	<b>Price:</b> {{ seller_details.ask }}{% if is_barter == 'Paisa aur Exchange dono' %}<span class="cgy">(exchange bhi ho jaye ga)</span><br>{% endif %}
+	<b>Price:</b> {{ seller_details.ask }}<br>
+		{% if seller_details.is_barter == 'Paisey aur badley mein cheez dono' %}
+		<div class="mt">
+		<img src="{{ STATIC_URL }}img/ostar.png" width="15" height="14">&nbsp;<span style="font-size:15px;color:#fb8c00;">{{ seller_details.seller_name }} ko badley mein barabar ki cheez bhi qabul hai</span><br>
+		</div>
+		{% endif %}
 	</div>
 	{% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mbs" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
 </div>

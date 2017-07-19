@@ -6,7 +6,7 @@ from views import get_page_obj
 # from redis1 import first_time_shopper, add_shopper
 from image_processing import clean_image_file_with_hash
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
-from redis1 import first_time_classified_contacter, add_classified_contacter
+from redis1 import first_time_classified_contacter, add_classified_contacter, add_exchange_visitor, first_time_exchange_visitor
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
@@ -379,6 +379,10 @@ def show_seller_number(request,*args,**kwargs):
 def classified_listing(request,city=None,*args,**kwrags):
 	url_name = request.resolver_match.url_name
 	exchange = True if (url_name == 'exchange_classified_listing' or url_name == 'city_exchange_classified_listing') else False
+	if exchange:
+		if first_time_exchange_visitor(request.user.id):
+			add_exchange_visitor(request.user.id)
+			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})
 	page_num = request.GET.get('page', '1')
 	all_ad_ids = get_city_ad_ids(city, exchange=exchange) if city else get_approved_ad_ids(exchange=exchange)
 	page_obj = get_page_obj(page_num,all_ad_ids,APPROVED_ADS_PER_PAGE)
@@ -440,7 +444,7 @@ def get_help_text(text,admin_mode):
 	elif text == 'is_new':
 		return 'Edit item condition' if admin_mode else 'Yeh istamal shuda hai ya bilkul new hai'
 	elif text == 'is_barter':
-		return 'Edit barter condition' if admin_mode else 'Sirf paisey chahiyen ya iske sath kuch exchange bhi kar lo gey'
+		return 'Edit barter condition' if admin_mode else 'Sirf paisey chahiyen ya badley mein koi cheez bhi le lo gey'
 	elif text == 'town':
 		return 'Edit locality' if admin_mode else 'Apna ilaka ya mohalla likho'
 	elif text == 'ask':

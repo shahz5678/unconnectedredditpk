@@ -32,9 +32,7 @@
 <span class="cs" style="color:#9e9e9e; float:right; margin-right:0px">{{ ad.submission_time|human_time }}</span><br>
 
 {% if ad.photo_count|add:"0" > 1 %}
-<div class="mbs">
-<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span><br>
-</div>
+<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span>
 {% endif %}
 <div class="mt">
 <span style="font-size:25px;"> {{ ad.title }}</span>

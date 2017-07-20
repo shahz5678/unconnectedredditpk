@@ -10,6 +10,7 @@ city_shops = "city_shops"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
 sorted_set = "online_users"
+my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
 
@@ -20,6 +21,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
+TWO_MINS = 2*60
 
 #######################Test Function######################
 
@@ -29,6 +31,22 @@ FIVE_MINS = 5*60
 # 		return my_server.lpush("my_test",payload_list)
 # 	except:
 # 		return None
+
+def set_photo_upload_key(user_id, secret_key):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	my_server.set("pusk:"+user_id,secret_key)
+	my_server.expire("pusk:"+user_id,TWO_MINS)
+
+def get_and_delete_photo_upload_key(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	if my_server.exists("pusk:"+user_id):
+		secret_key = my_server.get("pusk:"+user_id)
+		my_server.delete("pusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
 
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):

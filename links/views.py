@@ -4632,12 +4632,7 @@ class UploadVideoView(FormView):
 def upload_public_photo(request,*args,**kwargs):
 	if request.method == 'POST':
 		user = request.user
-		########################################################
-		secret_key_from_form = request.POST.get('sk','0')
-		secret_key_from_session = get_and_delete_photo_upload_key(request.user.id)
-		print secret_key_from_form
-		print secret_key_from_session
-		########################################################
+		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_photo_upload_key(request.user.id)
 		if user.userprofile.score < 3:
 			return render(request, 'score_photo.html', {'score': '3'})
 		elif request.user_banned:

@@ -4674,6 +4674,14 @@ def upload_public_photo(request,*args,**kwargs):
 				image_file = request.FILES['image_file']
 			else:
 				image_file = None
+				context = {}
+				context["score"] = request.user.userprofile.score
+				context["threshold"] = UPLOAD_PHOTO_REQ
+				context["form"] = form
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				set_photo_upload_key(request.user.id, secret_key)
+				return render(request,"upload_public_photo.html",context)
 			if image_file:
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:

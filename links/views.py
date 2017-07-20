@@ -4631,11 +4631,13 @@ class UploadVideoView(FormView):
 @csrf_protect
 def upload_public_photo(request,*args,**kwargs):
 	if request.method == 'POST':
-		user = request.user
+		user, secret_key_from_form, secret_key_from_session  = request.user, request.POST.get('sk','0'), request.session.pop("photo_broadcast_secret_key",'1')
 		if user.userprofile.score < 3:#
 			return render(request, 'score_photo.html', {'score': '3'})
 		elif request.user_banned:
 			return render(request,'500.html',{})
+		elif str(secret_key_from_form) != str(secret_key_from_session):
+			return render(request,"dont_click_again_and_again.html",{})
 		else:
 			banned, time_remaining = check_photo_upload_ban(user.id)
 			if banned:
@@ -4761,6 +4763,9 @@ def upload_public_photo(request,*args,**kwargs):
 				context["time_remaining"] = time_remaining
 			else:
 				context["form"] = UploadPhotoForm()
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				request.session["photo_broadcast_secret_key"] = secret_key
 				post_big_photo_in_home = True
 				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 					post_big_photo_in_home = False

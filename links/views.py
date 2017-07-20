@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones
+from .redis4 import get_clones, get_test_val
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
@@ -4636,6 +4636,7 @@ def upload_public_photo(request,*args,**kwargs):
 		secret_key_from_session = request.session.get("photo_broadcast_secret_key",'1')
 		del request.session['photo_broadcast_secret_key']
 		request.session.modified = True
+		print get_test_val()
 		if user.userprofile.score < 3:#
 			return render(request, 'score_photo.html', {'score': '3'})
 		elif request.user_banned:
@@ -4771,6 +4772,8 @@ def upload_public_photo(request,*args,**kwargs):
 				context["time_remaining"] = time_remaining
 			else:
 				context["form"] = UploadPhotoForm()
+				# response.set_cookie('temp_counter','1')
+				# print request.COOKIES
 				secret_key = uuid.uuid4()
 				context["sk"] = secret_key
 				request.session["photo_broadcast_secret_key"] = secret_key

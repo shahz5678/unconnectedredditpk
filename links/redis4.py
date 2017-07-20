@@ -30,6 +30,10 @@ FIVE_MINS = 5*60
 # 	except:
 # 		return None
 
+def get_test_val():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("test_val")
+
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):
 	time_now = time.time()

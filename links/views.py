@@ -4632,7 +4632,9 @@ class UploadVideoView(FormView):
 def upload_public_photo(request,*args,**kwargs):
 	if request.method == 'POST':
 		user = request.user
-		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), request.session.pop("photo_broadcast_secret_key",'1')
+		secret_key_from_form = request.POST.get('sk','0')
+		secret_key_from_session = request.session.get("photo_broadcast_secret_key",'1')
+		del request.session['photo_broadcast_secret_key']
 		request.session.modified = True
 		if user.userprofile.score < 3:#
 			return render(request, 'score_photo.html', {'score': '3'})

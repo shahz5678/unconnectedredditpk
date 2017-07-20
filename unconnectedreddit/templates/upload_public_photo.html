@@ -15,6 +15,7 @@
 {% else %}
 	<form action="{% url 'upload_public_photo' %}" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
+	<input type="hidden" name="sk" value="{{ sk }}">
 	{{ form.image_file.errors }}
 	{% if opt == '7' %}
 	<input type="hidden" name="opt" value="{{ opt }}">

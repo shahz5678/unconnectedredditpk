@@ -4638,7 +4638,7 @@ def upload_public_photo(request,*args,**kwargs):
 		elif request.user_banned:
 			return render(request,'500.html',{})
 		elif str(secret_key_from_form) != str(secret_key_from_session):
-			return render(request,"dont_click_again_and_again.html",{})
+			return render(request,"dont_click_again_and_again.html",{'from_public_photos':True})
 		else:
 			banned, time_remaining = check_photo_upload_ban(user.id)
 			if banned:

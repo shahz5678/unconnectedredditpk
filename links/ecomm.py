@@ -330,11 +330,12 @@ def show_seller_number(request,*args,**kwargs):
 		ad_id = request.POST.get('ad_id',None)
 		if not is_mobile_verified(user_id):
 			# verify this person' mobile
+			CSRF = csrf.get_token(request)
 			request.session["referrer"] = request.META.get('HTTP_REFERER',None)
 			request.session["redirect_to"] = ad_id
-			request.session["csrf"] = csrf.get_token(request)
+			request.session["csrf"] = CSRF
 			request.session.modified = True
-			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':request.session["csrf"]})
+			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
 		if first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
 			add_classified_contacter(user_id)
@@ -371,7 +372,7 @@ def show_seller_number(request,*args,**kwargs):
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':request.META.get('HTTP_REFERER',None)})
+				'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
 	else:
 		return render(request,"404.html",{})
 
@@ -379,7 +380,7 @@ def show_seller_number(request,*args,**kwargs):
 def classified_listing(request,city=None,*args,**kwrags):
 	url_name = request.resolver_match.url_name
 	exchange = True if (url_name == 'exchange_classified_listing' or url_name == 'city_exchange_classified_listing') else False
-	if exchange:
+	if exchange and request.user.is_authenticated():
 		if first_time_exchange_visitor(request.user.id):
 			add_exchange_visitor(request.user.id)
 			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})

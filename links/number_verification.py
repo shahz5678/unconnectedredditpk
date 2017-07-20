@@ -13,6 +13,7 @@ def get_requirements(request):
 
 def verify_consumer_number(request,*args,**kwargs):
 	AK_ID, MN_data = get_requirements(request)
+	request.session.pop("csrf",None)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data['national_number'], request.user.id):
 			if "redirect_to" in request.session:

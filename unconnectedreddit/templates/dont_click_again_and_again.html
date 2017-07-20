@@ -2,10 +2,14 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
-
-<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
-
+{% if from_ecomm_ad_creation %}
+	<span class="cl">Bar bar button dabaney se photo nahi lagti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
+	<span class="cgy">Dubara se apna ishtihar banao</span><br>
+	<a href="{% url 'init_classified' %}"><button class="btn bcg bl mtl">wapis</button></a>
+{% elif from_public_photos %}
+	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
+	<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
+{% endif %}
 </div>
 <br><br>
 {% endblock %}

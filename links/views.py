@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
@@ -4634,8 +4634,7 @@ def upload_public_photo(request,*args,**kwargs):
 		user = request.user
 		########################################################
 		secret_key_from_form = request.POST.get('sk','0')
-		secret_key_from_session = cache.get('photo_broadcast_secret_key','1')
-		cache.delete('photo_broadcast_secret_key')
+		secret_key_from_session = get_and_delete_photo_upload_key(request.user.id)
 		print secret_key_from_form
 		print secret_key_from_session
 		########################################################
@@ -4768,8 +4767,7 @@ def upload_public_photo(request,*args,**kwargs):
 				context["form"] = UploadPhotoForm()
 				secret_key = uuid.uuid4()
 				context["sk"] = secret_key
-				cache.set('photo_broadcast_secret_key',secret_key,120)
-				print cache.get('photo_broadcast_secret_key','1')
+				set_photo_upload_key(request.user.id, secret_key)
 				post_big_photo_in_home = True
 				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 					post_big_photo_in_home = False

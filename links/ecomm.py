@@ -380,7 +380,7 @@ def show_seller_number(request,*args,**kwargs):
 def classified_listing(request,city=None,*args,**kwrags):
 	url_name = request.resolver_match.url_name
 	exchange = True if (url_name == 'exchange_classified_listing' or url_name == 'city_exchange_classified_listing') else False
-	if exchange:
+	if exchange and request.user.is_authenticated():
 		if first_time_exchange_visitor(request.user.id):
 			add_exchange_visitor(request.user.id)
 			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})

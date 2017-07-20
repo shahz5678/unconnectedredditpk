@@ -4769,6 +4769,7 @@ def upload_public_photo(request,*args,**kwargs):
 				secret_key = uuid.uuid4()
 				context["sk"] = secret_key
 				cache.set('photo_broadcast_secret_key',secret_key,120)
+				print cache.get('photo_broadcast_secret_key','1')
 				post_big_photo_in_home = True
 				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 					post_big_photo_in_home = False

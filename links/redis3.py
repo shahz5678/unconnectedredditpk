@@ -18,6 +18,7 @@ pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
 my_server.hset('cn:'+user_id,mapping) # saving consumber number data in hash
 pipeline1.sadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
+my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key
 gibberish_writers = 'gibberish_writers'
 pipeline1.lpush("global_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
@@ -40,6 +41,7 @@ my_server.sadd("unfinished_classifieds",ad_id)
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
+TWO_MINS = 2*60
 FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
@@ -914,6 +916,22 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 			return photo_ids_to_delete
 		else:
 			return None
+
+def set_ecomm_photos_secret_key(user_id, secret_key):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	my_server.set("epusk:"+user_id,secret_key)
+	my_server.expire("epusk:"+user_id,TWO_MINS)
+
+def get_and_delete_ecomm_photos_secret_key(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	if my_server.exists("epusk:"+user_id):
+		secret_key = my_server.get("epusk:"+user_id)
+		my_server.delete("epusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
 
 
 #####################E Commerce#######################

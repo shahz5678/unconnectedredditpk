@@ -38,8 +38,9 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			user_id = request.user.id
 			context={'desc':request.session["basic_item_description"],'is_new':request.session["basic_item_new"], 'ask':request.session["basic_item_ask"],\
 			'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':request.session["seller_name"],'city':request.session["city"],\
-			'AK_ID':AK_ID,'MN_data':MN_data,'user_id':user_id,'username':request.user.username,'town':request.session["town"]}
-			# register with Tilio's Notify service
+			'AK_ID':AK_ID,'MN_data':MN_data,'user_id':user_id,'username':request.user.username,'town':request.session["town"],'submission_device':request.session["submission_device"],\
+			'on_fbs':request.session["on_fbs"]}
+			# register with Twilio's Notify service
 			set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number=MN_data["number"])
 			saved = save_basic_ad_data(context)
 		if saved:
@@ -52,6 +53,8 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			request.session.pop("town",None)
 			request.session.pop("csrf",None)
 			request.session.pop("seller_name",None)
+			request.session.pop("submission_device",None)
+			request.session.pop("on_fbs",None)
 			request.session.pop("photo1",None)
 			request.session.pop("photo2",None)
 			request.session.pop("photo3",None)

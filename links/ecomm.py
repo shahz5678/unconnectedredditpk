@@ -25,10 +25,10 @@ from django.views.decorators.cache import cache_control
 #################################################################
 
 
-def get_current_ad_details(user_id, sess_dict, device):
+def get_current_ad_details(user_id, sess_dict, device, on_fbs):
 	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,'town':sess_dict["town"],\
 	'seller_name':sess_dict["seller_name"],'is_new':sess_dict["basic_item_new"],'ask':sess_dict["basic_item_ask"],\
-	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'submission_device':device}
+	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'submission_device':device,'on_fbs':on_fbs}
 
 
 def get_photo_urls(photo_ids):
@@ -631,6 +631,7 @@ def approve_classified(request,*args,**kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def post_seller_info(request,*args,**kwargs):
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	if request.method == 'POST':	
 		if "mob_num_on_file" in request.session:
 			form = SellerInfoForm(request.POST,nums=request.session["mob_num_on_file"]) # setting 'nums' ensures the mobile field is created and processed. Otherwise, it's entirely ignored (for the case where we don't have the user's numbers)
@@ -652,18 +653,20 @@ def post_seller_info(request,*args,**kwargs):
 				request.session["seller_name"] = seller_name
 				request.session["city"]  = city
 				request.session["town"] = town
+				request.session["submission_device"] = device
+				request.session["on_fbs"] = on_fbs
 				form = VerifySellerMobileForm()
 				CSRF = csrf.get_token(request)
 				request.session["csrf"] = CSRF
 				request.session.modified = True
-				save_unfinished_ad.delay(get_current_ad_details(request.user.id, request.session, device))
+				save_unfinished_ad.delay(get_current_ad_details(request.user.id, request.session, device, on_fbs))
 				return render(request,"verify_seller_number.html",{'form':form,'csrf':CSRF,'new_seller_num':mobile})
 			else:
 				# a number from file was picked, just create ad now
 				user_id = request.user.id
 				context={'desc':request.session["basic_item_description"],'is_new':request.session["basic_item_new"],'ask':request.session["basic_item_ask"],\
 				'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':seller_name,'city':city, 'town':town, \
-				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'submission_device':device}
+				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'submission_device':device,'on_fbs':on_fbs}
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile[-10:])
 				save_basic_ad_data(context)
@@ -677,6 +680,7 @@ def post_seller_info(request,*args,**kwargs):
 				request.session.pop("city",None)
 				request.session.pop("seller_name",None)
 				request.session.pop("town",None)
+				request.session.modified = True
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			if "mob_num_on_file" in request.session:
@@ -814,6 +818,8 @@ def init_classified(request,*args,**kwargs):
 			request.session.pop("photo2_hash",None)
 			request.session.pop("photo3_hash",None)
 			request.session.pop("seller_name",None)
+			request.session.pop("submission_device",None)
+			request.session.pop("on_fbs",None)
 			request.session.pop("city",None)
 			request.session.pop("town",None)
 			request.session.pop("csrf",None)

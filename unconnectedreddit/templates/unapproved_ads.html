@@ -94,7 +94,18 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a></span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a> {% if submission.submission_device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif submission.submission_device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif submission.submission_device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif submission.submission_device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif submission.submission_device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
 		<form method="POST" class="mtl" action="{% url 'approve_classified' %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
@@ -146,7 +157,18 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a></span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a> {% if submission.submission_device == '1' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        {% elif submission.submission_device == '2' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        {% elif submission.submission_device == '4' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        {% elif submission.submission_device == '5' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        {% elif submission.submission_device == '3' %}
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
 
 	{% endif %}
 	

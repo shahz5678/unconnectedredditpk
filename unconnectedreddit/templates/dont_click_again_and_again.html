@@ -6,6 +6,7 @@
 	<span class="cl">Bar bar button dabaney se photo nahi lagti. Sirf aik dafa daba kar intezar karo {% emoticons %}.i6{% endemoticons %}</span><br>
 	<span class="cgy">Dubara se apna ishtihar banao</span><br>
 	<form method="POST" action="{% url 'init_classified' %}">
+	{% csrf_token %}
 	<input type="hidden" name="category" value="1">
 	<button class="btn bcg bl mtl">wapis</button>
 	</form>

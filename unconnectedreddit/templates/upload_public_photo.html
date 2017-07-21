@@ -15,29 +15,23 @@
 {% else %}
 	<form action="{% url 'upload_public_photo' %}" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
-	{{ form.image_file.errors }}
-	{% if opt == '7' %}
-	<input type="hidden" name="opt" value="{{ opt }}">
-	<span class="co"><b>Eid selfie</b> ka intikhab kro:</span><br>
-	{% else %}
+	<input type="hidden" name="sk" value="{{ sk }}">
 	<input type="hidden" name="opt" value="0">
 	<span class="co"><b>Photo</b> ka intikhab kro:</span><br>
+	{% if form.image_file.errors %}
+	<span class="cr">{{ form.image_file.errors.0 }}</span><br>
 	{% endif %}
 	{{ form.image_file }}<br><br>
-	{{ form.caption.errors }}
-	{% if opt == '7' %}
-	<span class="co">Selfie pr <b>kuch likho</b>:</span>
-	{% else %}
-	<span class="co">Photo pr <b>kuch likho</b>:</span>
+	<span class="co">Photo pe <b>kuch likho</b>:</span><br>
+	{% if form.caption.errors %}
+	<span class="cr">{{ form.caption.errors.0 }}</span><br>
 	{% endif %}
-	<br>{{ form.caption }}<br>
-	<span class="cgy cs"><i>Likh kr <b>OK</b> dabao</i></span><br>
-		<button class="btn bco bs mts mbs" type="submit">OK</button><br>
-		{% if opt == '7' %}
-		<span class="cgy cs"><i>Selfie ki qeemat: <b>3</b> points</i></span>
-		{% else %}
-		<span class="cgy cs"><i>Photo ki qeemat: <b>3</b> points</i></span>
-		{% endif %}
+	{{ form.caption }}<br>
+	
+	<button class="btn bco bs mts mbs" type="submit">OK</button><br>
+		
+	<span class="cgy">Photo ki qeemat: <b>3</b> points</span>
+		
 	</form>
 {% endif %}
 

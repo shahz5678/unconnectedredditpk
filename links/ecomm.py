@@ -1,5 +1,5 @@
-import ast, json, time
 from models import Photo
+import ast, json, time, uuid
 from views import get_page_obj
 # from redis4 import get_city_shop_listing
 # from send_sms import get_all_bindings_to_date
@@ -14,7 +14,8 @@ from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
-string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback
+string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
+get_and_delete_ecomm_photos_secret_key
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -330,11 +331,12 @@ def show_seller_number(request,*args,**kwargs):
 		ad_id = request.POST.get('ad_id',None)
 		if not is_mobile_verified(user_id):
 			# verify this person' mobile
+			CSRF = csrf.get_token(request)
 			request.session["referrer"] = request.META.get('HTTP_REFERER',None)
 			request.session["redirect_to"] = ad_id
-			request.session["csrf"] = csrf.get_token(request)
+			request.session["csrf"] = CSRF
 			request.session.modified = True
-			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':request.session["csrf"]})
+			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
 		if first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
 			add_classified_contacter(user_id)
@@ -371,7 +373,7 @@ def show_seller_number(request,*args,**kwargs):
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':request.META.get('HTTP_REFERER',None)})
+				'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
 	else:
 		return render(request,"404.html",{})
 
@@ -379,7 +381,7 @@ def show_seller_number(request,*args,**kwargs):
 def classified_listing(request,city=None,*args,**kwrags):
 	url_name = request.resolver_match.url_name
 	exchange = True if (url_name == 'exchange_classified_listing' or url_name == 'city_exchange_classified_listing') else False
-	if exchange:
+	if exchange and request.user.is_authenticated():
 		if first_time_exchange_visitor(request.user.id):
 			add_exchange_visitor(request.user.id)
 			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})
@@ -676,6 +678,10 @@ def post_seller_info(request,*args,**kwargs):
 @csrf_protect
 def post_basic_item_photos(request,*args,**kwargs):
 	if request.method == 'POST':
+		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
+		if str(secret_key_from_form) != str(secret_key_from_session):
+			return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
+		################################################################
 		form = BasicItemPhotosForm(request.POST,request.FILES)
 		if form.is_valid():
 			photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)
@@ -726,7 +732,9 @@ def post_basic_item_photos(request,*args,**kwargs):
 				photo3 = True
 			request.session.modified = True
 			if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3})
+				secret_key = uuid.uuid4()
+				set_ecomm_photos_secret_key(request.user.id, secret_key)
+				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key})
 			elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
 				mob_nums = get_user_verified_number(request.user.id)
 				# check if we have any of the user's nums on file
@@ -736,9 +744,13 @@ def post_basic_item_photos(request,*args,**kwargs):
 				form = SellerInfoForm(nums=mob_nums)
 				return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 			else: # e.g. uploading photos 1 by 1
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3})
+				secret_key = uuid.uuid4()
+				set_ecomm_photos_secret_key(request.user.id, secret_key)
+				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key})
 		else:
-			return render(request,"post_basic_item_photos.html",{'form':form})
+			secret_key = uuid.uuid4()
+			set_ecomm_photos_secret_key(request.user.id, secret_key)
+			return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key})
 	else:
 		return render(request,"404.html",{})
 
@@ -759,7 +771,9 @@ def post_basic_item(request,*args,**kwargs):
 			request.session["ad_id"] = get_basic_item_ad_id()
 			request.session.modified = True
 			form = BasicItemPhotosForm()
-			context = {'form':form}#,'item_desc':description,'is_new':new,'ask':ask,'is_barter':barter}
+			secret_key = uuid.uuid4()
+			set_ecomm_photos_secret_key(request.user.id, secret_key)
+			context = {'form':form,'sk':secret_key}#,'item_desc':description,'is_new':new,'ask':ask,'is_barter':barter}
 			return render(request,"post_basic_item_photos.html",context)
 		else:
 			return render(request,"post_basic_item.html",{'form':form})	

@@ -7,8 +7,9 @@ from views import get_page_obj
 from image_processing import clean_image_file_with_hash
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
 from redis1 import first_time_classified_contacter, add_classified_contacter, add_exchange_visitor, first_time_exchange_visitor
-from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
+from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
+save_ecomm_photo_hash
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, \
@@ -24,10 +25,10 @@ from django.views.decorators.cache import cache_control
 #################################################################
 
 
-def get_current_ad_details(user_id, sess_dict):
-	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,\
+def get_current_ad_details(user_id, sess_dict, device):
+	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,'town':sess_dict["town"],\
 	'seller_name':sess_dict["seller_name"],'is_new':sess_dict["basic_item_new"],'ask':sess_dict["basic_item_ask"],\
-	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'town':sess_dict["town"]}
+	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'submission_device':device}
 
 
 def get_photo_urls(photo_ids):
@@ -143,13 +144,19 @@ def get_photo_strings(photo_list):
 
 def is_repeated(avghash,sess_dict):
 	if "photo1_hash" in sess_dict:
-		if sess_dict["photo1_hash"] == avghash:
+		# print "Photo 1:"
+		# print sess_dict["photo1_hash"][1], avghash
+		if sess_dict["photo1_hash"][1] == avghash:
 			return True
-	elif "photo2_hash" in sess_dict:
-		if sess_dict["photo2_hash"] == avghash:
+	if "photo2_hash" in sess_dict:
+		# print "Photo 2:"
+		# print sess_dict["photo2_hash"][1], avghash
+		if sess_dict["photo2_hash"][1] == avghash:
 			return True
-	elif "photo3_hash" in sess_dict:
-		if sess_dict["photo3_hash"] == avghash:
+	if "photo3_hash" in sess_dict:
+		# print "Photo 3:"
+		# print sess_dict["photo3_hash"][1], avghash
+		if sess_dict["photo3_hash"][1] == avghash:
 			return True
 	return False
 
@@ -634,6 +641,12 @@ def post_seller_info(request,*args,**kwargs):
 			city = form.cleaned_data.get("city",None)
 			town = form.cleaned_data.get("town",None)
 			mobile = form.cleaned_data.get("mobile",None)
+			device = get_device(request)
+			# save uploaded photo hashes at this point - ad content is finalized (only verification remains)
+			photo1_payload, photo2_payload, photo3_payload = request.session.pop("photo1_hash",None), request.session.pop("photo2_hash",None), \
+			request.session.pop("photo3_hash",None)
+			save_ecomm_photo_hash.delay(photo1_payload, photo2_payload, photo3_payload)
+			#############################################################################################################
 			if mobile is None or mobile == 'Kisi aur number pe':
 				# time to verify a new number
 				request.session["seller_name"] = seller_name
@@ -643,14 +656,14 @@ def post_seller_info(request,*args,**kwargs):
 				CSRF = csrf.get_token(request)
 				request.session["csrf"] = CSRF
 				request.session.modified = True
-				save_unfinished_ad.delay(get_current_ad_details(request.user.id, request.session))
+				save_unfinished_ad.delay(get_current_ad_details(request.user.id, request.session, device))
 				return render(request,"verify_seller_number.html",{'form':form,'csrf':CSRF,'new_seller_num':mobile})
 			else:
 				# a number from file was picked, just create ad now
 				user_id = request.user.id
 				context={'desc':request.session["basic_item_description"],'is_new':request.session["basic_item_new"],'ask':request.session["basic_item_ask"],\
-				'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':seller_name,'city':city,\
-				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'town':town}
+				'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':seller_name,'city':city, 'town':town, \
+				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'submission_device':device}
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile[-10:])
 				save_basic_ad_data(context)
@@ -718,10 +731,11 @@ def post_basic_item_photos(request,*args,**kwargs):
 								elif counter == 2:
 									photo3 = 'duplicate'
 							else:
-								request.session[photo_list[2]] = avghash
 								photo = Photo.objects.create(image_file = image, owner_id=request.user.id, caption=request.session["basic_item_description"][:30], \
 									comment_count=0, device=get_device(request), avg_hash=avghash, category='9')
-								upload_ecomm_photo.delay(photo.id, request.user.id, avghash, request.session["ad_id"]) #ensure only uploaded once
+								photo_id = photo.id
+								upload_ecomm_photo.delay(photo_id, request.user.id, request.session["ad_id"]) #ensure only uploaded once
+								request.session[photo_list[2]] = (photo_id, avghash)
 								request.session[photo_list[1]] = "inserted"
 				counter += 1
 			if "photo1" in request.session:
@@ -802,6 +816,7 @@ def init_classified(request,*args,**kwargs):
 			request.session.pop("city",None)
 			request.session.pop("town",None)
 			request.session.pop("csrf",None)
+			request.session.modified = True
 			return render(request,"post_basic_item.html",{'form':form})
 		else:
 			return render(request,"404.html",{})

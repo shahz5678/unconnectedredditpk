@@ -91,10 +91,18 @@ def save_consumer_credentials(account_kit_id, mobile_data, user_id):
 def save_unfinished_ad(context):
 	save_single_unfinished_ad(context)
 
+@celery_app1.task(name='tasks.save_ecomm_photo_hash')
+def save_ecomm_photo_hash(photo1_payload, photo2_payload, photo3_payload):
+	if photo1_payload:
+		insert_hash(photo1_payload[0],photo1_payload[1],'ecomm') #perceptual hash of item photo 1
+	if photo2_payload:
+		insert_hash(photo2_payload[0],photo2_payload[1],'ecomm') #perceptual hash of item photo 2
+	if photo3_payload:
+		insert_hash(photo3_payload[0],photo3_payload[1],'ecomm') #perceptual hash of item photo 3
+
 @celery_app1.task(name='tasks.upload_ecomm_photo')
-def upload_ecomm_photo(photo_id, user_id, avghash, ad_id):
-	# epochtime = convert_to_epoch(time)
-	insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
+def upload_ecomm_photo(photo_id, user_id, ad_id):
+	# insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
 	save_used_item_photo(user_id, ad_id, photo_id)
 
 # schedule this every 2.5 hours

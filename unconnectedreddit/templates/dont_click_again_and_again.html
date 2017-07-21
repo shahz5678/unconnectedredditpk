@@ -3,9 +3,12 @@
 {% block content %}
 <div class="margin clb">
 {% if from_ecomm_ad_creation %}
-	<span class="cl">Bar bar button dabaney se photo nahi lagti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
+	<span class="cl">Bar bar button dabaney se photo nahi lagti. Sirf aik dafa daba kar intezar karo {% emoticons %}.i6{% endemoticons %}</span><br>
 	<span class="cgy">Dubara se apna ishtihar banao</span><br>
-	<a href="{% url 'init_classified' %}"><button class="btn bcg bl mtl">wapis</button></a>
+	<form method="POST" action="{% url 'init_classified' %}">
+	<input type="hidden" name="category" value="1">
+	<button class="btn bcg bl mtl">wapis</button>
+	</form>
 {% elif from_public_photos %}
 	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
 	<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>

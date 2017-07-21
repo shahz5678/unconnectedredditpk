@@ -144,12 +144,18 @@ def get_photo_strings(photo_list):
 
 def is_repeated(avghash,sess_dict):
 	if "photo1_hash" in sess_dict:
+		# print "Photo 1:"
+		# print sess_dict["photo1_hash"][1], avghash
 		if sess_dict["photo1_hash"][1] == avghash:
 			return True
-	elif "photo2_hash" in sess_dict:
+	if "photo2_hash" in sess_dict:
+		# print "Photo 2:"
+		# print sess_dict["photo2_hash"][1], avghash
 		if sess_dict["photo2_hash"][1] == avghash:
 			return True
-	elif "photo3_hash" in sess_dict:
+	if "photo3_hash" in sess_dict:
+		# print "Photo 3:"
+		# print sess_dict["photo3_hash"][1], avghash
 		if sess_dict["photo3_hash"][1] == avghash:
 			return True
 	return False

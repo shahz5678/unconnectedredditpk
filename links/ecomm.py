@@ -690,6 +690,7 @@ def post_seller_info(request,*args,**kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def post_basic_item_photos(request,*args,**kwargs):
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	if request.method == 'POST':
 		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
 		if str(secret_key_from_form) != str(secret_key_from_session):
@@ -748,7 +749,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 			if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
 				secret_key = uuid.uuid4()
 				set_ecomm_photos_secret_key(request.user.id, secret_key)
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key})
+				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on:fbs})
 			elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
 				mob_nums = get_user_verified_number(request.user.id)
 				# check if we have any of the user's nums on file
@@ -760,11 +761,11 @@ def post_basic_item_photos(request,*args,**kwargs):
 			else: # e.g. uploading photos 1 by 1
 				secret_key = uuid.uuid4()
 				set_ecomm_photos_secret_key(request.user.id, secret_key)
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key})
+				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 		else:
 			secret_key = uuid.uuid4()
 			set_ecomm_photos_secret_key(request.user.id, secret_key)
-			return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key})
+			return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
 	else:
 		return render(request,"404.html",{})
 
@@ -787,7 +788,7 @@ def post_basic_item(request,*args,**kwargs):
 			form = BasicItemPhotosForm()
 			secret_key = uuid.uuid4()
 			set_ecomm_photos_secret_key(request.user.id, secret_key)
-			context = {'form':form,'sk':secret_key}#,'item_desc':description,'is_new':new,'ask':ask,'is_barter':barter}
+			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
 		else:
 			return render(request,"post_basic_item.html",{'form':form})	

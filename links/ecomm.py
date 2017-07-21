@@ -749,7 +749,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 			if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
 				secret_key = uuid.uuid4()
 				set_ecomm_photos_secret_key(request.user.id, secret_key)
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on:fbs})
+				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 			elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
 				mob_nums = get_user_verified_number(request.user.id)
 				# check if we have any of the user's nums on file

@@ -1,11 +1,14 @@
 from models import Photo
 import ast, json, time, uuid
+from mixpanel import Mixpanel
 from views import get_page_obj
 # from redis4 import get_city_shop_listing
 # from send_sms import get_all_bindings_to_date
 # from redis1 import first_time_shopper, add_shopper
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 from image_processing import clean_image_file_with_hash
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
+# from redis4 import 
 from redis1 import first_time_classified_contacter, add_classified_contacter, add_exchange_visitor, first_time_exchange_visitor
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
@@ -24,6 +27,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 #################################################################
 
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 def get_current_ad_details(user_id, sess_dict, device, on_fbs):
 	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,'town':sess_dict["town"],\
@@ -647,6 +651,9 @@ def post_seller_info(request,*args,**kwargs):
 			photo1_payload, photo2_payload, photo3_payload = request.session.pop("photo1_hash",None), request.session.pop("photo2_hash",None), \
 			request.session.pop("photo3_hash",None)
 			save_ecomm_photo_hash.delay(photo1_payload, photo2_payload, photo3_payload)
+			######################################################
+			mp.track(request.user.id, 'Entered Num Verification')#
+			######################################################
 			#############################################################################################################
 			if mobile is None or mobile == 'Kisi aur number pe':
 				# time to verify a new number
@@ -698,6 +705,9 @@ def post_basic_item_photos(request,*args,**kwargs):
 	if request.method == 'POST':
 		decision = request.POST.get("dec",None)
 		if decision == 'Skip':
+			#################################################
+			mp.track(request.user.id, 'Entered Seller Info')#
+			#################################################
 			mob_nums = get_user_verified_number(request.user.id)
 			# check if we have any of the user's nums on file
 			if mob_nums:
@@ -709,12 +719,10 @@ def post_basic_item_photos(request,*args,**kwargs):
 			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
 			if str(secret_key_from_form) != str(secret_key_from_session):
 				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
-			################################################################
 			form = BasicItemPhotosForm(request.POST,request.FILES)
-			if form.is_valid():
+			if form.is_valid():	
 				photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)
 				counter, exception, on_fbs, photos = 0, [], request.META.get('HTTP_X_IORG_FBS',False), get_photo_strings([photo1, photo2, photo3])
-				###########################
 				for photo_list in photos:
 					if photo_list[0]:
 						is_excessive, size = photo_size_exceeded(on_fbs, photo_list[0])
@@ -764,7 +772,10 @@ def post_basic_item_photos(request,*args,**kwargs):
 					secret_key = uuid.uuid4()
 					set_ecomm_photos_secret_key(request.user.id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
-				elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
+				elif (photo1 and photo2 and photo3) or (decision == 'Agey'): # e.g. pressed "Agey" and all/any photos uploaded correctly
+					#################################################
+					mp.track(request.user.id, 'Entered Seller Info')#
+					#################################################
 					mob_nums = get_user_verified_number(request.user.id)
 					# check if we have any of the user's nums on file
 					if mob_nums:
@@ -789,6 +800,9 @@ def post_basic_item(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = BasicItemDetailForm(request.POST)
 		if form.is_valid():
+			##############################################
+			mp.track(request.user.id, 'Entered Post Photos')#
+			##############################################
 			description = form.cleaned_data.get("description",None)
 			new = form.cleaned_data.get("new",None)
 			ask = form.cleaned_data.get("ask",None)
@@ -805,6 +819,9 @@ def post_basic_item(request,*args,**kwargs):
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
 		else:
+			###############################################
+			mp.track(request.user.id, 'Gave Invalid Desc')#
+			###############################################
 			return render(request,"post_basic_item.html",{'form':form})	
 	else:
 		return render(request,"404.html",{})
@@ -814,6 +831,9 @@ def post_basic_item(request,*args,**kwargs):
 def init_classified(request,*args,**kwargs):
 	if request.method == 'POST':
 		if request.POST.get('category',None) == '1':
+			################################################
+			mp.track(request.user.id, 'Entered Item Desc')#
+			################################################
 			form = BasicItemDetailForm()
 			request.session.pop("basic_item_description",None)
 			request.session.pop("basic_item_new",None)
@@ -838,6 +858,9 @@ def init_classified(request,*args,**kwargs):
 		else:
 			return render(request,"404.html",{})
 	else:
+		#################################################
+		mp.track(request.user.id, 'Entered Kuch Baicho')#
+		#################################################
 		return render(request,"basic_classified_instructions.html",{})
 
 

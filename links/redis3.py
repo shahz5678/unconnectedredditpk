@@ -886,7 +886,7 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 	my_server = redis.Redis(connection_pool=POOL)
 	if user_id and ad_id:
 		my_server.delete("uuc:"+user_id)
-		my_server.zrem("unfinished_classified",ad_id)
+		my_server.zrem("unfinished_classifieds",ad_id)
 		my_server.zrem("unfinalized_used_item_photos",ad_id)
 		my_server.delete("rc:"+ad_id)
 	else:

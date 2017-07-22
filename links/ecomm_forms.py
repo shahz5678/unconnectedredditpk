@@ -115,6 +115,15 @@ class BasicItemPhotosForm(forms.Form):
 	photo2 = forms.ImageField(label='Upload', required=False, error_messages={'invalid': 'Photo ka intekhab sahi nahi hua'})
 	photo3 = forms.ImageField(label='Upload', required=False, error_messages={'invalid': 'Photo ka intekhab sahi nahi hua'})
 
+	def __init__(self,*args,**kwargs):
+		super(BasicItemPhotosForm,self).__init__(*args,**kwargs)
+		self.fields["photo1"].widget.attrs['id'] = 'p1'
+		self.fields["photo2"].widget.attrs['id'] = 'p2'
+		self.fields["photo3"].widget.attrs['id'] = 'p3'
+		self.fields["photo1"].widget.attrs['style'] = 'width:98%;'
+		self.fields["photo2"].widget.attrs['style'] = 'width:98%;'
+		self.fields["photo3"].widget.attrs['style'] = 'width:98%;'
+
 class BasicItemDetailForm(forms.Form):
 	NEWORUSED = (
 		('Istamal shuda','Istamal shuda'),

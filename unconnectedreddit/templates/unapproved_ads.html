@@ -2,6 +2,7 @@
 {% load complete_url %}
 {% load human_time %}
 {% load get_pagination_buttons %}
+{% load show_device %}
 {% block content %}
 <div class="margin clb">
 <div class="mts mbl">
@@ -94,7 +95,7 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a></span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
 		<form method="POST" class="mtl" action="{% url 'approve_classified' %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
@@ -146,7 +147,7 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a></span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
 
 	{% endif %}
 	

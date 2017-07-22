@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
+{% load cache %}
+{% cache 3600 classified_instr_fragment %}
 <div class="margin clb">
 
 <h2>Saaz-o-samaan baichnay ka ad lagao (bilkul muft)</h2>
@@ -21,7 +23,7 @@
 <span class="cg">Agr sab theek hua tou ad laga diya jaye ga</span>
 
 <hr size=1 COLOR="#b3e6b3">
-
+{% endcache %}
 <form method="POST" class="mts" action="{% url 'init_classified' %}">
 {% csrf_token %}
 <input type="hidden" name="category" value="1">
@@ -30,4 +32,5 @@
 
 </div>
 <br><br>
+
 {% endblock %}

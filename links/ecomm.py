@@ -696,80 +696,90 @@ def post_seller_info(request,*args,**kwargs):
 def post_basic_item_photos(request,*args,**kwargs):
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	if request.method == 'POST':
-		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
-		if str(secret_key_from_form) != str(secret_key_from_session):
-			return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
-		################################################################
-		form = BasicItemPhotosForm(request.POST,request.FILES)
-		if form.is_valid():
-			photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)
-			counter, exception, on_fbs, photos = 0, [], request.META.get('HTTP_X_IORG_FBS',False), get_photo_strings([photo1, photo2, photo3])
-			###########################
-			for photo_list in photos:
-				if photo_list[0]:
-					is_excessive, size = photo_size_exceeded(on_fbs, photo_list[0])
-					if is_excessive:
-						exception.append(True)
-						if counter == 0:
-							photo1 = size
-						elif counter == 1:
-							photo2 = size
-						elif counter ==2:
-							photo3 = size
-					else:
-						image, avghash, pk = clean_image_file_with_hash(photo_list[0], 1, 'ecomm') # 1 means high quality image is returned, not over compressed
-						if is_repeated(avghash,request.session):
+		decision = request.POST.get("dec",None)
+		if decision == 'Skip':
+			mob_nums = get_user_verified_number(request.user.id)
+			# check if we have any of the user's nums on file
+			if mob_nums:
+				request.session["mob_num_on_file"] = mob_nums
+				request.session.modified = True
+			form = SellerInfoForm(nums=mob_nums)
+			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
+		else:
+			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
+			if str(secret_key_from_form) != str(secret_key_from_session):
+				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
+			################################################################
+			form = BasicItemPhotosForm(request.POST,request.FILES)
+			if form.is_valid():
+				photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)
+				counter, exception, on_fbs, photos = 0, [], request.META.get('HTTP_X_IORG_FBS',False), get_photo_strings([photo1, photo2, photo3])
+				###########################
+				for photo_list in photos:
+					if photo_list[0]:
+						is_excessive, size = photo_size_exceeded(on_fbs, photo_list[0])
+						if is_excessive:
 							exception.append(True)
 							if counter == 0:
-								photo1 = 'repeated'
+								photo1 = size
 							elif counter == 1:
-								photo2 = 'repeated'
-							elif counter == 2:
-								photo3 = 'repeated'
+								photo2 = size
+							elif counter ==2:
+								photo3 = size
 						else:
-							if isinstance(pk,float):
+							image, avghash, pk = clean_image_file_with_hash(photo_list[0], 1, 'ecomm') # 1 means high quality image is returned, not over compressed
+							if is_repeated(avghash,request.session):
 								exception.append(True)
 								if counter == 0:
-									photo1 = 'duplicate'
+									photo1 = 'repeated'
 								elif counter == 1:
-									photo2 = 'duplicate'
+									photo2 = 'repeated'
 								elif counter == 2:
-									photo3 = 'duplicate'
+									photo3 = 'repeated'
 							else:
-								photo = Photo.objects.create(image_file = image, owner_id=request.user.id, caption=request.session["basic_item_description"][:30], \
-									comment_count=0, device=get_device(request), avg_hash=avghash, category='9')
-								photo_id = photo.id
-								upload_ecomm_photo.delay(photo_id, request.user.id, request.session["ad_id"]) #ensure only uploaded once
-								request.session[photo_list[2]] = (photo_id, avghash)
-								request.session[photo_list[1]] = "inserted"
-				counter += 1
-			if "photo1" in request.session:
-				photo1 = True
-			if "photo2" in request.session:
-				photo2 = True
-			if "photo3" in request.session:
-				photo3 = True
-			request.session.modified = True
-			if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
+								if isinstance(pk,float):
+									exception.append(True)
+									if counter == 0:
+										photo1 = 'duplicate'
+									elif counter == 1:
+										photo2 = 'duplicate'
+									elif counter == 2:
+										photo3 = 'duplicate'
+								else:
+									photo = Photo.objects.create(image_file = image, owner_id=request.user.id, caption=request.session["basic_item_description"][:30], \
+										comment_count=0, device=get_device(request), avg_hash=avghash, category='9')
+									photo_id = photo.id
+									upload_ecomm_photo.delay(photo_id, request.user.id, request.session["ad_id"]) #ensure only uploaded once
+									request.session[photo_list[2]] = (photo_id, avghash)
+									request.session[photo_list[1]] = "inserted"
+					counter += 1
+				if "photo1" in request.session:
+					photo1 = True
+				if "photo2" in request.session:
+					photo2 = True
+				if "photo3" in request.session:
+					photo3 = True
+				request.session.modified = True
+				if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
+					secret_key = uuid.uuid4()
+					set_ecomm_photos_secret_key(request.user.id, secret_key)
+					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
+				elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
+					mob_nums = get_user_verified_number(request.user.id)
+					# check if we have any of the user's nums on file
+					if mob_nums:
+						request.session["mob_num_on_file"] = mob_nums
+						request.session.modified = True
+					form = SellerInfoForm(nums=mob_nums)
+					return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
+				else: # e.g. uploading photos 1 by 1
+					secret_key = uuid.uuid4()
+					set_ecomm_photos_secret_key(request.user.id, secret_key)
+					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
+			else:
 				secret_key = uuid.uuid4()
 				set_ecomm_photos_secret_key(request.user.id, secret_key)
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
-			elif (photo1 and photo2 and photo3) or request.POST.get('next',None): # e.g. pressed "Agey" and all photos uploaded correctly
-				mob_nums = get_user_verified_number(request.user.id)
-				# check if we have any of the user's nums on file
-				if mob_nums:
-					request.session["mob_num_on_file"] = mob_nums
-					request.session.modified = True
-				form = SellerInfoForm(nums=mob_nums)
-				return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
-			else: # e.g. uploading photos 1 by 1
-				secret_key = uuid.uuid4()
-				set_ecomm_photos_secret_key(request.user.id, secret_key)
-				return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
-		else:
-			secret_key = uuid.uuid4()
-			set_ecomm_photos_secret_key(request.user.id, secret_key)
-			return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
+				return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
 	else:
 		return render(request,"404.html",{})
 

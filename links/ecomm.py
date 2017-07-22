@@ -2,11 +2,11 @@ from models import Photo
 import ast, json, time, uuid
 from mixpanel import Mixpanel
 from views import get_page_obj
-# from redis4 import get_city_shop_listing
 # from send_sms import get_all_bindings_to_date
 # from redis1 import first_time_shopper, add_shopper
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 from image_processing import clean_image_file_with_hash
+from redis4 import save_ad_desc#, get_city_shop_listing
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
 # from redis4 import 
 from redis1 import first_time_classified_contacter, add_classified_contacter, add_exchange_visitor, first_time_exchange_visitor
@@ -799,10 +799,15 @@ def post_basic_item_photos(request,*args,**kwargs):
 def post_basic_item(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = BasicItemDetailForm(request.POST)
+		#############################################################
+		d = request.POST.get("description",None)                    #
+		if d:	 						                            #
+			save_ad_desc(d,request.user.id, request.user.username)  #
+		#############################################################
 		if form.is_valid():
-			##############################################
+			#################################################
 			mp.track(request.user.id, 'Entered Post Photos')#
-			##############################################
+			#################################################
 			description = form.cleaned_data.get("description",None)
 			new = form.cleaned_data.get("new",None)
 			ask = form.cleaned_data.get("ask",None)
@@ -831,9 +836,9 @@ def post_basic_item(request,*args,**kwargs):
 def init_classified(request,*args,**kwargs):
 	if request.method == 'POST':
 		if request.POST.get('category',None) == '1':
-			################################################
+			###############################################
 			mp.track(request.user.id, 'Entered Item Desc')#
-			################################################
+			###############################################
 			form = BasicItemDetailForm()
 			request.session.pop("basic_item_description",None)
 			request.session.pop("basic_item_new",None)

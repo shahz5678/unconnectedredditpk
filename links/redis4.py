@@ -177,3 +177,10 @@ def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_in
 		for x in range(1,(id_+1)):
 			pipeline1.hgetall("cd:"+str(x))
 		return pipeline1.execute()
+
+#########################################################
+
+def save_ad_desc(text, user_id,username):
+	my_server = redis.Redis(connection_pool=POOL)
+	mapping = {'user_id':user_id, 'username':username, 'text':text}
+	my_server.lpush("ad_description",mapping)

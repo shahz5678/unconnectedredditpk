@@ -25,6 +25,14 @@ from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
+
+#################################################################
+
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
+
+config_manager = OptimizelyConfigManager(PID)
+
 #################################################################
 
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -838,7 +846,9 @@ def init_classified(request,*args,**kwargs):
 		if request.POST.get('category',None) == '1':
 			###############################################
 			mp.track(request.user.id, 'Entered Item Desc')#
-			###############################################
+			################################################################
+			config_manager.get_obj().track('clicked_agey', request.user.id)#
+			################################################################
 			form = BasicItemDetailForm()
 			request.session.pop("basic_item_description",None)
 			request.session.pop("basic_item_new",None)
@@ -865,6 +875,14 @@ def init_classified(request,*args,**kwargs):
 	else:
 		#################################################
 		mp.track(request.user.id, 'Entered Kuch Baicho')#
+		#################################################
+		variation = config_manager.get_obj().activate('ad_instructions', request.user.id)
+		if variation == 'old_instr':
+			return render(request,"basic_classified_instructions.html",{})
+		elif variation == 'new_instr':
+			return render(request,"basic_classified_instructions_2.html",{})
+		else:
+			return render(request,"basic_classified_instructions.html",{})
 		#################################################
 		return render(request,"basic_classified_instructions.html",{})
 

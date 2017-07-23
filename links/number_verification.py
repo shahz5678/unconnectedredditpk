@@ -20,7 +20,7 @@ def verify_consumer_number(request,*args,**kwargs):
 				request.session.pop("redirect_to",None) # this contained an ad_id that's not needed any more
 			return render(request,"wrong_number.html",{'referrer':request.session.pop("referrer",None)})
 		else:
-			request.session.pop("csrf",None)
+			# request.session.pop("csrf",None)
 			save_consumer_credentials.delay(AK_ID, MN_data, request.user.id)
 			if "redirect_to" in request.session:
 				return redirect("show_seller_number")

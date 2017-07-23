@@ -871,7 +871,7 @@ def init_classified(request,*args,**kwargs):
 			request.session.pop("on_fbs",None)
 			request.session.pop("city",None)
 			request.session.pop("town",None)
-			request.session.pop("csrf",None)
+			# request.session.pop("csrf",None) # remove in case user creates ad, then presses "muft ad lagao" again (before verification). That would cause "csrf" to pop!
 			request.session.modified = True
 			return render(request,"post_basic_item.html",{'form':form})
 		else:

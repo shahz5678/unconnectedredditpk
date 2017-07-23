@@ -634,10 +634,10 @@ def approve_classified(request,*args,**kwargs):
 		page_num = request.GET.get('page', '1')
 		photos, submissions = [], []
 		ads = get_unapproved_ads(withscores=True)
-		checkers = get_and_set_classified_dashboard_visitors(request.user.username,withtime=True)
 		page_obj = get_page_obj(page_num,ads,ADS_TO_APPROVE_PER_PAGE)
 		submissions = process_ad_objects(ad_list=page_obj.object_list, tup=True, must_eval_ad=True, photo_tup=True)
-		return render(request,"unapproved_ads.html",{'submissions':submissions,'page':page_obj, 'checkers':checkers})
+		checkers = get_and_set_classified_dashboard_visitors(request.user.username,withtime=True)
+		return render(request,"unapproved_ads.html",{'submissions':submissions,'page':page_obj, 'checkers':checkers,'count':len(ads)})
 
 
 ############################ Ad Posting Process ###################################

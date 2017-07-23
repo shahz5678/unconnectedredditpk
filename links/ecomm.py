@@ -1,10 +1,10 @@
 from models import Photo
 import ast, json, time, uuid
-from mixpanel import Mixpanel
 from views import get_page_obj
+# from mixpanel import Mixpanel
 # from send_sms import get_all_bindings_to_date
 # from redis1 import first_time_shopper, add_shopper
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 from image_processing import clean_image_file_with_hash
 from redis4 import save_ad_desc#, get_city_shop_listing
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
@@ -35,7 +35,10 @@ from django.views.decorators.cache import cache_control
 
 #################################################################
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
+
+#################################################################
+
 
 def get_current_ad_details(user_id, sess_dict, device, on_fbs):
 	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,'town':sess_dict["town"],\
@@ -660,7 +663,7 @@ def post_seller_info(request,*args,**kwargs):
 			request.session.pop("photo3_hash",None)
 			save_ecomm_photo_hash.delay(photo1_payload, photo2_payload, photo3_payload)
 			######################################################
-			mp.track(request.user.id, 'Entered Num Verification')#
+			# mp.track(request.user.id, 'Entered Num Verification')#
 			######################################################
 			#############################################################################################################
 			if mobile is None or mobile == 'Kisi aur number pe':
@@ -714,7 +717,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 		decision = request.POST.get("dec",None)
 		if decision == 'Skip':
 			#################################################
-			mp.track(request.user.id, 'Entered Seller Info')#
+			# mp.track(request.user.id, 'Entered Seller Info')#
 			#################################################
 			mob_nums = get_user_verified_number(request.user.id)
 			# check if we have any of the user's nums on file
@@ -782,7 +785,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 				elif (photo1 and photo2 and photo3) or (decision == 'Agey'): # e.g. pressed "Agey" and all/any photos uploaded correctly
 					#################################################
-					mp.track(request.user.id, 'Entered Seller Info')#
+					# mp.track(request.user.id, 'Entered Seller Info')#
 					#################################################
 					mob_nums = get_user_verified_number(request.user.id)
 					# check if we have any of the user's nums on file
@@ -814,7 +817,7 @@ def post_basic_item(request,*args,**kwargs):
 		#############################################################
 		if form.is_valid():
 			#################################################
-			mp.track(request.user.id, 'Entered Post Photos')#
+			# mp.track(request.user.id, 'Entered Post Photos')#
 			#################################################
 			description = form.cleaned_data.get("description",None)
 			new = form.cleaned_data.get("new",None)
@@ -833,7 +836,7 @@ def post_basic_item(request,*args,**kwargs):
 			return render(request,"post_basic_item_photos.html",context)
 		else:
 			###############################################
-			mp.track(request.user.id, 'Gave Invalid Desc')#
+			# mp.track(request.user.id, 'Gave Invalid Desc')#
 			###############################################
 			return render(request,"post_basic_item.html",{'form':form})	
 	else:
@@ -845,7 +848,7 @@ def init_classified(request,*args,**kwargs):
 	if request.method == 'POST':
 		if request.POST.get('category',None) == '1':
 			###############################################
-			mp.track(request.user.id, 'Entered Item Desc')#
+			# mp.track(request.user.id, 'Entered Item Desc')#
 			################################################################
 			# config_manager.get_obj().track('clicked_agey', request.user.id)#
 			################################################################
@@ -874,7 +877,7 @@ def init_classified(request,*args,**kwargs):
 			return render(request,"404.html",{})
 	else:
 		#################################################
-		mp.track(request.user.id, 'Entered Kuch Baicho')#
+		# mp.track(request.user.id, 'Entered Kuch Baicho')#
 		#################################################
 		# variation = config_manager.get_obj().activate('ad_instructions', request.user.id)
 		# if variation == 'old_instr':

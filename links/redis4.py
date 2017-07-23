@@ -180,7 +180,7 @@ def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_in
 
 #########################################################
 
-def save_ad_desc(text, user_id,username):
+def save_ad_desc(text, price, user_id,username):
 	my_server = redis.Redis(connection_pool=POOL)
-	mapping = {'user_id':user_id, 'username':username, 'text':text}
-	my_server.lpush("ad_description",mapping)
+	mapping = {'uid':user_id, 'nick':username, 'desc':text,'price':price}
+	my_server.lpush("ad_desc",mapping)

@@ -812,8 +812,9 @@ def post_basic_item(request,*args,**kwargs):
 		form = BasicItemDetailForm(request.POST)
 		#############################################################
 		d = request.POST.get("description",None)                    #
+		p = request.POST.get("ask",None)                            #
 		if d:	 						                            #
-			save_ad_desc(d,request.user.id, request.user.username)  #
+			save_ad_desc(d,p,request.user.id, request.user.username)#
 		#############################################################
 		if form.is_valid():
 			#################################################

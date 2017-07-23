@@ -260,6 +260,14 @@
 				<p><hr size=1 COLOR="#33cc33"></p></div>
 		{% endif %}
 	{% endif %}
+	{% if forloop.counter == 3 %}
+		<div style="margin-top:-1em;padding-top:1em;background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+		<div class="mls">
+		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
+		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
+		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->

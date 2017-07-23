@@ -6,7 +6,9 @@
 {% block content %}
 <div class="margin clb">
 <div class="mts mbl">
-<span class="cgy cs">Closers on this page:</span>
+{% if submissions %}<span class="cs cgy">-- {{ count }} entries --</span><br>{% endif %}
+<hr size=1 COLOR="#cfd8dc">
+<span class="clb cs">Closers on this page:</span>
 	<div class="mts mbs">
 	{% for checker in checkers %}
 	<span class="mls">{{ checker.0 }}<span class="cs cgy"><span class="cb">, seen {{ checker.1|human_time }}</span>{% if checker.2 %}, has closed <b>{{checker.2 }}</b> ads{% endif %}</span></span><br>

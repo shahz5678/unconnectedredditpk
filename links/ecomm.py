@@ -28,10 +28,10 @@ from django.views.decorators.cache import cache_control
 
 #################################################################
 
-from optimizely_config_manager import OptimizelyConfigManager
-from unconnectedreddit.optimizely_settings import PID
+# from optimizely_config_manager import OptimizelyConfigManager
+# from unconnectedreddit.optimizely_settings import PID
 
-config_manager = OptimizelyConfigManager(PID)
+# config_manager = OptimizelyConfigManager(PID)
 
 #################################################################
 
@@ -847,7 +847,7 @@ def init_classified(request,*args,**kwargs):
 			###############################################
 			mp.track(request.user.id, 'Entered Item Desc')#
 			################################################################
-			config_manager.get_obj().track('clicked_agey', request.user.id)#
+			# config_manager.get_obj().track('clicked_agey', request.user.id)#
 			################################################################
 			form = BasicItemDetailForm()
 			request.session.pop("basic_item_description",None)
@@ -876,13 +876,13 @@ def init_classified(request,*args,**kwargs):
 		#################################################
 		mp.track(request.user.id, 'Entered Kuch Baicho')#
 		#################################################
-		variation = config_manager.get_obj().activate('ad_instructions', request.user.id)
-		if variation == 'old_instr':
-			return render(request,"basic_classified_instructions.html",{})
-		elif variation == 'new_instr':
-			return render(request,"basic_classified_instructions_2.html",{})
-		else:
-			return render(request,"basic_classified_instructions.html",{})
+		# variation = config_manager.get_obj().activate('ad_instructions', request.user.id)
+		# if variation == 'old_instr':
+		# 	return render(request,"basic_classified_instructions.html",{})
+		# elif variation == 'new_instr':
+		# 	return render(request,"basic_classified_instructions_2.html",{})
+		# else:
+		# 	return render(request,"basic_classified_instructions.html",{})
 		#################################################
 		return render(request,"basic_classified_instructions.html",{})
 

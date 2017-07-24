@@ -486,9 +486,10 @@ def get_help_text(text,admin_mode):
 def edit_classified(request,*args,**kwargs):
 	if request.method == "POST":
 		ad_id = request.POST.get('ad_score',None)
+		only_locked = request.POST.get('only_locked',None)
 		locked_by = who_locked_ad(ad_id)
 		if locked_by and locked_by != request.user.username:
-			return render(request,"cant_lock_ad.html",{'locked_by':locked_by})
+			return render(request,"cant_lock_ad.html",{'locked_by':locked_by,'only_locked':only_locked})
 		elif request.POST.get('edited',None):
 			# ad_id = request.POST.get('ad_id',None)
 			field = request.POST.get('which_field',None)
@@ -500,7 +501,7 @@ def edit_classified(request,*args,**kwargs):
 					return redirect("show_user_ads")
 				else:
 					edit_single_unapproved_ad(ad_id, field, status)
-					return redirect("approve_classified")
+					return redirect("approve_classified", only_locked)
 			else:
 				form = EditFieldForm(data=request.POST)
 				if form.is_valid():
@@ -510,7 +511,7 @@ def edit_classified(request,*args,**kwargs):
 						return redirect("show_user_ads")
 					else:
 						edit_single_unapproved_ad(ad_id, field, new_text)
-						return redirect("approve_classified")
+						return redirect("approve_classified", only_locked)
 				else:
 					return render(request,"500.html",{})
 		else:
@@ -523,15 +524,18 @@ def edit_classified(request,*args,**kwargs):
 				f = EditFieldForm(initial={'text_field': which_field})
 				if text_string == 'city':
 					locs = get_approved_places()
-					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'locs':locs,'admin_mode':admin_mode})
+					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'locs':locs,'admin_mode':admin_mode,\
+						'only_locked':only_locked})
 				elif text_string == 'town':
 					towns = get_approved_places(city=city)
 					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'towns':towns,'mother_ship':city,\
-						'admin_mode':admin_mode})
+						'admin_mode':admin_mode, 'only_locked':only_locked})
 				elif text_string == 'categ':
 					categs = get_classified_categories()
-					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'categs':categs,'admin_mode':admin_mode})
-				return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'admin_mode':admin_mode})
+					return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'categs':categs,'admin_mode':admin_mode, \
+						'only_locked':only_locked})
+				return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'admin_mode':admin_mode, \
+					'only_locked':only_locked})
 			else:
 				return render(request,"404.html",{})
 	else:
@@ -542,32 +546,33 @@ def edit_classified(request,*args,**kwargs):
 def ad_locked_by_agent(request,*args,**kwargs):
 	if request.method == "POST":
 		ad_id = request.POST.get('ad_score',None)
+		only_locked = request.POST.get('only_locked',None)
 		locked_by = who_locked_ad(ad_id)
 		if locked_by and locked_by != request.user.username:
-			return render(request,"cant_lock_ad.html",{'locked_by':locked_by})
+			return render(request,"cant_lock_ad.html",{'locked_by':locked_by,'only_locked':only_locked})
 		editor_id = request.POST.get('EID',None)
 		action = request.POST.get('action',None)
 		if editor_id == 'admin' and action == 'lock':
 			# lock the ad 
-			locked = lock_unapproved_ad(ad_id,request.user.username)
+			locked = lock_unapproved_ad(ad_id,request.user.username, request.user.id)
 			if locked:
-				return redirect("approve_classified")
+				return redirect("approve_classified", only_locked)
 			else:
-				return render(request,"cant_lock_ad.html",{'locked_by':locked[1]})
+				return render(request,"cant_lock_ad.html",{'locked_by':locked[1],'only_locked':only_locked})
 		elif editor_id == 'admin' and action == 'unlock':
-			unlocked = unlock_unapproved_ad(ad_id, request.user.username)
+			unlocked = unlock_unapproved_ad(ad_id, request.user.username, request.user.id)
 			if unlocked:
-				return redirect("approve_classified")
+				return redirect("approve_classified", only_locked)
 			else:
 				# the ad isn't locked by anyone, but you still don't have unlocking privilege
 				if unlocked[1] == False:
 					return render(request,"500.html",{})
 				# the ad is locked by someone else - you don't have unlocking privilege
 				else:
-					return redirect(request,"cant_lock_ad.html",{'locked_by':unlocked[1]})
+					return redirect(request,"cant_lock_ad.html",{'locked_by':unlocked[1],'only_locked':only_locked})
 		else:
 			return render(request,"404.html",{})
-		return redirect("approve_classified")
+		return redirect("approve_classified", only_locked)
 	else:
 		return render(request,"404.html",{})
 
@@ -576,12 +581,13 @@ def ad_locked_by_agent(request,*args,**kwargs):
 def change_cover_photo(request,*args,**kwargs):
 	if request.method == "POST":
 		ad_id = request.POST.get('ad_score',None)
+		only_locked = request.POST.get('only_locked',None)
 		locked_by = who_locked_ad(ad_id)
 		if locked_by and locked_by != request.user.username:
-			return render(request,"cant_lock_ad.html",{'locked_by':locked_by})
+			return render(request,"cant_lock_ad.html",{'locked_by':locked_by,'only_locked':only_locked})
 		photo_id = request.POST.get('dec',None)
 		edit_single_unapproved_ad(ad_id,'photos',photo_id)
-		return redirect("approve_classified")
+		return redirect("approve_classified", only_locked)
 	else:
 		return render(request,"404.html",{})
 
@@ -590,9 +596,10 @@ def change_cover_photo(request,*args,**kwargs):
 def process_ad_approval(request,*args,**kwargs):
 	if request.method == "POST":
 		ad_id = request.POST.get('ad_score',None)
+		only_locked = request.POST.get('only_locked',None)
 		locked_by = who_locked_ad(ad_id)
 		if locked_by and locked_by != request.user.username:
-			return render(request,"cant_lock_ad.html",{'locked_by':locked_by})
+			return render(request,"cant_lock_ad.html",{'locked_by':locked_by,'only_locked':only_locked})
 		dur = request.POST.get('dur',None) # in hours
 		if dur == str(MOST_DURATION) or dur == str(LEAST_DURATION):
 			time_flag, click_flag = True, False
@@ -601,22 +608,22 @@ def process_ad_approval(request,*args,**kwargs):
 			time_flag, click_flag = False, True
 			expiration_clicks = int(dur)
 		if time_flag:
-			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_time=expiration_time, closed_by=request.user.username)
+			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_time=expiration_time, closed_by=request.user.username, closer_id=str(request.user.id))
 		elif click_flag:
-			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_clicks=expiration_clicks, closed_by=request.user.username)
+			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_clicks=expiration_clicks, closed_by=request.user.username, closer_id=str(request.user.id))
 		if mobile_number:
 			# enqueue sms
 			status = 'approved'
 			enqueue_sms.delay(mobile_number, int(float(ad_id)), status)
 		else:
 			return render(request,"500.html",{})
-		return redirect("approve_classified")
+		return redirect("approve_classified", only_locked)
 	else:
 		return render(request,"404.html",{})
 
 
 @csrf_protect
-def approve_classified(request,*args,**kwargs):
+def approve_classified(request,only_locked,*args,**kwargs):
 	if request.method == "POST":
 		ad_id = request.POST.get('ad_score',None)
 		locked_by = who_locked_ad(ad_id)
@@ -626,18 +633,18 @@ def approve_classified(request,*args,**kwargs):
 		decline = request.POST.get('decline',None)
 		if approve:
 			return render(request,"approve_classified.html",{'score':ad_id,'least_clicks':LEAST_CLICKS,'most_clicks':MOST_CLICKS,\
-				'medium_clicks':MEDIUM_CLICKS,'least_dur':LEAST_DURATION,'most_dur':MOST_DURATION})
+				'medium_clicks':MEDIUM_CLICKS,'least_dur':LEAST_DURATION,'most_dur':MOST_DURATION, 'only_locked':only_locked})
 		else:
-			del_single_unapproved_ad(ad_id)
-			return redirect("approve_classified")
+			del_single_unapproved_ad(ad_id, str(request.user.id))
+			return redirect("approve_classified", only_locked)
 	else:
 		page_num = request.GET.get('page', '1')
 		photos, submissions = [], []
-		ads = get_unapproved_ads(withscores=True)
+		ads = get_unapproved_ads(request.user.id, withscores=True, only_locked=only_locked)
 		page_obj = get_page_obj(page_num,ads,ADS_TO_APPROVE_PER_PAGE)
 		submissions = process_ad_objects(ad_list=page_obj.object_list, tup=True, must_eval_ad=True, photo_tup=True)
 		checkers = get_and_set_classified_dashboard_visitors(request.user.username,withtime=True)
-		return render(request,"unapproved_ads.html",{'submissions':submissions,'page':page_obj, 'checkers':checkers,'count':len(ads)})
+		return render(request,"unapproved_ads.html",{'submissions':submissions,'page':page_obj, 'checkers':checkers,'count':len(ads),'only_locked':only_locked})
 
 
 ############################ Ad Posting Process ###################################

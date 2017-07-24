@@ -323,7 +323,7 @@ def show_user_ads(request,*args,**kwargs):
 ############################### Display Approved Ads ##############################
 
 
-
+# can a person get here WITHOUT verifying?
 @csrf_protect
 def classified_tutorial_dec(request,*args,**kwargs):
 	if request.method == 'POST':
@@ -359,7 +359,7 @@ def show_seller_number(request,*args,**kwargs):
 			request.session["csrf"] = CSRF
 			request.session.modified = True
 			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
-		if first_time_classified_contacter(user_id):
+		elif first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
 			add_classified_contacter(user_id)
 			referrer = request.META.get('HTTP_REFERER',None)
@@ -378,7 +378,7 @@ def show_seller_number(request,*args,**kwargs):
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
 				'referrer':request.META.get('HTTP_REFERER',None)})
 	elif "redirect_to" in request.session:
-		ad_id = request.session.pop("redirect_to",None) # user is now verified
+		ad_id = request.session.pop("redirect_to",None) # user is now verified << NOT ALWAYS!
 		referrer = request.session.pop("referrer",None)
 		if first_time_classified_contacter(request.user.id):
 			add_classified_contacter(request.user.id)

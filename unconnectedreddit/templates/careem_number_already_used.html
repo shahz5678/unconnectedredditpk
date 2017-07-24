@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl clb">Aap ka diya gya number pehle hee istemal ho chuka hai. Naya number istemal kerien</b><br> 
+<br>
+
+<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+<hr size=1 COLOR="#bfbfbf">
+
+<!-- 
+<hr size=2 COLOR="#b3e6b3">
+<form method="POST" class="mtl" action="{% url 'post_basic_item' %}">{% csrf_token %}
+<span class="cgy">Agar kuch ghalat ho gaya hai aur dobara se shuru karna hai tou ye dabao:</span><br>
+<input type="submit" class="btn bm bcg mbs mts" value="Restart">
+</form> -->
+</div>
+<br><br>
+{% endblock %}

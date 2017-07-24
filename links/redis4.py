@@ -184,3 +184,24 @@ def save_ad_desc(text, price, user_id,username):
 	my_server = redis.Redis(connection_pool=POOL)
 	mapping = {'uid':user_id, 'nick':username, 'desc':text,'price':price}
 	my_server.lpush("ad_desc",mapping)
+
+#########################################################
+
+def save_careem_data(careem_data):
+	my_server = redis.Redis(connection_pool=POOL)
+#	my_server.lpush("careem_data",careem_data)
+#	my_server.hmset("name",careem_data)
+	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
+		# it already exists
+		return False
+	else:
+		# it does not exist
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
+		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
+		pipeline1.execute()
+		return True
+
+
+#########################################################
+

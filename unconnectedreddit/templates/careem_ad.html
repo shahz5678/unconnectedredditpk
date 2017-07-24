@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<h2 class="cg bw">Careem key liay gari chalien aur kamaien Rs. 70000 tuk kamaien</h2>
-<hr size=1 COLOR="#00c853">
+<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/car_dam.png"><br>
+<br>{% else %}<img style="max-height:133px;" src="{{ STATIC_URL }}img/car_dam.png"><br>{% endif %}
+<h2 class="cg bw">Careem per gari chalien aur Rs. 40000 kamaien</h2>
+<h2 class="cg bw">Damadam per direct Careem key liay register.</h2>
+
 <!-- <div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="clb">Careem: SASTEY LOGON KEY LIAY SASTI TAXI</b>
+<b class="clb">Careem: </b>
 </div> -->
 <br>
 <form method="post" action="{% url 'careem_ad' %}" class="mtl">
@@ -32,7 +35,7 @@
 </div>
 {% endfor %}<br>
 
-<input class="btn bco bl mtl mbl" style="background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;margin-top:0.5em;" type="submit" value="OK">
+<input class="btn bcg bl mtl mbl" type="submit" value="Register">
 
 </form>
 
@@ -46,63 +49,3 @@
 </div>
 <br><br>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 
-
-
-<div class="margin clb">
-<h2 class="cg bw">Careem AD</h2>
-<b class="clb cs">SASTEY LOGON KEY LIAY SASTI TAXI</b><br>
-<hr size=1 COLOR="#00c853">
-<div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="clb">dummy text</b>
-<b class="clb">0336-5885441</b>
-
-</div>
-<br>
-<div class="mls">
-	<b class="cxl" style="color:black;text-shadow:1px 1px #009940;padding-left:3px;padding-right:3px;">Apna koi mazay ka naam likho:</b>
-	</div>
-		<form method="POST" action="{% url 'careem_ad' %}" class"mtl">
-
-		<input class="mtl mbs" style="color:black;background-color:#ffd600;border:solid 2px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK">
-		{% csrf_token %}
-		{{ form.feedback }}<br>
-		</form>
-</div>
-
-
-
-
-
-
-<div class="mbs">
-<b class="co">Fees:</b><span class="mls"> dummy </span><br>
-</div>
-<a href="{% url 'home' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
-<hr size=3 COLOR="#bfbfbf">
-	<form method="post" action="{% url 'careem_ad' %}" class="mtl">
-	{% csrf_token %}
-		{% if form.feedback.errors %}
-			<span class="cr">{{ form.feedback.errors.0 }}</span><br>
-		{% else %}
-			<b class="cl cg">Is service ko istimal karne ke baad is par tabsra likho:</b><br>
-		{% endif %}
-		<div class="mts">
-	  	{{ form.feedback }}
-	  	</div>
-	  	<button class="btn bcg bm mtl" type="submit">OK</button><br>
-	</form>
-</div>
-<br><br>-->

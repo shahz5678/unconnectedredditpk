@@ -189,8 +189,6 @@ def save_ad_desc(text, price, user_id,username):
 
 def save_careem_data(careem_data):
 	my_server = redis.Redis(connection_pool=POOL)
-#	my_server.lpush("careem_data",careem_data)
-#	my_server.hmset("name",careem_data)
 	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
 		# it already exists
 		return False

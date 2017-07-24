@@ -12,6 +12,7 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 
 pipeline1.lpush("aa:"+city,ad_id)
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
@@ -434,7 +435,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 # helper function for get_seller_details
 def log_ad_click(server, ad_hash, clicker_id, ad_id):
 	is_unique, clicker_number, expire_ad = False, None, False
-	if not server.sismember("sn:"+ad_id,clicker_id):
+	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
 		click_details, is_unique = [], True
 		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
 		click_details.append((clicker_number,time.time()))
@@ -543,7 +544,7 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 
 
 # main function used by agents to make an ad live after approving it
-def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, closed_by=None):
+def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, closed_by=None, closer_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id, ad_id)[0])
 	time_now = time.time()
@@ -554,7 +555,12 @@ def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, clos
 	ad["SMS_setting"], ad["submission_time"], ad["closed_by"] = '1', time_now, closed_by #renewing submission time (i.e. replacing it with approval time)
 	ad.pop("locked_by",None) #removing locked_by field
 	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), string_joiner(ad["town"]), ad["user_id"])
-	my_server.zremrangebyscore("unapproved_ads",ad_id,ad_id)
+	##############################################################################
+	pipeline1 = my_server.pipeline()
+	pipeline1.zremrangebyscore("unapproved_ads",ad_id,ad_id)
+	pipeline1.lrem("ala:"+closer_id,ad_id)
+	pipeline1.execute()
+	##############################################################################
 	increment_agent_score(my_server, closed_by)
 	return ad["MN_data"]["number"]
 
@@ -776,7 +782,7 @@ def who_locked_ad(ad_id):
 		return None
 
 # used by agents in classified approval process, so that other agents don't erroneously edit the ad
-def lock_unapproved_ad(ad_id, username):
+def lock_unapproved_ad(ad_id, username, locker_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
 	if "locked_by" in ad:
@@ -787,16 +793,18 @@ def lock_unapproved_ad(ad_id, username):
 		ad["locked_by"] = username
 		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
 		my_server.zadd("unapproved_ads",ad,ad_id)
+		my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 		return True, username
 
 
-def unlock_unapproved_ad(ad_id, username):
+def unlock_unapproved_ad(ad_id, username, locker_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
 	if "locked_by" in ad and ad["locked_by"] == username:
 		ad.pop("locked_by")
 		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
 		my_server.zadd("unapproved_ads",ad,ad_id)
+		my_server.lrem("ala:"+str(locker_id),ad_id)
 		return True, username
 	elif "locked_by" not in ad:
 		return False, False
@@ -807,9 +815,28 @@ def unlock_unapproved_ad(ad_id, username):
 
 
 # used to populate the classified approval dashboard for agents
-def get_unapproved_ads(withscores = False):
+def get_unapproved_ads(user_id, withscores = False, only_locked=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("unapproved_ads",0,-1,withscores=withscores)
+	if only_locked == '1':
+		required_ad_ids = my_server.lrange("ala:"+str(user_id),0,-1)
+		pipeline1 = my_server.pipeline()
+		for id_ in required_ad_ids:
+			pipeline1.zrangebyscore("unapproved_ads",id_,id_)
+		result = pipeline1.execute()
+		if result:
+			if withscores:
+				counter = 0
+				ads = []
+				for ad_body in result:
+					ads.append((ad_body[0],float(required_ad_ids[counter])))
+					counter += 1
+				return ads
+			else:
+				return result
+		else:
+			return []
+	else:
+		return my_server.zrange("unapproved_ads",0,-1,withscores=withscores)
 
 # used when seller himself deletes an ad (of the 'unverified' variety)
 def get_unfinished_photo_ids_to_delete(ad_id):
@@ -877,9 +904,12 @@ def save_single_unfinished_ad(context):
 	my_server.zadd("unfinished_classifieds",ad_id,time.time())
 
 # used by agents to delete rejected ads from the ad approval dashboard
-def del_single_unapproved_ad(ad_id):
+def del_single_unapproved_ad(ad_id, closer_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zremrangebyscore("unapproved_ads", ad_id, ad_id)
+	pipeline1.lrem("ala:"+closer_id,ad_id)
+	pipeline1.execute()
 
 # used to delete 'unfinished' (i.e 'unverified') ads, either by the seller herself, or initiated periodically by the system (schedule set in settings.py)
 def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=None):

@@ -10,6 +10,7 @@ city_shops = "city_shops"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
 sorted_set = "online_users"
+my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
 
@@ -20,6 +21,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
+TWO_MINS = 2*60
 
 #######################Test Function######################
 
@@ -29,6 +31,22 @@ FIVE_MINS = 5*60
 # 		return my_server.lpush("my_test",payload_list)
 # 	except:
 # 		return None
+
+def set_photo_upload_key(user_id, secret_key):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	my_server.set("pusk:"+user_id,secret_key)
+	my_server.expire("pusk:"+user_id,TWO_MINS)
+
+def get_and_delete_photo_upload_key(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	if my_server.exists("pusk:"+user_id):
+		secret_key = my_server.get("pusk:"+user_id)
+		my_server.delete("pusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
 
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):
@@ -124,20 +142,19 @@ def get_clones(user_id):
 
 #########################################################
 
-def save_careem_data(careem_data):
-	my_server = redis.Redis(connection_pool=POOL)
-#	my_server.lpush("careem_data",careem_data)
-#	my_server.hmset("name",careem_data)
-	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
-		# it already exists
-		return False
-	else:
-		# it does not exist
-		pipeline1 = my_server.pipeline()
-		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
-		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
-		pipeline1.execute()
-		return True
+# def get_city_shop_listing(city):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	city_shops = "city_shops"
+# 	shop_ids = my_server.smembers(city_shops)
+# 	pipeline1 = my_server.pipeline()
+# 	for shop_id in shop_ids:
+# 		shop_detail = "sd:"+str(shop_id)
+# 		pipeline1.hgetall(shop_detail)
+# 	return pipeline1.execute()
+
+# def initialize_shop(information):
+# 	my_server = redis.Redis(connection_pool=POOL)
+
 #########################################################
 
 #calculating installment amount for mobile devices
@@ -160,3 +177,30 @@ def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_in
 		for x in range(1,(id_+1)):
 			pipeline1.hgetall("cd:"+str(x))
 		return pipeline1.execute()
+
+#########################################################
+
+def save_ad_desc(text, price, user_id,username):
+	my_server = redis.Redis(connection_pool=POOL)
+	mapping = {'uid':user_id, 'nick':username, 'desc':text,'price':price}
+	my_server.lpush("ad_desc",mapping)
+
+
+#########################################################
+
+def save_careem_data(careem_data):
+	my_server = redis.Redis(connection_pool=POOL)
+#	my_server.lpush("careem_data",careem_data)
+#	my_server.hmset("name",careem_data)
+	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
+		# it already exists
+		return False
+	else:
+		# it does not exist
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
+		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
+		pipeline1.execute()
+		return True
+
+#########################################################

@@ -6,15 +6,34 @@
 {% block content %}
 <div class="margin clb">
 <div class="mts mbl">
-{% if submissions %}<span class="cs cgy">-- {{ count }} entries --</span><br>{% endif %}
-<hr size=1 COLOR="#cfd8dc">
-<span class="clb cs">Closers on this page:</span>
+{% if submissions %}
+	{% if only_locked == '0' %}
+	<span class="cs cgy">-- {{ count }} entries --</span><br>
+	<a href="{% url 'approve_classified' 1 %}">
+	<button type="submit" class="btn bct mts cs" style="border:none;border-radius:2px;">&nbsp;my locked ads&nbsp;</button>
+	</a>
+	{% else %}
+	<span class="cxl ct">My Locked Ads ({{ count }})</span><br>
+	<a href="{% url 'approve_classified' 0 %}">
+	<button type="submit" class="btn bcp mts mbs cs" style="border:none;border-radius:2px;">&nbsp;all unapproved&nbsp;</button>
+	</a>
+	<hr size=1 COLOR="#cfd8dc">
+	{% endif %}
+{% endif %}
+
+{% if only_locked == '0' %}
+	<hr size=1 COLOR="#cfd8dc">
+	<span class="clb cs">Closers on this page:</span>
 	<div class="mts mbs">
 	{% for checker in checkers %}
-	<span class="mls">{{ checker.0 }}<span class="cs cgy"><span class="cb">, seen {{ checker.1|human_time }}</span>{% if checker.2 %}, has closed <b>{{checker.2 }}</b> ads{% endif %}</span></span><br>
+	<div class="mt">
+	<span class="mls">{{ checker.0 }}<span class="cs cgy"><span class="cp">, seen {{ checker.1|human_time }}</span>{% if checker.2 %}, has closed <b>{{checker.2 }}</b> ads{% endif %}</span></span>
+	</div>
 	{% endfor %}
 	</div>
 	<hr size=1 COLOR=" #ff5722">
+{% endif %}
+
 </div>
 {% for submission,score in submissions %}
 	<b>AD ID:</b> <span class="cgy">{{ submission.ad_id }}</span>&nbsp;&nbsp;
@@ -24,6 +43,7 @@
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
 		<input type="hidden" name="EID" value="admin">
+		<input type="hidden" name="only_locked" value="{{ only_locked }}">
 		<button class="btn bm mts bcgy" name="action" value="unlock">&nbsp;&nbsp;unlock&nbsp;&nbsp;</button>
 		</form>
 		{% else %}
@@ -34,6 +54,7 @@
 	{% csrf_token %}
 	<input type="hidden" name="ad_score" value="{{ score }}">
 	<input type="hidden" name="EID" value="admin">
+	<input type="hidden" name="only_locked" value="{{ only_locked }}">
 	<button class="btn bm bcp mts" name="action" value="lock">&nbsp;<img src="{{ STATIC_URL }}img/lock.png" width="12" heigh="12">&nbsp;&nbsp;lock&nbsp;</button><br>
 	</form>
 	{% endif %}
@@ -46,6 +67,7 @@
 		<form method="POST" class="mbs" action="{% url 'edit_classified' %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
+		<input type="hidden" name="only_locked" value="{{ only_locked }}">
 		<input type="hidden" name="ad_city" value="{{ submission.city }}">
 		<input type="hidden" name="EID" value="admin">
 		<b>Title:</b> {% if submission.title %}<span class="cg">{{ submission.title }}</span>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_title" value="{{ submission.title }}" type="submit">&nbsp;</button>{% else %}<b class="cr">-- Give a proper title --</b>&nbsp;<button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_title" value="Give a proper title" type="submit">&nbsp;</button>{% endif %}<br>
@@ -87,6 +109,7 @@
 		<b class="cgy">Cover photo</b>
 		{% else %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
+		<input type="hidden" name="only_locked" value="{{ only_locked }}">
 		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button>
 		{% endif %}
 		<img class="pht mrs mts" src="{{ photo_url|complete_url }}">
@@ -98,7 +121,7 @@
 
 		<br>
 		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
-		<form method="POST" class="mtl" action="{% url 'approve_classified' %}">
+		<form method="POST" class="mtl" action="{% url 'approve_classified' only_locked %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
 		<input class="mrl mts" style="background-color:#00c853;border-color:#009940;color:white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);font-size:100%;border-radius:4px;margin-top:0.5em;width:7em;" type="submit" name="approve" value="Approve">
@@ -155,7 +178,12 @@
 	
 	<hr size=3 COLOR="#00c853">
 	{% empty %}
-	<b class="cl cg">No unapproved classifieds are queued at this time</b>
+	{% if only_locked == '1' %}
+	<b class="cl cg">You haven't locked any unapproved classifieds yet</b><br>
+	<a href="{% url 'approve_classified' 0 %}"><button class="btn bcg mtl mbl bm">back</button></a>
+	{% else %}
+	<b class="cxl cg">Yay! No more ads!</b>
+	{% endif %}
 {% endfor %}
 </div>
 

@@ -17,34 +17,15 @@ def get_requirements(request, careem=False):
 
 def verify_careem_applicant(request,*args,**kwargs):
 	AK_ID, MN_data = get_requirements(request, careem=True)
-	# print "AK_ID is: %s" % AK_ID
-	# print "MN_data is: %s" % MN_data
-	# print request.session['firstname']
-	# print request.session['lastname']
-	# print request.session['cnic']
-	# print request.session['city']
-	# print request.session['license']
-	print MN_data['number']
 	car_phonenumber = MN_data['number']
 	car_firstname = request.session['firstname']
 	car_lastname = request.session['lastname']
 	car_cnic = request.session['cnic']
 	car_city = request.session['city']
 	car_license = request.session['license']
-
-	# print car_phonenumber
-	# print car_firstname  
-	# print car_lastname 
-	# print car_cnic  
-	# print car_city 
-	# print car_license  
-	# print request.user.id
 	careem_data = {'firstname':car_firstname,'lastname':car_lastname,'cnic':car_cnic,\
 	'city':car_city,'license':car_license,'phonenumber':car_phonenumber,'user_id':request.user.id}
-	# print careem_data
-
 	saved = save_careem_data(careem_data)
-	print saved
 	request.session.pop('firstname',None) 
 	request.session.pop('lastname',None)
 	request.session.pop('cnic',None)
@@ -55,8 +36,6 @@ def verify_careem_applicant(request,*args,**kwargs):
 		return render(request,"careem_application_submitted.html",{})
 	else:
 		return render(request,"careem_number_already_used.html",{})
-	# print
-	# print
 
 
 

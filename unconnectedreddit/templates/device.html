@@ -1,0 +1,13 @@
+        
+        {% if submission_device == '1' %}
+        <img src="{{ static_url }}img/featurephone.png" alt="no pic"></img>
+        {% elif submission_device == '2' %}
+        <img src="{{ static_url }}img/smartphone.png" alt="no pic"></img>
+        {% elif submission_device == '4' %}
+        <img src="{{ static_url }}img/tablet.png" alt="no pic"></img>
+        {% elif submission_device == '5' %}
+        <img src="{{ static_url }}img/other.png" alt="no pic"></img>
+        {% elif submission_device == '3' %}
+        <img src="{{ static_url }}img/laptop.png" alt="no pic"></img>
+        {% else %}
+        {% endif %}

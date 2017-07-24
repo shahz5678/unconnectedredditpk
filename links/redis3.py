@@ -12,11 +12,13 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 
 pipeline1.lpush("aa:"+city,ad_id)
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
 my_server.hset('cn:'+user_id,mapping) # saving consumber number data in hash
 pipeline1.sadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
+my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key
 gibberish_writers = 'gibberish_writers'
 pipeline1.lpush("global_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
@@ -39,6 +41,7 @@ my_server.sadd("unfinished_classifieds",ad_id)
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
+TWO_MINS = 2*60
 FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
@@ -391,7 +394,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 					user_id, city, is_barter, MN_data = result1[counter][0], string_joiner(result1[counter][1]), result1[counter][2], result1[counter][3]
 					pipeline2.lrem("global_ads_list",ad_id,num=-1)
 					pipeline2.lrem("aa:"+city,ad_id,num=1)
-					if is_barter == 'Paisa aur Exchange dono':
+					if is_barter == 'Paisey aur badley mein cheez dono':
 						pipeline2.lrem("global_exchange_ads_list",ad_id,num=-1)
 						pipeline2.lrem("aea:"+city, ad_id, num=-1)
 					pipeline2.lrem("uaa:"+user_id,ad_id)
@@ -413,7 +416,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			pipeline1 = my_server.pipeline()
 			pipeline1.lrem("global_ads_list",ad_ids,num=-1)
 			pipeline1.lrem("aa:"+city,ad_ids,num=1)
-			if is_barter == 'Paisa aur Exchange dono':
+			if is_barter == 'Paisey aur badley mein cheez dono':
 				pipeline1.lrem("global_exchange_ads_list",ad_ids,num=-1)
 				pipeline1.lrem("aea:"+city, ad_ids, num=-1)
 			pipeline1.lrem("uaa:"+user_id,ad_ids)
@@ -522,12 +525,13 @@ def increment_agent_score(server, username):
 	pipeline1.execute()
 
 # helper function for move_to_approved_ads
-def process_ad_approval(server,ad_id, ad_hash, ad_city, seller_id):
+def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 	pipeline1 = server.pipeline()
-	pipeline1.zincrby("approved_locations",ad_city,amount=1) # when getting: first get all locations, then all approved ads related to that location, and then all ads' hashes
+	pipeline1.zincrby("approved_locations",ad_city,amount=1) # first get all locations, then all approved ads related to that location, and then all ads' hashes
+	pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 	pipeline1.lpush("global_ads_list",ad_id) # used for global view
 	pipeline1.lpush("aa:"+ad_city,ad_id) # used for city-wide view
-	if ad_hash["is_barter"] == 'Paisa aur Exchange dono':
+	if ad_hash["is_barter"] == 'Paisey aur badley mein cheez dono':
 		pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
 		pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
 	pipeline1.hmset("ad:"+ad_id,ad_hash)
@@ -549,7 +553,7 @@ def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, clos
 		ad["expiration_clicks"], ad["expiration_time"] = expiration_clicks, time_now+ONE_MONTH # give it a hard 30 day expiry any way
 	ad["SMS_setting"], ad["submission_time"], ad["closed_by"] = '1', time_now, closed_by #renewing submission time (i.e. replacing it with approval time)
 	ad.pop("locked_by",None) #removing locked_by field
-	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), ad["user_id"])
+	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), string_joiner(ad["town"]), ad["user_id"])
 	my_server.zremrangebyscore("unapproved_ads",ad_id,ad_id)
 	increment_agent_score(my_server, closed_by)
 	return ad["MN_data"]["number"]
@@ -622,13 +626,17 @@ def save_used_item_photo(user_id, ad_id, photo_id):
 	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
 
 
-def get_approved_loc(withscores=False):
+def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	locs = my_server.zrevrange("approved_locations",0,-1,withscores=withscores)
-	if withscores:
-		return [(string_tokenizer(city),score) for (city,score) in locs]
+	if city == 'all_cities':
+		locs = my_server.zrevrange("approved_locations",0,-1,withscores=withscores)
 	else:
-		return [string_tokenizer(city) for city in locs]
+		locs = my_server.zrevrange("at:"+city,0,-1,withscores=withscores)
+	if withscores:
+		return [(string_tokenizer(loc),score) for (loc,score) in locs]
+	else:
+		return [string_tokenizer(loc) for loc in locs]
+
 
 # used to show total ads' count
 def get_all_pakistan_ad_count():
@@ -816,19 +824,14 @@ def edit_unfinished_ad_field(ad_id,user_id,field,new_text):
 	if my_server.exists("uuc:"+user_id):
 		if field == 'is_new':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Istimal Shuda')
+				my_server.hset("uuc:"+user_id,field,'Istamal shuda')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Bilkul New')
+				my_server.hset("uuc:"+user_id,field,'Bilkul new')
 		elif field == 'is_barter':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Paisa aur Exchange dono')
+				my_server.hset("uuc:"+user_id,field,'Paisey aur badley mein cheez dono')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Sirf Paisa')
-		# elif field == 'outer_leads':
-		# 	if new_text == '1':
-		# 		my_server.hset("uuc:"+user_id,field,'Dusrey cities ke log bhi call kar lein')
-		# 	elif new_text == '2':
-		# 		my_server.hset("uuc:"+user_id,field,'City se bahir ke log call nah karien')
+				my_server.hset("uuc:"+user_id,field,'Sirf paisey')
 		else:
 			my_server.hset("uuc:"+user_id,field,new_text)
 		# update submission time of advert too, so that it doesn't get expired all of a sudden
@@ -843,9 +846,9 @@ def edit_single_unapproved_ad(ad_id,field,new_text):
 		if new_text == '0':
 			ad.pop('is_new',None)
 		elif new_text == '1':
-			ad['is_new'] = 'Istamal Shuda'
+			ad['is_new'] = 'Istamal shuda'
 		elif new_text == '2':
-			ad['is_new'] = 'Bilkul New'
+			ad['is_new'] = 'Bilkul new'
 	elif field == 'photos':
 		if "photos" in ad:
 			counter = 0
@@ -883,7 +886,7 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 	my_server = redis.Redis(connection_pool=POOL)
 	if user_id and ad_id:
 		my_server.delete("uuc:"+user_id)
-		my_server.zrem("unfinished_classified",ad_id)
+		my_server.zrem("unfinished_classifieds",ad_id)
 		my_server.zrem("unfinalized_used_item_photos",ad_id)
 		my_server.delete("rc:"+ad_id)
 	else:
@@ -913,6 +916,22 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 			return photo_ids_to_delete
 		else:
 			return None
+
+def set_ecomm_photos_secret_key(user_id, secret_key):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	my_server.set("epusk:"+user_id,secret_key)
+	my_server.expire("epusk:"+user_id,TWO_MINS)
+
+def get_and_delete_ecomm_photos_secret_key(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	if my_server.exists("epusk:"+user_id):
+		secret_key = my_server.get("epusk:"+user_id)
+		my_server.delete("epusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
 
 
 #####################E Commerce#######################

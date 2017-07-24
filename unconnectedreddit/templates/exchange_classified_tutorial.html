@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl cg">'Badla Ads' kiya hain?</b><br>
+<div class="mt">
+<span class="cxl">Ye woh ads hain jin mein baichney wala badley mein barabar ki cheez bhi qabul kar le ga<br><span class="cgy cs">Lekin uski marzi hai ke woh apki paish-karda cheez pe nah kar de aur sirf paisey pe hi sauda karey</span></span><br> 
+</div>
+{% if city %}<a href="{% url url_name city %}">{% else %}<a href="{% url url_name %}">{% endif %}<button class="btn bcg bl cl mtl">Theek hai</button></a>
+
+</div>
+<br><br>
+{% endblock %}

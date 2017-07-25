@@ -677,7 +677,7 @@ def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_bar
 		my_server.hset(temp_ad,"town",namify(town))
 	if submission_device:
 		my_server.hset(temp_ad,"submission_device",submission_device)
-	if on_fbs:
+	if on_fbs is not None:
 		my_server.hset(temp_ad,"on_fbs",on_fbs)
 	if csrf:
 		my_server.hset(temp_ad,"csrf",csrf)

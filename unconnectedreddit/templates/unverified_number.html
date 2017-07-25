@@ -5,4 +5,14 @@ Ye number verify nahi ho saka<br>
 <a href="{% url 'classified_listing' %}#section0"><button class="btn bcg bm mtl">wapis</button></a>
 </div>
 <br><br>
+{% if err %}
+<hr size=1 COLOR="#ffab91">
+	<span style="color:white;">
+	CSRF: {{ err.csrf }}<br>
+	STATE: {{ err.state }}<br>
+	STATUS: {{ err.status }}<br>
+	FB_ID: {{ err.facebook_id }}<br>
+	FB_ID_2: {{ err.returned_id }}<br>
+	</span>
+{% endif %}
 {% endblock %}

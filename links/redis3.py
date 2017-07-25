@@ -27,10 +27,11 @@ pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global l
 punishment_text = "pt:"+str(user_id)
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
-my_server.lpush("unc:"+submitted_data["user_id"])
-pipeline1.lpush("uaa:"+seller_id,ad_hash) - user approved ads
+temp_ad = "ta:"+user_id #temporary ad
+my_server.lpush("unc:"+submitted_data["user_id"]) #unapproved_user_classified (unc:)
+pipeline1.lpush("uaa:"+seller_id,ad_hash) # user approved ads
 pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
-unfinished_classified = "uuc:"+str(user_id)
+unfinished_classified = "uuc:"+str(user_id) # unfinished user ad
 user_thumbs = "upt:"+owner_uname
 my_server.hgetall("um:"+str(user_id)) # user mobile number data
 my_server.zadd("unapproved_ads",ad,ad_id)
@@ -53,6 +54,23 @@ def string_tokenizer(string):
 
 def string_joiner(string):
 	return string.replace(" ", "_")
+
+def namify(string):
+	return " ".join(w.capitalize() for w in string.split())
+
+def currencify(string):
+	if string.isdigit():
+		formatted = "{:,}".format(int(string))
+		return "Rs."+str(formatted)
+	else:
+		if string[0:3] == 'Rs.':
+			return string
+		else:
+			return "Rs."+string
+
+def first_letter_upper(string):
+	first_letter_in_upper_case = string.split()[0][0:1].upper()
+	return first_letter_in_upper_case+string[1:]
 
 #####################Process Nick#######################
 
@@ -493,6 +511,7 @@ def get_user_verified_number(user_id):
 		mob_nums = []
 		for number in numbers:
 			mob_nums.append(ast.literal_eval(number)["national_number"])
+		# sending back numbers appended in a list
 		return mob_nums
 	else:
 		return []
@@ -630,6 +649,76 @@ def save_used_item_photo(user_id, ad_id, photo_id):
 	pipeline1.lpush("rc:"+ad_id,photo_id) #remove deployed photo_ids from here
 	pipeline1.execute()
 	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
+
+
+def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_barter=None, ad_id=None, which_photo_hash=None, photo_id=None, photo_hash=None,\
+	photo_number=None, seller_name=None,city=None,town=None,submission_device=None,on_fbs=None,csrf=None, mob_nums=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_ad = "ta:"+user_id
+	if description:
+		my_server.hset(temp_ad,"basic_item_description",first_letter_upper(description))
+	if is_new:
+		my_server.hset(temp_ad,"basic_item_new",is_new)
+	if ask:
+		my_server.hset(temp_ad,"basic_item_ask",currencify(ask))
+	if is_barter:
+		my_server.hset(temp_ad,"basic_item_barter",is_barter)
+	if ad_id:
+		my_server.hset(temp_ad,"ad_id",ad_id)
+	if which_photo_hash and photo_id and photo_hash:
+		my_server.hset(temp_ad,which_photo_hash,[photo_id, photo_hash])
+	if photo_number:
+		my_server.hset(temp_ad,photo_number,'inserted')
+	if seller_name:
+		my_server.hset(temp_ad,"seller_name",namify(seller_name))
+	if city:
+		my_server.hset(temp_ad,"city",namify(city))
+	if town:
+		my_server.hset(temp_ad,"town",namify(town))
+	if submission_device:
+		my_server.hset(temp_ad,"submission_device",submission_device)
+	if on_fbs:
+		my_server.hset(temp_ad,"on_fbs",on_fbs)
+	if csrf:
+		my_server.hset(temp_ad,"csrf",csrf)
+	if mob_nums:
+		my_server.hset(temp_ad,"mob_nums",mob_nums)
+	my_server.expire(temp_ad,FORTY_FIVE_MINS) # will self-destruct after 45 mins of inactivity
+
+
+def get_temporarily_saved_ad_data(user_id, id_only=False, all_photo_numbers=False, photo_hashes=False, full_ad=False, half_ad=False, mob_nums=False, only_csrf=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	if id_only:
+		return my_server.hget("ta:"+user_id,"ad_id")
+	elif full_ad:
+		desc, city, town, seller_name, is_new, ask, is_barter, ad_id, submission_device, on_fbs = my_server.hmget("ta:"+user_id,\
+			"basic_item_description", "city", "town", "seller_name", "basic_item_new", "basic_item_ask", "basic_item_barter", "ad_id", "submission_device", "on_fbs")
+		return {'desc':desc,'city':city,'user_id':user_id,'town':town,'seller_name':seller_name,'is_new':is_new,'ask':ask,'is_barter':is_barter,\
+		'ad_id':ad_id,'submission_device':submission_device,'on_fbs':on_fbs}
+	elif half_ad:
+		desc, is_new, ask, is_barter, ad_id = my_server.hmget("ta:"+user_id, "basic_item_description", "basic_item_new", "basic_item_ask", "basic_item_barter", "ad_id")
+		return {'desc':desc,'is_new':is_new,'ask':ask,'is_barter':is_barter,'ad_id':ad_id}
+	elif mob_nums:
+		mob_nums = my_server.hget("ta:"+user_id,"mob_nums")
+		if mob_nums:
+			return ast.literal_eval(mob_nums)
+		else:
+			return []
+	elif only_csrf:
+		return my_server.hget("ta:"+user_id,"csrf")
+	elif all_photo_numbers:
+		photo1 = True if my_server.hget("ta:"+user_id,"photo1") else False
+		photo2 = True if my_server.hget("ta:"+user_id,"photo2") else False
+		photo3 = True if my_server.hget("ta:"+user_id,"photo3") else False
+		return photo1, photo2, photo3
+	elif photo_hashes:
+		return {'photo1_hash':my_server.hget("ta:"+user_id,"photo1_hash"),'photo2_hash':my_server.hget("ta:"+user_id,"photo2_hash"),\
+		'photo3_hash':my_server.hget("ta:"+user_id,"photo3_hash")}
+
+
+def reset_temporarily_saved_ad(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("ta:"+user_id)
 
 
 def get_approved_places(city='all_cities',withscores=False):

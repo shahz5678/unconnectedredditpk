@@ -9,9 +9,11 @@
   <input type="hidden" name="app_id" value="1758220174446684">
   <input type="hidden" name="locale" value="ur_PK">
   <input type="hidden" name="debug" value=true>
+  {% if ON_AZURE %}
+  <input type="hidden" name="redirect" value="https://damadam.pk/vca/">
+  {% else %}<input type="hidden" name="redirect" value="http://127.0.0.1:8000/vca/">{% endif %}
 
-  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vca/">
-  
+
   <input type="hidden" name="state" value="{{ csrf }}">
   <input type="hidden" name="fbAppEventsEnabled" value=true>
   <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:120%;font-weight:bold;text-shadow:1px 1px #003315;" value="OK">

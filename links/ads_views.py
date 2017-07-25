@@ -10,6 +10,7 @@ from django.middleware import csrf
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from ecomm import get_device
+import os
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -41,7 +42,8 @@ def careem_ad(request,*args,**kwargs):
 			request.session['city'] = city
 			request.session['license'] = license
 			request.session['csrf_careem'] = CSRF
-			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF})
+			ON_AZURE = os.environ.get('ON_AZURE',None)
+			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF,'ON_AZURE':ON_AZURE})
 		else:
 			return render(request,'careem_ad.html',{'form':form,'device':get_device(request)})
 	else:

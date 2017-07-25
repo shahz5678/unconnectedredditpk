@@ -42,9 +42,8 @@ def careem_ad(request,*args,**kwargs):
 			request.session['city'] = city
 			request.session['license'] = license
 			request.session['csrf_careem'] = CSRF
-			ON_MAC = os.environ.get('ON_MAC')
-			print ON_MAC
-			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF,'ON_MAC':ON_MAC})
+			ON_AZURE = os.environ.get('ON_AZURE',None)
+			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF,'ON_AZURE':ON_AZURE})
 		else:
 			return render(request,'careem_ad.html',{'form':form,'device':get_device(request)})
 	else:

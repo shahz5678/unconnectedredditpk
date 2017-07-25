@@ -9,9 +9,9 @@
   <input type="hidden" name="app_id" value="1758220174446684">
   <input type="hidden" name="locale" value="ur_PK">
   <input type="hidden" name="debug" value=true>
-  {% if ON_MAC %}
-  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vca/">
-  {% else %}<input type="hidden" name="redirect" value="https://damadam.pk/vca/">{% endif %}
+  {% if ON_AZURE %}
+  <input type="hidden" name="redirect" value="https://damadam.pk/vca/">
+  {% else %}<input type="hidden" name="redirect" value="http://127.0.0.1:8000/vca/">{% endif %}
 
 
   <input type="hidden" name="state" value="{{ csrf }}">

@@ -48,5 +48,7 @@ class CareemAdForm(forms.Form):
 
 	def clean_cnic(self):
 		cnic = self.cleaned_data.get('cnic')
+		if cnic == '3740523212212':
+			raise forms.ValidationError('(tip: Asli shanakhti card ka number dalo)')
 		return cnic
 

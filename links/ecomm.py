@@ -15,11 +15,11 @@ from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_
 save_ecomm_photo_hash
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
-move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, \
+move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, namify, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
-get_and_delete_ecomm_photos_secret_key
+get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -38,12 +38,6 @@ from django.views.decorators.cache import cache_control
 # mp = Mixpanel(MIXPANEL_TOKEN)
 
 #################################################################
-
-
-def get_current_ad_details(user_id, sess_dict, device, on_fbs):
-	return {'desc':sess_dict["basic_item_description"],'city':sess_dict["city"],'user_id':user_id,'town':sess_dict["town"],\
-	'seller_name':sess_dict["seller_name"],'is_new':sess_dict["basic_item_new"],'ask':sess_dict["basic_item_ask"],\
-	'is_barter':sess_dict["basic_item_barter"],'ad_id':sess_dict["ad_id"],'submission_device':device,'on_fbs':on_fbs}
 
 
 def get_photo_urls(photo_ids):
@@ -157,21 +151,21 @@ def get_photo_strings(photo_list):
  		counter += 1
  	return photos
 
-def is_repeated(avghash,sess_dict):
-	if "photo1_hash" in sess_dict:
+def is_repeated(avghash,dict_):
+	if dict_["photo1_hash"]:
 		# print "Photo 1:"
 		# print sess_dict["photo1_hash"][1], avghash
-		if sess_dict["photo1_hash"][1] == avghash:
+		if ast.literal_eval(dict_["photo1_hash"])[1] == avghash:
 			return True
-	if "photo2_hash" in sess_dict:
+	if dict_["photo2_hash"]:
 		# print "Photo 2:"
 		# print sess_dict["photo2_hash"][1], avghash
-		if sess_dict["photo2_hash"][1] == avghash:
+		if ast.literal_eval(dict_["photo2_hash"])[1] == avghash:
 			return True
-	if "photo3_hash" in sess_dict:
+	if dict_["photo3_hash"]:
 		# print "Photo 3:"
 		# print sess_dict["photo3_hash"][1], avghash
-		if sess_dict["photo3_hash"][1] == avghash:
+		if ast.literal_eval(dict_["photo3_hash"])[1] == avghash:
 			return True
 	return False
 
@@ -274,19 +268,14 @@ def process_unfinished_ad(request,*args,**kwargs):
 			del_orphaned_classified_photos(user_id,ad_id)
 			if photo_ids:
 				sanitize_unused_ecomm_photos.delay(photo_ids)
+			reset_temporarily_saved_ad(str(user_id))
 			return redirect("show_user_ads")
 		elif next_step == 'verify mobile':
 			form = VerifySellerMobileForm()
 			CSRF = csrf.get_token(request)
-			request.session["csrf"] = CSRF
-			request.session["basic_item_description"] = request.POST.get('desc',None)
-			request.session["basic_item_ask"] = request.POST.get('ask',None)
-			request.session["basic_item_new"] = request.POST.get('is_new',None)
-			request.session["basic_item_barter"] = request.POST.get('is_barter',None)
-			request.session["seller_name"] = request.POST.get('seller_name',None)
-			request.session["city"] = request.POST.get('city',None)
-			request.session["town"] = request.POST.get('town',None)
-			request.session.modified = True
+			temporarily_save_ad(user_id=str(user_id),csrf=CSRF,description=request.POST.get('desc',None),ask=request.POST.get('ask',None),\
+				is_new=request.POST.get('is_new',None),is_barter=request.POST.get('is_barter',None),seller_name=request.POST.get('seller_name',None),\
+				city=request.POST.get('city',None),town=request.POST.get('town',None))
 			from_meray_ads = request.POST.get('from_meray_ads',None)
 			return render(request,"verify_seller_number.html",{'csrf':CSRF,'form':form,'from_meray_ads':from_meray_ads})
 		else:
@@ -654,9 +643,12 @@ def approve_classified(request,only_locked,*args,**kwargs):
 @csrf_protect
 def post_seller_info(request,*args,**kwargs):
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	user_id = request.user.id
 	if request.method == 'POST':	
-		if "mob_num_on_file" in request.session:
-			form = SellerInfoForm(request.POST,nums=request.session["mob_num_on_file"]) # setting 'nums' ensures the mobile field is created and processed. Otherwise, it's entirely ignored (for the case where we don't have the user's numbers)
+		mob_nums = get_temporarily_saved_ad_data(str(user_id),mob_nums=True)
+		if mob_nums:
+			# setting 'nums' ensures the mobile field is created and processed. Otherwise, it's entirely ignored (for the case where we don't have the user's numbers)
+			form = SellerInfoForm(request.POST,nums=mob_nums)
 		else:
 			form = SellerInfoForm(request.POST)
 		if form.is_valid():
@@ -666,52 +658,33 @@ def post_seller_info(request,*args,**kwargs):
 			mobile = form.cleaned_data.get("mobile",None)
 			device = get_device(request)
 			# save uploaded photo hashes at this point - ad content is finalized (only verification remains)
-			photo1_payload, photo2_payload, photo3_payload = request.session.pop("photo1_hash",None), request.session.pop("photo2_hash",None), \
-			request.session.pop("photo3_hash",None)
-			save_ecomm_photo_hash.delay(photo1_payload, photo2_payload, photo3_payload)
+			photo_hashes = get_temporarily_saved_ad_data(str(user_id),photo_hashes=True)
+			save_ecomm_photo_hash.delay(photo_hashes["photo1_hash"], photo_hashes["photo2_hash"], photo_hashes["photo3_hash"])
 			######################################################
 			# mp.track(request.user.id, 'Entered Num Verification')#
 			######################################################
 			#############################################################################################################
 			if mobile is None or mobile == 'Kisi aur number pe':
 				# time to verify a new number
-				request.session["seller_name"] = seller_name
-				request.session["city"]  = city
-				request.session["town"] = town
-				request.session["submission_device"] = device
-				request.session["on_fbs"] = on_fbs
-				form = VerifySellerMobileForm()
 				CSRF = csrf.get_token(request)
-				request.session["csrf"] = CSRF
-				request.session.modified = True
-				save_unfinished_ad.delay(get_current_ad_details(request.user.id, request.session, device, on_fbs))
+				temporarily_save_ad(user_id=str(user_id),seller_name=seller_name,city=city,town=town,submission_device=device,on_fbs=on_fbs,csrf=CSRF)
+				form = VerifySellerMobileForm()
+				save_unfinished_ad.delay(get_temporarily_saved_ad_data(user_id=str(user_id),full_ad=True))
 				return render(request,"verify_seller_number.html",{'form':form,'csrf':CSRF,'new_seller_num':mobile})
 			else:
 				# a number from file was picked, just create ad now
-				user_id = request.user.id
-				context={'desc':request.session["basic_item_description"],'is_new':request.session["basic_item_new"],'ask':request.session["basic_item_ask"],\
-				'is_barter':request.session["basic_item_barter"],'ad_id':request.session["ad_id"],'seller_name':seller_name,'city':city, 'town':town, \
-				'AK_ID':'just_number','MN_data':mobile[-10:],'user_id':user_id,'username':request.user.username,'submission_device':device,'on_fbs':on_fbs}
+				mobile = mobile[-10:]
+				data = get_temporarily_saved_ad_data(user_id=str(user_id),half_ad=True)
+				context={'desc':data["desc"],'is_new':data["is_new"],'ask':data["ask"],'is_barter':data["is_barter"],'ad_id':data["ad_id"],\
+				'seller_name':namify(seller_name),'city':namify(city), 'town':namify(town), 'AK_ID':'just_number','MN_data':mobile,'user_id':user_id,\
+				'username':request.user.username,'submission_device':device,'on_fbs':on_fbs}
 				# register with Tilio's Notify service
-				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile[-10:])
+				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)
+				reset_temporarily_saved_ad(str(user_id))
 				# clean session variables
-				request.session.pop("basic_item_description",None)
-				request.session.pop("basic_item_barter",None)
-				request.session.pop("mob_num_on_file",None)
-				request.session.pop("basic_item_new",None)
-				request.session.pop("basic_item_ask",None)
-				request.session.pop("ad_id",None)
-				request.session.pop("city",None)
-				request.session.pop("seller_name",None)
-				request.session.pop("town",None)
-				request.session.modified = True
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
-			if "mob_num_on_file" in request.session:
-				mob_nums = request.session["mob_num_on_file"]
-			else:
-				mob_nums = None
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 	else:
 		return render(request,"404.html",{})
@@ -720,21 +693,21 @@ def post_seller_info(request,*args,**kwargs):
 @csrf_protect
 def post_basic_item_photos(request,*args,**kwargs):
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	user_id = request.user.id
 	if request.method == 'POST':
 		decision = request.POST.get("dec",None)
 		if decision == 'Skip':
 			#################################################
 			# mp.track(request.user.id, 'Entered Seller Info')#
 			#################################################
-			mob_nums = get_user_verified_number(request.user.id)
+			mob_nums = get_user_verified_number(user_id)
 			# check if we have any of the user's nums on file
 			if mob_nums:
-				request.session["mob_num_on_file"] = mob_nums
-				request.session.modified = True
+				temporarily_save_ad(user_id=str(user_id),mob_nums=mob_nums)
 			form = SellerInfoForm(nums=mob_nums)
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 		else:
-			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(request.user.id)
+			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(user_id)
 			if str(secret_key_from_form) != str(secret_key_from_session):
 				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
 			form = BasicItemPhotosForm(request.POST,request.FILES)
@@ -754,7 +727,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 								photo3 = size
 						else:
 							image, avghash, pk = clean_image_file_with_hash(photo_list[0], 1, 'ecomm') # 1 means high quality image is returned, not over compressed
-							if is_repeated(avghash,request.session):
+							if is_repeated(avghash,get_temporarily_saved_ad_data(str(user_id),photo_hashes=True)):
 								exception.append(True)
 								if counter == 0:
 									photo1 = 'repeated'
@@ -772,42 +745,41 @@ def post_basic_item_photos(request,*args,**kwargs):
 									elif counter == 2:
 										photo3 = 'duplicate'
 								else:
-									photo = Photo.objects.create(image_file = image, owner_id=request.user.id, caption=request.session["basic_item_description"][:30], \
-										comment_count=0, device=get_device(request), avg_hash=avghash, category='9')
+									photo = Photo.objects.create(image_file = image, owner_id=user_id, caption='caption', comment_count=0, \
+										device=get_device(request), avg_hash=avghash, category='9')
 									photo_id = photo.id
-									upload_ecomm_photo.delay(photo_id, request.user.id, request.session["ad_id"]) #ensure only uploaded once
-									request.session[photo_list[2]] = (photo_id, avghash)
-									request.session[photo_list[1]] = "inserted"
+									upload_ecomm_photo.delay(photo_id, user_id, get_temporarily_saved_ad_data(str(user_id),id_only=True))
+									temporarily_save_ad(user_id=str(user_id), which_photo_hash=photo_list[2], photo_id=photo_id, photo_hash=avghash, \
+										photo_number=photo_list[1])
 					counter += 1
-				if "photo1" in request.session:
+				p1, p2, p3 = get_temporarily_saved_ad_data(str(user_id),all_photo_numbers=True)
+				if p1:
 					photo1 = True
-				if "photo2" in request.session:
+				if p2:
 					photo2 = True
-				if "photo3" in request.session:
+				if p3:
 					photo3 = True
-				request.session.modified = True
 				if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
 					secret_key = uuid.uuid4()
-					set_ecomm_photos_secret_key(request.user.id, secret_key)
+					set_ecomm_photos_secret_key(user_id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 				elif (photo1 and photo2 and photo3) or (decision == 'Agey'): # e.g. pressed "Agey" and all/any photos uploaded correctly
 					#################################################
 					# mp.track(request.user.id, 'Entered Seller Info')#
 					#################################################
-					mob_nums = get_user_verified_number(request.user.id)
+					mob_nums = get_user_verified_number(user_id)
 					# check if we have any of the user's nums on file
 					if mob_nums:
-						request.session["mob_num_on_file"] = mob_nums
-						request.session.modified = True
+						temporarily_save_ad(user_id=str(user_id),mob_nums=mob_nums) # mob_nums is a list
 					form = SellerInfoForm(nums=mob_nums)
 					return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 				else: # e.g. uploading photos 1 by 1
 					secret_key = uuid.uuid4()
-					set_ecomm_photos_secret_key(request.user.id, secret_key)
+					set_ecomm_photos_secret_key(user_id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 			else:
 				secret_key = uuid.uuid4()
-				set_ecomm_photos_secret_key(request.user.id, secret_key)
+				set_ecomm_photos_secret_key(user_id, secret_key)
 				return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
 	else:
 		return render(request,"404.html",{})
@@ -831,12 +803,7 @@ def post_basic_item(request,*args,**kwargs):
 			new = form.cleaned_data.get("new",None)
 			ask = form.cleaned_data.get("ask",None)
 			barter = form.cleaned_data.get("barter",None)
-			request.session["basic_item_description"] = description
-			request.session["basic_item_new"] = new
-			request.session["basic_item_ask"] = ask
-			request.session["basic_item_barter"] = barter
-			request.session["ad_id"] = get_basic_item_ad_id()
-			request.session.modified = True
+			temporarily_save_ad(user_id=str(request.user.id), description=description, is_new=new, ask=ask, is_barter=barter, ad_id=get_basic_item_ad_id())
 			form = BasicItemPhotosForm()
 			secret_key = uuid.uuid4()
 			set_ecomm_photos_secret_key(request.user.id, secret_key)
@@ -861,25 +828,7 @@ def init_classified(request,*args,**kwargs):
 			# config_manager.get_obj().track('clicked_agey', request.user.id)#
 			################################################################
 			form = BasicItemDetailForm()
-			request.session.pop("basic_item_description",None)
-			request.session.pop("basic_item_new",None)
-			request.session.pop("basic_item_ask",None)
-			request.session.pop("basic_item_barter",None)
-			request.session.pop("ad_id",None)
-			request.session.pop("mob_num_on_file",None)
-			request.session.pop("photo1",None)
-			request.session.pop("photo2",None)
-			request.session.pop("photo3",None)
-			request.session.pop("photo1_hash",None)
-			request.session.pop("photo2_hash",None)
-			request.session.pop("photo3_hash",None)
-			request.session.pop("seller_name",None)
-			request.session.pop("submission_device",None)
-			request.session.pop("on_fbs",None)
-			request.session.pop("city",None)
-			request.session.pop("town",None)
-			# request.session.pop("csrf",None) # remove in case user creates ad, then presses "muft ad lagao" again (before verification). That would cause "csrf" to pop!
-			request.session.modified = True
+			reset_temporarily_saved_ad(str(request.user.id))
 			return render(request,"post_basic_item.html",{'form':form})
 		else:
 			return render(request,"404.html",{})

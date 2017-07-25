@@ -8,9 +8,9 @@ service = client.notify.services(SERV_SID) # using twilio 6.4.3a 'alpha' library
 
 def process_sms(target_number,ad_id,status=None, buyer_number=None):
 	if status == 'unique_click_plus_expiry':
-		body = "Damadam pe apke ad se {0} ne apka mobile number liya. Ab apka muft ad khatam ho gaya hai. Ad ko phir se chalaney ke liye 0311-5282297 pe call karien aur charges pata karien".format(buyer_number)
+		body = "Damadam pe apke ad se {0} ne apka mobile number lia. Ab apka muft ad khatum ho gaya hai. 0311-5282297 per rabta karein new Ad ke charges ke liye".format(buyer_number)
 	elif status == 'unique_click':
-		body = "Damadam pe apke ad par {0} ne click kar ke apka mobile number liya. Agr ye SMS off karne hain tou https://damadam.pk/meray_ads/ pe ja kar sms settings ko change karo".format(buyer_number)
+		body = "Damadam pe apke ad se {0} ne apka mobile number lia. Is SMS ko off kerne ke liye https://damadam.pk/meray_ads/ mein SMS settings ko change karo".format(buyer_number)
 	elif status == 'approved':
 		body = "Damadam pe apka ad laga diya gaya hai. Doston ko ye link de ke ad dikhao: https://damadam.pk/ad/{0}/".format(ad_id)
 	message = client.messages.create(to=target_number, from_="+18328955063",body=body)

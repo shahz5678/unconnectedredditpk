@@ -21,7 +21,7 @@ urlpatterns = patterns('',
 	url(r'^edit_classified/$', auth(edit_classified),name='edit_classified'),
 	url(r'^lock_ad/$', auth(ad_locked_by_agent),name='ad_locked_by_agent'),
 	url(r'^change_cover_photo/$', auth(change_cover_photo),name='change_cover_photo'),
-	url(r'^classified_approval_dashboard/$', auth(approve_classified),name='approve_classified'),
+	url(r'^classified_approval_dashboard/(?P<only_locked>\d+)/$', auth(approve_classified),name='approve_classified'),
 	#################################################################################################
 	url(r'^process_unfinished_ad/$', auth(process_unfinished_ad),name='process_unfinished_ad'),
 	url(r'^ctut/$', auth(classified_tutorial_dec),name='classified_tutorial_dec'),

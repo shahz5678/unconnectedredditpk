@@ -120,7 +120,7 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != 'False' %} (via FBS){% endif %}</span>
 		<form method="POST" class="mtl" action="{% url 'approve_classified' only_locked %}">
 		{% csrf_token %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
@@ -172,7 +172,7 @@
 	</table>
 
 		<br>
-		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != False %} (via FBS){% endif %}</span>
+		<span class="cgy cs mll">submitted {{ submission.submission_time|human_time }}, by <a href="{% url 'profile' submission.username %}#section0"><b>{{ submission.username }}</b></a>&nbsp;{% device submission.submission_device STATIC_URL %}{% if submission.on_fbs != 'False' %} (via FBS){% endif %}</span>
 
 	{% endif %}
 	

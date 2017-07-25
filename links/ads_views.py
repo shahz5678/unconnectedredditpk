@@ -44,7 +44,7 @@ def careem_ad(request,*args,**kwargs):
 			request.session['csrf_careem'] = CSRF
 			ON_MAC = os.environ.get('ON_MAC')
 			print ON_MAC
-			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF,'ON_MAC',ON_MAC})
+			return render(request,'verify_careem_number.html',{'form':form,'csrf':CSRF,'ON_MAC':ON_MAC})
 		else:
 			return render(request,'careem_ad.html',{'form':form,'device':get_device(request)})
 	else:

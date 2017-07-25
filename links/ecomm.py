@@ -677,7 +677,7 @@ def post_seller_info(request,*args,**kwargs):
 				data = get_temporarily_saved_ad_data(user_id=str(user_id),half_ad=True)
 				context={'desc':data["desc"],'is_new':data["is_new"],'ask':data["ask"],'is_barter':data["is_barter"],'ad_id':data["ad_id"],\
 				'seller_name':namify(seller_name),'city':namify(city), 'town':namify(town), 'AK_ID':'just_number','MN_data':mobile,'user_id':user_id,\
-				'username':request.user.username,'submission_device':device,'on_fbs':on_fbs}
+				'username':request.user.username,'submission_device':device,'on_fbs':str(on_fbs)}
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)

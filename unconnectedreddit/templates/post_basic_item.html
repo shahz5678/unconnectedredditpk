@@ -7,12 +7,12 @@
 {% csrf_token %}
 
 <div class="mtl mbl">
-<b class="cl">Baichnay wali cheez ki tafseel likho:</b>
+<b class="cl">Kia baichna hai? Tafseel se batao:</b>
 <div class="mbs">
 {% if form.description.errors %}
 <span class="cr">{{ form.description.errors.0 }}</span>
 {% else %}
-<span class="cgy cs">(Sab likho jo khareednay wala poochna chahey ga)</span>
+<span class="cgy cs">(naam, model, color, halat, sab tareefain likho)</span>
 {% endif %}
 </div>
 {{ form.description }}

@@ -5,6 +5,7 @@ How long should the ad stay live?
 	<form class="mtl mbs" method="POST" action="{% url 'process_ad_approval' %}"}>
 	{% csrf_token %}
 	<input type="hidden" name="ad_score" value="{{ score }}">
+	<input type="hidden" name="only_locked" value="{{ only_locked }}">
 	<input class="mbl" type="radio" name="dur" value="{{ most_dur }}">&nbsp;<b class="cg">Two Weeks</b> <span class="cs cgy">(recommended for individuals selling used items)</span><br>
 	<input class="mbl" type="radio" name="dur" value="{{ least_dur }}">&nbsp;<b class="cg">One Week</b> <span class="cs cgy">(recommended for individuals selling used items)</span><br>
 	<input class="mbl" type="radio" name="dur" value="{{ most_clicks }}">&nbsp;<b class="co">{{ most_clicks }} clicks</b> <span class="cs cgy">(recommended for businesses)</span><br>

@@ -1,4 +1,4 @@
-import os, time, datetime, random#, math
+import os, time, datetime, random, ast#, math
 from collections import defaultdict, Counter
 from operator import itemgetter
 from location import MEMLOC
@@ -94,10 +94,13 @@ def save_unfinished_ad(context):
 @celery_app1.task(name='tasks.save_ecomm_photo_hash')
 def save_ecomm_photo_hash(photo1_payload, photo2_payload, photo3_payload):
 	if photo1_payload:
+		photo1_payload = ast.literal_eval(photo1_payload)
 		insert_hash(photo1_payload[0],photo1_payload[1],'ecomm') #perceptual hash of item photo 1
 	if photo2_payload:
+		photo2_payload = ast.literal_eval(photo2_payload)
 		insert_hash(photo2_payload[0],photo2_payload[1],'ecomm') #perceptual hash of item photo 2
 	if photo3_payload:
+		photo3_payload = ast.literal_eval(photo3_payload)
 		insert_hash(photo3_payload[0],photo3_payload[1],'ecomm') #perceptual hash of item photo 3
 
 @celery_app1.task(name='tasks.upload_ecomm_photo')

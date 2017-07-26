@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/car_dam.png"><br>
-<br>{% else %}<img style="max-height:133px;" src="{{ STATIC_URL }}img/car_dam.png"><br>{% endif %}
-<h2 class="cg bw">Careem per gari chalien aur Rs. 40000 kamaien</h2>
+<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/careem_banner_4.png"><br>
+<br>{% else %}<img style="max-height:133px;" src="{{ STATIC_URL }}img/careem_banner_3.png"><br>{% endif %}
+<!-- <h2 class="cg bw">Careem per gari chalien aur Rs. 40000 kamaien</h2>
 <h2 class="cg bw">Damadam per direct Careem key liay register.</h2>
-
+ -->
 <!-- <div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
 <b class="clb">Careem: </b>
 </div> -->
@@ -15,25 +15,54 @@
 <b>1. Apna poora naam likho jaise shanakhti card per hai:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>
 <br>{% if form.username.errors %}<span class="cr">{{ form.username.errors.0 }}</span><br>{% endif %}
 {{ form.username }}<br>
-<br>{% if form.cnic.errors %}<span class="cr mtl">{{ form.cnic.errors.0 }}</span><br>{% endif %}
-<br><b>2. Apna shanakhti card (CNIC) number likho:</b><br><b class='cs cgy'>misaal: 3740523212212</b><br> 
-{{ form.cnic }}<br>
+<br>
+<b>2. Apna mobile number likho:</b><br><b class='cs cgy'>misaal: 03451234567</b><br> 
+{% if form.phonenumber.errors %}<span class="cr mtl">{{ form.phonenumber.errors.0 }}</span><br>{% endif %}
+{{ form.phonenumber }}<br>
 <br><b>3. Apna shaher chuno:</b><br>
 {% if form.city.errors %}<span class="cr">{{ form.city.errors.0 }}</span><br>{% endif %}
-
 {% for radio in form.city %}
 <div class="mts">
 {{ radio }}
 </div>
 {% endfor %}
 <br>
-<b>4. Kya tumharey pass driving licence hai:</b><br>
-{% if form.license.errors %}<span class="cr">{{ form.license.errors.0 }}</span><br>{% endif %}
-<div class="mts">
-{% for radio in form.license %}
-{{ radio }}
-</div>
-{% endfor %}<br>
+
+
+<b>4. Kya tumharey pass gari hai:</b>
+<br>
+	{% if form.car.errors %}
+	<span class="cr">
+		{{ form.car.errors.0 }}
+	</span>
+	<br>
+	{% endif %}
+	
+	{% for radio in form.car %}
+	<div class="mts">
+		{{ radio }}
+	</div>
+	{% endfor %}
+	<br>
+
+<b>5. Kya tumharey pass driving licence hai:</b>
+<br>
+	{% if form.license.errors %}
+	<span class="cr">
+		{{ form.license.errors.0 }}
+	</span>
+	<br>
+	{% endif %}
+
+		{% for radio in form.license %}
+		<div class="mts">
+		{{ radio }}
+		</div>
+	{% endfor %}
+	<br>
+
+
+
 
 <input class="btn bcg bl mtl mbl" type="submit" value="Register">
 
@@ -43,7 +72,6 @@
 
 
 <a href="{% url 'home' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
-<hr size=3 COLOR="#bfbfbf">
 
 
 </div>

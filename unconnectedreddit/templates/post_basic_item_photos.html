@@ -1,9 +1,16 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+
+<head>
+<script type="text/javascript"  src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/ecomm_preloader.js"></script>
+</head>
+
+<div id="overlay"></div>
 <div class="margin clb">
 <h2 class="cg">STEP 2 <span class="cs">(out of 4)</span></h2>
-<b class="cl">Baichnay wali cheez ki 3 fotos lagao:</b><br>
+<b class="cl">Baichnay wali cheez ki 3 fotos upload karo:</b><br>
 <hr size=1 COLOR="#b3e6b3">
 {% if not on_fbs %}
 <span class="cgy cs">(Fotos zaruri nahi, lekin agr laga lo tou khareedar ka trust barhey ga)</span>
@@ -32,7 +39,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'duplicate' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -41,7 +47,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'size_exceeded_on_fbs' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -50,7 +55,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'size_exceeded_off_fbs' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -59,15 +63,13 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% else %}
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% endif %}
   </div>
-<hr size=1 COLOR="#b3e6b3">
+<hr size=1 COLOR="#ffecb3">
 
 
 <div class="mtl mbl">
@@ -89,7 +91,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'duplicate' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -98,7 +99,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'size_exceeded_on_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -107,7 +107,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'size_exceeded_off_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -116,15 +115,13 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% else %}
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% endif %}
   </div>
-<hr size=1 COLOR="#b3e6b3">
+<hr size=1 COLOR="#ffecb3">
 
 <div class="mtl mbl">
   <b class="cl co">Teesri Foto:</b>
@@ -145,7 +142,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'duplicate' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -154,7 +150,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'size_exceeded_on_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -163,7 +158,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'size_exceeded_off_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -172,16 +166,19 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% else %}
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% endif %}
   </div>
-  <hr size=1 COLOR="#b3e6b3">
-  <input type="submit" class="btn bl cl mbs mtl" style="border-color:#00c853;background-color:#00c853;" name="dec" value="Agey"><br>
+  <hr size=1 COLOR="#ffecb3">
+  <div class="loader">
+      <div class="spinner"></div>
+  aik min</div>
+  <input type="submit" class="UploadBtn btn bl cl bco mbs mts" style="border-color:#f57c00;" value="Upload">
+  <hr size=1 COLOR="#00c853">
+  <input type="submit" class="UploadBtn btn bl cl mbs mts" style="border-color:#00c853;background-color:#00c853;" name="dec" value="Agey"><br>
   {% if on_fbs %}
   <input type="submit" class="btn bl cl mbs mtl" style="border-color:#cccccc;background-color:#cccccc;" name="dec" value="Skip">
   {% endif %}

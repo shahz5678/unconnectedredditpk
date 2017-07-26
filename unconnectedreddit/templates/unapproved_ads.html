@@ -94,9 +94,11 @@
 		<b>Mobile:</b> <span class="cgy">0{{ submission.MN_data.national_number }}</span><br>
 		<hr size=1 COLOR="#b3e6b3">
 
-		<b>City:</b> <span class="cg">{{ submission.city }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_city" value="{{ submission.city }}" type="submit">&nbsp;</button><br>
+		<b>City:</b> <span class="cg">{{ submission.city }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_city" value="{{ submission.city }}" type="submit">&nbsp;</button>
+		&nbsp;&nbsp;&nbsp;<a href="http://www.google.com/search?q={{ submission.city }}" target="_blank"><img src="{{ STATIC_URL }}img/search.png" width="23" style="margin-bottom:-4px;"></a><br>
 		<hr size=1 COLOR="#b3e6b3">
-		<b>Town:</b> <span class="cg">{{ submission.town }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_town" value="{{ submission.town }}" type="submit">&nbsp;</button><br>
+		<b>Town:</b> <span class="cg">{{ submission.town }}</span><button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit_town" value="{{ submission.town }}" type="submit">&nbsp;</button> 
+		&nbsp;&nbsp;&nbsp;<a href="http://www.google.com/search?q={{ submission.town }}" target="_blank"><img src="{{ STATIC_URL }}img/search.png" width="23" style="margin-bottom:-4px;"></a><br>
 		</form>
 
 	<table cellpadding="5">	

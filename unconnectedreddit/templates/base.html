@@ -31,11 +31,11 @@
     <meta name="msapplication-TileImage" content="{{ STATIC_URL }}img/favicon-144.png">
     <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
     <!-- ****** faviconit.com favicons ****** -->
-    
+
   <title>Damadam.pk</title>
-        
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.21.css">
-        
+
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.22.css">
+
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -54,7 +54,7 @@
 0)))}}var d=a;"undefined"!==typeof f?d=a[f]=[]:f="mixpanel";d.people=d.people||[];d.toString=function(b){var a="mixpanel";"mixpanel"!==f&&(a+="."+f);b||(a+=" (stub)");return a};d.people.toString=function(){return d.toString(1)+".people (stub)"};k="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
 for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElement("script");b.type="text/javascript";b.async=!0;b.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";c=e.getElementsByTagName("script")[0];c.parentNode.insertBefore(b,c)}})(document,window.mixpanel||[]);
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script><!-- end Mixpanel -->
-        
+
 </head>
 <body>
 {% load count %}
@@ -67,7 +67,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script><!-- end Mixpanel -->
 {% if user.is_authenticated %}
     <!-- bunched HTML removes spaces between <li> elements -->
     <li><a href="/">Home</a></li>{% if user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Likho</a></li>{% else %}<li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Kuch Likho</a></li>{% endif %}<li><a href="{% url 'best_photo' %}">Photos</a></li>{% if user.userprofile.score and user.userprofile.score > 40 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a>{% if ku %}<li><a href="{% url 'search_username' %}">Khoji</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% elif user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Tumhara Matka{% if notif_count > 0 %}<span style="color:blue ;">({{ notif_count }}){% endif %}</a></span>{% else %}{% endif %}<li><a href="{% url 'online_kon' %}#section0">Online Kon</a></li>{% if user.userprofile.score and user.userprofile.score < 10 %}<li><a href="{% url 'help' %}#section0"><b>Damadam Help</b></a></li>{% elif user.userprofile.score and user.userprofile.score < 15 %}<li><a href="{% url 'help' %}#section0">Damadam Help</a></li>{% elif user.userprofile.score and user.userprofile.score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% else %}{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if user.userprofile.score > 0 %}<span style="color:green;font-size:90%;"> ({{ user.userprofile.score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>{% load verified %}{% check_user_is_verified as is_verified %}{% if is_verified %}<li><a href="{% url 'bahirniklo' %}">Logout</a></li>{% endif %}
-    
+
 {% else %}
     <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account Bnao</b></a></li><li><a href="{% url 'login' %}#section0">Purana Account Chlao</a></li>
 {% endif %}

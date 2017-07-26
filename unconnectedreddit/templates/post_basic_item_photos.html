@@ -32,7 +32,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'duplicate' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -41,7 +40,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'size_exceeded_on_fbs' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -50,7 +48,6 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% elif photo1 == 'size_exceeded_off_fbs' %}
     <div class="mts mbl">
     <img src="{{ STATIC_URL }}img/X.png">
@@ -59,12 +56,10 @@
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% else %}
     <div class="mtl mbl">
     {{ form.photo1 }}
     </div>
-    <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
     {% endif %}
   </div>
 <hr size=1 COLOR="#b3e6b3">
@@ -89,7 +84,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'duplicate' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -98,7 +92,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'size_exceeded_on_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -107,7 +100,6 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo2 == 'size_exceeded_off_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -116,12 +108,10 @@
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% else %}
   <div class="mtl mbl">
   {{ form.photo2 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% endif %}
   </div>
 <hr size=1 COLOR="#b3e6b3">
@@ -145,7 +135,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'duplicate' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -154,7 +143,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'size_exceeded_on_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -163,7 +151,6 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% elif photo3 == 'size_exceeded_off_fbs' %}
   <div class="mts mbl">
   <img src="{{ STATIC_URL }}img/X.png">
@@ -172,15 +159,14 @@
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% else %}
   <div class="mtl mbl">
   {{ form.photo3 }}
   </div>
-  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload">
   {% endif %}
   </div>
   <hr size=1 COLOR="#b3e6b3">
+  <input type="submit" class="btn bm bco mbs mts" style="border-color:#f57c00;" value="Upload"><br>
   <input type="submit" class="btn bl cl mbs mtl" style="border-color:#00c853;background-color:#00c853;" name="dec" value="Agey"><br>
   {% if on_fbs %}
   <input type="submit" class="btn bl cl mbs mtl" style="border-color:#cccccc;background-color:#cccccc;" name="dec" value="Skip">

@@ -2,7 +2,7 @@
 
 Section 1 is html styling: name components as they are defined in html code i.e. html,body etc.;
 
-Section 2 is text formatting: 
+Section 2 is text formatting:
 
 Section 3 is Button formatting. Naming a class for a Button is also a combination of size and color
 */
@@ -11,7 +11,7 @@ Section 3 is Button formatting. Naming a class for a Button is also a combinatio
 
 /*=================================================
 S1: Html styling
-==================================================*/ 
+==================================================*/
     html{
     width:100%;
     background-color:#FFFFFF;
@@ -54,7 +54,7 @@ S1: Html styling
         border-color: solid 1px blue;
 
     }
-    
+
     .header {
     background-color: #00c853;
     font-family: arial;
@@ -191,7 +191,7 @@ S1: Html styling
     }
 
     .hov:hover {
-        
+
         padding-right: 1em;
         padding-top: 0.6em;
         padding-bottom: 0.6em;
@@ -205,8 +205,8 @@ S1: Html styling
     background-color: white;
     text-align:center;
     display:inline-block;
-    width:95%; 
-    max-width:400px; 
+    width:95%;
+    max-width:400px;
     padding:5px;
 
     }
@@ -217,7 +217,7 @@ S1: Html styling
         padding: 0.5em;
         border: none;
         width:49.5%;
-           
+
     }
 
     div.tab button:hover{
@@ -229,13 +229,13 @@ S1: Html styling
 
     .emoji-table{
 
-    border: 1px solid #d9d9d9; 
+    border: 1px solid #d9d9d9;
     background: #F3F3F3;
     padding-top:0.3em;
     padding-bottom:0.3em;
 }
 
-/*background color cream*/ 
+/*background color cream*/
 .bgc{
     background-color:#FFFFE0;
 }
@@ -244,8 +244,8 @@ S1: Html styling
 S2 Text formatting: Headings and Captions etc.
 
 font size 65% is named cxs,
-font size 80% grey text will be class = "cs cgy", 
-==================================================*/ 
+font size 80% grey text will be class = "cs cgy",
+==================================================*/
 
     h2{
         font-size:125%;
@@ -257,7 +257,7 @@ font size 80% grey text will be class = "cs cgy",
     }
 
     /*caption small*/
-    .cs{ 
+    .cs{
         font-size:85%;
     }
 
@@ -320,7 +320,7 @@ font size 80% grey text will be class = "cs cgy",
 /*color purple for main nav bar*/
     .cp {
 
-        
+
         color:#765989;
 
     }
@@ -331,7 +331,7 @@ font size 80% grey text will be class = "cs cgy",
    color:#ff9933;
     }
 
-    /*color lightgrey */      
+    /*color lightgrey */
     .clg{
         color:lightgrey;
     }
@@ -360,7 +360,7 @@ font size 80% grey text will be class = "cs cgy",
 
 /*=================================================
 Buttons
-==================================================*/ 
+==================================================*/
     /*button to cross out jawab or notification
 
     9.7em namaz [record save krna]  [extra large]
@@ -368,7 +368,7 @@ Buttons
     7.7em authorize [account bnao]  [large]
     6.2em ban red [1 week]          [large]
     6.2em ban orange [ Forever ]    [large]
-    
+
 
     4.5em->5em aagay [all medium]
     4.5em->5em wapis
@@ -376,7 +376,7 @@ Buttons
     4em->5em wapis blue
     5em->5em jhappi
     5em->5em chapair
-    4em->5em haan 
+    4em->5em haan
     4em->5em nahi
     5em->5em Zabardast
     5em->5em Bekar
@@ -385,7 +385,7 @@ Buttons
     color
     ==============
 
-    red 
+    red
     orange
     green
     purple
@@ -395,7 +395,7 @@ Buttons
     */
 
     /*for all buttons*/
-    .btn{ 
+    .btn{
         border-radius:4px;
         text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
         text-align: center;
@@ -414,7 +414,7 @@ Buttons
     .bms
     {
          width:2.2em;
-    }    
+    }
 
     /*button small*/
     .bs{
@@ -441,7 +441,7 @@ Buttons
 
 /*makes labels yellow when input (E.g. radio button) is selected*/
 input:checked + label{
-  background: yellow;  
+  background: yellow;
 }
 
 
@@ -471,7 +471,7 @@ input:checked + label{
 }
 
 /*button color purple*/
-.bcp{ 
+.bcp{
     background-color:#9971a5;
     border-color:#765989;
 }
@@ -489,19 +489,19 @@ button color golden
 }
 
 /*button color grey*/
-.bcgy{ 
+.bcgy{
    background-color:#bfbfbf;
    border-color:#a6a6a6;
 }
 
-/*button color teal*/ 
-.bct{ 
+/*button color teal*/
+.bct{
     background-color:#3cb7dd;
     border:solid 1px #229ec3;
-    
+
 }
 
-/*button color cream*/ 
+/*button color cream*/
 
 .bcc {
     background-color:#FFEFD5;
@@ -581,9 +581,9 @@ button color golden
 
 /*=================================================
 End Buttons
-==================================================*/ 
+==================================================*/
 
-    
+
 
 
 
@@ -596,7 +596,7 @@ End Buttons
 
 /*=================================================
 Photos
-==================================================*/ 
+==================================================*/
 
 .pht {
 
@@ -617,7 +617,7 @@ Photos
 
 /*=================================================
 Divs
-==================================================*/ 
+==================================================*/
 
 
 
@@ -644,7 +644,7 @@ Divs
 /* backgound color light yellow*/
 
 .dby {
-background-color:lightyellow;
+background-color:#ffffe0;
 border:solid;border-width:1px;
 border-color:#ff9933;
 border-radius: 4px;
@@ -679,7 +679,7 @@ border-radius: 4px;
 
 /*=================================================
 MARGINS
-==================================================*/ 
+==================================================*/
 
 /*margin*/          /*.margin{margin-left:3px;margin-right:3px;padding: 10px;border-radius:6px;padding-top:0px;padding-bottom:5px;}*/
 /*margin*/          .margin{margin: 0 auto; margin-top: 0px: margin-bottom: 0px; margin-right: auto; margin-left: auto; max-width: 98%; padding: 0px;border-radius:6px;padding-top:0px;padding-bottom:5px;}
@@ -748,7 +748,7 @@ MARGINS
 .bubble {
    position: relative;
    background: #f3961c;
-border: 0px solid #f3961c;  
+border: 0px solid #f3961c;
    max-width:80%;
 min-width:5%;
    padding:10px;
@@ -783,4 +783,56 @@ border-color: FFFFCC;
    border-right-color: FFFFCC;
    border-width: 16px;
    margin-top: -16px;
+}
+/* this is for the preloader running in post_basic_items_photo */
+.loader {
+    font-size: 20px;
+    font-family: serif;
+    color: #00C853;
+    display: none;
+
+}
+
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid #FFA000;
+    border-right: 5px solid #00C853;
+    border-bottom: 5px solid #FF9933;
+    border-left: 5px solid #00C853;
+    width: 50px;
+    height: 50px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+.UploadBtn, .p {
+    display: show;
+}
+
+#overlay {
+    display: none;
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    background: transparent;
+}
+
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

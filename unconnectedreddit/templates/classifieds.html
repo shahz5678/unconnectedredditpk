@@ -25,7 +25,9 @@
 <img class="pht" src="{{ ad.photos.0|complete_url }}"><br>
 
 {% else %}
-<img class="pht" src="{{ STATIC_URL }}img/no_image.png"><br>
+<div style="width:100%;max-width:400px;background-color:#e6e6e6;height:3em;color:#ffffff;text-align: center;line-height: 3em;">
+<b>NO FOTOS</b>
+</div>
 {% endif %}
 <div class="mls">
 

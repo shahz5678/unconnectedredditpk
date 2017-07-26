@@ -107,7 +107,7 @@ def process_req(request,realm="", *args, **kwargs):
 		"title": "An Ad", "clicks": 10, "location": [1, 2, 3, 4], "only_ladies": false, 
 		"address": "Arfa Software Technology Park", "id": 26}
 		'''
-		ad_url = 'http://damadam.pk/nick/ad/pin_code' # the ad can be previewed here
+		ad_url = 'http://www.damadam.pk/nick/ad/pin_code' # the ad can be previewed here
 		if request.body:
 			#json.loads converts string to dictionary object
 			# print request.body

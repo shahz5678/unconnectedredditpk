@@ -12,6 +12,7 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 
 pipeline1.lpush("aa:"+city,ad_id)
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
@@ -26,10 +27,11 @@ pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global l
 punishment_text = "pt:"+str(user_id)
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
-my_server.lpush("unc:"+submitted_data["user_id"])
-pipeline1.lpush("uaa:"+seller_id,ad_hash) - user approved ads
+temp_ad = "ta:"+user_id #temporary ad
+my_server.lpush("unc:"+submitted_data["user_id"]) #unapproved_user_classified (unc:)
+pipeline1.lpush("uaa:"+seller_id,ad_hash) # user approved ads
 pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
-unfinished_classified = "uuc:"+str(user_id)
+unfinished_classified = "uuc:"+str(user_id) # unfinished user ad
 user_thumbs = "upt:"+owner_uname
 my_server.hgetall("um:"+str(user_id)) # user mobile number data
 my_server.zadd("unapproved_ads",ad,ad_id)
@@ -52,6 +54,23 @@ def string_tokenizer(string):
 
 def string_joiner(string):
 	return string.replace(" ", "_")
+
+def namify(string):
+	return " ".join(w.capitalize() for w in string.split())
+
+def currencify(string):
+	if string.isdigit():
+		formatted = "{:,}".format(int(string))
+		return "Rs."+str(formatted)
+	else:
+		if string[0:3] == 'Rs.':
+			return string
+		else:
+			return "Rs."+string
+
+def first_letter_upper(string):
+	first_letter_in_upper_case = string.split()[0][0:1].upper()
+	return first_letter_in_upper_case+string[1:]
 
 #####################Process Nick#######################
 
@@ -434,7 +453,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 # helper function for get_seller_details
 def log_ad_click(server, ad_hash, clicker_id, ad_id):
 	is_unique, clicker_number, expire_ad = False, None, False
-	if not server.sismember("sn:"+ad_id,clicker_id):
+	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
 		click_details, is_unique = [], True
 		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
 		click_details.append((clicker_number,time.time()))
@@ -492,6 +511,7 @@ def get_user_verified_number(user_id):
 		mob_nums = []
 		for number in numbers:
 			mob_nums.append(ast.literal_eval(number)["national_number"])
+		# sending back numbers appended in a list
 		return mob_nums
 	else:
 		return []
@@ -543,7 +563,7 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 
 
 # main function used by agents to make an ad live after approving it
-def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, closed_by=None):
+def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, closed_by=None, closer_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id, ad_id)[0])
 	time_now = time.time()
@@ -554,7 +574,12 @@ def move_to_approved_ads(ad_id,expiration_time=None,expiration_clicks=None, clos
 	ad["SMS_setting"], ad["submission_time"], ad["closed_by"] = '1', time_now, closed_by #renewing submission time (i.e. replacing it with approval time)
 	ad.pop("locked_by",None) #removing locked_by field
 	process_ad_approval(my_server,ad_id,ad,string_joiner(ad["city"]), string_joiner(ad["town"]), ad["user_id"])
-	my_server.zremrangebyscore("unapproved_ads",ad_id,ad_id)
+	##############################################################################
+	pipeline1 = my_server.pipeline()
+	pipeline1.zremrangebyscore("unapproved_ads",ad_id,ad_id)
+	pipeline1.lrem("ala:"+closer_id,ad_id)
+	pipeline1.execute()
+	##############################################################################
 	increment_agent_score(my_server, closed_by)
 	return ad["MN_data"]["number"]
 
@@ -596,7 +621,8 @@ def process_ad_verification(server, submitted_data):
 	pipeline1 = server.pipeline()
 	pipeline1.zadd("unapproved_ads",submitted_data,submitted_data["ad_id"])
 	pipeline1.zadd("unc:"+user_id,submitted_data,submitted_data["ad_id"]) #unapproved_user_classified (unc:)
-	pipeline1.delete("uuc:"+user_id) # sanitizing unfinished user ad saved previously
+	pipeline1.delete("ta:"+user_id) # sanitizing temporarily saved user ad
+	# pipeline1.delete("uuc:"+user_id) # sanitizing unfinished user ad saved previously
 	pipeline1.execute()
 
 
@@ -624,6 +650,90 @@ def save_used_item_photo(user_id, ad_id, photo_id):
 	pipeline1.lpush("rc:"+ad_id,photo_id) #remove deployed photo_ids from here
 	pipeline1.execute()
 	# need to tie photo_ids to the ad (list with ad_id in the name, containing photo_ids)
+
+
+def temporary_ad_field_mapping(field):
+	if field == 'is_new':
+		return 'basic_item_new'
+	elif field == 'is_barter':
+		return 'basic_item_barter'
+	elif field == 'desc':
+		return 'basic_item_description'
+	elif field == 'ask':
+		return 'basic_item_ask'
+	else:
+		return field
+
+def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_barter=None, ad_id=None, which_photo_hash=None, photo_id=None, photo_hash=None,\
+	photo_number=None, seller_name=None,city=None,town=None,submission_device=None,on_fbs=None,csrf=None, mob_nums=None, uid=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_ad = "ta:"+user_id
+	if description:
+		my_server.hset(temp_ad,"basic_item_description",first_letter_upper(description))
+	if is_new:
+		my_server.hset(temp_ad,"basic_item_new",is_new)
+	if ask:
+		my_server.hset(temp_ad,"basic_item_ask",currencify(ask))
+	if is_barter:
+		my_server.hset(temp_ad,"basic_item_barter",is_barter)
+	if uid:
+		my_server.hset(temp_ad,"user_id",uid)
+	if ad_id:
+		my_server.hset(temp_ad,"ad_id",ad_id)
+	if which_photo_hash and photo_id and photo_hash:
+		my_server.hset(temp_ad,which_photo_hash,[photo_id, photo_hash])
+	if photo_number:
+		my_server.hset(temp_ad,photo_number,'inserted')
+	if seller_name:
+		my_server.hset(temp_ad,"seller_name",namify(seller_name))
+	if city:
+		my_server.hset(temp_ad,"city",namify(city))
+	if town:
+		my_server.hset(temp_ad,"town",namify(town))
+	if submission_device:
+		my_server.hset(temp_ad,"submission_device",submission_device)
+	if on_fbs is not None:
+		my_server.hset(temp_ad,"on_fbs",on_fbs)
+	if csrf:
+		my_server.hset(temp_ad,"csrf",csrf)
+	if mob_nums:
+		my_server.hset(temp_ad,"mob_nums",mob_nums)
+	my_server.expire(temp_ad,FORTY_FIVE_MINS) # will self-destruct after 45 mins of inactivity
+
+
+def get_temporarily_saved_ad_data(user_id, id_only=False, all_photo_numbers=False, photo_hashes=False, full_ad=False, half_ad=False, mob_nums=False, only_csrf=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	if id_only:
+		return my_server.hget("ta:"+user_id,"ad_id")
+	elif full_ad:
+		desc, city, town, seller_name, is_new, ask, is_barter, ad_id, submission_device, on_fbs = my_server.hmget("ta:"+user_id,\
+			"basic_item_description", "city", "town", "seller_name", "basic_item_new", "basic_item_ask", "basic_item_barter", "ad_id", "submission_device", "on_fbs")
+		return {'desc':desc,'city':city,'user_id':user_id,'town':town,'seller_name':seller_name,'is_new':is_new,'ask':ask,'is_barter':is_barter,\
+		'ad_id':ad_id,'submission_device':submission_device,'on_fbs':on_fbs}
+	elif half_ad:
+		desc, is_new, ask, is_barter, ad_id = my_server.hmget("ta:"+user_id, "basic_item_description", "basic_item_new", "basic_item_ask", "basic_item_barter", "ad_id")
+		return {'desc':desc,'is_new':is_new,'ask':ask,'is_barter':is_barter,'ad_id':ad_id}
+	elif mob_nums:
+		mob_nums = my_server.hget("ta:"+user_id,"mob_nums")
+		if mob_nums:
+			return ast.literal_eval(mob_nums)
+		else:
+			return []
+	elif only_csrf:
+		return my_server.hget("ta:"+user_id,"csrf")
+	elif all_photo_numbers:
+		photo1 = True if my_server.hget("ta:"+user_id,"photo1") else False
+		photo2 = True if my_server.hget("ta:"+user_id,"photo2") else False
+		photo3 = True if my_server.hget("ta:"+user_id,"photo3") else False
+		return photo1, photo2, photo3
+	elif photo_hashes:
+		return {'photo1_hash':my_server.hget("ta:"+user_id,"photo1_hash"),'photo2_hash':my_server.hget("ta:"+user_id,"photo2_hash"),\
+		'photo3_hash':my_server.hget("ta:"+user_id,"photo3_hash")}
+
+
+def reset_temporarily_saved_ad(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("ta:"+user_id)
 
 
 def get_approved_places(city='all_cities',withscores=False):
@@ -669,16 +779,29 @@ def get_and_set_classified_dashboard_visitors(username, withtime=False):
 	return usernames_times_scores
 
 
+
 def get_user_unfinished_ad(server,user_id):
-	if server.exists("uuc:"+user_id):
-		unfinished_user_ad = server.hgetall("uuc:"+user_id)
+	if server.exists("ta:"+user_id):
+		unfinished_user_ad = server.hgetall("ta:"+user_id)
 		# the following deletes ad hash if it has been wiped
 		if not server.zscore("unfinished_classifieds",unfinished_user_ad["ad_id"]):
-			server.delete("uuc:"+user_id)
+			server.delete("ta:"+user_id)
 			unfinished_user_ad = {}
 		return unfinished_user_ad
 	else:
 		return {}
+
+
+# def get_user_unfinished_ad(server,user_id):
+# 	if server.exists("uuc:"+user_id):
+# 		unfinished_user_ad = server.hgetall("uuc:"+user_id)
+# 		# the following deletes ad hash if it has been wiped
+# 		if not server.zscore("unfinished_classifieds",unfinished_user_ad["ad_id"]):
+# 			server.delete("uuc:"+user_id)
+# 			unfinished_user_ad = {}
+# 		return unfinished_user_ad
+# 	else:
+# 		return {}
 
 
 def get_all_approved_user_ads(server,user_id):
@@ -776,7 +899,7 @@ def who_locked_ad(ad_id):
 		return None
 
 # used by agents in classified approval process, so that other agents don't erroneously edit the ad
-def lock_unapproved_ad(ad_id, username):
+def lock_unapproved_ad(ad_id, username, locker_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
 	if "locked_by" in ad:
@@ -787,16 +910,18 @@ def lock_unapproved_ad(ad_id, username):
 		ad["locked_by"] = username
 		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
 		my_server.zadd("unapproved_ads",ad,ad_id)
+		my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 		return True, username
 
 
-def unlock_unapproved_ad(ad_id, username):
+def unlock_unapproved_ad(ad_id, username, locker_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad = ast.literal_eval(my_server.zrangebyscore("unapproved_ads",ad_id,ad_id)[0])
 	if "locked_by" in ad and ad["locked_by"] == username:
 		ad.pop("locked_by")
 		my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
 		my_server.zadd("unapproved_ads",ad,ad_id)
+		my_server.lrem("ala:"+str(locker_id),ad_id)
 		return True, username
 	elif "locked_by" not in ad:
 		return False, False
@@ -807,9 +932,28 @@ def unlock_unapproved_ad(ad_id, username):
 
 
 # used to populate the classified approval dashboard for agents
-def get_unapproved_ads(withscores = False):
+def get_unapproved_ads(user_id, withscores = False, only_locked=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("unapproved_ads",0,-1,withscores=withscores)
+	if only_locked == '1':
+		required_ad_ids = my_server.lrange("ala:"+str(user_id),0,-1)
+		pipeline1 = my_server.pipeline()
+		for id_ in required_ad_ids:
+			pipeline1.zrangebyscore("unapproved_ads",id_,id_)
+		result = pipeline1.execute()
+		if result:
+			if withscores:
+				counter = 0
+				ads = []
+				for ad_body in result:
+					ads.append((ad_body[0],float(required_ad_ids[counter])))
+					counter += 1
+				return ads
+			else:
+				return result
+		else:
+			return []
+	else:
+		return my_server.zrange("unapproved_ads",0,-1,withscores=withscores)
 
 # used when seller himself deletes an ad (of the 'unverified' variety)
 def get_unfinished_photo_ids_to_delete(ad_id):
@@ -817,25 +961,50 @@ def get_unfinished_photo_ids_to_delete(ad_id):
 	return my_server.lrange("rc:"+ad_id,0,-1)
 
 
+# # used by seller to edit ad fields while it's in an 'unverified' state
+# def edit_unfinished_ad_field(ad_id,user_id,field,new_text):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	user_id = str(user_id)
+# 	if my_server.exists("uuc:"+user_id):
+# 		if field == 'is_new':
+# 			if new_text == '1':
+# 				my_server.hset("uuc:"+user_id,field,'Istamal shuda')
+# 			elif new_text == '2':
+# 				my_server.hset("uuc:"+user_id,field,'Bilkul new')
+# 		elif field == 'is_barter':
+# 			if new_text == '1':
+# 				my_server.hset("uuc:"+user_id,field,'Paisey aur badley mein cheez dono')
+# 			elif new_text == '2':
+# 				my_server.hset("uuc:"+user_id,field,'Sirf paisey')
+# 		else:
+# 			my_server.hset("uuc:"+user_id,field,new_text)
+# 		# update submission time of advert too, so that it doesn't get expired all of a sudden
+# 		my_server.zadd("unfinished_classifieds",ad_id,time.time())
+
+
+
+
 # used by seller to edit ad fields while it's in an 'unverified' state
 def edit_unfinished_ad_field(ad_id,user_id,field,new_text):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	if my_server.exists("uuc:"+user_id):
-		if field == 'is_new':
+	field = temporary_ad_field_mapping(field) # some field names may differ
+	if my_server.exists("ta:"+user_id):
+		if field == 'basic_item_new':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Istamal shuda')
+				my_server.hset("ta:"+user_id,field,'Istamal shuda')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Bilkul new')
-		elif field == 'is_barter':
+				my_server.hset("ta:"+user_id,field,'Bilkul new')
+		elif field == 'basic_item_barter':
 			if new_text == '1':
-				my_server.hset("uuc:"+user_id,field,'Paisey aur badley mein cheez dono')
+				my_server.hset("ta:"+user_id,field,'Paisey aur badley mein cheez dono')
 			elif new_text == '2':
-				my_server.hset("uuc:"+user_id,field,'Sirf paisey')
+				my_server.hset("ta:"+user_id,field,'Sirf paisey')
 		else:
-			my_server.hset("uuc:"+user_id,field,new_text)
+			my_server.hset("ta:"+user_id,field,new_text)
 		# update submission time of advert too, so that it doesn't get expired all of a sudden
 		my_server.zadd("unfinished_classifieds",ad_id,time.time())
+
 
 
 # used by agents to 'clean up' spelling mistakes (etc) in ads before approving them
@@ -870,23 +1039,28 @@ def save_single_unfinished_ad(context):
 	ad_id = context["ad_id"]
 	photo_ids = my_server.lrange("rc:"+str(ad_id),0,-1)
 	if photo_ids:
-		context["photos"] = photo_ids
-	unfinished_classified = "uuc:"+str(context["user_id"])
-	my_server.delete(unfinished_classified)
-	my_server.hmset(unfinished_classified,context) #over-write previous ad (if exists)
+		my_server.hset("ta:"+str(context["user_id"]),"photos",photo_ids) # adding photos to the unfinished ad
+		# context["photos"] = photo_ids
+	# unfinished_classified = "uuc:"+str(context["user_id"])
+	# my_server.delete(unfinished_classified)
+	# my_server.hmset(unfinished_classified,context) #over-write previous ad (if exists)
 	my_server.zadd("unfinished_classifieds",ad_id,time.time())
 
-# used by agents to delete rejected ads from the ad approval dashboard
-def del_single_unapproved_ad(ad_id):
+# used by agents to delete 'declined' ads from the ad approval dashboard
+def del_single_unapproved_ad(ad_id, closer_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zremrangebyscore("unapproved_ads",ad_id, ad_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zremrangebyscore("unapproved_ads", ad_id, ad_id)
+	pipeline1.lrem("ala:"+closer_id,ad_id)
+	pipeline1.execute()
 
 # used to delete 'unfinished' (i.e 'unverified') ads, either by the seller herself, or initiated periodically by the system (schedule set in settings.py)
 def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	if user_id and ad_id:
-		my_server.delete("uuc:"+user_id)
-		my_server.zrem("unfinished_classified",ad_id)
+		# my_server.delete("uuc:"+user_id)
+		my_server.delete("ta:"+user_id)
+		my_server.zrem("unfinished_classifieds",ad_id)
 		my_server.zrem("unfinalized_used_item_photos",ad_id)
 		my_server.delete("rc:"+ad_id)
 	else:

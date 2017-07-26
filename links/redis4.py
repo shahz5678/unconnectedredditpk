@@ -177,3 +177,29 @@ def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_in
 		for x in range(1,(id_+1)):
 			pipeline1.hgetall("cd:"+str(x))
 		return pipeline1.execute()
+
+#########################################################
+
+def save_ad_desc(text, price, user_id,username):
+	my_server = redis.Redis(connection_pool=POOL)
+	mapping = {'uid':user_id, 'nick':username, 'desc':text,'price':price}
+	my_server.lpush("ad_desc",mapping)
+
+#########################################################
+
+def save_careem_data(careem_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.zscore("careem_applicant_nums",careem_data["phonenumber"]):
+		# it already exists
+		return False
+	else:
+		# it does not exist
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
+		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
+		pipeline1.execute()
+		return True
+
+
+#########################################################
+

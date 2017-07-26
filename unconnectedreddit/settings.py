@@ -121,6 +121,7 @@ else:
 	)
 
 MIDDLEWARE_CLASSES = (
+	'unconnectedreddit.middleware.NoWWWRedirect.NoWWWRedirectMiddleware',
  #   'debug_toolbar.middleware.DebugToolbarMiddleware',
 	'unconnectedreddit.middleware.XForwardedFor.XForwardedForMiddleware',
 	'user_sessions.middleware.SessionMiddleware',

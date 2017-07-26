@@ -677,12 +677,11 @@ def post_seller_info(request,*args,**kwargs):
 				data = get_temporarily_saved_ad_data(user_id=str(user_id),half_ad=True)
 				context={'desc':data["desc"],'is_new':data["is_new"],'ask':data["ask"],'is_barter':data["is_barter"],'ad_id':data["ad_id"],\
 				'seller_name':namify(seller_name),'city':namify(city), 'town':namify(town), 'AK_ID':'just_number','MN_data':mobile,'user_id':user_id,\
-				'username':request.user.username,'submission_device':device,'on_fbs':on_fbs}
+				'username':request.user.username,'submission_device':device,'on_fbs':str(on_fbs)}
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)
 				reset_temporarily_saved_ad(str(user_id))
-				# clean session variables
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
@@ -788,12 +787,13 @@ def post_basic_item_photos(request,*args,**kwargs):
 @csrf_protect
 def post_basic_item(request,*args,**kwargs):
 	if request.method == 'POST':
+		user_id = request.user.id
 		form = BasicItemDetailForm(request.POST)
 		#############################################################
 		d = request.POST.get("description",None)                    #
 		p = request.POST.get("ask",None)                            #
 		if d:	 						                            #
-			save_ad_desc(d,p,request.user.id, request.user.username)#
+			save_ad_desc(d,p,user_id, request.user.username)#
 		#############################################################
 		if form.is_valid():
 			#################################################
@@ -803,10 +803,10 @@ def post_basic_item(request,*args,**kwargs):
 			new = form.cleaned_data.get("new",None)
 			ask = form.cleaned_data.get("ask",None)
 			barter = form.cleaned_data.get("barter",None)
-			temporarily_save_ad(user_id=str(request.user.id), description=description, is_new=new, ask=ask, is_barter=barter, ad_id=get_basic_item_ad_id())
+			temporarily_save_ad(user_id=str(user_id), description=description, is_new=new, ask=ask, is_barter=barter, ad_id=get_basic_item_ad_id(), uid=user_id)
 			form = BasicItemPhotosForm()
 			secret_key = uuid.uuid4()
-			set_ecomm_photos_secret_key(request.user.id, secret_key)
+			set_ecomm_photos_secret_key(user_id, secret_key)
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
 		else:

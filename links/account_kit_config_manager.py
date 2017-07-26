@@ -60,10 +60,10 @@ def account_kit_handshake(csrf, state, status, auth_code):
 		mobile_data = AccountKitManager(FAID, AKAS)
 		user_data = mobile_data.get_user_cred(auth_code)
 		if FAID == user_data["application"]["id"]:
-			return user_data["id"], user_data["phone"]
+			return user_data["id"], user_data["phone"], {}
 		else:
 			# app id mismatch
-			return None, None
+			return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"]}
 	else:
 		# csrf mismatch, or could not authenticate
-		return None, None
+		return None, None, {'csrf':csrf,'state':state,'status':status}

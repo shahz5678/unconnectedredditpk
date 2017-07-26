@@ -7972,7 +7972,7 @@ def ad_finalize(request,*args, **kwargs):
 			gender_based = request.session["ad_gender"]
 			# request.session["ad_gender"] = None
 			locations = ['0','1','2','3','4', '5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20']
-			ad_url = 'http://damadam.pk/nick/ad/pin_code' # contains preview of advert that got submitted
+			ad_url = 'http://www.damadam.pk/nick/ad/pin_code' # contains preview of advert that got submitted
 			if request.user.is_authenticated():
 				user_id = request.user.id
 			else:

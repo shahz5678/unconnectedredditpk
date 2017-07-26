@@ -16,7 +16,7 @@ def get_requirements(request, careem=False):
 
 
 def verify_careem_applicant(request,*args,**kwargs):
-	AK_ID, MN_data = get_requirements(request, careem=True)
+	AK_ID, MN_data, err = get_requirements(request, careem=True)
 	car_phonenumber = MN_data['number']
 	car_firstname = request.session['firstname']
 	car_lastname = request.session['lastname']
@@ -40,7 +40,7 @@ def verify_careem_applicant(request,*args,**kwargs):
 
 
 def verify_consumer_number(request,*args,**kwargs):
-	AK_ID, MN_data = get_requirements(request)
+	AK_ID, MN_data, err = get_requirements(request)
 	# request.session.pop("csrf",None) # popping it here causes errors for users who try to verify_consumer_number TWICE (e.g., because they ran into someone_elses_number earlier)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data['national_number'], request.user.id):
@@ -54,12 +54,12 @@ def verify_consumer_number(request,*args,**kwargs):
 			else:
 				return redirect("classified_listing")
 	else:
-		return render(request,"unverified_number.html",{})
+		return render(request,"unverified_number.html",{'err':err})
 
 
 def verify_basic_item_seller_number(request,*args,**kwargs):
 	user_id = request.user.id
-	AK_ID, MN_data = get_requirements(request)
+	AK_ID, MN_data, err = get_requirements(request)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data["national_number"],user_id):
 			return render(request,"wrong_number.html",{'referrer':reverse_lazy("show_user_ads")})
@@ -77,4 +77,4 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 		else:
 			pass
 	else:
-		return render(request,"unverified_number.html",{})
+		return render(request,"unverified_number.html",{'err':err})

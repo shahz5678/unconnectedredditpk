@@ -197,9 +197,49 @@ def save_careem_data(careem_data):
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
 		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
+#		print my_server.zrange("careem_applicant_nums",0,-1)
 		pipeline1.execute()
+
 		return True
 
-
+def export_careem_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	nums = my_server.zrange("careem_applicant_nums",0,-1)
+	for num in nums:
+		print my_server.hgetall('cad:'+num)
 #########################################################
+
+
+	# my_server = redis.Redis(connection_pool=POOL)
+	# advertiser_details = "advertiser_details"
+	# list_of_dict = my_server.lrange(advertiser_details,0,-1)
+	# filename = 'advertisers_'+str(int(time.time()))+'.csv'
+	# if list_of_dict:
+	# 	import csv, ast
+	# 	with open(filename,'wb') as f:
+	# 		wtr = csv.writer(f)
+	# 		columns = ["name","nickname","mobile","city","detail","submission_time"]
+	# 		wtr.writerow(columns) # writing the columns
+	# 		for advertiser in list_of_dict:
+	# 			dictionary = ast.literal_eval(advertiser)
+	# 			time_string = datetime.fromtimestamp(dictionary["publishing_time"]).strftime("%Y-%m-%d %H:%M:%S")
+	# 			name = dictionary["name"].encode('utf-8')
+	# 			if dictionary["nickname"] is not None:
+	# 				nickname = dictionary["nickname"].encode('utf-8')
+	# 			else:
+	# 				nickname = dictionary["nickname"]
+	# 			mobile = dictionary["mobile"].encode('utf-8')
+	# 			city = dictionary["city"].encode('utf-8')
+	# 			detail = dictionary["detail"].encode('utf-8')
+	# 			to_write = [name,nickname,mobile,city,detail,time_string]
+	# 			wtr.writerows([to_write])
+	# 	my_server.delete(advertiser_details)
+	# 	return True
+	# else:
+	# 	return False
+
+
+
+
+
 

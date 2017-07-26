@@ -664,7 +664,7 @@ def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_bar
 	if is_barter:
 		my_server.hset(temp_ad,"basic_item_barter",is_barter)
 	if uid:
-		my_server.hset(temp_ad,"user_id",is_barter)
+		my_server.hset(temp_ad,"user_id",uid)
 	if ad_id:
 		my_server.hset(temp_ad,"ad_id",ad_id)
 	if which_photo_hash and photo_id and photo_hash:

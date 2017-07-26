@@ -16,21 +16,21 @@ def get_requirements(request, careem=False):
 
 
 def verify_careem_applicant(request,*args,**kwargs):
-	AK_ID, MN_data, err = get_requirements(request, careem=True)
-	car_phonenumber = MN_data['number']
+	car_phonenumber = request.session['phonenumber']
 	car_firstname = request.session['firstname']
 	car_lastname = request.session['lastname']
-	car_cnic = request.session['cnic']
+	car_car = request.session['car']
 	car_city = request.session['city']
 	car_license = request.session['license']
-	careem_data = {'firstname':car_firstname,'lastname':car_lastname,'cnic':car_cnic,\
+	careem_data = {'firstname':car_firstname,'lastname':car_lastname,'car':car_car,\
 	'city':car_city,'license':car_license,'phonenumber':car_phonenumber,'user_id':request.user.id}
 	saved = save_careem_data(careem_data)
 	request.session.pop('firstname',None) 
 	request.session.pop('lastname',None)
-	request.session.pop('cnic',None)
+	request.session.pop('car',None)
 	request.session.pop('city',None)
 	request.session.pop('license',None)
+	request.session.pop('phonenumber',None)
 	request.session.pop('csrf_careem',None)
 	if saved:
 		return render(request,"careem_application_submitted.html",{})
@@ -41,7 +41,6 @@ def verify_careem_applicant(request,*args,**kwargs):
 
 def verify_consumer_number(request,*args,**kwargs):
 	AK_ID, MN_data, err = get_requirements(request)
-	# request.session.pop("csrf",None) # popping it here causes errors for users who try to verify_consumer_number TWICE (e.g., because they ran into someone_elses_number earlier)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data['national_number'], request.user.id):
 			if "redirect_to" in request.session:

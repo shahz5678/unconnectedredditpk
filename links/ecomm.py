@@ -682,7 +682,6 @@ def post_seller_info(request,*args,**kwargs):
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)
 				reset_temporarily_saved_ad(str(user_id))
-				# clean session variables
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})

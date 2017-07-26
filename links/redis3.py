@@ -652,7 +652,7 @@ def save_used_item_photo(user_id, ad_id, photo_id):
 
 
 def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_barter=None, ad_id=None, which_photo_hash=None, photo_id=None, photo_hash=None,\
-	photo_number=None, seller_name=None,city=None,town=None,submission_device=None,on_fbs=None,csrf=None, mob_nums=None):
+	photo_number=None, seller_name=None,city=None,town=None,submission_device=None,on_fbs=None,csrf=None, mob_nums=None, uid=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	temp_ad = "ta:"+user_id
 	if description:
@@ -663,6 +663,8 @@ def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_bar
 		my_server.hset(temp_ad,"basic_item_ask",currencify(ask))
 	if is_barter:
 		my_server.hset(temp_ad,"basic_item_barter",is_barter)
+	if uid:
+		my_server.hset(temp_ad,"user_id",is_barter)
 	if ad_id:
 		my_server.hset(temp_ad,"ad_id",ad_id)
 	if which_photo_hash and photo_id and photo_hash:

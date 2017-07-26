@@ -28,7 +28,24 @@
 {% endfor %}
 <br>
 
-<b>4. Kya tumharey pass driving licence hai:</b>
+
+<b>4. Kya tumharey pass gari hai:</b>
+<br>
+	{% if form.car.errors %}
+	<span class="cr">
+		{{ form.car.errors.0 }}
+	</span>
+	<br>
+	{% endif %}
+	
+	{% for radio in form.car %}
+	<div class="mts">
+		{{ radio }}
+	</div>
+	{% endfor %}
+	<br>
+
+<b>5. Kya tumharey pass driving licence hai:</b>
 <br>
 	{% if form.license.errors %}
 	<span class="cr">
@@ -45,21 +62,7 @@
 	<br>
 
 
-<b>5. Kya tumharey pass gari hai:</b>
-<br>
-	{% if form.car.errors %}
-	<span class="cr">
-		{{ form.car.errors.0 }}
-	</span>
-	<br>
-	{% endif %}
-	
-	{% for radio in form.car %}
-	<div class="mts">
-		{{ radio }}
-	</div>
-	{% endfor %}
-	<br>
+
 
 <input class="btn bcg bl mtl mbl" type="submit" value="Register">
 

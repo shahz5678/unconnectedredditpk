@@ -531,16 +531,17 @@ def save_consumer_number(account_kit_id, mobile_data, user_id):
 	user_id = str(user_id)
 	user_mobile = "um:"+user_id
 	verif_time = time.time()
-	mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
-	'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
-	pipeline1 = my_server.pipeline()
-	pipeline1.lpush(user_mobile, mapping)
-	pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
-	pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
-	pipeline1.execute()
-	if my_server.llen(user_mobile) > 2:
-		removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
-		my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
+	if mobile_data:
+		mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
+		'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
+		pipeline1 = my_server.pipeline()
+		pipeline1.lpush(user_mobile, mapping)
+		pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+		pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+		pipeline1.execute()
+		if my_server.llen(user_mobile) > 2:
+			removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
+			my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
 
 
 # helper function for move_to_approved_ads

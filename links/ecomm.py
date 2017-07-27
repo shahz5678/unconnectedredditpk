@@ -343,9 +343,9 @@ def classified_tutorial_dec(request,*args,**kwargs):
 @csrf_protect
 def show_seller_number(request,*args,**kwargs):
 	user_id = request.user.id
+	is_verified = is_mobile_verified(user_id)
 	if request.method == 'POST':
 		ad_id = request.POST.get('ad_id',None)
-		is_verified = is_mobile_verified(user_id)
 		if not is_verified:
 			# verify this person' mobile
 			CSRF = csrf.get_token(request)
@@ -368,18 +368,18 @@ def show_seller_number(request,*args,**kwargs):
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':request.META.get('HTTP_REFERER',None), 'type':'1'})
+				'referrer':request.META.get('HTTP_REFERER',None)})
 		else:
 			return render(request,"404.html",{})
 	else:
 		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
 		if "redirect_to" in buyer_snapshot:
-			ad_id = buyer_snapshot.get("redirect_to",None) # user is now verified
+			ad_id = buyer_snapshot.get("redirect_to",None) 
 			referrer = buyer_snapshot.get("referrer",None)
-			if first_time_classified_contacter(request.user.id):
+			if is_verified and first_time_classified_contacter(request.user.id):
 				add_classified_contacter(request.user.id)
 				return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
-			else:
+			elif is_verified:
 				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
 				MN_data = ast.literal_eval(seller_details["MN_data"])
 				if is_unique_click:
@@ -391,7 +391,9 @@ def show_seller_number(request,*args,**kwargs):
 						if send_sms == '1':
 							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-					'referrer':referrer,'type':'2'})#request.META.get('HTTP_REFERER',None)})
+					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
+			else:
+				return render(request,"404.html",{})
 		else:
 			return render(request,"404.html",{})
 

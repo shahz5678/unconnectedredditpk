@@ -58,7 +58,7 @@ def verify_consumer_number(request,*args,**kwargs):
 				else:
 					return redirect("classified_listing")
 		elif err['status'] == "NOT_AUTHENTICATED":
-			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"]})
+			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer'})
 		else:
 			save_number_verification_error_data(user_id, err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
 			return render(request,"unverified_number.html",{})
@@ -69,7 +69,8 @@ def verify_consumer_number(request,*args,**kwargs):
 
 def verify_basic_item_seller_number(request,*args,**kwargs):
 	user_id = request.user.id
-	AK_ID, MN_data, err = get_requirements(request=request, csrf=get_temporarily_saved_ad_data(str(user_id),only_csrf=True))
+	CSRF = get_temporarily_saved_ad_data(str(user_id),only_csrf=True)
+	AK_ID, MN_data, err = get_requirements(request=request, csrf=CSRF)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data["national_number"],user_id):
 			return render(request,"wrong_number.html",{'referrer':reverse_lazy("show_user_ads")})
@@ -86,6 +87,8 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			pass
+	elif err['status'] == 'NOT_AUTHENTICATED':
+		return render(request,"dont_worry_just_authenticate.html",{'csrf':CSRF,'type':'seller'})
 	else:
 		save_number_verification_error_data(user_id, err, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='seller')
 		return render(request,"unverified_number.html",{'err':err})

@@ -57,6 +57,8 @@ def verify_consumer_number(request,*args,**kwargs):
 					return redirect("show_seller_number")
 				else:
 					return redirect("classified_listing")
+		elif err['status'] == "NOT_AUTHENTICATED":
+			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"]})
 		else:
 			save_number_verification_error_data(user_id, err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
 			return render(request,"unverified_number.html",{})

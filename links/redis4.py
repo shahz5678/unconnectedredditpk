@@ -24,6 +24,11 @@ FIVE_MINS = 5*60
 TWO_MINS = 2*60
 
 
+def save_seller_number_error(user_id, user_id_type, data):
+	my_server = redis.Redis(connection_pool=POOL)
+	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}
+	my_server.lpush("show_seller_number_errors",um_data)
+
 def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	if which_flow == 'consumer':

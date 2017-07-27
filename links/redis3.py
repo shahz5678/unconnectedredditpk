@@ -528,10 +528,10 @@ def get_user_verified_number(user_id):
 # this mechanism saves up to TWO user numbers, trimming the 3rd
 def save_consumer_number(account_kit_id, mobile_data, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	user_id = str(user_id)
-	user_mobile = "um:"+user_id
-	verif_time = time.time()
 	if mobile_data:
+		user_id = str(user_id)
+		user_mobile = "um:"+user_id
+		verif_time = time.time()
 		mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
 		'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
 		pipeline1 = my_server.pipeline()

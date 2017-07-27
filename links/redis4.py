@@ -23,6 +23,26 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 TWO_MINS = 2*60
 
+
+def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
+	my_server = redis.Redis(connection_pool=POOL)
+	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
+	my_server.lpush("unfinished_ad_processing_error",data)
+
+def save_seller_number_error(user_id, user_id_type, data):
+	my_server = redis.Redis(connection_pool=POOL)
+	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}
+	my_server.lpush("show_seller_number_errors",um_data)
+
+def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if which_flow == 'consumer':
+		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+		my_server.lpush("consumer_number_errors",err_data)
+	else:
+		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+		my_server.lpush("seller_number_errors",err_data)
+
 #######################Test Function######################
 
 # def set_test_payload(payload_list):
@@ -203,43 +223,22 @@ def save_careem_data(careem_data):
 		return True
 
 def export_careem_data():
+	import csv
 	my_server = redis.Redis(connection_pool=POOL)
 	nums = my_server.zrange("careem_applicant_nums",0,-1)
+	pipeline1 = my_server.pipeline()
 	for num in nums:
-		print my_server.hgetall('cad:'+num)
+		pipeline1.hgetall('cad:'+num)
+	result1 = pipeline1.execute()
+	filename = 'careem_'+str(int(time.time()))+'.csv'
+	with open(filename,'wb') as f:
+		wtr = csv.writer(f)
+		columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
+		wtr.writerow(columns)
+		for user in result1:
+			firstname,lastname,phonenumber,city,license,car=user['firstname'],user['lastname'],user['phonenumber'],\
+			user['city'],user['license'],user['car']
+			to_write = [firstname,lastname,phonenumber,city,license,car]
+			wtr.writerows([to_write])
+
 #########################################################
-
-
-	# my_server = redis.Redis(connection_pool=POOL)
-	# advertiser_details = "advertiser_details"
-	# list_of_dict = my_server.lrange(advertiser_details,0,-1)
-	# filename = 'advertisers_'+str(int(time.time()))+'.csv'
-	# if list_of_dict:
-	# 	import csv, ast
-	# 	with open(filename,'wb') as f:
-	# 		wtr = csv.writer(f)
-	# 		columns = ["name","nickname","mobile","city","detail","submission_time"]
-	# 		wtr.writerow(columns) # writing the columns
-	# 		for advertiser in list_of_dict:
-	# 			dictionary = ast.literal_eval(advertiser)
-	# 			time_string = datetime.fromtimestamp(dictionary["publishing_time"]).strftime("%Y-%m-%d %H:%M:%S")
-	# 			name = dictionary["name"].encode('utf-8')
-	# 			if dictionary["nickname"] is not None:
-	# 				nickname = dictionary["nickname"].encode('utf-8')
-	# 			else:
-	# 				nickname = dictionary["nickname"]
-	# 			mobile = dictionary["mobile"].encode('utf-8')
-	# 			city = dictionary["city"].encode('utf-8')
-	# 			detail = dictionary["detail"].encode('utf-8')
-	# 			to_write = [name,nickname,mobile,city,detail,time_string]
-	# 			wtr.writerows([to_write])
-	# 	my_server.delete(advertiser_details)
-	# 	return True
-	# else:
-	# 	return False
-
-
-
-
-
-

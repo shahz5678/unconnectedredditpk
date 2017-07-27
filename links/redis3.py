@@ -2,6 +2,7 @@
 import redis, time, ast
 from location import REDLOC3
 from datetime import datetime
+from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
@@ -28,6 +29,7 @@ punishment_text = "pt:"+str(user_id)
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
 temp_ad = "ta:"+user_id #temporary ad
+temp_storage = "ts:"+user_id # temporary storage of buyer snapshot (used when certifying new user)
 my_server.lpush("unc:"+submitted_data["user_id"]) #unapproved_user_classified (unc:)
 pipeline1.lpush("uaa:"+seller_id,ad_hash) # user approved ads
 pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
@@ -44,6 +46,7 @@ my_server.sadd("unfinished_classifieds",ad_id)
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
 TEN_MINS = 10*60
+TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
@@ -455,7 +458,12 @@ def log_ad_click(server, ad_hash, clicker_id, ad_id):
 	is_unique, clicker_number, expire_ad = False, None, False
 	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
 		click_details, is_unique = [], True
-		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
+		try:
+			clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
+		###################################################################################################
+		except:
+			save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
+		###################################################################################################
 		click_details.append((clicker_number,time.time()))
 		if 'unique_clicks' in ad_hash:
 			ad_hash["unique_clicks"] = int(ad_hash["unique_clicks"]) + 1
@@ -523,16 +531,17 @@ def save_consumer_number(account_kit_id, mobile_data, user_id):
 	user_id = str(user_id)
 	user_mobile = "um:"+user_id
 	verif_time = time.time()
-	mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
-	'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
-	pipeline1 = my_server.pipeline()
-	pipeline1.lpush(user_mobile, mapping)
-	pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
-	pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
-	pipeline1.execute()
-	if my_server.llen(user_mobile) > 2:
-		removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
-		my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
+	if mobile_data:
+		mapping = {'AK_ID':account_kit_id, 'national_number':mobile_data["national_number"],'number':mobile_data["number"],\
+		'country_prefix':mobile_data["country_prefix"] ,'verif_time':verif_time}
+		pipeline1 = my_server.pipeline()
+		pipeline1.lpush(user_mobile, mapping)
+		pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+		pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+		pipeline1.execute()
+		if my_server.llen(user_mobile) > 2:
+			removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
+			my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
 
 
 # helper function for move_to_approved_ads
@@ -735,6 +744,29 @@ def reset_temporarily_saved_ad(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.delete("ta:"+user_id)
 
+
+def temporarily_save_buyer_snapshot(user_id=None, referrer=None, redirect_to=None, csrf=None, uid=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "ts:"+user_id
+	if uid:
+		my_server.hset(temp_storage,"user_id",uid)
+	if referrer:
+		my_server.hset(temp_storage,"referrer",referrer)
+	if redirect_to:
+		my_server.hset(temp_storage,"redirect_to",redirect_to)
+	if csrf:
+		my_server.hset(temp_storage,"csrf",csrf)
+	my_server.expire(temp_storage,TWENTY_MINS) # will self-destruct after 20 mins of inactivity
+
+def get_buyer_snapshot(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "ts:"+user_id
+	if my_server.exists(temp_storage):
+		data = my_server.hgetall("ts:"+user_id)
+		# my_server.delete("ta:"+user_id)
+		return data
+	else:
+		return {}
 
 def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)

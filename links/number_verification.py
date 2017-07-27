@@ -16,26 +16,30 @@ def get_requirements(request, csrf, careem=False):
 
 
 def verify_careem_applicant(request,*args,**kwargs):
-	car_phonenumber = request.session['phonenumber']
-	car_firstname = request.session['firstname']
-	car_lastname = request.session['lastname']
-	car_car = request.session['car']
-	car_city = request.session['city']
-	car_license = request.session['license']
-	careem_data = {'firstname':car_firstname,'lastname':car_lastname,'car':car_car,\
-	'city':car_city,'license':car_license,'phonenumber':car_phonenumber,'user_id':request.user.id}
-	saved = save_careem_data(careem_data)
-	request.session.pop('firstname',None) 
-	request.session.pop('lastname',None)
-	request.session.pop('car',None)
-	request.session.pop('city',None)
-	request.session.pop('license',None)
-	request.session.pop('phonenumber',None)
-	request.session.pop('csrf_careem',None)
-	if saved:
-		return render(request,"careem_application_submitted.html",{})
+	if 'phonenumber' in request.session:
+		car_phonenumber = request.session['phonenumber']
+		car_firstname = request.session['firstname']
+		car_lastname = request.session['lastname']
+		car_car = request.session['car']
+		car_city = request.session['city']
+		car_license = request.session['license']
+		careem_data = {'firstname':car_firstname,'lastname':car_lastname,'car':car_car,\
+		'city':car_city,'license':car_license,'phonenumber':car_phonenumber,'user_id':request.user.id}
+		saved = save_careem_data(careem_data)
+		request.session.pop('firstname',None) 
+		request.session.pop('lastname',None)
+		request.session.pop('car',None)
+		request.session.pop('city',None)
+		request.session.pop('license',None)
+		request.session.pop('phonenumber',None)
+		request.session.pop('csrf_careem',None)
+		if saved:
+			return render(request,"careem_application_submitted.html",{})
+		else:
+			return render(request,"careem_number_already_used.html",{})
 	else:
-		return render(request,"careem_number_already_used.html",{})
+		return render(request,"404.html",{})
+
 
 
 def verify_consumer_number(request,*args,**kwargs):

@@ -24,6 +24,11 @@ FIVE_MINS = 5*60
 TWO_MINS = 2*60
 
 
+def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
+	my_server = redis.Redis(connection_pool=POOL)
+	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
+	my_server.lpush("unfinished_ad_processing_error",data)
+
 def save_seller_number_error(user_id, user_id_type, data):
 	my_server = redis.Redis(connection_pool=POOL)
 	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}

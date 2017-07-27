@@ -345,17 +345,18 @@ def show_seller_number(request,*args,**kwargs):
 	user_id = request.user.id
 	if request.method == 'POST':
 		ad_id = request.POST.get('ad_id',None)
-		if not is_mobile_verified(user_id):
+		is_verified = is_mobile_verified(user_id)
+		if not is_verified:
 			# verify this person' mobile
 			CSRF = csrf.get_token(request)
 			temporarily_save_buyer_snapshot(user_id=str(user_id), referrer=request.META.get('HTTP_REFERER',None), redirect_to=ad_id, csrf=CSRF, uid=user_id)
 			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
-		elif first_time_classified_contacter(user_id):
+		elif if_verified and first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
 			add_classified_contacter(user_id)
 			referrer = request.META.get('HTTP_REFERER',None)
 			return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})
-		else:
+		elif is_verified:
 			seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
 			MN_data = ast.literal_eval(seller_details["MN_data"])
 			if is_unique_click:
@@ -368,6 +369,8 @@ def show_seller_number(request,*args,**kwargs):
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
 				'referrer':request.META.get('HTTP_REFERER',None)})
+		else:
+			return render(request,"404.html",{})
 	else:
 		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
 		if "redirect_to" in buyer_snapshot:

@@ -28,6 +28,7 @@ punishment_text = "pt:"+str(user_id)
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 search_history = "sh:"+str(searcher_id)
 temp_ad = "ta:"+user_id #temporary ad
+temp_storage = "ts:"+user_id # temporary storage of buyer snapshot (used when certifying new user)
 my_server.lpush("unc:"+submitted_data["user_id"]) #unapproved_user_classified (unc:)
 pipeline1.lpush("uaa:"+seller_id,ad_hash) # user approved ads
 pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
@@ -44,6 +45,7 @@ my_server.sadd("unfinished_classifieds",ad_id)
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
 TEN_MINS = 10*60
+TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
@@ -735,6 +737,29 @@ def reset_temporarily_saved_ad(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.delete("ta:"+user_id)
 
+
+def temporarily_save_buyer_snapshot(user_id=None, referrer=None, redirect_to=None, csrf=None, uid=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "ts:"+user_id
+	if uid:
+		my_server.hset(temp_storage,"user_id",uid)
+	if referrer:
+		my_server.hset(temp_storage,"referrer",referrer)
+	if redirect_to:
+		my_server.hset(temp_storage,"redirect_to",redirect_to)
+	if csrf:
+		my_server.hset(temp_storage,"csrf",csrf)
+	my_server.expire(temp_storage,TWENTY_MINS) # will self-destruct after 20 mins of inactivity
+
+def get_buyer_snapshot(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "ts:"+user_id
+	if my_server.exists(temp_storage):
+		data = my_server.hgetall("ts:"+user_id)
+		# my_server.delete("ta:"+user_id)
+		return data
+	else:
+		return {}
 
 def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)

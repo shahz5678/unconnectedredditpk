@@ -223,13 +223,6 @@ def save_careem_data(careem_data):
 		return True
 
 def export_careem_data():
-	my_server = redis.Redis(connection_pool=POOL)
-	nums = my_server.zrange("careem_applicant_nums",0,-1)
-	for num in nums:
-		print my_server.hgetall('cad:'+num)
-
-
-def export_careem_data():
 	import csv
 	my_server = redis.Redis(connection_pool=POOL)
 	nums = my_server.zrange("careem_applicant_nums",0,-1)

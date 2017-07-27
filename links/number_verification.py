@@ -54,10 +54,10 @@ def verify_consumer_number(request,*args,**kwargs):
 				else:
 					return redirect("classified_listing")
 		else:
-			save_consumer_number_error_data(user_id, err, err_type='1', is_auth=request.user.is_authenticated(),which_flow='consumer')
+			save_number_verification_error_data(user_id, err, err_type='1', is_auth=request.user.is_authenticated(),which_flow='consumer')
 			return render(request,"unverified_number.html",{})
 	else:
-		save_consumer_number_error_data(user_id, {}, err_type='2', is_auth=request.user.is_authenticated(),which_flow='consumer')
+		save_number_verification_error_data(user_id, {}, err_type='2', is_auth=request.user.is_authenticated(),which_flow='consumer')
 		return render(request,"unverified_number.html",{})
 
 
@@ -81,5 +81,5 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 		else:
 			pass
 	else:
-		save_consumer_number_error_data(user_id, err, err_type='2', is_auth=request.user.is_authenticated(),which_flow='seller')
+		save_number_verification_error_data(user_id, err, err_type='2', is_auth=request.user.is_authenticated(),which_flow='seller')
 		return render(request,"unverified_number.html",{'err':err})

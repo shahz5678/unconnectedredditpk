@@ -30,6 +30,7 @@
 		{% endif %}
 	</div>
 	{% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mbs" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
+	<br>{{ type }}
 </div>
 </div><br><br>
 {% endblock %}

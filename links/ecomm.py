@@ -368,7 +368,7 @@ def show_seller_number(request,*args,**kwargs):
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':request.META.get('HTTP_REFERER',None)})
+				'referrer':request.META.get('HTTP_REFERER',None), 'type':'1'})
 		else:
 			return render(request,"404.html",{})
 	else:
@@ -391,7 +391,7 @@ def show_seller_number(request,*args,**kwargs):
 						if send_sms == '1':
 							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
+					'referrer':referrer,'type':'2'})#request.META.get('HTTP_REFERER',None)})
 		else:
 			return render(request,"404.html",{})
 

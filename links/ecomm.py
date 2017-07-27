@@ -374,13 +374,13 @@ def show_seller_number(request,*args,**kwargs):
 	else:
 		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
 		if "redirect_to" in buyer_snapshot:
-			ad_id = buyer_snapshot.get("redirect_to",None) 
+			ad_id = buyer_snapshot.get("redirect_to",None)
 			referrer = buyer_snapshot.get("referrer",None)
-			if is_verified and first_time_classified_contacter(request.user.id):
-				add_classified_contacter(request.user.id)
+			if is_verified and first_time_classified_contacter(user_id):
+				add_classified_contacter(user_id)
 				return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
 			elif is_verified:
-				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
+				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(user_id, ad_id)
 				MN_data = ast.literal_eval(seller_details["MN_data"])
 				if is_unique_click:
 					# enqueue sms

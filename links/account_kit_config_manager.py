@@ -63,7 +63,7 @@ def account_kit_handshake(csrf, state, status, auth_code):
 			return user_data["id"], user_data["phone"], {}
 		else:
 			# app id mismatch
-			return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"]}
+			return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
 	else:
 		# csrf mismatch, or could not authenticate
-		return None, None, {'csrf':csrf,'state':state,'status':status}
+		return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
-from redis4 import save_careem_data, save_consumer_number_error_data
 from account_kit_config_manager import account_kit_handshake
+from redis4 import save_careem_data, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, reset_temporarily_saved_ad, get_buyer_snapshot
 
@@ -54,10 +54,10 @@ def verify_consumer_number(request,*args,**kwargs):
 				else:
 					return redirect("classified_listing")
 		else:
-			save_consumer_number_error_data(user_id, err, type_='1', is_auth=request.user.is_authenticated())
+			save_consumer_number_error_data(user_id, err, err_type='1', is_auth=request.user.is_authenticated(),which_flow='consumer')
 			return render(request,"unverified_number.html",{})
 	else:
-		save_consumer_number_error_data(user_id, {}, type_='2', is_auth=request.user.is_authenticated())
+		save_consumer_number_error_data(user_id, {}, err_type='2', is_auth=request.user.is_authenticated(),which_flow='consumer')
 		return render(request,"unverified_number.html",{})
 
 
@@ -81,4 +81,5 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 		else:
 			pass
 	else:
+		save_consumer_number_error_data(user_id, err, err_type='2', is_auth=request.user.is_authenticated(),which_flow='seller')
 		return render(request,"unverified_number.html",{'err':err})

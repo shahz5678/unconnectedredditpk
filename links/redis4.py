@@ -24,10 +24,14 @@ FIVE_MINS = 5*60
 TWO_MINS = 2*60
 
 
-def save_consumer_number_error_data(user_id, err_data, type_=None, is_auth=None):
+def save_number_verification_error_data(user_id, err_data, err_type=None, is_auth=None, which_flow=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	err_data["user_id"], err_data["err_type"], err_data["is_auth"] = user_id, type_, is_auth
-	my_server.lpush("consumer_number_errors",err_data)
+	if which_flow == 'consumer':
+		err_data["user_id"], err_data["err_type"], err_data["is_auth"] = user_id, err_type, is_auth
+		my_server.lpush("consumer_number_errors",err_data)
+	else:
+		err_data["user_id"], err_data["err_type"], err_data["is_auth"] = user_id, err_type, is_auth
+		my_server.lpush("seller_number_errors",err_data)
 
 #######################Test Function######################
 

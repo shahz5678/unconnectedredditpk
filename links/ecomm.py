@@ -19,7 +19,8 @@ move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
-get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data
+get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
+get_buyer_snapshot
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -320,9 +321,7 @@ def classified_tutorial_dec(request,*args,**kwargs):
 		ad_id = request.POST.get('ad_id',None)
 		referrer = request.POST.get('referrer',None)
 		if dec == 'Theek hai':
-			request.session["redirect_to"] = ad_id
-			request.session["referrer"] = referrer
-			request.session.modified = True
+			temporarily_save_buyer_snapshot(user_id=str(request.user.id), referrer=referrer,redirect_to=ad_id)
 			return redirect("show_seller_number")
 		elif dec == 'Rehnay do':
 			if referrer:
@@ -337,16 +336,13 @@ def classified_tutorial_dec(request,*args,**kwargs):
 
 @csrf_protect
 def show_seller_number(request,*args,**kwargs):
+	user_id = request.user.id
 	if request.method == 'POST':
-		user_id = request.user.id
 		ad_id = request.POST.get('ad_id',None)
 		if not is_mobile_verified(user_id):
 			# verify this person' mobile
 			CSRF = csrf.get_token(request)
-			request.session["referrer"] = request.META.get('HTTP_REFERER',None)
-			request.session["redirect_to"] = ad_id
-			request.session["csrf"] = CSRF
-			request.session.modified = True
+			temporarily_save_buyer_snapshot(user_id=str(user_id), referrer=request.META.get('HTTP_REFERER',None), redirect_to=ad_id, csrf=CSRF, uid=user_id)
 			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
 		elif first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
@@ -366,27 +362,29 @@ def show_seller_number(request,*args,**kwargs):
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
 				'referrer':request.META.get('HTTP_REFERER',None)})
-	elif "redirect_to" in request.session:
-		ad_id = request.session.pop("redirect_to",None) # user is now verified << NOT ALWAYS!
-		referrer = request.session.pop("referrer",None)
-		if first_time_classified_contacter(request.user.id):
-			add_classified_contacter(request.user.id)
-			return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
-		else:
-			seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
-			MN_data = ast.literal_eval(seller_details["MN_data"])
-			if is_unique_click:
-				# enqueue sms
-				if is_expired:
-					enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
-				else:
-					send_sms = get_SMS_setting(str(float(ad_id)))
-					if send_sms == '1':
-						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
 	else:
-		return render(request,"404.html",{})
+		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
+		if "redirect_to" in buyer_snapshot:
+			ad_id = buyer_snapshot.get("redirect_to",None) # user is now verified
+			referrer = buyer_snapshot.get("referrer",None)
+			if first_time_classified_contacter(request.user.id):
+				add_classified_contacter(request.user.id)
+				return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
+			else:
+				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
+				MN_data = ast.literal_eval(seller_details["MN_data"])
+				if is_unique_click:
+					# enqueue sms
+					if is_expired:
+						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
+					else:
+						send_sms = get_SMS_setting(str(float(ad_id)))
+						if send_sms == '1':
+							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
+					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
+		else:
+			return render(request,"404.html",{})
 
 
 def classified_listing(request,city=None,*args,**kwrags):

@@ -351,7 +351,7 @@ def show_seller_number(request,*args,**kwargs):
 			CSRF = csrf.get_token(request)
 			temporarily_save_buyer_snapshot(user_id=str(user_id), referrer=request.META.get('HTTP_REFERER',None), redirect_to=ad_id, csrf=CSRF, uid=user_id)
 			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
-		elif if_verified and first_time_classified_contacter(user_id):
+		elif is_verified and first_time_classified_contacter(user_id):
 			# show first_time tutorial and set number exchange expectation
 			add_classified_contacter(user_id)
 			referrer = request.META.get('HTTP_REFERER',None)

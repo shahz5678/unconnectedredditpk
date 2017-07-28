@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
@@ -4632,10 +4632,13 @@ class UploadVideoView(FormView):
 def upload_public_photo(request,*args,**kwargs):
 	if request.method == 'POST':
 		user = request.user
+		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_photo_upload_key(request.user.id)
 		if user.userprofile.score < 3:#
 			return render(request, 'score_photo.html', {'score': '3'})
 		elif request.user_banned:
 			return render(request,'500.html',{})
+		elif str(secret_key_from_form) != str(secret_key_from_session):
+			return render(request,"dont_click_again_and_again.html",{'from_public_photos':True})
 		else:
 			banned, time_remaining = check_photo_upload_ban(user.id)
 			if banned:
@@ -4671,12 +4674,16 @@ def upload_public_photo(request,*args,**kwargs):
 				image_file = request.FILES['image_file']
 			else:
 				image_file = None
+				context = {}
+				context["score"] = request.user.userprofile.score
+				context["threshold"] = UPLOAD_PHOTO_REQ
+				context["form"] = form
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				set_photo_upload_key(request.user.id, secret_key)
+				return render(request,"upload_public_photo.html",context)
 			if image_file:
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-				# try:
-				# 	on_fbs = self.request.META.get('X-IORG-FBS')
-				# except:
-				# 	on_fbs = False
 				if on_fbs:
 					if image_file.size > 200000:
 						return render(request,'big_photo_fbs.html',{'pk':'pk'})
@@ -4761,6 +4768,9 @@ def upload_public_photo(request,*args,**kwargs):
 				context["time_remaining"] = time_remaining
 			else:
 				context["form"] = UploadPhotoForm()
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				set_photo_upload_key(request.user.id, secret_key)
 				post_big_photo_in_home = True
 				if number_of_photos < 5: #must at least have posted 5 photos to have photo appear BIG in home
 					post_big_photo_in_home = False

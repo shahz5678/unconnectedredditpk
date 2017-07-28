@@ -21,7 +21,6 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
-TWO_MINS = 2*60
 
 
 def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
@@ -56,7 +55,7 @@ def set_photo_upload_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	my_server.set("pusk:"+user_id,secret_key)
-	my_server.expire("pusk:"+user_id,TWO_MINS)
+	my_server.expire("pusk:"+user_id,TEN_MINS)
 
 def get_and_delete_photo_upload_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

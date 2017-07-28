@@ -458,11 +458,11 @@ def log_ad_click(server, ad_hash, clicker_id, ad_id):
 	is_unique, clicker_number, expire_ad = False, None, False
 	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
 		click_details, is_unique = [], True
-		try:
-			clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
+		# try:
+		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
 		###################################################################################################
-		except:
-			save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
+		# except:
+		# 	save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
 		###################################################################################################
 		click_details.append((clicker_number,time.time()))
 		if 'unique_clicks' in ad_hash:

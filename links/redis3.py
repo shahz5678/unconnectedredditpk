@@ -2,7 +2,7 @@
 import redis, time, ast
 from location import REDLOC3
 from datetime import datetime
-from redis4 import save_seller_number_error
+# from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string

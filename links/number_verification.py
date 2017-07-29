@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse_lazy
 from account_kit_config_manager import account_kit_handshake
 from redis4 import save_careem_data, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service
-from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, reset_temporarily_saved_ad, get_buyer_snapshot
+from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot#, reset_temporarily_saved_ad
 
 def get_requirements(request, csrf, careem=False):
 	status = request.GET.get('status', None)
@@ -83,7 +83,7 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number=MN_data["number"])
 			saved = save_basic_ad_data(context)
 		if saved:
-			reset_temporarily_saved_ad(str(user_id))
+			# reset_temporarily_saved_ad(str(user_id)) #save_basic_ad_data already deletes temporarily_saved_ad
 			return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			pass

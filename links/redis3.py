@@ -18,7 +18,7 @@ pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
-pipeline1.sadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
+pipeline1.zadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
 pipeline1.lpush("global_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
 pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global list of expired ads, stays alive for 1 month

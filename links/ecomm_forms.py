@@ -17,12 +17,13 @@ def get_choices(num_list):
 
 
 class EditFieldForm(forms.Form):
-    text_field = forms.CharField()
+    text_field = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 
     def __init__(self, *args, **kwargs):
         super(EditFieldForm, self).__init__(*args, **kwargs)
         self.fields['text_field'].widget.attrs['autofocus'] = 'autofocus'
         self.fields['text_field'].widget.attrs['class'] = 'cxl'
+        self.fields['text_field'].widget.attrs['style'] = 'max-width:98%;'
 
 class VerifySellerMobileForm(forms.Form):
     mobile_number = forms.CharField(max_length=13,\

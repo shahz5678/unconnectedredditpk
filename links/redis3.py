@@ -31,7 +31,7 @@ pipeline2.lpush("uea:"+result1[counter][0],ad_id) # used in user_expired_ads
 my_server.hgetall("um:"+str(user_id)) # user mobile number data
 my_server.zadd("unapproved_ads",ad,ad_id)
 "unfinalized_used_item_photos"
-my_server.sadd("unfinished_classifieds",ad_id)
+my_server.zadd("unfinished_classifieds",ad_id)
 
 
 my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key

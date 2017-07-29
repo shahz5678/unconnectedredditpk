@@ -272,10 +272,10 @@ def process_unfinished_ad(request,*args,**kwargs):
 	if editor_id == user_id:
 		if next_step == 'delete':
 			photo_ids = get_unfinished_photo_ids_to_delete(ad_id)
-			del_orphaned_classified_photos(user_id,ad_id)
+			del_orphaned_classified_photos(user_id=str(user_id),ad_id=ad_id)
 			if photo_ids:
 				sanitize_unused_ecomm_photos.delay(photo_ids)
-			reset_temporarily_saved_ad(str(user_id))
+			# reset_temporarily_saved_ad(str(user_id)) # already deleted in del_orphaned_classified_photos
 			return redirect("show_user_ads")
 		elif next_step == 'verify mobile':
 			form = VerifySellerMobileForm()
@@ -425,7 +425,7 @@ def city_list(request,*args,**kwargs):
 	return render(request,"city_list.html",{'cities':locs_and_ad_counts,'ad_count':get_all_pakistan_ad_count()})
 
 
-############################### Ad Approval Process ###############################
+############################### Ad Approval & Editing ###############################
 
 # all functions within this section are gated by the who_locked_ad function
 
@@ -690,7 +690,7 @@ def post_seller_info(request,*args,**kwargs):
 				# register with Tilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)
-				reset_temporarily_saved_ad(str(user_id))
+				# reset_temporarily_saved_ad(str(user_id)) #save_basic_ad_data already deletes temporarily_saved_ad
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})

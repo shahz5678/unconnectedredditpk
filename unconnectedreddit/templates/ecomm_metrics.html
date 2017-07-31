@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin clb">
+
+{% if reporting_time %}
+	<span class="cm cgy">Latest Update:</span>
+	<div class="mts cl">
+	<b>{{ reporting_time }}</b> <span class="cs cgy">(in UTC format - 5 hours behind Pak)</span><br>
+	</div>
+	<hr size=1 COLOR="#00c853">
+		Clicks per visitor: <b class="cg">{{ unique_clicks_per_unique_visitor }}</b><br>
+		<div class="mt">
+		<span class="cs cgy">looking at unique clicks per unique visitor only</span>
+		</div>
+	<hr size=1 COLOR="#e0e0e0">
+		Clicks per new visitor: <b class="cg">{{ unique_new_clicks_per_unique_new_visitor }}</b><br>
+		<div class="mt">
+		<span class="cs cgy">looking at unique new clicks per unique new visitor only</span>
+		</div>
+	<hr size=1 COLOR="#e0e0e0">
+		Clicks per clicker: <b class="cg">{{ unique_clicks_per_unique_clicker }}</b><br>
+		<div class="mt">
+		<span class="cs cgy">looking at unique clicks per unique clicker only</span>
+		</div>
+	<hr size=1 COLOR="#e0e0e0">
+		What proportion of all visitors clicked an ad: <b class="cg">{% widthratio proportion_of_clickers_to_visitors 1 100 %}%</b><br>
+	<hr size=1 COLOR="#e0e0e0">
+		What proportion of new visitors clicked an ad: <b class="cg">{% widthratio unique_new_clickers_per_unique_new_visitors 1 100 %}%</b><br>
+	<hr size=1 COLOR="#e0e0e0">
+		Total visitors: <b class="cg">{{ total_unique_visitors|intcomma }}</b><br>
+		<div class="mt">
+		<span class="cs cgy">only counting unique visitors</span>
+		</div>
+	<hr size=1 COLOR="#e0e0e0">
+		Total clicks: <b class="cg">{{ total_unique_clicks|intcomma }}</b><br>
+		<div class="mt">
+		<span class="cs cgy">counting unique clicks per ad</span>
+		</div>
+	<hr size=1 COLOR="#00c853">
+	<br>
+	{% if history %}
+	<div class="mbl">
+	<span class="cl cgy">Last 60 days history (max):</span>
+	</div>
+	<div style="overflow-x:auto;">
+	<table style="width:100%;max-width:1200px;border: 1px solid black;border-collapse: collapse;">
+	<tr style="text-align:center;border: 1px solid black;height: 50px;">
+	<th style="border: 1px solid black;">Updated at</th><th style="border: 1px solid black;">Clicks per visitor</th><th style="border: 1px solid black;">Clicks per new visitor</th><th style="border: 1px solid black;">Clicks per clicker</th><th style="border: 1px solid black;">% visitors who clicked</th><th style="border: 1px solid black;">% new visitors who clicked</th><th style="border: 1px solid black;">Total visitors</th><th style="border: 1px solid black;">Total clicks</th>
+	</tr>
+	{% for row in history %}
+	<tr style="text-align:center;border: 1px solid black;height: 30px;">
+	<td class="cs cgy" style="border: 1px solid gray;">{{ row.entry_time }}</td><td style="border: 1px solid gray;">{{ row.unique_clicks_per_unique_visitor }}</td><td style="border: 1px solid gray;">{{ row.unique_new_clicks_per_unique_new_visitor }}</td><td style="border: 1px solid gray;">{{ row.unique_clicks_per_unique_clicker}}</td><td style="border: 1px solid gray;">{% widthratio row.proportion_of_clickers_to_visitors 1 100 %}%</td><td style="border: 1px solid gray;">{% widthratio row.unique_new_clickers_per_unique_new_visitors 1 100 %}%</td><td style="border: 1px solid gray;">{{ row.total_unique_visitors|intcomma }}</td><td style="border: 1px solid gray;">{{ row.total_unique_clicks|intcomma }}</td>
+	</tr>
+	{% endfor %}
+	</table>
+	</div>
+	{% endif %}
+{% else %}
+	<span class="cg cl">No data exists yet... check back later</span>
+{% endif %}
+
+
+</div><br><br>
+{% endblock %}

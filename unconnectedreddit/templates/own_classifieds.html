@@ -4,7 +4,7 @@
 {% load get_ecomm_navbar %}
 {% load join_string %}
 {% block content %}
-<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+<body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">
 
 {% include "baich_do.html" %}
@@ -52,10 +52,10 @@
 {% csrf_token %}
 <input type="hidden" name="ad_score" value="{{ unfinished.ad_id }}">
 <input type="hidden" name="EID" value="{{ unfinished.user_id }}">
-<input type="hidden" name="desc" value="{{ unfinished.desc }}">
-<input type="hidden" name="ask" value="{{ unfinished.ask }}">
-<input type="hidden" name="is_new" value="{{ unfinished.is_new }}">
-<input type="hidden" name="is_barter" value="{{ unfinished.is_barter }}">
+<input type="hidden" name="desc" value="{{ unfinished.basic_item_description }}">
+<input type="hidden" name="ask" value="{{ unfinished.basic_item_ask }}">
+<input type="hidden" name="is_new" value="{{ unfinished.basic_item_new }}">
+<input type="hidden" name="is_barter" value="{{ unfinished.basic_item_barter }}">
 <input type="hidden" name="seller_name" value="{{ unfinished.seller_name }}">
 <input type="hidden" name="city" value="{{ unfinished.city }}">
 <input type="hidden" name="town" value="{{ unfinished.town }}">

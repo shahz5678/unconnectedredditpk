@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+
+<head>
+<script type="text/javascript"  src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/ecomm_preloader.js"></script>
+</head>
+
+<div id="overlay"></div>
 <div class="margin clb">
 <h2 class="cg">STEP 2 <span class="cs">(out of 4)</span></h2>
 <b class="cl">Baichnay wali cheez ki 3 fotos upload karo:</b><br>
@@ -166,9 +173,12 @@
   {% endif %}
   </div>
   <hr size=1 COLOR="#ffecb3">
-  <input type="submit" class="btn bl cl bco mbs mts" style="border-color:#f57c00;" value="Upload"><br>
+  <div class="loader">
+      <div class="spinner"></div>
+  aik min</div>
+  <input type="submit" class="UploadBtn btn bl cl bco mbs mts" style="border-color:#f57c00;" value="Upload">
   <hr size=1 COLOR="#00c853">
-  <input type="submit" class="btn bl cl mbs mts" style="border-color:#00c853;background-color:#00c853;" name="dec" value="Agey"><br>
+  <input type="submit" class="UploadBtn btn bl cl mbs mts" style="border-color:#00c853;background-color:#00c853;" name="dec" value="Agey"><br>
   {% if on_fbs %}
   <input type="submit" class="btn bl cl mbs mtl" style="border-color:#cccccc;background-color:#cccccc;" name="dec" value="Skip">
   {% endif %}

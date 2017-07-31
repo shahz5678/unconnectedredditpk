@@ -2,14 +2,10 @@
 {% block content %}
 <div class="margin clb">
 <br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/careem_banner_4.png"><br>
-<br>{% else %}<img style="max-height:133px;" src="{{ STATIC_URL }}img/careem_banner_3.png"><br>{% endif %}
-<!-- <h2 class="cg bw">Careem per gari chalien aur Rs. 40000 kamaien</h2>
-<h2 class="cg bw">Damadam per direct Careem key liay register.</h2>
- -->
-<!-- <div class="mbl mts" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-<b class="clb">Careem: </b>
-</div> -->
-<br>
+<br>{% else %}<img style="max-width:150px;" src="{{ STATIC_URL }}img/careem_banner_5.png"><br>{% endif %}
+
+<h2 class="cg bw">Apni malumat likho, Careem ki janib se apko call aye gi:</h2>
+
 <form method="post" action="{% url 'careem_ad' %}" class="mtl">
 {% csrf_token %}
 <b>1. Apna poora naam likho jaise shanakhti card per hai:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>

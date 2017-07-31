@@ -1,38 +1,46 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+
+<head>
+<script type="text/javascript"  src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/ecomm_preloader.js"></script>
+</head>
+
+<div id="overlay"></div>
 <div class="margin clb">
 {% if forbidden and time_remaining == '-1' %}
-	<b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b><br><br>
-	<span class="cgy cs">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
-	<a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
+    <b>Tumhe ab yahan se photo lagane ki ijazat nahi!</b><br><br>
+    <span class="cgy cs">Damadam ka mahol saf rakhna hm sb ka kam hai. Is bat ka khyal rakho</span><br><br>
+    <a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif forbidden %}
-	Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
-	<span class="cgy cs">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
-	<a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
+    Tumhe photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
+    <span class="cgy cs">Aesi photos lagana jo log pasand karein aur tumhari profile pr bar bar aien<br><br></span>
+    <a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
 {% elif score < threshold %}
-	Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a>
+    Photo charhaney ke liye apna <a href="{% url 'score_help' %}"><b>score barhao</b></a>
 {% else %}
-	<form action="{% url 'upload_public_photo' %}" method="POST" enctype="multipart/form-data">
-	{% csrf_token %}
-	<input type="hidden" name="sk" value="{{ sk }}">
-	<input type="hidden" name="opt" value="0">
-	<span class="co"><b>Photo</b> ka intikhab kro:</span><br>
-	{% if form.image_file.errors %}
-	<span class="cr">{{ form.image_file.errors.0 }}</span><br>
-	{% endif %}
-	{{ form.image_file }}<br><br>
-	<span class="co">Photo pe <b>kuch likho</b>:</span><br>
-	{% if form.caption.errors %}
-	<span class="cr">{{ form.caption.errors.0 }}</span><br>
-	{% endif %}
-	{{ form.caption }}<br>
-	
-	<button class="btn bco bs mts mbs" type="submit">OK</button><br>
-		
-	<span class="cgy">Photo ki qeemat: <b>3</b> points</span>
-		
-	</form>
+    <form action="{% url 'upload_public_photo' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="sk" value="{{ sk }}">
+    <input type="hidden" name="opt" value="0">
+    <span class="co"><b>Photo</b> ka intikhab kro:</span><br>
+    {% if form.image_file.errors %}
+    <span class="cr">{{ form.image_file.errors.0 }}</span><br>
+    {% endif %}
+    {{ form.image_file }}<br><br>
+    <span class="co">Photo pe <b>kuch likho</b>:</span><br>
+    {% if form.caption.errors %}
+    <span class="cr">{{ form.caption.errors.0 }}</span><br>
+    {% endif %}
+    {{ form.caption }}<br>
+    <div class="loader mts">
+      <div class="spinner mts"></div>
+    aik min</div>
+    <button class="UploadBtn btn bco bs mts mbs" type="submit">OK</button><br>
+    <span class="cgy">Photo ki qeemat: <b>3</b> points</span>
+
+    </form>
 {% endif %}
 
 </div>

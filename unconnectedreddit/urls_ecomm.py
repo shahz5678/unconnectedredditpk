@@ -2,6 +2,7 @@ from links.ecomm import x2lite_details, x32_details, buyer_loc, process_city, po
 init_classified, approve_classified, edit_classified, process_ad_approval, change_cover_photo, show_user_ads, ad_detail, process_unfinished_ad, \
 ad_locked_by_agent, show_seller_number, classified_tutorial_dec, city_list, expire_my_ad, change_my_sms_settings, classified_listing, \
 process_ad_expiry_or_sms_feedback
+from links.ecomm_tracking import display_latest_metrics
 from links.number_verification import verify_basic_item_seller_number, verify_consumer_number
 from django.contrib.auth.decorators import login_required as auth
 from django.conf.urls import patterns, include, url
@@ -38,6 +39,7 @@ urlpatterns = patterns('',
 	url(r'^vsn/$',verify_basic_item_seller_number, name="verify_basic_item_seller_number"),
 	url(r'^vcn/$',verify_consumer_number, name="verify_consumer_number"),
 	############################################################
+	url(r'^ecomm_metrics/$',auth(display_latest_metrics), name="display_latest_metrics"),
 	# url(r'^is_locked_by_someone_else/$', auth(is_locked_by_someone_else),name='is_locked_by_someone_else'),
 	# url(r'^shop_city/(?P<city>[\w.@+-]+)/$', auth(shops_by_city),name='shops_by_city'),
 	# url(r'^add_shop/$', auth(add_shop),name='add_shop'),

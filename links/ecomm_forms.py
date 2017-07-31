@@ -23,6 +23,7 @@ class EditFieldForm(forms.Form):
         super(EditFieldForm, self).__init__(*args, **kwargs)
         self.fields['text_field'].widget.attrs['autofocus'] = 'autofocus'
         self.fields['text_field'].widget.attrs['class'] = 'cxl'
+        self.fields['text_field'].widget.attrs['style'] = 'width:98%;'
 
 class VerifySellerMobileForm(forms.Form):
     mobile_number = forms.CharField(max_length=13,\
@@ -98,17 +99,6 @@ class SellerInfoForm(forms.Form):
             raise forms.ValidationError('Naam chota kar ke likho')
         return " ".join(town.split())
 
-    # def clean_mobile(self):
-    # 	mobile = self.cleaned_data.get("mobile")
-    # 	return mobile
-        # mobile = mobile.strip()
-        # mobile_length = len(mobile)
-        # if self.has_num_on_file:
-        # 	if not mobile:
-        # 		raise forms.ValidationError('Mobile number likhna zaruri hai')
-        # 	elif mobile_length < 11:
-        # 		raise forms.ValidationError('Poora mobile number likho')
-        # return ''.join(re.split('[, \-_!?:]+',mobile)) #removes any excess characters from the mobile number
 
 class BasicItemPhotosForm(forms.Form):
     photo1 = forms.ImageField(label='Upload', required=False, error_messages={'invalid': 'Photo ka intekhab sahi nahi hua'})

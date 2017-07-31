@@ -23,15 +23,20 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def log_ecomm_user_visit(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("ecomm_visits",user_id)
+
+def get_and_reset_all_ecomm_visits():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_visits = my_server.lrange("ecomm_visits",0,-1)
+	my_server.delete("ecomm_visits")
+	return all_visits
+
 def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
 	my_server = redis.Redis(connection_pool=POOL)
 	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
 	my_server.lpush("unfinished_ad_processing_error",data)
-
-# def save_seller_number_error(user_id, user_id_type, data):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}
-# 	my_server.lpush("show_seller_number_errors",um_data)
 
 def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -41,6 +46,19 @@ def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs
 	else:
 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
 		my_server.lpush("seller_number_errors",err_data)
+
+#######################Ecomm Metrics######################
+
+def insert_todays_metrics(ecomm_metrics, reporting_time):
+	my_server = redis.Redis(connection_pool=POOL)
+	mapping = {'entry_time':reporting_time, 'unique_clicks_per_unique_visitor':ecomm_metrics[0], 'unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+	'proportion_of_clickers_to_visitors':ecomm_metrics[2], 'unique_new_clickers_per_unique_new_visitors':ecomm_metrics[3], \
+	'unique_new_clicks_per_unique_new_visitor':ecomm_metrics[4], 'total_unique_visitors':ecomm_metrics[5], 'total_unique_clicks':ecomm_metrics[6]}
+	my_server.lpush("ecomm_metrics",mapping)
+
+def return_all_metrics_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("ecomm_metrics", 0, -1)
 
 #######################Test Function######################
 

@@ -28,6 +28,7 @@ delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_pho
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
 delete_photo_report, insert_hash, delete_avg_hash, log_urdu#, retrieve_first_page
+from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
@@ -136,6 +137,12 @@ def expire_classifieds():
 @celery_app1.task(name='tasks.delete_expired_classifieds')
 def delete_expired_classifieds():
 	process_ad_final_deletion()
+
+# execute every 24 hours
+@celery_app1.task(name='tasks.calc_ecomm_metrics')
+def calc_ecomm_metrics():
+	insert_latest_metrics()
+
 
 @celery_app1.task(name='tasks.log_gibberish')
 def log_gibberish_writer(user_id,text,length_of_text):

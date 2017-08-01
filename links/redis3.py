@@ -1251,3 +1251,19 @@ def retrieve_erroneous_passwords():
 				wtr.writerows([to_write])
 			except:
 				pass
+
+######################################################
+
+def return_all_ad_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_ids = my_server.lrange("global_ads_list", 0, -1)
+	expired_ad_ids = my_server.zrange("global_expired_ads_list", 0, -1)
+	pipeline1 = my_server.pipeline()
+	for ad_id in ad_ids:
+		pipeline1.hgetall("ad:"+ad_id)
+	result1 = pipeline1.execute()
+	pipeline2 = my_server.pipeline()
+	for ad_id in expired_ad_ids:
+		pipeline2.hgetall("ad:"+ad_id)
+	result2 = pipeline2.execute()
+	return result1, result2

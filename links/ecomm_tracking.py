@@ -126,7 +126,7 @@ def get_ad_export(request):
 	with open(filename,'wb') as f:
 		wtr = csv.writer(f)
 		columns = \
-		"ad_id submission_time(epoch) sub_time_human fbs device expiration_time(epoch) exp_time_human expiration_clicks is_expired username user_id seller_name seller_number seller_city seller_town is_new is_barter ask category title title_char_count num_unique_clicks photo_count description desc_char_count SMS_setting AK_ID closed_by".split()
+		"ad_id submission_time(epoch) sub_time_human fbs device expiration_time(epoch) exp_time_human expiration_clicks is_expired username user_id seller_name seller_number seller_city seller_town is_new is_barter ask category title title_char_count num_unique_clicks unique_clicks_per_day photo_count description desc_char_count SMS_setting AK_ID closed_by".split()
 		wtr.writerow(columns)
 		for current_ad in all_ads:
 			ad_id = current_ad["ad_id"] if "ad_id" in current_ad else None

@@ -12,9 +12,11 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 ##########Redis 3 Namespace##########
 
 pipeline1.lpush("aa:"+city,ad_id)
+"ad:"+ad_id # hash containing ad details
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
 my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
+server.lpush("ecomm_clicks",(user_id, ad_id, time_now)) # recording the click in a list of tuples
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
@@ -32,6 +34,7 @@ my_server.hgetall("um:"+str(user_id)) # user mobile number data
 my_server.zadd("unapproved_ads",ad,ad_id)
 "unfinalized_used_item_photos"
 my_server.zadd("unfinished_classifieds",ad_id)
+"verified_numbers" # sorted set, ensures that once used, a mobile number can't be tied to another ID
 
 
 my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key
@@ -459,7 +462,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 
 
 # helper function for get_seller_details
-def log_ad_click(server, ad_hash, clicker_id, ad_id):
+def log_ad_click(server, ad_hash, clicker_id, ad_id, time_now):
 	is_unique, clicker_number, expire_ad = False, None, False
 	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
 		click_details, is_unique = [], True
@@ -469,7 +472,7 @@ def log_ad_click(server, ad_hash, clicker_id, ad_id):
 		# except:
 		# 	save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
 		###################################################################################################
-		click_details.append((clicker_number,time.time()))
+		click_details.append((clicker_number,time_now))
 		if 'unique_clicks' in ad_hash:
 			ad_hash["unique_clicks"] = int(ad_hash["unique_clicks"]) + 1
 		else:
@@ -494,9 +497,17 @@ def log_ad_click(server, ad_hash, clicker_id, ad_id):
 # called when buyer clicks the button to get seller's contact details
 def get_seller_details(clicker_id, ad_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	ad_id = str(float(ad_id))
-	clicker_id = str(clicker_id)
-	return log_ad_click(my_server,my_server.hgetall("ad:"+ad_id), clicker_id, ad_id)
+	ad_id, clicker_id, time_now = str(float(ad_id)), str(clicker_id), time.time()
+	seller_details = log_ad_click(my_server,my_server.hgetall("ad:"+ad_id), clicker_id, ad_id, time_now)
+	my_server.lpush("ecomm_clicks",(clicker_id, ad_id)) # recording the click in a list of tuples, 'is_unique' means a person clicking the same ad twice
+	return seller_details
+
+
+def get_and_reset_all_ecomm_clicks():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_clicks = my_server.lrange("ecomm_clicks",0,-1)
+	my_server.delete("ecomm_clicks")
+	return all_clicks
 
 
 # return True if user has any number on file
@@ -1240,3 +1251,19 @@ def retrieve_erroneous_passwords():
 				wtr.writerows([to_write])
 			except:
 				pass
+
+######################################################
+
+def return_all_ad_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_ids = my_server.lrange("global_ads_list", 0, -1)
+	expired_ad_ids = my_server.zrange("global_expired_ads_list", 0, -1)
+	pipeline1 = my_server.pipeline()
+	for ad_id in ad_ids:
+		pipeline1.hgetall("ad:"+ad_id)
+	result1 = pipeline1.execute()
+	pipeline2 = my_server.pipeline()
+	for ad_id in expired_ad_ids:
+		pipeline2.hgetall("ad:"+ad_id)
+	result2 = pipeline2.execute()
+	return result1, result2

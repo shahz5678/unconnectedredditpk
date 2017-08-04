@@ -7,7 +7,7 @@ from abuse import BANNED_WORDS
 import re
 
 class CreateAccountForm(forms.ModelForm):
-	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': "ye naam sahi nahi hai"})
+	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': "ye naam sahi nahi hai"})
 	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"password khali na choro"})
 	class Meta:
 		model = User
@@ -56,7 +56,7 @@ class CreateAccountForm(forms.ModelForm):
 ############################################################################################################
 
 class CreatePasswordForm(forms.Form):
-	username = forms.RegexField(max_length=50,regex=re.compile('^[\w.@+-]+$'))
+	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'))
 	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likho:"})
 	class Meta:
 		fields = ('password','username')
@@ -217,7 +217,7 @@ def form_suggestions(username):
 		username+'-786'] #49 suggestions
 
 class CreateNickNewForm(forms.Form):
-	username = forms.CharField(max_length=50,error_messages={'invalid': "Naam mein sirf english harf, number ya @ _ . + - ho sakta hai",\
+	username = forms.CharField(max_length=30,error_messages={'invalid': "Naam mein sirf english harf, number ya @ _ . + - ho sakta hai",\
 		'required':"Is safed patti mein naam likh kar OK dabao:"})#,validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)

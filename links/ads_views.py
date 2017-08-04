@@ -10,8 +10,8 @@ from django.middleware import csrf
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from ecomm import get_device
-from redis4 import export_careem_data
-import os
+from redis4 import export_careem_data, del_careem_data
+import os, time
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -66,6 +66,24 @@ def verify_careem_number(request):
 	return render(request,'verify_careem_number.html')
 
 def s_test(request):
-	export_careem_data()
-	return render(request,'s_test.html')
+	import csv
+	result1 = export_careem_data()
+	if result1 == False:
+		return render(request,'404.html')
+	else:
+		filename = 'careem_'+str(int(time.time()))+'.csv'
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
+			wtr.writerow(columns)
+			for user in result1:
+				firstname,lastname,phonenumber,city,license,car = user['firstname'],user['lastname'],user['phonenumber'],\
+				user['city'],user['license'],user['car']
+				if ( car == 'Yes' or license == 'Yes' ) and (city != 'Koi aur'): 
+					to_write = [firstname,lastname,phonenumber,city,license,car]
+					wtr.writerows([to_write])
+				else:
+					pass
+		del_careem_data()		
+		return render(request,'s_test.html')
 

@@ -67,9 +67,7 @@ def verify_careem_number(request):
 
 def s_test(request):
 	import csv
-	print "hey there"
 	result1 = export_careem_data()
-	print result1
 	if result1 == False:
 		return render(request,'404.html')
 	else:

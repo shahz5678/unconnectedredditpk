@@ -12,6 +12,10 @@ from django.views.decorators.cache import cache_control
 from ecomm import get_device
 from redis4 import export_careem_data, del_careem_data
 import os, time
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
+
+mp = Mixpanel(MIXPANEL_TOKEN)
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -52,6 +56,7 @@ def careem_ad(request,*args,**kwargs):
 			return render(request,'careem_ad.html',{'form':form,'device':get_device(request)})
 	else:
 		form = CareemAdForm()
+		mp.track(request.user.id, 'Clicked Careem Ad')
 		request.session.pop('firstname',None) 
 		request.session.pop('lastname',None)
 		request.session.pop('phonenumber',None)
@@ -68,6 +73,7 @@ def verify_careem_number(request):
 def s_test(request):
 	import csv
 	result1 = export_careem_data()
+	total_users=0;
 	if result1 == False:
 		return render(request,'404.html')
 	else:
@@ -77,6 +83,7 @@ def s_test(request):
 			columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
 			wtr.writerow(columns)
 			for user in result1:
+				total_users+=1
 				firstname,lastname,phonenumber,city,license,car = user['firstname'],user['lastname'],user['phonenumber'],\
 				user['city'],user['license'],user['car']
 				if ( car == 'Yes' or license == 'Yes' ) and (city != 'Koi aur'): 
@@ -84,6 +91,8 @@ def s_test(request):
 					wtr.writerows([to_write])
 				else:
 					pass
+			to_write = ["Total ="+str(total_users)]
+			wtr.writerows([to_write])	
 		del_careem_data()		
 		return render(request,'s_test.html')
 

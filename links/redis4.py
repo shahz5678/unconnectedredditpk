@@ -234,28 +234,27 @@ def save_careem_data(careem_data):
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
 		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
-#		print my_server.zrange("careem_applicant_nums",0,-1)
+		pipeline1.zadd('careem_applicant_nums_live',careem_data['phonenumber'],time.time())
 		pipeline1.execute()
 
 		return True
 
 def export_careem_data():
-	import csv
 	my_server = redis.Redis(connection_pool=POOL)
-	nums = my_server.zrange("careem_applicant_nums",0,-1)
 	pipeline1 = my_server.pipeline()
-	for num in nums:
-		pipeline1.hgetall('cad:'+num)
-	result1 = pipeline1.execute()
-	filename = 'careem_'+str(int(time.time()))+'.csv'
-	with open(filename,'wb') as f:
-		wtr = csv.writer(f)
-		columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
-		wtr.writerow(columns)
-		for user in result1:
-			firstname,lastname,phonenumber,city,license,car=user['firstname'],user['lastname'],user['phonenumber'],\
-			user['city'],user['license'],user['car']
-			to_write = [firstname,lastname,phonenumber,city,license,car]
-			wtr.writerows([to_write])
+	user = my_server.zcard("careem_applicant_nums_live")
+	if user == 0:
+		return False
+	else:
+		nums = my_server.zrange("careem_applicant_nums_live",0,-1)
+		pipeline1 = my_server.pipeline()
+		for num in nums:
+			pipeline1.hgetall('cad:'+num)
+		result1 = pipeline1.execute()
+		return result1
+
+def del_careem_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("careem_applicant_nums_live")
 
 #########################################################

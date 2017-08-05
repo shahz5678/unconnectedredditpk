@@ -10,12 +10,15 @@
 	{% if only_locked == '0' %}
 	<span class="cs cgy">-- {{ count }} entries --</span><br>
 	<a href="{% url 'approve_classified' 1 %}">
-	<button type="submit" class="btn bct mts cs" style="border:none;border-radius:2px;">&nbsp;my locked ads&nbsp;</button>
+	<button class="btn bct mts cs" style="border:none;border-radius:2px;">&nbsp;my locked ads&nbsp;</button>
+	</a>
+	<a href="{% url 'display_latest_metrics' %}">
+	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics&nbsp;</button>
 	</a>
 	{% else %}
 	<span class="cxl ct">My Locked Ads ({{ count }})</span><br>
 	<a href="{% url 'approve_classified' 0 %}">
-	<button type="submit" class="btn bcp mts mbs cs" style="border:none;border-radius:2px;">&nbsp;all unapproved&nbsp;</button>
+	<button class="btn bcp mts mbs cs" style="border:none;border-radius:2px;">&nbsp;all unapproved&nbsp;</button>
 	</a>
 	<hr size=1 COLOR="#cfd8dc">
 	{% endif %}

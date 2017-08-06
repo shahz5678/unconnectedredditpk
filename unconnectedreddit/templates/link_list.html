@@ -430,6 +430,7 @@
 			<div class="mtl">
 				<form method="post" action="{% url 'home_reply' pk=link.l %}">
 				{% csrf_token %}
+				<input type="hidden" name="lang" value="{{ lang }}">
 				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}</span><br>
 				<button class="btn bct bs mtl mbs" type="submit">OK</button>
 				</form>
@@ -440,6 +441,7 @@
 			{% csrf_token %}
 				<input type="hidden" name="lid" value="{{ link.l }}">
 				<input type="hidden" name="origin" value="0">
+				<input type="hidden" name="lang" value="{{ lang }}">
 				{% if user.username in checked %}
 				<button class="btn bcg bm mts mbl" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;<button class="btn bcg mbl" type="submit" name="vote" value="2">+20</button><br>
 				<button class="btn bcr bm" type="submit" name="vote" value="-1">chupair</button>&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 20</button><br>

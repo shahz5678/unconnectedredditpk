@@ -6718,11 +6718,14 @@ def welcome_reply(request,*args,**kwargs):
 		else:
 			return render(request,'404.html',{})
 
-def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
+def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, *args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
 	if from_home == '1':
-		return redirect("home")
+		if lang == 'urdu':
+			return redirect("ur_home", 'urdu')
+		else:
+			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
 	elif from_home == '5':
@@ -6730,11 +6733,14 @@ def cross_group_notif(request,pk=None, uid=None,from_home=None,*args,**kwargs):
 	else:
 		return redirect("photo")
 
-def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, *args, **kwargs):
+def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, *args, **kwargs):
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
 	if from_home == '1':
-		return redirect("home")
+		if lang == 'urdu':
+			return redirect("ur_home", 'urdu')
+		else:
+			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
 	elif from_home == '5':
@@ -6742,13 +6748,16 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 	else:
 		return redirect("photo")
 
-def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
+def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, *args, **kwargs):
 	notif_name = "np:"+user+":"+pk.split(":",1)[1]
 	hash_name = pk
 	viewer_id = user
 	delete_salat_notification(notif_name,hash_name,viewer_id)
 	if from_home == '1':
-		return redirect("home")
+		if lang == 'urdu':
+			return redirect("ur_home", 'urdu')
+		else:
+			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
 	elif from_home == '5':
@@ -6756,11 +6765,14 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, *args, **kwar
 	else:
 		return redirect("photo")
 
-def cross_notif(request, pk=None, user=None, from_home=None, *args, **kwargs):
+def cross_notif(request, pk=None, user=None, from_home=None, lang=None, *args, **kwargs):
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
 	if from_home == '1':
-		return redirect("home")
+		if lang == 'urdu':
+			return redirect("ur_home", 'urdu')
+		else:
+			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
 	elif from_home == '5':

@@ -1079,6 +1079,10 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		# this is a link about English Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
+	elif categ == '17':
+		# this is a link in Urdu
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 
@@ -1240,10 +1244,17 @@ def all_filtered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("filteredposts:1000", 0, -1)
 
-def add_filtered_post(link_id):
+def all_filtered_urdu_posts():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("filteredurduposts:1000", 0, -1)
+
+def add_filtered_post(link_id, is_ur=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("filteredposts:1000", link_id)
 	my_server.ltrim("filteredposts:1000", 0, 999)
+	if is_ur:
+		my_server.lpush("filteredurduposts:1000", link_id)
+		my_server.ltrim("filteredurduposts:1000", 0, 999)
 
 def add_unfiltered_post(link_id):
 	my_server = redis.Redis(connection_pool=POOL)

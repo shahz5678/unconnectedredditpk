@@ -62,8 +62,10 @@ urlpatterns = patterns('',
 	url(r'^administer_me/', include(admin.site.urls)),
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
+	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'), #new
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
+	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^whook/$', webhook_event, name='webhook_event'),
 	#########################################Logging out############################################

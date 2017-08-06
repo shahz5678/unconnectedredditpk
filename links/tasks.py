@@ -151,11 +151,7 @@ def log_gibberish_writer(user_id,text,length_of_text):
 
 @celery_app1.task(name='tasks.capture_urdu')
 def capture_urdu(text):
-	# 0600-06FF Unicode range for Urdu
-	for c in text:
-		if u'\u0600' <= c <= u'\u06FF':
-			log_urdu(text)
-			break
+	log_urdu(text)
 
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):

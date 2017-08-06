@@ -1,5 +1,8 @@
+from django.contrib.auth import login as google_login
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+######################################################################################
 from django.contrib.auth.views import login as log_me_in
-from django.contrib.auth import login, authenticate
 from django.shortcuts import redirect, render
 from django.middleware import csrf
 from django.views.decorators.cache import cache_control
@@ -24,11 +27,11 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
-
+@csrf_exempt
 def log_google_in(request, *args, **kwargs):
 	if request.method == "POST":
 		user = authenticate(username=request.POST.get("username",None),password=request.POST.get("password",None))
-		login(request,user)
+		google_login(request,user)
 		return redirect("ur_home", 'urdu')
 	else:
 		form = CreateAccountForm()

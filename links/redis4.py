@@ -33,11 +33,6 @@ def get_and_reset_all_ecomm_visits():
 	my_server.delete("ecomm_visits")
 	return all_visits
 
-def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
-	my_server = redis.Redis(connection_pool=POOL)
-	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
-	my_server.lpush("unfinished_ad_processing_error",data)
-
 def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	if which_flow == 'consumer':

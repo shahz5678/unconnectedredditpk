@@ -957,7 +957,7 @@ def retrieve_home_links(link_id_list):
 	for link_id in link_id_list:
 		hash_name="lk:"+str(link_id)
 		pipeline1.hgetall(hash_name)
-	result1 = pipeline1.execute()
+	result1 = filter(None, pipeline1.execute())
 	count = 0
 	for hash_obj in result1:
 		list_of_dictionaries.append(hash_obj)

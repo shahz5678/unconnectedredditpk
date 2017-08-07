@@ -56,6 +56,7 @@ TEN_MINS = 10*60
 TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
+SIX_HOURS = 6*60*60
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
@@ -722,7 +723,7 @@ def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_bar
 		my_server.hset(temp_ad,"csrf",csrf)
 	if mob_nums:
 		my_server.hset(temp_ad,"mob_nums",mob_nums)
-	my_server.expire(temp_ad,TWO_HOURS) # will self-destruct after 2 hours of inactivity
+	my_server.expire(temp_ad,SIX_HOURS) # will self-destruct after 6 hours of inactivity
 
 
 def get_temporarily_saved_ad_data(user_id, id_only=False, all_photo_numbers=False, photo_hashes=False, full_ad=False, half_ad=False, mob_nums=False, only_csrf=False):
@@ -771,15 +772,13 @@ def temporarily_save_buyer_snapshot(user_id=None, referrer=None, redirect_to=Non
 		my_server.hset(temp_storage,"redirect_to",redirect_to)
 	if csrf:
 		my_server.hset(temp_storage,"csrf",csrf)
-	my_server.expire(temp_storage,FORTY_FIVE_MINS) # will self-destruct after 45 mins of inactivity
+	my_server.expire(temp_storage,TWO_HOURS) # will self-destruct after 2 hours of inactivity
 
 def get_buyer_snapshot(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	temp_storage = "ts:"+user_id
 	if my_server.exists(temp_storage):
-		data = my_server.hgetall("ts:"+user_id)
-		# my_server.delete("ta:"+user_id)
-		return data
+		return my_server.hgetall("ts:"+user_id)
 	else:
 		return {}
 

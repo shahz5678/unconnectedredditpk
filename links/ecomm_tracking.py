@@ -151,9 +151,9 @@ def get_ad_export(request):
 			title_char_count = len(title) if title else 0
 			num_unique_clicks = current_ad["unique_clicks"] if "unique_clicks" in current_ad else 0
 			if is_expired:
-				unique_clicks_per_day = num_unique_clicks/((float(expiration_time)-float(submission_time))/86400)
+				unique_clicks_per_day = int(num_unique_clicks)/((float(expiration_time)-float(submission_time))/86400)
 			else:
-				unique_clicks_per_day = num_unique_clicks/((time.time()-float(submission_time))/86400)
+				unique_clicks_per_day = int(num_unique_clicks)/((time.time()-float(submission_time))/86400)
 			photo_count = current_ad["photo_count"] if "photo_count" in current_ad else None
 			description = current_ad["desc"] if "desc" in current_ad else None
 			desc_char_count = len(description) if description else 0

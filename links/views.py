@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
-from page_controls import ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE
+from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
 CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD, CITIZEN_THRESHOLD
 from django.core.cache import get_cache, cache
@@ -1312,6 +1312,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 		user_id = request.user.id
 		form = PublicreplyMiniForm(data=request.POST,user_id=request.user.id)
 		lang = request.POST.get("lang",None)
+		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 		if form.is_valid():
 			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 			request.session['target_id'] = pk
@@ -1324,14 +1325,11 @@ def home_reply(request,pk=None,*args,**kwargs):
 				else:
 					return redirect("home_loc")
 		else:
-			# photo_ids, non_photo_link_ids, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request,ITEMS_PER_PAGE,pk)
-			photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ITEMS_PER_PAGE,lang=lang,notif=pk)
+			photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
 			replyforms[pk] = form
 			request.session['replyforms'] = replyforms
 			request.session['list_of_dictionaries'] = list_of_dictionaries
 			request.session['page'] = page_obj
-			# request.session['home_photo_ids'] = photo_ids
-			# request.session['home_non_photo_link_ids'] = non_photo_link_ids
 			request.session['photo_links'] = photo_links
 			url = reverse_lazy("home")+addendum
 			return redirect(url)
@@ -1365,7 +1363,8 @@ def home_location_pk(request,pk=None,*args,**kwargs):
 
 def home_location(request, lang=None, *args, **kwargs):
 	link_id = request.session.pop("target_id", 0)
-	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request,items_per_page=ITEMS_PER_PAGE,lang=lang, notif=link_id)
+	ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request, items_per_page=ipp, lang=lang, notif=link_id)
 	request.session['photo_links'] = photo_links
 	request.session['list_of_dictionaries'] = list_of_dictionaries
 	request.session['page'] = page_obj
@@ -1381,6 +1380,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		form = HomeLinkListForm()
 		context = {}
 		user = request.user
+		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 		context["lang"] = lang
 		context["checked"] = FEMALES
 		context["form"] = form
@@ -1401,14 +1401,14 @@ def home_link_list(request, lang=None, *args, **kwargs):
 				page = request.session['page']
 				replyforms = request.session['replyforms']
 			else:
-				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ITEMS_PER_PAGE, lang=lang)
+				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang)
 			del request.session['photo_links']
 			del request.session['list_of_dictionaries']
 			del request.session['page']
 			del request.session['replyforms']
 		else:
 			# normal refresh or toggling between pages (via agey or wapis)
-			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ITEMS_PER_PAGE, lang=lang)
+			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["replyforms"] = replyforms

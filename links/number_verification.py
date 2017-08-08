@@ -43,7 +43,6 @@ def verify_careem_applicant(request,*args,**kwargs):
 
 
 def verify_consumer_number(request,*args,**kwargs):
-	# if request.user.is_authenticated():
 	user_id = request.user.id
 	data = get_buyer_snapshot(user_id=str(user_id))
 	if data:
@@ -60,16 +59,15 @@ def verify_consumer_number(request,*args,**kwargs):
 		elif err['status'] == "NOT_AUTHENTICATED":
 			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer'})
 		else:
-			save_number_verification_error_data(user_id, err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
+			save_number_verification_error_data(user_id=user_id, err_data=err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
 			return render(request,"unverified_number.html",{})
 	else:
-		save_number_verification_error_data(user_id, {}, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
-		return render(request,"unverified_number.html",{})
+		return render(request,"try_again.html",{'type':'consumer'})
 
 
 def verify_basic_item_seller_number(request,*args,**kwargs):
 	user_id = request.user.id
-	CSRF = get_temporarily_saved_ad_data(str(user_id),only_csrf=True)
+	CSRF = get_temporarily_saved_ad_data(user_id=str(user_id),only_csrf=True)
 	AK_ID, MN_data, err = get_requirements(request=request, csrf=CSRF)
 	if AK_ID and MN_data:
 		if someone_elses_number(MN_data["national_number"],user_id):
@@ -89,6 +87,9 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			pass
 	elif err['status'] == 'NOT_AUTHENTICATED':
 		return render(request,"dont_worry_just_authenticate.html",{'csrf':CSRF,'type':'seller'})
+	elif CSRF is None:
+		return render(request,"try_again.html",{'type':'seller'})
 	else:
-		save_number_verification_error_data(user_id, err, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='seller')
+		save_number_verification_error_data(user_id=user_id, err_data=err, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),\
+			which_flow='seller')
 		return render(request,"unverified_number.html",{'err':err})

@@ -6,6 +6,7 @@
 <span class="cgy">(iska score <b style="color:red;">-3</b> ho ga)</span><br><br>
 <form action="{% url 'reportcomment' %}" method="POST">
 {% csrf_token %}
+<input type="hidden" name="photo_pk" value="{{ photo_pk }}">
 &nbsp;<input class="voting" type="submit" name="report" style="font-weight:bold;color:white;background-color:#1CB841;border-color:green;width:5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-bottom:1em;font-size:90%;" value="Haan"><br>
 &nbsp;<input class="voting" type="submit" name="report" style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;" value="Nahi"><br>
 </form>

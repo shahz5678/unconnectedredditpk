@@ -253,4 +253,10 @@ def del_careem_data():
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.delete("careem_applicant_nums_live")
 
+
+def log_comment_report(data):
+	my_server = redis.Redis(connection_pool=POOL)
+	data["log_time"]=time.time()
+	my_server.lpush("Commentreport",data)
+
 #########################################################

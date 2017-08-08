@@ -114,13 +114,46 @@ def display_latest_metrics(request):
 		template_context = {}
 	return render(request,"ecomm_metrics.html",template_context)
 
-def get_ad_export(request):
+
+def get_all_ads_data():
 	current_ads, expired_ads = return_all_ad_data() #results two lists (of dictionaries)
 	for ad in expired_ads:
 		ad["is_expired"] = 1 # appending 1 in expired_ads
 	for ad in current_ads:
 		ad["is_expired"] = 0 # appending 0 in current_ads
 	all_ads = current_ads + expired_ads
+	return all_ads
+
+def get_click_distribution(request):
+	all_ads = get_all_ads_data()
+	real_clicks = []
+	for ad in all_ads:
+		if ad["is_expired"] == 1:
+			own_number = "0"+ast.literal_eval(ad["MN_data"])["national_number"] if "MN_data" in ad else None
+			if "click_details" in ad:
+				for num, click_time in ast.literal_eval(ad["click_details"]):
+					if num != own_number:
+						days_since_submission = "{0:.4f}".format(((click_time - float(ad["submission_time"]))/86400))
+						real_clicks.append((ad["ad_id"], num, click_time, days_since_submission))
+	if real_clicks:
+		import csv
+		filename = 'clicks_'+str(int(time.time()))+'.csv'
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = "ad_id days_since_submission time_of_click mobile_number".split()
+			wtr.writerow(columns)
+			for click in real_clicks:
+				ad_id = click[0]
+				days_since_submission = click[3]
+				time_of_click = click[2]
+				mobile_number = click[1]
+				to_write = [ad_id,days_since_submission, time_of_click, mobile_number]
+				wtr.writerows([to_write])
+	return render(request,"404.html",{})
+
+
+def get_ad_export(request):
+	all_ads = get_all_ads_data()
 	import csv
 	filename = 'ads_'+str(int(time.time()))+'.csv'
 	with open(filename,'wb') as f:

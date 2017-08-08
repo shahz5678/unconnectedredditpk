@@ -991,7 +991,7 @@ class ReportcommentView(FormView):
 			if not self.request.user_banned:
 				rprt = self.request.POST.get("report")
 				alt_photo_id = self.request.POST.get("photo_pk", None)
-				alt_comment_id = self.request.POST.get("comment_pk", None)
+				# alt_comment_id = self.request.POST.get("comment_pk", None)
 				# print alt_photo_id, alt_comment_id
 				if rprt == 'Haan':
 					comment_id = self.request.session["reportcomment_pk"]
@@ -1012,8 +1012,8 @@ class ReportcommentView(FormView):
 						self.request.session.modified = True
 						pk = comment.submitted_by_id
 						ident = self.request.user.id
-						# if pk != ident:
-						# 	document_comment_abuse(pk)
+						if pk != ident:
+							document_comment_abuse(pk)
 						if slug:
 							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 						else:

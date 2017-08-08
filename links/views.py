@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, log_comment_report
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
@@ -966,6 +966,7 @@ def reportcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, 
 			request.session["origin_profile"] = slug
 		else:
 			request.session["origin_profile"] = None
+			request.session.modified = True
 		return redirect("reportcomment")
 		
 class ReportcommentView(FormView):
@@ -989,13 +990,16 @@ class ReportcommentView(FormView):
 		if self.request.method == 'POST':
 			if not self.request.user_banned:
 				rprt = self.request.POST.get("report")
+				alt_photo_id = self.request.POST.get("photo_pk", None)
+				alt_comment_id = self.request.POST.get("comment_pk", None)
+				# print alt_photo_id, alt_comment_id
 				if rprt == 'Haan':
 					comment_id = self.request.session["reportcomment_pk"]
 					photo_id = self.request.session["photonum_pk"]
 					slug = self.request.session["origin_profile"]
 					origin = self.request.session["origin"]
 					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
-					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
+						Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
 						comment = get_object_or_404(PhotoComment, pk=comment_id)
 						comment.abuse = True
 						comment.save()
@@ -1008,30 +1012,52 @@ class ReportcommentView(FormView):
 						self.request.session.modified = True
 						pk = comment.submitted_by_id
 						ident = self.request.user.id
-						if pk != ident:
-							document_comment_abuse(pk)
+						# if pk != ident:
+						# 	document_comment_abuse(pk)
 						if slug:
 							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 						else:
 							return redirect("comment_pk", pk=photo_id, origin=origin)
 					else:
+						#########################################################
+						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
+						"origin":origin}
+						log_comment_report(data)
+						#########################################################
 						self.request.user.userprofile.score = self.request.user.userprofile.score -3
 						self.request.user.userprofile.save()
-						return redirect("photo")
+						return redirect("comment_pk", pk=alt_photo_id)
+						#return redirect("photo")
 				else:
-					comment_pk = self.request.session["reportcomment_pk"]
+					comment_id = self.request.session["reportcomment_pk"]
 					photo_id = self.request.session["photonum_pk"]
-					origin = self.request.session["origin"]
 					slug = self.request.session["origin_profile"]
-					self.request.session["reportcomment_pk"] = None
-					self.request.session["photonum_pk"] = None
-					self.request.session["origin"] = None
-					self.request.session["origin_profile"] = None
-					self.request.session.modified = True
-					if slug is not None:
-						return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+					origin = self.request.session["origin"]
+					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
+					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
+						comment_pk = self.request.session["reportcomment_pk"]
+						photo_id = self.request.session["photonum_pk"]
+						origin = self.request.session["origin"]
+						slug = self.request.session["origin_profile"]
+						self.request.session["reportcomment_pk"] = None
+						self.request.session["photonum_pk"] = None
+						self.request.session["origin"] = None
+						self.request.session["origin_profile"] = None
+						self.request.session.modified = True
+						if slug is not None:
+							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+						else:
+							return redirect("comment_pk", pk=photo_id, origin=origin )
+			
 					else:
-						return redirect("comment_pk", pk=photo_id, origin=origin)
+						#########################################################
+						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
+						"origin":origin}
+						log_comment_report(data)
+						#########################################################
+						return redirect("comment_pk", pk=alt_photo_id)
+						#return redirect("photo")
+		
 			else:
 				return redirect("score_help")
 

@@ -159,7 +159,7 @@ def get_ad_export(request):
 	with open(filename,'wb') as f:
 		wtr = csv.writer(f)
 		columns = \
-		"ad_id submission_time(epoch) sub_time_human fbs device expiration_time(epoch) exp_time_human expiration_clicks is_expired username user_id seller_name seller_number seller_city seller_town is_new is_barter ask category title title_char_count num_unique_clicks unique_clicks_per_day photo_count description desc_char_count SMS_setting AK_ID closed_by".split()
+		"ad_id submission_time(epoch) sub_time_human fbs device expiration_time(epoch) exp_time_human expiration_clicks is_expired username user_id seller_name seller_number seller_city seller_town is_new is_barter ask category title title_char_count num_unique_clicks clicked_own_ad photo_count description desc_char_count SMS_setting AK_ID closed_by".split()
 		wtr.writerow(columns)
 		for current_ad in all_ads:
 			ad_id = current_ad["ad_id"] if "ad_id" in current_ad else None
@@ -183,10 +183,18 @@ def get_ad_export(request):
 			title = current_ad["title"] if "title" in current_ad else None
 			title_char_count = len(title) if title else 0
 			num_unique_clicks = current_ad["unique_clicks"] if "unique_clicks" in current_ad else 0
-			if is_expired:
-				unique_clicks_per_day = int(num_unique_clicks)/((float(expiration_time)-float(submission_time))/86400)
+			# if is_expired:
+			# 	unique_clicks_per_day = int(num_unique_clicks)/((float(expiration_time)-float(submission_time))/86400)
+			# else:
+			# 	unique_clicks_per_day = int(num_unique_clicks)/((time.time()-float(submission_time))/86400)
+			if num_unique_clicks:
+				nums = retrieve_values_from_list_of_tuples(ast.literal_eval(current_ad["click_details"]))
+				if "0"+seller_number in nums:
+					clicked_own_ad = 'Yes'
+				else:
+					clicked_own_ad = 'No'
 			else:
-				unique_clicks_per_day = int(num_unique_clicks)/((time.time()-float(submission_time))/86400)
+				clicked_own_ad = 'No'
 			photo_count = current_ad["photo_count"] if "photo_count" in current_ad else None
 			description = current_ad["desc"] if "desc" in current_ad else None
 			desc_char_count = len(description) if description else 0
@@ -195,6 +203,6 @@ def get_ad_export(request):
 			closed_by = current_ad["closed_by"] if "closed_by" in current_ad else None
 			category = current_ad["categ"] if "categ" in current_ad else None
 			to_write = [ad_id,submission_time, sub_time_human, fbs,device,expiration_time,exp_time_human,expiration_clicks, is_expired, username, user_id, seller_name, seller_number, seller_city, seller_town, is_new, is_barter, \
-			ask, category, title, title_char_count, num_unique_clicks, unique_clicks_per_day, photo_count, description, desc_char_count, SMS_setting, AK_ID, closed_by]
+			ask, category, title, title_char_count, num_unique_clicks, clicked_own_ad, photo_count, description, desc_char_count, SMS_setting, AK_ID, closed_by]
 			wtr.writerows([to_write])
 	return render(request, "404.html", {})

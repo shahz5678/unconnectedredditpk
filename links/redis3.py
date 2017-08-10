@@ -52,7 +52,6 @@ user_thumbs = "upt:"+owner_uname
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-TEN_MINS = 10*60
 TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
@@ -1104,7 +1103,7 @@ def set_ecomm_photos_secret_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	my_server.set("epusk:"+user_id,secret_key)
-	my_server.expire("epusk:"+user_id,TEN_MINS)
+	my_server.expire("epusk:"+user_id,FORTY_FIVE_MINS)
 
 def get_and_delete_ecomm_photos_secret_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1189,6 +1188,11 @@ def get_temp_id():
 	return my_server.incr("temp_user_id")
 
 ##########Logging Home Gibberish Writers#############
+
+def log_repeated_text_writer(user_id, text):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush('repeated_text',{'user_id':user_id, 'text':text})
+
 
 def log_gibberish_text_writer(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

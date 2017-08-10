@@ -15,7 +15,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
-from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
+from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, log_repeated_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry
 from .redis4 import expire_online_users, get_recent_online
@@ -148,6 +148,15 @@ def calc_ecomm_metrics():
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
 		log_gibberish_text_writer(user_id)
+	else:
+		tokens = text[:12].split()
+		if text.count(tokens[0]) > 3 :
+			#find where the next repetition starts
+			log_repeated_text_writer(user_id, text)
+		elif len(tokens) > 1 and text.count(tokens[1]) > 3:
+			#find where the next repetition starts
+			log_repeated_text_writer(user_id, text)
+				
 
 @celery_app1.task(name='tasks.capture_urdu')
 def capture_urdu(text):

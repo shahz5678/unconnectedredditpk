@@ -280,15 +280,6 @@
 		</div>
 		<p><hr size=1 COLOR="#33cc33"></p></div>
 	{% endif %}
-	{% if forloop.counter == 6 %}
-		<div style="background-color:#ffffb3;margin-top:-1em;padding-top:1em;">
-		<div class="mls">
-		<a href="{% url 'careem_ad' %}#section0"><img style="max-width:150px;" src="{{ STATIC_URL }}img/careem_banner_5.png"></a>
-		<span class="cg cl">Careem ke sath gari chala ke har month <b>Rs.50,000</b> tak kamaien!</span>
-		<a href="{% url 'careem_ad' %}"><button class="btn bcg bl cl mls mts">Tafseel</button></a>
-		</div>
-		<p><hr size=1 COLOR="#33cc33"></p></div>
-	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->

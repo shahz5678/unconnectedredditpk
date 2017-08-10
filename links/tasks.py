@@ -150,10 +150,10 @@ def log_gibberish_writer(user_id,text,length_of_text):
 		log_gibberish_text_writer(user_id)
 	else:
 		tokens = text[:12].split()
-		if text.count(tokens[0]) > 3 :
+		if len(tokens[0]) > 1 and text.count(tokens[0]) > 3 :
 			#find where the next repetition starts
 			log_repeated_text_writer(user_id, text)
-		elif len(tokens) > 1 and text.count(tokens[1]) > 3:
+		elif len(tokens) > 1 and len(tokens[1]) > 1 and text.count(tokens[1]) > 3:
 			#find where the next repetition starts
 			log_repeated_text_writer(user_id, text)
 				

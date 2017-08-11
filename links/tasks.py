@@ -15,9 +15,9 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
-from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, log_repeated_text_writer, get_gibberish_text_writers, \
+from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, log_spam_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry
+process_ad_final_deletion, process_ad_expiry, log_detail_click
 from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
@@ -148,19 +148,26 @@ def calc_ecomm_metrics():
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
 		log_gibberish_text_writer(user_id)
+		log_spam_text_writer(user_id, text)
 	else:
 		tokens = text[:12].split()
 		if len(tokens[0]) > 2 and text.count(tokens[0]) > 5 :
 			#find where the next repetition starts
-			log_repeated_text_writer(user_id, text)
+			log_spam_text_writer(user_id, text)
 		elif len(tokens) > 1 and len(tokens[1]) > 2 and text.count(tokens[1]) > 5:
 			#find where the next repetition starts
-			log_repeated_text_writer(user_id, text)
+			log_spam_text_writer(user_id, text)
 				
 
 @celery_app1.task(name='tasks.capture_urdu')
 def capture_urdu(text):
 	log_urdu(text)
+
+
+@celery_app1.task(name='tasks.detail_click_logger')
+def detail_click_logger(ad_id, clicker_id):
+	log_detail_click(ad_id, clicker_id)
+
 
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):

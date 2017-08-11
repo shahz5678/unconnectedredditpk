@@ -1,7 +1,9 @@
 # coding=utf-8
+
 import redis, time, ast
 from location import REDLOC3
 from datetime import datetime
+from operator import itemgetter
 # from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
@@ -459,19 +461,30 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			# do nothing if ad_id wasn't passed, because this is not going to be listed in the ad_expirty_queue
 			pass
 
-
+def log_detail_click(ad_id, clicker_id):
+	if clicker_id:
+		my_server = redis.Redis(connection_pool=POOL)
+		time_now, ad = time.time(), "ad:"+str(float(ad_id))
+		unique_detail_clicks, detail_click_details = my_server.hmget(ad,"unique_detail_clicks","detail_click_details")
+		if unique_detail_clicks:
+			detail_click_details = ast.literal_eval(detail_click_details)
+			only_ids = map(itemgetter(0), detail_click_details)
+			if clicker_id not in only_ids:
+				detail_click_details.append((clicker_id, time_now))
+				pipeline1 = my_server.pipeline()
+				pipeline1.hincrby(ad,'unique_detail_clicks',amount=1)
+				pipeline1.hset(ad,'detail_click_details',detail_click_details)
+				pipeline1.execute()
+		else:
+			mapping = {'unique_detail_clicks':1,"detail_click_details":[(clicker_id,time_now)]}
+			my_server.hmset(ad,mapping)
 
 # helper function for get_seller_details
 def log_ad_click(server, ad_hash, clicker_id, ad_id, time_now):
 	is_unique, clicker_number, expire_ad = False, None, False
-	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
+	if not server.sismember("sn:"+ad_id,clicker_id):
 		click_details, is_unique = [], True
-		# try:
 		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
-		###################################################################################################
-		# except:
-		# 	save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
-		###################################################################################################
 		click_details.append((clicker_number,time_now))
 		if 'unique_clicks' in ad_hash:
 			ad_hash["unique_clicks"] = int(ad_hash["unique_clicks"]) + 1
@@ -1189,9 +1202,9 @@ def get_temp_id():
 
 ##########Logging Home Gibberish Writers#############
 
-def log_repeated_text_writer(user_id, text):
+def log_spam_text_writer(user_id, text):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush('repeated_text',{'user_id':user_id, 'text':text})
+	my_server.lpush('spam_text',{'user_id':user_id, 'text':text})
 
 
 def log_gibberish_text_writer(user_id):

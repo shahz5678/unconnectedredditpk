@@ -39,7 +39,7 @@ urlpatterns = patterns('',
 	url(r'^vsn/$',verify_basic_item_seller_number, name="verify_basic_item_seller_number"),
 	url(r'^vcn/$',verify_consumer_number, name="verify_consumer_number"),
 	############################################################
-	url(r'^ecomm_metrics/$',auth(display_latest_metrics), name="display_latest_metrics"),
+	url(r'^ecomm_metrics/(?P<metrics_type>[\w.@+-]+)/$',auth(display_latest_metrics), name="display_latest_metrics"),
 	url(r'^get_ad_export/$',auth(get_ad_export), name="get_ad_export"),
 	url(r'^get_click_distribution/$',auth(get_click_distribution), name="get_click_distribution"),
 	# url(r'^is_locked_by_someone_else/$', auth(is_locked_by_someone_else),name='is_locked_by_someone_else'),

@@ -115,7 +115,7 @@ def display_latest_metrics(request):
 	return render(request,"ecomm_metrics.html",template_context)
 
 
-def get_all_ads_data():
+def get_daily_ads_data():
 	current_ads, expired_ads = return_all_ad_data() #results two lists (of dictionaries)
 	for ad in expired_ads:
 		ad["is_expired"] = 1 # appending 1 in expired_ads
@@ -125,7 +125,7 @@ def get_all_ads_data():
 	return all_ads
 
 def get_click_distribution(request):
-	all_ads = get_all_ads_data()
+	all_ads = get_daily_ads_data()
 	real_clicks = []
 	for ad in all_ads:
 		if ad["is_expired"] == 1:
@@ -153,7 +153,7 @@ def get_click_distribution(request):
 
 
 def get_ad_export(request):
-	all_ads = get_all_ads_data()
+	all_ads = get_daily_ads_data()
 	import csv
 	filename = 'ads_'+str(int(time.time()))+'.csv'
 	with open(filename,'wb') as f:

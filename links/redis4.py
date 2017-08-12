@@ -38,23 +38,44 @@ def log_ecomm_user_visit(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("ecomm_visits",user_id)
 
-def get_and_reset_all_ecomm_visits():
+def get_and_reset_daily_ecomm_visits():
 	my_server = redis.Redis(connection_pool=POOL)
 	all_visits = my_server.lrange("ecomm_visits",0,-1)
-	my_server.delete("ecomm_visits")
-	return all_visits
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("weekly_ecomm_visits",all_visits)
+	pipeline1.delete("ecomm_visits")
+	pipeline1.execute()
+	return all_visits, my_server.llen("weekly_ecomm_visits")
 
-
-def insert_todays_metrics(ecomm_metrics, reporting_time):
+def get_and_reset_weekly_ecomm_visits():
+	import ast
 	my_server = redis.Redis(connection_pool=POOL)
-	mapping = {'entry_time':reporting_time, 'unique_clicks_per_unique_visitor':ecomm_metrics[0], 'unique_clicks_per_unique_clicker':ecomm_metrics[1], \
-	'proportion_of_clickers_to_visitors':ecomm_metrics[2], 'unique_new_clickers_per_unique_new_visitors':ecomm_metrics[3], \
-	'unique_new_clicks_per_unique_new_visitor':ecomm_metrics[4], 'total_unique_visitors':ecomm_metrics[5], 'total_unique_clicks':ecomm_metrics[6]}
-	my_server.lpush("ecomm_metrics",mapping)
+	weekly_visits = my_server.lrange("weekly_ecomm_visits",0,-1)
+	weekly_gross_visits = []
+	for daily_visits in weekly_visits:
+		weekly_gross_visits += ast.literal_eval(daily_visits)
+	my_server.delete("weekly_ecomm_visits")
+	return weekly_gross_visits
+
+
+def insert_metrics(ecomm_metrics, reporting_time, period=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if period == 'daily':
+		mapping = {'entry_time':reporting_time, 'unique_clicks_per_unique_visitor':ecomm_metrics[0], 'unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'proportion_of_clickers_to_visitors':ecomm_metrics[2], 'unique_new_clickers_per_unique_new_visitors':ecomm_metrics[3], \
+		'unique_new_clicks_per_unique_new_visitor':ecomm_metrics[4], 'total_unique_visitors':ecomm_metrics[5], 'total_unique_clicks':ecomm_metrics[6]}
+		my_server.lpush("ecomm_metrics",mapping)
+	if period == 'weekly':
+		mapping = {'entry_time':reporting_time, 'weekly_unique_clicks_per_unique_visitor':ecomm_metrics[0], 'weekly_unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'weekly_proportion_of_clickers_to_visitors':ecomm_metrics[2], 'weekly_unique_visitors':ecomm_metrics[3], \
+		'weekly_unique_clicks':ecomm_metrics[4]}
+		my_server.lpush("weekly_ecomm_metrics",mapping)
+
+
 
 def return_all_metrics_data():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("ecomm_metrics", 0, -1)
+	return my_server.lrange("ecomm_metrics", 0, -1), my_server.lrange("weekly_ecomm_metrics", 0, -1)
 
 #######################Test Function######################
 

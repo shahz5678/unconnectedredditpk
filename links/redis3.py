@@ -516,11 +516,26 @@ def get_seller_details(clicker_id, ad_id):
 	return seller_details
 
 
-def get_and_reset_all_ecomm_clicks():
+def get_and_reset_daily_ecomm_clicks():
 	my_server = redis.Redis(connection_pool=POOL)
 	all_clicks = my_server.lrange("ecomm_clicks",0,-1)
-	my_server.delete("ecomm_clicks")
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("weekly_ecomm_clicks",all_clicks)
+	pipeline1.delete("ecomm_clicks")
+	pipeline1.execute()
 	return all_clicks
+
+
+def get_and_reset_weekly_ecomm_clicks():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_weekly_clicks = my_server.lrange("weekly_ecomm_clicks",0,-1)
+	gross_string_clicks = []
+	for clicks in all_weekly_clicks:
+		clicks = ast.literal_eval(clicks)
+		if clicks:
+			gross_string_clicks += clicks
+	my_server.delete("weekly_ecomm_clicks")
+	return gross_string_clicks
 
 
 # return True if user has any number on file

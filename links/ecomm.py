@@ -20,7 +20,6 @@ unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_dat
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
 get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
 get_buyer_snapshot
-
 from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect

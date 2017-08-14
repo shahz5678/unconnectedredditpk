@@ -151,13 +151,28 @@ def log_gibberish_writer(user_id,text,length_of_text):
 		log_spam_text_writer(user_id, text)
 	else:
 		tokens = text[:12].split()
-		if len(tokens[0]) > 2 and text.count(tokens[0]) > 5 :
-			#find where the next repetition starts
-			log_spam_text_writer(user_id, text)
-		elif len(tokens) > 1 and len(tokens[1]) > 2 and text.count(tokens[1]) > 5:
-			#find where the next repetition starts
-			log_spam_text_writer(user_id, text)
-				
+		if len(tokens) > 1:
+			first_word = tokens[0]
+			len_first_word = len(first_word)
+			offset = text[len_first_word:].find(first_word)
+			first_start = len_first_word+offset
+			first_end = first_start+len_first_word
+			first_repetition = text[first_start:first_end]
+			if first_word == first_repetition:
+				second_start = first_end + offset
+				second_end = second_start+len_first_word
+				second_repetition = text[second_start:second_end]
+				if first_repetition == second_repetition:
+					third_start = second_end + offset
+					third_end = third_start + len_first_word
+					third_repetition = text[third_start:third_end]
+					if third_repetition == second_repetition:
+						log_spam_text_writer(user_id, text)
+			# second_word = tokens[1]
+			# len_second_word = len(second_word)
+			# second_offset = text[len_first_word+len_second_word:].find(first_word)
+
+
 
 @celery_app1.task(name='tasks.capture_urdu')
 def capture_urdu(text):

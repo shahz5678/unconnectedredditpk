@@ -1222,21 +1222,21 @@ def log_spam_text_writer(user_id, text):
 	my_server.lpush('spam_text',{'user_id':user_id, 'text':text})
 
 
-def retrieve_spam_writers():
-	my_server = redis.Redis(connection_pool=POOL)
-	# import unicodecsv as ucsv
-	import csv
-	list_ = my_server.lrange("spam_text",0 ,-1)
-	with open('spam_text.csv','wb') as f:
-		wtr = csv.writer(f)
-		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
-		for string in list_:
-			try:
-				dictionary = ast.literal_eval(string)
-				to_write = [dictionary["user_id"],dictionary["text"].encode('utf-8')]
-				wtr.writerows([to_write])
-			except:
-				pass
+# def retrieve_spam_writers():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# import unicodecsv as ucsv
+# 	import csv
+# 	list_ = my_server.lrange("spam_text",0 ,-1)
+# 	with open('spam_text.csv','wb') as f:
+# 		wtr = csv.writer(f)
+# 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
+# 		for string in list_:
+# 			try:
+# 				dictionary = ast.literal_eval(string)
+# 				to_write = [dictionary["user_id"],dictionary["text"].encode('utf-8')]
+# 				wtr.writerows([to_write])
+# 			except:
+# 				pass
 
 
 

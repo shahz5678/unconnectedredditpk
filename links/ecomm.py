@@ -925,6 +925,6 @@ def process_city(request,*args,**kwargs):
 
 
 
-# def get_spam_export(request):
-# 	retrieve_spam_writers()
-# 	return render(request,"404.html",{})
+def get_spam_export(request):
+	retrieve_spam_writers()
+	return render(request,"404.html",{})

@@ -15,7 +15,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
-from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, log_spam_text_writer, get_gibberish_text_writers, \
+from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click
 from .redis4 import expire_online_users, get_recent_online
@@ -148,7 +148,7 @@ def calc_ecomm_metrics():
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
 		log_gibberish_text_writer(user_id)
-		log_spam_text_writer(user_id, text)
+		# log_spam_text_writer(user_id, text)
 	else:
 		tokens = text[:12].split()
 		if len(tokens) > 1:
@@ -168,10 +168,8 @@ def log_gibberish_writer(user_id,text,length_of_text):
 						third_end = third_start + len_first_word
 						third_repetition = text[third_start:third_end]
 						if third_repetition == second_repetition:
-							log_spam_text_writer(user_id, text)
-			# second_word = tokens[1]
-			# len_second_word = len(second_word)
-			# second_offset = text[len_first_word+len_second_word:].find(first_word)
+							log_gibberish_text_writer(user_id)
+							# log_spam_text_writer(user_id, text)
 
 
 

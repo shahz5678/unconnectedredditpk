@@ -19,17 +19,17 @@ def create_gibberish_punishment_text(amount):
 	a_href_tail = '</a>'
 	#################################################
 	header = bold_cxl+'Ap ke '+span_colored+str(amount)+' points'+span_tail+' cut gaye!'+bold_tail
-	sub_header1 = 'Ap ko home ke rules break kartay huay report kiya gaya.'
+	sub_header1 = 'Apko home ke rules break kartay huay pakra gaya hai'
 	sub_header2 = 'Home Rules:'
 	sub_header3 = '... aur last rule...'
 	one = bold_head+'1) '+bold_tail
 	two = bold_head+'2) '+bold_tail
 	three = bold_head+'3) '+bold_tail
 	four = bold_head+'4) '
-	rule_one = 'Points barhaney ke liye home ka najaiz istimal na karein'
-	rule_two = 'Gandi baatoon aur galiyun se dur rehain'
-	rule_three = 'Kisi ko bila waja chupair na marein'
-	rule_four = 'Boring hona mana hai.'+bold_tail+' Dil khol ke mazedar gup shup, jokes, shairi aur news share karein ;-)'
+	rule_one = 'Points barhaney ke liye home pe bar bar aik jesi baatien na likho'
+	rule_two = 'Gandi baatoon aur galiyun se dur raho'
+	rule_three = 'Kisi ko bila waja chupair na maro'
+	rule_four = 'Boring hona mana hai.'+bold_tail+' Dil khol ke mazedar gup shup, jokes, shairi aur news share karo ;-)'
 	button_text = bold_head+'OK'+bold_tail
 	#################################################
 	return outer_div_head+header+line_break+inner_div_1+sub_header1+line_break+div_tail+line+\

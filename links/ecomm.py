@@ -19,7 +19,7 @@ get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphane
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
 get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
-get_buyer_snapshot, retrieve_spam_writers
+get_buyer_snapshot#, retrieve_spam_writers
 from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
@@ -925,6 +925,6 @@ def process_city(request,*args,**kwargs):
 
 
 
-def get_spam_export(request):
-	retrieve_spam_writers()
-	return render(request,"404.html",{})
+# def get_spam_export(request):
+# 	retrieve_spam_writers()
+# 	return render(request,"404.html",{})

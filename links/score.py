@@ -57,3 +57,5 @@ MEDIUM_CLICKS = 15
 MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
+###############################################################################################################
+NUMBER_VERIFICATION_BONUS = 500

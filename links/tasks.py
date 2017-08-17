@@ -81,12 +81,15 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
-	# for user_id,payable_score in payables:
-	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+
+
+@celery_app1.task(name='tasks.increase_user_points')
+def increase_user_points(user_id, increment):
+	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+increment)
 
 @celery_app1.task(name='tasks.save_consumer_credentials')
 def save_consumer_credentials(account_kit_id, mobile_data, user_id):
-	save_consumer_number(account_kit_id,mobile_data,user_id)
+	save_consumer_number(account_kit_id=account_kit_id, mobile_data=mobile_data, user_id=user_id)
 
 @celery_app1.task(name='tasks.save_unfinished_ad')
 def save_unfinished_ad(context):

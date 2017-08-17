@@ -809,6 +809,20 @@ def get_buyer_snapshot(user_id):
 	else:
 		return {}
 
+def temporarily_save_user_csrf(user_id, csrf):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_csrf = "csrf:"+user_id
+	pipeline1 = my_server.pipeline()
+	pipeline1.set(temp_csrf, csrf)
+	pipeline1.expire(temp_csrf, TWO_HOURS) # will self-destruct after 2 hours of inactivity
+	pipeline1.execute()
+
+
+def get_user_csrf(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("csrf:"+user_id)
+
+
 def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if city == 'all_cities':

@@ -8,9 +8,11 @@
 {% load photo_voted %}
 {% load human_time %}
 {% load photoedge %}
+{% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin">
 {% if home_rules %}{{ home_rules|safe }}{% endif %}
+{% mobile_verification_bar user.id csrf %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 			

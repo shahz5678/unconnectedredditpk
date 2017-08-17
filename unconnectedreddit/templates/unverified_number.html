@@ -2,7 +2,12 @@
 {% block content %}
 <div class="margin clb">
 Ye number verify nahi ho saka<br>
-<a href="{% url 'classified_listing' %}#section0"><button class="btn bcg bm mtl">wapis</button></a>
+{% if referrer == 'home' %}
+<a href="{% url 'home' %}#section0">
+{% else %}
+<a href="{% url 'classified_listing' %}#section0">
+{% endif %}
+<button class="btn bcg bm mtl">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

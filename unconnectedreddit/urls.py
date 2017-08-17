@@ -42,6 +42,8 @@ InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView,PhotoShareView, P
 SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#LinkListView, VoteOrProfView
+from links.number_verification import verify_user_number
+
 
 admin.autodiscover()
 
@@ -66,6 +68,7 @@ urlpatterns = patterns('',
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
+	url(r'^vun/$',verify_user_number, name="verify_user_number"),
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^whook/$', webhook_event, name='webhook_event'),
 	#########################################Logging out############################################

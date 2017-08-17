@@ -2,7 +2,6 @@ from django.conf.urls import patterns, url
 from django.contrib import admin
 from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login, log_google_in
 
-
 admin.autodiscover()
 
 urlpatterns = patterns('',

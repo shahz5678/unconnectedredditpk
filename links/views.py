@@ -5,6 +5,7 @@ from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
+from django.middleware import csrf
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
@@ -1410,6 +1411,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["lang"] = lang
 		context["checked"] = FEMALES
 		context["form"] = form
+		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
@@ -4195,6 +4197,7 @@ def photo_list(request,*args, **kwargs):
 			context["username"] = request.user.username
 			context["score"] = user.userprofile.score
 			context["voted"] = []
+			context["csrf"] = csrf.get_token(request)
 			context["girls"] = FEMALES
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(user.id)
@@ -4462,6 +4465,7 @@ def best_photos_list(request,*args,**kwargs):
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			context["girls"] = FEMALES
+			context["csrf"] = csrf.get_token(request)
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(context["ident"])
 			##########################################################################################################

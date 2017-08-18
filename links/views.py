@@ -5427,6 +5427,8 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 				return context
 			if 'awami' in self.request.path and group.private == '0': 
+				context["score"] = self.request.user.userprofile.score
+				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
 				context["switching"] = False
 				context["group"] = group

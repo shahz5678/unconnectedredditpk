@@ -137,7 +137,7 @@ def nick_already_exists(nickname):
 	generic_nick = nickname.lower()+"*"
 	if not my_server.exists("nicknames"):
 		return None
-	elif my_server.zrank("nicknames",generic_nick) is None:
+	elif my_server.zscore("nicknames",generic_nick) is None:
 		# the nickname has not been used before
 		return False
 	else:
@@ -153,7 +153,7 @@ def bulk_nicks_exist(nickname_list):
 		generic_nicks = [nickname.lower()+"*" for nickname in nickname_list]
 		pipeline1 = my_server.pipeline()
 		for nick in generic_nicks:
-			pipeline1.zrank("nicknames",nick)
+			pipeline1.zscore("nicknames",nick)
 		result1 = pipeline1.execute()
 		nicks = []
 		counter = 0

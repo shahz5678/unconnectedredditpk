@@ -52,20 +52,30 @@ class AccountKitManager(object):
 		return requests.get(url).text
 
 
-# mobile_data = AccountKitManager(FAID, AKAS)
 
-
-def account_kit_handshake(csrf, state, status, auth_code):
-	if csrf == state and status=='PARTIALLY_AUTHENTICATED':
-		mobile_data = AccountKitManager(FAID, AKAS)
-		user_data = mobile_data.get_user_cred(auth_code)
-		if FAID == user_data["application"]["id"]:
-			return user_data["id"], user_data["phone"], {}
+def account_kit_handshake(csrf, state, status, auth_code, csrf_omitted):
+	if csrf_omitted:
+		if status == "NOT_AUTHENTICATED":
+			return state, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}
 		else:
-			# app id mismatch
-			return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
-	elif status == 'NOT_AUTHENTICATED':
-		return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}
+			mobile_data = AccountKitManager(FAID, AKAS)
+			user_data = mobile_data.get_user_cred(auth_code)
+			if FAID == user_data["application"]["id"]:
+				return state, user_data["phone"], {} # passing user_id (currently in 'state') instead of AK_ID
+			else:
+				# app id mismatch
+				return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
 	else:
-		# csrf mismatch, or could not authenticate
-		return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}
+		if csrf == state and status=='PARTIALLY_AUTHENTICATED':
+			mobile_data = AccountKitManager(FAID, AKAS)
+			user_data = mobile_data.get_user_cred(auth_code)
+			if FAID == user_data["application"]["id"]:
+				return user_data["id"], user_data["phone"], {}
+			else:
+				# app id mismatch
+				return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
+		elif status == 'NOT_AUTHENTICATED':
+			return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}
+		else:
+			# csrf mismatch, or could not authenticate
+			return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}

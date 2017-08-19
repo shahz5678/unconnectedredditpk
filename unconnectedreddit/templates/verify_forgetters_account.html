@@ -1,0 +1,46 @@
+<style>
+
+
+.signup  {
+  background-color: green;
+  border-radius: 6px;
+  width:90%;
+  margin: 0 auto;
+  text-align: center;
+  padding:5px;
+  max-width: 300px;
+}
+</style>
+
+
+{% extends "base_signup.html" %}
+{% block content %}
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'forgot_password' 'ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
+<div class="signup mbs">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+<div class="mts mbs">
+<span style="color:#ffed4d;text-shadow:1px 1px #009940;" class="cxl">Agli screen pe apka <b>mobile number</b> tasdiq hoga!</span>
+</div>
+<hr size=1 COLOR="#ffeb3b">
+
+<div class="mt">
+<span style="color:white;text-shadow:1px 1px #009940;" class="cxl">Wohi mobile number likhna jo pehlay se tasdiq shuda hai</span>
+</div>
+<form method="get" class="mts" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=false>
+  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vfn/">
+  <input type="hidden" name="state" value="{{ user_id }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK"><br>
+  <span style="color:#ffed4d;" class="cs">Tasdiq karney mein hamari partner company <b>FACEBOOK</b> shamil hai</span>
+</form>
+
+</div>
+</div><br>
+<a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+
+
+<style>
+
+
+.signup  {
+	background-color: green;
+	border-radius: 6px;
+	width:90%;
+	margin: 0 auto;
+	text-align: center;
+	padding:5px;
+	max-width: 300px;
+}
+</style>
+
+
+{% extends "base_signup.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'login' 'ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
+<div class="signup mbs">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+<div class="mts mbs">
+<span style="color:#ffed4d;text-shadow:1px 1px #009940;" class="cxl"><b>{{ nick }}</b> ka password nahi mil sakta {% emoticons %}.j1{% endemoticons %}</span>
+</div>
+<hr size=1 COLOR="#ffeb3b">
+ 	<div class="mtl mbl">
+    <span style="color:white;text-shadow:1px 1px #009940;" class="cxl">Password sirf aisi IDs ka milta hai jinke <b>mobile number</b> ki tasdiq ho chuki ho</span>
+  	</div>
+  	<a href="{% url 'login' %}"><button class="btn mts mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">OK</button></a>
+</div>
+</div><br>
+<a href="{% url 'login' %}#section0"><button style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
+</div>
+{% endblock %}

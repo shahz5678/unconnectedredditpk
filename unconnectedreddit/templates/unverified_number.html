@@ -4,6 +4,8 @@
 Ye number verify nahi ho saka<br>
 {% if referrer == 'home' %}
 <a href="{% url 'home' %}#section0">
+{% elif referrer == 'login' %}
+<a href="{% url 'login' %}#section0">
 {% else %}
 <a href="{% url 'classified_listing' %}#section0">
 {% endif %}

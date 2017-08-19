@@ -29,8 +29,7 @@
 {% endif %}
 <form method="post" action="{% url 'login' %}">
   {% csrf_token %}
-  <input type="hidden" name="next" value="/">
- 	
+ 	<input type="hidden" name="next" value="/">
  	<div class="mtl mbl">
     <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">Naam:</b>
       <br>{{ form.username }}
@@ -41,6 +40,8 @@
    </div>
   
   <input class="mts mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK"><br>
+  <hr size=1 COLOR="#ffeb3b">
+  <a href="{% url 'forgot_password' %}"><span style="color:#ffed4d;text-shadow:0.5px 0.5px #009940;text-decoration: underline;" class="cl">Password yad nahi</span></a>
   
 </form>
 </div>

@@ -14,5 +14,9 @@ def get_ur(string):
 		return 'پاس ورڈ میں نام نہ ڈالو'
 	elif 'naam tum se pehle' in string:
 		return 'یہ نام ابھی ابھی کسی اور نے رکھ لیا۔ معذرت'
+	elif 'safed patti mein' in string:
+		return 'اس سفید پٹی میں نام لکھو'
+	elif 'sirf english harf':
+		return 'نام میں صرف انگریزی حروف یا نمبر ہو سکتے ہیں'
 	else:
 		return FORM_SUBMISSION_ERRORS[string]

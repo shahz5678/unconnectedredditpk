@@ -1,17 +1,19 @@
-from django.contrib.auth import login as google_login
+from django.contrib.auth import login as quick_login
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 ######################################################################################
 from django.contrib.auth.views import login as log_me_in
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
+from tasks import registration_task
 from django.middleware import csrf
+from tasks import registration_task
+from redis1 import account_creation_disallowed
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
-from django.views.decorators.csrf import csrf_protect
-from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm
-from redis1 import account_creation_disallowed
-from redis3 import get_temp_id
-from tasks import registration_task
+from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, log_forgot_password
+from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm
 from forms import getip
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -27,16 +29,100 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
+
+# this enables a verified user who's forgotten their password to create a new one
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def set_forgetters_password(request, *args, **kwargs):
+	if request.method == "POST":
+		user_id = request.POST.get("user_id",None)
+		if user_id:
+			user = User.objects.get(id=user_id)
+			form = ResetForgettersPasswordForm(data=request.POST, user=user)
+			if form.is_valid():
+				password = form.cleaned_data['password']
+				form.save()
+				user = authenticate(username=user.username,password=password)
+				quick_login(request,user)
+				request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+				##############################################
+				log_forgot_password(user_id,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
+				##############################################
+				return render(request,'new_password.html',{'new_pass':password})
+			else:
+				return render(request,"set_new_password.html",{'form':form,'user_id':user_id})
+		else:
+			return render(request,"try_again.html",{'type':'forgetter'})
+	else:
+		return render(request, "404.html",{})
+
+
+# this initiates the forgot password flow, and ensures the user's mobile number if verified
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def forgot_password(request, lang=None, *args, **kwargs):
+	if request.method == "POST":
+		form = CreateNickNewForm(data=request.POST)
+		if form.is_valid():
+			username = form.cleaned_data['username'][2] # the returned username is a tuple with 3 entries, pick the last one
+			exists = nick_already_exists(username, exact=True)
+			if exists:
+				# the nickname exists
+				user_id = User.objects.only('id').get(username=username).id
+			elif exists is None:
+				try:
+					user_id = User.objects.only('id').get(username=username).id
+				except User.DoesNotExist:
+					# username is not taken
+					if lang == 'ur':
+						return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+					else:
+						return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+			elif exists is False:
+				if lang == "ur":
+					return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+				else:
+					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+			###################################################################################################
+			is_verified = is_mobile_verified(user_id)
+			if is_verified:
+				################################################
+				log_forgot_password(user_id,flow_level='start')#
+				################################################
+				if lang == "ur":
+					return render(request,"verify_forgetters_account_ur.html",{'user_id':user_id, 'id_in_csrf':True})
+				else:
+					return render(request,"verify_forgetters_account.html",{'user_id':user_id, 'id_in_csrf':True})
+			else:
+				if lang == "ur":
+					return render(request,"nick_unassociated_with_mobnum_ur.html",{'nick':username})
+				else:
+					return render(request,"nick_unassociated_with_mobnum.html",{'nick':username})
+		else:
+			if lang == "ur":
+				return render(request,"forgot_password_ur.html",{'form':form})
+			else:
+				return render(request,"forgot_password.html",{'form':form})
+	else:
+		form = CreateNickNewForm()
+		if lang == 'ur':
+			return render(request,"forgot_password_ur.html",{'form':form})
+		else:
+			return render(request,"forgot_password.html",{'form':form})
+
+######################################################################################
+
 @csrf_exempt
 def log_google_in(request, *args, **kwargs):
 	if request.method == "POST":
 		user = authenticate(username=request.POST.get("username",None),password=request.POST.get("password",None))
-		google_login(request,user)
+		quick_login(request,user)
 		return redirect("ur_home", 'urdu')
 	else:
 		form = CreateAccountForm()
 		return render(request,"login_backdoor.html",{'form':form})
-
 
 
 def login(request, lang=None, *args,**kwargs):
@@ -99,7 +185,6 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
 		form = CreateAccountForm(data=request.POST)
-		# print "recieved data"
 		if form.is_valid():
 			# ensured username is unique, no one else has booked it
 			password = slug2.decode("hex")
@@ -307,17 +392,3 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 			return render(request, 'create_nick_new_ur.html', {'form':form})
 		else:
 			return render(request, 'create_nick_new.html', {'form':form})
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
-# @csrf_protect
-# def create_account_ur(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
-# 	pass
-
-# @csrf_protect
-# def create_password_new_ur(request,slug=None,length=None,*args,**kwargs):
-# 	pass
-
-# @csrf_protect
-# def create_nick_new_ur(request,*args,**kwargs):
-# 	pass

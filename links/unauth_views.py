@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
-from tasks import registration_task
 from django.middleware import csrf
 from tasks import registration_task
 from redis1 import account_creation_disallowed

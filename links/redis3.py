@@ -132,17 +132,28 @@ def get_nick_likeness(nickname):
 	return nicknames
 
 #checking whether nick already exists
-def nick_already_exists(nickname):
+def nick_already_exists(nickname, exact=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	generic_nick = nickname.lower()+"*"
-	if not my_server.exists("nicknames"):
-		return None
-	elif my_server.zscore("nicknames",generic_nick) is None:
-		# the nickname has not been used before
-		return False
+	if exact:
+		generic_nick, specific_nick = process_nick(nickname)
+		if not my_server.exists("nicknames"):
+			return None
+		elif my_server.zscore("nicknames",specific_nick) is None:
+			# the nickname has not been used before
+			return False
+		else:
+			# the nickname has been used before
+			return True
 	else:
-		# the nickname has been used before
-		return True
+		generic_nick = nickname.lower()+"*"
+		if not my_server.exists("nicknames"):
+			return None
+		elif my_server.zscore("nicknames",generic_nick) is None:
+			# the nickname has not been used before
+			return False
+		else:
+			# the nickname has been used before
+			return True
 
 #bulk checking whether nicks exist
 def bulk_nicks_exist(nickname_list):
@@ -335,6 +346,17 @@ def insert_nick_list(nickname_list):
 	my_server.zadd("nicknames",*nicknames)
 
 #####################Classifieds#######################
+
+
+def log_forgot_password(user_id,flow_level):
+	my_server = redis.Redis(connection_pool=POOL)
+	if flow_level == 'end':
+		if my_server.sismember("forgot_password",str(user_id)+":start"):
+			my_server.srem("forgot_password",str(user_id)+":start")
+		else:
+			my_server.sadd("forgot_password",str(user_id)+":end")
+	elif flow_level == 'start':
+		added = my_server.sadd("forgot_password",str(user_id)+":start")
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):

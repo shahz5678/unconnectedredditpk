@@ -621,6 +621,9 @@ class OpenGroupHelpView(FormView):
 	form_class = OpenGroupHelpForm
 	template_name = "open_group_help.html"
 
+def website_rules(request):
+	return render(request,"website_rules.html",{})
+
 class ContactView(FormView):
 	form_class = ContactForm
 	template_name = "contact.html"
@@ -2801,10 +2804,6 @@ def reset_password(request,*args,**kwargs):
 			password = request.POST.get("password")
 			context={'new_pass':password}
 			request.session.pop("authentic_password_owner", None)
-			# try:
-			# 	del request.session['authentic_password_owner']
-			# except KeyError:
-			# 	pass
 			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 			return render(request,'new_password.html',context)
 		else:

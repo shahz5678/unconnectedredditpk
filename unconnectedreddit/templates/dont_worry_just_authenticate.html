@@ -11,7 +11,7 @@
 	  <input type="hidden" name="app_id" value="1758220174446684">
 	  <input type="hidden" name="locale" value="ur_PK">
 	  <input type="hidden" name="debug" value=false>
-	  <input type="hidden" name="redirect" value="https://damadam.pk/vcn/">
+	  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vcn/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
 	  <input type="submit" class="mtl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;" value="Theek hai">
@@ -28,7 +28,7 @@
 	  <input type="hidden" name="app_id" value="1758220174446684">
 	  <input type="hidden" name="locale" value="ur_PK">
 	  <input type="hidden" name="debug" value=false>
-	  <input type="hidden" name="redirect" value="https://damadam.pk/vsn/">
+	  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vsn/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
 	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;" value="Theek hai">
@@ -46,12 +46,29 @@
 	  <input type="hidden" name="app_id" value="1758220174446684">
 	  <input type="hidden" name="locale" value="ur_PK">
 	  <input type="hidden" name="debug" value=false>
-	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+	  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vun/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
 	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;" value="Theek hai">
 	</form><br>
 	<a href="{% url 'home' %}#section0"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
+
+{% elif type == 'forgetter' %}
+
+	<h2>Mobile number tasdiq kiye beghair password nahi mil sakta</h2>
+	Tasdiq zarur karwa lein<br>
+
+	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+	  <input type="hidden" name="country_code" value="PK">
+	  <input type="hidden" name="app_id" value="1758220174446684">
+	  <input type="hidden" name="locale" value="ur_PK">
+	  <input type="hidden" name="debug" value=false>
+	  <input type="hidden" name="redirect" value="http://127.0.0.1:8000/vfn/">
+	  <input type="hidden" name="state" value="{{ csrf }}">
+	  <input type="hidden" name="fbAppEventsEnabled" value=true>
+	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;" value="Theek hai">
+	</form><br>
+	<a href="{% url 'login' %}#section0"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
 
 
 

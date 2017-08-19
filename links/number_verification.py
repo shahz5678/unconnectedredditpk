@@ -1,19 +1,21 @@
 from score import NUMBER_VERIFICATION_BONUS
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
+from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
 from redis4 import save_careem_data, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
-from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot, get_user_csrf, is_mobile_verified
+from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot, get_user_csrf, is_mobile_verified, \
+get_user_verified_number
 
-def get_requirements(request, csrf, careem=False):
+def get_requirements(request, csrf, careem=False, csrf_omitted=False):
 	status = request.GET.get('status', None)
 	auth_code = request.GET.get('code', None) #authorization code which our server may exchange for a user access token.
 	state = request.GET.get('state', None) #to verify that FB's servers returned with the response
 	if careem:
-		return account_kit_handshake(request.session["csrf_careem"], state, status, auth_code)
+		return account_kit_handshake(csrf=request.session["csrf_careem"], state=state, status=status, auth_code=auth_code, csrf_omitted=csrf_omitted)
 	else:
-		return account_kit_handshake(csrf, state, status, auth_code)
+		return account_kit_handshake(csrf=csrf, state=state, status=status, auth_code=auth_code, csrf_omitted=csrf_omitted)
 
 
 def verify_careem_applicant(request,*args,**kwargs):
@@ -40,6 +42,23 @@ def verify_careem_applicant(request,*args,**kwargs):
 			return render(request,"careem_number_already_used.html",{})
 	else:
 		return render(request,"404.html",{})
+
+
+
+def verify_forgetter_number(request,*args,**kwargs):
+	user_id, MN_data, err = get_requirements(request=request,csrf=None, csrf_omitted=True)
+	if user_id and MN_data:
+		mob_nums = get_user_verified_number(user_id)
+		if MN_data['national_number'] in mob_nums:
+			# prompt user to change password
+			return render(request,"set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
+		else:
+			return render(request,"unverified_number.html",{'referrer':'login'})
+	elif err['status'] == "NOT_AUTHENTICATED":
+		return render(request,"dont_worry_just_authenticate.html",{'csrf':user_id,'referrer':'login','type':'forgetter'})
+	else:
+		return render(request, "try_again.html",{'type':'forgetter'})
+
 
 
 def verify_user_number(request,*args,**kwargs):

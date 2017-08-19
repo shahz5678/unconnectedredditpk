@@ -131,6 +131,7 @@ MIDDLEWARE_CLASSES = (
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
+	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
 	#'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
@@ -373,9 +374,13 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.calc_photo_quality_benchmark',
 		'schedule': timedelta(seconds=86400), # execute every 24 hours
 	},
+	'tasks.calc_ecomm_metrics': {
+		'task': 'tasks.calc_ecomm_metrics',
+		'schedule': timedelta(seconds=86400), # execute every 24 hours
+	},
 	'tasks.calc_gibberish_punishment': {
 		'task': 'tasks.calc_gibberish_punishment',
-		'schedule': timedelta(seconds=1*60*60), # execute every 1 hour
+		'schedule': timedelta(seconds=45*60), # execute every 45 mins
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',

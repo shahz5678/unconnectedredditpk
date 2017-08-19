@@ -5,9 +5,11 @@
 {% load thumbedge %}
 {% load mathfilters %}
 {% load emoticons_tags %}
+{% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin">
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
+	{% mobile_verification_bar user.id csrf score %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 

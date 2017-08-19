@@ -1,0 +1,20 @@
+{% if show_bar %}
+<div class="box dby clb">
+<b class="cxl cg">500 points ka package!</b><br>
+<div class="mt">
+<span class="cl">Apni real ID ke sath apna mobile number tasdiq karwa ke <b class="cg">500 points</b> hasil karein!</span><br>
+<span class="cgy">Apka mobile number kisi ko nahi diya jaye ga</span>
+</div>
+<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=true>
+  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+  <input type="hidden" name="state" value="{{ csrf }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
+</form><br>
+<span class="cgy cs">Tasdiq karney mein hamari partner company <b>FACEBOOK</b> shamil hai</span>
+</div>
+{% endif %}

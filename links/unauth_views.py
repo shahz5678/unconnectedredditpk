@@ -1,5 +1,8 @@
+from django.contrib.auth import login as google_login
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+######################################################################################
 from django.contrib.auth.views import login as log_me_in
-from django.contrib.auth import login, authenticate
 from django.shortcuts import redirect, render
 from django.middleware import csrf
 from django.views.decorators.cache import cache_control
@@ -24,17 +27,17 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
-# def login_test(request,*args,**kwargs):
-# 	if request.user.is_authenticated():
-# 		return redirect("home")
-# 	else:
-# 		CSRF = csrf.get_token(request)
-# 		request.session["csrf"] = CSRF
-# 		if request.method == 'POST':
-# 			# opportunity to block entry here
-# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
-# 		else:
-# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
+@csrf_exempt
+def log_google_in(request, *args, **kwargs):
+	if request.method == "POST":
+		user = authenticate(username=request.POST.get("username",None),password=request.POST.get("password",None))
+		google_login(request,user)
+		return redirect("ur_home", 'urdu')
+	else:
+		form = CreateAccountForm()
+		return render(request,"login_backdoor.html",{'form':form})
+
+
 
 def login(request, lang=None, *args,**kwargs):
 	if request.user.is_authenticated():

@@ -1,7 +1,9 @@
 # coding=utf-8
+
 import redis, time, ast
 from location import REDLOC3
 from datetime import datetime
+from operator import itemgetter
 # from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
@@ -12,9 +14,11 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 ##########Redis 3 Namespace##########
 
 pipeline1.lpush("aa:"+city,ad_id)
+"ad:"+ad_id # hash containing ad details
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
 my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
+server.lpush("ecomm_clicks",(user_id, ad_id, time_now)) # recording the click in a list of tuples
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
 my_server.incr("cb:"+closed_by)
@@ -32,6 +36,7 @@ my_server.hgetall("um:"+str(user_id)) # user mobile number data
 my_server.zadd("unapproved_ads",ad,ad_id)
 "unfinalized_used_item_photos"
 my_server.zadd("unfinished_classifieds",ad_id)
+"verified_numbers" # sorted set, ensures that once used, a mobile number can't be tied to another ID
 
 
 my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key
@@ -49,10 +54,10 @@ user_thumbs = "upt:"+owner_uname
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-TEN_MINS = 10*60
 TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
+SIX_HOURS = 6*60*60
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
@@ -132,7 +137,7 @@ def nick_already_exists(nickname):
 	generic_nick = nickname.lower()+"*"
 	if not my_server.exists("nicknames"):
 		return None
-	elif my_server.zrank("nicknames",generic_nick) is None:
+	elif my_server.zscore("nicknames",generic_nick) is None:
 		# the nickname has not been used before
 		return False
 	else:
@@ -148,7 +153,7 @@ def bulk_nicks_exist(nickname_list):
 		generic_nicks = [nickname.lower()+"*" for nickname in nickname_list]
 		pipeline1 = my_server.pipeline()
 		for nick in generic_nicks:
-			pipeline1.zrank("nicknames",nick)
+			pipeline1.zscore("nicknames",nick)
 		result1 = pipeline1.execute()
 		nicks = []
 		counter = 0
@@ -456,20 +461,31 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			# do nothing if ad_id wasn't passed, because this is not going to be listed in the ad_expirty_queue
 			pass
 
-
+def log_detail_click(ad_id, clicker_id):
+	if clicker_id:
+		my_server = redis.Redis(connection_pool=POOL)
+		time_now, ad = time.time(), "ad:"+str(float(ad_id))
+		unique_detail_clicks, detail_click_details = my_server.hmget(ad,"unique_detail_clicks","detail_click_details")
+		if unique_detail_clicks:
+			detail_click_details = ast.literal_eval(detail_click_details)
+			only_ids = map(itemgetter(0), detail_click_details)
+			if clicker_id not in only_ids:
+				detail_click_details.append((clicker_id, time_now))
+				pipeline1 = my_server.pipeline()
+				pipeline1.hincrby(ad,'unique_detail_clicks',amount=1)
+				pipeline1.hset(ad,'detail_click_details',detail_click_details)
+				pipeline1.execute()
+		else:
+			mapping = {'unique_detail_clicks':1,"detail_click_details":[(clicker_id,time_now)]}
+			my_server.hmset(ad,mapping)
 
 # helper function for get_seller_details
-def log_ad_click(server, ad_hash, clicker_id, ad_id):
+def log_ad_click(server, ad_hash, clicker_id, ad_id, time_now):
 	is_unique, clicker_number, expire_ad = False, None, False
-	if not server.sismember("sn:"+ad_id,clicker_id): #and server.exists('um:'+clicker_id) # this will silently allow the user to see seller details (in cases where um: was empty)
+	if not server.sismember("sn:"+ad_id,clicker_id):
 		click_details, is_unique = [], True
-		# try:
 		clicker_number = "0"+ast.literal_eval(server.lrange('um:'+clicker_id,0,-1)[0])["national_number"]
-		###################################################################################################
-		# except:
-		# 	save_seller_number_error(clicker_id, type(clicker_id),server.lrange('um:'+clicker_id,0,-1))
-		###################################################################################################
-		click_details.append((clicker_number,time.time()))
+		click_details.append((clicker_number,time_now))
 		if 'unique_clicks' in ad_hash:
 			ad_hash["unique_clicks"] = int(ad_hash["unique_clicks"]) + 1
 		else:
@@ -494,9 +510,32 @@ def log_ad_click(server, ad_hash, clicker_id, ad_id):
 # called when buyer clicks the button to get seller's contact details
 def get_seller_details(clicker_id, ad_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	ad_id = str(float(ad_id))
-	clicker_id = str(clicker_id)
-	return log_ad_click(my_server,my_server.hgetall("ad:"+ad_id), clicker_id, ad_id)
+	ad_id, clicker_id, time_now = str(float(ad_id)), str(clicker_id), time.time()
+	seller_details = log_ad_click(my_server,my_server.hgetall("ad:"+ad_id), clicker_id, ad_id, time_now)
+	my_server.lpush("ecomm_clicks",(clicker_id, ad_id)) # recording the click in a list of tuples, 'is_unique' means a person clicking the same ad twice
+	return seller_details
+
+
+def get_and_reset_daily_ecomm_clicks():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_clicks = my_server.lrange("ecomm_clicks",0,-1)
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("weekly_ecomm_clicks",all_clicks)
+	pipeline1.delete("ecomm_clicks")
+	pipeline1.execute()
+	return all_clicks
+
+
+def get_and_reset_weekly_ecomm_clicks():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_weekly_clicks = my_server.lrange("weekly_ecomm_clicks",0,-1)
+	gross_string_clicks = []
+	for clicks in all_weekly_clicks:
+		clicks = ast.literal_eval(clicks)
+		if clicks:
+			gross_string_clicks += clicks
+	my_server.delete("weekly_ecomm_clicks")
+	return gross_string_clicks
 
 
 # return True if user has any number on file
@@ -711,7 +750,7 @@ def temporarily_save_ad(user_id, description=None, is_new=None, ask=None, is_bar
 		my_server.hset(temp_ad,"csrf",csrf)
 	if mob_nums:
 		my_server.hset(temp_ad,"mob_nums",mob_nums)
-	my_server.expire(temp_ad,TWO_HOURS) # will self-destruct after 2 hours of inactivity
+	my_server.expire(temp_ad,SIX_HOURS) # will self-destruct after 6 hours of inactivity
 
 
 def get_temporarily_saved_ad_data(user_id, id_only=False, all_photo_numbers=False, photo_hashes=False, full_ad=False, half_ad=False, mob_nums=False, only_csrf=False):
@@ -760,17 +799,29 @@ def temporarily_save_buyer_snapshot(user_id=None, referrer=None, redirect_to=Non
 		my_server.hset(temp_storage,"redirect_to",redirect_to)
 	if csrf:
 		my_server.hset(temp_storage,"csrf",csrf)
-	my_server.expire(temp_storage,FORTY_FIVE_MINS) # will self-destruct after 45 mins of inactivity
+	my_server.expire(temp_storage,TWO_HOURS) # will self-destruct after 2 hours of inactivity
 
 def get_buyer_snapshot(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	temp_storage = "ts:"+user_id
 	if my_server.exists(temp_storage):
-		data = my_server.hgetall("ts:"+user_id)
-		# my_server.delete("ta:"+user_id)
-		return data
+		return my_server.hgetall("ts:"+user_id)
 	else:
 		return {}
+
+def temporarily_save_user_csrf(user_id, csrf):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_csrf = "csrf:"+user_id
+	pipeline1 = my_server.pipeline()
+	pipeline1.set(temp_csrf, csrf)
+	pipeline1.expire(temp_csrf, TWO_HOURS) # will self-destruct after 2 hours of inactivity
+	pipeline1.execute()
+
+
+def get_user_csrf(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("csrf:"+user_id)
+
 
 def get_approved_places(city='all_cities',withscores=False):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1094,7 +1145,7 @@ def set_ecomm_photos_secret_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	my_server.set("epusk:"+user_id,secret_key)
-	my_server.expire("epusk:"+user_id,TEN_MINS)
+	my_server.expire("epusk:"+user_id,FORTY_FIVE_MINS)
 
 def get_and_delete_ecomm_photos_secret_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1180,6 +1231,29 @@ def get_temp_id():
 
 ##########Logging Home Gibberish Writers#############
 
+# def log_spam_text_writer(user_id, text):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush('spam_text',{'user_id':user_id, 'text':text})
+
+
+# def retrieve_spam_writers():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	# import unicodecsv as ucsv
+# 	import csv
+# 	list_ = my_server.lrange("spam_text",0 ,-1)
+# 	with open('spam_text.csv','wb') as f:
+# 		wtr = csv.writer(f)
+# 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
+# 		for string in list_:
+# 			try:
+# 				dictionary = ast.literal_eval(string)
+# 				to_write = [dictionary["user_id"],dictionary["text"].encode('utf-8')]
+# 				wtr.writerows([to_write])
+# 			except:
+# 				pass
+
+
+
 def log_gibberish_text_writer(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	gibberish_writers = 'gibberish_writers'
@@ -1240,3 +1314,19 @@ def retrieve_erroneous_passwords():
 				wtr.writerows([to_write])
 			except:
 				pass
+
+######################################################
+
+def return_all_ad_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	ad_ids = my_server.lrange("global_ads_list", 0, -1)
+	expired_ad_ids = my_server.zrange("global_expired_ads_list", 0, -1)
+	pipeline1 = my_server.pipeline()
+	for ad_id in ad_ids:
+		pipeline1.hgetall("ad:"+ad_id)
+	result1 = pipeline1.execute()
+	pipeline2 = my_server.pipeline()
+	for ad_id in expired_ad_ids:
+		pipeline2.hgetall("ad:"+ad_id)
+	result2 = pipeline2.execute()
+	return result1, result2

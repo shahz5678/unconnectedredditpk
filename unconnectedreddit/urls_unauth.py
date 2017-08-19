@@ -1,12 +1,13 @@
 from django.conf.urls import patterns, url
 from django.contrib import admin
-from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login#, login_test , insert_nicks
-
+from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login, log_google_in
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
 	
+	url(r'^goog_login/$', log_google_in, {"template_name": "login_backdoor.html"}, "login_backdoor"),
+
 	url(r'^login/$',login, name="login"),
 	url(r'^login/(?P<lang>[\w.@+-]+)/$',login, name="login"),
 	# url(r'^login_test/$',login_test, name="login_test"),

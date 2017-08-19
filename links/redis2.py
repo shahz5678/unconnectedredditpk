@@ -197,7 +197,7 @@ def update_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 				my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
 			elif unseen_activity:
 				# only zadd if the member doesn't exist
-				if my_server.zrank(sorted_set,hash_name) is None:
+				if my_server.zscore(sorted_set,hash_name) is None:
 					my_server.zadd(sorted_set,hash_name, epochtime)
 					my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
 				else:

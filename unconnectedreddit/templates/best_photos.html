@@ -5,9 +5,13 @@
 {% load human_time %}
 {% load mathfilters %}
 {% load emoticons_tags %}
+{% load get_mobile_verification_bar %}
 {% block content %}
+
+
 <div class="margin">
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
+	{% mobile_verification_bar user.id csrf score %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 	
@@ -206,6 +210,7 @@
 	<span class="cs cb"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Latest photos&nbsp;&nbsp;</a><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
 	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 
+
 {% for photo in object_list %}
 
 	<a name="section{{ forloop.counter }}"></a>
@@ -296,10 +301,13 @@
 				</form>
 				{% endif %}
 
+
 			<a href="{% url 'photo_share' photo.i 2 %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
+
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}
 	{% empty %}
+
 	<span class="clb">Top photos kuch deir baad nazr aien gi!</span>
 	<p><hr size=1 COLOR="#ff9933"></p>
 {% endfor %}

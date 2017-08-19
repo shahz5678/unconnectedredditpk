@@ -23,16 +23,6 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
-def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
-	my_server = redis.Redis(connection_pool=POOL)
-	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
-	my_server.lpush("unfinished_ad_processing_error",data)
-
-# def save_seller_number_error(user_id, user_id_type, data):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}
-# 	my_server.lpush("show_seller_number_errors",um_data)
-
 def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	if which_flow == 'consumer':
@@ -41,6 +31,51 @@ def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs
 	else:
 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
 		my_server.lpush("seller_number_errors",err_data)
+
+#######################Ecomm Metrics######################
+
+def log_ecomm_user_visit(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("ecomm_visits",user_id)
+
+def get_and_reset_daily_ecomm_visits():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_visits = my_server.lrange("ecomm_visits",0,-1)
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("weekly_ecomm_visits",all_visits)
+	pipeline1.delete("ecomm_visits")
+	pipeline1.execute()
+	return all_visits, my_server.llen("weekly_ecomm_visits")
+
+def get_and_reset_weekly_ecomm_visits():
+	import ast
+	my_server = redis.Redis(connection_pool=POOL)
+	weekly_visits = my_server.lrange("weekly_ecomm_visits",0,-1)
+	weekly_gross_visits = []
+	for daily_visits in weekly_visits:
+		weekly_gross_visits += ast.literal_eval(daily_visits)
+	my_server.delete("weekly_ecomm_visits")
+	return weekly_gross_visits
+
+
+def insert_metrics(ecomm_metrics, reporting_time, period=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if period == 'daily':
+		mapping = {'entry_time':reporting_time, 'unique_clicks_per_unique_visitor':ecomm_metrics[0], 'unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'proportion_of_clickers_to_visitors':ecomm_metrics[2], 'unique_new_clickers_per_unique_new_visitors':ecomm_metrics[3], \
+		'unique_new_clicks_per_unique_new_visitor':ecomm_metrics[4], 'total_unique_visitors':ecomm_metrics[5], 'total_unique_clicks':ecomm_metrics[6]}
+		my_server.lpush("ecomm_metrics",mapping)
+	if period == 'weekly':
+		mapping = {'entry_time':reporting_time, 'weekly_unique_clicks_per_unique_visitor':ecomm_metrics[0], 'weekly_unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'weekly_proportion_of_clickers_to_visitors':ecomm_metrics[2], 'weekly_unique_visitors':ecomm_metrics[3], \
+		'weekly_unique_clicks':ecomm_metrics[4]}
+		my_server.lpush("weekly_ecomm_metrics",mapping)
+
+
+
+def return_all_metrics_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("ecomm_metrics", 0, -1), my_server.lrange("weekly_ecomm_metrics", 0, -1)
 
 #######################Test Function######################
 
@@ -216,28 +251,33 @@ def save_careem_data(careem_data):
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
 		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
-#		print my_server.zrange("careem_applicant_nums",0,-1)
+		pipeline1.zadd('careem_applicant_nums_live',careem_data['phonenumber'],time.time())
 		pipeline1.execute()
 
 		return True
 
 def export_careem_data():
-	import csv
 	my_server = redis.Redis(connection_pool=POOL)
-	nums = my_server.zrange("careem_applicant_nums",0,-1)
 	pipeline1 = my_server.pipeline()
-	for num in nums:
-		pipeline1.hgetall('cad:'+num)
-	result1 = pipeline1.execute()
-	filename = 'careem_'+str(int(time.time()))+'.csv'
-	with open(filename,'wb') as f:
-		wtr = csv.writer(f)
-		columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
-		wtr.writerow(columns)
-		for user in result1:
-			firstname,lastname,phonenumber,city,license,car=user['firstname'],user['lastname'],user['phonenumber'],\
-			user['city'],user['license'],user['car']
-			to_write = [firstname,lastname,phonenumber,city,license,car]
-			wtr.writerows([to_write])
+	user = my_server.zcard("careem_applicant_nums_live")
+	if user == 0:
+		return False
+	else:
+		nums = my_server.zrange("careem_applicant_nums_live",0,-1)
+		pipeline1 = my_server.pipeline()
+		for num in nums:
+			pipeline1.hgetall('cad:'+num)
+		result1 = pipeline1.execute()
+		return result1
+
+def del_careem_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("careem_applicant_nums_live")
+
+
+def log_comment_report(data):
+	my_server = redis.Redis(connection_pool=POOL)
+	data["log_time"]=time.time()
+	my_server.lpush("Commentreport",data)
 
 #########################################################

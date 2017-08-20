@@ -61,7 +61,7 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -651,6 +651,15 @@ class VerifyHelpView(FormView):
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm
 	template_name = "register_help.html"
+
+
+def logout_rules(request):
+	if first_time_log_outter(request.user.id):
+		add_log_outter(request.user.id)
+		return render(request,"logout_tutorial.html",{})
+	else:
+		return render(request,"logout_rules.html",{})
+
 
 class LogoutPenaltyView(FormView):
 	form_class = LogoutPenaltyForm

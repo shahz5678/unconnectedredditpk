@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin">
+<h2 class="cg">Kiya aap waqai logout karna chahtey ho? {% emoticons %}.k1.k2.k3.k4{% endemoticons %}</h2>
+
+<a href="{% url 'log_me_out' %}"><button class="btn bcgy bl mtl mbl">Haan</button></a><br>
+<a href="{% url 'home' %}"><button class="btn bcg bl mtl mbs">Nahi</button></a><br>
+<hr size=1 COLOR="#ffeb3b">
+<span class="cs cgy">Logout ke bad ap Damadam mein enter nahi ho sako ge. Lekin kuch browsers (e.g. Opera Mini) pe phir bhi website ke pages nazr aa jatey hain. In browsers pe logout karne ke bad window ko close kar dena chahiye, ya kisi aur website ko khol lena chahiye</span>
+</div>
+<br><br>
+{% endblock %}

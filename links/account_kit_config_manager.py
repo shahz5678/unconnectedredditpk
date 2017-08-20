@@ -1,4 +1,5 @@
 import requests, ast, hashlib, hmac
+from redis3 import access_error_log
 from unconnectedreddit.account_kit_settings import FAID, AKAS
 
 
@@ -22,8 +23,13 @@ class AccountKitManager(object):
 		data = self.retrieve_data(url)
 		data = self.evaluate_data(data)
 		# print "The user access token is: %s" % data["access_token"] # this is returned in lieu of the auth_code
-		string_obj = self.retrieve_user_cred(data["access_token"])
-		self.obj = self.evaluate_data(string_obj)
+		try:
+			string_obj = self.retrieve_user_cred(data["access_token"]) #log the error when this shows a KeyError
+			self.obj = self.evaluate_data(string_obj)
+		except KeyError:
+			access_error_log(app_access_token=self.app_access_token, auth_code=auth_code, data=data)
+			string_obj = self.retrieve_user_cred(data["access_token"]) #creating keyerror anyway
+			self.obj = self.evaluate_data(string_obj)
 
 	def retrieve_user_cred(self, user_access_token, url=None):
 		if not url:

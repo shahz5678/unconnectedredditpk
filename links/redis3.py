@@ -364,6 +364,8 @@ def log_forgot_password(user_id,username,flow_level):
 			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
 	elif flow_level == 'start':
 		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
+	elif flow_level == 'bad-end':
+		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):

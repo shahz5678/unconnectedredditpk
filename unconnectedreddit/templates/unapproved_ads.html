@@ -13,7 +13,10 @@
 	<button class="btn bct mts cs" style="border:none;border-radius:2px;">&nbsp;my locked ads&nbsp;</button>
 	</a>
 	<a href="{% url 'display_latest_metrics' 'daily' %}">
-	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics&nbsp;</button>
+	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics (d)&nbsp;</button>
+	</a>
+	<a href="{% url 'display_latest_metrics' 'weekly' %}">
+	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics (w)&nbsp;</button>
 	</a>
 	{% else %}
 	<span class="cxl ct">My Locked Ads ({{ count }})</span><br>

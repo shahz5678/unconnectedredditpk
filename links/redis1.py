@@ -429,6 +429,15 @@ def unlock_uname_search(user_id):
 #website feedbacker:    '13'
 #exchange visitor:      '14'
 #classified_contacter:  '15'
+#log_outter:            '16'
+
+def first_time_log_outter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'16'):
+		return False
+	else:
+		return True	
 
 def first_time_exchange_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -613,6 +622,12 @@ def add_exchange_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '14')
+
+def add_log_outter(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '16')
+
 
 #####################Publicreplies#####################
 

@@ -347,16 +347,23 @@ def insert_nick_list(nickname_list):
 
 #####################Classifieds#######################
 
+def access_error_log(app_access_token, auth_code, data):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
 
-def log_forgot_password(user_id,flow_level):
+
+def log_forgot_password(user_id,username,flow_level):
 	my_server = redis.Redis(connection_pool=POOL)
 	if flow_level == 'end':
-		if my_server.sismember("forgot_password",str(user_id)+":start"):
-			my_server.srem("forgot_password",str(user_id)+":start")
+		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
+			pipeline1 = my_server.pipeline()
+			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
+			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
+			pipeline1.execute()
 		else:
-			my_server.sadd("forgot_password",str(user_id)+":end")
+			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
 	elif flow_level == 'start':
-		added = my_server.sadd("forgot_password",str(user_id)+":start")
+		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
@@ -1252,28 +1259,6 @@ def get_temp_id():
 	return my_server.incr("temp_user_id")
 
 ##########Logging Home Gibberish Writers#############
-
-# def log_spam_text_writer(user_id, text):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush('spam_text',{'user_id':user_id, 'text':text})
-
-
-# def retrieve_spam_writers():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# import unicodecsv as ucsv
-# 	import csv
-# 	list_ = my_server.lrange("spam_text",0 ,-1)
-# 	with open('spam_text.csv','wb') as f:
-# 		wtr = csv.writer(f)
-# 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
-# 		for string in list_:
-# 			try:
-# 				dictionary = ast.literal_eval(string)
-# 				to_write = [dictionary["user_id"],dictionary["text"].encode('utf-8')]
-# 				wtr.writerows([to_write])
-# 			except:
-# 				pass
-
 
 
 def log_gibberish_text_writer(user_id):

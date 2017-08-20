@@ -5666,6 +5666,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			if 'private' in self.request.path and group.private=='1':
 				user_id = self.request.user.id
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["score"] = self.request.user.userprofile.score
+				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]

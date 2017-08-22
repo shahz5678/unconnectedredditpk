@@ -115,11 +115,11 @@
 	{% for photo_url,status,pht_id in submission.photos %}
 		<td style="display: inline-block;">
 		{% if status %}
-		<b class="cgy">Cover photo</b>
+		<b class="cgy">Cover photo</b><br>
 		{% else %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
 		<input type="hidden" name="only_locked" value="{{ only_locked }}">
-		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button>
+		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button><br>
 		{% endif %}
 		<img class="pht mrs mts" src="{{ photo_url|complete_url }}">
 		</td>

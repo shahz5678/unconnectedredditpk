@@ -372,6 +372,7 @@ def log_forgot_password(user_id,username,flow_level):
 		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
 
 
+########################################################################################################
 def populate_ad_list(which_list="photos"):
 	my_server = redis.Redis(connection_pool=POOL)
 	live_ad_ids = my_server.lrange("global_ads_list",0,-1)
@@ -386,6 +387,7 @@ def populate_ad_list(which_list="photos"):
 				my_server.rpush("global_photo_ads_list",ad_id)
 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
 			counter += 1
+########################################################################################################
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
@@ -506,8 +508,8 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 				pipeline1.lrem("global_exchange_ads_list",ad_ids,num=-1)
 				pipeline1.lrem("aea:"+city, ad_ids, num=-1)
 			if int(photo_count) > 0:
-				pipeline1.lrem("global_photo_ads_list",ad_id,num=-1)
-				pipeline1.lrem("afa:"+city, ad_id, num=-1)
+				pipeline1.lrem("global_photo_ads_list",ad_ids,num=-1)
+				pipeline1.lrem("afa:"+city, ad_ids, num=-1)
 			pipeline1.lrem("uaa:"+user_id,ad_ids)
 			pipeline1.zrem("ad_expiry_queue",ad_ids) # remove ad from ad_expiry_queue
 			pipeline1.zincrby("approved_locations",city,amount=-1)

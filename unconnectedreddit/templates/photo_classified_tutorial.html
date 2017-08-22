@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl cg">'Foto Ads' kiya hain?</b><br>
+<div class="mt">
+<span class="cxl">Ye woh ads hain jin mein baichney waley ne cheez ki fotos bhi lagai hoti hain<br><span class="cgy cs">Foto waley ads ko ziyada time ke liye Damadam pe dikhaya jata hai</span></span><br> 
+</div>
+{% if city %}<a href="{% url url_name city %}">{% else %}<a href="{% url url_name %}">{% endif %}<button class="btn bcg bl cl mtl">Theek hai</button></a>
+
+</div>
+<br><br>
+{% endblock %}

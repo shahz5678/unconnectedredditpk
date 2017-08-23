@@ -20,7 +20,7 @@ get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphane
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
 get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
-get_buyer_snapshot, populate_ad_list#, retrieve_spam_writers
+get_buyer_snapshot#, populate_ad_list, retrieve_spam_writers
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -29,10 +29,10 @@ from django.views.decorators.cache import cache_control
 
 #################################################################
 
-# from optimizely_config_manager import OptimizelyConfigManager
-# from unconnectedreddit.optimizely_settings import PID
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
 
-# config_manager = OptimizelyConfigManager(PID)
+config_manager = OptimizelyConfigManager(PID)
 
 #################################################################
 
@@ -247,6 +247,9 @@ def ad_detail(request,ad_id,*args,**kwargs):
 	if ad_body:
 		approved_user_ad = process_ad_objects(ad_list = [ad_body],must_eval_photo_list=True,photo_tup=True)[0]
 		detail_click_logger.delay(ad_id, request.user.id)
+		############################################################################################################
+		config_manager.get_obj().track('clicked_detail', request.user.id)
+		############################################################################################################
 		return render(request,"classified_detail.html",{'is_feature_phone':get_device(request),'ad_body':approved_user_ad,'referrer':request.META.get('HTTP_REFERER',None)})
 	else:
 		# id ad_id doesn't exist (E.g. deleted, or never existed)
@@ -357,6 +360,9 @@ def show_seller_number(request,*args,**kwargs):
 					send_sms = get_SMS_setting(str(float(ad_id)))
 					if send_sms == '1':
 						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+			############################################################################################################
+			config_manager.get_obj().track('clicked_contact', user_id)
+			############################################################################################################
 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
 				'referrer':request.META.get('HTTP_REFERER',None)})
 		else:
@@ -380,6 +386,9 @@ def show_seller_number(request,*args,**kwargs):
 						send_sms = get_SMS_setting(str(float(ad_id)))
 						if send_sms == '1':
 							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+				############################################################################################################
+				config_manager.get_obj().track('clicked_contact', user_id)
+				############################################################################################################
 				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
 					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
 			else:
@@ -395,7 +404,7 @@ def classified_listing(request,city=None,*args,**kwrags):
 		if first_time_exchange_visitor(request.user.id):
 			add_exchange_visitor(request.user.id)
 			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})
-	is_photos = True if (url_name == 'classified_listing_with_photos' or url_name == 'city_classified_listing_with_photos') else False
+	is_photos = True if (url_name == 'photos_classified_listing' or url_name == 'city_photos_classified_listing') else False
 	if is_photos and request.user.is_authenticated():
 		if first_time_photo_ads_visitor(request.user.id):
 			add_photo_ad_visitor(request.user.id)
@@ -410,8 +419,26 @@ def classified_listing(request,city=None,*args,**kwrags):
 		origin = city
 	else:
 		city, origin = None, 'global'
-	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-		'exchange':exchange})
+	#####################################################################################
+	variation = config_manager.get_obj().activate('ecomm_tabs', request.user.id)
+	if variation == 'ads_and_badla':
+		return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+			'exchange':exchange, 'photos':None, 'variation':variation})
+	elif variation == 'ads_and_fotos':
+		return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+			'exchange':None, 'photos':is_photos,'variation':variation})
+	elif variation == 'ads_and_fotos_and_badla':
+		return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+			'exchange':exchange,'photos':is_photos, 'variation':variation})
+	elif variation == 'ads_and_badla_and_fotos':
+		return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+			'exchange':exchange, 'photos':is_photos, 'variation':variation})
+	else:
+		return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+			'exchange':exchange, 'photos':None, 'variation':'ads_and_badla'})
+	#####################################################################################
+	# return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
+	# 	'exchange':exchange})
 
 
 
@@ -840,14 +867,6 @@ def init_classified(request,*args,**kwargs):
 		#################################################
 		# mp.track(request.user.id, 'Entered Kuch Baicho')#
 		#################################################
-		# variation = config_manager.get_obj().activate('ad_instructions', request.user.id)
-		# if variation == 'old_instr':
-		# 	return render(request,"basic_classified_instructions.html",{})
-		# elif variation == 'new_instr':
-		# 	return render(request,"basic_classified_instructions_2.html",{})
-		# else:
-		# 	return render(request,"basic_classified_instructions.html",{})
-		#################################################
 		return render(request,"basic_classified_instructions.html",{})
 
 
@@ -930,6 +949,6 @@ def process_city(request,*args,**kwargs):
 	else:
 		return render(request,'404.html',{})
 
-def populate_photo_ads(request):
-	populate_ad_list(which_list="photos")
-	return render(request,'404.html',{})
+#def populate_photo_ads(request):
+	# populate_ad_list(which_list="photos")
+	# return render(request,'404.html',{})

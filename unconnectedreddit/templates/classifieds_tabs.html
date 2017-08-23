@@ -27,7 +27,7 @@
         {% endif %}
       {% endif %}
 {% elif variation == 'ads_and_fotos' %}
-      {% if exchange %}
+      {% if photos %}
         {% if is_feature_phone == '1' %}
         <div class="tab mts">
           {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;">Ads</button></a>

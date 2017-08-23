@@ -373,20 +373,20 @@ def log_forgot_password(user_id,username,flow_level):
 
 
 ########################################################################################################
-def populate_ad_list(which_list="photos"):
-	my_server = redis.Redis(connection_pool=POOL)
-	live_ad_ids = my_server.lrange("global_ads_list",0,-1)
-	if which_list == "photos":
-		pipeline1 = my_server.pipeline()
-		for ad_id in live_ad_ids:
-			pipeline1.hmget("ad:"+ad_id,"photo_count","city")
-		result1 = pipeline1.execute()
-		counter = 0
-		for ad_id in live_ad_ids:
-			if int(result1[counter][0]) > 0:
-				my_server.rpush("global_photo_ads_list",ad_id)
-				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
-			counter += 1
+# def populate_ad_list(which_list="photos"):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	live_ad_ids = my_server.lrange("global_ads_list",0,-1)
+# 	if which_list == "photos":
+# 		pipeline1 = my_server.pipeline()
+# 		for ad_id in live_ad_ids:
+# 			pipeline1.hmget("ad:"+ad_id,"photo_count","city")
+# 		result1 = pipeline1.execute()
+# 		counter = 0
+# 		for ad_id in live_ad_ids:
+# 			if int(result1[counter][0]) > 0:
+# 				my_server.rpush("global_photo_ads_list",ad_id)
+# 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
+# 			counter += 1
 ########################################################################################################
 
 

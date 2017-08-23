@@ -1,27 +1,143 @@
 {% load join_string %}
 
-{% if exchange %}
-  {% if is_feature_phone == '1' %}
-  <div class="tab mts">
-    {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;">Ads</button></a>
-    {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Badla Ads</b></button></a>
-  </div>
-  {% else %}
-  <div class="tab mts">
-    {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button>Ads</button></a>
-    {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Badla Ads</b></button></a>
-  </div>
-  {% endif %}
-{% else %}
-  {% if is_feature_phone == '1' %}
-  <div class="tab mts">
-    {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
-    {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;float: right;">Sirf Badla Ads</button></a>
-  </div>
-  {% else %}
-  <div class="tab mts">
-    {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
-    {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="float: right;">Sirf Badla Ads</button></a>
-  </div>
-  {% endif %}
+{% if variation == 'ads_and_badla' %}
+      {% if exchange %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Badla Ads</b></button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button>Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Badla Ads</b></button></a>
+        </div>
+        {% endif %}
+      {% else %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;float: right;">Sirf Badla Ads</button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="float: right;">Sirf Badla Ads</button></a>
+        </div>
+        {% endif %}
+      {% endif %}
+{% elif variation == 'ads_and_fotos' %}
+      {% if exchange %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Foto Ads</b></button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button>Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;float:right;"><b>Sirf Foto Ads</b></button></a>
+        </div>
+        {% endif %}
+      {% else %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;float: right;">Sirf Foto Ads</button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="float: right;">Sirf Foto Ads</button></a>
+        </div>
+        {% endif %}
+      {% endif %}
+{% elif variation == 'ads_and_fotos_and_badla' %}
+      {% if photos %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em; width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%; margin-left:1px"><b>Sirf Foto Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em; width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%; margin-left:1px"><b>Sirf Foto Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+        </div>
+        {% endif %}
+      {% elif exchange %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%;">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%;margin-left:1px;">Sirf Foto Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%;margin-left:1px;"><b>Sirf Badla Ads</b></button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0" >{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0; width:33%; margin-left:1px"><b>Sirf Badla Ads</b></button></a>
+        </div>
+        {% endif %}
+      {% else %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%; margin-left:1px">Sirf Badla Ads</button></a> 
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+        </div>
+        {% endif %}
+      {% endif %}
+{% elif variation == 'ads_and_badla_and_fotos' %}
+      {% if photos %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em; width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em; width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%; margin-left:1px"><b>Sirf Foto Ads</b></button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%;margin-left:1px"><b>Sirf Foto Ads</b></button></a>
+        </div>
+        {% endif %}
+      {% elif exchange %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%;">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%;margin-left:1px;"><b>Sirf Badla Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%;margin-left:1px;">Sirf Foto Ads</button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0" >{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%">Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0; width:33%; margin-left:1px"><b>Sirf Badla Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+        </div>
+        {% endif %}
+      {% else %}
+        {% if is_feature_phone == '1' %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="height:5em;width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+        </div>
+        {% else %}
+        <div class="tab mts">
+          {% if origin == 'global' %}<a href="{% url 'classified_listing' %}#section0">{% else %}<a href="{% url 'city_classified_listing' origin|join_string %}#section0">{% endif %}<button style="border-bottom: 2px solid #ffa726;color:#fb8c00;background-color:#fff3e0;width:33%;"><b>Ads</b></button></a>
+          {% if origin == 'global' %}<a href="{% url 'exchange_classified_listing' %}#section0">{% else %}<a href="{% url 'city_exchange_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Badla Ads</button></a>
+          {% if origin == 'global' %}<a href="{% url 'photos_classified_listing' %}#section0">{% else %}<a href="{% url 'city_photos_classified_listing' origin|join_string %}#section0">{% endif %}<button style="width:33%; margin-left:1px">Sirf Foto Ads</button></a>
+        </div>
+        {% endif %}
+      {% endif %}
 {% endif %}

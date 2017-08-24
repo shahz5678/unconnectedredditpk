@@ -3,6 +3,7 @@
 {% load thumbedge %}
 {% load photoedge %}
 {% load emoticons_tags %}
+{% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin clb">
 
@@ -12,6 +13,7 @@
     <a href="{% url 'group_page' %}#section0"><button class="btn bs bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
+    {% mobile_verification_bar user.id csrf score %}
     <a href="{% url 'leave_private_group' pk=group.id unique=group.unique private=1 inside_grp=1 %}"><button class="btn bcr bxs"><b>X</b></button></a>
     <b class="clb cl bw">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}"><button class="btn bm bcg cs mbs">change</button></a>
     <br>

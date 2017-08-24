@@ -1,15 +1,3 @@
-<head>
-
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script>
- (adsbygoogle = window.adsbygoogle || []).push({
-   google_ad_client: "ca-pub-2568547635306983",
-   enable_page_level_ads: true
- });
-</script>
-
-</head>
-
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
@@ -20,9 +8,11 @@
 {% load photo_voted %}
 {% load human_time %}
 {% load photoedge %}
+{% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin">
 {% if home_rules %}{{ home_rules|safe }}{% endif %}
+{% mobile_verification_bar user.id csrf score %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 			
@@ -277,15 +267,6 @@
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
-		</div>
-		<p><hr size=1 COLOR="#33cc33"></p></div>
-	{% endif %}
-	{% if forloop.counter == 6 %}
-		<div style="background-color:#ffffb3;margin-top:-1em;padding-top:1em;">
-		<div class="mls">
-		<a href="{% url 'careem_ad' %}#section0"><img style="max-width:150px;" src="{{ STATIC_URL }}img/careem_banner_5.png"></a>
-		<span class="cg cl">Careem ke sath gari chala ke har month <b>Rs.50,000</b> tak kamaien!</span>
-		<a href="{% url 'careem_ad' %}"><button class="btn bcg bl cl mls mts">Tafseel</button></a>
 		</div>
 		<p><hr size=1 COLOR="#33cc33"></p></div>
 	{% endif %}

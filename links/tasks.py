@@ -17,7 +17,7 @@ from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, 
 Video, HotUser, PhotoStream, HellBanList#, Vote
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry
+process_ad_final_deletion, process_ad_expiry, log_detail_click
 from .redis4 import expire_online_users, get_recent_online
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
@@ -81,12 +81,15 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
-	# for user_id,payable_score in payables:
-	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+
+
+@celery_app1.task(name='tasks.increase_user_points')
+def increase_user_points(user_id, increment):
+	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+increment)
 
 @celery_app1.task(name='tasks.save_consumer_credentials')
 def save_consumer_credentials(account_kit_id, mobile_data, user_id):
-	save_consumer_number(account_kit_id,mobile_data,user_id)
+	save_consumer_number(account_kit_id=account_kit_id, mobile_data=mobile_data, user_id=user_id)
 
 @celery_app1.task(name='tasks.save_unfinished_ad')
 def save_unfinished_ad(context):
@@ -148,10 +151,40 @@ def calc_ecomm_metrics():
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
 		log_gibberish_text_writer(user_id)
+		# log_spam_text_writer(user_id, text)
+	else:
+		tokens = text[:12].split()
+		if len(tokens) > 1:
+			first_word = tokens[0]
+			len_first_word = len(first_word)
+			offset = text[len_first_word:].find(first_word)
+			if offset > -1:
+				first_start = len_first_word+offset
+				first_end = first_start+len_first_word
+				first_repetition = text[first_start:first_end]
+				if first_word == first_repetition:
+					second_start = first_end + offset
+					second_end = second_start+len_first_word
+					second_repetition = text[second_start:second_end]
+					if first_repetition == second_repetition:
+						third_start = second_end + offset
+						third_end = third_start + len_first_word
+						third_repetition = text[third_start:third_end]
+						if third_repetition == second_repetition:
+							log_gibberish_text_writer(user_id)
+							# log_spam_text_writer(user_id, text)
+
+
 
 @celery_app1.task(name='tasks.capture_urdu')
 def capture_urdu(text):
 	log_urdu(text)
+
+
+@celery_app1.task(name='tasks.detail_click_logger')
+def detail_click_logger(ad_id, clicker_id):
+	log_detail_click(ad_id, clicker_id)
+
 
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):

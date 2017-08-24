@@ -380,7 +380,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.calc_gibberish_punishment': {
 		'task': 'tasks.calc_gibberish_punishment',
-		'schedule': timedelta(seconds=1*60*60), # execute every 1 hour
+		'schedule': timedelta(seconds=45*60), # execute every 45 mins
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',

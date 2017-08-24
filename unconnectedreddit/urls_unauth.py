@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 from django.contrib import admin
-from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login, log_google_in
-
+from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login, forgot_password, log_google_in, \
+set_forgetters_password
+from links.number_verification import verify_forgetter_number
 
 admin.autodiscover()
 
@@ -9,9 +10,13 @@ urlpatterns = patterns('',
 	
 	url(r'^goog_login/$', log_google_in, {"template_name": "login_backdoor.html"}, "login_backdoor"),
 
+	url(r'^forgot_password/$',forgot_password, name="forgot_password"),
+	url(r'^forgot_password/(?P<lang>[\w.@+-]+)/$',forgot_password, name="forgot_password"),
+	url(r'^set_new_pass/$',set_forgetters_password, name="set_forgetters_password"),
+	url(r'^vfn/$',verify_forgetter_number, name="verify_forgetter_number"),
+
 	url(r'^login/$',login, name="login"),
 	url(r'^login/(?P<lang>[\w.@+-]+)/$',login, name="login"),
-	# url(r'^login_test/$',login_test, name="login_test"),
 	
 	url(r'^signup/', unauth_home_new, name='unauth_home_new'),
 	url(r'^signup_ur/', unauth_home_new_ur, name='unauth_home_new_ur'),

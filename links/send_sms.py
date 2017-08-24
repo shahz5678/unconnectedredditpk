@@ -28,8 +28,6 @@ def bind_user_to_twilio_notify_service(user_id,phone_number):
 		binding_type='sms',
 		address=phone_number,
 	)
-	# print(binding.sid)
-
 
 def send_expiry_sms_in_bulk(user_ids):
 	service.notifications.create(identity=user_ids,

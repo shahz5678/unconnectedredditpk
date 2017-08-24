@@ -5,6 +5,7 @@ from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
+from django.middleware import csrf
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
@@ -60,7 +61,7 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -620,6 +621,9 @@ class OpenGroupHelpView(FormView):
 	form_class = OpenGroupHelpForm
 	template_name = "open_group_help.html"
 
+def website_rules(request):
+	return render(request,"website_rules.html",{})
+
 class ContactView(FormView):
 	form_class = ContactForm
 	template_name = "contact.html"
@@ -647,6 +651,15 @@ class VerifyHelpView(FormView):
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm
 	template_name = "register_help.html"
+
+
+def logout_rules(request):
+	if first_time_log_outter(request.user.id):
+		add_log_outter(request.user.id)
+		return render(request,"logout_tutorial.html",{})
+	else:
+		return render(request,"logout_rules.html",{})
+
 
 class LogoutPenaltyView(FormView):
 	form_class = LogoutPenaltyForm
@@ -991,7 +1004,7 @@ class ReportcommentView(FormView):
 			if not self.request.user_banned:
 				rprt = self.request.POST.get("report")
 				alt_photo_id = self.request.POST.get("photo_pk", None)
-				alt_comment_id = self.request.POST.get("comment_pk", None)
+				# alt_comment_id = self.request.POST.get("comment_pk", None)
 				# print alt_photo_id, alt_comment_id
 				if rprt == 'Haan':
 					comment_id = self.request.session["reportcomment_pk"]
@@ -1012,8 +1025,8 @@ class ReportcommentView(FormView):
 						self.request.session.modified = True
 						pk = comment.submitted_by_id
 						ident = self.request.user.id
-						# if pk != ident:
-						# 	document_comment_abuse(pk)
+						if pk != ident:
+							document_comment_abuse(pk)
 						if slug:
 							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 						else:
@@ -1410,6 +1423,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["lang"] = lang
 		context["checked"] = FEMALES
 		context["form"] = form
+		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
@@ -2799,10 +2813,6 @@ def reset_password(request,*args,**kwargs):
 			password = request.POST.get("password")
 			context={'new_pass':password}
 			request.session.pop("authentic_password_owner", None)
-			# try:
-			# 	del request.session['authentic_password_owner']
-			# except KeyError:
-			# 	pass
 			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 			return render(request,'new_password.html',context)
 		else:
@@ -4195,6 +4205,7 @@ def photo_list(request,*args, **kwargs):
 			context["username"] = request.user.username
 			context["score"] = user.userprofile.score
 			context["voted"] = []
+			context["csrf"] = csrf.get_token(request)
 			context["girls"] = FEMALES
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(user.id)
@@ -4462,6 +4473,7 @@ def best_photos_list(request,*args,**kwargs):
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			context["girls"] = FEMALES
+			context["csrf"] = csrf.get_token(request)
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(context["ident"])
 			##########################################################################################################
@@ -5423,6 +5435,8 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 				return context
 			if 'awami' in self.request.path and group.private == '0': 
+				context["score"] = self.request.user.userprofile.score
+				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
 				context["switching"] = False
 				context["group"] = group
@@ -5661,6 +5675,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			if 'private' in self.request.path and group.private=='1':
 				user_id = self.request.user.id
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["score"] = self.request.user.userprofile.score
+				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]

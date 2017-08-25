@@ -1,7 +1,6 @@
 # coding=utf-8
 import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, itertools#, sys
 from collections import OrderedDict, defaultdict
-# from requests.auth import HTTPBasicAuth
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -4751,7 +4750,7 @@ def upload_public_photo(request,*args,**kwargs):
 						return render(request,'big_photo_regular.html',{'pk':'pk'})
 					else:
 						pass
-				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, recent_hashes)
+				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, caption=request.POST.get('caption',None))
 				if isinstance(pk,float):
 					try:
 						photo = Photo.objects.get(id=int(pk))
@@ -6404,7 +6403,7 @@ class LinkCreateView(CreateView):
 				av_url = user.userprofile.avatar.url
 			except:
 				av_url = None
-			if is_urdu(f.description):
+			if is_urdu(text=f.description):
 				category = '17'
 			else:
 				category = '1'
@@ -6421,10 +6420,6 @@ class LinkCreateView(CreateView):
 				extras = add_unfiltered_post(f.id)
 				if extras:
 					queue_for_deletion.delay(extras)
-			#######################
-			# if is_urdu(f.description):
-			# 	capture_urdu.delay(f.description)
-			#######################
 			f.submitter.userprofile.save()
 			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:

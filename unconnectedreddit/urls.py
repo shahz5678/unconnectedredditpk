@@ -1,5 +1,3 @@
-# from django.conf import settings
-# from django.conf.urls.static import static
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
@@ -331,4 +329,3 @@ urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
-# urlpatterns += static(settings.FONTS_URL, document_root=settings.FONTS_ROOT)

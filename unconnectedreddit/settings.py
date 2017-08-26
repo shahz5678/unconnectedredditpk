@@ -215,7 +215,7 @@ else:
 		}
 	}
 
-# SESSION_COOKIE_DOMAIN = '.damadam.pk'
+CSRF_FAILURE_VIEW = 'links.views.csrf_failure'
 
 # CACHES = {
 #     "default": {

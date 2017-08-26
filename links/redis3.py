@@ -356,20 +356,20 @@ def access_error_log(app_access_token, auth_code, data):
 	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
 
 
-def log_forgot_password(user_id,username,flow_level):
-	my_server = redis.Redis(connection_pool=POOL)
-	if flow_level == 'end':
-		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
-			pipeline1 = my_server.pipeline()
-			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
-			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
-			pipeline1.execute()
-		else:
-			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
-	elif flow_level == 'start':
-		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
-	elif flow_level == 'bad-end':
-		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
+# def log_forgot_password(user_id,username,flow_level):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if flow_level == 'end':
+# 		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
+# 			pipeline1 = my_server.pipeline()
+# 			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
+# 			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
+# 			pipeline1.execute() #176 (unsuccessful) vs 141 (successful) - 38% success rate overall
+# 		else:
+# 			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
+# 	elif flow_level == 'start':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
+# 	elif flow_level == 'bad-end':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
 
 
 ########################################################################################################

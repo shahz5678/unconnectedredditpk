@@ -16,7 +16,13 @@ def get_ur(string):
 		return 'یہ نام ابھی ابھی کسی اور نے رکھ لیا۔ معذرت'
 	elif 'safed patti mein' in string:
 		return 'اس سفید پٹی میں نام لکھو'
-	elif 'sirf english harf':
+	elif 'sirf english harf' in string:
 		return 'نام میں صرف انگریزی حروف یا نمبر ہو سکتے ہیں'
+	elif 'hamarey record mein nahi' in string:
+		return 'یہ نک نیم ہمارے رکارڈ میں نہیں ہے'
+	elif 'Agr bhool gaye ho' in string:
+		return 'پاس ورڈ غلط لکھا ہے ۔ اگر بھول گۓ ہو تو نیچے "پاس ورڈ بھول گۓ" کو دباؤ'
+	elif 'naam khali nah choro' in string:
+		return 'نک نیم خالی نہ چھوڑو'
 	else:
 		return FORM_SUBMISSION_ERRORS[string]

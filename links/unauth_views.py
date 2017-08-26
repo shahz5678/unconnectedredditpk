@@ -12,8 +12,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, log_forgot_password
-from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm
+from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
+from brake.decorators import ratelimit
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -126,21 +127,47 @@ def log_google_in(request, *args, **kwargs):
 		return render(request,"login_backdoor.html",{'form':form})
 
 
-def login(request, lang=None, *args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("home")
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+@ratelimit(method='POST', rate='8/h')
+def login(request, lang=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		if lang == "ur":
+			return render(request, 'penalty_login_ur.html', {})
+		else:
+			return render(request, 'penalty_login.html', {})
 	else:
 		if request.method == 'POST':
-			# opportunity to block entry here
-			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+			if not request.session.test_cookie_worked():
+				context = {'referrer':request.META.get('HTTP_REFERER',None)}
+				return render(request,"CSRF_failure.html",context)
+			try:
+				request.session.delete_test_cookie() #cleaning up
+			except:
+				pass
+			form = SignInForm(data=request.POST)
+			if form.is_valid():
+				quick_login(request,form.cleaned_data)
+				if lang == "ur":
+					return redirect("ur_home", 'urdu')
+				else:
+					return redirect("home")
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				request.session.set_test_cookie()
+				if lang == 'ur':
+					return render(request,"sign_in_ur.html",{'form':form})
+				else:
+					return render(request,"sign_in.html",{'form':form})
 		else:
+			form = SignInForm()
+			request.session.set_test_cookie()
 			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+				return render(request,"sign_in_ur.html",{'form':form})
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				return render(request,"sign_in.html",{'form':form})
+
 
 ######################################################################################
 

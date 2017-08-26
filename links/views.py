@@ -257,51 +257,6 @@ def process_publicreply(request,link_id,text,origin=None):
 			from_unseen=(True if origin == 'from_unseen' else False))
 	return parent_username
 
-# def can_interact_with_feature(dict_name,request):
-# 	if "unseen_comment_rate" in request.session:
-# 		overheat_score = request.session['unseen_comment_rate']['overheat']
-# 		last_posting_time = request.session['unseen_comment_rate']['posting_time']
-# 		time_now = time.time()
-# 		time_diff = time_now - last_posting_time
-# 		if overheat_score > 3:
-# 			if time_diff < TEN_MINS:
-# 				# banned
-# 				return render(request,"comment_blocked.html",{'block_remaining':TEN_MINS-time_diff})
-# 			else:
-# 				# expire ban
-# 				request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-# 				request.session.modified = True
-# 		else:
-# 			if time_diff < 7:
-# 				# posting too soon, up the overheating score
-# 				request.session['unseen_comment_rate']['overheat'] += 1
-# 				request.session['unseen_comment_rate']['posting_time'] = time_now
-# 			else:
-# 	else:
-# 		request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-# 		if time_now - last_posting_time < 5:
-# 			overheat_score += 1
-# 	request.session["unseen_comment_rate"] = {'posting_time':time.time(),'overheat':}
-
-# my_server = redis.Redis(connection_pool=POOL)
-# 	votes_allowed = "va:"+str(user_id) #votes allowed to user_id
-# 	current_spree = my_server.get(votes_allowed)
-# 	if current_spree is None:
-# 		pipeline1 = my_server.pipeline()
-# 		my_server.incr(votes_allowed)
-# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
-# 		pipeline1.execute()
-# 		return None, True
-# 	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
-# 		ttl = my_server.ttl(votes_allowed)
-# 		return ttl, False
-# 	else:
-# 		pipeline1 = my_server.pipeline()
-# 		my_server.incr(votes_allowed)
-# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
-# 		pipeline1.execute()
-# 		return None, True
-
 
 def GetLatest(user):
 	try:
@@ -455,6 +410,12 @@ def remove_searched_username(request,nick,*args,**kwargs):
 		return redirect("search_username")
 	else:
 		return render(request,"404.html",{})
+
+
+def csrf_failure(request, reason=""):
+    context = {'referrer':request.META.get('HTTP_REFERER',None)}
+    return render(request,"CSRF_failure.html", context)
+
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)

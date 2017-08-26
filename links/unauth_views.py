@@ -11,7 +11,7 @@ from redis1 import account_creation_disallowed
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
-from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, log_forgot_password
+from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
 from brake.decorators import ratelimit
@@ -47,14 +47,14 @@ def set_forgetters_password(request, *args, **kwargs):
 				quick_login(request,user)
 				request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 				##############################################
-				log_forgot_password(user_id=user_id,username=user.username,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
+				#log_forgot_password(user_id=user_id,username=user.username,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
 				##############################################
 				return render(request,'new_password.html',{'new_pass':password})
 			else:
 				return render(request,"set_new_password.html",{'form':form,'user_id':user_id})
 		else:
-			import time
-			log_forgot_password(user_id=time.time(),username='None',flow_level='bad-end') # logging instances where user_id didn't exist
+			# import time
+			# log_forgot_password(user_id=time.time(),username='None',flow_level='bad-end') # logging instances where user_id didn't exist
 			return render(request,"try_again.html",{'type':'forgetter'})
 	else:
 		return render(request, "404.html",{})
@@ -91,7 +91,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 			is_verified = is_mobile_verified(user_id)
 			if is_verified:
 				################################################
-				log_forgot_password(user_id=user_id,username=username,flow_level='start')#
+				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
 				################################################
 				if lang == "ur":
 					return render(request,"verify_forgetters_account_ur.html",{'user_id':user_id, 'id_in_csrf':True})

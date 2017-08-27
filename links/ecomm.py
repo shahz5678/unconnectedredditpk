@@ -5,9 +5,9 @@ from views import get_page_obj
 # from send_sms import get_all_bindings_to_date
 # from redis1 import first_time_shopper, add_shopper
 # from unconnectedreddit.settings import MIXPANEL_TOKEN
-from redis4 import save_ad_desc#, get_city_shop_listing
 from image_processing import clean_image_file_with_hash
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
+from redis4 import save_ad_desc, return_referrer_logs#, get_city_shop_listing
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
 save_ecomm_photo_hash, detail_click_logger
@@ -947,6 +947,25 @@ def process_city(request,*args,**kwargs):
 			return render(request,"ecomm_choices.html",{})
 	else:
 		return render(request,'404.html',{})
+
+def print_referrer_logs(request):
+	logs = return_referrer_logs()
+	readable_logs = []
+	for log in logs:
+		readable_logs.append(ast.literal_eval(log))
+	import csv
+	filename = 'referrer.csv'
+	with open(filename,'wb') as f:
+		wtr = csv.writer(f)
+		for log in readable_logs:
+			print log
+			user_id = log["user_id"] if "user_id" in log else None
+			origin = log["origin"]
+			referrer = log["referrer"]
+			time = log["time_stamp"] if "time_stamp" in log else 0
+			to_write = [user_id, origin, referrer, time]
+			wtr.writerows([to_write])
+	return render(request, "404.html", {})
 
 #def populate_photo_ads(request):
 	# populate_ad_list(which_list="photos")

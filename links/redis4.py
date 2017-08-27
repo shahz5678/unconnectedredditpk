@@ -27,6 +27,10 @@ def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
 
+def return_referrer_logs():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("referrer",0,-1)
+
 # def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	if which_flow == 'consumer':

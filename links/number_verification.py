@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data, save_number_verification_error_data
+from redis4 import save_careem_data#, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot, get_user_csrf, is_mobile_verified, \
 get_user_verified_number
@@ -54,6 +54,8 @@ def verify_forgetter_number(request,*args,**kwargs):
 			return render(request,"set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
 		else:
 			return render(request,"unverified_number.html",{'referrer':'login'})
+	elif user_id == 'generic' or user_id == 'used' or user_id == 'expired' or user_id == 'invalid':
+		return render(request,"unverified_number.html",{'referrer':'login','reason':user_id})
 	elif err['status'] == "NOT_AUTHENTICATED":
 		return render(request,"dont_worry_just_authenticate.html",{'csrf':user_id,'referrer':'login','type':'forgetter'})
 	else:
@@ -76,6 +78,8 @@ def verify_user_number(request,*args,**kwargs):
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					return render(request,"reward_earned.html",{})
+			elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
+				return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID})
 			elif err['status'] == "NOT_AUTHENTICATED":
 				return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'referrer':'home','type':'user'})
 			else:
@@ -98,11 +102,13 @@ def verify_consumer_number(request,*args,**kwargs):
 					return redirect("show_seller_number")
 				else:
 					return redirect("classified_listing")
+		elif AK_ID == 'generic' or AK_ID == 'expired' or AK_ID == 'used' or AK_ID == 'invalid':
+			return render(request,"unverified_number.html",{'referrer':'classified_listing','reason':AK_ID})
 		elif err['status'] == "NOT_AUTHENTICATED":
 			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer'})
 		else:
-			save_number_verification_error_data(user_id=user_id, err_data=err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
-			return render(request,"unverified_number.html",{})
+			# save_number_verification_error_data(user_id=user_id, err_data=err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
+			return render(request,"unverified_number.html",{'referrer':'classified_listing'})
 	else:
 		return render(request,"try_again.html",{'type':'consumer'})
 
@@ -126,11 +132,13 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 			return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			pass
+	elif AK_ID == 'expired' or AK_ID == 'used' or AK_ID == 'generic' or AK_ID == 'invalid':
+		return render(request,"unverified_number.html",{'referrer':'classified_listing','reason':AK_ID})
 	elif err['status'] == 'NOT_AUTHENTICATED':
 		return render(request,"dont_worry_just_authenticate.html",{'csrf':CSRF,'type':'seller'})
 	elif CSRF is None:
 		return render(request,"try_again.html",{'type':'seller'})
 	else:
-		save_number_verification_error_data(user_id=user_id, err_data=err, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),\
-			which_flow='seller')
-		return render(request,"unverified_number.html",{'err':err})
+		# save_number_verification_error_data(user_id=user_id, err_data=err, err_type='2', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),\
+		# 	which_flow='seller')
+		return render(request,"unverified_number.html",{'referrer':'classified_listing'})

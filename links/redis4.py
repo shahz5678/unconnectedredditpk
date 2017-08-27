@@ -23,14 +23,14 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
-def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	if which_flow == 'consumer':
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("consumer_number_errors",err_data)
-	else:
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("seller_number_errors",err_data)
+# def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if which_flow == 'consumer':
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("consumer_number_errors",err_data)
+# 	else:
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("seller_number_errors",err_data)
 
 #######################Ecomm Metrics######################
 

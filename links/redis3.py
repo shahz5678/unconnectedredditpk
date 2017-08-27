@@ -347,13 +347,13 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
 
-#####################Classifieds#######################
+#######################################################################################################
 
 
 
-def access_error_log(app_access_token, auth_code, data):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
+# def access_error_log(app_access_token, auth_code, data):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
 
 
 # def log_forgot_password(user_id,username,flow_level):
@@ -387,7 +387,7 @@ def access_error_log(app_access_token, auth_code, data):
 # 				my_server.rpush("global_photo_ads_list",ad_id)
 # 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
 # 			counter += 1
-########################################################################################################
+##########################################Classifieds#################################################
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):

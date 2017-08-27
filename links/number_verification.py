@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data#, save_number_verification_error_data
+from redis4 import save_careem_data, log_referrer#, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot, get_user_csrf, is_mobile_verified, \
 get_user_verified_number
@@ -46,6 +46,7 @@ def verify_careem_applicant(request,*args,**kwargs):
 
 
 def verify_forgetter_number(request,*args,**kwargs):
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='forgetter')
 	user_id, MN_data, err = get_requirements(request=request,csrf=None, csrf_omitted=True)
 	if user_id and MN_data:
 		mob_nums = get_user_verified_number(user_id)
@@ -64,6 +65,7 @@ def verify_forgetter_number(request,*args,**kwargs):
 
 
 def verify_user_number(request,*args,**kwargs):
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='user')
 	user_id = request.user.id
 	if is_mobile_verified(user_id):
 		return render(request,"already_verified.html",{})
@@ -89,6 +91,7 @@ def verify_user_number(request,*args,**kwargs):
 
 
 def verify_consumer_number(request,*args,**kwargs):
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='consumer')
 	user_id = request.user.id
 	data = get_buyer_snapshot(user_id=str(user_id))
 	if data:
@@ -114,6 +117,7 @@ def verify_consumer_number(request,*args,**kwargs):
 
 
 def verify_basic_item_seller_number(request,*args,**kwargs):
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='seller')
 	user_id = request.user.id
 	CSRF = get_temporarily_saved_ad_data(user_id=str(user_id),only_csrf=True)
 	AK_ID, MN_data, err = get_requirements(request=request, csrf=CSRF)

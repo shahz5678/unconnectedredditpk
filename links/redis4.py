@@ -23,6 +23,10 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def log_referrer(referrer, loc):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("referrer",{'referrer':referrer,'origin':loc})
+
 # def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	if which_flow == 'consumer':

@@ -132,41 +132,44 @@ def log_google_in(request, *args, **kwargs):
 @csrf_protect
 @ratelimit(method='POST', rate='8/h')
 def login(request, lang=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if lang == "ur":
-			return render(request, 'penalty_login_ur.html', {})
-		else:
-			return render(request, 'penalty_login.html', {})
+	if request.user.is_authenticated():
+		return redirect("home")
 	else:
-		if request.method == 'POST':
-			if not request.session.test_cookie_worked():
-				context = {'referrer':request.META.get('HTTP_REFERER',None)}
-				return render(request,"CSRF_failure.html",context)
-			try:
-				request.session.delete_test_cookie() #cleaning up
-			except:
-				pass
-			form = SignInForm(data=request.POST)
-			if form.is_valid():
-				quick_login(request,form.cleaned_data)
-				if lang == "ur":
-					return redirect("ur_home", 'urdu')
-				else:
-					return redirect("home")
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			if lang == "ur":
+				return render(request, 'penalty_login_ur.html', {})
 			else:
+				return render(request, 'penalty_login.html', {})
+		else:
+			if request.method == 'POST':
+				if not request.session.test_cookie_worked():
+					context = {'referrer':request.META.get('HTTP_REFERER',None)}
+					return render(request,"CSRF_failure.html",context)
+				try:
+					request.session.delete_test_cookie() #cleaning up
+				except:
+					pass
+				form = SignInForm(data=request.POST)
+				if form.is_valid():
+					quick_login(request,form.cleaned_data)
+					if lang == "ur":
+						return redirect("ur_home", 'urdu')
+					else:
+						return redirect("home")
+				else:
+					request.session.set_test_cookie()
+					if lang == 'ur':
+						return render(request,"sign_in_ur.html",{'form':form})
+					else:
+						return render(request,"sign_in.html",{'form':form})
+			else:
+				form = SignInForm()
 				request.session.set_test_cookie()
 				if lang == 'ur':
 					return render(request,"sign_in_ur.html",{'form':form})
 				else:
 					return render(request,"sign_in.html",{'form':form})
-		else:
-			form = SignInForm()
-			request.session.set_test_cookie()
-			if lang == 'ur':
-				return render(request,"sign_in_ur.html",{'form':form})
-			else:
-				return render(request,"sign_in.html",{'form':form})
 
 
 ######################################################################################

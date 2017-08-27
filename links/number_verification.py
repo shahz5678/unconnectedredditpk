@@ -46,7 +46,7 @@ def verify_careem_applicant(request,*args,**kwargs):
 
 
 def verify_forgetter_number(request,*args,**kwargs):
-	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='forgetter')
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='forgetter',user_id=None)
 	user_id, MN_data, err = get_requirements(request=request,csrf=None, csrf_omitted=True)
 	if user_id and MN_data:
 		mob_nums = get_user_verified_number(user_id)
@@ -65,8 +65,10 @@ def verify_forgetter_number(request,*args,**kwargs):
 
 
 def verify_user_number(request,*args,**kwargs):
-	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='user')
 	user_id = request.user.id
+	##############################################################################################
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='user',user_id=user_id)
+	##############################################################################################
 	if is_mobile_verified(user_id):
 		return render(request,"already_verified.html",{})
 	else:
@@ -91,8 +93,10 @@ def verify_user_number(request,*args,**kwargs):
 
 
 def verify_consumer_number(request,*args,**kwargs):
-	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='consumer')
 	user_id = request.user.id
+	##############################################################################################
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='consumer',user_id=user_id)
+	##############################################################################################
 	data = get_buyer_snapshot(user_id=str(user_id))
 	if data:
 		AK_ID, MN_data, err = get_requirements(request=request,csrf=data["csrf"])
@@ -117,8 +121,10 @@ def verify_consumer_number(request,*args,**kwargs):
 
 
 def verify_basic_item_seller_number(request,*args,**kwargs):
-	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='seller')
 	user_id = request.user.id
+	##############################################################################################
+	log_referrer(referrer=request.META.get('HTTP_REFERER',None),loc='seller',user_id=user_id)
+	##############################################################################################
 	CSRF = get_temporarily_saved_ad_data(user_id=str(user_id),only_csrf=True)
 	AK_ID, MN_data, err = get_requirements(request=request, csrf=CSRF)
 	if AK_ID and MN_data:

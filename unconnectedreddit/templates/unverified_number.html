@@ -1,7 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-Ye number verify nahi ho saka<br>
+<span class="cxl">Is number ki tasdiq nahi ho saki!</span><br>
+	
+	{% if reason == 'expired' %}
+	<div class="mts mbs">
+	<span class="cgy cl">Tasdiq ke steps <b>jaldi jaldi</b> karney chahiyen, in mein deir nahi honi chahiye<br>Phir try karien...</span><br>
+	</div>
+	{% elif reason == 'generic' %}
+	<div class="mts mbs">
+	<span class="cgy cl">Tasdiq ke steps mein nah hi browser ka <b>back button</b> use karein, aur nah hi SMS code dalney mein deir karien...</span><br>
+	</div>
+	{% elif reason == 'invalid' %}
+	<div class="mts mbs">
+	<span class="cgy cl">Tasdiq ke liye aap ko tamam steps pooray karney hon ge, warna tasdiq nahi ho gi<br>Phir try karien...</span><br>
+	</div>
+	{% elif reason == 'used' %}
+	<div class="mts mbs">
+	<span class="cgy cl">Tasdiq karwatey waqt browser ka <b>back button</b> nahi use karien<br>Phir try karien...</span><br>
+	</div>
+	{% endif %}
+
 {% if referrer == 'home' %}
 <a href="{% url 'home' %}#section0">
 {% elif referrer == 'login' %}
@@ -9,7 +28,7 @@ Ye number verify nahi ho saka<br>
 {% else %}
 <a href="{% url 'classified_listing' %}#section0">
 {% endif %}
-<button class="btn bcg bm mtl">wapis</button></a>
+<button class="btn bcg bm mtl">OK</button></a>
 </div>
 <br><br>
 {% endblock %}

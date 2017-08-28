@@ -1,10 +1,10 @@
 import random
-from links.redis4 import set_online_users
+from links.tasks import save_online_user
 
 class WhoseOnlineMiddleware(object):
 
     def process_request(self, request):
-    	if random.random() < 0.15 and request.user.is_authenticated():
-    		set_online_users(request.session['_auth_user_id'],request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+    	if random.random() < 0.12 and request.user.is_authenticated():
+    		save_online_user.delay(user_id=request.session['_auth_user_id'], user_ip=request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
     	else:
     		pass

@@ -161,9 +161,10 @@ def set_online_users(user_id,user_ip):
 	sorted_set = "online_users"
 	user_id = str(user_id)
 	latest_user_ip = "lip:"+user_id #latest ip of user with 'user_id'
-	my_server.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
-	my_server.set(latest_user_ip,user_ip)
-	my_server.expire(latest_user_ip,FIVE_MINS)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
+	pipeline1.setex(latest_user_ip,user_ip,FIVE_MINS)
+	pipeline1.execute()
 	############ logging user retention ############
 	# if random.random() < 0.45:
 	# 	log_retention(my_server,user_id)

@@ -159,10 +159,9 @@ def expire_online_users():
 def set_online_users(user_id,user_ip):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
-	user_id = str(user_id)
 	latest_user_ip = "lip:"+user_id #latest ip of user with 'user_id'
 	pipeline1 = my_server.pipeline()
-	pipeline1.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
+	pipeline1.zadd(sorted_set,user_id+":"+user_ip,time.time())
 	pipeline1.setex(latest_user_ip,user_ip,FIVE_MINS)
 	pipeline1.execute()
 	############ logging user retention ############

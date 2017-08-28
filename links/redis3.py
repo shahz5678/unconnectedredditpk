@@ -1221,13 +1221,12 @@ def set_ecomm_photos_secret_key(user_id, secret_key):
 def get_and_delete_ecomm_photos_secret_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	if my_server.exists("epusk:"+user_id):
-		secret_key = my_server.get("epusk:"+user_id)
+	secret_key = my_server.get("epusk:"+user_id)
+	if secret_key:
 		my_server.delete("epusk:"+user_id)
 		return secret_key
 	else:
 		return '1'
-
 
 #####################E Commerce#######################
 

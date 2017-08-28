@@ -85,26 +85,17 @@ def return_all_metrics_data():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("ecomm_metrics", 0, -1), my_server.lrange("weekly_ecomm_metrics", 0, -1)
 
-#######################Test Function######################
-
-# def set_test_payload(payload_list):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	try:
-# 		return my_server.lpush("my_test",payload_list)
-# 	except:
-# 		return None
+#######################Photo Secret Key######################
 
 def set_photo_upload_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
-	user_id = str(user_id)
-	my_server.set("pusk:"+user_id,secret_key)
-	my_server.expire("pusk:"+user_id,TEN_MINS)
+	my_server.setex("pusk:"+str(user_id),secret_key,TEN_MINS)
 
 def get_and_delete_photo_upload_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	if my_server.exists("pusk:"+user_id):
-		secret_key = my_server.get("pusk:"+user_id)
+	secret_key = my_server.get("pusk:"+user_id)
+	if secret_key:
 		my_server.delete("pusk:"+user_id)
 		return secret_key
 	else:

@@ -13,7 +13,10 @@
 	<button class="btn bct mts cs" style="border:none;border-radius:2px;">&nbsp;my locked ads&nbsp;</button>
 	</a>
 	<a href="{% url 'display_latest_metrics' 'daily' %}">
-	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics&nbsp;</button>
+	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics (d)&nbsp;</button>
+	</a>
+	<a href="{% url 'display_latest_metrics' 'weekly' %}">
+	<button class="btn bco mts mls cs" style="border:none;border-radius:2px;">&nbsp;metrics (w)&nbsp;</button>
 	</a>
 	{% else %}
 	<span class="cxl ct">My Locked Ads ({{ count }})</span><br>
@@ -112,11 +115,11 @@
 	{% for photo_url,status,pht_id in submission.photos %}
 		<td style="display: inline-block;">
 		{% if status %}
-		<b class="cgy">Cover photo</b>
+		<b class="cgy">Cover photo</b><br>
 		{% else %}
 		<input type="hidden" name="ad_score" value="{{ score }}">
 		<input type="hidden" name="only_locked" value="{{ only_locked }}">
-		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button>
+		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button><br>
 		{% endif %}
 		<img class="pht mrs mts" src="{{ photo_url|complete_url }}">
 		</td>

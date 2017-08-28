@@ -25,6 +25,13 @@
 	<span class="cgy">Number verify nahi hua, phir se koshish karien</span><br><br>
 	<a href="{% url 'home' %}"><button style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;">Theek hai</button></a>
 
+{% elif type == 'forgetter' %}
+	
+	<span class="cxl">Mobile number ki tasdiq nahi hui</span><br>
+	<span class="cgy">Phir se koshish karien</span><br><br>
+	<a href="{% url 'login' %}"><button style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;">Theek hai</button></a>
+
+
 {% endif %}
 
 </div>

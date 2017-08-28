@@ -1,7 +1,6 @@
 # coding=utf-8
 import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, itertools#, sys
 from collections import OrderedDict, defaultdict
-# from requests.auth import HTTPBasicAuth
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
@@ -61,7 +60,7 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -258,51 +257,6 @@ def process_publicreply(request,link_id,text,origin=None):
 			from_unseen=(True if origin == 'from_unseen' else False))
 	return parent_username
 
-# def can_interact_with_feature(dict_name,request):
-# 	if "unseen_comment_rate" in request.session:
-# 		overheat_score = request.session['unseen_comment_rate']['overheat']
-# 		last_posting_time = request.session['unseen_comment_rate']['posting_time']
-# 		time_now = time.time()
-# 		time_diff = time_now - last_posting_time
-# 		if overheat_score > 3:
-# 			if time_diff < TEN_MINS:
-# 				# banned
-# 				return render(request,"comment_blocked.html",{'block_remaining':TEN_MINS-time_diff})
-# 			else:
-# 				# expire ban
-# 				request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-# 				request.session.modified = True
-# 		else:
-# 			if time_diff < 7:
-# 				# posting too soon, up the overheating score
-# 				request.session['unseen_comment_rate']['overheat'] += 1
-# 				request.session['unseen_comment_rate']['posting_time'] = time_now
-# 			else:
-# 	else:
-# 		request.session['unseen_comment_rate'] = {'posting_time':time_now,'overheat':1}
-# 		if time_now - last_posting_time < 5:
-# 			overheat_score += 1
-# 	request.session["unseen_comment_rate"] = {'posting_time':time.time(),'overheat':}
-
-# my_server = redis.Redis(connection_pool=POOL)
-# 	votes_allowed = "va:"+str(user_id) #votes allowed to user_id
-# 	current_spree = my_server.get(votes_allowed)
-# 	if current_spree is None:
-# 		pipeline1 = my_server.pipeline()
-# 		my_server.incr(votes_allowed)
-# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
-# 		pipeline1.execute()
-# 		return None, True
-# 	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
-# 		ttl = my_server.ttl(votes_allowed)
-# 		return ttl, False
-# 	else:
-# 		pipeline1 = my_server.pipeline()
-# 		my_server.incr(votes_allowed)
-# 		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
-# 		pipeline1.execute()
-# 		return None, True
-
 
 def GetLatest(user):
 	try:
@@ -456,6 +410,12 @@ def remove_searched_username(request,nick,*args,**kwargs):
 		return redirect("search_username")
 	else:
 		return render(request,"404.html",{})
+
+
+def csrf_failure(request, reason=""):
+    context = {'referrer':request.META.get('HTTP_REFERER',None)}
+    return render(request,"CSRF_failure.html", context)
+
 
 class NeverCacheMixin(object):
 	@method_decorator(never_cache)
@@ -621,6 +581,9 @@ class OpenGroupHelpView(FormView):
 	form_class = OpenGroupHelpForm
 	template_name = "open_group_help.html"
 
+def website_rules(request):
+	return render(request,"website_rules.html",{})
+
 class ContactView(FormView):
 	form_class = ContactForm
 	template_name = "contact.html"
@@ -648,6 +611,15 @@ class VerifyHelpView(FormView):
 class RegisterHelpView(FormView):
 	form_class = RegisterHelpForm
 	template_name = "register_help.html"
+
+
+def logout_rules(request):
+	if first_time_log_outter(request.user.id):
+		add_log_outter(request.user.id)
+		return render(request,"logout_tutorial.html",{})
+	else:
+		return render(request,"logout_rules.html",{})
+
 
 class LogoutPenaltyView(FormView):
 	form_class = LogoutPenaltyForm
@@ -1022,7 +994,7 @@ class ReportcommentView(FormView):
 					else:
 						#########################################################
 						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin}
+						"origin":origin,"referrer":self.request.META.get('HTTP_REFERER',None)}
 						log_comment_report(data)
 						#########################################################
 						self.request.user.userprofile.score = self.request.user.userprofile.score -3
@@ -1053,7 +1025,7 @@ class ReportcommentView(FormView):
 					else:
 						#########################################################
 						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin}
+						"origin":origin,"referrer":self.request.META.get('HTTP_REFERER',None)}
 						log_comment_report(data)
 						#########################################################
 						return redirect("comment_pk", pk=alt_photo_id)
@@ -2801,10 +2773,6 @@ def reset_password(request,*args,**kwargs):
 			password = request.POST.get("password")
 			context={'new_pass':password}
 			request.session.pop("authentic_password_owner", None)
-			# try:
-			# 	del request.session['authentic_password_owner']
-			# except KeyError:
-			# 	pass
 			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 			return render(request,'new_password.html',context)
 		else:
@@ -4743,7 +4711,7 @@ def upload_public_photo(request,*args,**kwargs):
 						return render(request,'big_photo_regular.html',{'pk':'pk'})
 					else:
 						pass
-				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, recent_hashes)
+				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, caption=request.POST.get('caption',None))
 				if isinstance(pk,float):
 					try:
 						photo = Photo.objects.get(id=int(pk))
@@ -5667,6 +5635,8 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			if 'private' in self.request.path and group.private=='1':
 				user_id = self.request.user.id
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["score"] = self.request.user.userprofile.score
+				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]
@@ -6394,7 +6364,7 @@ class LinkCreateView(CreateView):
 				av_url = user.userprofile.avatar.url
 			except:
 				av_url = None
-			if is_urdu(f.description):
+			if is_urdu(text=f.description):
 				category = '17'
 			else:
 				category = '1'
@@ -6411,10 +6381,6 @@ class LinkCreateView(CreateView):
 				extras = add_unfiltered_post(f.id)
 				if extras:
 					queue_for_deletion.delay(extras)
-			#######################
-			# if is_urdu(f.description):
-			# 	capture_urdu.delay(f.description)
-			#######################
 			f.submitter.userprofile.save()
 			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:

@@ -6,6 +6,7 @@ from datetime import datetime
 from operator import itemgetter
 # from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
+# from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
@@ -16,6 +17,7 @@ from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
 pipeline1.lpush("aa:"+city,ad_id)
 "ad:"+ad_id # hash containing ad details
 pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+pipeline1.lpush("afa:"+ad_city,ad_id) # used for city-wide photo ad view
 my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 server.lpush("ecomm_clicks",(user_id, ad_id, time_now)) # recording the click in a list of tuples
@@ -25,6 +27,7 @@ my_server.incr("cb:"+closed_by)
 pipeline1.zadd('ecomm_verified_users',user_id) # keeping a universal table with all user_ids that have been verified
 pipeline1.lpush("global_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
+pipeline1.lpush("global_photo_ads_list",ad_id) # used for global view
 pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global list of expired ads, stays alive for 1 month
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 temp_ad = "ta:"+user_id #temporary ad
@@ -132,17 +135,28 @@ def get_nick_likeness(nickname):
 	return nicknames
 
 #checking whether nick already exists
-def nick_already_exists(nickname):
+def nick_already_exists(nickname, exact=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	generic_nick = nickname.lower()+"*"
-	if not my_server.exists("nicknames"):
-		return None
-	elif my_server.zscore("nicknames",generic_nick) is None:
-		# the nickname has not been used before
-		return False
+	if exact:
+		generic_nick, specific_nick = process_nick(nickname)
+		if not my_server.exists("nicknames"):
+			return None
+		elif my_server.zscore("nicknames",specific_nick) is None:
+			# the nickname has not been used before
+			return False
+		else:
+			# the nickname has been used before
+			return True
 	else:
-		# the nickname has been used before
-		return True
+		generic_nick = nickname.lower()+"*"
+		if not my_server.exists("nicknames"):
+			return None
+		elif my_server.zscore("nicknames",generic_nick) is None:
+			# the nickname has not been used before
+			return False
+		else:
+			# the nickname has been used before
+			return True
 
 #bulk checking whether nicks exist
 def bulk_nicks_exist(nickname_list):
@@ -334,7 +348,47 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
 
-#####################Classifieds#######################
+#######################################################################################################
+
+
+
+# def access_error_log(app_access_token, auth_code, data):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
+
+
+# def log_forgot_password(user_id,username,flow_level):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if flow_level == 'end':
+# 		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
+# 			pipeline1 = my_server.pipeline()
+# 			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
+# 			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
+# 			pipeline1.execute() #176 (unsuccessful) vs 141 (successful) - 38% success rate overall
+# 		else:
+# 			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
+# 	elif flow_level == 'start':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
+# 	elif flow_level == 'bad-end':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
+
+
+########################################################################################################
+# def populate_ad_list(which_list="photos"):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	live_ad_ids = my_server.lrange("global_ads_list",0,-1)
+# 	if which_list == "photos":
+# 		pipeline1 = my_server.pipeline()
+# 		for ad_id in live_ad_ids:
+# 			pipeline1.hmget("ad:"+ad_id,"photo_count","city")
+# 		result1 = pipeline1.execute()
+# 		counter = 0
+# 		for ad_id in live_ad_ids:
+# 			if int(result1[counter][0]) > 0:
+# 				my_server.rpush("global_photo_ads_list",ad_id)
+# 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
+# 			counter += 1
+##########################################Classifieds#################################################
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
@@ -416,19 +470,22 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			if ad_ids:
 				pipeline1 = my_server.pipeline()
 				for ad_id in ad_ids:
-					pipeline1.hmget("ad:"+ad_id,"user_id","city","is_barter","MN_data")
+					pipeline1.hmget("ad:"+ad_id,"user_id","city","is_barter","MN_data","photo_count")
 				result1 = pipeline1.execute() # result1 will contain a list of lists
 				pipeline2 = my_server.pipeline()
 				# expired_numbers = []
 				user_ids_of_expired_ads = []
 				counter = 0
 				for ad_id in ad_ids:
-					user_id, city, is_barter, MN_data = result1[counter][0], string_joiner(result1[counter][1]), result1[counter][2], result1[counter][3]
+					user_id, city, is_barter, MN_data, photo_count = result1[counter][0], string_joiner(result1[counter][1]), result1[counter][2], result1[counter][3], result1[counter][4]
 					pipeline2.lrem("global_ads_list",ad_id,num=-1)
 					pipeline2.lrem("aa:"+city,ad_id,num=1)
 					if is_barter == 'Paisey aur badley mein cheez dono':
 						pipeline2.lrem("global_exchange_ads_list",ad_id,num=-1)
 						pipeline2.lrem("aea:"+city, ad_id, num=-1)
+					if int(photo_count) > 0:
+						pipeline2.lrem("global_photo_ads_list",ad_id,num=-1)
+						pipeline2.lrem("afa:"+city, ad_id, num=-1)
 					pipeline2.lrem("uaa:"+user_id,ad_id)
 					pipeline2.zincrby("approved_locations",city,amount=-1)
 					pipeline2.lpush("uea:"+user_id,ad_id) # used in user_expired_ads
@@ -443,7 +500,7 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 	else:
 		if ad_ids:
 			# ad_ids contains a single ad_id
-			user_id, city, is_barter = my_server.hmget("ad:"+ad_ids,"user_id","city","is_barter")
+			user_id, city, is_barter, photo_count = my_server.hmget("ad:"+ad_ids,"user_id","city","is_barter","photo_count")
 			city = string_joiner(city)
 			pipeline1 = my_server.pipeline()
 			pipeline1.lrem("global_ads_list",ad_ids,num=-1)
@@ -451,6 +508,9 @@ def process_ad_expiry(ad_ids=None, type_list=True):
 			if is_barter == 'Paisey aur badley mein cheez dono':
 				pipeline1.lrem("global_exchange_ads_list",ad_ids,num=-1)
 				pipeline1.lrem("aea:"+city, ad_ids, num=-1)
+			if int(photo_count) > 0:
+				pipeline1.lrem("global_photo_ads_list",ad_ids,num=-1)
+				pipeline1.lrem("afa:"+city, ad_ids, num=-1)
 			pipeline1.lrem("uaa:"+user_id,ad_ids)
 			pipeline1.zrem("ad_expiry_queue",ad_ids) # remove ad from ad_expiry_queue
 			pipeline1.zincrby("approved_locations",city,amount=-1)
@@ -607,6 +667,13 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 	if ad_hash["is_barter"] == 'Paisey aur badley mein cheez dono':
 		pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
 		pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
+	if int(ad_hash["photo_count"]) > 0:
+		pipeline1.lpush("global_photo_ads_list",ad_id) # used for global photo ad view
+		pipeline1.lpush("afa:"+ad_city,ad_id) # used for city-wide photo ad view
+	# if ad_hash["categ"] in ECOMM_CATEGORY_MAPPING:
+	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],ad_id)
+	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]]+":"+ad_city,ad_id)
+	# 	pipeline1.zincrby("top_categories",ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],amount=1)
 	pipeline1.hmset("ad:"+ad_id,ad_hash)
 	pipeline1.zremrangebyscore("unc:"+str(seller_id),ad_id,ad_id) # sanitizing unapproved ad queue
 	pipeline1.lpush("uaa:"+str(seller_id),ad_id) # used for seller's own view
@@ -812,10 +879,7 @@ def get_buyer_snapshot(user_id):
 def temporarily_save_user_csrf(user_id, csrf):
 	my_server = redis.Redis(connection_pool=POOL)
 	temp_csrf = "csrf:"+user_id
-	pipeline1 = my_server.pipeline()
-	pipeline1.set(temp_csrf, csrf)
-	pipeline1.expire(temp_csrf, TWO_HOURS) # will self-destruct after 2 hours of inactivity
-	pipeline1.execute()
+	my_server.setex(temp_csrf,csrf,TWO_HOURS) # will self-destruct after 2 hours of inactivity
 
 
 def get_user_csrf(user_id):
@@ -941,18 +1005,26 @@ def get_ad_objects(id_list):
 	return pipeline1.execute()
 
 # used to show all ads in our "global" ad listing page
-def get_approved_ad_ids(exchange=False):
+def get_approved_ad_ids(exchange=False,photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	if exchange:
+	if photos:
+		return my_server.lrange("global_photo_ads_list",0,-1)
+	elif exchange:
 		return my_server.lrange("global_exchange_ads_list",0,-1)
+	# elif mobile:
+	# 	return my_server.lrange("global_mobile_ads_list",0,-1)
 	else:
 		return my_server.lrange("global_ads_list",0,-1)
 
 
-def get_city_ad_ids(city_name, exchange=False):
+def get_city_ad_ids(city_name, exchange=False, photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	if exchange:
+	if photos:
+		return my_server.lrange("afa:"+city_name, 0, -1) # used for city-wide view
+	elif exchange:
 		return my_server.lrange("aea:"+city_name, 0, -1) # used for city-wide view
+	# elif mobile:
+	# 	return my_server.lrange("ama:"+city_name, 0, -1) # used for city-wide view
 	else:
 		return my_server.lrange("aa:"+city_name, 0, -1) # used for city-wide view
 
@@ -1144,8 +1216,7 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 def set_ecomm_photos_secret_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	my_server.set("epusk:"+user_id,secret_key)
-	my_server.expire("epusk:"+user_id,FORTY_FIVE_MINS)
+	my_server.setex("epusk:"+user_id,secret_key,FORTY_FIVE_MINS)
 
 def get_and_delete_ecomm_photos_secret_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1230,28 +1301,6 @@ def get_temp_id():
 	return my_server.incr("temp_user_id")
 
 ##########Logging Home Gibberish Writers#############
-
-# def log_spam_text_writer(user_id, text):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush('spam_text',{'user_id':user_id, 'text':text})
-
-
-# def retrieve_spam_writers():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	# import unicodecsv as ucsv
-# 	import csv
-# 	list_ = my_server.lrange("spam_text",0 ,-1)
-# 	with open('spam_text.csv','wb') as f:
-# 		wtr = csv.writer(f)
-# 		wtr.writerows([ast.literal_eval(list_[0]).keys()]) # writing the columns
-# 		for string in list_:
-# 			try:
-# 				dictionary = ast.literal_eval(string)
-# 				to_write = [dictionary["user_id"],dictionary["text"].encode('utf-8')]
-# 				wtr.writerows([to_write])
-# 			except:
-# 				pass
-
 
 
 def log_gibberish_text_writer(user_id):

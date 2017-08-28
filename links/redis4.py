@@ -23,14 +23,22 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
-def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
+def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	if which_flow == 'consumer':
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("consumer_number_errors",err_data)
-	else:
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("seller_number_errors",err_data)
+	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
+
+def return_referrer_logs():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("referrer",0,-1)
+
+# def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if which_flow == 'consumer':
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("consumer_number_errors",err_data)
+# 	else:
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("seller_number_errors",err_data)
 
 #######################Ecomm Metrics######################
 
@@ -151,11 +159,11 @@ def expire_online_users():
 def set_online_users(user_id,user_ip):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
-	user_id = str(user_id)
 	latest_user_ip = "lip:"+user_id #latest ip of user with 'user_id'
-	my_server.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
-	my_server.set(latest_user_ip,user_ip)
-	my_server.expire(latest_user_ip,FIVE_MINS)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zadd(sorted_set,user_id+":"+user_ip,time.time())
+	pipeline1.setex(latest_user_ip,user_ip,FIVE_MINS)
+	pipeline1.execute()
 	############ logging user retention ############
 	# if random.random() < 0.45:
 	# 	log_retention(my_server,user_id)
@@ -278,6 +286,6 @@ def del_careem_data():
 def log_comment_report(data):
 	my_server = redis.Redis(connection_pool=POOL)
 	data["log_time"]=time.time()
-	my_server.lpush("Commentreport",data)
+	my_server.lpush("comment_report",data)
 
 #########################################################

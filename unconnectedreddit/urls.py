@@ -25,7 +25,7 @@ click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, rese
 best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, manage_user, \
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
-go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules#, insert_nicks
+go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -72,7 +72,8 @@ urlpatterns = patterns('',
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^whook/$', webhook_event, name='webhook_event'),
 	#########################################Logging out############################################
-	url(r'^bahirniklo/$', logout_then_login, name="bahirniklo"),
+	url(r'^log_me_out/$', auth(logout_then_login), name="log_me_out"),
+	url(r'^are_you_sure/$', auth(logout_rules), name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
 	url(r'^logout_reconfirm/$', LogoutReconfirmView.as_view(), name='logout_reconfirm'),
@@ -250,6 +251,7 @@ urlpatterns = patterns('',
 	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),
 	url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy_policy'),
 	url(r'^about/$', AboutView.as_view(), name='about'),
+	url(r'^website_rules/$', website_rules, name='website_rules'),
 	url(r'^contact/$', ContactView.as_view(), name='contact'),
 	url(r'^nonfbs/(?P<id>\d+)/$', non_fbs_vid, name='non_fbs_vid'),
 	url(r'^caption/(?P<num>\d+)/(?P<slug>[\w.@+-]+)/(?P<err>\d+)/$', CaptionView.as_view(), name='caption'),

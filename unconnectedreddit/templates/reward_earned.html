@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<span class="cxl">Mubarak ho!</span><br><span class="cgy cl">Mobile ki tasdiq karwaney pe apko <b class="cg">500 points</b> diye ja rehay hain!</span><br>
-
-<a href="{% url 'home' %}"><button class="btn bcg mtl bm">OK</button></a>
+<div class="mbl">
+<span class="cxl">Mubarak ho! {% emoticons %}.p5{% endemoticons %}</span><br>
+<span class="cgy cl">Mobile ki tasdiq karwaney pe apko <b class="cg">500 points</b> diye ja rehay hain! <b>Logout</b> aur <b>Forgot Password</b> ka option bhi mil gaya hai.</span><br>
+<hr size=1 COLOR="#b3e6b3">
+</div>
+<span class="cgy">Ab aik dafa Damadam ke rules dekh lo...</span><br>
+<a href="{% url 'website_rules' %}"><button class="btn bcg mtl mbl bm">OK</button></a>
 
 </div>
 <br><br>

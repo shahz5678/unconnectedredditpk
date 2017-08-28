@@ -1,20 +1,3 @@
-
-
-<style>
-
-
-.signup  {
-	background-color: green;
-	border-radius: 6px;
-	width:90%;
-	margin: 0 auto;
-	text-align: center;
-	padding:5px;
-	max-width: 300px;
-}
-</style>
-
-
 {% extends "base_signup.html" %}
 {% block content %}
 <div style="margin-top: 5%;">
@@ -23,13 +6,12 @@
 <div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
 {% if form.errors %}
 <div class="mts mbs">
-<span style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">Naam ya password mein ghalti hai. Phir se likho...</span>
+<b style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">{{ form.errors.items.0.1.0 }}</b>
 </div>
 <hr size=1 COLOR="#ffeb3b">
 {% endif %}
 <form method="post" action="{% url 'login' %}">
   {% csrf_token %}
-  <input type="hidden" name="next" value="/">
  	
  	<div class="mtl mbl">
     <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">Naam:</b>
@@ -41,6 +23,8 @@
    </div>
   
   <input class="mts mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" type="submit" value="OK"><br>
+  <hr size=1 COLOR="#ffeb3b">
+  <a href="{% url 'forgot_password' %}"><span style="color:#ffed4d;text-shadow:0.5px 0.5px #009940;text-decoration: underline;" class="cl">Password yad nahi</span></a>
   
 </form>
 </div>

@@ -994,7 +994,7 @@ class ReportcommentView(FormView):
 					else:
 						#########################################################
 						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin}
+						"origin":origin,'referrer':self.request.META.get('HTTP_REFERER',None)}
 						log_comment_report(data)
 						#########################################################
 						self.request.user.userprofile.score = self.request.user.userprofile.score -3
@@ -1025,7 +1025,7 @@ class ReportcommentView(FormView):
 					else:
 						#########################################################
 						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin}
+						"origin":origin,'referrer':self.request.META.get('HTTP_REFERER',None)}
 						log_comment_report(data)
 						#########################################################
 						return redirect("comment_pk", pk=alt_photo_id)

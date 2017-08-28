@@ -286,6 +286,6 @@ def del_careem_data():
 def log_comment_report(data):
 	my_server = redis.Redis(connection_pool=POOL)
 	data["log_time"]=time.time()
-	my_server.lpush("Commentreport",data)
+	my_server.lpush("comment_report",data)
 
 #########################################################

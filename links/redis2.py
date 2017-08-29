@@ -436,8 +436,7 @@ def public_group_vote_incr(group_id,priority):
 def save_user_presence(user_id,group_id,epochtime):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_presence = "up:"+str(user_id)+":"+str(group_id)
-	my_server.set(user_presence,epochtime)
-	my_server.expire(user_presence,100) #expire the key after 100 seconds
+	my_server.setex(user_presence,epochtime,100)
 
 #gets the latest presence for all users participating in the most recent 25 replies
 def get_latest_presence(group_id, user_id_list):

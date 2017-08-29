@@ -1,5 +1,5 @@
 # coding=utf-8
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json#, itertools#, sys
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
 from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
 from target_urls import call_aasan_api
@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, log_comment_report
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
@@ -915,124 +915,39 @@ class SalatSuccessView(ListView):
 			context["girls"] = FEMALES
 		return context
 
-@ratelimit(rate='3/s')
-def reportcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		try:
-			deduction = 5 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk':'pk'}
-			return render(request, 'penalty_reportcomment.html', context)
-		except:
-			context = {'pk':'pk'}
-			return render(request, 'penalty_reportcomment.html', context)
-	else:
-		request.session["reportcomment_pk"] = pk
-		request.session["photonum_pk"] = num
-		if origin:
-			request.session["origin"] = origin
-		else:
-			request.session["origin"] = None
-		if slug:
-			request.session["origin_profile"] = slug
-		else:
-			request.session["origin_profile"] = None
-			request.session.modified = True
-		return redirect("reportcomment")
-		
-class ReportcommentView(FormView):
-	form_class = ReportcommentForm
-	template_name = "report_comment.html"
-
-	def get_context_data(self, **kwargs):
-		context=super(ReportcommentView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			try:
-				context["authorized"] = True
-				context["comment_pk"] = self.request.session["reportcomment_pk"]
-				context["photo_pk"] = self.request.session["photonum_pk"]
-				context["origin"] = self.request.session["origin"]
-				context["origin_profile"] = self.request.session["origin_profile"]
-			except:
-				context["authorized"] = False
-		return context
-
-	def form_valid(self, form):
-		if self.request.method == 'POST':
-			if not self.request.user_banned:
-				rprt = self.request.POST.get("report")
-				alt_photo_id = self.request.POST.get("photo_pk", None)
-				# alt_comment_id = self.request.POST.get("comment_pk", None)
-				# print alt_photo_id, alt_comment_id
-				if rprt == 'Haan':
-					comment_id = self.request.session["reportcomment_pk"]
-					photo_id = self.request.session["photonum_pk"]
-					slug = self.request.session["origin_profile"]
-					origin = self.request.session["origin"]
-					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
-						Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
-						comment = get_object_or_404(PhotoComment, pk=comment_id)
-						comment.abuse = True
-						comment.save()
-						comment.submitted_by.userprofile.score = comment.submitted_by.userprofile.score - 3
-						comment.submitted_by.userprofile.save()
-						self.request.session["reportcomment_pk"] = None
-						self.request.session["photonum_pk"] = None
-						self.request.session["origin_profile"] = None
-						self.request.session["origin"] = None
-						self.request.session.modified = True
-						pk = comment.submitted_by_id
-						ident = self.request.user.id
-						if pk != ident:
-							document_comment_abuse(pk)
-						if slug:
-							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
-						else:
-							return redirect("comment_pk", pk=photo_id, origin=origin)
-					else:
-						#########################################################
-						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin,"referrer":self.request.META.get('HTTP_REFERER',None)}
-						log_comment_report(data)
-						#########################################################
-						self.request.user.userprofile.score = self.request.user.userprofile.score -3
-						self.request.user.userprofile.save()
-						return redirect("comment_pk", pk=alt_photo_id)
-						#return redirect("photo")
+@csrf_protect
+def report_comment(request, *args, **kwargs):
+	if request.method == 'POST':
+		decision = request.POST.get("dec",None)
+		comment_id = request.POST.get("comm_pk",None) 
+		photo_id = request.POST.get("ph_pk",None)
+		origin = request.POST.get("org",None)
+		slug = request.POST.get("slug",None)
+		if decision == 'Haan':
+			if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
+			Photo.objects.filter(pk=photo_id,owner=request.user).exists():
+				comment = get_object_or_404(PhotoComment, pk=comment_id)
+				comment.abuse = True
+				comment.save()
+				UserProfile.objects.filter(user=comment.submitted_by_id).update(score=F('score')-3)
+				if ast.literal_eval(slug):# ensures even string 'None' converts to boolean 'None'
+					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 				else:
-					comment_id = self.request.session["reportcomment_pk"]
-					photo_id = self.request.session["photonum_pk"]
-					slug = self.request.session["origin_profile"]
-					origin = self.request.session["origin"]
-					if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
-					Photo.objects.filter(pk=photo_id,owner=self.request.user).exists():
-						comment_pk = self.request.session["reportcomment_pk"]
-						photo_id = self.request.session["photonum_pk"]
-						origin = self.request.session["origin"]
-						slug = self.request.session["origin_profile"]
-						self.request.session["reportcomment_pk"] = None
-						self.request.session["photonum_pk"] = None
-						self.request.session["origin"] = None
-						self.request.session["origin_profile"] = None
-						self.request.session.modified = True
-						if slug is not None:
-							return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
-						else:
-							return redirect("comment_pk", pk=photo_id, origin=origin )
-			
-					else:
-						#########################################################
-						data={"user_id":self.request.user.id,"case":rprt,"photo_id":photo_id,"comment_id":comment_id,\
-						"origin":origin,"referrer":self.request.META.get('HTTP_REFERER',None)}
-						log_comment_report(data)
-						#########################################################
-						return redirect("comment_pk", pk=alt_photo_id)
-						#return redirect("photo")
-		
+					return redirect("comment_pk", pk=photo_id, origin=origin)
 			else:
-				return redirect("score_help")
+				# show 404 if person's trying to 'double report'
+				return render(request,"404.html",{})	
+		elif decision == 'Nahi':
+			if ast.literal_eval(slug):# ensures even string 'None' converts to boolean 'None'
+				return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+			else:
+				return redirect("comment_pk", pk=photo_id, origin=origin)
+		elif decision is None:			
+			return render(request,"report_comment.html",{'comment_id':comment_id, 'photo_id':photo_id, 'origin':origin, 'slug':slug})
+		else:
+			return render(request,"404.html",{})	
+	else:
+		return render(request,"404.html",{})
 
 @ratelimit(rate='3/s')
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
@@ -8135,7 +8050,6 @@ def show_advertisers(request,*args,**kwargs):
 			return redirect("show_advertisers")
 	else:
 		list_ = get_advertisers()
-		import ast
 		list_of_advertisers = []
 		for elem in list_:
 			list_of_advertisers.append(ast.literal_eval(elem))

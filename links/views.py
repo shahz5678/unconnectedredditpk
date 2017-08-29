@@ -6056,32 +6056,39 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
+@ratelimit(rate='10/28s')
 def unseen_activity(request, slug=None, *args, **kwargs):
-	if first_time_inbox_visitor(request.user.id):
-		add_inbox(request.user.id)
-		context={'username':request.user.username}
-		return render(request, 'inbox_tutorial.html', context)
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'penalty':30}
+		UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+		return render(request, 'penalty_matka.html', context)
 	else:
-		if 'forms' in request.session and 'oblist' in request.session and 'page_obj' in request.session:
-			if request.session['forms'] and request.session['oblist'] and request.session['page_obj']:
-				page_obj = request.session["page_obj"]
-				oblist = request.session["oblist"]
-				forms = request.session["forms"]
+		if first_time_inbox_visitor(request.user.id):
+			add_inbox(request.user.id)
+			context={'username':request.user.username}
+			return render(request, 'inbox_tutorial.html', context)
+		else:
+			if 'forms' in request.session and 'oblist' in request.session and 'page_obj' in request.session:
+				if request.session['forms'] and request.session['oblist'] and request.session['page_obj']:
+					page_obj = request.session["page_obj"]
+					oblist = request.session["oblist"]
+					forms = request.session["forms"]
+				else:
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
+				del request.session["forms"]
+				del request.session["oblist"]
+				del request.session["page_obj"]
 			else:
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-			del request.session["forms"]
-			del request.session["oblist"]
-			del request.session["page_obj"]
-		else:
-			page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-		if oblist:
-			last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
-			context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':request.user.username,\
-			'last_visit_time':last_visit_time}
-			return render(request, 'user_unseen_activity.html', context)
-		else:
-			context = {'object_list': oblist, 'page':page_obj,'nickname':request.user.username}
-			return render(request, 'user_unseen_activity.html', context)
+			if oblist:
+				last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
+				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':request.user.username,\
+				'last_visit_time':last_visit_time}
+				return render(request, 'user_unseen_activity.html', context)
+			else:
+				context = {'object_list': oblist, 'page':page_obj,'nickname':request.user.username}
+				return render(request, 'user_unseen_activity.html', context)
 
 def unseen_help(request,*args,**kwargs):
 	context={'nickname':request.user.username}

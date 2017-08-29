@@ -1304,34 +1304,41 @@ def process_salat(request, offered=None, *args, **kwargs):
 ############################################################################################################################################################
 
 @csrf_protect
+@ratelimit(rate='10/28s')
 def home_reply(request,pk=None,*args,**kwargs):
 	if request.user_banned:
 		return render(request,"500.html",{})
 	elif request.method == 'POST':
-		user_id = request.user.id
-		form = PublicreplyMiniForm(data=request.POST,user_id=request.user.id)
-		lang = request.POST.get("lang",None)
-		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		if form.is_valid():
-			target = process_publicreply(request,pk,form.cleaned_data.get("description"))
-			request.session['target_id'] = pk
-			if first_time_home_replier(user_id):
-				add_home_replier(user_id)
-				return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
-			else:
-				if lang == 'urdu':
-					return redirect("home_loc_ur", lang)
-				else:
-					return redirect("home_loc")
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			context = {'penalty':30}
+			UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+			return render(request, 'penalty_homejawab.html', context)
 		else:
-			photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
-			replyforms[pk] = form
-			request.session['replyforms'] = replyforms
-			request.session['list_of_dictionaries'] = list_of_dictionaries
-			request.session['page'] = page_obj
-			request.session['photo_links'] = photo_links
-			url = reverse_lazy("home")+addendum
-			return redirect(url)
+			user_id = request.user.id
+			form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
+			lang = request.POST.get("lang",None)
+			ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+			if form.is_valid():
+				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
+				request.session['target_id'] = pk
+				if first_time_home_replier(user_id):
+					add_home_replier(user_id)
+					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
+				else:
+					if lang == 'urdu':
+						return redirect("home_loc_ur", lang)
+					else:
+						return redirect("home_loc")
+			else:
+				photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
+				replyforms[pk] = form
+				request.session['replyforms'] = replyforms
+				request.session['list_of_dictionaries'] = list_of_dictionaries
+				request.session['page'] = page_obj
+				request.session['photo_links'] = photo_links
+				url = reverse_lazy("home")+addendum
+				return redirect(url)
 	else:
 		return redirect("home")
 

@@ -169,9 +169,10 @@ def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_
 		my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
 		#sorted set containing all reported photos
 		reported_photos = "reported_photos"
-		my_server.zadd(reported_photos,photo_report,nc)
-		my_server.set(cant_photo_report,1)
-		my_server.expire(cant_photo_report,TEN_MINS)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zadd(reported_photos,photo_report,nc)
+		pipeline1.setex(cant_photo_report,1,TEN_MINS)
+		pipeline1.execute()
 		return None
 
 #####################Cricket Widget#####################
@@ -254,17 +255,14 @@ def del_delay_cricket_match(final_status,match_id):
 
 def account_creation_disallowed(ip):
 	my_server = redis.Redis(connection_pool=POOL)
-	registered_ip = "ip:"+str(ip)
-	if my_server.exists(registered_ip):
+	if my_server.exists("ip:"+str(ip)):
 		return True
 	else:
 		return False
 
 def account_created(ip,username):
 	my_server = redis.Redis(connection_pool=POOL)
-	registered_ip = "ip:"+str(ip)
-	my_server.set(registered_ip,username)
-	my_server.expire(registered_ip,FOUR_MINS)
+	my_server.setex("ip:"+str(ip),username,FOUR_MINS)
 
 # def insert_nickname(username):
 # 	my_server = redis.Redis(connection_pool=POOL)

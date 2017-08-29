@@ -426,7 +426,7 @@
 				<form method="post" action="{% url 'home_reply' pk=link.l %}">
 				{% csrf_token %}
 				<input type="hidden" name="lang" value="{{ lang }}">
-				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}</span><br>
+				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}<br>
 				<button class="btn bct bs mtl mbs" type="submit">OK</button>
 				</form>
 			</div>

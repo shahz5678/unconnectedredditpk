@@ -17,7 +17,7 @@ from links.views import home_link_list, cross_notif, cast_vote, cross_comment_no
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
-salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
+salat_notification, cross_salat_notif, report_comment, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
 leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
 first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, cricket_comment_page, \
 process_private_group_invite, process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
@@ -39,7 +39,7 @@ GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCre
 UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView,UserSettingsEditView, \
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
 InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView,PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, \
-SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, \
+SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, MehfilCommentView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#LinkListView, VoteOrProfView
 from links.number_verification import verify_user_number
@@ -284,12 +284,9 @@ urlpatterns = patterns('',
 	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^report/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
-	#url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
 	url(r'^appoint/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^appoint/(?P<pk>\d+)/(?P<app>\d+)/$', auth(appoint_pk), name='appoint_pk'),
-	url(r'^report_comment/$', auth(ReportcommentView.as_view()), name="reportcomment"),
+	url(r'^rep_comment/$', auth(report_comment), name="report_comment"),
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),

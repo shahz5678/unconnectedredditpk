@@ -25,7 +25,8 @@ click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, rese
 best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, manage_user, \
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
-go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules#, insert_nicks
+go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
+number_verification_help#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -290,7 +291,7 @@ urlpatterns = patterns('',
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),
-	# url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
+	url(r'^number_verification_help/$', auth(number_verification_help), name='number_verification_help'),
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
 	# url(r'^tfrs/$', auth(test_functional_redis_server), name='test_functional_redis_server'),
 	##########################################Photo Reporting########################################

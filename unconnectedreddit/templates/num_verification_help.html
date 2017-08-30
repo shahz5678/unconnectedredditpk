@@ -1,48 +1,61 @@
 {% extends "base.html" %}
-
 {% block content %}
+<div class="margin clb">
 
+    <h2 style="color:black">Tasdiq karwatay huay kia masla aa raha hai?</h2>
 
-    <body style="background-color:lightgrey">
-    <div class="margin clb">
-    <h2 style="color:black">Tasdiq karwatay howay kia masla aa raha hai?</h2>
-
-    <div style="background-color:white;border:solid 1px 1px 1px; border-color:grey; padding:3px; border-radius:6px; max-width:500px; margin-top:5px; ">
-  <h3 style="color:grey; font-size:15px;">Mera number kis ke pas jaye ga?</h3>
-  <h3 style="color:black; font-size:12px">Ap ka number kisi ko bhi pata nai chalay ga, aur na hi ap ko kabhi koi call ya SMS aye gi. Tasdiq karwanay say ap ka account mehfooz hota hai, aur ye sahoolat ap ke faiday ke liye banai gaye hai</h3>
+    <div class="mtl">
+  <b class="cg cl">Mera number kis ke pas jaye ga?</b><br>
+  <div class="mt">
+  <span class="clb">Apka number kisi ko nahi diya jaye ga, aur na hi apko kabhi call ki jaye gi. Tasdiq karwanay say hum fake accounts khatam kar saktey hain. Ye sahulat ap ke faiday ke liye banai gaye hai</span>
+  </div>
 </div>
 
-     <div style="background-color:white;border:solid 1px 1px 1px; border-color:grey; padding:3px; border-radius:6px; max-width:500px; margin-top:15px;">
-  <h3 style="color:grey; font-size:15px">Tasdiq kaisay karwani hai?</h3>
-  <h3 style="color:black; font-size:12px">1. Sab se pehlay aik green page aye ga. Wahan apna number likhain.<br>2. Agar wo ap se 'Country Code' mangay to us main 'Pakistan' select karain. <br> 3. Ap ko aik SMS aye ga. SMS main aik code ho ga. <br>4. Phone number likhnay ke baad agla page khul jaye ga. Wahan wo SMS code likh kar OK daba dain.</h3>
-  <h3 style="color:red; font-size:12px"> Khiyal rahay ke code wahan na likhain jahan phone number likhna hota hai.</h3>
+<hr size=1 COLOR="#e0e0e0">
+     <div class="mtl">
+  <b class="cg cl">Tasdiq kaisay hoti hai?</b><br>
+  <div class="mt">
+  <span class="clb">Step 1: Shuru mein ap ne mobile number aur country code <b>+92</b> likhna hai<br> Step 2: Iskey baad apko aik SMS aye ga<br>Step 3: SMS main aik code ho ga<br>Step 4: Ye code apne agley page pe likh kar OK dabana hai. Tasdiq ho jaye gi!<br>Step 5: Agr SMS waqt par mosool na ho, tou tasdiq karney ke liye kuch time intezar kar lein<br></span>
+  </div>
+  <span class="cl cr"> Khiyal rakhein: code wahan na likhein jahan phone number likha tha. Us se agley page pe likhein!</span>
 </div>
-
-<div style="background-color:white;border:solid 1px 1px 1px; border-color:grey; padding:3px; border-radius:6px; max-width:500px; margin-top:5px; ">  <h3 style="color:grey; font-size:15px;">SMS main jo code aya hai wo kahan likhna hai?</h3>
-  <h3 style="color:black; font-size:12px">Phone number likhnay ke baad aik aur green color ki screen ho gi, wahan SMS main aya howa code likh ke OK duba dain.<br> Khiyal rahay ke code wahan na likhain jahan phone number likhna hota hai.</h3>
+<hr size=1 COLOR="#e0e0e0">
+<div class="mtl">
+<b class="cg cl">SMS main jo code aya hai wo kahan likhna hai?</b><br>
+<div class="mt">
+  <span class="clb">Phone number likhnay ke baad aik aur green color ki screen ho gi, wahan SMS main aya hua code likh ke OK daba dain<br> Khiyal rahay ke code wahan na likhain jahan phone number likhna hota hai</span>
+  </div>
 </div>
-
-<div style="background-color:white;border:solid 1px 1px 1px; border-color:grey; padding:3px; border-radius:6px; max-width:500px; margin-top:5px; margin-top:5px;  ">
-  <h3 style="color:grey; font-size:15px;">Ye mujh se country code mang raha hai wo kia hai?</h3>
-  <h3 style="color:black; font-size:12px">Pakistan ka Country Code +92 hai. Agar Country Code wala page khulay to wahan ap ne Pakistan select karna hai.</h3>
+<hr size=1 COLOR="#e0e0e0">
+<div class="mtl">
+  <b class="cg cl">Ye mujh se country code mang raha hai, wo kia hai?</b>
+  <div class="mt">
+  <span class="clb">Pakistan ka country code <b>+92</b> hai. Agar country code wala page khulay to wahan ap ne Pakistan select karna hai</span>
+  </div>
 </div>
+<hr size=1 COLOR="#e0e0e0">
 
 
-
-<div style="background-color:white;border:solid 1px 1px 1px; border-color:grey; padding:3px; border-radius:6px; max-width:500px; margin-top:5px; margin-bottom:5px">
-  <h3 style="color:grey; font-size:15px;">Mujh se tasdiq nahin ho rahi, kion?</h3>
-  <h3 style="color:black; font-size:12px">Baar baar Back dubanay ya cross karnay se tasdiq nai ho gi. Kabhi back ya cross ka button na dubain.</h3>
+<div class="mtl">
+  <b class="cg cl">Mujh se tasdiq nahin ho rahi, kiun?</b>
+  <div class="mt">
+  <span class="clb">Baar baar 'back' button dabaney ya 'cross' karney se tasdiq nai hoti.'Back' ya 'cross' ka button na dabain</span>
+  </div>
 </div>
-<div style="text-align:center">
-<button class="btn bcg mtl bm">wapis</button>
+{% if csrf %}
+<hr size=1 COLOR="#e0e0e0">
+<h2 style="color:black">Abhi number tasdiq karwaney ke liye ye dabain:</h2>
+<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=false>
+  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+  <input type="hidden" name="state" value="{{ csrf }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
+</form><br>
+{% endif %}
 </div>
-
-
-
-
-
-
-</body>
-</html>
-    </body>
+<br><br>
 {% endblock %}

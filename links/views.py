@@ -100,10 +100,10 @@ from brake.decorators import ratelimit
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-# from optimizely_config_manager import OptimizelyConfigManager
-# from unconnectedreddit.optimizely_settings import PID
+from optimizely_config_manager import OptimizelyConfigManager
+from unconnectedreddit.optimizely_settings import PID
 
-# config_manager = OptimizelyConfigManager(PID)
+config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -230,6 +230,7 @@ def number_verification_help(request):
 		return render(request,"num_verification_help.html",{'csrf':None})
 
 
+# link_id, writer_username, writer_avatar_url, writer_id, link_description
 def process_publicreply(request,link_id,text,origin=None):
 	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 	parent_username = parent.submitter.username
@@ -255,7 +256,6 @@ def process_publicreply(request,link_id,text,origin=None):
 		owner_url = parent.submitter.userprofile.avatar.url
 	except:
 		owner_url = None
-	# username = u'سلمہ'
 	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
 	publicreply_tasks.delay(user_id, reply.id, link_id, text)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,\
@@ -1245,6 +1245,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 			if form.is_valid():
 				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 				request.session['target_id'] = pk
+				config_manager.get_obj().track('submitted_home_reply', user_id)
 				if first_time_home_replier(user_id):
 					add_home_replier(user_id)
 					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
@@ -1318,6 +1319,9 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
+		###########################################################################################################
+		context["variation"] = config_manager.get_obj().activate('home_reply_redesign', user.id)
+		###########################################################################################################
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -1543,25 +1547,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		return render(request, 'link_list.html', context)
 	else:
 		return redirect("unauth_home_new")
-		# unauth_id = request.session.get('unauth_id',None)
-  # 		if not unauth_id:
-  # 			unauth_id = get_temp_id()
-  # 			request.session['unauth_id'] = unauth_id
-		# variation_key = config_manager.get_obj().activate('exclusive_signup', unauth_id)
-		# if variation_key == 'new_signup':
-		# 	return redirect("unauth_home_new")
-		# elif variation_key == 'old_signup':
-		# 	return redirect("unauth_home")
-		# else:
-		# 	return redirect("unauth_home")
 
-
-# 		##############setting session key###############
-# 		# print request.session.session_key
-# 		# if not request.session.exists(request.session.session_key):
-# 		# 	request.session.create()
-# 		# print request.session.session_key
-# 		################################################
 
 @cache_page(10)
 @csrf_protect

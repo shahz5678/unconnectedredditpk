@@ -1233,7 +1233,6 @@ def home_reply(request,pk=None,*args,**kwargs):
 		return render(request,"500.html",{})
 	elif request.method == 'POST':
 		was_limited = getattr(request, 'limits', False)
-		print was_limited
 		if was_limited:
 			context = {'penalty':30}
 			UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer

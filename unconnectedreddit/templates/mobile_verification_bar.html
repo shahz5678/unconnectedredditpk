@@ -15,6 +15,13 @@
   <input type="hidden" name="fbAppEventsEnabled" value=true>
   <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
 </form><br>
+<div class="mbs mts">
+<form action="{% url 'number_verification_help' %}#section0" method="POST">
+ {% csrf_token %}
+ <input type="hidden" name="csrf" value="{{ csrf }}">
+<span class="cgy cs">Agr tasdiq karwaney mein problem ho raha hai tou <button class="btn bcgy bl">yeh parhein</button></span>
+</form>
+</div>
 <span class="cgy cs">Tasdiq karney mein hamari partner company <b>FACEBOOK</b> shamil hai</span>
 </div>
 {% endif %}

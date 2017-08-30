@@ -222,6 +222,14 @@ def valid_uuid(uuid):
 	match = regex.match(uuid)
 	return bool(match)
 
+def number_verification_help(request):
+	if request.method == "POST":
+		csrf = request.POST.get("csrf",None)
+		return render(request,"num_verification_help.html",{'csrf':csrf})
+	else:
+		return render(request,"num_verification_help.html",{'csrf':None})
+
+
 def process_publicreply(request,link_id,text,origin=None):
 	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 	parent_username = parent.submitter.username
@@ -1219,12 +1227,13 @@ def process_salat(request, offered=None, *args, **kwargs):
 ############################################################################################################################################################
 
 @csrf_protect
-@ratelimit(rate='10/28s')
+@ratelimit(field='user_id',ip=False,rate='10/28s')
 def home_reply(request,pk=None,*args,**kwargs):
 	if request.user_banned:
 		return render(request,"500.html",{})
 	elif request.method == 'POST':
 		was_limited = getattr(request, 'limits', False)
+		print was_limited
 		if was_limited:
 			context = {'penalty':30}
 			UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer

@@ -9,10 +9,11 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_mobile_verification_bar %}
+{% load get_home_publicreply_bar %}
 {% block content %}
 
 <style>
-.box-with-button {
+.box-with-button-right {
   background-color: white;
   border-radius: 4px;
   margin: 10px;
@@ -23,7 +24,7 @@
   padding-right: 40px;
 }
 
-.box-with-button input {
+.box-with-button-right input {
   height: 100%;
   width: 100%;
   border: 1px solid #229ec3;
@@ -35,7 +36,7 @@
 
 }
 
-.box-with-button button {
+.box-with-button-right button {
   position: absolute;
   top: 0;
   right: 0;
@@ -49,13 +50,63 @@
   color: white;
 
 }
+
+.box-with-button-left {
+  background-color: white;
+  border-radius: 4px;
+  margin: 10px;
+  display: block;
+  position: relative;
+  height: 30px;
+  box-sizing: border-box;
+  padding-left: 40px;
+}
+
+.box-with-button-left input {
+  height: 100%;
+  width: 100%;
+  border: 1px solid #229ec3;
+  border-radius: 0px 3px 3px 0px;
+  margin: 0;
+  color: #176982;
+  text-indent: 4px;
+  background-color: #F8F8F8;
+
+}
+
+.box-with-button-left button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  height: 100%;
+  font-size:13px;
+  width: 80px;
+  border:solid 1px #229ec3;
+  background-color:#3cb7dd;
+  border-radius: 3px 0px 0px 3px;
+  color: white;
+
+}
+
+.neutral {
+	background-color:#F8F8F8;
+	width:1000px;
+	max-width:95%;
+	border: 1px solid #1f8cad;
+	border-radius:5px;
+	padding: 6px 6px 6px 0;
+	text-indent: 6px;
+	color: #1f8cad;
+}
+
 </style>
 
 
 
 <div class="margin">
 {% if home_rules %}{{ home_rules|safe }}{% endif %}
-{% mobile_verification_bar user.id csrf score %}
+{% mobile_verification_bar ident csrf score %}
 	{% if notification %}
 	{% if type_of_object == '2' %}
 			
@@ -464,18 +515,7 @@
 			{% endif %}
 
 			<div class="mtl">
-				<form method="post" action="{% url 'home_reply' pk=link.l %}">
-				{% csrf_token %}
-				<input type="hidden" name="lang" value="{{ lang }}">
-				<input type="hidden" name="user_id" value="{{ ident }}">
-				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}
-
-				{% endif %}
-				<div class="box-with-button">
-					{{ replyform.description }}
-				<button type="submit">jawab do</button>
-				</div>
-				</form>
+				{% home_publicreply_bar link.l lang ident replyform variation %}
 			</div>
 
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}

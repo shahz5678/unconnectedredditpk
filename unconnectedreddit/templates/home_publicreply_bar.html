@@ -1,0 +1,37 @@
+{% load css %}
+
+{% if variation == 'old_design' %}
+			<form method="post" action="{% url 'home_reply' pk=link_id %}">
+			{% csrf_token %}
+			<input type="hidden" name="lang" value="{{ lang }}">
+			<input type="hidden" name="user_id" value="{{ user_id }}">
+			{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description|htmlattributes:"class : neutral" }}<br>
+			<button class="btn bct bs mtl mbs" type="submit">OK</button>
+			</form>
+{% elif variation == 'new_design_2' %}
+			<form method="post" action="{% url 'home_reply' pk=link_id %}">
+			{% csrf_token %}
+			<input type="hidden" name="lang" value="{{ lang }}">
+			<input type="hidden" name="user_id" value="{{ user_id }}">
+			{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}
+
+			{% endif %}
+			<div class="box-with-button-right">
+				{{ replyform.description|htmlattributes:"class : box-with-button-right, id: box-right" }}
+			<button type="submit">jawab do</button>
+			</div>
+			</form>
+{% elif variation == 'new_design_1' %}
+			<form method="post" action="{% url 'home_reply' pk=link_id %}">
+			{% csrf_token %}
+			<input type="hidden" name="lang" value="{{ lang }}">
+			<input type="hidden" name="user_id" value="{{ user_id }}">
+			{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}
+
+			{% endif %}
+			<div class="box-with-button-left">
+				{{ replyform.description|htmlattributes:"class : box-with-button-left, id: box-left" }}
+			<button type="submit">jawab do</button>
+			</div>
+			</form>
+{% endif %}

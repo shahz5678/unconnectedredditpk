@@ -1259,6 +1259,9 @@ def home_reply(request,pk=None,*args,**kwargs):
 			else:
 				photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
 				replyforms[pk] = form
+				####################################################################################
+				config_manager.get_obj().track('invalid_home_reply', user_id)
+				####################################################################################
 				request.session['replyforms'] = replyforms
 				request.session['list_of_dictionaries'] = list_of_dictionaries
 				request.session['page'] = page_obj

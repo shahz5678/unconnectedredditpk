@@ -1245,7 +1245,9 @@ def home_reply(request,pk=None,*args,**kwargs):
 			if form.is_valid():
 				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 				request.session['target_id'] = pk
+				####################################################################################
 				config_manager.get_obj().track('submitted_home_reply', user_id)
+				####################################################################################
 				if first_time_home_replier(user_id):
 					add_home_replier(user_id)
 					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
@@ -6058,6 +6060,9 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			context["feature_phone"] = False
 		if self.request.user.is_authenticated():
+			############################################################################
+			config_manager.get_obj().track('entered_home_reply', self.request.user.id)
+			############################################################################
 			banned, time_remaining, warned = publicreply_allowed(self.request.user.id)			
 			context["banned"] = banned
 			context["warned"] = warned
@@ -6122,6 +6127,9 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			return redirect("reply")
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			################################################################################
+			config_manager.get_obj().track('gave_publicreply', self.request.user.id)
+			################################################################################
 			process_publicreply(self.request,link_id,f.description)
 			self.request.session["link_pk"] = link_id
 			self.request.session.modified = True
@@ -7065,6 +7073,9 @@ def cast_photo_vote(request,*args,**kwargs):
 @csrf_protect
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
+		##########################################################################
+		config_manager.get_obj().track('voted', request.user.id)
+		##########################################################################
 		link_id = request.POST.get("lid","")
 		lang = request.POST.get("lang",None)
 		target_user_id = get_link_writer(link_id)#request.POST.get("oid","")

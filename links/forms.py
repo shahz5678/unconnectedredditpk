@@ -347,7 +347,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 
     def __init__(self,*args,**kwargs):
         super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
-        # self.fields['description'].widget.attrs['class'] = 'box-with-button-left'
+        self.fields['description'].widget.attrs['class'] = 'box-with-button-right'
         # self.fields['description'].widget.attrs['style'] = \
         # 'background-color:#F8F8F8; width:98%; border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
         # 'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'

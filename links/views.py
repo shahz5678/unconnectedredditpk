@@ -100,10 +100,10 @@ from brake.decorators import ratelimit
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-from optimizely_config_manager import OptimizelyConfigManager
-from unconnectedreddit.optimizely_settings import PID
+# from optimizely_config_manager import OptimizelyConfigManager
+# from unconnectedreddit.optimizely_settings import PID
 
-config_manager = OptimizelyConfigManager(PID)
+# config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -1246,7 +1246,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 				request.session['target_id'] = pk
 				####################################################################################
-				config_manager.get_obj().track('submitted_home_reply', user_id)
+				# config_manager.get_obj().track('submitted_home_reply', user_id)
 				####################################################################################
 				if first_time_home_replier(user_id):
 					add_home_replier(user_id)
@@ -1260,7 +1260,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 				photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
 				replyforms[pk] = form
 				####################################################################################
-				config_manager.get_obj().track('invalid_home_reply', user_id)
+				# config_manager.get_obj().track('invalid_home_reply', user_id)
 				####################################################################################
 				request.session['replyforms'] = replyforms
 				request.session['list_of_dictionaries'] = list_of_dictionaries
@@ -1325,7 +1325,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
 		###########################################################################################################
-		context["variation"] = config_manager.get_obj().activate('home_reply_redesign', user.id)
+		# context["variation"] = config_manager.get_obj().activate('home_reply_redesign', user.id)
 		###########################################################################################################
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
@@ -6064,7 +6064,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			context["feature_phone"] = False
 		if self.request.user.is_authenticated():
 			############################################################################
-			config_manager.get_obj().track('entered_home_reply', self.request.user.id)
+			# config_manager.get_obj().track('entered_home_reply', self.request.user.id)
 			############################################################################
 			banned, time_remaining, warned = publicreply_allowed(self.request.user.id)			
 			context["banned"] = banned
@@ -6131,7 +6131,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 		else:
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			################################################################################
-			config_manager.get_obj().track('gave_publicreply', self.request.user.id)
+			# config_manager.get_obj().track('gave_publicreply', self.request.user.id)
 			################################################################################
 			process_publicreply(self.request,link_id,f.description)
 			self.request.session["link_pk"] = link_id
@@ -7077,7 +7077,7 @@ def cast_photo_vote(request,*args,**kwargs):
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		##########################################################################
-		config_manager.get_obj().track('voted', request.user.id)
+		# config_manager.get_obj().track('voted', request.user.id)
 		##########################################################################
 		link_id = request.POST.get("lid","")
 		lang = request.POST.get("lang",None)

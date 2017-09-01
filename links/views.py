@@ -2804,8 +2804,7 @@ class GroupPageView(ListView):
 		replies = []
 		user = self.request.user
 		group_ids = get_user_groups(user.id)
-		replies = Reply.objects.filter(which_group__in=group_ids).values('which_group_id').annotate(Max('id')).\
-			values_list('id__max', flat=True)
+		replies = Group.objects.filter(id__in=group_ids).annotate(Max('reply')).values_list('reply__max',flat=True)
 		invite_reply_ids = get_active_invites(user.id) #contains all current invites
 		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
 		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\

@@ -1,1 +1,1 @@
-BANNED_WORDS = ['fuck','sex','phuddi','phudi','phodi','lun','choot','pussy']
+BANNED_WORDS = ['fuck','sex','phuddi','phudi','phodi','lun','choot','pussy','boob','xxx','breast','penis']

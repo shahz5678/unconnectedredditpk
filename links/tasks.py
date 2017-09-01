@@ -15,6 +15,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList#, Vote
+from order_home_posts import order_home_posts
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click
@@ -330,6 +331,10 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 			unseen_activity=True)
 	set_prev_group_replies(sender_id,reply_text)
 	# set_prev_retort(sender_id,reply_text)
+
+@celery_app1.task(name='tasks.rank_home_posts')
+def rank_home_posts():
+	order_home_posts()
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():

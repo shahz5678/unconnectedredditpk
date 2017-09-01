@@ -60,9 +60,8 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given, first_time_log_outter, add_log_outter
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts
 from .website_feedback_form import AdvertiseWithUsForm
-# from order_home_posts import order_home_posts
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
 from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
@@ -1266,11 +1265,14 @@ def home_reply(request,pk=None,*args,**kwargs):
 	else:
 		return redirect("home")
 
-def home_list(request, items_per_page, lang=None, notif=None):
+def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None):
 	if request.user_banned:
 		obj_list = all_unfiltered_posts()
 	else:
-		obj_list = all_filtered_urdu_posts() if lang=='urdu' else all_filtered_posts()
+		if sort_by_best:
+			obj_list = all_best_posts()
+		else:
+			obj_list = all_filtered_urdu_posts() if lang=='urdu' else all_filtered_posts()
 	if notif:
 		try:
 			index = obj_list.index(notif)
@@ -1311,6 +1313,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context = {}
 		user = request.user
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+		sort_by_best = True if request.resolver_match.url_name == 'home_best' else False
 		context["lang"] = lang
 		context["checked"] = FEMALES
 		context["form"] = form
@@ -1335,14 +1338,16 @@ def home_link_list(request, lang=None, *args, **kwargs):
 				page = request.session['page']
 				replyforms = request.session['replyforms']
 			else:
-				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang)
+				photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, \
+					sort_by_best=sort_by_best)
 			del request.session['photo_links']
 			del request.session['list_of_dictionaries']
 			del request.session['page']
 			del request.session['replyforms']
 		else:
 			# normal refresh or toggling between pages (via agey or wapis)
-			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang)
+			photo_links, list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, \
+				sort_by_best=sort_by_best)
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["replyforms"] = replyforms

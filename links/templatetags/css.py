@@ -1,16 +1,12 @@
 from django import template
+from links.redis4 import log_html_error
 
 register = template.Library()
 
 def htmlattributes(value, arg):
-	return value.as_widget(attrs={"style":arg})
-#     attrs = value.field.widget.attrs
-#     data = arg.replace(' ', '')   
-#     kvs = data.split(',')
-#     for string in kvs:
-#         kv = string.split(':')
-#         attrs[kv[0]] = kv[1]
-#     rendered = str(value)
-#     return rendered
+	try:
+		return value.as_widget(attrs={"style":arg})
+	except:
+		log_html_error(value=value,arg=arg)
 
 register.filter('htmlattributes', htmlattributes)

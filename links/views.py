@@ -5814,12 +5814,9 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
-				description = form.cleaned_data.get("group_reply")
+				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
+				description = desc1 if desc2 == '111' else desc2
 				user_id = request.user.id
-				# score = fuzz.ratio(description, get_prev_retort(user_id))
-				# if score > 85:
-				# 	return redirect("unseen_activity", slug=request.user.username)
-				# else:
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -5886,7 +5883,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
-				description = form.cleaned_data.get("comment")
+				description = form.cleaned_data.get("photo_comment")
 				user_id = request.user.id
 				if request.is_feature_phone:
 					device = '1'
@@ -5941,7 +5938,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
-				process_publicreply(request,pk,form.cleaned_data.get("comment"),'from_unseen')
+				process_publicreply(request,pk,form.cleaned_data.get("home_comment"),'from_unseen')
 				return redirect("unseen_activity", request.user.username)
 			else:
 				notification = "np:"+str(request.user.id)+":2:"+str(pk)

@@ -23,6 +23,10 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def log_html_error(value, arg):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("html_error",{'value':value,'arg':arg,'time_stamp':time.time()})
+
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})

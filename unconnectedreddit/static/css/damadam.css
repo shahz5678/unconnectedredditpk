@@ -249,6 +249,42 @@ S1: Html styling
     padding-bottom:0.3em;
 }
 
+/*inline reply buttons for home and matka*/
+
+.box-with-button-right {
+  background-color: white;
+  border-radius: 4px;
+  display: block;
+  position: relative;
+  height: 30px;
+  box-sizing: border-box;
+  padding-right: 40px;
+}
+
+.box-with-button-right input {
+  height: 100%;
+  width: 100%;
+  border-radius: 3px 0px 0px 3px;
+  margin: 0;
+  text-indent: 4px;
+  background-color: #F8F8F8;
+
+}
+
+.box-with-button-right button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  height: 100%;
+  font-size:13px;
+  width: 80px;
+  border-radius: 0px 3px 3px 0px;
+  color: white;
+
+}
+
+
 /*background color cream*/
 .bgc{
     background-color:#FFFFE0;
@@ -304,6 +340,10 @@ font size 80% grey text will be class = "cs cgy",
         color:red;
     }
 
+    .cdg{
+        color:#008035;
+    }
+
     /*color green*/
    .cg{
         color:#179b36;
@@ -339,6 +379,10 @@ font size 80% grey text will be class = "cs cgy",
 
     }
 
+    .cdo{
+        color:#ef6c00;
+    }
+
       /*color orange for photo related alert*/
     .co{
    text-shadow: 0 0 0.3px rgba(0,0,0,0.1);
@@ -361,6 +405,11 @@ font size 80% grey text will be class = "cs cgy",
 /* caption blue */
 .cb {
     color:#1947D1;
+}
+
+/*dark teal for home comments*/
+.cdt {
+      color: #176982;
 }
 
 .ct {

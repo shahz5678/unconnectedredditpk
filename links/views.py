@@ -38,8 +38,8 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from salutations import SALUTATIONS
 from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser,\
-get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers#, log_erroneous_passwords
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
+get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, update_object, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -7022,59 +7022,61 @@ def process_photo_vote(pk, ident, val, voter_id):
 @csrf_protect
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
-		photo_id = request.POST.get("pid","")
-		photo_owner_id = get_photo_owner(photo_id)
-		if not photo_owner_id:
-			photo_owner_id = Photo.objects.get(id=photo_id).owner.id
-		if photo_id and photo_owner_id:
-			own_id = request.user.id
-			own_username = request.user.username
-			banned_from_voting,time_remaining = check_photo_vote_ban(own_id) #was this person banned by a defender?
-			cool_down_time, can_vote = can_vote_on_photo(request.user.id) #defenders are exempt from timing out currently
-			origin = request.POST.get("origin","")
-			if str(own_id) == photo_owner_id:
-				# voted own photo - dismiss
-				return render(request,'penalty_self_photo_vote.html')
-			elif not can_vote:
-				# needs to cool down
-				context={'time_remaining':cool_down_time, 'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
-				'lid':request.POST.get("lid","")}
-				return render(request, 'photovote_cooldown.html', context)
-			elif banned_from_voting:
-				# not allowed to vote - notify
-				to_go = ('-1' if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining))
-				context = {'time_remaining':to_go,'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
-				'lid':request.POST.get("lid","")}
-				return render(request, 'photovote_disallowed.html', context)
-			elif voted_for_single_photo(photo_id,own_username):
-				# double voted photo - dismiss
-				return render(request,'already_photovoted.html')
-			else:
-				#process the vote
-				value = request.POST.get("photo_vote","")
-				citizen = (True if request.user.userprofile.score > CITIZEN_THRESHOLD else False)
-				if value == '1':
-					added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
-				elif value == '0':
-					added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False),citizen)
+		own_id = request.user.id
+		if is_mobile_verified(own_id):
+			photo_id = request.POST.get("pid","")
+			photo_owner_id = get_photo_owner(photo_id)
+			if not photo_owner_id:
+				photo_owner_id = Photo.objects.get(id=photo_id).owner.id
+			if photo_id and photo_owner_id:
+				own_username = request.user.username
+				banned_from_voting,time_remaining = check_photo_vote_ban(own_id) #was this person banned by a defender?
+				cool_down_time, can_vote = can_vote_on_photo(own_id) #defenders are exempt from timing out currently
+				origin = request.POST.get("origin","")
+				if str(own_id) == photo_owner_id:
+					# voted own photo - dismiss
+					return render(request,'penalty_self_photo_vote.html')
+				elif not can_vote:
+					# needs to cool down
+					context={'time_remaining':cool_down_time, 'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
+					'lid':request.POST.get("lid","")}
+					return render(request, 'photovote_cooldown.html', context)
+				elif banned_from_voting:
+					# not allowed to vote - notify
+					to_go = ('-1' if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining))
+					context = {'time_remaining':to_go,'origin':origin, 'pk':photo_id, 'slug':request.POST.get("oun",""),\
+					'lid':request.POST.get("lid","")}
+					return render(request, 'photovote_disallowed.html', context)
+				elif voted_for_single_photo(photo_id,own_username):
+					# double voted photo - dismiss
+					return render(request,'already_photovoted.html')
 				else:
-					added = 0
-				if added and citizen:
-					# do not process vote if the user is not a 'citizen'
-					process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
-				#return the user to origin
-				return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))
+					#process the vote
+					value = request.POST.get("photo_vote","")
+					citizen = (True if request.user.userprofile.score > CITIZEN_THRESHOLD else False)
+					if value == '1':
+						added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
+					elif value == '0':
+						added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False),citizen)
+					else:
+						added = 0
+					if added and citizen:
+						# do not process vote if the user is not a 'citizen'
+						process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
+					#return the user to origin
+					return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))
+			else:
+				return render(request, 'penalty_suspicious.html', {})
 		else:
-			return render(request, 'penalty_suspicious.html', {})
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(own_id), CSRF)
+			return render(request, 'cant_vote_without_verifying.html', {'vote_type':'photo','csrf':CSRF})
 	else:
 		return render(request, 'penalty_suspicious.html', {})
 
 @csrf_protect
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
-		##########################################################################
-		# config_manager.get_obj().track('voted', request.user.id)
-		##########################################################################
 		link_id = request.POST.get("lid","")
 		lang = request.POST.get("lang",None)
 		target_user_id = get_link_writer(link_id)#request.POST.get("oid","")

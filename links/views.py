@@ -7070,89 +7070,94 @@ def cast_photo_vote(request,*args,**kwargs):
 		else:
 			CSRF = csrf.get_token(request)
 			temporarily_save_user_csrf(str(own_id), CSRF)
-			return render(request, 'cant_vote_without_verifying.html', {'vote_type':'photo','csrf':CSRF})
+			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
 	else:
 		return render(request, 'penalty_suspicious.html', {})
 
 @csrf_protect
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
-		link_id = request.POST.get("lid","")
-		lang = request.POST.get("lang",None)
-		target_user_id = get_link_writer(link_id)#request.POST.get("oid","")
-		if link_id and target_user_id:
-			own_id = request.user.id
-			own_name = request.user.username
-			if str(own_id) == target_user_id:
-				#voting for own self
-				return render(request, 'penalty_self_vote.html', {})
-			elif voted_for_link(link_id,own_name):
-				#already voted for link
-				return render(request,'already_voted.html',{})
-			else:
-				#process the vote
-				time_remaining, can_vote = can_vote_on_link(own_id)
-				if not can_vote:
-					request.session["target_id"] = link_id
-					context = {'time_remaining':time_remaining}
-					return render(request,'vote_cool_down.html',context)
+		own_id = request.user.id
+		if is_mobile_verified(own_id):
+			link_id = request.POST.get("lid","")
+			lang = request.POST.get("lang",None)
+			target_user_id = get_link_writer(link_id)#request.POST.get("oid","")
+			if link_id and target_user_id:
+				own_name = request.user.username
+				if str(own_id) == target_user_id:
+					#voting for own self
+					return render(request, 'penalty_self_vote.html', {})
+				elif voted_for_link(link_id,own_name):
+					#already voted for link
+					return render(request,'already_voted.html',{})
 				else:
-					is_pinkstar = (True if own_name in FEMALES else False)
-					value = request.POST.get("vote","")
-					if value == '1':
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						# username = u'سلمہ'
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					elif value == '-1':
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					##############################Cricket Voting###########################
-					#######################################################################
-					elif value == '4':
-						vote_tasks.delay(own_id, target_user_id,link_id,'1')
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					elif value == '-4':
-						vote_tasks.delay(own_id, target_user_id,link_id,'-1')
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					elif value == '5' and is_pinkstar:
-						#is the user a verified female? If so, process the super cricket upvote
-						vote_tasks.delay(own_id, target_user_id,link_id,'2')
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					elif value == '-5' and is_pinkstar:
-						#is the user a verified female? If so, process the super cricket downvote
-						vote_tasks.delay(own_id, target_user_id,link_id,'-2')
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					#######################################################################
-					#######################################################################
-					elif value == '2' and is_pinkstar:
-						#is the user a verified female? If so, process the super upvote
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
-					elif value == '-2' and is_pinkstar:
-						#is the user a verified female? If so, process the super downvote
-						vote_tasks.delay(own_id, target_user_id,link_id,value)
-						add_vote_to_link(link_id, value, own_name,is_pinkstar)
+					#process the vote
+					time_remaining, can_vote = can_vote_on_link(own_id)
+					if not can_vote:
+						request.session["target_id"] = link_id
+						context = {'time_remaining':time_remaining}
+						return render(request,'vote_cool_down.html',context)
 					else:
-						pass
-					origin = request.POST.get("origin","")
-					if origin == '1':
-						#came from cricket_comments
-						request.session["target_id"] = link_id
-						request.session.modified = True
-						return redirect("cric_loc")
-					elif origin == '0':
-						#came from home page
-						request.session["target_id"] = link_id
-						request.session.modified = True
-						if lang == 'urdu':
-							return redirect("home_loc_ur", lang)
+						is_pinkstar = (True if own_name in FEMALES else False)
+						value = request.POST.get("vote","")
+						if value == '1':
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							# username = u'سلمہ'
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						elif value == '-1':
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						##############################Cricket Voting###########################
+						#######################################################################
+						elif value == '4':
+							vote_tasks.delay(own_id, target_user_id,link_id,'1')
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						elif value == '-4':
+							vote_tasks.delay(own_id, target_user_id,link_id,'-1')
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						elif value == '5' and is_pinkstar:
+							#is the user a verified female? If so, process the super cricket upvote
+							vote_tasks.delay(own_id, target_user_id,link_id,'2')
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						elif value == '-5' and is_pinkstar:
+							#is the user a verified female? If so, process the super cricket downvote
+							vote_tasks.delay(own_id, target_user_id,link_id,'-2')
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						#######################################################################
+						#######################################################################
+						elif value == '2' and is_pinkstar:
+							#is the user a verified female? If so, process the super upvote
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
+						elif value == '-2' and is_pinkstar:
+							#is the user a verified female? If so, process the super downvote
+							vote_tasks.delay(own_id, target_user_id,link_id,value)
+							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						else:
-							return redirect("home_loc")
-					else:
-						#came from somewhere else (error?)
-						return redirect("home")
+							pass
+						origin = request.POST.get("origin","")
+						if origin == '1':
+							#came from cricket_comments
+							request.session["target_id"] = link_id
+							request.session.modified = True
+							return redirect("cric_loc")
+						elif origin == '0':
+							#came from home page
+							request.session["target_id"] = link_id
+							request.session.modified = True
+							if lang == 'urdu':
+								return redirect("home_loc_ur", lang)
+							else:
+								return redirect("home_loc")
+						else:
+							#came from somewhere else (error?)
+							return redirect("home")
+			else:
+				return render(request, 'penalty_suspicious.html', {})
 		else:
-			return render(request, 'penalty_suspicious.html', {})
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(own_id), CSRF)
+			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
 	else:
 		return render(request, 'penalty_suspicious.html', {})
 

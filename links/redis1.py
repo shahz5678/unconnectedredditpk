@@ -956,26 +956,15 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
-# def retrieve_first_page():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	link_id_list = my_server.lrange("filteredposts:1000",0,19)
-# 	list_of_dictionaries = []
-# 	photo_ids = []
-# 	non_photo_link_ids = []
-# 	pipeline1 = my_server.pipeline()
-# 	for link_id in link_id_list:
-# 		hash_name="lk:"+str(link_id)
-# 		pipeline1.hgetall(hash_name)
-# 	result1 = pipeline1.execute()
-# 	count = 0
-# 	for hash_obj in result1:
-# 		list_of_dictionaries.append(hash_obj)
-# 		if 'pi' in hash_obj:
-# 			photo_ids.append(hash_obj['pi'])
-# 		else:
-# 			non_photo_link_ids.append(link_id_list[count])
-# 		count += 1
-# 	return photo_ids, non_photo_link_ids, list_of_dictionaries 
+def retrieve_all_home_links_with_scores():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_link_ids = my_server.lrange("filteredposts:1000", 20, 1000)
+	pipeline1 = my_server.pipeline()
+	for link_id in all_link_ids:
+		pipeline1.zrange("v:"+link_id,0,-1,withscores=True)
+	result1 = pipeline1.execute()
+	return result1, all_link_ids
+	
 
 def retrieve_home_links(link_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1267,6 +1256,21 @@ def add_photo(photo_id):
 def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("unfilteredposts:1000", 0, -1)
+
+def set_best_posts_on_home(link_ids):
+	my_server = redis.Redis(connection_pool=POOL)
+	#executing the following commands as a single transaction
+	try:
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete("bestposts")
+		pipeline1.lpush("bestposts",*link_ids)
+		pipeline1.execute()
+	except:
+		pass
+
+def all_best_posts():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("bestposts", 0, -1)
 
 def all_filtered_posts():
 	my_server = redis.Redis(connection_pool=POOL)

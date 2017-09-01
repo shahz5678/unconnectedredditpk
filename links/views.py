@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, log_html_error
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf#, log_erroneous_passwords
@@ -62,6 +62,7 @@ current_match_unfiltered_comments, current_match_comments, update_comment_in_hom
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter
 from .website_feedback_form import AdvertiseWithUsForm
+# from order_home_posts import order_home_posts
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
 from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
@@ -1245,9 +1246,6 @@ def home_reply(request,pk=None,*args,**kwargs):
 			if form.is_valid():
 				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 				request.session['target_id'] = pk
-				####################################################################################
-				# config_manager.get_obj().track('submitted_home_reply', user_id)
-				####################################################################################
 				if first_time_home_replier(user_id):
 					add_home_replier(user_id)
 					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
@@ -1259,9 +1257,6 @@ def home_reply(request,pk=None,*args,**kwargs):
 			else:
 				photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
 				replyforms[pk] = form
-				####################################################################################
-				# config_manager.get_obj().track('invalid_home_reply', user_id)
-				####################################################################################
 				request.session['replyforms'] = replyforms
 				request.session['list_of_dictionaries'] = list_of_dictionaries
 				request.session['page'] = page_obj
@@ -1351,11 +1346,6 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["replyforms"] = replyforms
-		############################################ Website Feedback #############################################
-		# feedback_given = website_feedback_given(context["ident"])
-		# old_user = request.user.date_joined < (datetime.utcnow()-timedelta(days=1))
-		# context["show_feedback_form"] = not feedback_given and old_user
-		# context["rand"] = random.random()
 		############################################# Home Rules #################################################
 		context["home_rules"] = spammer_punishment_text(context["ident"])
 		############################################ Namaz feature ###############################################
@@ -6000,6 +5990,8 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
 			if oblist:
 				last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
+				if not forms:
+					log_html_error(obj_list=oblist, forms=forms, page=page_obj, nickname = request.user.username, referrer=request.META.get('HTTP_REFERER',None))
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':request.user.username,\
 				'last_visit_time':last_visit_time}
 				return render(request, 'user_unseen_activity.html', context)

@@ -23,6 +23,10 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def log_html_error(obj_list, forms, page, nickname, referrer):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
+
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})

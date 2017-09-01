@@ -394,6 +394,10 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.delete_expired_classifieds',
 		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days
 	},
+	'tasks.rank_home_posts': {
+		'task': 'tasks.rank_home_posts',
+		'schedule': timedelta(seconds=5*60), # execute every 5 mins
+	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
 		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks

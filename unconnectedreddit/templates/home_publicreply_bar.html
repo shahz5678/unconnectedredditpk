@@ -4,8 +4,8 @@
 <input type="hidden" name="lang" value="{{ lang }}">
 <input type="hidden" name="user_id" value="{{ user_id }}">
 {% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% endif %}
-<div class="box-with-button-right">
+<div class="box-with-button-right mls mbs">
 	{{ replyform.description }}
-<button type="submit">jawab do</button>
+<button type="submit" class="bct">jawab do</button>
 </div>
 </form>

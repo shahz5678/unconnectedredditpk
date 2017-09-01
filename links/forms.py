@@ -347,8 +347,8 @@ class PublicreplyMiniForm(PublicreplyForm):
 
     def __init__(self,*args,**kwargs):
         super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
-        self.fields['description'].widget.attrs['class'] = 'box-with-button-right'
-        # self.fields['description'].widget.attrs['style'] = \
+        self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
+        self.fields['description'].widget.attrs['style'] = 'border: 1px solid #229ec3'
         # 'background-color:#F8F8F8; width:98%; border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
         # 'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
         self.fields['description'].widget.attrs['autocomplete'] = 'off'
@@ -463,23 +463,31 @@ class ReportFeedbackForm(forms.Form):
         fields = ("description",)
 
 class UnseenActivityForm(forms.Form):
-    comment = forms.CharField(max_length=250)
-    group_reply = forms.CharField(max_length=500)
+    home_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
+    photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likho, phir "tabsra kro" button dabao'})
+    public_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
+    private_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
     class Meta:
         fields = ("comment", "group_reply", )
 
     def __init__(self,*args,**kwargs):
         self.user = kwargs.pop('user',None)
         super(UnseenActivityForm, self).__init__(*args, **kwargs)
-        self.fields['group_reply'].widget.attrs['style'] = \
-        'background-color:#F8F8F8;max-width:95%;width:1000px;border: 1px solid #a6a6a6;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #404040;'
-        self.fields['group_reply'].widget.attrs['autocomplete'] = 'off'
-        self.fields['comment'].widget.attrs['style'] = \
-        'background-color:#F8F8F8;max-width:95%;width:1000px;border: 1px solid #a6a6a6;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #404040;'
-        self.fields['comment'].widget.attrs['autocomplete'] = 'off'
+        self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
+        self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
+        self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
+        self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
+        self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
+        self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
+        self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
+        self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
+        self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
+        self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
+        self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
+        self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
 
-    def clean_comment(self):
-        comment = self.cleaned_data.get("comment")
+    def clean_home_comment(self):
+        comment = self.cleaned_data.get("home_comment")
         comment = comment.strip()
         if len(comment) < 2:
             raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
@@ -492,12 +500,30 @@ class UnseenActivityForm(forms.Form):
                 raise forms.ValidationError('tip: ziyada spaces daal di hain')
             else:
                 raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-        if not can_reply(comment,self.user.id):
+        if not comment == '111' and not can_reply(comment,self.user.id):
             raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
         return comment
 
-    def clean_group_reply(self):
-        group_reply = self.cleaned_data.get("group_reply")
+    def clean_photo_comment(self):
+        comment = self.cleaned_data.get("photo_comment")
+        comment = comment.strip()
+        if len(comment) < 2:
+            raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+        elif len(comment) > 250:
+            raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+        comment = clear_zalgo_text(comment)
+        uni_str = uniform_string(comment)
+        if uni_str:
+            if uni_str.isspace():
+                raise forms.ValidationError('tip: ziyada spaces daal di hain')
+            else:
+                raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+        if not comment == '111' and not can_reply(comment,self.user.id):
+            raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+        return comment
+
+    def clean_public_group_reply(self):
+        group_reply = self.cleaned_data.get("public_group_reply")
         group_reply = group_reply.strip()
         if len(group_reply) < 2:
             raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
@@ -510,7 +536,25 @@ class UnseenActivityForm(forms.Form):
                 raise forms.ValidationError('tip: ziyada spaces daal di hain')
             else:
                 raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-        if not can_group_reply(group_reply,self.user.id):
+        if not group_reply == '111' and not can_group_reply(group_reply,self.user.id):
+            raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+        return group_reply
+
+    def clean_private_group_reply(self):
+        group_reply = self.cleaned_data.get("private_group_reply")
+        group_reply = group_reply.strip()
+        if len(group_reply) < 2:
+            raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+        elif len(group_reply) > 500:
+            raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+        group_reply = clear_zalgo_text(group_reply)
+        uni_str = uniform_string(group_reply)
+        if uni_str:
+            if uni_str.isspace():
+                raise forms.ValidationError('tip: ziyada spaces daal di hain')
+            else:
+                raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+        if not group_reply == '111' and not can_group_reply(group_reply,self.user.id):
             raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
         return group_reply
 

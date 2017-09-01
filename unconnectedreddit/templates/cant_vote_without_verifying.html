@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-{% if vote_type == 'photo' %}
-<b class="cxl">Mobile number ki tasdiq ke beghair photos pe voting nahi ho sakti</b><br>
+<b class="cxl">Mobile number ki tasdiq ke beghair vote nahi dala ja sakta</b><br>
 <div class="mt">
 <span class="cl">Tasdiq karwaney ke liye 'OK' dabain:</span><br>
 </div>
@@ -17,7 +16,6 @@
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
 	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
 	</form><br>
-{% endif %}
 </div>
 <br><br>
 {% endblock %}

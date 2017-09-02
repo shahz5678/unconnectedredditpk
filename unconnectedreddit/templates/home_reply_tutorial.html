@@ -7,7 +7,11 @@
 {% else %}
 <h2>Tumhara jawab <span class="ct">{{ target }}</span> ko chala gaya!&nbsp;{% emoticons %}.c1{% endemoticons %}</h2>
 {% endif %}
-{% if lang %}
+{% if lang and sort_by_best %}
+<a href="{% url 'home_loc_ur_best' lang %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>
+{% elif sort_by_best %}
+<a href="{% url 'home_loc_best' %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>
+{% elif lang %}
 <a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>
 {% else %}
 <a href="{% url 'home_loc' %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>

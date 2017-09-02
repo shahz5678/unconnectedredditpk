@@ -10,7 +10,7 @@ from scraper import read_image
 from cricket_score import cricket_scr
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, CRICKET_COMMENTS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, UPLOAD_PHOTO_REQ,\
-CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD, CITIZEN_THRESHOLD
+CRICKET_SUPPORT_STARTING_POINT, CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, SEARCH_FEATURE_THRESHOLD
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -3611,7 +3611,7 @@ class CommentView(CreateView):
 				url = user.userprofile.avatar.url
 			except:
 				url = None
-			citizen = True if user.userprofile.score > CITIZEN_THRESHOLD else False
+			citizen = is_mobile_verified(user.id)
 			add_photo_comment(photo_id=which_photo.id,photo_owner_id=which_photo.owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
@@ -5924,7 +5924,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
-				citizen = True if request.user.userprofile.score > CITIZEN_THRESHOLD else False
+				citizen = is_mobile_verified(user_id)
 				add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
@@ -6985,63 +6985,6 @@ class SalatTutorialView(FormView):
 			TutorialFlag.objects.filter(user=self.request.user).update(seen_salat_option=True)
 			return redirect("home")
 
-# class FanTutorialView(FormView):
-# 	form_class = FanTutorialForm
-# 	template_name = "fan_tutorial.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(FanTutorialView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				user = self.request.session["ftue_fan_user"]
-# 				context["name"] = user.username
-# 				context["skip"] = False
-# 			except:
-# 				context["skip"] = True
-# 		return context
-
-# 	def form_valid(self, form):
-# 		try:
-# 			if self.request.session["ftue_fan_option"] and self.request.session["ftue_fan_user"]:
-# 				self.request.session["ftue_fan_option"] = None
-# 				user = self.request.session["ftue_fan_user"]
-# 				self.request.session["ftue_fan_user"] = None
-# 				self.request.session.modified = True
-# 				if self.request.method == 'POST':
-# 					option = self.request.POST.get("choice", '')
-# 					if option == 'samajh gaya':
-# 						if TutorialFlag.objects.filter(user=self.request.user).update(seen_fan_option=True) \
-# 						and not UserFan.objects.filter(fan=self.request.user, star=user).exists():
-# 							UserFan.objects.create(fan=self.request.user, star=user, fanning_time=datetime.utcnow()+timedelta(hours=5))
-# 							add_to_photo_owner_activity(user.id, self.request.user.id)
-# 							try:
-# 								aggregate_object = TotalFanAndPhotos.objects.get(owner=user)
-# 								aggregate_object.total_fans = aggregate_object.total_fans + 1
-# 								aggregate_object.last_updated = datetime.utcnow()+timedelta(hours=5)
-# 								aggregate_object.save()
-# 							except:
-# 								TotalFanAndPhotos.objects.create(owner=user, total_fans=1, total_photos=0, last_updated=datetime.utcnow()+timedelta(hours=5))
-# 							return redirect("profile", user.username)
-# 						else:
-# 							return redirect("profile", user.username)
-# 					else:
-# 						return redirect("profile", user.username)
-# 			else:
-# 				try:
-# 					flag = TutorialFlag.objects.get(user=self.request.user)
-# 					flag.seen_fan_option = True
-# 					flag.save()
-# 				except:
-# 					TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
-# 				return redirect("top_photo")
-# 		except:
-# 			try:
-# 				flag = TutorialFlag.objects.get(user=self.request.user)
-# 				flag.seen_fan_option = True
-# 				flag.save()
-# 			except:
-# 				TutorialFlag.objects.create(user=self.request.user, seen_fan_option=True)
-# 			return redirect("top_photo")
 
 def process_photo_vote(pk, ident, val, voter_id):
 	if int(val) > 0:
@@ -7061,7 +7004,8 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
-		if is_mobile_verified(own_id):
+		is_verified = is_mobile_verified(own_id)
+		if is_verified:
 			photo_id = request.POST.get("pid","")
 			photo_owner_id = get_photo_owner(photo_id)
 			if not photo_owner_id:
@@ -7091,7 +7035,7 @@ def cast_photo_vote(request,*args,**kwargs):
 				else:
 					#process the vote
 					value = request.POST.get("photo_vote","")
-					citizen = (True if request.user.userprofile.score > CITIZEN_THRESHOLD else False)
+					citizen = is_verified
 					if value == '1':
 						added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
 					elif value == '0':

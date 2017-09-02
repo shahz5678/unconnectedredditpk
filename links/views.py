@@ -22,7 +22,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, populate_search_thumbs#, capture_urdu
+fan_recount, vote_tasks, populate_search_thumbs
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -60,7 +60,7 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -1241,15 +1241,21 @@ def home_reply(request,pk=None,*args,**kwargs):
 			user_id = request.user.id
 			form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
 			lang = request.POST.get("lang",None)
+			sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
 			ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 			if form.is_valid():
 				target = process_publicreply(request,pk,form.cleaned_data.get("description"))
 				request.session['target_id'] = pk
 				if first_time_home_replier(user_id):
 					add_home_replier(user_id)
-					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang})
+					return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username, 'lang':lang,\
+						'sort_by_best':sort_by_best})
 				else:
-					if lang == 'urdu':
+					if lang == 'urdu' and sort_by_best:
+						return redirect("home_loc_ur_best", lang)
+					elif sort_by_best:
+						return redirect("home_loc_best")
+					elif lang == 'urdu':
 						return redirect("home_loc_ur", lang)
 					else:
 						return redirect("home_loc")
@@ -1260,8 +1266,17 @@ def home_reply(request,pk=None,*args,**kwargs):
 				request.session['list_of_dictionaries'] = list_of_dictionaries
 				request.session['page'] = page_obj
 				request.session['photo_links'] = photo_links
-				url = reverse_lazy("home")+addendum
+				if lang == 'urdu' and sort_by_best:
+					url = reverse_lazy("ur_home_best",kwargs={'lang': lang})+addendum
+				elif sort_by_best:
+					url = reverse_lazy("home_best")+addendum
+				elif lang == 'urdu':
+					url = reverse_lazy("ur_home",kwargs={'lang': lang})+addendum
+				else:
+					url = reverse_lazy("home")+addendum
 				return redirect(url)
+				# url = reverse_lazy("home")+addendum
+				# return redirect(url)
 	else:
 		return redirect("home")
 
@@ -1269,10 +1284,14 @@ def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None)
 	if request.user_banned:
 		obj_list = all_unfiltered_posts()
 	else:
-		if sort_by_best:
+		if sort_by_best and lang =='urdu':
+			obj_list = all_best_urdu_posts()
+		elif sort_by_best:
 			obj_list = all_best_posts()
+		elif lang=='urdu':
+			obj_list = all_filtered_urdu_posts()
 		else:
-			obj_list = all_filtered_urdu_posts() if lang=='urdu' else all_filtered_posts()
+			obj_list = all_filtered_posts()
 	if notif:
 		try:
 			index = obj_list.index(notif)
@@ -1295,13 +1314,20 @@ def home_location_pk(request,pk=None,*args,**kwargs):
 
 def home_location(request, lang=None, *args, **kwargs):
 	link_id = request.session.pop("target_id", 0)
+	url_ =request.resolver_match.url_name
 	ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request, items_per_page=ipp, lang=lang, notif=link_id)
+	sort_by_best = True if (url_ == 'home_loc_best' or url_== 'home_loc_ur_best') else False
+	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request, items_per_page=ipp, lang=lang, notif=link_id,\
+		sort_by_best=sort_by_best)
 	request.session['photo_links'] = photo_links
 	request.session['list_of_dictionaries'] = list_of_dictionaries
 	request.session['page'] = page_obj
 	request.session['replyforms'] = replyforms
-	if lang == 'urdu':
+	if lang == 'urdu' and sort_by_best:
+		url = reverse_lazy("ur_home_best",kwargs={'lang': lang})+addendum
+	elif sort_by_best:
+		url = reverse_lazy("home_best")+addendum
+	elif lang == 'urdu':
 		url = reverse_lazy("ur_home",kwargs={'lang': lang})+addendum
 	else:
 		url = reverse_lazy("home")+addendum
@@ -1312,9 +1338,11 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		form = HomeLinkListForm()
 		context = {}
 		user = request.user
+		url_ =request.resolver_match.url_name
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		sort_by_best = True if request.resolver_match.url_name == 'home_best' else False
+		sort_by_best = True if (url_ == 'home_best' or url_== 'ur_home_best') else False
 		context["lang"] = lang
+		context["sort_by"] = 'best' if sort_by_best else 'recent'
 		context["checked"] = FEMALES
 		context["form"] = form
 		context["csrf"] = csrf.get_token(request)
@@ -1322,9 +1350,6 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["authenticated"] = False
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
-		###########################################################################################################
-		# context["variation"] = config_manager.get_obj().activate('home_reply_redesign', user.id)
-		###########################################################################################################
 		enqueued_match = get_current_cricket_match()
 		if 'team1' in enqueued_match:
 			context["enqueued_match"] = enqueued_match
@@ -6643,11 +6668,15 @@ def welcome_reply(request,*args,**kwargs):
 		else:
 			return render(request,'404.html',{})
 
-def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, *args,**kwargs):
+def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_by=None, *args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
 	if from_home == '1':
-		if lang == 'urdu':
+		if lang == 'urdu' and sort_by == 'best':
+			return redirect("ur_home_best", 'urdu')
+		elif sort_by == 'best':
+			return redirect("home_best")
+		elif lang == 'urdu':
 			return redirect("ur_home", 'urdu')
 		else:
 			return redirect("home")
@@ -6658,11 +6687,15 @@ def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, *args
 	else:
 		return redirect("photo")
 
-def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, *args, **kwargs):
+def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
 	if from_home == '1':
-		if lang == 'urdu':
+		if lang == 'urdu' and sort_by == 'best':
+			return redirect("ur_home_best", 'urdu')
+		elif sort_by == 'best':
+			return redirect("home_best")
+		elif lang == 'urdu':
 			return redirect("ur_home", 'urdu')
 		else:
 			return redirect("home")
@@ -6673,13 +6706,17 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 	else:
 		return redirect("photo")
 
-def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, *args, **kwargs):
+def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	notif_name = "np:"+user+":"+pk.split(":",1)[1]
 	hash_name = pk
 	viewer_id = user
 	delete_salat_notification(notif_name,hash_name,viewer_id)
 	if from_home == '1':
-		if lang == 'urdu':
+		if lang == 'urdu' and sort_by == 'best':
+			return redirect("ur_home_best", 'urdu')
+		elif sort_by == 'best':
+			return redirect("home_best")
+		elif lang == 'urdu':
 			return redirect("ur_home", 'urdu')
 		else:
 			return redirect("home")
@@ -6690,11 +6727,15 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, *a
 	else:
 		return redirect("photo")
 
-def cross_notif(request, pk=None, user=None, from_home=None, lang=None, *args, **kwargs):
+def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
 	if from_home == '1':
-		if lang == 'urdu':
+		if lang == 'urdu' and sort_by == 'best':
+			return redirect("ur_home_best", 'urdu')
+		elif sort_by == 'best':
+			return redirect("home_best")
+		elif lang == 'urdu':
 			return redirect("ur_home", 'urdu')
 		else:
 			return redirect("home")
@@ -7078,6 +7119,7 @@ def cast_vote(request,*args,**kwargs):
 		if is_mobile_verified(own_id):
 			link_id = request.POST.get("lid","")
 			lang = request.POST.get("lang",None)
+			sort_by = request.POST.get("sort_by",None)
 			target_user_id = get_link_writer(link_id)#request.POST.get("oid","")
 			if link_id and target_user_id:
 				own_name = request.user.username
@@ -7142,7 +7184,11 @@ def cast_vote(request,*args,**kwargs):
 							#came from home page
 							request.session["target_id"] = link_id
 							request.session.modified = True
-							if lang == 'urdu':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("home_loc_ur_best", lang)
+							elif sort_by == 'best':
+								return redirect("home_loc_best")
+							elif lang == 'urdu':
 								return redirect("home_loc_ur", lang)
 							else:
 								return redirect("home_loc")

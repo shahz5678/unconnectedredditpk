@@ -2,7 +2,7 @@
 
 from math import sqrt
 
-# this returns a rating-based score
+# this returns a voting-based score
 def wilson_score(upvotes, downvotes):
     n = upvotes + downvotes
     if n < 1:
@@ -48,8 +48,8 @@ def strip_score(sorted_posts):
 	# turning list of tuples into a simple, flat list using the first element of each tuple
 	return map(itemgetter(0), sorted_posts)
 
-def order_home_posts():
-	result1, all_link_ids = retrieve_all_home_links_with_scores()
+def order_home_posts(urdu_only=False):
+	result1, all_link_ids = retrieve_all_home_links_with_scores(urdu_only=urdu_only)
 	counter, links_with_votes = 0, []
 	for link_id in all_link_ids:
 		if result1[counter]:
@@ -60,4 +60,4 @@ def order_home_posts():
 		counter += 1
 	scored_posts = score_home_posts(links_with_votes)
 	sorted_posts = sort_home_posts_acc_to_score(scored_posts)
-	set_best_posts_on_home(strip_score(sorted_posts))
+	set_best_posts_on_home(link_ids=strip_score(sorted_posts),urdu_only=urdu_only)

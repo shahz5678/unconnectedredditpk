@@ -404,11 +404,6 @@ def classified_listing(request,city=None,*args,**kwrags):
 		if first_time_exchange_visitor(request.user.id):
 			add_exchange_visitor(request.user.id)
 			return render(request,"exchange_classified_tutorial.html",{'url_name':url_name,'city':city})
-	# is_photos = True if (url_name == 'photos_classified_listing' or url_name == 'city_photos_classified_listing') else False
-	# if is_photos and request.user.is_authenticated():
-	# 	if first_time_photo_ads_visitor(request.user.id):
-	# 		add_photo_ad_visitor(request.user.id)
-	# 		return render(request,"photo_classified_tutorial.html",{'url_name':url_name,'city':city})
 	page_num = request.GET.get('page', '1')
 	all_ad_ids = get_city_ad_ids(city_name=city, exchange=exchange, photos=False) if city else get_approved_ad_ids(exchange=exchange, photos=False)
 	page_obj = get_page_obj(page_num,all_ad_ids,APPROVED_ADS_PER_PAGE)
@@ -421,24 +416,6 @@ def classified_listing(request,city=None,*args,**kwrags):
 		city, origin = None, 'global'
 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
 			'exchange':exchange, 'photos':None, 'variation':'ads_and_badla'})
-	#####################################################################################
-	# variation = config_manager.get_obj().activate('ecomm_tabs', request.user.id)
-	# if variation == 'ads_and_badla':
-	# 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-	# 		'exchange':exchange, 'photos':None, 'variation':variation})
-	# elif variation == 'ads_and_fotos':
-	# 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-	# 		'exchange':None, 'photos':is_photos,'variation':variation})
-	# elif variation == 'ads_and_fotos_and_badla':
-	# 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-	# 		'exchange':exchange,'photos':is_photos, 'variation':variation})
-	# elif variation == 'ads_and_badla_and_fotos':
-	# 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-	# 		'exchange':exchange, 'photos':is_photos, 'variation':variation})
-	# else:
-	# 	return render(request,"classifieds.html",{'ads':submissions,'page':page_obj,'city':city,'origin':origin,'is_feature_phone':get_device(request), \
-	# 		'exchange':exchange, 'photos':None, 'variation':'ads_and_badla'})
-	#####################################################################################
 
 
 def city_list(request,*args,**kwargs):

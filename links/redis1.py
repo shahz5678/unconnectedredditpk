@@ -956,9 +956,12 @@ def add_video(video_id):
 
 #####################Link objects#####################
 
-def retrieve_all_home_links_with_scores():
+def retrieve_all_home_links_with_scores(urdu_only=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	all_link_ids = my_server.lrange("filteredposts:1000", 20, 1000)
+	if urdu_only:
+		all_link_ids = my_server.lrange("filteredurduposts:1000", 0, -1)
+	else:
+		all_link_ids = my_server.lrange("filteredposts:1000", 0, -1)
 	pipeline1 = my_server.pipeline()
 	for link_id in all_link_ids:
 		pipeline1.zrange("v:"+link_id,0,-1,withscores=True)
@@ -1257,16 +1260,21 @@ def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("unfilteredposts:1000", 0, -1)
 
-def set_best_posts_on_home(link_ids):
+def set_best_posts_on_home(link_ids,urdu_only=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	#executing the following commands as a single transaction
-	try:
-		pipeline1 = my_server.pipeline()
+	pipeline1 = my_server.pipeline()
+	if urdu_only:
+		pipeline1.delete("besturduposts")
+		pipeline1.lpush("besturduposts",*link_ids)
+	else:
 		pipeline1.delete("bestposts")
 		pipeline1.lpush("bestposts",*link_ids)
-		pipeline1.execute()
-	except:
-		pass
+	pipeline1.execute()
+		
+
+def all_best_urdu_posts():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("besturduposts", 0, -1)
 
 def all_best_posts():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1879,10 +1887,3 @@ def clean_up_feedback():
 	for user_id in feedback_users:
 		my_server.delete("wf:"+str(user_id))
 	my_server.delete("website_feedback")
-
-###################################################
-
-def log_urdu(text):
-	my_server = redis.Redis(connection_pool=POOL)
-	urdu_logs = "urdu_logs"
-	my_server.lpush(urdu_logs,text)

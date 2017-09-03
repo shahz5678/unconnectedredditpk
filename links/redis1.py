@@ -1002,9 +1002,9 @@ def update_cc_in_home_photo(photo_pk):
 def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
 		#################################Saving latest publicreply################################
+		latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 		existing_payload = my_server.hget(hash_name,'replies')
 		if existing_payload:
 			latest_payload = latest_reply_head+"#"+str(time)+"#"+reply+"#el#" #el# signifies an end-of-line character

@@ -1002,7 +1002,7 @@ def update_cc_in_home_photo(photo_pk):
 def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
+	latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
 		#################################Saving latest publicreply################################
 		existing_payload = my_server.hget(hash_name,'replies')
@@ -1024,7 +1024,7 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	av_url = av_url_formatting(av_url)
+	av_url = av_url_formatting(av_url=av_url)
 	scr = scr_formatting(scr)
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)

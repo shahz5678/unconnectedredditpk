@@ -1,9 +1,14 @@
 {% load emoticons_tags %}
 <div class="clb mts mbs mls">
+<div class="mbs">
 <b class="ct">Latest Jawab:</b><br>
+</div>
+<table>
 {% for reply in replies reversed %}
-	<div class="mt">
+	<tr><td>
+	{% if forloop.counter != 1 %}<hr size=1 COLOR="#e0e0e0">{% endif %}
 		{{ reply.reply_head|safe }}:&nbsp;<span class="cdt"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ reply.epoch_time|human_time }}</span><br>
-	</div>
+	</td></tr>
 {% endfor %}
+</table>
 </div>

@@ -1002,22 +1002,19 @@ def update_cc_in_home_photo(photo_pk):
 def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	# writer = 'سلمہ'.encode('utf-8')#զųɛɛŋơʄҠąřąĆɧı'
 	latest_reply_head = av_url_formatting(writer_av)+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 	if my_server.exists(hash_name):
-		#################################Saving latest comments################################
-		sec_head, sec_reply, sec_time, sec_writer_id = my_server.hmget(hash_name,'1h','1r','1t','1i')
-		if sec_reply:
-			# move everything to the 2nd slot
-			mapping = {'1h':latest_reply_head,'1r':reply,'1t':time,'1i':writer_id,\
-			'2h':sec_head,'2r':sec_reply,'2t':sec_time,'2i':sec_writer_id}
+		#################################Saving latest publicreply################################
+		existing_payload = my_server.hget(hash_name,'replies')
+		if existing_payload:
+			latest_payload = latest_reply_head+"#"+str(time)+"#"+reply+"#el#" #el# signifies an end-of-line character
+			payload = existing_payload.decode('utf-8')+latest_payload
+			my_server.hset(hash_name,'replies',payload)
 		else:
-			# this is the first comment to be written
-			mapping = {'1h':latest_reply_head,'1r':reply,'1t':time,'1i':writer_id}
-		my_server.hmset(hash_name, mapping)
+			payload = latest_reply_head+"#"+str(time)+"#"+reply+"#el#"
+			my_server.hset(hash_name,'replies',payload)
 		########################################################################################
 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		# my_server.hset(hash_name,'rb',comment_count_formatting(amnt,link_pk))
 		return amnt
 	else:
 		return 0

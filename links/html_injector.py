@@ -166,15 +166,20 @@ def image_thumb_formatting(img_url,pid):
 	return '<button class="mls mbs" style="border-radius:0px;background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" height="38"></button>' \
 	% (pid,img_url)
 
-def av_url_formatting(av_url):
+def av_url_formatting(av_url, style=None):
+	url = None
 	if av_url:
 		if 'res/avatars' in av_url:
 			url = string.replace(av_url, "damadam.blob.core.windows.net/pictures/avatars", "damadamthumbs.azureedge.net")
 		else:
 			url = av_url
-		return '<img src="%s" width="22" height="22"></img>' % url
+	if url:
+		if style == 'round':
+			return '<img src="{}" style="border-radius:50%" width="22" height="22"/>'.format(url)
+		else:
+			return '<img src="{}" width="22" height="22"></img>'.format(url)
 	else:
-		return '<img src="/static/img/default-avatar-min.jpg" alt="no pic"  width="22" height="22"></img>'
-
-# def contacter_string(phone_number):
-# 	return '<span class="cg"><b>%s</b> ne tumhara mobile number hasil kiya</span><br>' % phone_number
+		if style == 'round':
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%" width="22" height="22"></img>'
+		else:
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>'

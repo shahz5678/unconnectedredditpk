@@ -1,0 +1,9 @@
+{% load emoticons_tags %}
+<div class="clb mts mbs mls">
+<b class="ct">Latest Jawab:</b><br>
+{% for reply in replies reversed %}
+	<div class="mt">
+		{{ reply.reply_head|safe }}:&nbsp;<span class="cdt"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ reply.epoch_time|human_time }}</span><br>
+	</div>
+{% endfor %}
+</div>

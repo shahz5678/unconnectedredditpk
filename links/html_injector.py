@@ -39,26 +39,6 @@ def create_gibberish_punishment_text(amount):
 	button_tail+a_href_tail+div_tail
 
 
-# <div style="background-color:#0091ea;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-# <b class="cxl">Ap ke <span style="color:#ffeb3b;">12 points</span> cut ho gaye!</b>
-# <br>
-# 	<div class="mts mbs">
-# 	Ap ko home ke rules break kartay huay report kiya gaya.<br>
-# 	</div>
-# <hr size=1 COLOR="#ffeb3b">
-# <div class="mts mbs cl">
-# <b style="color:#ffeb3b;">Home Rules:</b><br>
-# </div>
-# <b>1)</b> Points barhaney ke liye home ka najaiz istimal nah karein<br>
-# <b>2)</b> Gandi baatoon aur galiyun se dur rehain<br>
-# <b>3)</b> Kisi ko bila waja chupair na marien<br>
-# <div class="mts mbs cl">
-# <b style="color:#ffeb3b;">... aur last rule...</b><br>
-# </div>
-# <b>4) Boring hona mana hai.</b> Dil khol ke mazedar gup shup, lateefay, shairi aur khabrein sunaien!<br>
-# <a href="{% url 'retire_home_rules' %}"><button class="btn bco mbl mtl bm"><b>OK</b></button></a>
-# </div>
-
 def pinkstar_formatting(pinkstar):
 	if pinkstar:
 		return '<img src="/static/img/pstar.png" alt="*" width="13" height="13"></img>'

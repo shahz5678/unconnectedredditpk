@@ -10,6 +10,7 @@
 {% load photoedge %}
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
+{% load get_home_replies_section %}
 {% block content %}
 
 <div class="margin">
@@ -406,18 +407,9 @@
 
 			{{ link.dc|safe }}
 			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
-		
-			{% if link.1h and link.2h %}
-				<div class="clb mts mbs mls">
-				<b class="ct">Latest Jawab:</b><br>
-				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span><br>
-				{{ link.2h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.2r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.2t|human_time }}</span>
-				</div>
-			{% elif link.1h %}
-				<div class="clb mts mbs mls">
-				<b class="ct">Latest Jawab:</b><br>
-				{{ link.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ link.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ link.1t|human_time }}</span>
-				</div>
+			
+			{% if link.replies %}
+				{% home_replies_section link.replies %}
 			{% else %}
 				<br>
 			{% endif %}

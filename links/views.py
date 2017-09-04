@@ -1430,6 +1430,11 @@ def home_link_list(request, lang=None, *args, **kwargs):
 				context["show_current"] = True
 				context["show_next"] = False
 		################################################################################################################
+		if "comment_form" in request.session:
+			context["comment_form"] = request.session["comment_form"]
+			request.session.pop("comment_form", None)
+		else:
+			context["comment_form"] = PhotoCommentForm()
 		num = random.randint(1,4)
 		context["random"] = num #determines which message to show at header
 		if num > 2:
@@ -3866,8 +3871,9 @@ def photo_comment(request,pk=None,*args,**kwargs):
 			user_id = request.user.id
 			form = PhotoCommentForm(data=request.POST,user_id=user_id)
 			origin = request.POST.get("origin",None)
-			# lang = request.POST.get("lang",None)
-			# sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
+			lang = request.POST.get("lang",None)
+			sort_by = request.POST.get("sort_by",None)
+			link_id = request.POST.get("lid",None)
 			# ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 			if form.is_valid():
 				description = form.cleaned_data.get("photo_comment")
@@ -3895,7 +3901,19 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 					request.user.username, url, citizen)
-				return return_to_photo(request,origin,pk,None,None)
+				if origin == '3':
+					request.session["target_id"] = link_id
+					request.session.modified = True
+					if lang == 'urdu' and sort_by == 'best':
+						return redirect("home_loc_ur_best", lang)
+					elif sort_by == 'best':
+						return redirect("home_loc_best")
+					elif lang == 'urdu':
+						return redirect("home_loc_ur", lang)
+					else:
+						return redirect("home_loc")
+				else:
+					return return_to_photo(request,origin,pk,None,None)
 			else:
 				request.session["comment_form"] = form
 				return return_to_photo(request,origin,pk,None,None)

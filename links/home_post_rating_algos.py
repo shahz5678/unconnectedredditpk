@@ -27,9 +27,9 @@ def aggregate_post_score(list_of_scores, list_of_ids):
 		if list_of_scores[counter]:
 			diversity_score_of_post = len(list_of_scores[counter]) #i.e. how many different users commented on the post
 			if diversity_score_of_post == 1:
-				diversity_score_of_post = log(1.9)
+				diversity_score_of_post = log(1.9,2) #this is log to the base 2
 			else:
-				diversity_score_of_post = log(diversity_score_of_post) #this is the natural log
+				diversity_score_of_post = log(diversity_score_of_post,2) #this is log to the base 2
 			recency_and_length_score_of_post = sum(tup[1] for tup in list_of_scores[counter]) 
 			recency_and_length_score_of_post = log(recency_and_length_score_of_post,10) #this is log to the base 10
 			links_with_comment_score.append((link_id,diversity_score_of_post+recency_and_length_score_of_post))

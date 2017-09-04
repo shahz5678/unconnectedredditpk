@@ -1,16 +1,17 @@
 from django import template
 from links.views import GetLatest
 from links.models import UserProfile
+from links.forms import UnseenActivityForm
 from django.contrib.auth.models import User
 
 register = template.Library()
 
 @register.inclusion_tag(file_name='notification_bar.html')
-def notification_bar(notification, origin, user, user_id, females, static_url, random, newest_user, salat_timings, lang=None, sort_by=None, is_home=None):
+def notification_bar(notification, origin, notif_form, user, user_id, females, static_url, random, newest_user, salat_timings, lang=None, sort_by=None, is_home=None):
 	context = {'notification':notification}
 	if notification:
 		context ={'ident':user_id,'lang':lang,'sort_by':sort_by,'checked':females,'static_url':static_url, 'random':random, 'newest_user':newest_user,\
-		'is_home':is_home, 'origin':origin}
+		'is_home':is_home, 'origin':origin,'form':notif_form}
 		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 		if not is_link and not is_photo and not is_groupreply and not is_salat:
 			context["latest_reply"] = []

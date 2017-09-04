@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 register = template.Library()
 
 @register.inclusion_tag(file_name='notification_bar.html')
-def notification_bar(notification, origin, user, user_id, females, static_url, random, newest_user, lang=None, sort_by=None, is_home=None):
+def notification_bar(notification, origin, user, user_id, females, static_url, random, newest_user, salat_timings, lang=None, sort_by=None, is_home=None):
 	context = {'notification':notification}
 	if notification:
 		context ={'ident':user_id,'lang':lang,'sort_by':sort_by,'checked':females,'static_url':static_url, 'random':random, 'newest_user':newest_user,\

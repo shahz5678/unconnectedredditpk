@@ -71,12 +71,14 @@ class SignInForm(forms.Form):
 		# self.fields['username'].widget.attrs['autocomplete'] = 'off'
 
 	def clean(self):
-		username = self.cleaned_data.get('username').strip()
-		password = self.cleaned_data.get('password').strip()
+		username = self.cleaned_data.get('username')
+		password = self.cleaned_data.get('password')
 		if not username:
 			raise forms.ValidationError('naam khali nah choro')
 		if not password:
 			raise forms.ValidationError('password khali nah choro')
+		username = username.strip()
+		password = password.strip()
 		exists = nick_already_exists(nickname=username)
 		if exists is None:
 			# if 'nicknames' sorted set does not exist

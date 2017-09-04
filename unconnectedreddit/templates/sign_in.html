@@ -9,6 +9,11 @@
 <b style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">{{ form.errors.items.0.1.0 }}</b>
 </div>
 <hr size=1 COLOR="#ffeb3b">
+{% else %}
+<div class="mts mbs">
+<span style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">Apna naam aur password likh ke OK dabao</span>
+</div>
+<hr size=1 COLOR="#ffeb3b">
 {% endif %}
 <form method="post" action="{% url 'login' %}">
   {% csrf_token %}

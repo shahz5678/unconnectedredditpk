@@ -10,6 +10,11 @@
 <b style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">{{ form.errors.items.0.1.0|get_ur }}</b>
 </div>
 <hr size=1 COLOR="#ffeb3b">
+{% else %}
+<div class="mts mbs">
+<span style="color:#ffeb3b;text-shadow:1px 1px #009940;" class="cxl">اپنا نک نیم اور پاس ورڈ لکھ کے <b>اوکے</b> دباؤ</span>
+</div>
+<hr size=1 COLOR="#ffeb3b">
 {% endif %}
 <form method="post" action="{% url 'login' 'ur' %}">
   {% csrf_token %}

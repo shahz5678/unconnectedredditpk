@@ -79,7 +79,7 @@ ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutori
 VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
 AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
 HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchNicknameForm, \
-AdFeedbackForm, SearchAdFeedbackForm
+AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
@@ -3815,16 +3815,11 @@ class SpecialPhotoView(ListView):
 			return self.render_to_response(context)
 
 def non_fbs_vid(request, pk=None, *args, **kwargs):
-	# try:
-	# 	on_fbs = self.request.META.get('X-IORG-FBS')
-	# except:
-	# 	on_fbs = False
 	on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 	return redirect("https://damadam.pk/"+"123")
 
 class VideoView(ListView):
 	model = Video
-	#queryset = Video.objects.filter(id__in=all_videos()).order_by('-id')
 	paginate_by = 10
 	template_name = "videos.html"
 
@@ -3839,10 +3834,6 @@ class VideoView(ListView):
 		context["can_vote"] = False
 		context["score"] = None
 		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-		# try:
-		# 	on_fbs = self.request.META.get('X-IORG-FBS')
-		# except:
-		# 	on_fbs = False
 		if on_fbs:
 			context["on_fbs"] = True
 		else:
@@ -3857,12 +3848,59 @@ class VideoView(ListView):
 					context["can_vote"] = True
 				else:
 					context["can_vote"] = False
-				#videos_in_page = [video.id for video in context["object_list"]]
-				# context["voted"] = [video.id for video in context["object_list"] if voted_for_video(video.id, user.username)]
 				context["voted"] = voted_for_video(context["object_list"], user.username)
 		return context
 
 #########################Views for fresh photos#########################
+
+@csrf_protect
+@ratelimit(field='user_id',ip=False,rate='10/28s')
+def photo_comment(request,pk=None,*args,**kwargs):
+	if request.method == 'POST':
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			context = {'penalty':30}
+			UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+			return render(request, 'penalty_photo_comment.html', context)
+		else:
+			user_id = request.user.id
+			form = PhotoCommentForm(data=request.POST,user_id=user_id)
+			origin = request.POST.get("origin",None)
+			# lang = request.POST.get("lang",None)
+			# sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
+			# ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+			if form.is_valid():
+				description = form.cleaned_data.get("photo_comment")
+				if request.is_feature_phone:
+					device = '1'
+				elif request.is_phone:
+					device = '2'
+				elif request.is_tablet:
+					device = '4'
+				elif request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
+				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+				update_cc_in_home_photo(pk)
+				photo = Photo.objects.filter(id=pk).values('owner','comment_count')[0]
+				comment_time = convert_to_epoch(photocomment.submitted_on)
+				try:
+					url = request.user.userprofile.avatar.url
+				except:
+					url = None
+				citizen = is_mobile_verified(user_id)
+				add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
+					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
+				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
+					request.user.username, url, citizen)
+				return return_to_photo(request,origin,pk,None,None)
+			else:
+				request.session["comment_form"] = form
+				return return_to_photo(request,origin,pk,None,None)
+	else:
+		return render(request,"404.html",{})
 
 def see_photo_pk(request,pk=None,*args,**kwargs):
 	if request.user.is_authenticated():
@@ -3993,6 +4031,11 @@ def photo_list(request,*args, **kwargs):
 			##########################################################################################################
 			context["lang"] = None
 			context["sort_by"] = None
+			if "comment_form" in request.session:
+				context["comment_form"] = request.session["comment_form"]
+				request.session.pop("comment_form", None)
+			else:
+				context["comment_form"] = PhotoCommentForm()
 			if request.user_banned:
 				context["process_notification"] = False
 			else:
@@ -4143,6 +4186,11 @@ def best_photos_list(request,*args,**kwargs):
 			##########################################################################################################
 			context["lang"] = None
 			context["sort_by"] = None
+			if "comment_form" in request.session:
+				context["comment_form"] = request.session["comment_form"]
+				request.session.pop("comment_form", None)
+			else:
+				context["comment_form"] = PhotoCommentForm()
 			if request.user_banned:
 				context["process_notification"] = False
 			else:

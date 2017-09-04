@@ -699,21 +699,22 @@ def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None
 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
-	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None):
+	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None, \
+	time=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)
 	if my_server.exists(hash_name):
-		lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
-		if lctx:
-			mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
-			'lcwu':latest_comm_writer_uname,'slctx':lctx,'slcwi':lcwi,'slcau':lcau,'slcwu':lcwu}
-		else:
-			mapping = {'lctx':latest_comm_text,'lcwi':latest_comm_writer_id,'lcau':latest_comm_av_url,\
-			'lcwu':latest_comm_writer_uname}
-		my_server.hmset(hash_name, mapping)
+		#################################Saving latest photo comment################################
+		# lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
+		existing_payload = my_server.hget(hash_name,'comments')
+		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+latest_comm_text+"#el#" #el# signifies an end-of-line character
+		if existing_payload:
+			payload = existing_payload.decode('utf-8')+payload
+		my_server.hset(hash_name,'comments',payload)
 		my_server.hincrby(hash_name,'co',amount=1)
 		if photo_owner_id != latest_comm_writer_id and not exists and citizen: #only give score if writer didn't upload photo, and hasn't written before, and is a citizen
 			my_server.hincrby(hash_name,'vi',amount=2)
+
 
 def ban_photo(photo_id,ban):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1826,11 +1827,8 @@ def many_short_messages(user_id):
 def set_ad_feedback(advertiser,feedback,username,user_id,submitted_at):
 	my_server = redis.Redis(connection_pool=POOL)
 	ad_feedback_counter = "af:"+advertiser
-	# print ad_feedback_counter
 	feedback_id = my_server.incr(ad_feedback_counter)
-	# print feedback_id
 	ad_feedback = advertiser+":"+str(feedback_id)
-	# print ad_feedback
 	mapping = {'username':username,'user_id':user_id,'feedback':feedback,'submitted_at':submitted_at}
 	my_server.hmset(ad_feedback,mapping)
 	return True

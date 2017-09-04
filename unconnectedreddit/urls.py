@@ -26,7 +26,7 @@ best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_i
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
-number_verification_help#, insert_nicks
+number_verification_help, photo_comment#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -67,6 +67,7 @@ urlpatterns = patterns('',
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
+	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
 	url(r'^redirect_best/$', auth(home_location), name='home_loc_best'),

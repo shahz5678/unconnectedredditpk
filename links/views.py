@@ -257,7 +257,7 @@ def process_publicreply(request,link_id,text,origin=None):
 	except:
 		owner_url = None
 	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
-	publicreply_tasks.delay(user_id, reply.id, link_id, text)
+	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,\
 			link_submitter_id=parent.submitter_id,link_submitter_username=parent_username,\
 			link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\

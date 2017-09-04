@@ -9,6 +9,8 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_notification_bar %}
+{% load get_photo_comments_section %}
+{% load get_home_photo_comment_bar %}
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
@@ -100,32 +102,9 @@
 
 	{% elif link.c == '6' %}
 		
-		{% if link.aw == '1' and link.h|add:"0" > 7 %}
-	    	{% if link.v|add:"0" < -2 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		    {% elif link.v|add:"0" < -1 %}
-			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
-			{% else %}
-			    {% if link.i %}
-			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
-		    {% endif %}    
-	    	<br>
-		{% endif %}
+		<div class="mbs">
 		<a href="{% url 'profile' link.n %}#secton0">
-		{{ link.au|safe }}
-		{{ link.n }}
-		{% if score > 25 %}				
-			{{ link.sc|safe }}
-		{% endif %}
-			{{ link.p|safe }}</a>:<a name="section{{ forloop.counter }}"></a>&nbsp;
+		{{ link.au|safe }}</a><a name="section{{ forloop.counter }}"></a>&nbsp;
 		    {% if not link.aw == '1' or not link.h|add:"0" > 7 %}
 		    <a href="{% url 'see_photo_pk' link.pi %}">
 		    {% if link.v|add:"0" < -2 %}
@@ -145,18 +124,33 @@
 		    {% endif %}
 		    </a>
 		    {% endif %}
-		    <span class="spanemoticons"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
-			
-				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{{ link.dc|safe }}
-		<br>
-		
-		{% if link.n != username %}
-			{% if link.w|add:"0" in fanned %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
+		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{{ link.dc|safe }}<br>
+				</div>
+
+
+		{% if link.aw == '1' and link.h|add:"0" > 7 %}
+	    	{% if link.v|add:"0" < -2 %}
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    {% elif link.v|add:"0" < -1 %}
+			    {% if link.i %}
+			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
 			{% else %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
-			{% endif %}
+			    {% if link.i %}
+			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
+			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    {% else %}
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    {% endif %}
+		    {% endif %}    
+	    	<br>
 		{% endif %}
+		
+		<form method="POST" action="{% url 'curate_photo' %}" class="mrl" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="3"><input type="hidden" name="lid" value="{{ link.l }}"><input type="hidden" name="purl" value="{{ link.i|thumbedge }}"><input type="hidden" name="oid" value="{{ link.w }}"><input type="hidden" name="cap" value="{{ link.de }}"><input type="hidden" name="oun" value="{{ link.n }}"><input type="hidden" name="vsc" value="{{ link.v }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ link.pi }}" name="curate" type="submit">&nbsp;</button></form>
+
 
 
 	{% if link.aw == '1' and link.h|add:"0" > 7 %}
@@ -164,7 +158,7 @@
 	{% else %}
 		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 	{% endif %}
-		<button class="btn nw bl bco mbs mtl">
+		<button class="btn nw bl bco mbs mtl mrl">
 		{% if link.pc|add:"0" > 1 %}
 		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
 		{% elif link.pc|add:"0" == 1 %}
@@ -172,7 +166,16 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
-		&nbsp;&nbsp;<form method="POST" action="{% url 'curate_photo' %}" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="3"><input type="hidden" name="lid" value="{{ link.l }}"><input type="hidden" name="purl" value="{{ link.i|thumbedge }}"><input type="hidden" name="oid" value="{{ link.w }}"><input type="hidden" name="cap" value="{{ link.de }}"><input type="hidden" name="oun" value="{{ link.n }}"><input type="hidden" name="vsc" value="{{ link.v }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ link.pi }}" name="curate" type="submit">&nbsp;</button></form>
+		
+
+		{% if link.n != username %}
+			{% if link.w|add:"0" in fanned %}
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl mts mbs" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
+			{% else %}
+				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl mts mbs" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
+			{% endif %}
+		{% endif %}
+
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
 		<form action="{% url 'cast_photo_vote' %}" method="POST">
@@ -184,6 +187,12 @@
 		</form>
 		{% endif %}
 		
+		{% if link.pi %}
+			{% photo_comments_section link.pi STATIC_URL '3' %}
+		{% endif %}
+
+		{% home_photo_comment_bar link.pi lang sort_by ident comment_form '3' link.l %}
+
 		{{ link.vt|safe }}
 		<p><hr size=1 COLOR="#ff9933"></p>
 	

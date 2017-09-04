@@ -15,7 +15,7 @@ from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOT
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList
-from order_home_posts import order_home_posts
+from order_home_posts import order_home_posts, order_home_posts2
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click
@@ -28,7 +28,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -330,7 +330,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
-	order_home_posts(urdu_only=False)
+	order_home_posts2(urdu_only=False)
 	order_home_posts(urdu_only=True)
 
 @celery_app1.task(name='tasks.rank_all_photos')
@@ -710,10 +710,13 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	user.userprofile.save()	
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, reply_id, link_id, description):
+def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 	set_prev_replies(user_id,description)
+	if is_someone_elses_post:
+		# ensuring self commenting doesn't add anything to a post's rating
+		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

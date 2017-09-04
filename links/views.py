@@ -1430,11 +1430,6 @@ def home_link_list(request, lang=None, *args, **kwargs):
 				context["show_current"] = True
 				context["show_next"] = False
 		################################################################################################################
-		# if request.META.get('HTTP_X_IORG_FBS',False):
-		# 	mp.track(user.id, 'On FBS')
-		# else:
-		# 	mp.track(user.id, 'Off FBS')
-		################################################################################################################
 		num = random.randint(1,4)
 		context["random"] = num #determines which message to show at header
 		if num > 2:
@@ -1454,6 +1449,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 			context["process_notification"] = False #hell banned users will never see notifications
 		else:
 			context["process_notification"] = True
+			context["salat_timings"] = salat_timings
 			return render(request, 'link_list.html', context)
 		return render(request, 'link_list.html', context)
 	else:
@@ -1499,11 +1495,6 @@ def unauth_home_link_list(request, *args, **kwargs):
 		else:
 			context["show_current"] = True
 			context["show_next"] = False
-		# new_id = request.session.get('new_id',None)
-		# if not new_id:
-		# 	new_id = get_temp_id()
-		# 	request.session['new_id'] = new_id
-		# mp.track(new_id, 'on_home_page')
 		form = CreateNickNewForm()
 		context["form"] = form
 		return render(request, 'unauth_link_list.html', context)
@@ -1511,7 +1502,6 @@ def unauth_home_link_list(request, *args, **kwargs):
 class LinkUpdateView(UpdateView):
 	model = Link
 	form_class = LinkForm
-	#paginate_by = 10
 
 def appoint_pk(request, pk=None, app=None, *args, **kwargs):
 	if pk.isdigit() and app.isdigit():
@@ -3996,15 +3986,10 @@ def photo_list(request,*args, **kwargs):
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(user.id)
 			##########################################################################################################
+			context["lang"] = None
+			context["sort_by"] = None
 			if request.user_banned:
-				context["notification"] = 0
-				context["banned"] = True
-				context["can_vote"] = False
-				context["first_time_user"] = False
-				context["type_of_object"] = None
-				context["freshest_unseen_comment"] = []
-				context["parent"] = []
-				context["parent_pk"] = 0
+				context["process_notification"] = False
 			else:
 				if context["score"] > 9:
 					context["can_vote"] = True
@@ -4013,127 +3998,10 @@ def photo_list(request,*args, **kwargs):
 				context["voted"] = voted_for_photo(context["object_list"],context["username"])
 				photo_owners = set([photo['oi'] for photo in context["object_list"]])
 				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
-				object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-				if not is_link and not is_photo and not is_groupreply and not is_salat:
-					context["freshest_unseen_comment"] = []
-					context["notification"] = 0
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-					context["banned"] = False
-				elif not freshest_reply:
-					context["freshest_unseen_comment"] = []
-					context["notification"] = 0
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["first_time_user"] = False
-					context["banned"] = False
-				elif is_groupreply:
-					if object_type == '1':
-						# private mehfil
-						context["type_of_object"] = '3a'
-						context["notification"] = 1
-						context["banned"] = False
-						context["first_time_user"] = False
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi'] #group id
-					elif object_type == '0':
-						# public mehfil
-						context["type_of_object"] = '3b'
-						context["notification"] = 1
-						context["banned"] = False
-						context["first_time_user"] = False
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi'] #group id
-					else:
-						context["freshest_unseen_comment"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-						context["banned"] = False
-				elif is_salat:
-					cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-						'LOCATION': MEMLOC, 'TIMEOUT': 70,
-					})
-					salat_timings = cache_mem.get('salat_timings')
-					salat_invite = freshest_reply
-					context["type_of_object"] = '4'
-					context["notification"] = 1
-					try:
-						context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-					except:
-						context["first_time_user"] = 0
-					context["banned"] = False
-					context["parent"] = salat_invite
-					context["namaz"] = salat_timings['namaz'] 
-					context["freshest_unseen_comment"] = 1				
-				elif is_photo:
-					if object_type == '1':
-						#i.e. it's a photo a fan ought to see!
-						context["freshest_unseen_comment"] = None
-						context["type_of_object"] = '1'
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']
-						context["first_time_user"] = False
-						context["banned"] = False
-					elif object_type == '0':
-						context["freshest_unseen_comment"] = freshest_reply
-						context["type_of_object"] = '0'
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']
-						context["first_time_user"] = False
-						context["banned"] = False
-					else:
-						context["freshest_unseen_comment"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-						context["banned"] = False
-				elif is_link:
-					context["type_of_object"] = '2'
-					context["banned"] = False
-					if freshest_reply:
-						parent_link_writer_username = freshest_reply['oon']#parent_link_writer.username
-						WELCOME_MESSAGE1 = parent_link_writer_username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-						WELCOME_MESSAGE2 = parent_link_writer_username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-						WELCOME_MESSAGE3 = parent_link_writer_username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-						WELCOME_MESSAGE4 = parent_link_writer_username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-						WELCOME_MESSAGE5 = parent_link_writer_username+" kya haal he? Ye laddu aap ke liye (laddu)"
-						WELCOME_MESSAGE6 = parent_link_writer_username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-						WELCOME_MESSAGE7 = parent_link_writer_username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-						WELCOME_MESSAGE8 = parent_link_writer_username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-						WELCOME_MESSAGE9 = parent_link_writer_username+" salam! Is jalebi se mu meetha karo (jalebi)"
-						WELCOME_MESSAGES = [WELCOME_MESSAGE1, WELCOME_MESSAGE2, WELCOME_MESSAGE3, WELCOME_MESSAGE4, WELCOME_MESSAGE5,\
-						WELCOME_MESSAGE6, WELCOME_MESSAGE7, WELCOME_MESSAGE8, WELCOME_MESSAGE9]
-					else:
-						parent_link_writer = User()
-						WELCOME_MESSAGES = []
-					try:
-						context["freshest_unseen_comment"] = freshest_reply
-						context["notification"] = 1
-						context["parent"] = freshest_reply
-						context["parent_pk"] = freshest_reply['oi']
-						if context["username"]==parent_link_writer_username and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
-							context["first_time_user"] = True
-						else:
-							context["first_time_user"] = False
-					except:
-						context["freshest_unseen_comment"] = []
-						context["notification"] = 0
-						context["parent"] = []
-						context["parent_pk"] = 0
-						context["first_time_user"] = False
-				else:
-					context["freshest_unseen_comment"] = []
-					context["notification"] = 0
-					context["parent"] = []
-					context["parent_pk"] = 0
-					context["banned"] = False
-					context["first_time_user"] = False
+				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,})
+				context["salat_timings"] = cache_mem.get('salat_timings')
+				context["process_notification"] = True
 			return render(request,'photos.html',context)
 	else:
 		return redirect("unauth_home_new")
@@ -4275,6 +4143,9 @@ def best_photos_list(request,*args,**kwargs):
 				context["voted"] = voted_for_photo(context["object_list"],context["username"])
 				photo_owners = set([photo['oi'] for photo in context["object_list"]])
 				context["fanned"] = list(UserFan.objects.filter(star_id__in=photo_owners,fan=user).values_list('star_id',flat=True))
+				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+				'LOCATION': MEMLOC, 'TIMEOUT': 70,})
+				context["salat_timings"] = cache_mem.get('salat_timings')
 				context["process_notification"] = True
 			return render(request,'best_photos.html',context)
 	else:

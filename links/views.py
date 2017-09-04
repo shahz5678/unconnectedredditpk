@@ -1448,6 +1448,11 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		if request.user_banned:
 			context["process_notification"] = False #hell banned users will never see notifications
 		else:
+			if "notif_form" in request.session:
+				context["notif_form"] = request.session["notif_form"]
+				request.session.pop("notif_form", None)
+			else:
+				context["notif_form"] = UnseenActivityForm()
 			context["process_notification"] = True
 			context["salat_timings"] = salat_timings
 			return render(request, 'link_list.html', context)
@@ -4001,6 +4006,11 @@ def photo_list(request,*args, **kwargs):
 				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 				'LOCATION': MEMLOC, 'TIMEOUT': 70,})
 				context["salat_timings"] = cache_mem.get('salat_timings')
+				if "notif_form" in request.session:
+					context["notif_form"] = request.session["notif_form"]
+					request.session.pop("notif_form", None)
+				else:
+					context["notif_form"] = UnseenActivityForm()
 				context["process_notification"] = True
 			return render(request,'photos.html',context)
 	else:
@@ -4146,6 +4156,11 @@ def best_photos_list(request,*args,**kwargs):
 				cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 				'LOCATION': MEMLOC, 'TIMEOUT': 70,})
 				context["salat_timings"] = cache_mem.get('salat_timings')
+				if "notif_form" in request.session:
+					context["notif_form"] = request.session["notif_form"]
+					request.session.pop("notif_form", None)
+				else:
+					context["notif_form"] = UnseenActivityForm()
 				context["process_notification"] = True
 			return render(request,'best_photos.html',context)
 	else:
@@ -5464,6 +5479,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
+			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
@@ -5500,17 +5516,49 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					group_owner_id=grp.owner.id,topic=grp.topic,reply_time=reply_time,poster_url=url,\
 					poster_username=request.user.username,reply_text=description,priv=grp.private,\
 					slug=grp.unique,image_url=image_url,priority=priority,from_unseen=True)
-				return redirect("unseen_activity", request.user.username)
+				if origin:
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					return redirect("unseen_activity", request.user.username)
 			else:
-				notification = "np:"+str(request.user.id)+":3:"+str(pk)
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-				url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
-				forms[pk] = form
-				request.session["forms"] = forms
-				request.session["oblist"] = oblist
-				request.session["page_obj"] = page_obj
-				request.session.modified = True
-				return redirect(url)
+				if origin:
+					request.session["notif_form"] = form
+					request.session.modified = True
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					notification = "np:"+str(request.user.id)+":3:"+str(pk)
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+					url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
+					forms[pk] = form
+					request.session["forms"] = forms
+					request.session["oblist"] = oblist
+					request.session["page_obj"] = page_obj
+					request.session.modified = True
+					return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
 
@@ -5533,6 +5581,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
+			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				description = form.cleaned_data.get("photo_comment")
@@ -5562,17 +5611,49 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
 					request.user.username, url, citizen)
-				return redirect("unseen_activity", request.user.username)
+				if origin:
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					return redirect("unseen_activity", request.user.username)
 			else:
-				notification = "np:"+str(request.user.id)+":0:"+str(pk)
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-				url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
-				forms[pk] = form
-				request.session["forms"] = forms
-				request.session["oblist"] = oblist
-				request.session["page_obj"] = page_obj
-				request.session.modified = True
-				return redirect(url)
+				if origin:
+					request.session["notif_form"] = form
+					request.session.modified = True
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					notification = "np:"+str(request.user.id)+":0:"+str(pk)
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+					url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
+					forms[pk] = form
+					request.session["forms"] = forms
+					request.session["oblist"] = oblist
+					request.session["page_obj"] = page_obj
+					request.session.modified = True
+					return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
 
@@ -5588,20 +5669,53 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
+			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
-				process_publicreply(request,pk,form.cleaned_data.get("home_comment"),'from_unseen')
-				return redirect("unseen_activity", request.user.username)
+				process_publicreply(request,pk,form.cleaned_data.get("home_comment"),origin if origin else 'from_unseen')
+				if origin:
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					return redirect("unseen_activity", request.user.username)
 			else:
-				notification = "np:"+str(request.user.id)+":2:"+str(pk)
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-				url = reverse_lazy("unseen_activity", args=[request.user.username,])+addendum
-				forms[pk] = form
-				request.session["forms"] = forms
-				request.session["oblist"] = oblist
-				request.session["page_obj"] = page_obj
-				request.session.modified = True
-				return redirect(url)
+				if origin:
+					request.session["notif_form"] = form
+					request.session.modified = True
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+				else:
+					notification = "np:"+str(request.user.id)+":2:"+str(pk)
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+					url = reverse_lazy("unseen_activity", args=[request.user.username,])+addendum
+					forms[pk] = form
+					request.session["forms"] = forms
+					request.session["oblist"] = oblist
+					request.session["page_obj"] = page_obj
+					request.session.modified = True
+					return redirect(url)
 		else:
 			return redirect("unseen_activity", request.user.username)
 

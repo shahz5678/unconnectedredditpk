@@ -175,11 +175,11 @@ def av_url_formatting(av_url, style=None):
 			url = av_url
 	if url:
 		if style == 'round':
-			return '<img src="{}" style="border-radius:50%" width="22" height="22"/>'.format(url)
+			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'.format(url)
 		else:
-			return '<img src="{}" width="22" height="22"></img>'.format(url)
+			return '<img src="{}" width="22" height="22"/>'.format(url)
 	else:
 		if style == 'round':
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%" width="22" height="22"></img>'
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'
 		else:
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>'
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" width="22" height="22"/>'

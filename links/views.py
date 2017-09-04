@@ -3494,7 +3494,7 @@ class CommentView(CreateView):
 				url = None
 			citizen = is_mobile_verified(user.id)
 			add_photo_comment(photo_id=which_photo.id,photo_owner_id=which_photo.owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
-				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen)
+				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
 			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url, citizen)
 			if pk and origin and link_id:
@@ -5608,7 +5608,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					url = None
 				citizen = is_mobile_verified(user_id)
 				add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen)
+					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
 					request.user.username, url, citizen)
 				if origin:

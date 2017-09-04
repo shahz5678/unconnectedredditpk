@@ -62,9 +62,9 @@
 			<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
 
-
+			{% if is_home %}
 			<span class="ct"><b>home</b> ki chat:</span>
-	
+			{% endif %}
 			
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
@@ -106,7 +106,9 @@
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
+			{% if is_home %}
 				<span class="cg"><b>home</b> ki chat:</span>
+			{% endif %}
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
 	<div class="box dbp">
@@ -147,7 +149,9 @@
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
+			{% if is_home %}
 				<span class="cp"><b>home</b> ki chat:</span>
+			{% endif %}
 	
 	{% elif type_of_object == '4' %}
 		<div class="box dbg">
@@ -172,8 +176,9 @@
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
+			{% if is_home %}
 				<span class="cg"><b>home</b> ki chat:</span>
-	
+			{% endif %}
 	{% elif type_of_object == '0' %}
 		<div class="box dby">
 		
@@ -226,8 +231,9 @@
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 		<hr size=1>
-
+			{% if is_home %}
 				<span class="co"><b>home</b> ki chat:</span>
+			{% endif %}
 	{% elif type_of_object == '1' %}
 		<div class="box dby">
 		<span class="co cm">

@@ -1,24 +1,6 @@
-# Wilson Score Interval (source: http://www.evanmiller.org/how-not-to-sort-by-average-rating.html)
-
-from math import sqrt
-
-# this returns a voting-based score
-def wilson_score(upvotes, downvotes):
-    n = upvotes + downvotes
-    if n < 1:
-        return 0
-    else:
-	    z = 1.04 #1.04 = 70%, 1.44 = 85%, 1.96 = 95% (source: https://www.ltcconline.net/greenl/courses/201/Estimation/smallConfLevelTable.htm)
-	    p_hat = float(upvotes) / n
-	    return ((p_hat + z*z/(2*n) - z * sqrt((p_hat*(1-p_hat)+z*z/(4*n))/n))/(1+z*z/n))
-
-# this returns a comment-count based score
-
-#########################################################################################
-
-from redis1 import retrieve_all_home_links_with_scores
 from operator import itemgetter
-from redis1 import set_best_posts_on_home
+from home_post_rating_algos import wilson_score, aggregate_post_score
+from redis1 import set_best_posts_on_home, retrieve_all_home_links_with_scores
 
 def get_upvotes_and_downvotes(post_and_votes):
 	all_those_who_voted = []
@@ -49,7 +31,7 @@ def strip_score(sorted_posts):
 	return map(itemgetter(0), sorted_posts)
 
 def order_home_posts(urdu_only=False):
-	result1, all_link_ids = retrieve_all_home_links_with_scores(urdu_only=urdu_only)
+	result1, all_link_ids = retrieve_all_home_links_with_scores(score_type='votes',urdu_only=urdu_only)
 	counter, links_with_votes = 0, []
 	for link_id in all_link_ids:
 		if result1[counter]:
@@ -60,4 +42,10 @@ def order_home_posts(urdu_only=False):
 		counter += 1
 	scored_posts = score_home_posts(links_with_votes)
 	sorted_posts = sort_home_posts_acc_to_score(scored_posts)
+	set_best_posts_on_home(link_ids=strip_score(sorted_posts),urdu_only=urdu_only)
+
+def order_home_posts2(urdu_only=False):
+	list_of_scores, list_of_ids = retrieve_all_home_links_with_scores(score_type='comments',urdu_only=urdu_only)
+	links_with_comment_score = aggregate_post_score(list_of_scores, list_of_ids)
+	sorted_posts = sort_home_posts_acc_to_score(links_with_comment_score)
 	set_best_posts_on_home(link_ids=strip_score(sorted_posts),urdu_only=urdu_only)

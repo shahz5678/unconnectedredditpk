@@ -13,15 +13,13 @@ def wilson_score(upvotes, downvotes):
 
 # this returns a score based on recency and length of comments (the -1500000000 part will work till September 13, 2020 Pakistan Time)
 def recency_and_length_score(epoch_time, text):
-	# give text size 2.5X importance. The following will work till September 13, 2020 (Pakistan Time)
-	return int(epoch_time+(len(text)*2.5))-1500000000
-
+	# give text size 3X importance. The following will work till September 13, 2020 (Pakistan Time)
+	return int(epoch_time+(len(text)*3))-1500000000
 
 
 # this returns a score based on diversity of comments, recency of comments, length of comments
 # store user_ids and epoch_time_of_posting+comment_length in a sorted set. Cardinality will give diversity of comments, aggregate zscore will give recency
 def aggregate_post_score(list_of_scores, list_of_ids):
-	# all_sorted_sets, all_link_ids = retrieve_all_home_links_with_scores(score_type='comments',urdu_only=urdu_only)
 	counter, links_with_comment_score = 0, []
 	for link_id in list_of_ids:
 		if list_of_scores[counter]:

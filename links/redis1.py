@@ -705,7 +705,6 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 	hash_name = "ph:"+str(photo_id)
 	if my_server.exists(hash_name):
 		#################################Saving latest photo comment################################
-		# lctx,lcwi,lcau,lcwu = my_server.hmget(hash_name,'lctx','lcwi','lcau','lcwu')
 		existing_payload = my_server.hget(hash_name,'comments')
 		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+latest_comm_text+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
@@ -714,6 +713,11 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		my_server.hincrby(hash_name,'co',amount=1)
 		if photo_owner_id != latest_comm_writer_id and not exists and citizen: #only give score if writer didn't upload photo, and hasn't written before, and is a citizen
 			my_server.hincrby(hash_name,'vi',amount=2)
+
+
+def get_raw_comments(photo_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget("ph:"+str(photo_id),"comments")
 
 
 def ban_photo(photo_id,ban):

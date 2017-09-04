@@ -71,8 +71,8 @@ class SignInForm(forms.Form):
 		# self.fields['username'].widget.attrs['autocomplete'] = 'off'
 
 	def clean(self):
-		username = self.cleaned_data.get('username')
-		password = self.cleaned_data.get('password')
+		username = self.cleaned_data.get('username').strip()
+		password = self.cleaned_data.get('password').strip()
 		if not username:
 			raise forms.ValidationError('naam khali nah choro')
 		if not password:

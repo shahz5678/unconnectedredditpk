@@ -464,7 +464,7 @@ class ReportFeedbackForm(forms.Form):
 
 class UnseenActivityForm(forms.Form):
     home_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
-    photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likho, phir "tabsra kro" button dabao'})
+    photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan kuch likho, phir "tabsra kro" button dabao'})
     public_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
     private_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likho, phir "jawab do" button dabao'})
     class Meta:

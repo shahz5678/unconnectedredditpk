@@ -6,6 +6,7 @@
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% load get_notification_bar %}
+{% load get_photo_comment_bar %}
 {% load get_photo_comments_section %}
 {% load get_mobile_verification_bar %}
 {% block content %}
@@ -114,6 +115,8 @@
 			{% if photo.comments %}
 				{% photo_comments_section photo.comments STATIC_URL %}
 			{% endif %}
+
+			{% photo_comment_bar photo.i lang sort_by user.id comment_form '1' %}
 
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}

@@ -15,10 +15,13 @@ from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_fo
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
 from brake.decorators import ratelimit
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+######################################################################################
+
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
+
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
@@ -233,7 +236,7 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
 			# request.session.pop("guest_id", None)
 			###############################################################
-			mp.track(user.id,'sign_ups')
+			# mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE

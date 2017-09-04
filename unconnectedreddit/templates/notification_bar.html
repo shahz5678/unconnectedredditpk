@@ -39,7 +39,7 @@
 				{% else %}
 				<button class="btn nw bl bct mrs" type="submit">jawab do</button></form>&nbsp;&nbsp;
 				{% endif %}
-				<a href="{% url 'x_notif' parent_pk ident 1 lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
+				<a href="{% url 'x_notif' parent_pk ident origin lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
 			</div>
 			<p style="margin-top:.5em;"></p>
 			<hr size=1>
@@ -69,7 +69,7 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		<span class="clb">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span><br>
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bl bcg mtl mrs">jawab do</button></form>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' lang sort_by %}"><button class="btn bcr bxs" ><b>X</b></button></a>
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bl bcg mtl mrs">jawab do</button></form>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident origin lang sort_by %}"><button class="btn bcr bxs" ><b>X</b></button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -95,7 +95,7 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<br><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bl mtl mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident '1' lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
+		<br><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bl mtl mrs">jawab do</button></a>&nbsp;&nbsp;<a href="{% url 'x_group_notif' parent.oi ident origin lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -119,7 +119,7 @@
 			{% if first_time_user > 1 %}
 			<span class="cg cm">({{ parent.oon }} ne pichli <b>lagatar {{ first_time_user }} namazein</b> parhein)</span><br>
 			{% endif %}
-		<a href="{% url 'cross_salat_notif' parent.c ident 1 lang sort_by %}"><button class="btn bxs bcr mtl"><b>X</b></button></a>
+		<a href="{% url 'cross_salat_notif' parent.c ident origin lang sort_by %}"><button class="btn bxs bcr mtl"><b>X</b></button></a>
 		</div>
 		<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -153,7 +153,7 @@
 		<br>
 		<p style="margin-top:.5em;"></p>
 		<button class="btn nw bl bco" >tabsra kro</button></a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 1 0 lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident origin 0 lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</a>
 		</div>
 		<p style="margin-top:.5em;"></p>
@@ -184,15 +184,18 @@
 		<span class="cgy">{{ parent.od|truncatechars:30 }}</span><br>
 		<button class="btn nw bl bco mtl">isko dekho</button>
 		</a>&nbsp;&nbsp;
-		<a href="{% url 'cross_comment_notif' parent_pk ident 1 1 lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident origin 1 lang sort_by %}"><button class="btn bxs bcr"><b>X</b></button></a>
 		</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
 				<p style="margin-top:-0.9em;"></p>
 			<hr size=1>
+			{% if is_home %}
 				<span class="co"><b>home</b> ki chat:</span>
+			{% endif %}
 		{% endif %}
 	{% else %}
+		{% if is_home %}
 			<table>
 			<tr><td>
 			{% if random < 3 %}
@@ -206,4 +209,5 @@
 			{% endif %}
 			</td></tr>
 			</table>
+		{% endif %}
 	{% endif %}

@@ -113,7 +113,7 @@
 				{% endif %}
 
 			{% if photo.comments %}
-				{% photo_comments_section photo.comments STATIC_URL %}
+				{% photo_comments_section photo.comments STATIC_URL '1' %}
 			{% endif %}
 
 			{% photo_comment_bar photo.i lang sort_by user.id comment_form '1' %}

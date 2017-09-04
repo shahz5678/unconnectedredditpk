@@ -19,7 +19,7 @@
 
 {% mobile_verification_bar ident csrf score %}
 
-{% notification_bar notification=process_notification origin='1' user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True %}	
+{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True %}	
 
 <p style="margin-top:.5em;">
 {% if is_paginated %}

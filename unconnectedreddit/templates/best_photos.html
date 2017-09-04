@@ -15,7 +15,7 @@
 	
 	{% mobile_verification_bar user.id csrf score %}
 
-	{% notification_bar notification=process_notification origin='2' user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False %}
+	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False %}
 	
 {% if score >= threshold and not banned %}
 <a href="{% url 'upload_public_photo' %}#section0"><button class="btn bxl bco mbl mtl"><b>New Photo Charhao</b></button></a>

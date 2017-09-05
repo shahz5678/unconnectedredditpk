@@ -1739,6 +1739,7 @@ class UserProfilePhotosView(ListView):
 			context["error"] = True
 			return context
 		star_id = subject.id
+		context["mobile_verified"] = is_mobile_verified(star_id)
 		###########
 		banned, time_remaining = check_photo_upload_ban(star_id)
 		if banned:

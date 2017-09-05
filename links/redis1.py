@@ -1,6 +1,6 @@
 # coding=utf-8
 import redis, time
-from random import randint
+from random import randint, random
 from location import REDLOC1
 from score import VOTE_TEXT
 from home_post_rating_algos import recency_and_length_score
@@ -671,6 +671,14 @@ def add_photo_ad_visitor(user_id):
 
 #####################Photo objects#####################
 
+# helper function for add_photo_comment and update_comment_in_home_link
+def truncate_payload(payload):
+	# on average, truncate this after 10 messages have been aggregated
+	if random() < 0.1:
+		raw_text_set = filter(None,payload.split('#el#'))[-5:] #just keeping the latest 5 entries
+		payload = '#el#'.join(raw_text_set)+"#el#" #reforming the payload
+	return payload
+
 def retrieve_photo_posts(photo_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_dictionaries = []
@@ -698,6 +706,7 @@ def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None
 	my_server.hmset(hash_name, mapping)
 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
+
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
 	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None, \
 	time=None):
@@ -709,11 +718,14 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+\
 		latest_comm_text+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
+			existing_payload = truncate_payload(existing_payload)
 			payload = existing_payload.decode('utf-8')+payload
 		my_server.hset(hash_name,'comments',payload)
 		my_server.hincrby(hash_name,'co',amount=1)
 		if photo_owner_id != latest_comm_writer_id and not exists and citizen: #only give score if writer didn't upload photo, and hasn't written before, and is a citizen
 			my_server.hincrby(hash_name,'vi',amount=2)
+
+
 
 
 def get_raw_comments(photo_id):
@@ -1021,6 +1033,7 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		existing_payload = my_server.hget(hash_name,'replies')
 		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+reply+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
+			existing_payload = truncate_payload(existing_payload)
 			payload = existing_payload.decode('utf-8')+payload
 		my_server.hset(hash_name,'replies',payload)
 		########################################################################################

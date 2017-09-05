@@ -706,7 +706,8 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 	if my_server.exists(hash_name):
 		#################################Saving latest photo comment################################
 		existing_payload = my_server.hget(hash_name,'comments')
-		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+latest_comm_text+"#el#" #el# signifies an end-of-line character
+		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+\
+		latest_comm_text+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
 			payload = existing_payload.decode('utf-8')+payload
 		my_server.hset(hash_name,'comments',payload)
@@ -1018,13 +1019,10 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		#################################Saving latest publicreply################################
 		latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 		existing_payload = my_server.hget(hash_name,'replies')
+		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+reply+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
-			latest_payload = latest_reply_head+"#"+str(time)+"#"+reply+"#el#" #el# signifies an end-of-line character
-			payload = existing_payload.decode('utf-8')+latest_payload
-			my_server.hset(hash_name,'replies',payload)
-		else:
-			payload = latest_reply_head+"#"+str(time)+"#"+reply+"#el#"
-			my_server.hset(hash_name,'replies',payload)
+			payload = existing_payload.decode('utf-8')+payload
+		my_server.hset(hash_name,'replies',payload)
 		########################################################################################
 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
 		return amnt

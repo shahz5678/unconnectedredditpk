@@ -187,9 +187,7 @@
 		</form>
 		{% endif %}
 		
-		{% if link.pi %}
-			{% photo_comments_section link.pi STATIC_URL '3' %}
-		{% endif %}
+		
 
 		{% home_photo_comment_bar link.pi lang sort_by ident comment_form '3' link.l %}
 
@@ -215,11 +213,6 @@
 			{{ link.dc|safe }}
 			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 			
-			{% if link.replies %}
-				{% home_replies_section link.replies %}
-			{% else %}
-				<br>
-			{% endif %}
 
 			<div class="mtl">
 				{% home_publicreply_bar link.l lang sort_by ident replyform %}

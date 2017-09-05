@@ -111,9 +111,7 @@
 				</form>
 				{% endif %}
 
-			{% if photo.comments %}
-				{% photo_comments_section photo.comments STATIC_URL '2' %}
-			{% endif %}
+			
 
 			{% photo_comment_bar photo.i lang sort_by ident comment_form '2' %}
 

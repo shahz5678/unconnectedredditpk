@@ -5674,10 +5674,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				except:
 					url = None
 				citizen = is_mobile_verified(user_id)
+				username = request.user.username
 				add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
+					latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
-					request.user.username, url, citizen)
+					username, url, citizen)
 				if origin:
 					if origin == '0':
 						return redirect("photo")
@@ -5854,7 +5855,7 @@ def top_photo_help(request,*args,**kwargs):
 @csrf_protect
 def unseen_fans(request,pk=None,*args, **kwargs):
 	if request.method == 'POST':
-		form = UnseenActivityForm(request.POST)
+		# form = UnseenActivityForm(request.POST)
 		# if form.is_valid():
 		photo_url = request.POST.get("photo_url")
 		fan_num = request.POST.get("fan_num")
@@ -5928,6 +5929,7 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			score = self.request.user.userprofile.score
 			context["score"] = score
 			context["parent"] = link #the parent link
+			context["parent_submitter_username"] = link.submitter.username 
 			context["ensured"] = FEMALES
 			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').filter(answer_to=link).order_by('-id')[:25]

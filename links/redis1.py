@@ -431,6 +431,15 @@ def unlock_uname_search(user_id):
 #classified_contacter:  '15'
 #log_outter:            '16'
 #photo_ads_visitor:     '17'
+#first_time_banner:     '18'
+
+def first_time_banner(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	if my_server.sismember(set_name,'18'):
+		return False
+	else:
+		return True	
 
 def first_time_photo_ads_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -642,6 +651,10 @@ def add_photo_ad_visitor(user_id):
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '17')
 
+def add_banner(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = "ftux:"+str(user_id)
+	my_server.sadd(set_name, '18')
 
 
 #####################Publicreplies#####################
@@ -1031,7 +1044,7 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		#################################Saving latest publicreply################################
 		latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 		existing_payload = my_server.hget(hash_name,'replies')
-		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+str(writer)+"#"+reply+"#el#" #el# signifies an end-of-line character
+		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+writer+"#"+reply+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
 			existing_payload = truncate_payload(existing_payload)
 			payload = existing_payload.decode('utf-8')+payload

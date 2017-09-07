@@ -12,7 +12,6 @@ UPVOTE = 3
 SUPER_UPVOTE = 20
 DOWNVOTE = -3
 SUPER_DOWNVOTE = -20
-CITIZEN_THRESHOLD = 300
 ###############################################################################################################
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
@@ -21,7 +20,7 @@ PRIVATE_GROUP_MESSAGE = 1 # score for messaging in privte group
 PUBLICREPLY = 2 #score for leaving publicreply on a home 'link'
 ###############################################################################################################
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
-PHOTO_HOT_SCORE_REQ = 9 #aggregated 'visible_score' over previous 5 photos, above which your photo appears on home
+PHOTO_HOT_SCORE_REQ = 6 #aggregated 'visible_score' over previous 5 photos, above which your photo appears on home
 ###############################################################################################################
 CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\

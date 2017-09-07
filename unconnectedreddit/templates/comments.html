@@ -208,21 +208,22 @@
     </span>
     {% if authenticated and user == photo.owner %}
     &nbsp;
-    {% if origin == '3' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=photo.owner_id %}">
-    {% elif origin == '4' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=slug_id %}">
-    {% elif origin == '6' %}
-        {% if link_ident %}
-        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=link_ident %}">
-        {% else %}
-        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
+    <form action="{% url 'report_comment' %}" method="POST" style="display:inline">
+    {% csrf_token %}
+        <input type="hidden" name="comm_pk" value="{{ comment.pk }}">
+        <input type="hidden" name="ph_pk" value="{{ photo.pk }}">
+        <input type="hidden" name="org" value="{{ origin }}">
+        {% if origin == '3' %}
+            <input type="hidden" name="slug" value="{{ photo.owner_id }}">
+        {% elif origin == '4' %}
+            <input type="hidden" name="slug" value="{{ slug_id }}">
+        {% elif origin == '6' %}
+            {% if link_ident %}
+            <input type="hidden" name="slug" value="{{ link_ident }}">
+            {% endif %}
         {% endif %}
-    {% else %} 
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
-    {% endif %}
-
-    <button class="btn bcgy cxs bs" >hide</button></a>
+    <button class="btn bcgy cxs bs" >hide</button>
+    </form>
     {% endif %}
 
     {% if authenticated and user != comment.submitted_by %}

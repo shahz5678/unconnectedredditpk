@@ -11,13 +11,17 @@ from redis1 import account_creation_disallowed
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
-from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, log_forgot_password
-from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm
+from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
+from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+from brake.decorators import ratelimit
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+######################################################################################
+
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
+
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
@@ -46,14 +50,14 @@ def set_forgetters_password(request, *args, **kwargs):
 				quick_login(request,user)
 				request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 				##############################################
-				log_forgot_password(user_id=user_id,username=user.username,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
+				#log_forgot_password(user_id=user_id,username=user.username,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
 				##############################################
 				return render(request,'new_password.html',{'new_pass':password})
 			else:
 				return render(request,"set_new_password.html",{'form':form,'user_id':user_id})
 		else:
-			import time
-			log_forgot_password(user_id=time.time(),username='None',flow_level='bad-end') # logging instances where user_id didn't exist
+			# import time
+			# log_forgot_password(user_id=time.time(),username='None',flow_level='bad-end') # logging instances where user_id didn't exist
 			return render(request,"try_again.html",{'type':'forgetter'})
 	else:
 		return render(request, "404.html",{})
@@ -90,7 +94,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 			is_verified = is_mobile_verified(user_id)
 			if is_verified:
 				################################################
-				log_forgot_password(user_id=user_id,username=username,flow_level='start')#
+				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
 				################################################
 				if lang == "ur":
 					return render(request,"verify_forgetters_account_ur.html",{'user_id':user_id, 'id_in_csrf':True})
@@ -126,21 +130,50 @@ def log_google_in(request, *args, **kwargs):
 		return render(request,"login_backdoor.html",{'form':form})
 
 
-def login(request, lang=None, *args,**kwargs):
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+@ratelimit(method='POST', rate='8/h')
+def login(request, lang=None, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		if request.method == 'POST':
-			# opportunity to block entry here
-			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			if lang == "ur":
+				return render(request, 'penalty_login_ur.html', {})
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				return render(request, 'penalty_login.html', {})
 		else:
-			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+			if request.method == 'POST':
+				if not request.session.test_cookie_worked():
+					context = {'referrer':request.META.get('HTTP_REFERER',None)}
+					return render(request,"CSRF_failure.html",context)
+				try:
+					request.session.delete_test_cookie() #cleaning up
+				except:
+					pass
+				form = SignInForm(data=request.POST)
+				if form.is_valid():
+					quick_login(request,form.cleaned_data)
+					if lang == "ur":
+						return redirect("ur_home", 'urdu')
+					else:
+						return redirect("home")
+				else:
+					request.session.set_test_cookie()
+					if lang == 'ur':
+						return render(request,"sign_in_ur.html",{'form':form})
+					else:
+						return render(request,"sign_in.html",{'form':form})
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				form = SignInForm()
+				request.session.set_test_cookie()
+				if lang == 'ur':
+					return render(request,"sign_in_ur.html",{'form':form})
+				else:
+					return render(request,"sign_in.html",{'form':form})
+
 
 ######################################################################################
 
@@ -203,7 +236,7 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
 			# request.session.pop("guest_id", None)
 			###############################################################
-			mp.track(user.id,'sign_ups')
+			# mp.track(user.id,'sign_ups')
 			# mp.alias(request.user.id, unreg_id)
 			###############################################################
 			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE

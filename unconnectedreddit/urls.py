@@ -17,7 +17,7 @@ from links.views import home_link_list, cross_notif, cast_vote, cross_comment_no
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, priv_group, direct_message, mehfil_help, reply_pk, \
 reportreply_pk, kick_pk, groupreport_pk, public_group, appoint_pk, invite_private, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
-salat_notification, cross_salat_notif, reportcomment_pk, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
+salat_notification, cross_salat_notif, report_comment, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
 leave_private_group, left_private_group, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
 first_time_refresh, first_time_public_refresh, leave_public_group, left_public_group, del_public_group, faces_pages, cricket_comment_page, \
 process_private_group_invite, process_public_group_invite, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
@@ -25,7 +25,8 @@ click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, rese
 best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, manage_user, \
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
-go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules#, insert_nicks
+go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
+number_verification_help, photo_comment#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -39,7 +40,7 @@ GroupListView, GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCre
 UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView,UserSettingsEditView, \
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, PublicreplyView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
 InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView,PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, \
-SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, ReportcommentView, MehfilCommentView, SpecialPhotoView, \
+SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, MehfilCommentView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, AdTitleView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView, TestAdsView#LinkListView, VoteOrProfView
 from links.number_verification import verify_user_number
@@ -64,10 +65,15 @@ urlpatterns = patterns('',
 	url(r'^administer_me/', include(admin.site.urls)),
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
-	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'), #new
+	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
+	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
 	url(r'^$', home_link_list, name='home'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
+	url(r'^redirect_best/$', auth(home_location), name='home_loc_best'),
+	url(r'^redirect_best/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur_best'),
+	url(r'^best/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home_best'),
+	url(r'^best/$', home_link_list, name='home_best'),
 	url(r'^vun/$',verify_user_number, name="verify_user_number"),
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^whook/$', webhook_event, name='webhook_event'),
@@ -146,12 +152,16 @@ urlpatterns = patterns('',
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
 	################################################# Home Notifications #######################################################
+	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
 	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
 	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
 	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
+	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
 	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
 	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
+	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	############################################################################################################################
@@ -284,16 +294,13 @@ urlpatterns = patterns('',
 	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
 	url(r'^report/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
-	#url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
-	url(r'^repcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(reportcomment_pk), name='reportcomment_pk'),
 	url(r'^appoint/$', auth(AppointCaptainView.as_view()), name='appoint'),
 	url(r'^appoint/(?P<pk>\d+)/(?P<app>\d+)/$', auth(appoint_pk), name='appoint_pk'),
-	url(r'^report_comment/$', auth(ReportcommentView.as_view()), name="reportcomment"),
+	url(r'^rep_comment/$', auth(report_comment), name="report_comment"),
 	url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	url(r'^groupreport/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', auth(groupreport_pk), name="group_report_pk"),
 	url(r'^kick/$', auth(KickView.as_view()), name='kick'),
-	# url(r'^report_profile/$', auth(ReportProfileView.as_view()), name='report_profile'),
+	url(r'^number_verification_help/$', auth(number_verification_help), name='number_verification_help'),
 	url(r'^kick/(?P<pk>\d+)/(?P<slug>[\w.@+-]+)/$', auth(kick_pk), name='kick_pk'),
 	# url(r'^tfrs/$', auth(test_functional_redis_server), name='test_functional_redis_server'),
 	##########################################Photo Reporting########################################

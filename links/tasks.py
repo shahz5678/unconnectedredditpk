@@ -14,20 +14,21 @@ from send_sms import process_sms, bind_user_to_twilio_notify_service
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList#, Vote
+Video, HotUser, PhotoStream, HellBanList
+from order_home_posts import order_home_posts, order_home_posts2
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click
-from .redis4 import expire_online_users, get_recent_online
+from .redis4 import expire_online_users, get_recent_online, set_online_users
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
-get_fan_counts_in_bulk, get_all_fans, is_fan#, get_latest_online
+get_fan_counts_in_bulk, get_all_fans, is_fan
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, log_urdu#, retrieve_first_page
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -174,11 +175,9 @@ def log_gibberish_writer(user_id,text,length_of_text):
 							log_gibberish_text_writer(user_id)
 							# log_spam_text_writer(user_id, text)
 
-
-
-@celery_app1.task(name='tasks.capture_urdu')
-def capture_urdu(text):
-	log_urdu(text)
+@celery_app1.task(name='tasks.save_online_user')
+def save_online_user(user_id,user_ip):
+	set_online_users(str(user_id),str(user_ip))
 
 
 @celery_app1.task(name='tasks.detail_click_logger')
@@ -328,6 +327,11 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 			unseen_activity=True)
 	set_prev_group_replies(sender_id,reply_text)
 	# set_prev_retort(sender_id,reply_text)
+
+@celery_app1.task(name='tasks.rank_home_posts')
+def rank_home_posts():
+	order_home_posts2(urdu_only=False)
+	order_home_posts(urdu_only=True)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
@@ -706,10 +710,13 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	user.userprofile.save()	
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, reply_id, link_id, description):
+def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 	set_prev_replies(user_id,description)
+	if is_someone_elses_post:
+		# ensuring self commenting doesn't add anything to a post's rating
+		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

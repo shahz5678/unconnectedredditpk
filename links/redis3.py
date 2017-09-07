@@ -6,6 +6,7 @@ from datetime import datetime
 from operator import itemgetter
 # from redis4 import save_seller_number_error
 from templatetags.thumbedge import cdnize_target_url
+# from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
@@ -347,29 +348,29 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
 
-#####################Classifieds#######################
+#######################################################################################################
 
 
 
-def access_error_log(app_access_token, auth_code, data):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
+# def access_error_log(app_access_token, auth_code, data):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
 
 
-def log_forgot_password(user_id,username,flow_level):
-	my_server = redis.Redis(connection_pool=POOL)
-	if flow_level == 'end':
-		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
-			pipeline1 = my_server.pipeline()
-			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
-			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
-			pipeline1.execute()
-		else:
-			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
-	elif flow_level == 'start':
-		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
-	elif flow_level == 'bad-end':
-		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
+# def log_forgot_password(user_id,username,flow_level):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if flow_level == 'end':
+# 		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
+# 			pipeline1 = my_server.pipeline()
+# 			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
+# 			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
+# 			pipeline1.execute() #176 (unsuccessful) vs 141 (successful) - 38% success rate overall
+# 		else:
+# 			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
+# 	elif flow_level == 'start':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
+# 	elif flow_level == 'bad-end':
+# 		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
 
 
 ########################################################################################################
@@ -387,7 +388,7 @@ def log_forgot_password(user_id,username,flow_level):
 # 				my_server.rpush("global_photo_ads_list",ad_id)
 # 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
 # 			counter += 1
-########################################################################################################
+##########################################Classifieds#################################################
 
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
@@ -669,6 +670,10 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 	if int(ad_hash["photo_count"]) > 0:
 		pipeline1.lpush("global_photo_ads_list",ad_id) # used for global photo ad view
 		pipeline1.lpush("afa:"+ad_city,ad_id) # used for city-wide photo ad view
+	# if ad_hash["categ"] in ECOMM_CATEGORY_MAPPING:
+	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],ad_id)
+	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]]+":"+ad_city,ad_id)
+	# 	pipeline1.zincrby("top_categories",ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],amount=1)
 	pipeline1.hmset("ad:"+ad_id,ad_hash)
 	pipeline1.zremrangebyscore("unc:"+str(seller_id),ad_id,ad_id) # sanitizing unapproved ad queue
 	pipeline1.lpush("uaa:"+str(seller_id),ad_id) # used for seller's own view
@@ -874,10 +879,7 @@ def get_buyer_snapshot(user_id):
 def temporarily_save_user_csrf(user_id, csrf):
 	my_server = redis.Redis(connection_pool=POOL)
 	temp_csrf = "csrf:"+user_id
-	pipeline1 = my_server.pipeline()
-	pipeline1.set(temp_csrf, csrf)
-	pipeline1.expire(temp_csrf, TWO_HOURS) # will self-destruct after 2 hours of inactivity
-	pipeline1.execute()
+	my_server.setex(temp_csrf,csrf,TWO_HOURS) # will self-destruct after 2 hours of inactivity
 
 
 def get_user_csrf(user_id):
@@ -1009,6 +1011,8 @@ def get_approved_ad_ids(exchange=False,photos=False):
 		return my_server.lrange("global_photo_ads_list",0,-1)
 	elif exchange:
 		return my_server.lrange("global_exchange_ads_list",0,-1)
+	# elif mobile:
+	# 	return my_server.lrange("global_mobile_ads_list",0,-1)
 	else:
 		return my_server.lrange("global_ads_list",0,-1)
 
@@ -1019,6 +1023,8 @@ def get_city_ad_ids(city_name, exchange=False, photos=False):
 		return my_server.lrange("afa:"+city_name, 0, -1) # used for city-wide view
 	elif exchange:
 		return my_server.lrange("aea:"+city_name, 0, -1) # used for city-wide view
+	# elif mobile:
+	# 	return my_server.lrange("ama:"+city_name, 0, -1) # used for city-wide view
 	else:
 		return my_server.lrange("aa:"+city_name, 0, -1) # used for city-wide view
 
@@ -1210,19 +1216,17 @@ def del_orphaned_classified_photos(time_ago=FORTY_FIVE_MINS,user_id=None,ad_id=N
 def set_ecomm_photos_secret_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	my_server.set("epusk:"+user_id,secret_key)
-	my_server.expire("epusk:"+user_id,FORTY_FIVE_MINS)
+	my_server.setex("epusk:"+user_id,secret_key,FORTY_FIVE_MINS)
 
 def get_and_delete_ecomm_photos_secret_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	if my_server.exists("epusk:"+user_id):
-		secret_key = my_server.get("epusk:"+user_id)
+	secret_key = my_server.get("epusk:"+user_id)
+	if secret_key:
 		my_server.delete("epusk:"+user_id)
 		return secret_key
 	else:
 		return '1'
-
 
 #####################E Commerce#######################
 

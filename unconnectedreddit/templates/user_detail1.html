@@ -15,6 +15,10 @@
 {% else %}
 
 {% if page_obj.number == 1 %}
+    {% if not mobile_verified %}
+    <div class="cr cl" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 1em 5px 1em;background-color:#E8E8E8;font-weight:bold;">Ye profile verified nahi hai
+    </div>
+    {% endif %}
     {% if own_profile %}
                   {% if time_remaining == '-2' %}
                     <h2 class="cg">Tumhari photos:</h2>

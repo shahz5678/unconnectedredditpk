@@ -1,5 +1,4 @@
 import requests, ast, hashlib, hmac
-from redis3 import access_error_log
 from unconnectedreddit.account_kit_settings import FAID, AKAS
 
 
@@ -22,13 +21,18 @@ class AccountKitManager(object):
 			format(auth_code,self.app_access_token,self.get_appsecret_proof(self.app_access_token))
 		data = self.retrieve_data(url)
 		data = self.evaluate_data(data)
-		# print "The user access token is: %s" % data["access_token"] # this is returned in lieu of the auth_code
-		try:
-			string_obj = self.retrieve_user_cred(data["access_token"]) #log the error when this shows a KeyError
-			self.obj = self.evaluate_data(string_obj)
-		except KeyError:
-			access_error_log(app_access_token=self.app_access_token, auth_code=auth_code, data=data)
-			string_obj = self.retrieve_user_cred(data["access_token"]) #creating keyerror anyway
+		# print "The user access token is: %s" % data["access_token"] # user access token is returned in lieu of the auth_code
+		if "error" in data:
+			if "expired" in data["error"]["message"]:
+				self.obj = 'expired'
+			elif "used" in data["error"]["message"]:
+				self.obj = 'used'
+			elif "Invalid" in data["error"]["message"]:
+				self.obj = 'invalid'
+			else:
+				self.obj = 'generic'
+		elif "access_token" in data:
+			string_obj = self.retrieve_user_cred(data["access_token"])
 			self.obj = self.evaluate_data(string_obj)
 
 	def retrieve_user_cred(self, user_access_token, url=None):
@@ -66,7 +70,9 @@ def account_kit_handshake(csrf, state, status, auth_code, csrf_omitted):
 		else:
 			mobile_data = AccountKitManager(FAID, AKAS)
 			user_data = mobile_data.get_user_cred(auth_code)
-			if FAID == user_data["application"]["id"]:
+			if user_data == 'expired' or user_data == 'used' or user_data == 'generic' or user_data == 'invalid':
+				return user_data, None, {}
+			elif FAID == user_data["application"]["id"]:
 				return state, user_data["phone"], {} # passing user_id (currently in 'state') instead of AK_ID
 			else:
 				# app id mismatch
@@ -75,7 +81,9 @@ def account_kit_handshake(csrf, state, status, auth_code, csrf_omitted):
 		if csrf == state and status=='PARTIALLY_AUTHENTICATED':
 			mobile_data = AccountKitManager(FAID, AKAS)
 			user_data = mobile_data.get_user_cred(auth_code)
-			if FAID == user_data["application"]["id"]:
+			if user_data == 'expired' or user_data == 'used' or user_data == 'generic' or user_data == 'invalid':
+				return user_data, None, {}
+			elif FAID == user_data["application"]["id"]:
 				return user_data["id"], user_data["phone"], {}
 			else:
 				# app id mismatch

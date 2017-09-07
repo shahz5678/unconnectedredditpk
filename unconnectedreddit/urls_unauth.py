@@ -14,7 +14,7 @@ urlpatterns = patterns('',
 	url(r'^forgot_password/(?P<lang>[\w.@+-]+)/$',forgot_password, name="forgot_password"),
 	url(r'^set_new_pass/$',set_forgetters_password, name="set_forgetters_password"),
 	url(r'^vfn/$',verify_forgetter_number, name="verify_forgetter_number"),
-
+	
 	url(r'^login/$',login, name="login"),
 	url(r'^login/(?P<lang>[\w.@+-]+)/$',login, name="login"),
 	

@@ -72,12 +72,12 @@ GOOGLE_ANALYTICS_SITE_SPEED = True
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = ''
-
+FONTS_ROOT = os.path.join(BASE_DIR, 'fonts/')
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
 MEDIA_URL = ''
-
+FONTS_URL = '/fonts/'
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
@@ -215,7 +215,7 @@ else:
 		}
 	}
 
-# SESSION_COOKIE_DOMAIN = '.damadam.pk'
+CSRF_FAILURE_VIEW = 'links.views.csrf_failure'
 
 # CACHES = {
 #     "default": {
@@ -393,6 +393,10 @@ CELERYBEAT_SCHEDULE = {
 	'tasks.delete_expired_classifieds': {
 		'task': 'tasks.delete_expired_classifieds',
 		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days
+	},
+	'tasks.rank_home_posts': {
+		'task': 'tasks.rank_home_posts',
+		'schedule': timedelta(seconds=5*60), # execute every 5 mins
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',

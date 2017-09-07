@@ -3,14 +3,24 @@
 {% load emoticons_tags %}
 <div class="margin clb">
 {% if target == own_self %}
-<h2>Tum ne apni hi post pe jawab de diya&nbsp;{% emoticons %}.c1{% endemoticons %}</h2>
+<b class="cxl">Apne apni hi post pe jawab de diya&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
+<div class="mt mbl">
+<span class="cgy cl">Ye jawab private nahi hai, issey har koi dekh sakta hai</span><br>
+</div>
 {% else %}
-<h2>Tumhara jawab <span class="ct">{{ target }}</span> ko chala gaya!&nbsp;{% emoticons %}.c1{% endemoticons %}</h2>
+<b class="cxl">Apka jawab <span class="ct">{{ target }}</span> ki post pe chala gaya!&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
+<div class="mt mbl">
+<span class="cgy cl">Ye jawab private nahi hai, issey har koi dekh sakta hai</span><br>
+</div>
 {% endif %}
-{% if lang %}
-<a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>
+{% if lang and sort_by_best %}
+<a href="{% url 'home_loc_ur_best' lang %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+{% elif sort_by_best %}
+<a href="{% url 'home_loc_best' %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+{% elif lang %}
+<a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
 {% else %}
-<a href="{% url 'home_loc' %}"><button class="btn nw bct bl mbs" type="submit">Theek hai</button></a>
+<a href="{% url 'home_loc' %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
 {% endif %}
 
 </div><br><br>

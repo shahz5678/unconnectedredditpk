@@ -1,0 +1,18 @@
+{% load emoticons_tags %}
+{% load thumbedge %}
+<div class="clb mts mbs">
+<table>
+{% for comment in comments reversed %}
+	<tr><td>
+	{% if forloop.counter != 1 %}<hr size=1 COLOR="#e0e0e0">{% endif %}
+		<a href="{% url 'profile' comment.writer_uname %}" class="cb">
+		{% if comment.writer_av_url != 'None' %}
+		<img style="border: 1px solid #A9A9A9;border-radius:50%" src="{{ comment.writer_av_url|thumbedge }}" alt="no pic"/>
+		{% else %}
+		<img style="border: 1px solid #DCDCDC;border-radius:50%" src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic">
+		{% endif %}
+		{{ comment.writer_uname }}</a>:&nbsp;<span class="cdo"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ comment.epoch_time|human_time }}</span><br>
+	</td></tr>
+{% endfor %}
+</table>
+</div>

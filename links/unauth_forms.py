@@ -1,6 +1,7 @@
 from django import forms
 from django.db import transaction
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords
 from abuse import BANNED_WORDS
@@ -52,10 +53,57 @@ class ResetForgettersPasswordForm(forms.Form):
 
 ############################################################################################################
 
+class SignInForm(forms.Form):
+	username = forms.CharField(max_length=30,error_messages={'required': "naam khali nah choro"})
+	password = forms.CharField(error_messages={'required':"password khali nah choro"})
+
+	def __init__(self,*args,**kwargs):
+		super(SignInForm, self).__init__(*args,**kwargs)
+		self.fields['password'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #f9a61f;'
+		self.fields['password'].widget.attrs['class'] = 'cxl'
+		# self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		# self.fields['username'].widget.attrs['autocomplete'] = 'off'
+
+	def clean(self):
+		username = self.cleaned_data.get('username')
+		password = self.cleaned_data.get('password')
+		if not username:
+			raise forms.ValidationError('naam khali nah choro')
+		if not password:
+			raise forms.ValidationError('password khali nah choro')
+		username = username.strip()
+		password = password.strip()
+		exists = nick_already_exists(nickname=username)
+		if exists is None:
+			# if 'nicknames' sorted set does not exist
+			try:
+				User._default_manager.get(username=username)
+			except User.DoesNotExist:
+				raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+		elif exists:
+			pass
+		else:
+			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+		if username and password:
+		    user = authenticate(username=username,password=password)
+		    if user is None:
+		        raise forms.ValidationError('Password sahi nahi. Agr bhool gaye ho tou neechay "Password yad nahi" pe jao')
+		    elif not user.is_active:
+		        raise forms.ValidationError(self.error_messages['inactive'])
+		    else:
+		    	return user
+
+############################################################################################################
 
 class CreateAccountForm(forms.ModelForm):
 	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': "ye naam sahi nahi hai"})
-	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"password khali na choro"})
+	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"password khali nah choro"})
 	class Meta:
 		model = User
 		fields = ('username',)

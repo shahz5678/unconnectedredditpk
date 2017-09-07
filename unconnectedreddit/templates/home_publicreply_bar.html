@@ -1,0 +1,12 @@
+
+<form method="post" action="{% url 'home_reply' pk=link_id %}">
+{% csrf_token %}
+<input type="hidden" name="lang" value="{{ lang }}">
+<input type="hidden" name="sort_by" value="{{ sort_by }}">
+<input type="hidden" name="user_id" value="{{ user_id }}">
+{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% endif %}
+<div class="box-with-button-right mls mbs">
+	{{ replyform.description }}
+<button type="submit" class="bct">jawab do</button>
+</div>
+</form>

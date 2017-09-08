@@ -9,6 +9,7 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_notification_bar %}
+{% load get_mobile_shop %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
 {% load get_mobile_verification_bar %}
@@ -71,6 +72,11 @@
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
+		<p><hr size=1 COLOR="#33cc33"></p></div>
+	{% endif %}
+		{% if forloop.counter == 8 %}
+		<div style="margin-top:-1em;padding-top:1em;background-color:#00c853" >
+		{% mobile_shop STATIC_URL %}
 		<p><hr size=1 COLOR="#33cc33"></p></div>
 	{% endif %}
 	{% if forloop.counter == 13 %}

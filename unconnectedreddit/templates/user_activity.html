@@ -4,6 +4,7 @@
 {% load thumbnail %}
 {% load get_votes %}
 {% load emoticons_tags %}
+{% load get_block_button %}
 {% block content %}
 {{ block.super }}
 
@@ -30,7 +31,7 @@
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		
 	{% endif %}
-	<bdi>{{ link.submitter }}</bdi></a>
+	<bdi>{{ username }}</bdi></a>
 	{% if user.is_authenticated and user.userprofile.score > 25 %}
 		{% if link.submitter.userprofile.score < 0 %}
 	    	<span class="cg cs">(1)</span>
@@ -38,23 +39,11 @@
 	    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
 		{% endif %}
 	{% endif %}
-	{% if link.submitter.username in verified %}
+	{% if username in verified %}
     	<span class="pinkstar"><b>*</b></span>
     {% endif %}
-	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs">, {{ link.submitted_on|naturaltime }}
-		{% if link.device == '1' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif link.device == '2' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif link.device == '4' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif link.device == '5' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif link.device == '3' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-		{% else %}
-		{% endif %}
-	</span><a name="section{{ forloop.counter }}"></a><br>
+	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
+	</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}<br>
 
 		<form action="{% url 'reply_pk' pk=link.pk %}" method="POST">
 		{% csrf_token %}
@@ -90,7 +79,7 @@
 	{% endif %}
 	<hr size=1 color="#229ec3" >
 	{% empty %}
-	<span class="cgy">Is chat history mein kuch nahi...</span>
+	<span class="cgy">Ye chat history khali hai...</span>
 	<hr size=1 color="#229ec3" >
 {% endfor %}
 </ul>

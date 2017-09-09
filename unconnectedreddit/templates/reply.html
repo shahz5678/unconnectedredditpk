@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load get_block_button %}
 {% load emoticons_tags %}
 {% load thumbnail %}
 {% block content %}
@@ -7,7 +8,7 @@
 {% if error %}
     <span class="co"><b>Jawab nahi de sakte!</b></span>
 {% else %}
-    <a href="{% url 'profile' slug=parent.submitter %}"><bdi>{{ parent.submitter }}</bdi></a>
+    <a href="{% url 'profile' slug=parent_submitter_username %}"><bdi>{{ parent_submitter_username }}</bdi></a>
     {% if authenticated and score > 25 %}
         {% if parent.submitter.userprofile.score < 0 %}
             <span class="cg cs">(1)</span>
@@ -16,23 +17,12 @@
         {% endif %}
     {% endif %}
 
-        {% if parent.submitter.username in ensured %}
+        {% if parent_submitter_username in ensured %}
             <span class="pinkstar"><b>*</b></span>
         {% endif %}
-    :&nbsp;<bdi class="clb cl bw">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy cxs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
-    {% if parent.device == '1' %}
-    &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-    {% elif parent.device == '2' %}
-    &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-    {% elif parent.device == '4' %}
-    &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-    {% elif parent.device == '5' %}
-    &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-    {% elif parent.device == '3' %}
-    &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-    {% else %}
-    {% endif %}
-    </span><br>
+    :&nbsp;<bdi class="clb cl bw">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy cxs mrs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
+    </span>
+    {% block_button parent.submitter_id parent_submitter_username user.id parent.id 'publicreply:link' STATIC_URL %}<br>
     <a name="sectionJ"></a> 
 
 
@@ -56,6 +46,7 @@
             <span class="cs ct"><b>Jawab likho:</b>
             {% endif %}
             <input type="hidden" name="link_id" value="{{ parent.id }}">
+            <input type="hidden" name="lwpk" value="{{ parent.submitter_id }}">
             <br class="mbs">
             </span>{{ form.description }}
             {% if warned %}
@@ -96,9 +87,9 @@
         {% if reply.abuse %}
             {% if authenticated and unseen %}
                 {% if not reply_time %}
-                    <b class="cs co">(new)</b>
+                    <b class="cs co">(new)</b>&nbsp;
                 {% elif reply.submitted_on > reply_time %}
-                    <b class="cs co">(new)</b>
+                    <b class="cs co">(new)</b>&nbsp;
                 {% endif %}
             {% endif %}
             <span class="cs cgy"<a href="{% url 'profile' slug=reply.submitted_by %}"><bdi>{{ reply.submitted_by }}</bdi></a></span>
@@ -131,25 +122,15 @@
                {% if reply.submitted_by.username in ensured %}  
                     <span class="pinkstar"><b>*</b></span>
                 {% endif %}:&nbsp;<bdi class="clb bw" style="overflow:hidden;">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
-                <span class="cxs cgy"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi>
-            {% if reply.device == '1' %}
-            &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-            {% elif reply.device == '2' %}
-            &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-            {% elif reply.device == '4' %}
-            &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-            {% elif reply.device == '5' %}
-            &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-            {% elif reply.device == '3' %}
-            &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-            {% else %}
-            {% endif %}
-        </span>
+                <span class="cxs cgy mrs"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
+
+            {% block_button reply.submitted_by_id reply.submitted_by.username user.id parent.pk 'publicreply:reply' STATIC_URL %}
+     &nbsp;
         {% if user == parent.submitter %}
-        &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=reply.answer_to.pk %}"><button class="btn bcgy bs cxs">hide</button></a>
+        &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=parent.pk %}"><button class="btn bcgy bs cxs">hide</button></a>
         {% endif %}
         {% if user != reply.submitted_by %}
-        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by.pk num=reply.answer_to.pk %}"><button class=" btn bct bs cxs"><b>mehfil</b></button></a>
+        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by_id num=parent.pk %}"><button class=" btn bct bs cxs"><b>mehfil</b></button></a>
         {% endif %}
     {% endif %}
         <br>

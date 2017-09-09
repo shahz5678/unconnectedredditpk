@@ -65,6 +65,7 @@
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" name="btn{{ forloop.counter }}" type="submit">jawab do</button>
 		</div>
@@ -90,6 +91,7 @@
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment }}
 		<br><button class="btn bct bms mts" type="submit">jawab do</button>
 		</div>
@@ -311,6 +313,7 @@
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" type="submit">tabsra kro</button>
 		</div>
@@ -346,6 +349,7 @@
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment }}
 		<br><button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>

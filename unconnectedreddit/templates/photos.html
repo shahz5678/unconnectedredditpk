@@ -92,6 +92,8 @@
 			</a>
 
 
+
+
 				{% if can_vote and photo.i not in voted and photo.o != username %}
 				<form action="{% url 'cast_photo_vote' %}" method="POST">
 					{% csrf_token %}
@@ -102,12 +104,11 @@
 				</form>
 				{% endif %}
 
-			{% if user.username == 'Shireen' %}
 			{% if photo.comments %}
 				{% photo_comments_section photo.comments STATIC_URL user.id '1' %}
 			{% endif %}
+
 			{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}
-			{% endif %}
 
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}

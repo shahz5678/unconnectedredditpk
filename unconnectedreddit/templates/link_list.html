@@ -9,7 +9,7 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_mobile_shop %}
-
+{% load get_block_button %}
 {% load get_notification_bar %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
@@ -132,7 +132,7 @@
 		    </a>
 		    {% endif %}
 		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span><br>
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
 				</div>
 
 
@@ -173,7 +173,20 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
+		
 
+		{% if link.n != username %}
+				<form method="POST" action="{% url 'fan' %}" style="display:inline">
+				{% csrf_token %}
+					<input type="hidden" name="oid" value="{{ link.l }}">
+					<input type="hidden" name="org" value="4">
+				{% if link.w|add:"0" in fanned %}
+					<button name="sid_btn" class="btn bms bco mts mbs" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ link.w }}">&nbsp;</button>
+				{% else %}
+					<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ link.w }}">&nbsp;</button>
+				{% endif %}
+				</form>
+			{% endif %}
 
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
@@ -211,6 +224,7 @@
 				<a name="section{{ forloop.counter  }}"></a>
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
+			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
 			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 			{% if link.replies %}
 				{% home_replies_section link.replies STATIC_URL ident %}

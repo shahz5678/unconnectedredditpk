@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
@@ -10,6 +11,7 @@ from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
+from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
@@ -101,7 +103,7 @@ urlpatterns = patterns('',
 	url(r'^api/ad/resume/$', resume_req, name='resume_req'),
 	url(r'^make_ad/$', make_ad, name='make_ad'),
 	url(r'^ad_finalize/$', ad_finalize, name='ad_finalize'),
-	# url(r'^ad_location/$', AdLocationChoiceView.as_view(), name='ad_location'),
+	url(r'^missing/$', missing_page, name='missing_page'),
 	url(r'^ad_description/$', AdDescriptionView.as_view(), name='ad_description'),
 	url(r'^ad_mobile_num/$', AdMobileNumView.as_view(), name='ad_mobile_num'),
 	url(r'^ad_title/$', AdTitleView.as_view(), name='ad_title'),
@@ -169,11 +171,9 @@ urlpatterns = patterns('',
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
-	url(r'^fan/(?P<star_id>\d+)/(?P<obj_id>\d+)/(?P<origin>\d+)/$', auth(fan), name='fan'),
+	url(r'^fan/$', auth(fan), name='fan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', fan_list, name='fan_list'),
-	# url(r'^fan_list/$', FanListView.as_view(), name='fan_list_view'),
 	url(r'^starlist/$', star_list, name='star_list'),
-	# url(r'^star_list/$', StarListView.as_view(), name='star_list_view'),
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	url(r'^videos/$', VideoView.as_view(), name='see_video'),
@@ -319,8 +319,6 @@ urlpatterns = patterns('',
 	url(r'^redirectcric/$', auth(cricket_location), name='cric_loc'),
 	url(r'^ftcr/$', auth(first_time_cricket_refresh), name='first_time_cricket_refresh'),
 	url(r'^cricrep/(?P<pk>\d+)/$', auth(cricket_reply), name='cricket_reply'),
-	#################################################################################################
-	##########################################User Management########################################
 	url(r'^manage_user/$', auth(manage_user),name='manage_user'),
 	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
 	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),
@@ -336,3 +334,4 @@ urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
+urlpatterns += urlpatterns_banning

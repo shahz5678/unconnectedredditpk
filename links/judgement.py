@@ -18,7 +18,7 @@ from forms import PhotoReportForm
 from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
 from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
 from redis3 import set_inter_user_ban, is_mobile_verified, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
-save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials
+save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, get_global_ban_leaderboard
 from redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
 remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,add_photo_judger,\
 first_time_photo_curator,add_photo_curator, resurrect_home_photo, in_defenders, first_time_photo_defender, check_photo_upload_ban,\
@@ -183,6 +183,20 @@ def change_ban_time(request):
 			return redirect("banned_users_list")
 	else:
 		return render(request,"404.html",{})
+
+
+def ban_leaderboard(request):
+	global_list_with_scores = get_global_ban_leaderboard()
+	dictionary = dict(global_list_with_scores)
+	ids, scores = zip(*global_list_with_scores)
+	users = User.objects.filter(id__in=ids).values('id','username')
+	id_username_mapping = {}
+	for d in users:
+		id_username_mapping[d["id"]] = d["username"]
+	result = []
+	for id_,score in global_list_with_scores:
+		result.append((id_username_mapping[int(id_)], score))
+	return render(request,"global_banned_user_list.html",{'result':result})
 
 
 def user_ban_help(request):

@@ -4,6 +4,7 @@
 <input type="hidden" name="origin" value="{{ origin }}">
 <input type="hidden" name="sort_by" value="{{ sort_by }}">
 <input type="hidden" name="user_id" value="{{ user_id }}">
+<input type="hidden" name="popk" value="{{ photo_owner_id }}">
 {% if comment_form.photo_comment.errors %}<span class="cr">{{ comment_form.photo_comment.errors.0 }}</span><br>{% endif %}
 <div class="box-with-button-right mts mbs" style="max-width:400px">
 {{ comment_form.photo_comment }}

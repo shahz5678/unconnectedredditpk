@@ -5,6 +5,8 @@
 {% load get_votes %}
 {% load get_item %}
 {% load human_time %}
+{% load get_home_publicreply_bar %}
+{% load get_home_replies_section %}
 {% block content %}
 <div class="margin clb">
 	<h2 class="cg">{{ status }}</h2>
@@ -38,30 +40,20 @@
 				{{ comment.sc|safe }}
 			{% endif %}
 			{{ comment.p|safe }}</a>:&nbsp;<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
-			    <a name="section{{ forloop.counter  }}"></a> 
+			    <a name="section{{ forloop.counter }}"></a> 
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
 		 		{% if comment.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' comment.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
-		 	{% if comment.1h and comment.2h %}
-				<div class="clb mts mbs mls">
-				<b class="ct">Latest Jawab:</b><br>
-				{{ comment.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1t|human_time }}</span><br>
-				{{ comment.2h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.2r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.2t|human_time }}</span>
-				</div>
-			{% elif comment.1h %}
-				<div class="clb mts mbs mls">
-				<b class="ct">Latest Jawab:</b><br>
-				{{ comment.1h|safe }}:&nbsp;<span class="ct">{% emoticons %}{{ comment.1r }}{% endemoticons %}</span><span class="cgy cs">, {{ comment.1t|human_time }}</span>
-				</div>
+		 	
+
+
+		 	{% if comment.replies %}
+				{% home_replies_section comment.replies STATIC_URL user.id %}
 			{% else %}
 				<br>
 			{% endif %}
 
 			<div class="mtl">
-				<form method="post" action="{% url 'cricket_reply' pk=comment.l %}">
-				{% csrf_token %}
-				{% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% else %}<b class="ct cs">Jawab do:&nbsp;</b>{% endif %}{{ replyform.description }}</span><br>
-				<button class="btn bct bs mtl mbs" type="submit">OK</button>
-				</form>
+				{% home_publicreply_bar link_pk=comment.l link_writer_pk=comment.w lang='None' sort_by='None' user_id=user.id replyform=replyform origin='cricket'%}
 			</div>
 
 				{% if comment.n != nickname and not comment.l|voted:nickname %}

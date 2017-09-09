@@ -1,9 +1,13 @@
-
+{% if origin == 'home' %}
 <form method="post" action="{% url 'home_reply' pk=link_id %}">
+{% elif origin == 'cricket' %}
+<form method="post" action="{% url 'cricket_reply' pk=link_id %}">
+{% endif %}
 {% csrf_token %}
 <input type="hidden" name="lang" value="{{ lang }}">
 <input type="hidden" name="sort_by" value="{{ sort_by }}">
 <input type="hidden" name="user_id" value="{{ user_id }}">
+<input type="hidden" name="lwpk" value="{{ link_writer_pk }}">
 {% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% endif %}
 <div class="box-with-button-right mls mbs">
 	{{ replyform.description }}

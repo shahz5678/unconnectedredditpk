@@ -119,6 +119,7 @@ def category_formatting(categ):
 		div_tail = '<span></span>'
 	return div_head, div_tail
 
+
 def device_formatting(device):
 	if device == '1':
 		device = '&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img>'

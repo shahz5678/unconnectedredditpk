@@ -92,6 +92,19 @@
 			</a>
 
 
+			{% if photo.o != username %}
+				<form method="POST" action="{% url 'fan' %}" style="display:inline">
+				{% csrf_token %}
+					<input type="hidden" name="oid" value="{{ photo.i }}">
+					<input type="hidden" name="org" value="3">
+				{% if photo.oi|add:"0" in fanned %}
+					<button name="sid_btn" class="btn bms bco mts mbs" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ photo.oi }}">&nbsp;</button>
+				{% else %}
+					<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ photo.oi }}">&nbsp;</button>
+				{% endif %}
+				</form>
+			{% endif %}
+
 				{% if can_vote and photo.i not in voted and photo.o != username %}
 				<form action="{% url 'cast_photo_vote' %}" method="POST">
 					{% csrf_token %}

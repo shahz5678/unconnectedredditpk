@@ -7,7 +7,10 @@ def future_time(value):
 		m, s = divmod(value, 60)
 		h, m = divmod(m, 60)
 		d, h = divmod(h, 24)
-		if d:
+		mo, d = divmod(d, 30)
+		if mo:
+			return "%s month(s) baad" % int(mo)
+		elif d:
 			return "%s days baad" % int(d)
 		elif h:
 			return "%s hours baad" % int(h)

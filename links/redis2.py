@@ -73,6 +73,7 @@ def retrieve_latest_notification(viewer_id):
 	combined = dict(notification,**parent_object)
 	return notif[0],notification['c'],combined
 
+# populates the 'matka'
 def retrieve_unseen_notifications(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
@@ -134,6 +135,8 @@ def bulk_create_photo_notifications_for_fans(viewer_id_list=None,object_id=None,
 	pipeline1.hincrby(parent_object, 'n', amount=increment)
 	pipeline1.execute()
 
+
+# this does not update notifications for users whose notification object was deleted
 def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
 	unseen_activity=None, priority=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -171,6 +174,8 @@ def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=N
 		count += 1
 	pipeline2.execute()
 
+
+# this does not update a notification whose notification object was deleted
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
 	single_notif=None, priority=None, bump_ua=None, no_comment=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -307,6 +312,22 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 		count += 1
 	return replies_list
 
+
+def remove_notification_of_banned_user(target_id, object_id, object_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	target_id = str(target_id)
+	notification = "np:"+target_id+":"+object_type+":"+object_id
+	################################################################################
+	sorted_set = "sn:"+target_id
+	unseen_activity = "ua:"+target_id
+	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zrem(sorted_set, notification)
+	pipeline1.zrem(unseen_activity, notification)
+	pipeline1.zrem(unseen_activity_resorted, notification)
+	pipeline1.execute()
+	my_server.delete(notification)
+
 def remove_group_object(group_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_object = "o:3:"+str(group_id)
@@ -319,9 +340,9 @@ def remove_group_notification(user_id=None,group_id=None):
 	single_notif = "sn:"+str(user_id)
 	notification = "np:"+str(user_id)+":3:"+str(group_id)
 	parent_object = "o:3:"+str(group_id)
-	my_server.zrem(unseen_activity,notification)			#not worked
+	my_server.zrem(unseen_activity, notification)			#not worked
 	my_server.zrem(unseen_activity_resorted, notification)  #not worked
-	my_server.zrem(single_notif,notification)				#not worked
+	my_server.zrem(single_notif, notification)				#not worked
 	my_server.delete(notification)							#WORKED
 	num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
 

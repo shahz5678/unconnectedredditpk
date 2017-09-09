@@ -23,6 +23,10 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def error_logger(obj_creator_id, kind,origin, referrer,is_auth,own_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("ban_error",{'obj_creator_id':obj_creator_id,'kind':kind, 'origin':origin,'referrer':referrer, 'is_auth':is_auth,'own_id':own_id,'time':time.time()})
+
 def log_html_error(obj_list, forms, page, nickname, referrer):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})

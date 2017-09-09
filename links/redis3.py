@@ -20,6 +20,8 @@ pipeline1.lpush("aea:"+ad_city,ad_id) # used for city-wide exchange ad view
 pipeline1.lpush("afa:"+ad_city,ad_id) # used for city-wide photo ad view
 my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
+key_name = "b:"+str(low)+":"+str(high) #stores ban data
+my_server.zrange("bl:"+str(own_id),0,-1) # a user's block-list
 server.lpush("ecomm_clicks",(user_id, ad_id, time_now)) # recording the click in a list of tuples
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
@@ -29,8 +31,10 @@ pipeline1.lpush("global_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_exchange_ads_list",ad_id) # used for global view
 pipeline1.lpush("global_photo_ads_list",ad_id) # used for global view
 pipeline2.zadd("global_expired_ads_list",ad_id,current_time+ONE_MONTH) #global list of expired ads, stays alive for 1 month
+my_server.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
 my_server.lpush("rc:"+ad_id,photo_id) # "rc" implies raw classified (i.e. a classified that is being made and isn't final)
 temp_ad = "ta:"+user_id #temporary ad
+my_server.hmset('tc:'+str(own_id),mapping)
 temp_storage = "ts:"+user_id # temporary storage of buyer snapshot (used when certifying new user)
 my_server.lpush("unc:"+submitted_data["user_id"]) #unapproved_user_classified (unc:)
 pipeline1.lpush("uaa:"+seller_id,ad_hash) # user approved ads
@@ -348,29 +352,166 @@ def insert_nick_list(nickname_list):
 		nicknames.append(0)
 	my_server.zadd("nicknames",*nicknames)
 
-#######################################################################################################
+############################################Inter User Banning#########################################
+
+# double checking that ban removal should be allowed
+def ensure_removability(own_id, id_list, server):
+	all_keys = []
+	for target_id in id_list:
+		low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
+		key_name = "b:"+str(low)+":"+str(high)
+		all_keys.append(key_name)
+	pipeline1 = server.pipeline()
+	for key in all_keys:
+		pipeline1.get(key)
+	who_banned_who = pipeline1.execute()
+	list_of_ids_to_unban, counter, own_id = [], 0, str(own_id)
+	for target_id in id_list:
+		banned_by = who_banned_who[counter]
+		if not banned_by or banned_by == own_id:
+			list_of_ids_to_unban.append(target_id)
+		counter += 1
+	return list_of_ids_to_unban
 
 
+def delete_ban_target_credentials(own_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete('tc:'+str(own_id))
 
-# def access_error_log(app_access_token, auth_code, data):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("access_error_log", {'data':data,'auth_code':auth_code,'app_access_token':app_access_token, 'time':time.time()})
+def get_ban_target_credentials(own_id, username_only=False, id_only=False, destroy=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	key = 'tc:'+str(own_id)
+	if destroy:
+		if username_only:
+			target_username = my_server.hget(key,'target_username')
+			my_server.delete(key)
+			return target_username
+		elif id_only:
+			target_id = my_server.hget(key,'target_id')
+			my_server.delete(key)
+			return target_id
+		else:
+			credentials = my_server.hgetall(key)
+			my_server.delete(key)
+			return credentials
+	else:
+		if username_only:
+			return my_server.hget(key,'target_username')
+		elif id_only:
+			return my_server.hget(key,'target_id')
+		else:
+			credentials = my_server.hgetall(key)
+			return credentials
 
 
-# def log_forgot_password(user_id,username,flow_level):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	if flow_level == 'end':
-# 		if my_server.sismember("forgot_password",str(user_id)+":start:"+username):
-# 			pipeline1 = my_server.pipeline()
-# 			pipeline1.srem("forgot_password",str(user_id)+":start:"+username)
-# 			pipeline1.lpush("successful_password_retrieval",str(user_id)+":"+username) #"successful_password_retrieval" accumulates successful attempts
-# 			pipeline1.execute() #176 (unsuccessful) vs 141 (successful) - 38% success rate overall
-# 		else:
-# 			my_server.sadd("forgot_password",str(user_id)+":end:"+username)
-# 	elif flow_level == 'start':
-# 		added = my_server.sadd("forgot_password",str(user_id)+":start:"+username)
-# 	elif flow_level == 'bad-end':
-# 		added = my_server.sadd("forgot_password",str(user_id)+":bad-end:"+username)
+def save_ban_target_credentials(own_id, target_id, target_username, object_id=None, origin=None, id_only=False, username_only=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	key = 'tc:'+str(own_id)
+	if object_id and origin:
+		mapping = {'target_id':target_id, 'target_username':target_username, 'object_id':object_id, 'origin':origin}
+	else:
+		mapping = {'target_id':target_id, 'target_username':target_username}
+	my_server.hmset(key,mapping)
+	my_server.expire(key,FORTY_FIVE_MINS)
+
+
+def get_banned_users_count(own_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zcard("bl:"+str(own_id))
+
+def get_banned_users(own_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	all_banned_ids = my_server.zrange("bl:"+str(own_id),0,-1)
+	if all_banned_ids == []:
+		return []
+	else:
+		all_keys = []
+		for target_id in all_banned_ids:
+			low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
+			key_name = "b:"+str(low)+":"+str(high)
+			all_keys.append(key_name)
+		pipeline1 = my_server.pipeline()
+		for key in all_keys:
+			pipeline1.ttl(key)
+		all_banned_ids_ttl = pipeline1.execute()
+		counter = 0
+		all_banned_ids_with_ttl = []
+		for target_id in all_banned_ids:
+			ttl = all_banned_ids_ttl[counter] if all_banned_ids_ttl[counter] else 0
+			all_banned_ids_with_ttl.append((target_id,ttl))
+			counter += 1
+		# subsequently remove ids with ttl < 2 (from bl:<user_id>)
+		return all_banned_ids_with_ttl
+
+
+def remove_banned_users_in_bulk(own_id, ids_to_remove_from_ban_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	if ids_to_remove_from_ban_list:
+		ids_to_remove_from_ban_list = ensure_removability(own_id, ids_to_remove_from_ban_list, my_server)
+		if ids_to_remove_from_ban_list:
+			my_server.zrem("bl:"+str(own_id),*ids_to_remove_from_ban_list)
+
+
+def remove_single_ban(own_id, target_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
+	key_name = "b:"+str(low)+":"+str(high)
+	banned_by = my_server.get(key_name)
+	own_id = str(own_id)
+	if banned_by == own_id:
+		# remove ban
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete(key_name)
+		pipeline1.zrem("bl:"+own_id,target_id)
+		pipeline1.execute()
+		return True
+	else:
+		# don't have the right to remove this ban, since you didn't place this ban
+		return False
+
+def is_already_banned(own_id, target_id, key_name=None, server=None, return_banner=False):
+	if not server:
+		server = redis.Redis(connection_pool=POOL)
+	if not key_name:
+		low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
+		key_name = "b:"+str(low)+":"+str(high)
+	if return_banner:
+		pipeline1 = server.pipeline()
+		pipeline1.get(key_name)
+		pipeline1.ttl(key_name)
+		result = pipeline1.execute()
+		return result[0], result[1]
+	else:
+		ttl = server.ttl(key_name)
+		if ttl > -1:
+			# the expire time, in seconds
+			return ttl
+		elif ttl < -1:
+			# key does not exist
+			return None
+		else:
+			# key exists but has no associated expire time
+			return False
+
+def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban):
+	my_server = redis.Redis(connection_pool=POOL)
+	low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
+	key_name = "b:"+str(low)+":"+str(high)
+	existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
+	if existing_ttl is None or existing_ttl is False or can_unban == '1':
+		pipeline1 = my_server.pipeline()
+		# a 'solitary' key, to help make quick decision on whether an interaction is to be allowed or not
+		pipeline1.setex(key_name,own_id,ttl)
+		# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
+		pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
+		# only add to the global list if it was NOT a re-ban
+		if not can_unban:
+			#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
+			pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
+		pipeline1.execute()
+		return True
+	else:
+		return False
 
 
 ########################################################################################################

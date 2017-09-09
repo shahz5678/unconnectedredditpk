@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from links.judgement import enter_inter_user_ban, inter_user_ban_not_permitted, first_time_inter_user_banner, banned_users_list, change_ban_time, \
-user_ban_help, ban_underway
+user_ban_help, ban_underway, ban_leaderboard
 
 admin.autodiscover()
 
@@ -15,4 +15,5 @@ urlpatterns = patterns('',
 	url(r'^not_permitted/$', auth(inter_user_ban_not_permitted), name='inter_user_ban_not_permitted'),
 	url(r'^user_ban_help/$', auth(user_ban_help), name='user_ban_help'),
 	url(r'^ftiub/$', auth(first_time_inter_user_banner), name='first_time_inter_user_banner'),
+	url(r'^ban_leaderboard/$', auth(ban_leaderboard), name='ban_leaderboard'),
 )

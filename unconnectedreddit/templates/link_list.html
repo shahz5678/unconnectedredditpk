@@ -9,6 +9,7 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_mobile_shop %}
+
 {% load get_notification_bar %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
@@ -172,7 +173,6 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
-		
 
 
 		<br>
@@ -186,13 +186,11 @@
 		</form>
 		{% endif %}
 		
-		{% if user.username == 'Shireen' %}
 		{% if link.pi %}
 			{% photo_comments_section link.pi STATIC_URL ident '3' %}
 		{% endif %}
 
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
-		{% endif %}
 
 		{{ link.vt|safe }}
 		<p><hr size=1 COLOR="#ff9933"></p>

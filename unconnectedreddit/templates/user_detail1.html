@@ -174,9 +174,6 @@
                                 <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
-                                {% if own_profile %}
-                                <button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit" type="submit">&nbsp;</button>
-                                {% endif %}
                                 <br>
 
                           {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}

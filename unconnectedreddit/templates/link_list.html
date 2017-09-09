@@ -8,8 +8,8 @@
 {% load photo_voted %}
 {% load human_time %}
 {% load photoedge %}
-{% load get_notification_bar %}
 {% load get_mobile_shop %}
+{% load get_notification_bar %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
 {% load get_mobile_verification_bar %}
@@ -74,7 +74,7 @@
 		</div>
 		<p><hr size=1 COLOR="#33cc33"></p></div>
 	{% endif %}
-		{% if forloop.counter == 8 %}
+	{% if forloop.counter == 8 %}
 		<div style="margin-top:-1em;padding-top:1em;background-color:#00c853" >
 		{% mobile_shop STATIC_URL %}
 		<p><hr size=1 COLOR="#33cc33"></p></div>
@@ -131,7 +131,7 @@
 		    </a>
 		    {% endif %}
 		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{{ link.dc|safe }}<br>
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span><br>
 				</div>
 
 
@@ -174,13 +174,6 @@
 		</button></a>
 		
 
-		{% if link.n != username %}
-			{% if link.w|add:"0" in fanned %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bco mrl mts mbs" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
-			{% else %}
-				<a href="{% url 'fan' link.w link.l 4 %}"><button class="btn bms bcgy mrl mts mbs" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
-			{% endif %}
-		{% endif %}
 
 		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
@@ -193,9 +186,13 @@
 		</form>
 		{% endif %}
 		
-		
+		{% if user.username == 'Shireen' %}
+		{% if link.pi %}
+			{% photo_comments_section link.pi STATIC_URL ident '3' %}
+		{% endif %}
 
-		{% home_photo_comment_bar link.pi lang sort_by ident comment_form '3' link.l %}
+		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
+		{% endif %}
 
 		{{ link.vt|safe }}
 		<p><hr size=1 COLOR="#ff9933"></p>
@@ -214,9 +211,9 @@
 			{{ link.p|safe }}:
 	    	<span class="cl clb bw"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
 				<a name="section{{ forloop.counter  }}"></a>
-			<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
-			{{ link.dc|safe }}
+			
 			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 			
 

@@ -23,6 +23,12 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
+		'object_id':object_id,'referrer':referrer,'time':time.time()})
+
+
 def error_logger(obj_creator_id, kind,origin, referrer,is_auth,own_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("ban_error",{'obj_creator_id':obj_creator_id,'kind':kind, 'origin':origin,'referrer':referrer, 'is_auth':is_auth,'own_id':own_id,'time':time.time()})

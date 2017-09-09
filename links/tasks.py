@@ -13,17 +13,17 @@ from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
-from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList
+from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
+Video, HotUser, PhotoStream, HellBanList, UserFan
 from order_home_posts import order_home_posts, order_home_posts2
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
 from .redis4 import expire_online_users, get_recent_online, set_online_users
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
-get_fan_counts_in_bulk, get_all_fans, is_fan
+get_fan_counts_in_bulk, get_all_fans, is_fan, remove_notification_of_banned_user, remove_from_photo_owner_activity
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
@@ -82,6 +82,33 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
+
+
+def retrieve_object_type(origin):
+	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
+	'publicreply:reply':'2', 'history:link':'2'}
+	try:
+		return PARENT_OBJECT_TYPE[origin]
+	except:
+		return -1
+
+
+@celery_app1.task(name='tasks.post_banning_tasks')
+def post_banning_tasks(own_id, target_id, object_id, origin):
+	object_type = retrieve_object_type(origin)
+	if object_type != -1:
+		remove_notification_of_banned_user(target_id,object_id,object_type)
+		################################################################################
+		# unfan (in case. was a fan): TEST WHETHER THIS FAILS
+		UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
+		UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
+		remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
+		remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+
+
+@celery_app1.task(name='tasks.sanitize_expired_bans')
+def sanitize_expired_bans(own_id, banned_ids_to_unban):
+	remove_banned_users_in_bulk(own_id, banned_ids_to_unban)
 
 
 @celery_app1.task(name='tasks.increase_user_points')

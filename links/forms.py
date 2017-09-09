@@ -349,8 +349,6 @@ class PublicreplyMiniForm(PublicreplyForm):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
 		self.fields['description'].widget.attrs['style'] = 'border: 1px solid #229ec3'
-		# 'background-color:#F8F8F8; width:98%; border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
-		# 'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
 class SearchNicknameForm(forms.Form):

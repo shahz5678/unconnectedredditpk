@@ -61,25 +61,26 @@
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Password:&nbsp;</b><a href="{% url 'reauth' %}#section0"><button class="btn bcg bm">badlo</button></a>
                   <hr size=1 COLOR="#b3e6b3">
-                  {% if fans == 1 %}
-                  <b>Fan:</b>
-                  {% else %}
                   <b>Fans:</b>
-                  {% endif %}
-                  <a href="{% url 'fan_list' star_id %}" class="cs">
-                  <button class="btn bcg">{{ fans }}</button>
+                  <a href="{% url 'fan_list' star_id %}#section0" class="cs">
+                  <button class="btn bcg">&nbsp;{{ fans }}&nbsp;</button>
                   </a>
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Stars:</b>
-                  <a href="{% url 'star_list' %}" class="cs">
-                  <button class="btn bcg">{{ stars }}</button>
+                  <a href="{% url 'star_list' %}#section0" class="cs">
+                  <button class="btn bcg">&nbsp;{{ stars }}&nbsp;</button>
+                  </a>
+                  <hr size=1 COLOR="#b3e6b3">
+                  <b>Blocked users:</b>
+                  <a href="{% url 'banned_users_list' %}#section0" class="cs">
+                  <button class="btn bcg">&nbsp;{{ blocked }}&nbsp;</button>
                   </a>
                   <hr size=1 COLOR="#ff9933">
                   <br>
     {% else %}
                   {% if time_remaining == '-2' %}
                     <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
-                    <span class="cgy">
+                    <div class="mbl cgy">
                     {% if recent_fans > 1 %}
                     <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
                     {% elif recent_fans == 1 %}
@@ -87,19 +88,11 @@
                     {% else %}
                     <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% endif %}
-                    </span>
-                    {% if authenticated and not own_profile and allowed_fan %}
-                      {% if not_fan %}
-                      <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcg bxl mtl mbl">iske fan bano</button></a>
-                      {% else %}
-                      <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bxl mtl mbl">fan khatm kro</button></a>
+                    </div>
+                      {% if subject.userprofile.avatar %}
+                      <b>Profile photo:</b><br>
+                      <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>  
                       {% endif %}
-                      <br>
-                    {% endif %}
-                    {% if subject.userprofile.avatar %}
-                    <b>Profile photo:</b><br>
-                    <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>  
-                    {% endif %}
                     {% else %}
                     <span class="cr">
                       {% if time_remaining == '-1' %}
@@ -116,13 +109,6 @@
                         {% endif %}
                       {% endif %}
                       </span>
-                        {% if authenticated and not own_profile and allowed_fan %}
-                          {% if not not_fan %}
-                          <br>
-                          <a href="{% url 'fan' subject_id 0 1 %}#section0"><button class="btn nw bcr bxl mtl mbl">fan khatm kro</button></a>
-                          {% endif %}
-                          <br>
-                        {% endif %}
                     {% endif %}
                   <hr size=1 COLOR="#b3e6b3">
                   <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
@@ -130,20 +116,20 @@
                   <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm mls">profile</button></a>
                   {% if manageable and user.username == 'pathan-e-khan' %}&nbsp;<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user.id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm mls">manage</button></form>{% endif %}
                   <hr size=1 COLOR="#b3e6b3">
-                  {% if fans == 1 %}
-                  <b>Fan:</b>
-                  {% else %}
                   <b>Fans:</b>
-                  {% endif %}
-                  <a href="{% url 'fan_list' star_id %}" class="cs">
-                  <button class="btn bcg">
-                  {% if fans == 0 %}
-                  {{ fans }}
-                  {% else %}
-                  {{ fans }}
-                  {% endif %}
-                  </button>
-                  </a>
+                  <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn bcg mrl mbs">&nbsp;{{ fans }}&nbsp;</button></a>
+                   {% if authenticated and not own_profile and allowed_fan %}
+                    <form action="{% url 'fan' %}" method="POST" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="oid" value="0">
+                    <input type="hidden" name="org" value="1">
+                      {% if not_fan %}
+                      <button type="submit" name="sid_btn" class="btn nw bcg bxl" value="{{ subject_id }}">iske fan bano</button>
+                      {% else %}
+                      <button type="submit" name="sid_btn" class="btn nw bcr bxl" value="{{ subject_id }}">fan khatm kro</button>
+                      {% endif %}
+                    </form>
+                    {% endif %}
                   <hr size=1 COLOR="#ff9933">
                   <br>
     {% endif %}
@@ -188,6 +174,9 @@
                                 <button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
+                                {% if own_profile %}
+                                <button class="mll" style="background-image: url({{ STATIC_URL }}img/pencil2.png);background-repeat: no-repeat;background-position: center;width:20px;height:20px;border:none;background-color:white;" name="edit" type="submit">&nbsp;</button>
+                                {% endif %}
                                 <br>
 
                           {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}

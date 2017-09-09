@@ -102,14 +102,11 @@
 				</form>
 				{% endif %}
 
-
-			{% if username == 'Shireen' %}
 			{% if photo.comments %}
 				{% photo_comments_section photo.comments STATIC_URL ident '2' %}
 			{% endif %}
 
 			{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}
-			{% endif %}
 
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}

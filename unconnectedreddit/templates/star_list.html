@@ -31,7 +31,12 @@
                 {% else %}
                 {% endif %}
             <span class="co cm"> <a href="{% url 'profile' slug=star.username %}#section0" class="co"><b>{{ star.photo_count }}</b> photos</a></span>&nbsp;&nbsp;
-            <a href="{% url 'fan' star.id 0 0 %}"><button class="btn bcr bm cs mbs mts">khatm</button></a>
+            <form method="POST" action="{% url 'fan' %}" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="oid" value="0">
+            <input type="hidden" name="org" value="0">
+            <button name="sid_btn" type="submit" class="btn bcr bm cs mbs mts" value="{{ star.id }}">khatm</button>
+            </form>
                 {% if star.thumbs != None %}
                 <form method="POST" action="{% url 'go_to_user_photo' star.username 0 %}" class="mts">{% csrf_token %}
                 {{ star.thumbs|safe }}

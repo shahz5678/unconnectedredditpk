@@ -9,7 +9,6 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_mobile_shop %}
-
 {% load get_notification_bar %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
@@ -173,6 +172,7 @@
 		{% else %}tabsra kro
 		{% endif %}
 		</button></a>
+		
 
 
 		<br>
@@ -211,10 +211,15 @@
 				<a name="section{{ forloop.counter  }}"></a>
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
-			
+	
 			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' link.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
-			
-
+			{% if user.username == 'Shireen' %}
+			{% if link.replies %}
+				{% home_replies_section link.replies STATIC_URL ident %}
+			{% else %}
+				<br>
+			{% endif %}
+			{% endif %}
 			<div class="mtl">
 				{% home_publicreply_bar link.l lang sort_by ident replyform %}
 			</div>

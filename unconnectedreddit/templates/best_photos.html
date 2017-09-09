@@ -92,14 +92,6 @@
 			</a>
 
 
-			{% if photo.o != username %}
-				{% if photo.oi|add:"0" in fanned %}
-					<a href="{% url 'fan' photo.oi photo.i 3 %}"><button class="btn bco mbs mts" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
-				{% else %}
-					<a href="{% url 'fan' photo.oi photo.i 3 %}"><button class="btn bcgy mbs mts" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit">&nbsp;</button></a>
-				{% endif %}
-				<br>
-			{% endif %}
 
 				{% if can_vote and photo.i not in voted and photo.o != username %}
 				<form action="{% url 'cast_photo_vote' %}" method="POST">
@@ -111,9 +103,13 @@
 				</form>
 				{% endif %}
 
-			
+			{% if user.username == 'Shireen '%}	
+			{% if photo.comments %}
+				{% photo_comments_section photo.comments STATIC_URL ident '2' %}
+			{% endif %}
 
-			{% photo_comment_bar photo.i lang sort_by ident comment_form '2' %}
+			{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}
+			{% endif %}
 
 			<p><hr size=1 COLOR="#ff9933"></p>
 	{% endif %}

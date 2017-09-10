@@ -598,14 +598,13 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
-	user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
 	photo_owner_id = photo.owner_id
 	try:
 		owner_url = photo.owner.userprofile.avatar.url
 	except:
 		owner_url = None
-	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_id,\
+	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
 		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
 		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,\
 		photourl=photo.image_file.url)
@@ -649,18 +648,16 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
+	photo.save()
 	set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
-		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
 		if is_citizen:
-			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+			UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
 			photo.visible_score = photo.visible_score + 2
-			photo.owner.userprofile.save()
 	photo.save()
-	user.userprofile.save()
 
 @celery_app1.task(name='tasks.video_vote_tasks')
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):

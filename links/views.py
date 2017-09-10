@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, error_logger
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key#, error_logger
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
@@ -5694,7 +5694,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 	user_id = request.user.id
 	username = request.user.username
 	photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
-	error_logger(obj_creator_id=photo_owner_id, kind='popk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
+	# error_logger(obj_creator_id=photo_owner_id, kind='popk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
 	banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
 	if banned_by:
 		request.session["banned_by"] = banned_by
@@ -5809,7 +5809,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
-	error_logger(obj_creator_id=link_writer_id, kind='lwpk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
+	# error_logger(obj_creator_id=link_writer_id, kind='lwpk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
 	own_uname = request.user.username
 	banned_by, ban_time = is_already_banned(own_id=request.user.id,target_id=link_writer_id, return_banner=True)
 	if banned_by:

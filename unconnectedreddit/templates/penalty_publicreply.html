@@ -2,8 +2,8 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<h2>Damadam ka sans nikal gaya!{% emoticons %}:p{% endemoticons %}</h2>
-<a href="{% url 'unseen_activity' pk %}"><button class="btn bct bm mbs">wapis</button></a>
+<h2>Ye karney pe aap ke <b class="cr">{{ penalty }}</b> points cut gaye!&nbsp;{% emoticons %}.g5{% endemoticons %}</h2>
+<a href="{% url 'unseen_activity' uname %}"><button class="btn bct bm mbs">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

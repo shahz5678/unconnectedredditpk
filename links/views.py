@@ -5690,7 +5690,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	username = request.user.username
@@ -5794,7 +5794,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='2/s')
+@ratelimit(rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	own_id = request.user.id

@@ -5801,18 +5801,18 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(rate='2/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
+	own_id = request.user.id
+	own_uname = request.user.username
 	if was_limited:
-		context = {'pk': own_uname}
-		return render(request, 'penalty_publicreply.html', context)
+		UserProfile.objects.filter(user_id=own_id).update(score=F('score')-100)
+		return render(request, 'penalty_publicreply.html', {'penalty':100,'uname':own_uname})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
-		own_uname = request.user.username
 		if request.method == 'POST':
-			own_id = request.user.id
 			link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
 			banned_by, ban_time = is_already_banned(own_id=own_id,target_id=link_writer_id, return_banner=True)
 			if banned_by:

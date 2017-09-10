@@ -5693,8 +5693,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 @ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	user_id = request.user.id
-	username = request.user.username
 	if was_limited:
 		try:
 			deduction = 3 * -1
@@ -5708,9 +5706,10 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
+		username = request.user.username
 		if request.method == 'POST':
-			photo = Photo.objects.filter(id=pk).values('owner_id','comment_count')[0]
-			photo_owner_id, photo_comment_count, origin = photo["owner_id"], photo["comment_count"], request.POST.get("origin",None)
+			user_id = request.user.id
+			photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
 			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
 			if banned_by:
 				request.session["banned_by"] = banned_by
@@ -5729,6 +5728,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
+				photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
 				description = form.cleaned_data.get("photo_comment")
 				if request.is_feature_phone:
 					device = '1'

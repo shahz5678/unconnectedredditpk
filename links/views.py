@@ -5595,12 +5595,11 @@ class MehfilCommentView(FormView):
 @ratelimit(rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
+	username = request.user.username
+	user_id = request.user.id
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'username':request.user.username}
-		return render(request,'penalty_unseengroupreply.html',context)
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
+		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -5610,7 +5609,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
 				description = desc1 if desc2 == '111' else desc2
-				user_id = request.user.id
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -5631,17 +5629,17 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					image_url = groupreply.image.url
 				except:
 					image_url = None
-				grp = Group.objects.get(id=pk)
-				if grp.private == '1':
+				grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
+				if grp["private"] == '1':
 					priority='priv_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 				else:
 					priority='public_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-				group_notification_tasks.delay(group_id=pk,sender_id=user_id,\
-					group_owner_id=grp.owner.id,topic=grp.topic,reply_time=reply_time,poster_url=url,\
-					poster_username=request.user.username,reply_text=description,priv=grp.private,\
-					slug=grp.unique,image_url=image_url,priority=priority,from_unseen=True)
+				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
+					topic=grp["topic"],reply_time=reply_time,poster_url=url, poster_username=username,\
+					reply_text=description,priv=grp["private"], slug=grp["unique"],image_url=image_url,\
+					priority=priority,from_unseen=True)
 				if origin:
 					if origin == '0':
 						return redirect("photo")
@@ -5657,7 +5655,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					elif origin == '2':
 						return redirect("best_photo")
 				else:
-					return redirect("unseen_activity", request.user.username)
+					return redirect("unseen_activity", username)
 			else:
 				if origin:
 					request.session["notif_form"] = form
@@ -5676,9 +5674,9 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					elif origin == '2':
 						return redirect("best_photo")
 				else:
-					notification = "np:"+str(request.user.id)+":3:"+str(pk)
+					notification = "np:"+str(user_id)+":3:"+str(pk)
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-					url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
+					url = reverse_lazy("unseen_activity", args=[username])+addendum
 					forms[pk] = form
 					request.session["forms"] = forms
 					request.session["oblist"] = oblist
@@ -5686,7 +5684,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					request.session.modified = True
 					return redirect(url)
 		else:
-			return redirect("unseen_activity", request.user.username)
+			return redirect("unseen_activity", username)
 
 #called when replying from unseen_activity
 @csrf_protect

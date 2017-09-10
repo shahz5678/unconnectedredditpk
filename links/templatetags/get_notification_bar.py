@@ -1,4 +1,5 @@
 from django import template
+from links.redis2 import is_fan
 from links.views import GetLatest
 from links.models import UserProfile
 from links.forms import UnseenActivityForm
@@ -14,17 +15,9 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 		'is_home':is_home, 'origin':origin,'form':notif_form}
 		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
 		if not is_link and not is_photo and not is_groupreply and not is_salat:
-			context["latest_reply"] = []
 			context["notification"] = 0
-			context["parent"] = []
-			context["parent_pk"] = 0
-			context["first_time_user"] = False
 		elif not freshest_reply:
-			context["latest_reply"] = []
 			context["notification"] = 0
-			context["parent"] = []
-			context["parent_pk"] = 0
-			context["first_time_user"] = False
 		elif is_groupreply:
 			if object_type == '1':
 				# private mehfil
@@ -42,12 +35,7 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi'] #group id
 			else:
-				context["latest_reply"] = []
 				context["notification"] = 0
-				context["parent"] = []
-				context["parent_pk"] = 0
-				context["first_time_user"] = False
-				context["banned"] = False
 		elif is_salat:
 			salat_invite = freshest_reply
 			context["type_of_object"] = '4'
@@ -92,11 +80,7 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				else:
 					context["first_time_user"] = False
 			except:
-				context["latest_reply"] = []
 				context["notification"] = 0
-				context["parent"] = []
-				context["parent_pk"] = 0
-				context["first_time_user"] = False
 		elif is_photo:
 			if object_type == '1':
 				# photo = Photo.objects.get(id=freshest_reply)
@@ -106,6 +90,7 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				context["parent_pk"] = freshest_reply['oi']
 				context["first_time_user"] = False
 				context["banned"] = False
+				context["fanned"] = is_fan(freshest_reply['ooi'],user_id)
 			elif object_type == '0':
 				context["latest_comment"] = freshest_reply
 				context["type_of_object"] = '0'
@@ -113,14 +98,9 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi']#.which_photo_id
 				context["first_time_user"] = False
-				context["banned"] = False						
+				context["banned"] = False					
 			else:
-				context["latest_comment"] = []
 				context["notification"] = 0
-				context["parent"] = []
-				context["parent_pk"] = 0
-				context["first_time_user"] = False
-				context["banned"] = False
 	else:
 		pass
 	return context

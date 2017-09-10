@@ -31,9 +31,9 @@ def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
 
-def return_referrer_logs():
+def return_referrer_logs(log_name):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("referrer",0,-1)
+	return my_server.lrange(log_name,0,-1)
 
 # def log_html_error(obj_list, forms, page, nickname, referrer):
 # 	my_server = redis.Redis(connection_pool=POOL)

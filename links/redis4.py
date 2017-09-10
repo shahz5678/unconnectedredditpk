@@ -22,10 +22,10 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
-
-def error_logger(obj_creator_id, kind,origin, referrer,is_auth,own_id):
+def error_logger(obj_creator_reported_id, object_creator_actual_id,object_attributes):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("ban_error",{'obj_creator_id':obj_creator_id,'kind':kind, 'origin':origin,'referrer':referrer, 'is_auth':is_auth,'own_id':own_id,'time':time.time()})
+	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\
+		'object_attributes':object_attributes})
 
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)

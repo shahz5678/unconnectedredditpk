@@ -36,7 +36,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key#, error_logger
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, error_logger
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
@@ -45,7 +45,7 @@ from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_sa
 update_notification, create_notification, update_object, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
 delete_salat_notification, prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, get_replies_with_seen, \
-remove_group_object, retrieve_unseen_notifications, get_photo_fan_count, get_all_fans, is_fan
+remove_group_object, retrieve_unseen_notifications, get_photo_fan_count, get_all_fans, is_fan, retrieve_object_data
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .redis1 import insert_hash, remove_key, document_publicreply_abuse, publicreply_allowed, document_comment_abuse, comment_allowed, \
 document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
@@ -5803,24 +5803,29 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
-	# error_logger(obj_creator_id=link_writer_id, kind='lwpk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
 	own_uname = request.user.username
-	banned_by, ban_time = is_already_banned(own_id=request.user.id,target_id=link_writer_id, return_banner=True)
-	if banned_by:
-		request.session["banned_by"] = banned_by
-		request.session["ban_time"] = ban_time
-		if origin == '1':
-			request.session["where_from"] = 'home'
-		elif origin == '0':
-			request.session["where_from"] = 'photos'
-		elif origin == '2':
-			request.session["where_from"] = 'best_photos'
-		else:
-			request.session["where_from"] = 'matka'
-		request.session["own_uname"] = own_uname
-		request.session.modified = True
-		return redirect("ban_underway")
-	elif was_limited:
+	try:
+		banned_by, ban_time = is_already_banned(own_id=request.user.id,target_id=link_writer_id, return_banner=True)
+		if banned_by:
+			request.session["banned_by"] = banned_by
+			request.session["ban_time"] = ban_time
+			if origin == '1':
+				request.session["where_from"] = 'home'
+			elif origin == '0':
+				request.session["where_from"] = 'photos'
+			elif origin == '2':
+				request.session["where_from"] = 'best_photos'
+			else:
+				request.session["where_from"] = 'matka'
+			request.session["own_uname"] = own_uname
+			request.session.modified = True
+			return redirect("ban_underway")
+	except:
+		link_obj, obj_type = Link.objects.filter(id=pk).values('submitter_id')[0], '2'
+		link_writer_actual_id = link_obj["submitter_id"]
+		link_attributes = retrieve_object_data(pk, obj_type)
+		error_logger(obj_creator_reported_id=link_writer_id, object_creator_actual_id=link_writer_actual_id, object_attributes=link_attributes)
+	if was_limited:
 		context = {'pk': own_uname}
 		return render(request, 'penalty_publicreply.html', context)
 	elif request.user_banned:

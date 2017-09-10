@@ -252,7 +252,7 @@ def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_o
 		elif decision == '0':
 			#resurrect photo
 			Photo.objects.filter(id=photo_id).update(vote_score=0, visible_score=0)
-			update_object(object_id=photo_id,object_type='0',vote_score=0)
+			update_object(object_id=photo_id,object_type='0',vote_score=0,just_vote=True)
 			ban_photo(photo_id=photo_id,ban=False) #changes photo score in best_photos.html and photos.html
 			resurrect_home_photo(link_id)
 			photovote_usernames_and_values = get_photo_votes(photo_id)
@@ -269,7 +269,7 @@ def process_photo_upload_ban(duration,photo_id,photo_owner_id,ban_time,unban=Fal
 		remove_from_photo_vote_ban(photo_owner_id) #removing voting ban
 	else:
 		photo = Photo.objects.filter(id=photo_id).update(vote_score = -100) #to censor the photo from the list
-		update_object(object_id=photo_id,object_type='0',vote_score=-100)
+		update_object(object_id=photo_id,object_type='0',vote_score=-100,just_vote=True)
 		ban_photo(photo_id=photo_id,ban=True)
 		add_to_photo_upload_ban(photo_owner_id, ban_time) #to impede from adding more photos
 		add_user_to_photo_vote_ban(photo_owner_id, ban_time) #to impede from voting on other photos

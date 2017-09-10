@@ -274,7 +274,7 @@ def GetLatest(user):
 	try:
 		notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
 		if latest_notif['ot'] == '3':
-			# group chat
+			# group chat - 'g' is privacy status
 			return latest_notif['g'], latest_notif, False, False, True, False
 		elif latest_notif['ot'] == '2':
 			#home publicreply

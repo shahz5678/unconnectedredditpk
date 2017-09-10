@@ -101,7 +101,10 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				return redirect("banned_users_list")
 			else:
 				credentials = get_ban_target_credentials(own_id=user_id)
-				target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+				try:
+					target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+				except:
+					return redirect("banned_users_list")
 				try:
 					object_id, origin = credentials["object_id"], credentials["origin"]
 				except:
@@ -169,7 +172,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			else:
 				return redirect("home")
 	else:
-		return render(request,"404.html",{})
+		return redirect("banned_users_list")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -204,23 +207,23 @@ def user_ban_help(request):
 	return render(request,"user_ban_help.html",{})
 
 
-def export_block_error(request):
-	logs = return_referrer_logs('block_error')
-	filename = 'blocked.csv'
-	if logs:
-		import csv, ast
-		with open(filename,'wb') as f:
-			wtr = csv.writer(f)
-			columns = ["obj_creator_reported_id","object_creator_actual_id","object_attributes"]
-			wtr.writerow(columns) # writing the columns
-			for log in logs:
-				dictionary = ast.literal_eval(log)
-				reported_id = dictionary["obj_creator_reported_id"]
-				creator_id = dictionary["object_creator_actual_id"]
-				object_attributes = dictionary["object_attributes"]
-				to_write = [reported_id,creator_id,object_attributes]
-				wtr.writerows([to_write])
-	return render(request,"404.html",{})
+# def export_block_error(request):
+# 	logs = return_referrer_logs('block_error')
+# 	filename = 'blocked.csv'
+# 	if logs:
+# 		import csv, ast
+# 		with open(filename,'wb') as f:
+# 			wtr = csv.writer(f)
+# 			columns = ["obj_creator_reported_id","object_creator_actual_id","object_attributes"]
+# 			wtr.writerow(columns) # writing the columns
+# 			for log in logs:
+# 				dictionary = ast.literal_eval(log)
+# 				reported_id = dictionary["obj_creator_reported_id"]
+# 				creator_id = dictionary["object_creator_actual_id"]
+# 				object_attributes = dictionary["object_attributes"]
+# 				to_write = [reported_id,creator_id,object_attributes]
+# 				wtr.writerows([to_write])
+# 	return render(request,"404.html",{})
 
 ########################################################Admin Banning#######################################################
 

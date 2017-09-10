@@ -1,5 +1,6 @@
 {% load thumbedge %}
 {% load photoedge %}
+{% load get_block_button %}
 {% load emoticons_tags %}
 	{% if notification %}
 		{% if type_of_object == '2' %}
@@ -38,8 +39,8 @@
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar" ><b>*</b></span>
 			    {% endif %}</a>
-			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
-			</span>
+			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
 				<p style="margin-top:.5em;"></p>
 				{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
@@ -209,7 +210,7 @@
 				{% if latest_comment.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}</a>
-		:&nbsp;<span class="cl clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
+		:&nbsp;<span class="cl clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
 		<p style="margin-top:.5em;"></p>
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
@@ -263,7 +264,17 @@
 			<img src="{{ parent.p|photoedge }}" alt="no pic" class="pht"></img>
 		{% endif %}
 		</a>&nbsp;&nbsp;
-		<br><span class="cl cgy">{{ parent.od }}</span><br>
+		<br><span class="cl cgy mrl">{{ parent.od }}</span>
+		<form method="POST" action="{% url 'fan' %}" style="display:inline">
+		{% csrf_token %}
+			<input type="hidden" name="oid" value="{{ parent.oi }}">
+		{% if fanned %}
+			<button name="sid_btn" class="btn bms bco mts mbs" style="background-image: url({{ static_url }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
+		{% else %}
+			<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ static_url }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
+		{% endif %}
+		</form>
+		<br>
 		<p style="margin-top:.5em;"></p>
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">

@@ -5824,9 +5824,9 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		link_obj, obj_type = Link.objects.filter(id=pk).values('submitter_id')[0], '2'
 		link_writer_actual_id = link_obj["submitter_id"]
 		actual_link_attributes = retrieve_object_data(pk, obj_type)
-		reported_link_attributes = request.POST.get("parent",None)
+		reported_link_attributes, from_loc = request.POST.get("parent",None), request.POST.get("loc",None)
 		error_logger(obj_creator_reported_id=link_writer_id, object_creator_actual_id=link_writer_actual_id, actual_object_attributes=actual_link_attributes,\
-			reported_link_attributes=reported_link_attributes)
+			reported_link_attributes=reported_link_attributes, from_loc=from_loc)
 	if was_limited:
 		context = {'pk': own_uname}
 		return render(request, 'penalty_publicreply.html', context)

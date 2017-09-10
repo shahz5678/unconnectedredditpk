@@ -22,10 +22,10 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
-def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes):
+def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\
-		'actual_object_attributes':actual_object_attributes, 'reported_link_attributes':reported_link_attributes})
+		'actual_object_attributes':actual_object_attributes, 'reported_link_attributes':reported_link_attributes,'where_from':from_loc})
 
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -64,6 +64,12 @@ def delete_salat_notification(notif_name, hash_name, viewer_id):
 	my_server.delete(hash_name)
 	my_server.delete(notif_name)
 
+def retrieve_object_data(obj_id,obj_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	obj_name = "o:"+obj_type+":"+str(obj_id)
+	return my_server.hgetall(obj_name)
+
+# populates the single notification on the screen
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "sn:"+str(viewer_id) # this contains the 'single notifications' of the user

@@ -5143,6 +5143,7 @@ class PublicGroupView(CreateView):
 		return context
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
+		user_id = self.request.user.id
 		try:
 			pk = self.request.session["public_uuid"]
 			which_group = Group.objects.get(unique=pk)#
@@ -5150,7 +5151,7 @@ class PublicGroupView(CreateView):
 			return redirect("profile", self.request.user.username )
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
-		elif GroupBanList.objects.filter(which_user_id=self.request.user.id, which_group_id=which_group.id).exists():
+		elif GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
 			return redirect("group_page")
 		else:
 			if self.request.user.userprofile.score < -25:#
@@ -5159,7 +5160,6 @@ class PublicGroupView(CreateView):
 				self.request.user.userprofile.save()
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user_id = self.request.user.id
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 			if f.image:
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
@@ -5693,24 +5693,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	user_id = request.user.id
 	username = request.user.username
-	photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
-	# error_logger(obj_creator_id=photo_owner_id, kind='popk',origin=origin, referrer=request.META.get('HTTP_REFERER',None),is_auth=request.user.is_authenticated(),own_id=request.user.id)
-	banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
-	if banned_by:
-		request.session["banned_by"] = banned_by
-		request.session["ban_time"] = ban_time
-		if origin == '1':
-			request.session["where_from"] = 'home'
-		elif origin == '0':
-			request.session["where_from"] = 'photos'
-		elif origin == '2':
-			request.session["where_from"] = 'best_photos'
-		else:
-			request.session["where_from"] = 'matka'
-		request.session["own_uname"] = username
-		request.session.modified = True
-		return redirect("ban_underway")
-	elif was_limited:
+	if was_limited:
 		try:
 			deduction = 3 * -1
 			request.user.userprofile.score = request.user.userprofile.score + deduction
@@ -5724,13 +5707,24 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		return render(request,"500.html",{})
 	else:
 		if request.method == 'POST':
-			photo = Photo.objects.get(id=pk)
-			if photo.owner_id != int(photo_owner_id):
-				request.session["where_from"] = 'matka'
+			photo = Photo.objects.filter(id=pk).values('owner_id','comment_count')[0]
+			photo_owner_id, photo_comment_count, origin = photo["owner_id"], photo["comment_count"], request.POST.get("origin",None)
+			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
+			if banned_by:
+				request.session["banned_by"] = banned_by
+				request.session["ban_time"] = ban_time
+				if origin == '1':
+					request.session["where_from"] = 'home'
+				elif origin == '0':
+					request.session["where_from"] = 'photos'
+				elif origin == '2':
+					request.session["where_from"] = 'best_photos'
+				else:
+					request.session["where_from"] = 'matka'
 				request.session["own_uname"] = username
 				request.session.modified = True
 				return redirect("ban_underway")
-			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
+			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				description = form.cleaned_data.get("photo_comment")
@@ -5745,7 +5739,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				else:
 					device = '3'
 				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
-				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+				photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo_id=pk, text=description,device=device)
 				update_cc_in_home_photo(pk)
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
@@ -5753,9 +5747,9 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				except:
 					url = None
 				citizen = is_mobile_verified(user_id)
-				add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
+				add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
-				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
+				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 					username, url, citizen)
 				if origin:
 					if origin == '0':
@@ -5772,7 +5766,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					elif origin == '2':
 						return redirect("best_photo")
 				else:
-					return redirect("unseen_activity", request.user.username)
+					return redirect("unseen_activity", username)
 			else:
 				if origin:
 					request.session["notif_form"] = form
@@ -5793,7 +5787,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				else:
 					notification = "np:"+str(request.user.id)+":0:"+str(pk)
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-					url = reverse_lazy("unseen_activity", args=[request.user.username])+addendum
+					url = reverse_lazy("unseen_activity", args=[username])+addendum
 					forms[pk] = form
 					request.session["forms"] = forms
 					request.session["oblist"] = oblist
@@ -5801,7 +5795,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					request.session.modified = True
 					return redirect(url)
 		else:
-			return redirect("unseen_activity", request.user.username)
+			return redirect("unseen_activity", username)
 
 #called when replying from unseen_activity
 @csrf_protect

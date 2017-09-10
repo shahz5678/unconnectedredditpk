@@ -86,7 +86,7 @@ def punish_gibberish_writers(dict_of_targets):
 
 def retrieve_object_type(origin):
 	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
-	'publicreply:reply':'2', 'history:link':'2'}
+	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0'}
 	try:
 		return PARENT_OBJECT_TYPE[origin]
 	except:

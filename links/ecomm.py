@@ -926,7 +926,7 @@ def process_city(request,*args,**kwargs):
 		return render(request,'404.html',{})
 
 def print_referrer_logs(request):
-	logs = return_referrer_logs()
+	logs = return_referrer_logs('referrer')
 	readable_logs = []
 	for log in logs:
 		readable_logs.append(ast.literal_eval(log))

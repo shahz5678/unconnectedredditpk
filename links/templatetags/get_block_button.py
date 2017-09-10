@@ -1,5 +1,5 @@
 from django import template
-from links.redis4 import log_button_error
+# from links.redis4 import log_button_error
 
 register = template.Library()
 

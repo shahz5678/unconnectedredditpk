@@ -334,14 +334,14 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	slug,image_url,priority,from_unseen):
 	if from_unseen:
 		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
 	else:
 		created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
 			lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
-			group_privacy=priv,slug=slug)
+			group_privacy=priv,slug=slug, lt_res_wid=sender_id)
 		if not created:
 			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
 	all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
 	all_group_member_ids.remove(sender_id)
 	if all_group_member_ids:
@@ -551,7 +551,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	except:
 		owner_url = None
 	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
-		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
 	if photo_owner_id == user_id:
 		is_seen = True
 		unseen_activity = True
@@ -606,11 +606,11 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 		owner_url = None
 	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
 		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,\
-		photourl=photo.image_file.url)
+		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,photourl=photo.image_file.url,\
+		lt_res_wid=user_id)
 	if not created:
 		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
 	if photo_owner_id == user_id:
 		is_seen = True
 		unseen_activity = True
@@ -747,7 +747,7 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 	reply_time,reply_poster_url,reply_poster_username,reply_desc,is_welc,reply_count,priority,from_unseen):
 	if from_unseen:
 		update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
 		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').\
 			values_list('submitted_by', flat=True)[:25]))
 		if link_submitter_id not in all_reply_ids:
@@ -768,10 +768,10 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 		created = create_object(object_id=link_id, object_type='2', object_owner_avurl=link_submitter_url,\
 			object_owner_id=link_submitter_id,object_owner_name=link_submitter_username,object_desc=link_desc,lt_res_time=reply_time,\
 			lt_res_avurl=reply_poster_url,lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,is_welc=is_welc,\
-			res_count=reply_count)
+			res_count=reply_count, lt_res_wid=sender_id)
 		if not created:
 			update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
 		if link_submitter_id == sender_id:
 			is_seen = True
 			unseen_activity = True

@@ -42,7 +42,7 @@ search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thum
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
 temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
-update_notification, create_notification, update_object, create_object, remove_group_notification, remove_from_photo_owner_activity, \
+update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
 delete_salat_notification, prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, get_replies_with_seen, \
 remove_group_object, retrieve_unseen_notifications, get_photo_fan_count, get_all_fans, is_fan, retrieve_object_data
@@ -2255,7 +2255,8 @@ class ClosedGroupCreateView(CreateView):
 			except:
 				url = None
 			create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
-				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique)
+				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
+				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f.id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
 			f.owner.userprofile.score = f.owner.userprofile.score - PRIVATE_GROUP_COST
 			f.owner.userprofile.save()
@@ -2294,7 +2295,8 @@ class OpenGroupCreateView(CreateView):
 				url = None
 			f_id = f.id
 			create_object(object_id=f_id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
-				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique)
+				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
+				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
 			public_group_vote_tasks.delay(group_id=f_id,priority=2)
 			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)

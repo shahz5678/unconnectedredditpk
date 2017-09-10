@@ -251,25 +251,25 @@ def create_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 		return True
 
 def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
-	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None):
+	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None, lt_res_wid=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
 	if object_type == '2':
-		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count}
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'lrwi':lt_res_wid}
 	elif object_type == '3':
 		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,\
-		'od':object_desc}
+		'od':object_desc, 'lrwi':lt_res_wid}
 	elif object_type == '0':
 		if just_vote is True:
 			mapping={'v':vote_score}
 		else:
 			mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count,\
-			'v':vote_score}
+			'v':vote_score, 'lrwi':lt_res_wid}
 	my_server.hmset(hash_name, mapping)
 
 def create_object(object_id=None, object_type=None, object_owner_avurl=None,object_owner_id=None,object_owner_name=None,\
 	object_desc=None,lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,is_welc=None,res_count=None,\
-	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None):
+	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None, lt_res_wid=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc
 	# print hash_name
@@ -280,16 +280,17 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 			#creating link object, with latest_response
 			mapping={'oi':object_id,'ot':object_type,'ooa':object_owner_avurl,'ooi':object_owner_id,'oon':object_owner_name,\
 			'od':object_desc,'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'w':is_welc,\
-			'r':res_count}
+			'r':res_count,'lrwi':lt_res_wid}
 		elif object_type == '3':
 			#creating group chat object, with latest_response
 			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug}
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug,\
+			'lrwi':lt_res_wid}
 		elif object_type == '0':
 			#creating photo object, with latest_response
 			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'od':object_desc, 'ooa':object_owner_avurl,\
 			'ooi':object_owner_id,'oon':object_owner_name,'v':vote_score, 'r':res_count,'lrti':lt_res_time, \
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text}
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'lrwi':lt_res_wid}
 		elif object_type == '4':
 			#creating salat_invite object
 			mapping = {'oi':object_id,'ot':object_type,'oon':object_owner_name,'ooa':object_owner_avurl,'od':object_desc,\

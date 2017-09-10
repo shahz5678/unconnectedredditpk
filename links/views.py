@@ -5690,25 +5690,18 @@ def unseen_group(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(rate='2/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
+	username = request.user.username
+	user_id = request.user.id
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-		except:
-			context = {'pk': '10'}
-			return render(request, 'penalty_commentpk.html', context)
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-100)
+		return render(request, 'penalty_unseen_comment.html', {'penalty':100,'uname':username})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
-		username = request.user.username
 		if request.method == 'POST':
-			user_id = request.user.id
 			photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
 			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
 			if banned_by:

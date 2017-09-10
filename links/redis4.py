@@ -23,19 +23,9 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
-def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
-		'object_id':object_id,'referrer':referrer,'time':time.time()})
-
-
 def error_logger(obj_creator_id, kind,origin, referrer,is_auth,own_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("ban_error",{'obj_creator_id':obj_creator_id,'kind':kind, 'origin':origin,'referrer':referrer, 'is_auth':is_auth,'own_id':own_id,'time':time.time()})
-
-def log_html_error(obj_list, forms, page, nickname, referrer):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
 
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -44,6 +34,16 @@ def log_referrer(referrer, loc, user_id):
 def return_referrer_logs():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("referrer",0,-1)
+
+# def log_html_error(obj_list, forms, page, nickname, referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
+
+# def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
+# 		'object_id':object_id,'referrer':referrer,'time':time.time()})
+
 
 # def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 # 	my_server = redis.Redis(connection_pool=POOL)

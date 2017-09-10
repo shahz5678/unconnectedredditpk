@@ -186,7 +186,7 @@ def change_ban_time(request):
 		else:
 			return redirect("banned_users_list")
 	else:
-		return render(request,"404.html",{})
+		return redirect("banned_users_list")
 
 
 def ban_leaderboard(request):

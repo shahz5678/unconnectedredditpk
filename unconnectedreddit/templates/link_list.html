@@ -112,7 +112,13 @@
 		<div class="mbs">
 		<a href="{% url 'profile' link.n %}#secton0">
 		{{ link.au|safe }}</a><a name="section{{ forloop.counter }}"></a>&nbsp;
-		    {% if not link.aw == '1' or not link.h|add:"0" > 7 %}
+		    
+		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
+				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
+				</div>
+
+
+		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
 		    <a href="{% url 'see_photo_pk' link.pi %}">
 		    {% if link.v|add:"0" < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
@@ -131,12 +137,10 @@
 		    {% endif %}
 		    </a>
 		    {% endif %}
-		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
-				</div>
+		    
 
 
-		{% if link.aw == '1' and link.h|add:"0" > 7 %}
+		{% if link.aw == '1' and link.h|add:"0" > 5 %}
 	    	{% if link.v|add:"0" < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}

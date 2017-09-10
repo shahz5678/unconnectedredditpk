@@ -5804,39 +5804,32 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 @ratelimit(rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
-	own_uname = request.user.username
-	try:
-		banned_by, ban_time = is_already_banned(own_id=request.user.id,target_id=link_writer_id, return_banner=True)
-		if banned_by:
-			request.session["banned_by"] = banned_by
-			request.session["ban_time"] = ban_time
-			if origin == '1':
-				request.session["where_from"] = 'home'
-			elif origin == '0':
-				request.session["where_from"] = 'photos'
-			elif origin == '2':
-				request.session["where_from"] = 'best_photos'
-			else:
-				request.session["where_from"] = 'matka'
-			request.session["own_uname"] = own_uname
-			request.session.modified = True
-			return redirect("ban_underway")
-	except:
-		link_obj, obj_type = Link.objects.filter(id=pk).values('submitter_id')[0], '2'
-		link_writer_actual_id = link_obj["submitter_id"]
-		actual_link_attributes = retrieve_object_data(pk, obj_type)
-		reported_link_attributes, from_loc = request.POST.get("parent",None), request.POST.get("loc",None)
-		error_logger(obj_creator_reported_id=link_writer_id, object_creator_actual_id=link_writer_actual_id, actual_object_attributes=actual_link_attributes,\
-			reported_link_attributes=reported_link_attributes, from_loc=from_loc, is_post_request=request.method == 'POST', referrer=request.META.get('HTTP_REFERER',None))
 	if was_limited:
 		context = {'pk': own_uname}
 		return render(request, 'penalty_publicreply.html', context)
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
+		own_uname = request.user.username
 		if request.method == 'POST':
-			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
+			own_id = request.user.id
+			link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
+			banned_by, ban_time = is_already_banned(own_id=own_id,target_id=link_writer_id, return_banner=True)
+			if banned_by:
+				request.session["banned_by"] = banned_by
+				request.session["ban_time"] = ban_time
+				if origin == '1':
+					request.session["where_from"] = 'home'
+				elif origin == '0':
+					request.session["where_from"] = 'photos'
+				elif origin == '2':
+					request.session["where_from"] = 'best_photos'
+				else:
+					request.session["where_from"] = 'matka'
+				request.session["own_uname"] = own_uname
+				request.session.modified = True
+				return redirect("ban_underway")
+			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 			form = UnseenActivityForm(request.POST,user=request.user)
 			if form.is_valid():
 				target = process_publicreply(request=request,link_id=pk,text=form.cleaned_data.get("home_comment"),origin=origin if origin else 'from_unseen',\
@@ -5877,7 +5870,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					elif origin == '2':
 						return redirect("best_photo")
 				else:
-					notification = "np:"+str(request.user.id)+":2:"+str(pk)
+					notification = "np:"+str(own_id)+":2:"+str(pk)
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
 					url = reverse_lazy("unseen_activity", args=[own_uname,])+addendum
 					forms[pk] = form

@@ -11,10 +11,11 @@ from django.utils import timezone
 from django.middleware import csrf
 from datetime import timedelta
 from operator import itemgetter
+from forms import PhotoReportForm
+from models import Photo, UserProfile
+from redis4 import return_referrer_logs
 from page_controls import ITEMS_PER_PAGE
 from views import get_price, get_addendum, get_page_obj
-from models import Photo, UserProfile
-from forms import PhotoReportForm
 from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
 from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
 from redis3 import set_inter_user_ban, is_mobile_verified, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
@@ -201,6 +202,35 @@ def ban_leaderboard(request):
 
 def user_ban_help(request):
 	return render(request,"user_ban_help.html",{})
+
+
+def export_ban_error(request):
+	logs = return_referrer_logs('ban_error')
+	filename = 'blocked.csv'
+	if logs:
+		import csv, ast
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = ["origin","kind","obj_creator_id","referrer","is_auth","time","own_id"]
+			wtr.writerow(columns) # writing the columns
+			for log in logs:
+				dictionary = ast.literal_eval(log)
+				origin = dictionary["origin"]
+				kind = dictionary["kind"]
+				if dictionary["obj_creator_id"] is not None:
+					obj_creator_id = dictionary["obj_creator_id"]
+				else:
+					obj_creator_id = -1
+				if dictionary["referrer"] is not None:
+					referrer = dictionary["referrer"].encode('utf-8')
+				else:
+					referrer = dictionary["referrer"]
+				is_auth = dictionary["is_auth"]
+				time = dictionary["time"]
+				own_id = dictionary["own_id"]
+				to_write = [kind,time,origin,is_auth,own_id,referrer,obj_creator_id]
+				wtr.writerows([to_write])
+	return render(request,"404.html",{})
 
 ########################################################Admin Banning#######################################################
 

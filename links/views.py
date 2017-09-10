@@ -1233,29 +1233,29 @@ def process_salat(request, offered=None, *args, **kwargs):
 @csrf_protect
 @ratelimit(field='user_id',ip=False,rate='10/28s')
 def home_reply(request,pk=None,*args,**kwargs):
-	if request.user_banned:
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'penalty':30}
+		UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+		return render(request, 'penalty_homejawab.html', context)
+	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
 		user_id = request.user.id
-		link_writer_id = request.POST.get("lwpk",None)
-		banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
-		if banned_by:
-			request.session["banned_by"] = banned_by
-			request.session["ban_time"] = ban_time
-			request.session["where_from"] = 'home'
-			request.session.modified = True
-			return redirect("ban_underway")
-		elif request.method == 'POST':
-			was_limited = getattr(request, 'limits', False)
-			if was_limited:
-				context = {'penalty':30}
-				UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
-				return render(request, 'penalty_homejawab.html', context)
+		lang = request.POST.get("lang",None)
+		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+		sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
+		if request.method == 'POST':
+			link_writer_id = request.POST.get("lwpk",None)
+			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
+			if banned_by:
+				request.session["banned_by"] = banned_by
+				request.session["ban_time"] = ban_time
+				request.session["where_from"] = 'home'
+				request.session.modified = True
+				return redirect("ban_underway")
 			else:
 				form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
-				lang = request.POST.get("lang",None)
-				sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
-				ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 				if form.is_valid():
 					target = process_publicreply(request=request,link_id=pk,text=form.cleaned_data.get("description"),link_writer_id=link_writer_id)
 					request.session['target_id'] = pk
@@ -1277,21 +1277,23 @@ def home_reply(request,pk=None,*args,**kwargs):
 				else:
 					photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
 					replyforms[pk] = form
-					request.session['replyforms'] = replyforms
-					request.session['list_of_dictionaries'] = list_of_dictionaries
-					request.session['page'] = page_obj
-					request.session['photo_links'] = photo_links
-					if lang == 'urdu' and sort_by_best:
-						url = reverse_lazy("ur_home_best",kwargs={'lang': lang})+addendum
-					elif sort_by_best:
-						url = reverse_lazy("home_best")+addendum
-					elif lang == 'urdu':
-						url = reverse_lazy("ur_home",kwargs={'lang': lang})+addendum
-					else:
-						url = reverse_lazy("home")+addendum
-					return redirect(url)
 		else:
-			return redirect("missing_page")
+			photo_links, list_of_dictionaries, page_obj, replyforms, addendum= home_list(request=request,items_per_page=ipp,lang=lang,notif=pk)
+			replyforms[pk] = PublicreplyMiniForm()
+		request.session['replyforms'] = replyforms
+		request.session['list_of_dictionaries'] = list_of_dictionaries
+		request.session['page'] = page_obj
+		request.session['photo_links'] = photo_links
+		request.session.modified = True
+		if lang == 'urdu' and sort_by_best:
+			url = reverse_lazy("ur_home_best",kwargs={'lang': lang})+addendum
+		elif sort_by_best:
+			url = reverse_lazy("home_best")+addendum
+		elif lang == 'urdu':
+			url = reverse_lazy("ur_home",kwargs={'lang': lang})+addendum
+		else:
+			url = reverse_lazy("home")+addendum
+		return redirect(url)
 
 def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None):
 	if request.user_banned:

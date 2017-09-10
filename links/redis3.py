@@ -515,7 +515,7 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 
 def get_global_ban_leaderboard():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("global_inter_user_ban_list",0,-1,withscores=True)
+	return my_server.zrange("global_inter_user_ban_list",0,50,withscores=True)
 
 ########################################################################################################
 # def populate_ad_list(which_list="photos"):

@@ -88,6 +88,7 @@ def retrieve_unseen_notifications(viewer_id):
 	else:
 		return []
 
+# populates the 'matka'
 def retrieve_unseen_activity(notifications):
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_dictionaries = []

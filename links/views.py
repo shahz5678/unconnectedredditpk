@@ -5934,8 +5934,6 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
 			if oblist:
 				last_visit_time = float(prev_unseen_activity_visit(request.user.id))-SEEN[False]
-				if not forms:
-					log_html_error(obj_list=oblist, forms=forms, page=page_obj, nickname = request.user.username, referrer=request.META.get('HTTP_REFERER',None))
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':request.user.username,\
 				'last_visit_time':last_visit_time}
 				return render(request, 'user_unseen_activity.html', context)

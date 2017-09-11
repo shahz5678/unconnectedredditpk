@@ -14,8 +14,9 @@ def wilson_score(upvotes, downvotes):
 # this returns a score based on recency and length of comments (the -1500000000 part will work till September 13, 2020 Pakistan Time)
 def recency_and_length_score(epoch_time, text):
 	# give text size 3X importance. The following will work till September 13, 2020 (Pakistan Time)
-	return int(epoch_time+(len(text)*3))-1500000000
-
+	# return int(epoch_time+(len(text)*3))-1500000000
+	length_of_text = len(text) if len(text) < 201 else 200
+	return int(epoch_time+(1.15**length_of_text))-1500000000
 
 # this returns a score based on diversity of comments, recency of comments, length of comments
 # store user_ids and epoch_time_of_posting+comment_length in a sorted set. Cardinality will give diversity of comments, aggregate zscore will give recency
@@ -35,3 +36,22 @@ def aggregate_post_score(list_of_scores, list_of_ids):
 			links_with_comment_score.append((link_id,0))
 		counter += 1
 	return links_with_comment_score
+
+
+# def set_rank(self): # it seems this is run ONLY when validating models is called (pressing ctrl S after changin code)
+# 		# Based on reddit ranking algo at http://amix.dk/blog/post/19588
+# 		epoch = datetime(1970, 1, 1).replace(tzinfo=None)
+# 		netvotes = self.visible_score # 'NONE' votes are messing up netvotes amount.
+# 		if netvotes == None:
+# 			netvotes = 0
+# 		order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
+# 		sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+# 		unaware_submission = self.upload_time.replace(tzinfo=None)
+# 		td = unaware_submission - epoch 
+# 		epoch_submission = td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000) #number of seconds from epoch till date of submission
+# 		secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
+# 		self.invisible_score = round(sign * order + secs / 45000, 8)
+# 		score = self.invisible_score
+# 		#self.save() # this persists the invisible_score in the database
+# 		return score
+# 		# the score doesn't decay as time goes by, but newer stories get a higher score over time. 

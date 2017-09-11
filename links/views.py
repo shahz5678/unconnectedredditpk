@@ -22,7 +22,7 @@ from namaz_timings import namaz_timings, streak_alive
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, populate_search_thumbs
+fan_recount, vote_tasks, populate_search_thumbs, home_photo_tasks
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -3544,10 +3544,12 @@ class CommentView(CreateView):
 			except:
 				url = None
 			citizen = is_mobile_verified(user.id)
-			add_photo_comment(photo_id=which_photo.id,photo_owner_id=which_photo.owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
+			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
-			photo_tasks.delay(user.id, which_photo.id, comment_time, photocomment.id, which_photo.comment_count, text, \
+			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url, citizen)
+			if user.id != photo_owner_id:
+				home_photo_tasks.delay(text=text, replier_id=user.id, time=comment_time, photo_id=pk)
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 			elif pk and origin and star_user_id:
@@ -3965,6 +3967,8 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 					request.user.username, url, citizen)
 				if origin == '3':
+					if user_id != photo_owner_id:
+						home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, link_id=link_id)
 					request.session["target_id"] = link_id
 					request.session.modified = True
 					if lang == 'urdu' and sort_by == 'best':
@@ -5747,6 +5751,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 					username, url, citizen)
+				if user_id != photo_owner_id:
+					home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_id=pk)
 				if origin:
 					if origin == '0':
 						return redirect("photo")

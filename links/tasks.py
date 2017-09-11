@@ -28,7 +28,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -331,7 +331,7 @@ def public_group_attendance_tasks(group_id,user_id):
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	slug,image_url,priority,from_unseen):
+	slug,image_url,priority,from_unseen, reply_id):
 	if from_unseen:
 		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
 			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
@@ -353,6 +353,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
 	set_prev_group_replies(sender_id,reply_text)
+	set_latest_group_reply(group_id,reply_id)
 	# set_prev_retort(sender_id,reply_text)
 
 @celery_app1.task(name='tasks.rank_home_posts')

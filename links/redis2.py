@@ -44,7 +44,7 @@ THREE_DAYS = 3*24*60*60
 HALF_LIFE = THREE_DAYS #used in ranking public groups
 
 # unseen_activity size limit (per user)
-UA_LIMIT = 110
+UA_LIMIT = 70
 UA_TO_TRIM = 20
 
 #######################Notifications#######################
@@ -366,17 +366,19 @@ def clean_expired_notifications(viewer_id):
 		my_server.zrem(unseen_activity_resorted,*notif_to_del)
 		#sanitize the sn: sorted set
 		my_server.zrem(single_notif,*notif_to_del)
+		# deleting actual notification objects
 		pipeline1 = my_server.pipeline()
 		for notif in notif_to_del:
-			#delete the notification hash
 			pipeline1.delete(notif)							
-		result1 = pipeline1.execute()
+		pipeline1.execute()
+		# decrementing subscriber counts
 		pipeline2 = my_server.pipeline()
 		for notif in notif_to_del:
 			object_hash="o:"+notif.split(":",2)[2]
 			num_of_subscribers = pipeline2.hincrby(object_hash,"n",amount=-1)
 		result2 = pipeline2.execute()
 		count = 0
+		# deleting objects with no subscriptions
 		pipeline3 = my_server.pipeline()
 		for result in result2:
 			if result < 1:

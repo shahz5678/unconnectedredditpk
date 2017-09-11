@@ -5607,6 +5607,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	if was_limited:
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
 		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
+	elif not check_group_member(pk, username):
+		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:

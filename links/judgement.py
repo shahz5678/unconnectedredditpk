@@ -92,7 +92,10 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			if second_decision == '0':
 				if can_unban:
 					credentials= get_ban_target_credentials(own_id=user_id, destroy=True)
-					target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+					try:
+						target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+					except:
+						return redirect("banned_users_list")
 					banned = False
 					if target_user_id and target_username:
 						banned = remove_single_ban(user_id, target_user_id)

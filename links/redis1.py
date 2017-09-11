@@ -32,6 +32,7 @@ hash_name = "lah:"+str(user_id)
 link_vote_cooldown = "lc:"+str(user_id)
 hash_name = "lk:"+str(link_pk) #lk is 'link'
 hash_name = "slk:"+str(parent_id) #slk is sorted 'set of link'
+my_server.setex("lgr:"+str(group_id),reply_id,ONE_WEEK) #latest group_reply_id is stored here
 hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
 hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
@@ -78,6 +79,7 @@ GRP_TGR = 700
 
 VOTE_LIMIT = 6
 
+TWO_WEEKS = 2*7*24*60*60 
 ONE_WEEK = 7*24*60*60
 FOUR_DAYS = 4*24*60*60
 THREE_DAYS = 3*24*60*60
@@ -1173,6 +1175,11 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
+
+def set_latest_group_reply(group_id, reply_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.setex("lgr:"+str(group_id),reply_id,TWO_WEEKS)
+
 def set_prev_group_replies(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)
 	prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
@@ -1479,6 +1486,11 @@ def remove_group_for_all_members(group_id, member_ids):
 		set_name = "ug:"+str(mem_id) #ug is user's groups
 		pipeline1.srem(set_name,group_id)
 	pipeline1.execute()
+
+def remove_latest_group_reply(group_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("lgr:"+str(group_id))
+
 
 def remove_all_group_members(group_id):
 	my_server = redis.Redis(connection_pool=POOL)

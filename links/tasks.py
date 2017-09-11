@@ -28,7 +28,7 @@ from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_vide
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply, get_photo_link_mapping
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -733,6 +733,14 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 		video.owner.userprofile.save()
 	video.save()
 	user.userprofile.save()	
+
+@celery_app1.task(name='tasks.home_photo_tasks')
+def home_photo_tasks(text, replier_id, time, link_id=None, photo_id=None):
+	if not link_id:
+		link_id = get_photo_link_mapping(photo_id)
+	if link_id:
+		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time)
+
 
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post):

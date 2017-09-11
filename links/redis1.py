@@ -1026,6 +1026,12 @@ def retrieve_home_links(link_id_list):
 		count += 1
 	return photo_links, list_of_dictionaries
 
+
+def get_photo_link_mapping(photo_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+	return my_server.hget(hash_name,'l')
+
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'

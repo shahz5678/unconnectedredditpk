@@ -61,7 +61,7 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -772,6 +772,7 @@ def del_public_group(request, pk=None, unique=None, private=None, *args, **kwarg
 		del_attendance(pk)
 		remove_group_object(pk)
 		remove_all_group_members(pk)
+		remove_latest_group_reply(pk)
 		remove_group_for_all_members(pk,member_ids)
 		GroupBanList.objects.filter(which_group_id=pk).delete()
 		GroupCaptain.objects.filter(which_group_id=pk).delete()
@@ -5217,7 +5218,7 @@ class PublicGroupView(CreateView):
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
 				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
 				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
-				image_url=image_url,priority='public_mehfil',from_unseen=False)
+				image_url=image_url,priority='public_mehfil',from_unseen=False, reply_id=reply.id)
 			# self.request.session["public_uuid"] = None
 			self.request.session.pop("public_uuid",None)
 			return redirect("public_group", slug=pk)
@@ -5446,7 +5447,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
 				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
 				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
-				from_unseen=False)
+				from_unseen=False, reply_id=reply.id)
 			self.request.session['unique_id'] = unique
 			self.request.session.modified = True
 			return redirect("private_group_reply")#, reply.which_group.unique)
@@ -5641,7 +5642,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
 					topic=grp["topic"],reply_time=reply_time,poster_url=url, poster_username=username,\
 					reply_text=description,priv=grp["private"], slug=grp["unique"],image_url=image_url,\
-					priority=priority,from_unseen=True)
+					priority=priority,from_unseen=True, reply_id=groupreply.id)
 				if origin:
 					if origin == '0':
 						return redirect("photo")

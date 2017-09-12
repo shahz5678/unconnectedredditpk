@@ -1509,14 +1509,41 @@ def retrieve_erroneous_passwords():
 			except:
 				pass
 
+#############################################################################################################################
+#####################################################Optimizely Experiment###################################################
 
-def set_user_type(var_value, user_id):
+def get_user_type(user_id, best=False, algo=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "ob:"+str(user_id)
-	my_server.setex(key_name,var_value,ONE_WEEK)
+	if my_server.exists(key_name):
+		if best and algo:
+			 data = my_server.hgetall(key_name)
+			 if data:
+			 	return data["best"], data["algo"]
+			 else:
+			 	return None
+		elif best:
+			return my_server.hget(key_name, 'best')
+		elif algo:
+			return my_server.hget(key_name, 'algo')
+	else:
+		return None
 
 
-######################################################
+def set_user_type(var_value, user_id, best, algo):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "ob:"+str(user_id)
+	mapping = {'best':best,'algo':algo,'var':var_value}
+	my_server.hmset(key_name,mapping)
+	my_server.expire(key_name,ONE_WEEK)
+
+#############################################################################################################################
+#############################################################################################################################
+
+
+
+
+###########################################################
 
 def return_all_ad_data():
 	my_server = redis.Redis(connection_pool=POOL)

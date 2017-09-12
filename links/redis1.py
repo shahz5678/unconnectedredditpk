@@ -31,7 +31,7 @@ sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this s
 hash_name = "lah:"+str(user_id)
 link_vote_cooldown = "lc:"+str(user_id)
 hash_name = "lk:"+str(link_pk) #lk is 'link'
-hash_name = "slk:"+str(parent_id) #slk is sorted 'set of link'
+hash_name = "rlk:"+str(parent_id) #rlk is ranked 'set of links'
 my_server.setex("lgr:"+str(group_id),reply_id,ONE_WEEK) #latest group_reply_id is stored here
 hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
@@ -1001,7 +1001,7 @@ def retrieve_all_home_links_with_scores(score_type,urdu_only=False):
 	if score_type == 'votes':
 		prefix = 'v:'
 	elif score_type == 'comments':
-		prefix = 'slk:'
+		prefix = 'rlk:'
 	pipeline1 = my_server.pipeline()
 	for link_id in all_link_ids:
 		pipeline1.zrange(prefix+link_id,0,-1,withscores=True)
@@ -1064,12 +1064,12 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		return 0
 
 # maintains a sorted set containing rate-able attributes for any given home_link ("lk:"+str(link_pk))
-def add_home_rating_ingredients(parent_id, text, replier_id, time):
+def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	parent_id = str(parent_id)
 	hash_name = "lk:"+parent_id #lk is 'link'
 	if my_server.exists(hash_name):
-		my_server.zadd("slk:"+parent_id,replier_id,recency_and_length_score(epoch_time=time,text=text))
+		my_server.zadd("rlk:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
@@ -1370,7 +1370,7 @@ def delete_queue():
 	pipeline1 = my_server.pipeline()
 	for link_id in hashes:
 		pipeline1.delete("lk:"+link_id)
-		pipeline1.delete("slk:"+link_id)
+		pipeline1.delete("rlk:"+link_id)
 		pipeline1.delete("v:"+link_id)
 	pipeline1.execute()
 	my_server.delete("deletionqueue:200")

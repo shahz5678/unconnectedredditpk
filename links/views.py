@@ -39,7 +39,7 @@ from salutations import SALUTATIONS
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################
 # from redis3 import set_user_type, get_user_type
-# from redis1 import all_best_posts_1, all_best_posts_2
+from redis1 import all_best_posts_2#, all_best_posts_1
 # from redis4 import save_user_choice
 ###############################################################################################################################
 ###############################################################################################################################
@@ -546,14 +546,6 @@ class NotifHelpView(FormView):
 			#context["unique"] = link_pk
 		return context
 
-# class RegisterWalkthroughView(FormView):
-# 	form_class = RegisterWalkthroughForm
-# 	template_name = "register_walkthrough.html"
-
-# def login_page(request, *args, **kwargs):
-# 	form = LoginForm()
-# 	context = {'form': form}
-# 	return render(request, 'registration/login.html', context)
 
 class LoginWalkthroughView(FormView):	
 	form_class = LoginWalkthroughForm
@@ -1289,7 +1281,7 @@ def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None)
 			# 	obj_list = all_best_posts_2()
 			######################################################################################################
 			######################################################################################################
-			obj_list = all_best_posts()
+			obj_list = all_best_posts_2()
 		elif lang=='urdu':
 			obj_list = all_filtered_urdu_posts()
 		else:

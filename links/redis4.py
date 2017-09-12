@@ -23,6 +23,11 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
+
+def save_user_choice(user_id, choice):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
+
 def log_referrer(referrer, loc, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})

@@ -1,0 +1,21 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk</h1>
+<div class="signup mbs">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+<span class="cxl" style="color:white;">Aap ne <b>chat</b> karni hai,<br>ya <b>fotos</b> dekhni hain?</span><br>
+<span class="cgy"></span>
+	<form method="POST" action="{% url 'first_time_choice' best=show_best algo=algo%}" class="mts mbs">
+	   {% csrf_token %}
+	   <input type="hidden" name="best" value="{{ show_best }}">
+	   <input type="hidden" name="algo" value="{{ algo }}">
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" class="bl cl mrs mtl mbl" value="1"><b>Chat</b></button>
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;" class="bl cl mls mbl" value="2"><b>Fotos</b></button>
+	</form>
+
+</div>
+</div>
+<br><br>
+</div>
+{% endblock %}

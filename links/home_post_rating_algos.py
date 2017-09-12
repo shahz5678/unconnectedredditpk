@@ -63,7 +63,6 @@ def aggregate_post_score(list_of_scores, list_of_ids):
 		if list_of_scores[counter]:
 			diversity_score_of_post = len(list_of_scores[counter]) #i.e. how many different users commented on the post
 			###### Taking Log to squeeze scores (normalize) into a comparable range ######
-			print diversity_score_of_post
 			if diversity_score_of_post == 1:
 				pass
 			else:

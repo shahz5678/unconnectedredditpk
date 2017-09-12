@@ -992,16 +992,22 @@ def add_video(video_id):
 #####################Link objects#####################
 
 
-def retrieve_all_home_links_with_scores(score_type,urdu_only=False):
+def retrieve_all_home_links_with_scores(score_type,urdu_only=False,exclude_photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if urdu_only:
 		all_link_ids = my_server.lrange("filteredurduposts:1000", 0, -1)
 	else:
 		all_link_ids = my_server.lrange("filteredposts:1000", 0, -1)
 	if score_type == 'votes':
-		prefix = 'v:'
+		if exclude_photos:
+			prefix = 'v:'
+		else:
+			prefix = 'v:'
 	elif score_type == 'comments':
-		prefix = 'rlk:'
+		if exclude_photos:
+			prefix = 'rlk1:'
+		else:
+			prefix = 'rlk:'
 	pipeline1 = my_server.pipeline()
 	for link_id in all_link_ids:
 		pipeline1.zrange(prefix+link_id,0,-1,withscores=True)
@@ -1321,15 +1327,23 @@ def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("unfilteredposts:1000", 0, -1)
 
-def set_best_posts_on_home(link_ids,urdu_only=False):
+def set_best_posts_on_home(link_ids,urdu_only=False,exclude_photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	if urdu_only:
-		pipeline1.delete("besturduposts")
-		pipeline1.lpush("besturduposts",*link_ids)
+	if exclude_photos:
+		if urdu_only:
+			pipeline1.delete("besturduposts")
+			pipeline1.lpush("besturduposts",*link_ids)
+		else:
+			pipeline1.delete("bestposts_2")
+			pipeline1.lpush("bestposts_2",*link_ids)
 	else:
-		pipeline1.delete("bestposts")
-		pipeline1.lpush("bestposts",*link_ids)
+		if urdu_only:
+			pipeline1.delete("besturduposts")
+			pipeline1.lpush("besturduposts",*link_ids)
+		else:
+			pipeline1.delete("bestposts")
+			pipeline1.lpush("bestposts",*link_ids)
 	pipeline1.execute()
 		
 
@@ -1344,13 +1358,13 @@ def all_best_posts():
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################
 
-# def all_best_posts_1():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	return my_server.lrange("bestposts", 0, -1)
+def all_best_posts_1():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("bestposts", 0, -1)
 
-# def all_best_posts_2():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	return my_server.lrange("bestposts_2", 0, -1)
+def all_best_posts_2():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("bestposts_2", 0, -1)
 
 ###############################################################################################################################
 ###############################################################################################################################

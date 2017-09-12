@@ -196,7 +196,6 @@ def unauth_home_new(request,*args,**kwargs):
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
 		#########################################################################
-		# variation = config_manager.get_obj().activate('reg_with_i8ln', guest_id)
 		# print guest_id
 		# print variation
 		# if variation == 'with_loc':
@@ -232,14 +231,12 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			###############################################################
-			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
-			# request.session.pop("guest_id", None)
-			###############################################################
-			# mp.track(user.id,'sign_ups')
-			# mp.alias(request.user.id, unreg_id)
-			###############################################################
-			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
+			# return redirect("first_time_link")
+			####################################################################################
+			####################################################################################
+			return redirect("new_user_gateway")
+			####################################################################################
+			####################################################################################
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
 			username = slug1.decode("hex")

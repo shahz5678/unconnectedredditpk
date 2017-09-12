@@ -40,7 +40,7 @@ from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_uploa
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
-temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, log_erroneous_passwords
+temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, set_user_type#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -261,7 +261,7 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	except:
 		owner_url = None
 	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
-	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False)
+	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,\
 			link_submitter_id=parent.submitter_id,link_submitter_username=parent_username,\
 			link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
@@ -1482,6 +1482,37 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		return render(request, 'link_list.html', context)
 	else:
 		return redirect("unauth_home_new")
+
+
+# def new_user_gateway(request):
+# 	###############################################################
+# 	user_id = request.user.id
+# 	variation = config_manager.get_obj().activate('landing_page_exp', user_id)
+# 	set_user_type(variation, user_id)
+# 	# config_manager.get_obj().track('clicked_detail', request.user.id)
+# 	if variation == 'var_1':
+# 	  # the status quo
+# 	  return redirect("first_time_link")
+# 	elif variation == 'var_2':
+# 	  # give users a choice of what to do
+# 	  return redirect("first_time_choice")
+# 	elif variation == 'var_3':
+# 	  # give users a choice of what to do (with sorted landing page)
+# 	  return redirect("first_time_choice",best=True)
+# 	elif variation == 'var_4':
+# 	  # show users best feed with photos first
+# 	  return redirect("first_time_best",algo_choice='1')
+# 	elif variation == 'var_5':
+# 	  # show users best feed with text first
+# 	  return redirect("first_time_best",algo_choice='2')
+# 	else:
+# 	  # the status quo
+# 	  return redirect("first_time_link")
+# 	###############################################################
+
+
+# def first_time_choice(request, best=False):
+# 	return render(request,"first_time_choice.html",{'show_best':best})
 
 
 @cache_page(10)
@@ -3549,7 +3580,7 @@ class CommentView(CreateView):
 			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url, citizen)
 			if user.id != photo_owner_id:
-				home_photo_tasks.delay(text=text, replier_id=user.id, time=comment_time, photo_id=pk)
+				home_photo_tasks.delay(text=text, replier_id=user.id, time=comment_time, photo_owner_id=photo_owner_id,photo_id=pk)
 			if pk and origin and link_id:
 				return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 			elif pk and origin and star_user_id:
@@ -3968,7 +3999,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					request.user.username, url, citizen)
 				if origin == '3':
 					if user_id != photo_owner_id:
-						home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, link_id=link_id)
+						home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id, link_id=link_id)
 					request.session["target_id"] = link_id
 					request.session.modified = True
 					if lang == 'urdu' and sort_by == 'best':
@@ -5754,7 +5785,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 					username, url, citizen)
 				if user_id != photo_owner_id:
-					home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_id=pk)
+					home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id,photo_id=pk)
 				if origin:
 					if origin == '0':
 						return redirect("photo")

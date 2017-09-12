@@ -1070,6 +1070,12 @@ def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_i
 	hash_name = "lk:"+parent_id #lk is 'link'
 	if my_server.exists(hash_name):
 		my_server.zadd("rlk:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
+		############################################################################################################################
+		#################################################Optimizely Experiment######################################################
+		my_server.zadd("rlk1:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
+		############################################################################################################################
+		############################################################################################################################
+
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
@@ -1333,6 +1339,20 @@ def all_best_urdu_posts():
 def all_best_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("bestposts", 0, -1)
+
+###############################################################################################################################
+#########################################################Optimizely Exp########################################################
+
+# def all_best_posts_1():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts", 0, -1)
+
+# def all_best_posts_2():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts_2", 0, -1)
+
+###############################################################################################################################
+###############################################################################################################################
 
 def all_filtered_posts():
 	my_server = redis.Redis(connection_pool=POOL)

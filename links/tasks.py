@@ -735,21 +735,21 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	user.userprofile.save()	
 
 @celery_app1.task(name='tasks.home_photo_tasks')
-def home_photo_tasks(text, replier_id, time, link_id=None, photo_id=None):
+def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo_id=None):
 	if not link_id:
 		link_id = get_photo_link_mapping(photo_id)
 	if link_id:
-		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time)
+		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id)
 
 
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post):
+def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 	set_prev_replies(user_id,description)
 	if is_someone_elses_post:
 		# ensuring self commenting doesn't add anything to a post's rating
-		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime)
+		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

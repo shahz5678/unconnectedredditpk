@@ -359,14 +359,13 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
 	order_home_posts2(urdu_only=False)
+	# order_home_posts1(urdu_only=False)
 	order_home_posts(urdu_only=True)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	previous_best_photo_id = get_previous_best_photo()
-	# print "previous best_photo: %s" % previous_best_photo_id
 	current_best_photo_id = get_best_photo()
-	# print "current best_photo: %s" % current_best_photo_id
 	if current_best_photo_id is not None:
 		if previous_best_photo_id is not None:
 			if previous_best_photo_id == current_best_photo_id:
@@ -739,7 +738,7 @@ def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo
 	if not link_id:
 		link_id = get_photo_link_mapping(photo_id)
 	if link_id:
-		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id)
+		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id, photo_post=True)
 
 
 @celery_app1.task(name='tasks.publicreply_tasks')
@@ -749,7 +748,7 @@ def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_som
 	set_prev_replies(user_id,description)
 	if is_someone_elses_post:
 		# ensuring self commenting doesn't add anything to a post's rating
-		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id)
+		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

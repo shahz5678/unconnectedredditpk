@@ -545,7 +545,9 @@ def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
 		return None
 	my_server.zadd(sorted_set,feedback, ad_id)
 
-
+def get_global_verified_users():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange('ecomm_verified_users',0,-1)
 
 def get_SMS_setting(ad_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1506,6 +1508,13 @@ def retrieve_erroneous_passwords():
 				wtr.writerows([to_write])
 			except:
 				pass
+
+
+def set_user_type(var_value, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "ob:"+str(user_id)
+	my_server.setex(key_name,var_value,ONE_WEEK)
+
 
 ######################################################
 

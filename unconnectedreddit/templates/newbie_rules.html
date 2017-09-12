@@ -1,0 +1,31 @@
+{% if location == 'home' %}
+<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+<div style="text-align: center;">
+<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
+</div>
+	<div class="mrs mls mts mbs">
+	<div class="cl">
+	Neechay kisi patti mein kuch bhi likh ke <b>"jawab do"</b> dabao!<br>
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+	<div class="mt">
+	Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.c2{% endemoticons %}
+	</div>
+	</div>
+</div>
+{% elif location == 'best_photos' %}
+<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+<div style="text-align: center;">
+<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
+</div>
+	<div class="mrs mls mts mbs">
+	<div class="cl">
+	Neechay kisi patti mein kuch bhi likh ke <b>"tabsra kro"</b> dabao!<br>
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+	<div class="mt">
+	Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.b7{% endemoticons %}
+	</div>
+	</div>
+</div>
+{% endif %}

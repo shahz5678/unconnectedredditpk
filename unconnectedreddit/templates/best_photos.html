@@ -13,24 +13,34 @@
 
 
 <div class="margin">
+
+{% if newbie_flag %}
+	{% load get_newbie_rules %}
+	<div class="mbs mts">
+	{% newbie_rules 'best_photos' STATIC_URL %}
+	</div>
+	<br>
+{% else %}
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	
 	{% mobile_verification_bar user.id csrf score %}
 
 	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False %}
-	
-{% if score >= threshold and not banned %}
-<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bxl bco mbl mtl"><b>New Photo Charhao</b></button></a>
-</p>
-{% elif banned %}
-{% elif first_time_user %}
-{% else %}
-<span class="co cm">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhao</b></button></a></span><br>
-{% endif %}
-	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<span class="cs cb"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Latest photos&nbsp;&nbsp;</a><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
-	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
 
+
+	{% if score >= threshold and not banned %}
+	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bxl bco mbl mtl"><b>New Photo Charhao</b></button></a>
+	</p>
+	{% elif banned %}
+	{% elif first_time_user %}
+	{% else %}
+	<span class="co cm">Photo charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhao</b></button></a></span><br>
+	{% endif %}
+		<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
+		<span class="cs cb"><b>&nbsp;&nbsp;Best photos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Latest photos&nbsp;&nbsp;</a><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
+		<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
+
+{% endif %}	
 
 {% for photo in object_list %}
 

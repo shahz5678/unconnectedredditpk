@@ -1064,17 +1064,18 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		return 0
 
 # maintains a sorted set containing rate-able attributes for any given home_link ("lk:"+str(link_pk))
-def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_id):
+def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_id, photo_post):
 	my_server = redis.Redis(connection_pool=POOL)
 	parent_id = str(parent_id)
 	hash_name = "lk:"+parent_id #lk is 'link'
 	if my_server.exists(hash_name):
 		my_server.zadd("rlk:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
-		############################################################################################################################
-		#################################################Optimizely Experiment######################################################
-		my_server.zadd("rlk1:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
-		############################################################################################################################
-		############################################################################################################################
+		##################################################################################################################################
+		#####################################################Optimizely Experiment########################################################
+		if not photo_post:																												 #
+			my_server.zadd("rlk1:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))#
+		##################################################################################################################################
+		##################################################################################################################################
 
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \

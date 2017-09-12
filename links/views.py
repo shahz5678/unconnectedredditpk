@@ -36,11 +36,18 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from salutations import SALUTATIONS
+###############################################################################################################################
+#########################################################Optimizely Exp########################################################
+# from redis3 import set_user_type, get_user_type
+# from redis1 import all_best_posts_1, all_best_posts_2
+# from redis4 import save_user_choice
+###############################################################################################################################
+###############################################################################################################################
 from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
 get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
-temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, set_user_type#, log_erroneous_passwords
+temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -637,42 +644,6 @@ class LogoutPenaltyView(FormView):
 	form_class = LogoutPenaltyForm
 	template_name = "logout_penalty.html"
 
-# class VoteOrProfView(FormView):
-# 	form_class = VoteOrProfForm
-# 	template_name = "vote_or_profile.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(VoteOrProfView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			try:
-# 				voter = User.objects.get(username=self.kwargs["slug"])
-# 				vote = Vote.objects.get(link_id=self.kwargs["pk"], voter=voter)
-# 			except:
-# 				# couldn't get vote
-# 				context["self"] = -1
-# 				context["subject"] = None
-# 				context["vote_id"] = None
-# 				context["link_submitter_id"] = None
-# 				return context
-# 			if self.request.user == voter:
-# 				#if person looking at own vote
-# 				context["self"] = 1
-# 				context["subject"] = self.request.user
-# 				context["vote_id"] = vote.id
-# 				context["link_submitter_id"] = self.kwargs["id"]
-# 			elif self.request.user.id == self.kwargs["id"]:
-# 				#if person is the link writer too
-# 				context["self"] = 2
-# 				context["subject"] = voter
-# 				context["vote_id"] = vote.id
-# 				context["link_submitter_id"] = self.kwargs["id"]
-# 			else:
-# 				#if person is nor the link writer, or the voter
-# 				context["self"] = 0
-# 				context["subject"] = voter
-# 				context["vote_id"] = vote.id
-# 				context["link_submitter_id"] = self.kwargs["id"]
-# 		return context
 
 def faces_pages(request, *args, **kwargs):
 	form = FacesPagesForm()
@@ -1246,6 +1217,11 @@ def home_reply(request,pk=None,*args,**kwargs):
 		lang = request.POST.get("lang",None)
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 		sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
+		######################################################################################################
+		######################################################################################################
+		# sort_by_best = True if get_user_type(user_id,best=True) else False
+		######################################################################################################
+		######################################################################################################
 		if request.method == 'POST':
 			link_writer_id = request.POST.get("lwpk",None)
 			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
@@ -1303,6 +1279,16 @@ def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None)
 		if sort_by_best and lang =='urdu':
 			obj_list = all_best_urdu_posts()
 		elif sort_by_best:
+			# determine which algo
+			######################################################################################################
+			######################################################################################################
+			# algo = get_user_type(request.user.id, algo=True)
+			# if algo == '1':
+			# 	obj_list = all_best_posts_1()
+			# elif algo == '2':
+			# 	obj_list = all_best_posts_2()
+			######################################################################################################
+			######################################################################################################
 			obj_list = all_best_posts()
 		elif lang=='urdu':
 			obj_list = all_filtered_urdu_posts()
@@ -1333,6 +1319,11 @@ def home_location(request, lang=None, *args, **kwargs):
 	url_ =request.resolver_match.url_name
 	ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 	sort_by_best = True if (url_ == 'home_loc_best' or url_== 'home_loc_ur_best') else False
+	######################################################################################################
+	######################################################################################################
+	# sort_by_best = True if get_user_type(request.user.id,best=True) else False
+	######################################################################################################
+	######################################################################################################
 	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request, items_per_page=ipp, lang=lang, notif=link_id,\
 		sort_by_best=sort_by_best)
 	request.session['photo_links'] = photo_links
@@ -1357,6 +1348,11 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		url_ =request.resolver_match.url_name
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 		sort_by_best = True if (url_ == 'home_best' or url_== 'ur_home_best') else False
+		######################################################################################################
+		######################################################################################################
+		# sort_by_best = True if get_user_type(user.id,best=True) else False
+		######################################################################################################
+		######################################################################################################
 		context["lang"] = lang
 		context["sort_by"] = 'best' if sort_by_best else 'recent'
 		context["checked"] = FEMALES
@@ -1484,35 +1480,67 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		return redirect("unauth_home_new")
 
 
+##############################################################################################################################
+##############################################################################################################################
 # def new_user_gateway(request):
-# 	###############################################################
 # 	user_id = request.user.id
-# 	variation = config_manager.get_obj().activate('landing_page_exp', user_id)
-# 	set_user_type(variation, user_id)
+# 	# variation = config_manager.get_obj().activate('landing_page_exp', user_id)
 # 	# config_manager.get_obj().track('clicked_detail', request.user.id)
+# 	choices = ['var_1','var_2','var_3','var_4','var_5']
+# 	variation = random.choice(choices)
 # 	if variation == 'var_1':
-# 	  # the status quo
+# 	  # how things are currently
+# 	  set_user_type(variation, user_id, best=False, algo_choice=None)
 # 	  return redirect("first_time_link")
 # 	elif variation == 'var_2':
 # 	  # give users a choice of what to do
+# 	  set_user_type(variation, user_id, best=False, algo_choice=None)
 # 	  return redirect("first_time_choice")
 # 	elif variation == 'var_3':
-# 	  # give users a choice of what to do (with sorted landing page)
+# 	  # show users best feed (photo heavy) by default
+# 	  set_user_type(variation, user_id, best=True, algo_choice=None)
 # 	  return redirect("first_time_choice",best=True)
 # 	elif variation == 'var_4':
-# 	  # show users best feed with photos first
+# 	  # show users best feed (text heavy) by default
+# 	  set_user_type(variation, user_id, best=True, algo_choice='1')
 # 	  return redirect("first_time_best",algo_choice='1')
 # 	elif variation == 'var_5':
-# 	  # show users best feed with text first
-# 	  return redirect("first_time_best",algo_choice='2')
+# 	  # give users a choice of what to do (home has text heavy 'best' feed). No use showing photo heavy best feed here. The user opted for chatting. Why show him photos?
+# 	  set_user_type(variation, user_id, best=True, algo_choice='2')
+# 	  return redirect("first_time_choice",algo_choice='2')
 # 	else:
-# 	  # the status quo
+# 	  # how things are currently
+# 	  set_user_type(variation, user_id, best=False, algo_choice=None)
 # 	  return redirect("first_time_link")
-# 	###############################################################
 
+# def first_time_best(request,algo_choice, *args, **kwargs):
+# 	return redirect("home_best")
 
-# def first_time_choice(request, best=False):
-# 	return render(request,"first_time_choice.html",{'show_best':best})
+# def first_time_choice(request, best=False, *args, **kwargs):
+# 	if request.method == 'POST':
+# 		user_id = request.user.id
+# 		choice = request.POST.get("choice",None)
+# 		save_user_choice(user_id, choice)
+# 		if choice == '1':
+# 			# this user wants to chat
+# 			best = get_user_type(user_id, best=True)
+# 			#######################
+# 			print best, type(best)#
+# 			#######################
+# 			if best:
+# 				# handling 'var_5'
+# 				return redirect("home_best")
+# 			else:
+# 				# handling 'var_2'
+# 				return redirect("home")
+# 		elif choice == '2':
+# 			# this user wants to see fotos, handling 'var_2'
+# 			return redirect("best_photo")
+# 	else:
+# 		return render(request,"first_time_choice.html",{'show_best':best})
+
+##############################################################################################################################
+##############################################################################################################################
 
 
 @cache_page(10)
@@ -3997,9 +4025,9 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 					request.user.username, url, citizen)
+				if user_id != photo_owner_id:
+					home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id,photo_id=pk, link_id=link_id)
 				if origin == '3':
-					if user_id != photo_owner_id:
-						home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id, link_id=link_id)
 					request.session["target_id"] = link_id
 					request.session.modified = True
 					if lang == 'urdu' and sort_by == 'best':

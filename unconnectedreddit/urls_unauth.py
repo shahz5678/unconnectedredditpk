@@ -4,10 +4,22 @@ from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_
 set_forgetters_password
 from links.number_verification import verify_forgetter_number
 
+############################Optimizely Experiment############################
+from django.contrib.auth.decorators import login_required as auth           #
+from links.views import first_time_choice, new_user_gateway, first_time_best#
+#############################################################################
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
 	
+	########################################Optimizely####################################################
+	url(r'^new_user_gateway/$', auth(new_user_gateway), name='new_user_gateway'),					     #
+	url(r'^new_user_choice/(?P<best>[\w.@+-]+)/(?P<algo>[\w.@+-]+)/$', auth(first_time_choice), name='first_time_choice'),   #
+	url(r'^first_time_best/(?P<algo>[\w.@+-]+)/$', auth(first_time_best), name='first_time_best'),#
+	######################################################################################################
+
+
 	url(r'^goog_login/$', log_google_in, {"template_name": "login_backdoor.html"}, "login_backdoor"),
 
 	url(r'^forgot_password/$',forgot_password, name="forgot_password"),

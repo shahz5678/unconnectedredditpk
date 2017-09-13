@@ -20,7 +20,7 @@ get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphane
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
 get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
-get_buyer_snapshot#, populate_ad_list, retrieve_spam_writers
+get_buyer_snapshot, get_item_name#, populate_ad_list, retrieve_spam_writers
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -355,11 +355,11 @@ def show_seller_number(request,*args,**kwargs):
 			if is_unique_click:
 				# enqueue sms
 				if is_expired:
-					enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
+					enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click_plus_expiry', buyer_number=buyer_number)
 				else:
 					send_sms = get_SMS_setting(str(float(ad_id)))
 					if send_sms == '1':
-						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+						enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click', buyer_number=buyer_number)
 			############################################################################################################
 			#config_manager.get_obj().track('clicked_contact', user_id)
 			############################################################################################################
@@ -381,11 +381,11 @@ def show_seller_number(request,*args,**kwargs):
 				if is_unique_click:
 					# enqueue sms
 					if is_expired:
-						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
+						enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click_plus_expiry', buyer_number=buyer_number)
 					else:
 						send_sms = get_SMS_setting(str(float(ad_id)))
 						if send_sms == '1':
-							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+							enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click', buyer_number=buyer_number)
 				############################################################################################################
 				#config_manager.get_obj().track('clicked_contact', user_id)
 				############################################################################################################
@@ -609,8 +609,10 @@ def process_ad_approval(request,*args,**kwargs):
 			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_clicks=expiration_clicks, closed_by=request.user.username, closer_id=str(request.user.id))
 		if mobile_number:
 			# enqueue sms
+			status = 'forward'
+			enqueue_sms.delay(mobile_number=mobile_number, ad_id=int(float(ad_id)), status=status, item_name=get_item_name(ad_id))
 			status = 'approved'
-			enqueue_sms.delay(mobile_number, int(float(ad_id)), status)
+			enqueue_sms.delay(mobile_number=mobile_number, ad_id=int(float(ad_id)), status=status)
 		else:
 			return render(request,"500.html",{})
 		return redirect("approve_classified", only_locked)
@@ -935,7 +937,6 @@ def print_referrer_logs(request):
 	with open(filename,'wb') as f:
 		wtr = csv.writer(f)
 		for log in readable_logs:
-			print log
 			user_id = log["user_id"] if "user_id" in log else None
 			origin = log["origin"]
 			referrer = log["referrer"]

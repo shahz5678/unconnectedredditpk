@@ -94,7 +94,7 @@ class SignInForm(forms.Form):
 		elif result == '0':
 			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
 		elif result == '1':
-			raise forms.ValidationError('"%s" naam mein harf ghalat hain. Shayed chota harf bara likh diya hai, ya bara harf chota' % username)
+			raise forms.ValidationError('"%s" naam mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % username)
 		if username and password:
 		    user = authenticate(username=username,password=password)
 		    if user is None:

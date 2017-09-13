@@ -214,8 +214,8 @@ def detail_click_logger(ad_id, clicker_id):
 
 
 @celery_app1.task(name='tasks.enqueue_sms')
-def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):
-	process_sms(mobile_number,ad_id,status, buyer_number)
+def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
+	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):

@@ -1179,8 +1179,8 @@ def can_vote_on_link(user_id):
 	current_spree = my_server.get(votes_allowed)
 	if current_spree is None:
 		pipeline1 = my_server.pipeline()
-		my_server.incr(votes_allowed)
-		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
+		pipeline1.incr(votes_allowed)
+		pipeline1.expire(votes_allowed,FORTY_FIVE_SECS)
 		pipeline1.execute()
 		return None, True
 	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
@@ -1188,8 +1188,8 @@ def can_vote_on_link(user_id):
 		return ttl, False
 	else:
 		pipeline1 = my_server.pipeline()
-		my_server.incr(votes_allowed)
-		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+		pipeline1.incr(votes_allowed)
+		pipeline1.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
 		pipeline1.execute()
 		return None, True
 
@@ -1198,6 +1198,13 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
+
+def get_latest_group_replies(group_id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_id_list:
+		pipeline1.get("lgr:"+group_id)
+	return pipeline1.execute()
 
 def set_latest_group_reply(group_id, reply_id):
 	my_server = redis.Redis(connection_pool=POOL)

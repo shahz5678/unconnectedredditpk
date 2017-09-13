@@ -138,6 +138,27 @@ def get_nick_likeness(nickname):
 	nicknames = get_nicknames(raw_nicknames)
 	return nicknames
 
+# same as nick_already_exists, but returns a different value if nick's generic form exists, but not specific form
+def check_nick_status(nickname):
+	my_server = redis.Redis(connection_pool=POOL)
+	generic_nick, specific_nick = process_nick(nickname)
+	if not my_server.exists("nicknames"):
+		return None
+	else:
+		pipeline1 = my_server.pipeline()
+		pipeline1.zscore("nicknames",specific_nick)
+		pipeline1.zscore("nicknames",generic_nick)
+		result = pipeline1.execute()
+		specific, generic = result[0], result[1]
+		if specific and generic:
+			return True
+		elif specific is None and generic is None:
+			return False
+		elif specific is None:
+			return '1' #this means the 'case' of the username is incorrect
+		elif generic is None:
+			return '0' #this shouldn't happen - the specific form of a nickname can't exist without its generic form in our DB
+		
 #checking whether nick already exists
 def nick_already_exists(nickname, exact=False):
 	my_server = redis.Redis(connection_pool=POOL)

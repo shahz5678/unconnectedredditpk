@@ -3,7 +3,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
-from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords
+from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords, check_nick_status
 from abuse import BANNED_WORDS
 import re
 
@@ -80,16 +80,21 @@ class SignInForm(forms.Form):
 		username = username.strip()
 		password = password.strip()
 		exists = nick_already_exists(nickname=username)
-		if exists is None:
+		result = check_nick_status(nickname=username)
+		if result is None:
 			# if 'nicknames' sorted set does not exist
 			try:
 				User._default_manager.get(username=username)
 			except User.DoesNotExist:
 				raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
-		elif exists:
+		elif result is True:
 			pass
-		else:
+		elif result is False:
 			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+		elif result == '0':
+			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+		elif result == '1':
+			raise forms.ValidationError('"%s" naam mein harf ghalat hain. Shayed chota harf bara likh diya hai, ya bara harf chota' % username)
 		if username and password:
 		    user = authenticate(username=username,password=password)
 		    if user is None:

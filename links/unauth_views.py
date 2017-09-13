@@ -133,7 +133,7 @@ def log_google_in(request, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-@ratelimit(method='POST', rate='8/h')
+@ratelimit(method='POST', rate='11/h')
 def login(request, lang=None, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")

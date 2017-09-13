@@ -114,6 +114,10 @@ def category_formatting(categ):
 		# urdu home link
 		div_head = '<span></span>'
 		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
+	elif categ == '18':
+		# World-XI
+		div_head = '<div style="background-color:#ffffcc;"><h1 style="font-size:0.7em;background-color:#4d0099;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">World-XI</h1>'
+		div_tail = '<p><hr size=1 COLOR="#4d0099"></p></div>'
 	else:
 		div_head = '<span></span>'
 		div_tail = '<span></span>'

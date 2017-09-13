@@ -42,7 +42,9 @@
         {% if is_new %}
         <b class="cs co">(new)</b>
         {% endif %}
+        {% if user == star %}
         &nbsp; {% block_button fan.id fan.username star.id 'fan' 'profile:fans' STATIC_URL %}
+        {% endif %}
         <hr size=1 COLOR="#cccccc">
         {% endfor %}
         {% endif %}

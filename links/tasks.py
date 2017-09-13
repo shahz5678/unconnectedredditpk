@@ -86,7 +86,7 @@ def punish_gibberish_writers(dict_of_targets):
 
 def retrieve_object_type(origin):
 	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
-	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0'}
+	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0','profile:fans':'99'}
 	try:
 		return PARENT_OBJECT_TYPE[origin]
 	except:
@@ -97,9 +97,10 @@ def retrieve_object_type(origin):
 def post_banning_tasks(own_id, target_id, object_id, origin):
 	object_type = retrieve_object_type(origin)
 	if object_type != -1:
-		remove_notification_of_banned_user(target_id,object_id,object_type)
+		if object_id != 'fan':
+			remove_notification_of_banned_user(target_id,object_id,object_type)
 		################################################################################
-		# unfan (in case. was a fan): TEST WHETHER THIS FAILS
+		# unfan (in case was a fan)
 		UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
 		UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
 		remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)

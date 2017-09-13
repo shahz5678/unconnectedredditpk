@@ -12,7 +12,7 @@ def process_sms(target_number,ad_id,status=None, buyer_number=None):
 	elif status == 'unique_click':
 		body = "Damadam pe apke ad se {0} ne apka mobile number lia. Doston ko apna ad dikhaney ke liye ye link dein: https://damadam.pk/ad/{1}/".format(buyer_number,ad_id)
 	elif status == 'approved':
-		body = "Damadam pe apka ad laga diya gaya hai. Doston ko ye link de ke ad dikhao: https://damadam.pk/ad/{0}/".format(ad_id)
+		body = "Damadam pe apka ad laga diya gaya hai. Doston ko ye link de ke ad dikhain: https://damadam.pk/ad/{0}/".format(ad_id)
 	message = client.messages.create(to=target_number, from_="+18328955063",body=body)
 	
 

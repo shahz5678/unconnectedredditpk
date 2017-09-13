@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load thumbnail %}
+{% load get_block_button %}
 {% load emoticons_tags %}
 {% block content %}
     <div class="margin">
@@ -21,7 +22,7 @@
         {% endif  %}
         <br>
         {% for fan,is_new in fans %}
-        <b class="numbers cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>
+        <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}.</span>
         <a href="{% url 'profile' slug=fan.username %}#section0">
     	{% if fan.userprofile.avatar %}
     		<img src="{{ fan.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
@@ -41,7 +42,8 @@
         {% if is_new %}
         <b class="cs co">(new)</b>
         {% endif %}
-        <br>
+        &nbsp; {% block_button fan.id fan.username star.id 'fan' 'profile:fans' STATIC_URL %}
+        <hr size=1 COLOR="#cccccc">
         {% endfor %}
         {% endif %}
     </div>

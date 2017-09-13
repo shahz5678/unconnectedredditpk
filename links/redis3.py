@@ -793,6 +793,11 @@ def save_consumer_number(account_kit_id, mobile_data, user_id):
 			removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
 			my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
 
+# retrieves approved ad's item name, to be sent in an SMS to the ad creator
+def get_item_name(ad_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget("ad:"+str(float(ad_id)),'title')
+
 
 # helper function for move_to_approved_ads
 # incrementing ad agent "closing" score (coffee is for closers)

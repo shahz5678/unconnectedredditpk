@@ -68,7 +68,8 @@ get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_ph
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply
+in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
+get_latest_group_replies
 from .website_feedback_form import AdvertiseWithUsForm
 from image_processing import clean_image_file, clean_image_file_with_hash
 from forms import getip
@@ -2860,14 +2861,15 @@ class GroupPageView(ListView):
 	def get_queryset(self):
 		groups = []
 		replies = []
-		user = self.request.user
-		group_ids = get_user_groups(user.id)
-		replies = Group.objects.filter(id__in=group_ids).values('id').annotate(Max('reply')).values_list('reply__max',flat=True)
-		invite_reply_ids = get_active_invites(user.id) #contains all current invites
+		user_id = self.request.user.id
+		group_ids = get_user_groups(user_id)
+		replies = filter(None, get_latest_group_replies(group_ids))
+		# replies = Group.objects.filter(id__in=group_ids).values('id').annotate(Max('reply')).values_list('reply__max',flat=True)
+		invite_reply_ids = get_active_invites(user_id) #contains all current invites
 		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
 		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
 			'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:60]
-		return get_replies_with_seen(group_replies=replies_qset,viewer_id=self.request.user.id,object_type='3')
+		return get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupPageView, self).get_context_data(**kwargs)

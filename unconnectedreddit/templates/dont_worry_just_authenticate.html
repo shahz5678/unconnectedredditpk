@@ -1,8 +1,9 @@
+{% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
+{% block content %}
+<div class="margin clb">
+
 {% if type == 'consumer' %}
 
-	{% extends "base_ecomm.html" %}
-	{% block content %}
-	<div class="margin clb">
 
 	<h2>Apka number apki marzi ke beghair kisi ko nahi diya jaye ga</h2>
 	Befiqar ho ke number verify karwa lein<br>
@@ -19,16 +20,9 @@
 	</form><br>
 	<a href="{{ referrer }}"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
 
-	</div>
-	<br><br>
-	{% endblock %}
-
 {% elif type == 'seller' %}
 	
 
-	{% extends "base_ecomm.html" %}
-	{% block content %}
-	<div class="margin clb">
 
 	<h2>Apka number sirf verified khareedarun ko diya jaye ga</h2>
 	Befiqar ho ke number verify karwa lein<br>
@@ -45,17 +39,11 @@
 	</form><br>
 	<a href="{% url 'show_user_ads' %}#section0"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
 
-	</div>
-	<br><br>
-	{% endblock %}
 
 
 {% elif type == 'user' %}
 
 
-	{% extends "base.html" %}
-	{% block content %}
-	<div class="margin clb">
 
 	<h2>Apka number apki marzi ke beghair kisi ko nahi diya jaye ga</h2>
 	Befiqar ho ke number verify karwa lein<br>
@@ -73,16 +61,9 @@
 	<a href="{% url 'home' %}#section0"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
 
 
-	</div>
-	<br><br>
-	{% endblock %}
 
 {% elif type == 'forgetter' %}
 
-
-	{% extends "base.html" %}
-	{% block content %}
-	<div class="margin clb">
 
 	<h2>Mobile number tasdiq kiye beghair password nahi mil sakta</h2>
 	Tasdiq zarur karwa lein<br>
@@ -99,8 +80,9 @@
 	</form><br>
 	<a href="{% url 'login' %}#section0"><button style="margin:auto; color:white;background-color:#d9d9d9;border:solid 1px #bdbdbd;font-size:110%;width:9em;">Rehnay do</button></a>
 
-	</div>
-	<br><br>
-	{% endblock %}
 
 {% endif %}
+
+</div>
+<br><br>
+{% endblock %}

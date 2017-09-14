@@ -7,6 +7,16 @@
 {% load get_pagination_buttons %}
 {% block content %}
 
+<head>
+<title>
+	{% if origin == 'global' %}
+	Damadam.pk Classifieds Listing for Pakistan
+	{% else %}
+	Damadam.pk Classifieds Listing for {{ origin }}
+	{% endif %}
+</title>
+</head>
+
 
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">

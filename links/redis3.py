@@ -1023,6 +1023,38 @@ def get_temporarily_saved_ad_data(user_id, id_only=False, all_photo_numbers=Fals
 		'photo3_hash':my_server.hget("ta:"+user_id,"photo3_hash")}
 
 
+
+def check_status_of_temporarily_saved_ad(user_id,check_step_one=False,check_step_two=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "ta:"+user_id
+	# change these steps if step_one changes
+	if check_step_two and check_step_one:
+		desc_exists = True if my_server.hget(key_name,"basic_item_description") else False
+	 	is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
+		is_barter_exists = True if my_server.hget(key_name, "basic_item_barter") else False
+		ask_exists = True if my_server.hget(key_name,"basic_item_ask") else False
+		if desc_exists and is_new_exists and is_barter_exists and ask_exists:
+			check_step_one = True
+		else:
+			check_step_one = False
+		photo_exists = True if (my_server.hget(key_name,"photo1_hash") or my_server.hget(key_name,"photo2_hash") or \
+			my_server.hget(key_name,"photo3_hash")) else False
+		if photo_exists:
+			check_step_two = True
+		else:
+			check_step_two = False
+		return check_step_one, check_step_two
+	if check_step_one:
+		desc_exists = True if my_server.hget(key_name,"basic_item_description") else False
+	 	is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
+		is_barter_exists = True if my_server.hget(key_name, "basic_item_barter") else False
+		ask_exists = True if my_server.hget(key_name,"basic_item_ask") else False
+		if desc_exists and is_new_exists and is_barter_exists and ask_exists:
+			return True
+		else:
+			return False
+
+
 def reset_temporarily_saved_ad(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.delete("ta:"+user_id)

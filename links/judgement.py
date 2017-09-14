@@ -15,7 +15,7 @@ from forms import PhotoReportForm
 from models import Photo, UserProfile
 from redis4 import return_referrer_logs
 from page_controls import ITEMS_PER_PAGE
-from views import get_price, get_addendum, get_page_obj
+from views import get_price, get_addendum, get_page_obj, convert_to_epoch
 from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
 from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
 from redis3 import set_inter_user_ban, is_mobile_verified, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
@@ -25,6 +25,10 @@ remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo
 first_time_photo_curator,add_photo_curator, resurrect_home_photo, in_defenders, first_time_photo_defender, check_photo_upload_ban,\
 get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban, add_photo_defender_tutorial, \
 add_banner, first_time_banner
+
+
+SEVEN_MINS = 7*60
+TWENTY_MINS = 20*60
 
 #####################################################Intra User Banning#####################################################
 
@@ -114,8 +118,10 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					object_id, origin = None, None
 				CONVERT_DUR_CODE_TO_DURATION = {'1':86400,'2':259200,'3':604800,'4':2628000,'5':7884000}
 				if target_user_id and target_username:
+					time_now = time.time()
 					banned = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
-						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time.time(), can_unban=can_unban)
+						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban, \
+						recent_joiner= True if (time_now-convert_to_epoch(request.user.date_joined)<SEVEN_MINS) else False)
 					if can_unban and banned:
 						delete_ban_target_credentials(user_id)
 						if object_id and origin:

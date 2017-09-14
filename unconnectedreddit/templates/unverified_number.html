@@ -1,11 +1,4 @@
-{% if referrer == 'home' %}
-	{% extends "base.html" %}
-{% elif referrer == 'login' %}
-	{% extends "base.html" %}
-{% else %}
-	{% extends "base_ecomm.html" %}
-{% endif %}
-
+{% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
 <div class="margin clb">
 <span class="cxl">Is number ki tasdiq nahi ho saki!</span><br>

@@ -717,7 +717,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 		else:
 			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(user_id)
 			if str(secret_key_from_form) != str(secret_key_from_session):
-				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
+				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True,'from_ecomm':True})
 			form = BasicItemPhotosForm(request.POST,request.FILES)
 			if form.is_valid():	
 				photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)

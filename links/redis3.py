@@ -514,7 +514,7 @@ def is_already_banned(own_id, target_id, key_name=None, server=None, return_bann
 			# key exists but has no associated expire time
 			return False
 
-def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban):
+def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban, recent_joiner):
 	my_server = redis.Redis(connection_pool=POOL)
 	low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
 	key_name = "b:"+str(low)+":"+str(high)
@@ -526,9 +526,10 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 		# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
 		pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
 		# only add to the global list if it was NOT a re-ban
-		if not can_unban:
+		if not can_unban and recent_joiner:
 			#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
-			pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
+			#pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
+			pipeline1.zincrby("malicious_user_list",target_id,amount=1)
 		pipeline1.execute()
 		return True
 	else:

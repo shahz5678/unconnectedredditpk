@@ -5966,6 +5966,8 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("home")
 				else:
 					return redirect("unseen_activity", own_uname)
 			else:

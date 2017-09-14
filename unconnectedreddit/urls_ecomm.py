@@ -33,7 +33,7 @@ urlpatterns = patterns('',
 	url(r'^expire_ad/$', auth(expire_my_ad),name='expire_my_ad'),
 	url(r'^saesf/$', auth(process_ad_expiry_or_sms_feedback),name='process_ad_expiry_or_sms_feedback'),
 	url(r'^sms_settings/$', auth(change_my_sms_settings),name='change_my_sms_settings'),
-	url(r'^seller_number/$', show_seller_number,name='show_seller_number'),
+	url(r'^seller_number/$', auth(show_seller_number),name='show_seller_number'),
 	url(r'^meray_ads/$', auth(show_user_ads),name='show_user_ads'),
 	#############################################E Commerce##########################################
 	url(r'^item_ki_detail_likho/$', auth(post_basic_item),name='post_basic_item'),

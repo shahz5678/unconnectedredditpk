@@ -1,8 +1,8 @@
-{% extends "base.html" %}
-{% load emoticons_tags %}
-{% block content %}
-<div class="margin clb">
 {% if from_ecomm_ad_creation %}
+	{% extends "base_ecomm.html" %}
+	{% load emoticons_tags %}
+	{% block content %}
+	<div class="margin clb">
 	<span class="cl">Bar bar button nah dabaein. Sirf aik dafa daba kar intezar karein {% emoticons %}.i6{% endemoticons %}</span><br>
 	<span class="cgy">Ab dubara se apna ishtihar banaien</span><br>
 	<form method="POST" action="{% url 'init_classified' %}">
@@ -10,10 +10,16 @@
 	<input type="hidden" name="category" value="1">
 	<button class="btn bcg bl mtl">wapis</button>
 	</form>
+	</div>
+	<br><br>
+	{% endblock %}
 {% elif from_public_photos %}
+	{% extends "base.html" %}
+	{% load emoticons_tags %}
+	{% block content %}
+	<div class="margin clb">
 	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
 	<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
+	</div>
+	<br><br>
 {% endif %}
-</div>
-<br><br>
-{% endblock %}

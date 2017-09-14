@@ -1,4 +1,9 @@
-{% extends "base.html" %}
+{% if referrer == 'home' %}
+	{% extends "base.html" %}
+{% else %}
+	{% extends "base_ecomm.html" %}
+{% endif %}
+
 {% block content %}
 <div class="margin clb">
 <span class="cxl">Ye number kisi aur profile ke sath munsalik hai</span><br><span class="cgy">Isko sirf ussi profile se use kiya ja sakta hai</span><br>

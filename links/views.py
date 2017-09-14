@@ -5985,6 +5985,8 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("home")
 				else:
 					notification = "np:"+str(own_id)+":2:"+str(pk)
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)

@@ -42,7 +42,7 @@
 			{{ comment.p|safe }}</a>:&nbsp;<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
 			    <a name="section{{ forloop.counter }}"></a> 
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
-		 		{% if comment.cc|add:"0" > 0 %}<form method="POST" action="{% url 'reply_pk' comment.l %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
+		 		{% if comment.cc|add:"0" > 0 %}<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button name="lid" class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ comment.l }}"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 		 	
 
 

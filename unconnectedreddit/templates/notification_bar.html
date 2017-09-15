@@ -18,9 +18,9 @@
 					<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 				{% endif %}
 				<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
-				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
+				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
-				<button class="btn nw bs cs bct mls" type="submit">post</button></form>
+				<button name="lid" class="btn nw bs cs bct mls" type="submit" value="{{ parent_pk }}">post</button></form>
 				<p style="margin-top:.5em;"></p>
 			
 				<span class="ct cs">

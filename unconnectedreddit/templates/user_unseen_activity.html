@@ -46,7 +46,7 @@
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
 {% if notif.s == 'True' %}
-	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'reply_pk' notif.oi %}" style="display:inline">{% csrf_token %}<button class="btn nw bcgy bs cs" type="submit">post</button></form>
+	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
 	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
 	<br>
@@ -73,8 +73,7 @@
 	</div>
 	<hr size=1 COLOR="#cccccc">
 {% else %}
-	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'reply_pk' notif.oi %}" style="display:inline">{% csrf_token%}<button class="btn nw bct bs cs" type="submit">post
-	</button></form>
+	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
 	<span class="ct cs mbs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span><br>
 	<span class="clb"><a href="{% url 'profile' notif.lrsn %}">	

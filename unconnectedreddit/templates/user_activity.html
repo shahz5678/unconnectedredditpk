@@ -45,12 +45,12 @@
 	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
 	</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}<br>
 
-		<form action="{% url 'reply_pk' pk=link.pk %}" method="POST">
+		<form action="{% url 'publicreply_view' %}" method="POST">
 		{% csrf_token %}
 		{% if link.reply_count > 0 %}
-		<button type="submit" class="btn nw bl bct mts mbs"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button>
+		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button>
 		{% else %}
-		<button type="submit" class="btn nw bxl bct mts mbs">isko jawab do</button>
+		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}">isko jawab do</button>
 		{% endif %}
 		</form>
 

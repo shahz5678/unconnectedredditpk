@@ -314,7 +314,7 @@ class VideoCommentForm(forms.ModelForm):
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}), error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
@@ -1047,10 +1047,6 @@ class SmsReinviteForm(forms.Form):
 		pass
 
 class SmsInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class NotifHelpForm(forms.Form):
 	class Meta:
 		pass
 

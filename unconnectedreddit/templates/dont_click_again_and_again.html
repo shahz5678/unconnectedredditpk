@@ -22,6 +22,11 @@
 	
 	<span class="cl">Bar bar button dabaney se tabsra nahi hoga. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
 	<a href="{% url 'see_photo_pk' pk %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+
+{% elif from_publicreply %}
+	
+	<span class="cl">Bar bar button dabaney se jawab nahi chalta. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
+	<a href="{% url 'home' %}#section0"><button class="btn bct bm mtl">wapis</button></a>
 	
 {% endif %}
 

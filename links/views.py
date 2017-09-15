@@ -4094,7 +4094,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				request.session["comment_form"] = form
 				return return_to_photo(request,origin,pk,None,None)
 	else:
-		return render(request,"404.html",{})
+		return render(request,"dont_click_again_and_again.html",{'from_photo_comment':True,'pk':pk})
 
 def see_photo_pk(request,pk=None,*args,**kwargs):
 	if request.user.is_authenticated():
@@ -4123,11 +4123,7 @@ def unauth_photo_location_pk(request,pk=None,*args,**kwargs):
 		return redirect("unauth_photo")
 
 def photo_location(request,*args,**kwargs):
-	try:
-		photo_id = request.session['target_photo_id']
-		del request.session['target_photo_id']
-	except:
-		photo_id = 0
+	photo_id = request.session.pop('target_photo_id',0)
 	photo_ids = all_photos()
 	if photo_id == 0:
 		# there is no indexing to be done, just return to the top of the page

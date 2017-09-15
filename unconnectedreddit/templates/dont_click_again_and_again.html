@@ -15,8 +15,13 @@
 	
 {% elif from_public_photos %}
 	
-	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karo {% emoticons %};){% endemoticons %}</span><br>
+	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
 	<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
+
+{% elif from_photo_comment %}
+	
+	<span class="cl">Bar bar button dabaney se tabsra nahi hoga. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
+	<a href="{% url 'see_photo_pk' pk %}#section0"><button class="btn bco bm mtl">wapis</button></a>
 	
 {% endif %}
 

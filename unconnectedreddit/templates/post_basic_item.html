@@ -6,7 +6,7 @@
 	Create free classified (step 1) | Damadam.pk
 </title>
 </head>
-
+<body>
 <div class="margin clb">
 <h2 class="cg">STEP 1 <span class="cs">(out of 4)</span></h2>
 
@@ -14,7 +14,8 @@
 {% csrf_token %}
 
 <div class="mtl mbl">
-<b class="cl">Kia baichna hai? Tafseel se batao:</b>
+<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Kia baichna hai? Tafseel se batao:</span></b>
 <div class="mbs">
 {% if form.description.errors %}
 <span class="cr">{{ form.description.errors.0 }}</span>
@@ -22,19 +23,20 @@
 <span class="cgy cs">(naam, model, color, halat, sab tareefain likho)</span>
 {% endif %}
 </div>
-{{ form.description }}
+<span itemprop="suggestedAnswer" itemscope itemtype="http://schema.org/Answer">{{ form.description }}</span>
 </div>
 <hr size=1 COLOR="#b3e6b3">
 
 
 <div class="mtl mbl">
-<b class="cl">Yeh istamal shuda hai ya bilkul new?</b>
+<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Yeh istamal shuda hai ya bilkul new?</span></b>
 {% if form.new.errors %}
 <br><span class="cr">{{ form.new.errors.0 }}</span>
 {% endif %}
 {% for radio in form.new %}
 <div class="mts">
-{{ radio }}
+<span itemprop="suggestedAnswer" itemscope itemtype="http://schema.org/Answer">{{ radio }}</span>
 </div>
 {% endfor %}
 </div>
@@ -43,24 +45,26 @@
 
 <div class="mtl mbl">
 <div class="mbs">
-<b class="cl">Kitni price ka baichna hai?</b>
+<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Kitni price ka baichna hai?</span></b>
 {% if form.ask.errors %}
 <br><span class="cr">{{ form.ask.errors.0 }}</span>
 {% endif %}
 </div>
-{{ form.ask }}
+<span itemprop="suggestedAnswer" itemscope itemtype="http://schema.org/Answer">{{ form.ask }}</span>
 </div>
 <hr size=1 COLOR="#b3e6b3">
 
 <div class="mtl mbl">
+<span itemscope itemtype="http://schema.org/Question">
 <!-- <b class="cl">Sirf paisey chahiyen ya iske saath kuch exchange bhi kar lo gey?</b> -->
-<b class="cl">Sirf paisey chahiyen? Ya badley mein koi cheez bhi le lo gey?</b>
+<b class="cl"><span itemprop="name text">Sirf paisey chahiyen? Ya badley mein koi cheez bhi le lo gey?</span></b>
 {% if form.barter.errors %}
 <br><span class="cr">{{ form.barter.errors.0 }}</span>
 {% endif %}
 {% for radio in form.barter %}
 <div class="mts">
-{{ radio }}
+<span itemprop="suggestedAnswer" itemscope itemtype="http://schema.org/Answer">{{ radio }}</span>
 </div>
 {% endfor %}
 </div>

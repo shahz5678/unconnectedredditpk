@@ -3,10 +3,11 @@
 {% if is_feature_phone == '1' %}
 <div class="mtl mbs navbar_classifieds">
 	<div style="width:49%; text-align:right;display: inline-block;">
-	<span><a href="{% url 'show_user_ads' %}#section0">Meray ads</a></span>
+		<nav class="site-navbar" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
+	<span><a href="{% url 'show_user_ads' %}#section0"><span itemprop="name">Meray ads</span></a></span>
 	</div>
 	<div style="width: 49%;float: right; display: inline block;">
-	<span><a href="{% url 'city_list' %}#section0">All cities ({{ all_cities }})</a></span>
+	<span><a href="{% url 'city_list' %}#section0"><span itemprop="name">All cities ({{ all_cities }})</span></a></span>
 	</div>
 </div>
 	{% if origin == 'my_ads' or origin == 'seller_number' or origin == 'ad_detail' %}
@@ -17,19 +18,22 @@
 	{% else %}
 	<div class="mtl mbs" style="text-align:center;width:97%; max-width:400px;">
 	<b style="font-size:1.2em;">{{ origin }}</b>
+	</nav>
 	</div>
 	{% endif %}
 {% else %}
 <div class="mtl mbs navbar_classifieds">
 <div style="width:49%; text-align:right;display: inline-block;">
-<span><a href="{% url 'show_user_ads' %}#section0">{% if origin == 'my_ads' %}<b class="cg">Meray ads</b>{% else %}Meray ads{% endif %}</a></span><br>
+	<nav class="site-navbar" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
+<span><a href="{% url 'show_user_ads' %}#section0">{% if origin == 'my_ads' %}<b class="cg"><span itemprop="name">Meray ads</span></b>{% else %}Meray ads{% endif %}</a></span><br>
 <span><a href="{% url 'city_classified_listing' top_3_locs.0.0|join_string %}#section0">{% if origin == top_3_locs.0.0 %}<b class="cg">{{ top_3_locs.0.0 }} ({{ top_3_locs.0.1|floatformat:"0" }} ads)</b>{% else %}{{ top_3_locs.0.0 }} ({{ top_3_locs.0.1|floatformat:"0" }} ads){% endif %}</a></span><br>
 <span><a href="{% url 'city_classified_listing' top_3_locs.2.0|join_string %}#section0">{% if origin == top_3_locs.2.0 %}<b class="cg">{{ top_3_locs.2.0 }} ({{ top_3_locs.2.1|floatformat:"0" }} ads)</b>{% else %}{{ top_3_locs.2.0 }} ({{ top_3_locs.2.1|floatformat:"0" }} ads){% endif %}</a></span><br>
 </div>
 <div style="width: 49%;float: right;">
-<span><a href="{% url 'classified_listing' %}#section0">{% if origin == 'global' %}<b class="cg">All Pakistan ({{ ad_count }} ads)</b>{% else %}All Pakistan ({{ ad_count }} ads){% endif %}</a></span><br>
+<span><a href="{% url 'classified_listing' %}#section0">{% if origin == 'global' %}<b class="cg"><span itemprop="name">All Pakistan ({{ ad_count }} ads)</span></b>{% else %}All Pakistan ({{ ad_count }} ads){% endif %}</a></span><br>
 <span><a href="{% url 'city_classified_listing' top_3_locs.1.0|join_string %}#section0">{% if origin == top_3_locs.1.0 %}<b class="cg">{{ top_3_locs.1.0 }} ({{ top_3_locs.1.1|floatformat:"0" }} ads)</b>{% else %}{{ top_3_locs.1.0 }} ({{ top_3_locs.1.1|floatformat:"0" }} ads){% endif %}</a></span><br>
 <span><a href="{% url 'city_list' %}#section0">{{ other_cities }} more cities</a></span><br>
+</nav>
 </div>
 </div>
 	{% if origin == 'my_ads' or origin == 'seller_number' or origin == 'ad_detail' %}

@@ -864,7 +864,8 @@ class MehfilView(FormView):
 						return redirect("private_group_reply")#, slug=unique)
 					except:
 						self.request.session["link_pk"] = link_id
-						return redirect("reply")
+						self.request.session.modified = True
+						return redirect("publicreply_view")
 			else:
 				return redirect("home")
 
@@ -6577,7 +6578,7 @@ class ReportView(FormView):
 							document_publicreply_abuse(pk)
 						self.request.session["link_pk"] = reply.answer_to.id
 						self.request.session.modified = True
-						return redirect("reply")
+						return redirect("publicreply_view")
 					else:
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-3)
 						return redirect("home")
@@ -6588,7 +6589,7 @@ class ReportView(FormView):
 					self.request.session["linkreport_pk"] = None
 					self.request.session["link_pk"] = link.id
 					self.request.session.modified = True
-					return redirect("reply")
+					return redirect("publicreply_view")
 			else:
 				return render(self.request,'500.html',{})
 

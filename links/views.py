@@ -77,7 +77,7 @@ from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHel
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
 PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
-PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, NotifHelpForm, MehfilForm, \
+PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
 MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
 AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
 PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
@@ -534,17 +534,6 @@ class PhotosHelpView(FormView):
 		context = super(PhotosHelpView, self).get_context_data(**kwargs)
 		context["unique"] = self.kwargs.get("slug")
 		context["decision"] = self.kwargs.get("pk")
-		return context
-
-class NotifHelpView(FormView):
-	form_class = NotifHelpForm
-	template_name = "notif_help.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(NotifHelpView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["link_pk"] = self.kwargs.get("pk")
-			#context["unique"] = link_pk
 		return context
 
 
@@ -1232,12 +1221,12 @@ def process_salat(request, offered=None, *args, **kwargs):
 ############################################################################################################################################################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='10/28s')
+@ratelimit(field='user_id',ip=False,rate='10/38s')
 def home_reply(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'penalty':30}
-		UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+		context = {'penalty':300}
+		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
 		return render(request, 'penalty_homejawab.html', context)
 	elif request.user_banned:
 		return render(request,"500.html",{})
@@ -2864,7 +2853,6 @@ class GroupPageView(ListView):
 		user_id = self.request.user.id
 		group_ids = get_user_groups(user_id)
 		replies = filter(None, get_latest_group_replies(group_ids))
-		# replies = Group.objects.filter(id__in=group_ids).values('id').annotate(Max('reply')).values_list('reply__max',flat=True)
 		invite_reply_ids = get_active_invites(user_id) #contains all current invites
 		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
 		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
@@ -4011,7 +3999,7 @@ class VideoView(ListView):
 #########################Views for fresh photos#########################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='10/28s')
+@ratelimit(field='user_id',ip=False,rate='10/38s')
 def photo_comment(request,pk=None,*args,**kwargs):
 	if request.method == 'POST':
 		was_limited = getattr(request, 'limits', False)
@@ -4031,8 +4019,8 @@ def photo_comment(request,pk=None,*args,**kwargs):
 			request.session.modified = True
 			return redirect("ban_underway")
 		elif was_limited:
-			context = {'penalty':30}
-			UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+			context = {'penalty':300}
+			UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
 			return render(request, 'penalty_photo_comment.html', context)
 		else:
 			form = PhotoCommentForm(data=request.POST,user_id=user_id)
@@ -6019,12 +6007,12 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
-@ratelimit(rate='10/28s')
+@ratelimit(rate='10/38s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'penalty':30}
-		UserProfile.objects.filter(user=request.user).update(score=F('score')-30) #punish the spammer
+		context = {'penalty':300}
+		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
 		return render(request, 'penalty_matka.html', context)
 	else:
 		if first_time_inbox_visitor(request.user.id):
@@ -6077,87 +6065,84 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 	else:
 		return redirect("unseen_activity",request.user.username)
 
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@sensitive_post_parameters()
-@csrf_protect
-def reply_pk(request, pk=None, *args, **kwargs):
-	if request.method == 'POST':
-		request.session["link_pk"] = pk
-		return redirect("reply")
+
+def public_reply_view(request,*args,**kwargs):
+	context = {}
+	if request.method == "POST":
+		link_id = request.POST.get("lid",None)
+		request.session["link_pk"] = link_id
+		request.session.modified = True
 	else:
-		return redirect("home")
-
-class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
-	model = Publicreply
-	form_class = PublicreplyForm
-	template_name = "reply.html"
-
-	def get_form_kwargs( self ):
-		kwargs = super(PublicreplyView,self).get_form_kwargs()
-		kwargs['user_id'] = self.request.user.id
-		return kwargs
-
-	def get_context_data(self, **kwargs):
-		context = super(PublicreplyView, self).get_context_data(**kwargs)
-		context["authenticated"] = False
-		if self.request.is_feature_phone:
-			context["feature_phone"] = True
-		else:
-			context["feature_phone"] = False
-		if self.request.user.is_authenticated():
-			try:
-				link = Link.objects.select_related('submitter__userprofile').get(id=self.request.session["link_pk"])
-			except:
-				context["error"] = True
-				return context
-			context["error"] = False
-			context["authenticated"] = True
-			score = self.request.user.userprofile.score
-			context["score"] = score
-			context["parent"] = link #the parent link
-			context["parent_submitter_username"] = link.submitter.username 
-			context["ensured"] = FEMALES
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
-			defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
-				'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
-				'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
-				'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
-				'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
-				'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').filter(answer_to=link).order_by('-id')[:25]
-			context["replies"] = replies
-			if self.request.user_banned:
-				context["unseen"] = False
-				context["reply_time"] = None
-			elif replies:
-				updated = update_notification(viewer_id=self.request.user.id, object_id=link.id, object_type='2', seen=True, \
-					updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
-				if updated:
-					context["unseen"] = True
-					try:
-						context["reply_time"] = max(reply.submitted_on for reply in replies if reply.submitted_by_id == self.request.user.id)
-					except:
-						context["reply_time"] = None
-				else:
-					context["unseen"] = False
+		link_id = request.session.pop("link_pk",None)
+	if link_id:
+		link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+		user_id = request.user.id
+		form = request.session.pop("publicreply_form",None)
+		context["form"] = form if form else PublicreplyForm() 
+		context["error"] = False
+		context["authenticated"] = True
+		score = request.user.userprofile.score
+		context["score"] = score
+		context["parent"] = link #the parent link
+		context["parent_submitter_username"] = link.submitter.username 
+		context["ensured"] = FEMALES
+		context["feature_phone"] = True if request.is_feature_phone else False
+		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+		replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
+		defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
+			'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
+			'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
+			'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
+			'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
+			'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').\
+			filter(answer_to=link).order_by('-id')[:25]
+		context["replies"] = replies
+		if request.user_banned:
+			context["unseen"] = False
+			context["reply_time"] = None
+		elif replies:
+			updated = update_notification(viewer_id=user_id, object_id=link_id, object_type='2', seen=True, \
+				updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
+			if updated:
+				context["unseen"] = True
+				try:
+					# calculating the max 'own reply' time
+					context["reply_time"] = max(reply.submitted_on for reply in replies if reply.submitted_by_id == user_id)
+				except:
 					context["reply_time"] = None
 			else:
 				context["unseen"] = False
 				context["reply_time"] = None
-			return context
+		else:
+			context["unseen"] = False
+			context["reply_time"] = None
+		return render(request,"reply.html",context)
+	else:
+		context["from_publicreply"] = True
+		return render(request,"dont_click_again_and_again.html",context)
 
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		if self.request.user_banned:
-			return render(self.request,'500.html',{})
-		link_id = self.request.POST.get("link_id")
-		link_writer_id = self.request.POST.get("lwpk")
-		user_id = self.request.user.id
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+@ratelimit(field='user_id',ip=False,rate='10/38s')
+def post_public_reply(request,*args,**kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		context = {'penalty':300}
+		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
+		return render(request, 'penalty_homejawab.html', context)
+	elif request.user_banned:
+		return render(request,'500.html',{})
+	elif request.method == "POST":
+		link_id = request.POST.get("link_id")
+		link_writer_id = request.POST.get("lwpk")
+		user_id = request.user.id
 		banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
 		if banned_by:
-			self.request.session["banned_by"] = banned_by
-			self.request.session["ban_time"] = ban_time
-			self.request.session["where_from"] = 'home'
-			self.request.session.modified = True
+			request.session["banned_by"] = banned_by
+			request.session["ban_time"] = ban_time
+			request.session["where_from"] = 'home'
+			request.session.modified = True
 			return redirect("ban_underway")
 		else:
 			##############################################################################################
@@ -6165,13 +6150,23 @@ class PublicreplyView(CreateView): #get_queryset doesn't work in CreateView (it'
 			config_manager.get_obj().track('wrote_publicreply', user_id)
 			##############################################################################################
 			##############################################################################################
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			target = process_publicreply(request=self.request,link_id=link_id,text=f.description, link_writer_id=link_writer_id)
-			if target == ":":
-				return redirect("ban_underway")
-			self.request.session["link_pk"] = link_id
-			self.request.session.modified = True
-			return redirect("reply")
+			form = PublicreplyForm(request.POST,user_id=user_id)
+			if form.is_valid():
+				text = form.cleaned_data["description"]
+				target = process_publicreply(request=request,link_id=link_id,text=text, link_writer_id=link_writer_id)
+				if target == ":":
+					return redirect("ban_underway")
+				request.session["link_pk"] = link_id
+				request.session.modified = True
+			else:
+				request.session["publicreply_form"] = form
+				request.session["link_pk"] = link_id
+				request.session.modified = True
+			return redirect("publicreply_view")
+	else:
+		context["from_publicreply"] = True
+		return render(request,"dont_click_again_and_again.html",context)
+
 
 class UserActivityView(ListView):
 	model = Link

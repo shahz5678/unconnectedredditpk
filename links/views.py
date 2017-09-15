@@ -6127,7 +6127,7 @@ def public_reply_view(request,*args,**kwargs):
 @csrf_protect
 @ratelimit(field='user_id',ip=False,rate='10/38s')
 def post_public_reply(request,*args,**kwargs):
-	was_limited = getattr(request, 'limits', False)
+	was_limited, context = getattr(request, 'limits', False), {}
 	if was_limited:
 		context = {'penalty':300}
 		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer

@@ -121,7 +121,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					time_now = time.time()
 					banned = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
 						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban, \
-						recent_joiner= True if (time_now-convert_to_epoch(request.user.date_joined+timedelta(hours=5))<TWENTY_MINS) else False)
+						recent_joiner= True if (time_now-convert_to_epoch(request.user.date_joined)<TWENTY_MINS) else False)
 					if can_unban and banned:
 						delete_ban_target_credentials(user_id)
 						if object_id and origin:

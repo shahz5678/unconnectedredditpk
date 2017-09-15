@@ -38,20 +38,18 @@
         <br>
     {% else %}
         <br>
-        <form action="{% url 'reply' %}" method="POST">
+        <form action="{% url 'publicreply_post' %}" method="POST">
             {% csrf_token %}
             {% if form.description.errors %}
             <span class="cr">{{ form.description.errors.0 }}</span>
             {% else %}
             <span class="cs ct"><b>Jawab likho:</b>
             {% endif %}
+            <input type="hidden" name="user_id" value="{{ user.id }}">
             <input type="hidden" name="link_id" value="{{ parent.id }}">
             <input type="hidden" name="lwpk" value="{{ parent.submitter_id }}">
             <br class="mbs">
             </span>{{ form.description }}
-            {% if warned %}
-            <span class="cs cr"><b>Warning:</b> aisa jawab na likho jo dil dukhai</span><br>
-            {% endif %}
         <br>
         <button class="btn bms bct mbl mts" type="submit" id="id_submit">OK</button>
         </form>

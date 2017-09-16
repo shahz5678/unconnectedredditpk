@@ -1,13 +1,13 @@
-VOTE_TEXT = {'1':'<span class="cg" style="font-size:80%;"> ne barri si <b>jhappi</b> di</span><br>',\
-'-1':'<span class="cr" style="font-size:80%;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
-'2': '<span class="cg" style="font-size:80%;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
-'-2': '<span class="cr" style="font-size:80%;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-20)</b></span><br>',\
-'3': '<span class="cg" style="font-size:80%;"> ko ye photo <b>zabrdast</b> lagi</span><br>',\
-'-3': '<span class="cr" style="font-size:80%;"> ko ye photo <b>bekaar</b> lagi</span><br>',\
-'4':'<span class="cg" style="font-size:80%;"> ne iski shot pe <b>taliyan</b> bajaien</span><br>',\
-'-4':'<span class="cr" style="font-size:80%;"> ne isko ghuma ke <b>balla</b> mara</span><br>',\
-'5': '<span class="cg" style="font-size:80%;"> ne iske <b>six</b> pe chalangein lagaien <b>(+20)</b></span><br>',\
-'-5': '<span class="cr" style="font-size:80%;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}
+VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jhappi</b> di</span><br>',\
+'-1':'<span style="font-size:80%;color:#F4511E;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
+'2': '<span style="font-size:80%;color:#009940;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
+'-2': '<span style="font-size:80%;color:#F4511E;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-20)</b></span><br>',\
+'3': '<span style="font-size:80%;color:#009940;"> ko ye photo <b>zabrdast</b> lagi</span><br>',\
+'-3': '<span style="font-size:80%;color:#F4511E;"> ko ye photo <b>bekaar</b> lagi</span><br>',\
+'4':'<span style="font-size:80%;color:#009940;"> ne iski shot pe <b>taliyan</b> bajaien</span><br>',\
+'-4':'<span style="font-size:80%;color:#F4511E;"> ne isko ghuma ke <b>balla</b> mara</span><br>',\
+'5': '<span style="font-size:80%;color:#009940;"> ne iske <b>six</b> pe chalangein lagaien <b>(+20)</b></span><br>',\
+'-5': '<span style="font-size:80%;color:#F4511E;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}
 UPVOTE = 3
 SUPER_UPVOTE = 20
 DOWNVOTE = -3
@@ -60,3 +60,5 @@ TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
 NUMBER_VERIFICATION_THRESHOLD = 25
 NUMBER_VERIFICATION_BONUS = 500
+###############################################################################################################
+PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'

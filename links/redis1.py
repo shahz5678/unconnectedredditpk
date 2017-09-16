@@ -1089,7 +1089,7 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	av_url = av_url_formatting(av_url=av_url)
+	av_url = av_url_formatting(av_url=av_url,categ=categ)
 	scr = scr_formatting(scr)
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)

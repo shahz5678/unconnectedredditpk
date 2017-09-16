@@ -4,6 +4,7 @@
 {% load voted %}
 {% load get_votes %}
 {% load get_item %}
+{% load get_voting %}
 {% load human_time %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
@@ -57,17 +58,7 @@
 			</div>
 
 				{% if comment.n != nickname and not comment.l|voted:nickname %}
-				<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
-				{% csrf_token %}
-					<input type="hidden" name="lid" value="{{ comment.l }}">
-					<input type="hidden" name="origin" value="1">
-					{% if nickname in checked %}
-					<button class="btn bcg bm mbl mts" type="submit" name="vote" value="4">taliyan</button>&nbsp;&nbsp;<button class="btn bcg" type="submit" name="vote" value="5">+20</button><br>
-					<button class="btn bcr bm" type="submit" name="vote" value="-4">balla</button>&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-5">- 20</button><br>
-					{% else %}
-					<button class="btn bcg bm mbs mts" type="submit" name="vote" value="4">taliyan</button>&nbsp;&nbsp;&nbsp;<button class="btn bcr bm mts mbs" type="submit" name="vote" value="-4">balla</button><br>
-					{% endif %}
-				</form>
+					{% vote_buttons vote_type='vote' lid=comment.l origin=1 females=checked static_url=STATIC_URL from_cricket='1' %}
 				{% endif %}
  		
 				{{ comment.vt|safe }}

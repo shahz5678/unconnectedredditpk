@@ -1517,6 +1517,7 @@ def new_user_gateway(request):
 	variation = config_manager.get_obj().activate('landing_page_exp', user_id)
 	# choices = ['var_1','var_2','var_3','var_4','var_5']
 	# variation = random.choice(choices)
+	# set newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
 	  ##########################################################
 	if variation == 'var_1':
 	  # how things are currently
@@ -2006,7 +2007,6 @@ def cricket_reply(request, pk=None,*args,**kwargs):
 		request.session["ban_time"] = ban_time
 		request.session["where_from"] = 'cricket_comment_page'
 		request.session.modified = True
-		print "inside"
 		return redirect("ban_underway")
 	elif request.user_banned:
 		return render(request,"500.html",{})
@@ -7044,7 +7044,7 @@ def cast_photo_vote(request,*args,**kwargs):
 				own_username = request.user.username
 				banned_from_voting,time_remaining = check_photo_vote_ban(own_id) #was this person banned by a defender?
 				cool_down_time, can_vote = can_vote_on_photo(own_id) #defenders are exempt from timing out currently
-				origin = request.POST.get("origin","")
+				origin = request.POST.get("from","")
 				if str(own_id) == photo_owner_id:
 					# voted own photo - dismiss
 					return render(request,'penalty_self_photo_vote.html')
@@ -7068,7 +7068,7 @@ def cast_photo_vote(request,*args,**kwargs):
 					citizen = is_verified
 					if value == '1':
 						added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
-					elif value == '0':
+					elif value == '-1':
 						added = add_vote_to_photo(photo_id, own_username, 0,(True if own_username in FEMALES else False),citizen)
 					else:
 						added = 0
@@ -7148,7 +7148,7 @@ def cast_vote(request,*args,**kwargs):
 							add_vote_to_link(link_id, value, own_name,is_pinkstar)
 						else:
 							pass
-						origin = request.POST.get("origin","")
+						origin = request.POST.get("from","")
 						if origin == '1':
 							#came from cricket_comments
 							request.session["target_id"] = link_id

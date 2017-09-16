@@ -1,3 +1,5 @@
+import shortuuid
+from django.db import transaction
 from django.contrib.auth import login as quick_login
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -8,12 +10,14 @@ from django.shortcuts import redirect, render
 from django.middleware import csrf
 from tasks import registration_task
 from redis1 import account_creation_disallowed
+from redis3 import insert_nick
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
+from score import PW
 from brake.decorators import ratelimit
 
 ######################################################################################
@@ -29,6 +33,18 @@ from brake.decorators import ratelimit
 # from unconnectedreddit.optimizely_settings import PID
 
 # config_manager = OptimizelyConfigManager(PID)
+
+######################################################################################
+
+# this enables an unregistered user to access limited functionality on Damadam (e.g. creating an ad)
+def create_dummy_user(request):
+	uname = shortuuid.uuid()
+	user = User(username=uname)
+	user.set_password(PW)
+	with transaction.commit_on_success():
+		user.save()
+		insert_nick(uname)
+	return uname
 
 ######################################################################################
 

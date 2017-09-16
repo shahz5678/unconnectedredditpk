@@ -2,6 +2,7 @@
 {% load emoticons_tags %}
 {% load humanize %}
 {% load thumbedge %}
+{% load get_voting %}
 {% load photoedge %}
 {% block content %}
 <div class="margin">
@@ -56,7 +57,7 @@
 	{% else %}
 
 	<a href="{% url 'comment_pk' photo.id '5' %}" class="cl cb"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-	<button class="btn nw bl bco mbs mts" >
+	<button class="btn nw bl mbs mts" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
 	{% if photo.comment_count > 1 %}
 	<b>{{ photo.comment_count }}</b> tabsrey
 	{% elif photo.comment_count == 1 %}
@@ -99,27 +100,24 @@
 			<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|thumbedge }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner.username }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
 
 
+				{% if can_vote and not own_photo and not voted %}
+					<div class="mts">
+					{% vote_buttons vote_type='photo_vote' pid=photo_id origin=5 oun=photo.owner.username oid=photo.owner_id static_url=STATIC_URL %}
+					</div>
+				{% endif %}
+
+
 					<a href="{% url 'photo_izzat' photo_id 5 %}">
 					{% if photo.visible_score > 1 %}
-					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
+					<button class="btn nw bl mtl mbs" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
 					{% elif photo.visible_score == 1 %}
-					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;point</b></button><br>
+					<button class="btn nw bl mtl mbs" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;point</b></button><br>
 					{% else %}
-					<button class="btn nw bcgy bl mtl mbs"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
+					<button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
 					{% endif %}
 					</a>
 
 
-				{% if can_vote and not own_photo and not voted %}
-					<form action="{% url 'cast_photo_vote' %}" method="POST">
-						{% csrf_token %}
-						<input type="hidden" name="pid" value="{{ photo_id }}">
-						<input type="hidden" name="oun" value="{{ photo.owner.username }}">
-						<input type="hidden" name="oid" value="{{ photo.owner_id }}">
-						<input type="hidden" name="origin" value="5">
-						<button class="btn bm bcg mts mbs" type="submit" name="photo_vote" value="1">zabrdast</button>&nbsp;&nbsp;&nbsp;<button class="btn bm bcr mts mbs" type="submit" name="photo_vote" value="0">bekaar</button>
-					</form>
-				{% endif %}
 				<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
 	{% endif %}
 {% else %}

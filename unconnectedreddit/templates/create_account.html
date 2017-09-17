@@ -8,7 +8,7 @@
 
 {% if no_credentials %}
 	{% load emoticons_tags %}
-	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">Damadam tumhara naam bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
+	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">Damadam apka naam bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
 	<a href="{% url 'unauth_home_new' %}#section0"><button class="btn bs bco mtl">wapis</button></a>
 {% else %}
 	<form method="post" action="{% url 'create_account' slug1=uhex length1=ulen slug2=phex length2=plen %}#section0" class="mtl">

@@ -20,7 +20,7 @@
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	<div class="mbs mts">
-	{% newbie_rules 'best_photos' STATIC_URL %}
+	{% newbie_rules 'best_photos' STATIC_URL newbie_lang %}
 	</div>
 	<br>
 {% else %}
@@ -64,17 +64,11 @@
 		<span class="co">&nbsp;{{ photo.o|truncatechars:15 }} ko buri fotos lagane se ban kr diya gaya&nbsp;{% emoticons %}.h1{% endemoticons %}</span>
 		<hr size=1 COLOR="#ff9933">
 	{% else %}
-		<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
-		<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
-		{% if photo.co|add:"0" > 1 %}
-		<b>{{ photo.co|add:"0" }}</b> tabsrey
-		{% elif photo.co|add:"0" == 1 %}
-		<b>1</b> tabsra
-		{% else %}
-		tabsra kro
-		{% endif %}</button>
-		</a>
-
+		{% if photo.co|default_if_none:"0"|add:"0" > 6 %}
+			<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
+			<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
+			<b>{{ photo.co }}</b> tabsrey</button></a>
+		{% endif %}
 			
 		<div style="display:inline-block">
 		{% fan_button own_user_id=ident target_user_id=photo.oi object_id=photo.i origin=3 fan_list=fanned static_url=STATIC_URL %}
@@ -85,6 +79,7 @@
 		</div>
 
 		<br>	
+		
 
 
 {% if photo.vo|add:"0" < -2 %}
@@ -119,7 +114,7 @@
 
 
 			{% if photo.comments %}
-				{% photo_comments_section photo.comments STATIC_URL ident '2' %}
+				{% photo_comments_section photo.comments STATIC_URL ident '2' score %}
 			{% endif %}
 
 			{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}

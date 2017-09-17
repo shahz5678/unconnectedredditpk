@@ -48,7 +48,7 @@
 
 
 		 	{% if comment.replies %}
-				{% home_replies_section comment.replies STATIC_URL user.id %}
+				{% home_replies_section comment.replies STATIC_URL user.id score %}
 			{% else %}
 				<br>
 			{% endif %}

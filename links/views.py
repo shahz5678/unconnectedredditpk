@@ -38,9 +38,9 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from salutations import SALUTATIONS
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################
-from redis3 import set_user_type, get_user_type
-from redis1 import all_best_posts_1, all_best_posts_2
-from redis4 import save_user_choice
+# from redis3 import set_user_type, get_user_type
+# from redis1 import all_best_posts_1, all_best_posts_2
+# from redis4 import save_user_choice
 ###############################################################################################################################
 ###############################################################################################################################
 from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
@@ -109,10 +109,10 @@ from brake.decorators import ratelimit
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
-from optimizely_config_manager import OptimizelyConfigManager
-from unconnectedreddit.optimizely_settings import PID
+# from optimizely_config_manager import OptimizelyConfigManager
+# from unconnectedreddit.optimizely_settings import PID
 
-config_manager = OptimizelyConfigManager(PID)
+# config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
@@ -615,11 +615,17 @@ class RegisterHelpView(FormView):
 
 
 def logout_rules(request):
-	if first_time_log_outter(request.user.id):
-		add_log_outter(request.user.id)
-		return render(request,"logout_tutorial.html",{})
+	user_id = request.user.id
+	if is_mobile_verified(user_id):
+		if first_time_log_outter(user_id):
+			add_log_outter(user_id)
+			return render(request,"logout_tutorial.html",{})
+		else:
+			return render(request,"logout_rules.html",{})
 	else:
-		return render(request,"logout_rules.html",{})
+		CSRF = csrf.get_token(request)
+		temporarily_save_user_csrf(str(user_id), CSRF)
+		return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
 
 
 class LogoutPenaltyView(FormView):
@@ -1235,10 +1241,10 @@ def home_reply(request,pk=None,*args,**kwargs):
 		user_id = request.user.id
 		lang = request.POST.get("lang",None)
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		# sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
+		sort_by_best = True if request.POST.get("sort_by",None) == 'best' else False
 		######################################################################################################
 		######################################################################################################
-		sort_by_best = True if get_user_type(user_id,best=True) == 'True' else False
+		# sort_by_best = True if get_user_type(user_id,best=True) == 'True' else False
 		######################################################################################################
 		######################################################################################################
 		if request.method == 'POST':
@@ -1253,7 +1259,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 			else:
 				##############################################################################################
 				##############################################################################################
-				config_manager.get_obj().track('wrote_homereply', user_id)
+				# config_manager.get_obj().track('wrote_homereply', user_id)
 				##############################################################################################
 				##############################################################################################
 				form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
@@ -1301,22 +1307,22 @@ def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None)
 		obj_list = all_unfiltered_posts()
 	else:
 		if sort_by_best and lang =='urdu':
-			# obj_list = all_best_urdu_posts()
+			obj_list = all_best_urdu_posts()
 			######################################################################################################
 			######################################################################################################
-			obj_list = all_filtered_urdu_posts()
+			# obj_list = all_filtered_urdu_posts()
 			######################################################################################################
 			######################################################################################################
 		elif sort_by_best:
-			# obj_list = all_best_posts()
+			obj_list = all_best_posts()
 			######################################################################################################
 			######################################################################################################
 			# determine which algo
-			algo = get_user_type(request.user.id, algo=True)
-			if algo == '1':
-				obj_list = all_best_posts_1()
-			elif algo == '2':
-				obj_list = all_best_posts_2()
+			# algo = get_user_type(request.user.id, algo=True)
+			# if algo == '1':
+			# 	obj_list = all_best_posts_1()
+			# elif algo == '2':
+			# 	obj_list = all_best_posts_2()
 			######################################################################################################
 			######################################################################################################
 		elif lang=='urdu':
@@ -1347,10 +1353,10 @@ def home_location(request, lang=None, *args, **kwargs):
 	link_id = request.session.pop("target_id", 0)
 	url_ =request.resolver_match.url_name
 	ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-	# sort_by_best = True if (url_ == 'home_loc_best' or url_== 'home_loc_ur_best') else False
+	sort_by_best = True if (url_ == 'home_loc_best' or url_== 'home_loc_ur_best') else False
 	######################################################################################################
 	######################################################################################################
-	sort_by_best = True if get_user_type(request.user.id,best=True) == 'True' else False
+	# sort_by_best = True if get_user_type(request.user.id,best=True) == 'True' else False
 	######################################################################################################
 	######################################################################################################
 	photo_links, list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request, items_per_page=ipp, lang=lang, notif=link_id,\
@@ -1376,13 +1382,14 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		user = request.user
 		url_ =request.resolver_match.url_name
 		ipp = MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		# sort_by_best = True if (url_ == 'home_best' or url_== 'ur_home_best') else False
+		sort_by_best = True if (url_ == 'home_best' or url_== 'ur_home_best') else False
 		######################################################################################################
 		######################################################################################################
-		sort_by_best = True if get_user_type(user.id,best=True) =='True' else False
+		# sort_by_best = True if get_user_type(user.id,best=True) =='True' else False
+		######################################################################################################
+		######################################################################################################
 		context["newbie_flag"] = request.session.pop("newbie_flag",None)
-		######################################################################################################
-		######################################################################################################
+		context["newbie_lang"] = request.session["newbie_lang"] if "newbie_lang" in request.session else None
 		context["lang"] = lang
 		context["sort_by"] = 'best' if sort_by_best else 'recent'
 		context["checked"] = FEMALES
@@ -1512,82 +1519,101 @@ def home_link_list(request, lang=None, *args, **kwargs):
 
 ##############################################################################################################################
 ##############################################################################################################################
-def new_user_gateway(request):
-	user_id = request.user.id
-	variation = config_manager.get_obj().activate('landing_page_exp', user_id)
-	# choices = ['var_1','var_2','var_3','var_4','var_5']
-	# variation = random.choice(choices)
-	# set newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
-	  ##########################################################
-	if variation == 'var_1':
-	  # how things are currently
-	  set_user_type(variation, user_id, best=False, algo=None)
-	  return redirect("first_time_link")
-	  ##########################################################
-	elif variation == 'var_2':
-	  # give users a choice of what to do
-	  request.session["newbie_flag"] = True
-	  request.session.modified = True
-	  set_user_type(variation, user_id, best=False, algo=None)
-	  return redirect("first_time_choice", best=False, algo=None)
-	  ##########################################################
-	elif variation == 'var_3':
-	  # show users best feed (photo heavy) by default
-	  request.session["newbie_flag"] = True
-	  request.session.modified = True
-	  set_user_type(variation, user_id, best=True, algo='1')
-	  return redirect("first_time_best",algo='1')
-	  ##########################################################
-	elif variation == 'var_4':
-	  # show users best feed (text heavy) by default
-	  request.session["newbie_flag"] = True
-	  request.session.modified = True
-	  set_user_type(variation, user_id, best=True, algo='2')
-	  return redirect("first_time_best",algo='2')
-	  ##########################################################
-	elif variation == 'var_5':
-	  # give users a choice of what to do (home has text heavy 'best' feed). No use showing photo heavy best feed here. The user opted for chatting. Why show him photos?
-	  request.session["newbie_flag"] = True
-	  request.session.modified = True
-	  set_user_type(variation, user_id, best=True, algo='2')
-	  return redirect("first_time_choice",best=True, algo='2')
-	  ##########################################################
-	elif variation == 'var_6':
-	  # status quo, but with instructions - trivial case
-	  request.session["newbie_flag"] = True
-	  request.session.modified = True
-	  set_user_type(variation, user_id, best=False, algo=None)
-	  return redirect("first_time_link")
-	  ##########################################################
-	else:
-	  # how things are currently
-	  set_user_type(variation, user_id, best=False, algo=None)
-	  return redirect("first_time_link")
-	  ##########################################################
+def new_user_gateway(request,lang=None,*args,**kwargs):
+	# set necessary newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
+	request.session["newbie_flag"] = True
+	request.session.modified = True
+	return redirect("first_time_choice", lang=lang)
+	# user_id = request.user.id
+	# variation = config_manager.get_obj().activate('landing_page_exp', user_id)
+	# if variation == 'var_1':
+	#   # how things are currently
+	#   set_user_type(variation, user_id, best=False, algo=None)
+	#   return redirect("first_time_link")
+	#   ##########################################################
+	# elif variation == 'var_2':
+	#   # give users a choice of what to do
+	#   request.session["newbie_flag"] = True
+	#   request.session.modified = True
+	#   set_user_type(variation, user_id, best=False, algo=None)
+	#   return redirect("first_time_choice", best=False, algo=None)
+	#   ##########################################################
+	# elif variation == 'var_3':
+	#   # show users best feed (photo heavy) by default
+	#   request.session["newbie_flag"] = True
+	#   request.session.modified = True
+	#   set_user_type(variation, user_id, best=True, algo='1')
+	#   return redirect("first_time_best",algo='1')
+	#   ##########################################################
+	# elif variation == 'var_4':
+	#   # show users best feed (text heavy) by default
+	#   request.session["newbie_flag"] = True
+	#   request.session.modified = True
+	#   set_user_type(variation, user_id, best=True, algo='2')
+	#   return redirect("first_time_best",algo='2')
+	#   ##########################################################
+	# elif variation == 'var_5':
+	#   # give users a choice of what to do (home has text heavy 'best' feed). No use showing photo heavy best feed here. The user opted for chatting. Why show him photos?
+	#   request.session["newbie_flag"] = True
+	#   request.session.modified = True
+	#   set_user_type(variation, user_id, best=True, algo='2')
+	#   return redirect("first_time_choice",best=True, algo='2')
+	#   ##########################################################
+	# elif variation == 'var_6':
+	#   # status quo, but with instructions - trivial case
+	#   request.session["newbie_flag"] = True
+	#   request.session.modified = True
+	#   set_user_type(variation, user_id, best=False, algo=None)
+	#   return redirect("first_time_link")
+	#   ##########################################################
+	# else:
+	#   # how things are currently
+	#   set_user_type(variation, user_id, best=False, algo=None)
+	#   return redirect("first_time_link")
+	#   ##########################################################
 
-def first_time_best(request,algo, *args, **kwargs):
-	return redirect("home_best")
+# def first_time_best(request,algo, *args, **kwargs):
+# 	return redirect("home_best")
 
-def first_time_choice(request, best=False, algo=None, *args, **kwargs):
+# def first_time_choice(request, best=False, algo=None, *args, **kwargs):
+# 	if request.method == 'POST':
+# 		user_id = request.user.id
+# 		choice = request.POST.get("choice",None)
+# 		best = request.POST.get("best",None)
+# 		algo = request.POST.get("algo",None)
+# 		# save_user_choice(user_id, choice)
+# 		if choice == '1':
+# 			# this user wants to chat
+# 			if best == 'True':
+# 				# handling 'var_5'
+# 				return redirect("home_best")
+# 			elif best == 'False':
+# 				# handling 'var_2'
+# 				return redirect("home")
+# 		elif choice == '2':
+# 			# this user wants to see fotos, handling 'var_2'
+# 			return redirect("best_photo")
+# 	else:
+# 		return render(request,"first_time_choice.html",{'show_best':best,'algo':algo})
+
+
+def first_time_choice(request,lang=None, *args, **kwargs):
 	if request.method == 'POST':
-		user_id = request.user.id
+		request.session["newbie_lang"] = lang if lang else 'eng'
+		request.session.modified = True
 		choice = request.POST.get("choice",None)
-		best = request.POST.get("best",None)
-		algo = request.POST.get("algo",None)
-		save_user_choice(user_id, choice)
 		if choice == '1':
 			# this user wants to chat
-			if best == 'True':
-				# handling 'var_5'
-				return redirect("home_best")
-			elif best == 'False':
-				# handling 'var_2'
-				return redirect("home")
+			return redirect("home")
 		elif choice == '2':
-			# this user wants to see fotos, handling 'var_2'
+			# this user wants to see fotos
 			return redirect("best_photo")
 	else:
-		return render(request,"first_time_choice.html",{'show_best':best,'algo':algo})
+		if lang == 'ur':
+			return render(request,"first_time_choice_ur.html")
+		else:
+			return render(request,"first_time_choice.html")
+
 
 ##############################################################################################################################
 ##############################################################################################################################
@@ -3638,7 +3664,7 @@ class CommentView(CreateView):
 				exists, user.username, url, citizen)
 			##############################################################################################
 			##############################################################################################
-			config_manager.get_obj().track('wrote_photocomment', user.id)
+			# config_manager.get_obj().track('wrote_photocomment', user.id)
 			##############################################################################################
 			##############################################################################################
 			if user.id != photo_owner_id:
@@ -4061,7 +4087,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					request.user.username, url, citizen)
 				##############################################################################################
 				##############################################################################################
-				config_manager.get_obj().track('wrote_inline_photocomment', user_id)
+				# config_manager.get_obj().track('wrote_inline_photocomment', user_id)
 				##############################################################################################
 				##############################################################################################
 				if user_id != photo_owner_id:
@@ -4355,11 +4381,8 @@ def best_photos_list(request,*args,**kwargs):
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = user.username
-			######################################################################################################
-			######################################################################################################
 			context["newbie_flag"] = request.session.pop("newbie_flag",None)
-			######################################################################################################
-			######################################################################################################
+			context["newbie_lang"] = request.session["newbie_lang"] if "newbie_lang" in request.session else None
 			context["ident"] = user.id
 			context["score"] = user.userprofile.score
 			context["voted"] = []
@@ -6148,7 +6171,7 @@ def post_public_reply(request,*args,**kwargs):
 		else:
 			##############################################################################################
 			##############################################################################################
-			config_manager.get_obj().track('wrote_publicreply', user_id)
+			# config_manager.get_obj().track('wrote_publicreply', user_id)
 			##############################################################################################
 			##############################################################################################
 			form = PublicreplyForm(request.POST,user_id=user_id)
@@ -6351,7 +6374,7 @@ class LinkCreateView(CreateView):
 			f.submitter.userprofile.save()
 			##############################################################################################
 			##############################################################################################
-			config_manager.get_obj().track('wrote_onhome', user_id)
+			# config_manager.get_obj().track('wrote_onhome', user_id)
 			##############################################################################################
 			##############################################################################################
 			return super(CreateView, self).form_valid(form) #saves the link automatically

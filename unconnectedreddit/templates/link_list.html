@@ -24,7 +24,7 @@
 <div class="margin">
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
-	{% newbie_rules 'home' STATIC_URL %}
+	{% newbie_rules 'home' STATIC_URL newbie_lang %}
 {% else %}
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 
@@ -122,20 +122,15 @@
 		{{ link.au|safe }}
 		</a>
 
-
-		{% if link.aw == '1' and link.h|add:"0" > 7 %}
-			<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
-		{% else %}
-			<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+		{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
+			{% if link.aw == '1' and link.h|add:"0" > 7 %}
+				<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+			{% else %}
+				<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+			{% endif %}
+			<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
+			<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
 		{% endif %}
-		<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
-		{% if link.pc|add:"0" > 1 %}
-		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
-		{% elif link.pc|add:"0" == 1 %}
-		<b>1</b> tabsra
-		{% else %}tabsra kro
-		{% endif %}
-		</button></a>
 
 
 		<a name="section{{ forloop.counter }}"></a>
@@ -207,7 +202,7 @@
 
 		
 		{% if link.pi %}
-			{% photo_comments_section link.pi STATIC_URL ident '3' %}
+			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
 		{% endif %}
 
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
@@ -256,7 +251,7 @@
 			
 			{% if link.replies %}
 				<div class="mtl">
-				{% home_replies_section link.replies STATIC_URL ident %}
+				{% home_replies_section link.replies STATIC_URL ident score %}
 				</div>
 			{% else %}
 				

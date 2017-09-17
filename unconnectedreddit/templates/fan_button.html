@@ -1,0 +1,14 @@
+	{% if possible %}
+	<div class="mts mbs mrl">
+			<form method="POST" action="{% url 'fan' %}">
+			{% csrf_token %}
+				<input type="hidden" name="oid" value="{{ oid }}">
+				<input type="hidden" name="org" value="{{ org }}">
+			{% if tid|add:"0" in fan_list %}
+				<button name="sid_btn" class="btn bms bco" style="background-image: url({{ static_url }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ tid }}">&nbsp;</button>
+			{% else %}
+				<button name="sid_btn" class="btn bms bcgy" style="background-image: url({{ static_url }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ tid }}">&nbsp;</button>
+			{% endif %}
+			</form>
+	</div>
+	{% endif %}

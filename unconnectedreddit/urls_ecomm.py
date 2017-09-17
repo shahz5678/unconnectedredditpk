@@ -1,9 +1,9 @@
 from links.ecomm import x2lite_details, x32_details, buyer_loc, process_city, post_basic_item, post_seller_info, post_basic_item_photos, \
 init_classified, approve_classified, edit_classified, process_ad_approval, change_cover_photo, show_user_ads, ad_detail, process_unfinished_ad, \
-ad_locked_by_agent, show_seller_number, classified_tutorial_dec, city_list, expire_my_ad, change_my_sms_settings, classified_listing, \
-process_ad_expiry_or_sms_feedback, print_referrer_logs, redirect_to_social_section#, populate_photo_ads, get_spam_export
+ad_locked_by_agent, city_list, expire_my_ad, change_my_sms_settings, classified_listing, process_ad_expiry_or_sms_feedback, print_referrer_logs, \
+redirect_to_social_section, initiate_seller_verification_process#classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
 from links.ecomm_tracking import display_latest_metrics, get_ad_export, get_click_distribution
-from links.number_verification import verify_basic_item_seller_number, verify_consumer_number
+from links.number_verification import verify_basic_item_seller_number#, verify_consumer_number
 from django.contrib.auth.decorators import login_required as auth
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
@@ -29,19 +29,19 @@ urlpatterns = patterns('',
 	url(r'^classified_approval_dashboard/(?P<only_locked>\d+)/$', auth(approve_classified),name='approve_classified'),
 	#################################################################################################
 	url(r'^process_unfinished_ad/$', auth(process_unfinished_ad),name='process_unfinished_ad'),
-	url(r'^ctut/$', auth(classified_tutorial_dec),name='classified_tutorial_dec'),
+	# url(r'^ctut/$', auth(classified_tutorial_dec),name='classified_tutorial_dec'),
 	url(r'^expire_ad/$', auth(expire_my_ad),name='expire_my_ad'),
 	url(r'^saesf/$', auth(process_ad_expiry_or_sms_feedback),name='process_ad_expiry_or_sms_feedback'),
 	url(r'^sms_settings/$', auth(change_my_sms_settings),name='change_my_sms_settings'),
-	url(r'^seller_number/$', auth(show_seller_number),name='show_seller_number'),
+	# url(r'^seller_number/$', auth(show_seller_number),name='show_seller_number'),
 	url(r'^meray_ads/$', auth(show_user_ads),name='show_user_ads'),
 	#############################################E Commerce##########################################
 	url(r'^item_ki_detail_likho/$', auth(post_basic_item),name='post_basic_item'),
 	url(r'^baichney_waley_ki_detail_likho/$', auth(post_seller_info),name='post_seller_info'),
 	url(r'^item_ki_pics_lagao/$', auth(post_basic_item_photos),name='post_basic_item_photos'),
-	url(r'^kuch_baicho/$', auth(init_classified),name='init_classified'),
+	url(r'^kuch_baicho/$', init_classified,name='init_classified'),
 	url(r'^vsn/$',verify_basic_item_seller_number, name="verify_basic_item_seller_number"),
-	url(r'^vcn/$',verify_consumer_number, name="verify_consumer_number"),
+	# url(r'^vcn/$',verify_consumer_number, name="verify_consumer_number"),
 	############################################################
 	url(r'^ecomm_metrics/(?P<metrics_type>[\w.@+-]+)/$',auth(display_latest_metrics), name="display_latest_metrics"),
 	url(r'^get_ad_export/$',auth(get_ad_export), name="get_ad_export"),

@@ -1,31 +1,69 @@
-{% if location == 'home' %}
-<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-<div style="text-align: center;">
-<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
-</div>
-	<div class="mrs mls mts mbs">
-	<div class="cl">
-	Neechay kisi patti mein kuch bhi likh ke <b>"jawab do"</b> dabao!<br>
+{% if lang == 'ur' %}
+
+	{% if location == 'home' %}
+	<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+	<div style="text-align: center;">
+	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;!خوش آمدید&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
 	</div>
-	<hr size=1 COLOR="#ffeb3b">
-	<div class="mt">
-	Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.c2{% endemoticons %}
+		<div class="mrs mls mts mbs">
+		<div class="cl">
+		جو بات پسند آۓ، اسکے نیچے دی گئی پٹی میں اپنا جواب لکھ کے <b>"جواب دو"</b> دبائیں<br>
+		</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mt">
+		اس طرح اپکی دمادم کے لوگوں کے ساتھ چیٹ شروع ہو جاۓ گی
+		</div>
+		</div>
 	</div>
+	{% elif location == 'best_photos' %}
+	<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+	<div style="text-align: center;">
+	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;!خوش آمدید&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
 	</div>
-</div>
-{% elif location == 'best_photos' %}
-<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-<div style="text-align: center;">
-<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
-</div>
-	<div class="mrs mls mts mbs">
-	<div class="cl">
-	Neechay kisi patti mein kuch bhi likh ke <b>"tabsra kro"</b> dabao!<br>
+		<div class="mrs mls mts mbs">
+		<div class="cl">
+		جو فوٹو پسند آۓ، اسکے نیچے دی گئی پٹی میں اپنا تبصرہ لکھ کر <b>"تبصرہ کرو"</b> دبائیں<br>
+		</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mt">
+		اس طرح اپکی دمادم کے لوگوں کے ساتھ چیٹ شروع ہو جاۓ گی
+		</div>
+		</div>
 	</div>
-	<hr size=1 COLOR="#ffeb3b">
-	<div class="mt">
-	Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.b7{% endemoticons %}
+	{% endif %}
+
+{% else %}
+
+	{% if location == 'home' %}
+	<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+	<div style="text-align: center;">
+	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
 	</div>
+		<div class="mrs mls mts mbs">
+		<div class="cl">
+		Jo baat pasand aye, uskey neechay di gayee patti mein apna jawab likh ke <b>"jawab do"</b> dabain!<br>
+		</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mt">
+		Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.c2{% endemoticons %}
+		</div>
+		</div>
 	</div>
-</div>
+	{% elif location == 'best_photos' %}
+	<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
+	<div style="text-align: center;">
+	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
+	</div>
+		<div class="mrs mls mts mbs">
+		<div class="cl">
+		Jo foto pasand aye, uskey neechay di gayee patti mein apna tabsra likh ke <b>"tabsra kro"</b> dabao!<br>
+		</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mt">
+		Is terah apki Damadam ke users ke sath chat shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.b7{% endemoticons %}
+		</div>
+		</div>
+	</div>
+	{% endif %}
+
 {% endif %}

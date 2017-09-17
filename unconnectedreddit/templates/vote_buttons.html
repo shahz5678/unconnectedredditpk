@@ -1,0 +1,70 @@
+		<style>
+
+
+		.jh_bg{
+			background:url('{{ static_url }}img/jhappi_emoji.png') center no-repeat #69F0AE;
+		}
+
+		.ch_bg{
+			background:url('{{ static_url }}img/chupair_emoji.png') center no-repeat #FFCCBC;
+		}
+
+		.bjh_att{
+			border-radius: 3px 9px 9px 9px;
+			color:#00662a;
+		}
+
+		.bch_att{
+			border-radius: 9px 3px 9px 9px;
+			color:#cc3000;
+		}
+
+		</style>
+
+		{% if vote_type == 'vote' %}
+		
+				<form  action="{% url 'cast_vote' %}" method="POST">
+				{% csrf_token %}
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="from" value="{{ from }}">
+				<input type="hidden" name="lang" value="{{ lang }}">
+				<input type="hidden" name="sort_by" value="{{ sort_by }}">
+				{% if from_cricket %}
+					{% if females and oun in females %}
+						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ cricket_upvote }}" type="submit">&nbsp;</button>
+						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ cricket_downvote }}" type="submit">&nbsp;</button><br>
+						<button class="btn mbs mrs bjh bjh_att" type="submit" name="{{ vote_type }}" value="{{ super_cricket_upvote }}">+20</button>&nbsp;&nbsp;
+						<button class="btn mbs bch bch_att" type="submit" name="{{ vote_type }}" value="{{ super_cricket_downvote }}">- 20</button><br>
+					{% else %}
+						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ cricket_upvote }}" type="submit">&nbsp;</button>
+						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ cricket_downvote }}" type="submit">&nbsp;</button>
+					</form>
+					{% endif %}
+				{% else %}
+					{% if females and oun in females %}
+						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ upvote }}" type="submit">&nbsp;</button>
+						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ downvote }}" type="submit">&nbsp;</button><br>
+						<button class="btn mbs mrs bjh bjh_att" type="submit" name="{{ vote_type }}" value="{{ super_upvote }}">+20</button>&nbsp;&nbsp;
+						<button class="btn mbs bch bch_att" type="submit" name="{{ vote_type }}" value="{{ super_downvote }}">- 20</button><br>
+					{% else %}
+						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ upvote }}" type="submit">&nbsp;</button>
+						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ downvote }}" type="submit">&nbsp;</button>
+					</form>
+					{% endif %}
+				{% endif %}
+
+		{% elif vote_type == 'photo_vote' %}
+		
+				<form action="{% url 'cast_photo_vote' %}" method="POST">
+				{% csrf_token %}
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="pid" value="{{ pid }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="from" value="{{ from }}">
+				<input type="hidden" name="oid" value="{{ oid }}">
+				<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ upvote }}" type="submit">&nbsp;</button>
+				<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ downvote }}" type="submit">&nbsp;</button>	
+				</form>
+
+		{% else %}
+		{% endif %}

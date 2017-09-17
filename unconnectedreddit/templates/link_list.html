@@ -9,6 +9,9 @@
 {% load human_time %}
 {% load photoedge %}
 {% load get_mobile_shop %}
+{% load get_fan_button %}
+{% load get_voting %}
+{% load get_curate_photo %}
 {% load get_block_button %}
 {% load get_notification_bar %}
 {% load get_photo_comments_section %}
@@ -21,7 +24,7 @@
 <div class="margin">
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
-	{% newbie_rules 'home' STATIC_URL %}
+	{% newbie_rules 'home' STATIC_URL newbie_lang %}
 {% else %}
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 
@@ -69,7 +72,7 @@
 					{% endif %}
 				</form>
 		
-				<p><hr size=1 COLOR="#33cc33"></p></div>
+				<p><hr size=1 COLOR="#BDBDBD"></p></div>
 		{% endif %}
 	{% endif %}
 	{% if forloop.counter == 3 %}
@@ -78,12 +81,12 @@
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
-		<p><hr size=1 COLOR="#33cc33"></p></div>
+		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
 	{% if forloop.counter == 8 %}
 		<div style="margin-top:-1em;padding-top:1em;background-color:#00c853" >
 		{% mobile_shop STATIC_URL %}
-		<p><hr size=1 COLOR="#33cc33"></p></div>
+		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
@@ -92,11 +95,11 @@
 			<span class="ct"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
-			<p><hr size=1 COLOR="#3cb7dd" ></p>
+			<p><hr size=1 COLOR="#BDBDBD"></p>
 		{% elif not show_current and show_next %}
 			<div class="ct"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bcg mts" style="width:12em;"><b>record save krna</b></button></a>&nbsp;
 			</div>
-			<p><hr size=1 COLOR="#3cb7dd"></p>
+			<p><hr size=1 COLOR="#BDBDBD"></p>
 		{% else %}
 			<!-- nothing to show -->
 		{% endif %}
@@ -114,13 +117,38 @@
 
 	{% elif link.c == '6' %}
 		
-		<div class="mbs">
-		<a href="{% url 'profile' link.n %}#secton0">
-		{{ link.au|safe }}</a><a name="section{{ forloop.counter }}"></a>&nbsp;
-		    
-		    <b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-				<span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
-				</div>
+	<div class="mbs">
+		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
+		{{ link.au|safe }}
+		</a>
+
+		{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
+			{% if link.aw == '1' and link.h|add:"0" > 7 %}
+				<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+			{% else %}
+				<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+			{% endif %}
+			<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
+			<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
+		{% endif %}
+
+
+		<a name="section{{ forloop.counter }}"></a>
+
+		<div style="display:inline-block">
+		{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
+		</div>
+
+
+		<div style="display:inline-block">
+		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|thumbedge lid=link.l origin=3 static_url=STATIC_URL %}
+		</div><br>	    
+	
+	</div>
+
+
+			<b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
+			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
 
 
 		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
@@ -164,58 +192,23 @@
 		    {% endif %}    
 	    	<br>
 		{% endif %}
-		
-		<form method="POST" action="{% url 'curate_photo' %}" class="mrl" style="display:inline;">{% csrf_token %}<input type="hidden" name="orig" value="3"><input type="hidden" name="lid" value="{{ link.l }}"><input type="hidden" name="purl" value="{{ link.i|thumbedge }}"><input type="hidden" name="oid" value="{{ link.w }}"><input type="hidden" name="cap" value="{{ link.de }}"><input type="hidden" name="oun" value="{{ link.n }}"><input type="hidden" name="vsc" value="{{ link.v }}"><button style="background-image: url({{ STATIC_URL }}img/curate.png);background-repeat: no-repeat;background-position: center;width:15px;height:18px;border:none;" value="{{ link.pi }}" name="curate" type="submit">&nbsp;</button></form>
 
 
-
-	{% if link.aw == '1' and link.h|add:"0" > 7 %}
-		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
-	{% else %}
-		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
-	{% endif %}
-		<button class="btn nw bl bco mbs mtl mrl">
-		{% if link.pc|add:"0" > 1 %}
-		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey
-		{% elif link.pc|add:"0" == 1 %}
-		<b>1</b> tabsra
-		{% else %}tabsra kro
-		{% endif %}
-		</button></a>
-		
-
-		{% if link.n != username %}
-				<form method="POST" action="{% url 'fan' %}" style="display:inline">
-				{% csrf_token %}
-					<input type="hidden" name="oid" value="{{ link.l }}">
-					<input type="hidden" name="org" value="4">
-				{% if link.w|add:"0" in fanned %}
-					<button name="sid_btn" class="btn bms bco mts mbs" style="background-image: url({{ STATIC_URL }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ link.w }}">&nbsp;</button>
-				{% else %}
-					<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ STATIC_URL }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ link.w }}">&nbsp;</button>
-				{% endif %}
-				</form>
-			{% endif %}
-
-		<br>
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
-		<form action="{% url 'cast_photo_vote' %}" method="POST">
-			{% csrf_token %}
-			<input type="hidden" name="lid" value="{{ link.l }}">
-			<input type="hidden" name="pid" value="{{ link.pi }}">
-			<input type="hidden" name="origin" value="3">
-			<button class="btn bm bcg mts mbs" type="submit" name="photo_vote" value="1">zabrdast</button>&nbsp;&nbsp;&nbsp;<button class="btn bm bcr mts mbs" type="submit" name="photo_vote" value="0">bekaar</button>
-		</form>
+			{% vote_buttons vote_type='photo_vote' lid=link.l pid=link.pi lang=lang sort_by=sort_by origin=3 static_url=STATIC_URL %}
 		{% endif %}
+
+		{{ link.vt|safe }}
+
 		
 		{% if link.pi %}
-			{% photo_comments_section link.pi STATIC_URL ident '3' %}
+			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
 		{% endif %}
 
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
 
-		{{ link.vt|safe }}
-		<p><hr size=1 COLOR="#ff9933"></p>
+		
+		<p><hr size=1 COLOR="#BDBDBD"></p>
 	
 	
 	{% else %}
@@ -234,42 +227,49 @@
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
-			{% if link.cc|add:"0" > 0 %}<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button class="btn nw bl mbs mts" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
+
+			<br>
+
+			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
+				<div class="mls mts">
+				{% vote_buttons vote_type='vote' lid=link.l lang=lang sort_by=sort_by origin=0 females=checked static_url=STATIC_URL oun=user.username %}
+				</div>
+			{% endif %}
+
+			{% if link.vt %}
+			<div class="mls mts">
+			{{ link.vt|safe }}
+			</div>
+			{% endif %}
+			
+			{% if link.cc|add:"0" > 6 %}
+			<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
+			{% csrf_token %}
+			&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>
+			{% endif %}
+
+			
 			{% if link.replies %}
-				{% home_replies_section link.replies STATIC_URL ident %}
+				<div class="mtl">
+				{% home_replies_section link.replies STATIC_URL ident score %}
+				</div>
 			{% else %}
-				<br>
+				
 			{% endif %}
 
 			<div class="mtl">
 				{% home_publicreply_bar link_pk=link.l link_writer_pk=link.w lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home'%}
 			</div>
+		
 
-			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
-			<form  action="{% url 'cast_vote' %}" method="POST" class="mbs">
-			{% csrf_token %}
-				<input type="hidden" name="lid" value="{{ link.l }}">
-				<input type="hidden" name="origin" value="0">
-				<input type="hidden" name="lang" value="{{ lang }}">
-				<input type="hidden" name="sort_by" value="{{ sort_by }}">
-				{% if user.username in checked %}
-				<button class="btn bcg bm mts mbl" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;<button class="btn bcg mbl" type="submit" name="vote" value="2">+20</button><br>
-				<button class="btn bcr bm" type="submit" name="vote" value="-1">chupair</button>&nbsp;&nbsp;<button class="btn bcr" type="submit" name="vote" value="-2">- 20</button><br>
-				{% else %}
-				<button class="btn bcg bm mts mbs" type="submit" name="vote" value="1">jhappi</button>&nbsp;&nbsp;&nbsp;<button class="btn bcr bm mts mbs" type="submit" name="vote" value="-1">chupair</button><br>
-				{% endif %}
-			</form>
-			{% endif %}
-
-
-			{{ link.vt|safe }}
+			
 			{{ link.ct|safe }}
 			
 	{% endif %}
 {% endwith %}
 {% empty %}
 	<span class="clb">Ao gup lagain!</span>
-	<hr size=1 COLOR="#3cb7dd">
+	<p><hr size=1 COLOR="#BDBDBD"></p>
 {% endfor %}
 
 

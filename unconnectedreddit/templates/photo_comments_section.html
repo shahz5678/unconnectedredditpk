@@ -12,7 +12,7 @@
 		{% else %}
 		<img style="border: 1px solid #DCDCDC;border-radius:50%" src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic">
 		{% endif %}
-		{{ comment.writer_uname }}</a>:&nbsp;<span class="cdo"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ comment.epoch_time|human_time }}</span> &nbsp;&nbsp;{% block_button comment.commenter_id comment.writer_uname self_user_id comment.photo_id 'home:comment' static_url %}<br>
+		{{ comment.writer_uname }}</a>:&nbsp;<span class="cdo"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ comment.epoch_time|human_time }}</span> &nbsp;&nbsp;{% block_button comment.commenter_id comment.writer_uname self_user_id comment.photo_id 'home:comment' static_url %}{% if score > 25 and comment.commenter_id|slugify != self_user_id|slugify %}&nbsp;<a href="{% url 'mehfilcomment_pk' pk=comment.commenter_id num=comment.photo_id origin='3' %}"><button class="mls btn bco bs cxs"><b>mehfil</b></button></a>{% endif %}<br>
 	</td></tr>
 {% endfor %}
 </table>

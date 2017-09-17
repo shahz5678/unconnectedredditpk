@@ -3,7 +3,7 @@ from django import template
 register = template.Library()
 
 @register.inclusion_tag(file_name='home_replies_section.html')
-def home_replies_section(raw_replies, static_url, self_user_id):
+def home_replies_section(raw_replies, static_url, self_user_id, score):
 	try:
 		replies = []
 		raw_reply_set = filter(None,raw_replies.split('#el#'))
@@ -18,6 +18,6 @@ def home_replies_section(raw_replies, static_url, self_user_id):
 			if counter > 5:
 				# this ensures only 6 replies can show up on home (at max)
 				break
-		return {'replies':replies,'static_url':static_url,'self_user_id':self_user_id,'possible':True}
+		return {'replies':replies,'static_url':static_url,'self_user_id':self_user_id,'possible':True, 'score':score}
 	except:
 		return {'possible':False}

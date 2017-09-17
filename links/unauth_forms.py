@@ -122,9 +122,9 @@ class CreateAccountForm(forms.ModelForm):
 				User._default_manager.get(username=username)
 			except User.DoesNotExist:
 				return username
-			raise forms.ValidationError('%s naam tum se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s naam aap se pehle kisi aur ne rakh liya' % username)
 		elif exists:
-			raise forms.ValidationError('%s naam tum se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s naam aap se pehle kisi aur ne rakh liya' % username)
 		else:
 			return username
 

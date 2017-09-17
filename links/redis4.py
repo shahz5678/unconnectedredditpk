@@ -1,3 +1,4 @@
+
 # coding=utf-8
 import redis, time, random
 from location import REDLOC4
@@ -24,9 +25,9 @@ FIVE_MINS = 5*60
 
 
 
-def save_user_choice(user_id, choice):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
+# def save_user_choice(user_id, choice):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
 
 # def log_referrer(referrer, loc, user_id):
 # 	my_server = redis.Redis(connection_pool=POOL)

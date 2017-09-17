@@ -5,8 +5,8 @@ from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
 from redis4 import save_careem_data #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
-from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_buyer_snapshot, get_user_csrf, is_mobile_verified, \
-get_user_verified_number
+from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, is_mobile_verified, \
+get_user_verified_number#, get_buyer_snapshot
 
 def get_requirements(request, csrf, careem=False, csrf_omitted=False):
 	status = request.GET.get('status', None)
@@ -88,28 +88,28 @@ def verify_user_number(request,*args,**kwargs):
 			return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 
 
-def verify_consumer_number(request,*args,**kwargs):
-	user_id = request.user.id
-	data = get_buyer_snapshot(user_id=str(user_id))
-	if data:
-		AK_ID, MN_data, err = get_requirements(request=request,csrf=data["csrf"])
-		if AK_ID and MN_data:
-			if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
-				return render(request,"wrong_number.html",{'referrer':data["referrer"],'from_ecomm':True})
-			else:
-				save_consumer_credentials.delay(AK_ID, MN_data, user_id)
-				if data["redirect_to"]:
-					return redirect("show_seller_number")
-				else:
-					return redirect("classified_listing")
-		elif AK_ID == 'generic' or AK_ID == 'expired' or AK_ID == 'used' or AK_ID == 'invalid':
-			return render(request,"unverified_number.html",{'referrer':'classified_listing','reason':AK_ID,'from_ecomm':True})
-		elif err['status'] == "NOT_AUTHENTICATED":
-			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer','from_ecomm':True})
-		else:
-			return render(request,"unverified_number.html",{'referrer':'classified_listing','from_ecomm':True})
-	else:
-		return render(request,"try_again.html",{'type':'consumer','from_ecomm':True})
+# def verify_consumer_number(request,*args,**kwargs):
+# 	user_id = request.user.id
+# 	data = get_buyer_snapshot(user_id=str(user_id))
+# 	if data:
+# 		AK_ID, MN_data, err = get_requirements(request=request,csrf=data["csrf"])
+# 		if AK_ID and MN_data:
+# 			if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+# 				return render(request,"wrong_number.html",{'referrer':data["referrer"],'from_ecomm':True})
+# 			else:
+# 				save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+# 				if data["redirect_to"]:
+# 					return redirect("show_seller_number")
+# 				else:
+# 					return redirect("classified_listing")
+# 		elif AK_ID == 'generic' or AK_ID == 'expired' or AK_ID == 'used' or AK_ID == 'invalid':
+# 			return render(request,"unverified_number.html",{'referrer':'classified_listing','reason':AK_ID,'from_ecomm':True})
+# 		elif err['status'] == "NOT_AUTHENTICATED":
+# 			return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer','from_ecomm':True})
+# 		else:
+# 			return render(request,"unverified_number.html",{'referrer':'classified_listing','from_ecomm':True})
+# 	else:
+# 		return render(request,"try_again.html",{'type':'consumer','from_ecomm':True})
 
 
 def verify_basic_item_seller_number(request,*args,**kwargs):

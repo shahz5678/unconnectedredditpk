@@ -12,7 +12,7 @@ def get_ur(string):
 		return 'اس پاس ورڈ کا اندازہ لگانا آسان ہے۔ کچھ اور لکھو'
 	elif 'kiyunke naam mein hai' in string:
 		return 'پاس ورڈ میں نام نہ ڈالو'
-	elif 'naam tum se pehle' in string:
+	elif 'naam aap se pehle' in string:
 		return 'یہ نام ابھی ابھی کسی اور نے رکھ لیا۔ معذرت'
 	elif 'safed patti mein' in string:
 		return 'اس سفید پٹی میں نام لکھو'

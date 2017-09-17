@@ -1077,7 +1077,7 @@ def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_i
 	if my_server.exists(hash_name):
 		my_server.zadd("rlk:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
 		##################################################################################################################################
-		#####################################################Optimizely Experiment########################################################
+		########################################Helps in creating text only home rating###################################################
 		if not photo_post:																												 #
 			my_server.zadd("rlk1:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))#
 		##################################################################################################################################
@@ -1346,6 +1346,7 @@ def set_best_posts_on_home(link_ids,urdu_only=False,exclude_photos=False):
 			pipeline1.delete("besturduposts")
 			pipeline1.lpush("besturduposts",*link_ids)
 		else:
+			# contains text_only best posts
 			pipeline1.delete("bestposts_2")
 			pipeline1.lpush("bestposts_2",*link_ids)
 	else:
@@ -1369,13 +1370,13 @@ def all_best_posts():
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################
 
-def all_best_posts_1():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("bestposts", 0, -1)
+# def all_best_posts_1():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts", 0, -1)
 
-def all_best_posts_2():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("bestposts_2", 0, -1)
+# def all_best_posts_2():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts_2", 0, -1)
 
 ###############################################################################################################################
 ###############################################################################################################################

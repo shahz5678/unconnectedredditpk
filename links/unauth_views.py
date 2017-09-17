@@ -247,10 +247,11 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			except:
 				pass
 			request.session["first_time_user"] = 1
+			return redirect("new_user_gateway",lang=lang)
 			# return redirect("first_time_link")
 			####################################################################################
 			####################################################################################
-			return redirect("new_user_gateway")
+			# return redirect("new_user_gateway",lang=lang)
 			####################################################################################
 			####################################################################################
 		else:

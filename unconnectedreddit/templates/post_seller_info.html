@@ -14,7 +14,8 @@
 {% csrf_token %}
 
 <div class="mtl mbl">
-<b class="cl">Apna naam likho:</b>
+	<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Apna naam likho:</span></b>
 <div class="mbs">
 {% if form.seller_name.errors %}
 <span class="cr">{{ form.seller_name.errors.0 }}</span>
@@ -29,7 +30,8 @@
 
 <div class="mtl mbl">
 <div class="mbs">
-<b class="cl">Apna city likho:</b>
+	<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Apna city likho:</span></b>
 {% if form.city.errors %}
 <br><span class="cr">{{ form.city.errors.0 }}</span>
 {% endif %}
@@ -41,7 +43,8 @@
 
 <div class="mtl mbl">
 <div class="mbs">
-<b class="cl">Apna ilaka, basti ya mohalla likho:</b>
+	<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Apna ilaka, basti ya mohalla likho:</span></b>
 {% if form.town.errors %}
 <br><span class="cr">{{ form.town.errors.0 }}</span>
 {% endif %}
@@ -53,7 +56,8 @@
 
 {% if mobile_num %}
 <div class="mtl mbl">
-<b class="cl">Khareedar kis mobile number pe contact karien?</b>
+	<span itemscope itemtype="http://schema.org/Question">
+<b class="cl"><span itemprop="name text">Khareedar kis mobile number pe contact karien?</span></b>
 <div class="mbs">
 {% if form.mobile.errors %}
 <span class="cr">{{ form.mobile.errors.0 }}</span>

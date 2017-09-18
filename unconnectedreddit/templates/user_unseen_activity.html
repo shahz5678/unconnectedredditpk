@@ -46,7 +46,7 @@
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
 {% if notif.s == 'True' %}
-	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'reply_pk' notif.oi %}" style="display:inline">{% csrf_token %}<button class="btn nw bcgy bs cs" type="submit">post</button></form>
+	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
 	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
 	<br>
@@ -58,13 +58,14 @@
 		{% endif %}
 		{{ notif.lrsn }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 	<br><br>
-	{% if form.comment.errors %}<span class="cr">{{ form.comment.errors.0 }}</span>{% endif %}
+	{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
 		<div class="box-with-button-right">
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" name="btn{{ forloop.counter }}" type="submit">jawab do</button>
 		</div>
@@ -72,8 +73,7 @@
 	</div>
 	<hr size=1 COLOR="#cccccc">
 {% else %}
-	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'reply_pk' notif.oi %}" style="display:inline">{% csrf_token%}<button class="btn nw bct bs cs" type="submit">post
-	</button></form>
+	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
 	<span class="ct cs mbs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span><br>
 	<span class="clb"><a href="{% url 'profile' notif.lrsn %}">	
@@ -90,6 +90,7 @@
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment }}
 		<br><button class="btn bct bms mts" type="submit">jawab do</button>
 		</div>
@@ -311,6 +312,7 @@
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" type="submit">tabsra kro</button>
 		</div>
@@ -346,6 +348,7 @@
 		<input type="hidden" name="private_group_reply" value="111">
 		<input type="hidden" name="public_group_reply" value="111">
 		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment }}
 		<br><button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>
@@ -374,8 +377,10 @@
 				<input type="hidden" name="fan_list" value="{{ notif.r }}">
 				<input type="hidden" name="photo_url" value="{{ notif.p }}">
 				<input type="hidden" name="fan_num" value="{{ notif.l }}">
-				<input type="hidden" name="group_reply" value="111">
-				<input type="hidden" name="comment" value="111">
+				<input type="hidden" name="public_group_reply" value="111">
+				<input type="hidden" name="private_group_reply" value="111">
+				<input type="hidden" name="home_comment" value="111">
+				<input type="hidden" name="photo_comment" value="111">
 				<input type="submit" style="border:none;background:none;margin-left:-0.5em;margin-right:-0.5em;color:#1947D1;font-weight:bold;" value="{{ notif.l }} fans">
 			</form>
 			ke matke mein pohonch gayee! Baqi <b>{{ notif.v|sub:notif.l }} fans</b> reh gaye {% emoticons %}.i5.i6.i7.i8{% endemoticons %}

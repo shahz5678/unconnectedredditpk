@@ -2,8 +2,8 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
-<h2>Is mehfil ko banane ke liye kam az kam 500 points chahiyen {% emoticons %};){% endemoticons %}</h2>
-<form method="POST" action="{% url 'reply_pk' pk %}">{% csrf_token %}<button class="btn bct bm mbs" type="submit">wapis</button></form>
+<h2>Is mehfil ko banane ke liye kam az kam 500 points chahiyen {% emoticons %}:({% endemoticons %}</h2>
+<form method="POST" action="{% url 'publicreply_view' %}">{% csrf_token %}<button name="lid" class="btn bct bm mbs" type="submit" value="{{ pk }}">wapis</button></form>
 </div>
 <br><br>
 {% endblock %}

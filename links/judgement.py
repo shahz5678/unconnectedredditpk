@@ -1,3 +1,6 @@
+import time
+from verified import FEMALES
+from redis2 import update_object
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import F
@@ -5,19 +8,233 @@ from django.shortcuts import redirect, render
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
+from django.middleware import csrf
 from datetime import timedelta
 from operator import itemgetter
+from forms import PhotoReportForm
+from models import Photo, UserProfile
+from redis4 import return_referrer_logs
 from page_controls import ITEMS_PER_PAGE
-from .views import get_price, get_addendum, get_page_obj
-from .models import Photo, UserProfile
-from .tasks import process_reporter_payables, sanitize_photo_report
-from .forms import PhotoReportForm
-from .score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
-from .redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
+from views import get_price, get_addendum, get_page_obj, convert_to_epoch
+from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
+from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
+from redis3 import set_inter_user_ban, is_mobile_verified, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
+save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, get_global_ban_leaderboard
+from redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
 remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,add_photo_judger,\
 first_time_photo_curator,add_photo_curator, resurrect_home_photo, in_defenders, first_time_photo_defender, check_photo_upload_ban,\
-get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban, add_photo_defender_tutorial
-from .redis2 import update_object
+get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban, add_photo_defender_tutorial, \
+add_banner, first_time_banner
+
+
+SEVEN_MINS = 7*60
+TWENTY_MINS = 20*60
+
+#####################################################Intra User Banning#####################################################
+
+def ban_underway(request):
+	banned_by_yourself = request.session.pop("banned_by_yourself",None)
+	target_username = request.session.pop("target_username",None)
+	banned_by = request.session.pop("banned_by",None)
+	ban_time = request.session.pop("ban_time",None)
+	origin = request.session.pop("where_from",None)
+	uname = request.session.pop("own_uname",None)
+	if origin == 'fan':	
+		return render(request,"cant_fan.html",{'own_id':str(request.user.id),'target_username':target_username,'ban_time':ban_time,\
+			'banned_by_yourself':banned_by_yourself})
+	else:
+		return render(request,"ban_system_check.html",{'own_id':str(request.user.id),'banned_by':banned_by,'ban_time':ban_time, 'origin':origin,'uname':uname})
+
+def banned_users_list(request):
+	banned_ids_to_show_with_ttl, banned_ids_to_show, banned_ids_to_unban, own_id = {}, [], [], request.user.id
+	all_banned_ids_with_ttl = get_banned_users(own_id)
+	if all_banned_ids_with_ttl:
+		for banned_id, ttl in all_banned_ids_with_ttl:
+			if ttl < 5:
+				banned_ids_to_unban.append(banned_id)
+			else:
+				banned_ids_to_show.append(banned_id)
+				banned_ids_to_show_with_ttl[int(banned_id)] = ttl
+		sanitize_expired_bans.delay(own_id, banned_ids_to_unban)
+		banned_users = User.objects.select_related('userprofile').filter(id__in=banned_ids_to_show)
+		banned_users_with_ttl = []
+		for user in banned_users:
+			banned_users_with_ttl.append((user,banned_ids_to_show_with_ttl[user.id]))
+		return render(request,"banned_users_list.html",{'banned_users_with_ttl':banned_users_with_ttl,'females':FEMALES,\
+			'status':request.session.pop("user_ban_change_status",None)})
+	else:
+		request.session.pop("user_ban_change_status",None)
+		return render(request,"banned_users_list.html",{'banned_users_with_ttl':[],'females':None,'status':None})
+
+def first_time_inter_user_banner(request):
+	user_id = request.user.id
+	target_username = get_ban_target_credentials(own_id=user_id, username_only=True, destroy=True)
+	if not target_username or not first_time_banner(user_id) or not is_mobile_verified(user_id):
+		return redirect("home")
+	return render(request,"inter_user_ban.html",{'first_time_banner_instructions':True,'target_username':target_username,\
+		'own_username':request.user.username})
+
+def inter_user_ban_not_permitted(request):
+	delete_ban_target_credentials(request.user.id)
+	if is_mobile_verified(request.user.id):
+		return render(request,"404.html",{})
+	else:
+		CSRF = csrf.get_token(request)
+		temporarily_save_user_csrf(str(request.user.id), CSRF)
+		return render(request,"inter_user_ban.html",{'not_verified':True,'csrf':CSRF})
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def enter_inter_user_ban(request,*args,**kwargs):
+	if request.method == "POST":
+		can_unban = request.POST.get("can_unban",None)
+		second_decision = request.POST.get("sec_dec",None)
+		initial_decision = request.POST.get("init_dec",None)
+		user_id = request.user.id
+		if second_decision:
+			if second_decision == '0':
+				if can_unban:
+					credentials= get_ban_target_credentials(own_id=user_id, destroy=True)
+					try:
+						target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+					except:
+						return redirect("banned_users_list")
+					banned = False
+					if target_user_id and target_username:
+						banned = remove_single_ban(user_id, target_user_id)
+					request.session["user_ban_change_status"] = '0' if banned else '2'
+					request.session.modified = True
+				return redirect("banned_users_list")
+			else:
+				credentials = get_ban_target_credentials(own_id=user_id)
+				try:
+					target_user_id, target_username = credentials["target_id"], credentials["target_username"]
+				except:
+					return redirect("banned_users_list")
+				try:
+					object_id, origin = credentials["object_id"], credentials["origin"]
+				except:
+					object_id, origin = None, None
+				CONVERT_DUR_CODE_TO_DURATION = {'1':86400,'2':259200,'3':604800,'4':2628000,'5':7884000}
+				if target_user_id and target_username:
+					time_now = time.time()
+					banned = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
+						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban, \
+						recent_joiner= True if (time_now-convert_to_epoch(request.user.date_joined)<TWENTY_MINS) else False)
+					if can_unban and banned:
+						delete_ban_target_credentials(user_id)
+						if object_id and origin:
+							post_banning_tasks.delay(own_id=user_id, target_id=target_user_id, object_id=object_id, origin=origin)
+						request.session["user_ban_change_status"] = '1'
+						request.session.modified = True
+						return redirect("banned_users_list")
+					elif can_unban and not banned:
+						delete_ban_target_credentials(user_id)
+						request.session["user_ban_change_status"] = '2'
+						request.session.modified = True
+						return redirect("banned_users_list")
+					elif first_time_banner(user_id) and banned:
+						if object_id and origin:
+							post_banning_tasks.delay(own_id=user_id, target_id=target_user_id, object_id=object_id, origin=origin)
+						add_banner(user_id)
+						return redirect("first_time_inter_user_banner")
+					elif banned:
+						delete_ban_target_credentials(user_id)
+						if object_id and origin:
+							post_banning_tasks.delay(own_id=user_id, target_id=target_user_id, object_id=object_id, origin=origin)
+						return redirect("banned_users_list")
+					else:
+						# could be malicious
+						delete_ban_target_credentials(user_id)
+						return redirect("home")
+				else:
+					return redirect("banned_users_list")
+		elif initial_decision:
+			if not is_mobile_verified(user_id):
+				return redirect("inter_user_ban_not_permitted")
+			elif initial_decision == '1':
+				return render(request,"inter_user_ban.html",{'target_username':get_ban_target_credentials(own_id=user_id, username_only=True),'decide_time':True})
+			elif initial_decision == '0':
+				# take user to origin
+				delete_ban_target_credentials(user_id)
+				return redirect("home")
+		else:
+			target_user_id = int(request.POST.get("tuid",None)[2:-2],16) #converting hex number to int
+			if target_user_id == user_id:
+				return redirect("home")
+			target_username = User.objects.filter(id=target_user_id).values_list('username',flat=True)
+			object_id, origin = request.POST.get("oid",None),request.POST.get("origin",None)
+			if target_username:
+				target_username = target_username[0]
+				save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username, object_id=object_id, origin=origin)
+				banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)
+				if existing_ttl is None or existing_ttl is False:
+					return render(request,"inter_user_ban.html",{'target_username':target_username,'to_ban':True})
+				else:
+					if banner_id == str(user_id):
+						return render(request,"inter_user_ban.html",{'target_username':target_username,'target_user_id':target_user_id,'already_banned':True, \
+							'banned_by':'self'})
+					else:
+						return render(request,"inter_user_ban.html",{'target_username':target_username,'target_user_id':target_user_id,'already_banned':True, \
+							'banned_by':'other'})
+			else:
+				return redirect("home")
+	else:
+		return redirect("banned_users_list")
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def change_ban_time(request):
+	if request.method == "POST":
+		banned_user_id, banned_username = request.POST.get("buid",None), request.POST.get("bun",None)
+		if banned_user_id and banned_username:
+			save_ban_target_credentials(own_id=request.user.id, target_id=banned_user_id, target_username=banned_username)
+			return render(request,"inter_user_ban.html",{'target_username':banned_username,'decide_time':True, 'can_unban':True})
+		else:
+			return redirect("banned_users_list")
+	else:
+		return redirect("banned_users_list")
+
+
+def ban_leaderboard(request):
+	global_list_with_scores = get_global_ban_leaderboard()
+	dictionary = dict(global_list_with_scores)
+	ids, scores = zip(*global_list_with_scores)
+	users = User.objects.filter(id__in=ids).values('id','username')
+	id_username_mapping = {}
+	for d in users:
+		id_username_mapping[d["id"]] = d["username"]
+	result = []
+	for id_,score in global_list_with_scores:
+		result.append((id_username_mapping[int(id_)], score))
+	return render(request,"global_banned_user_list.html",{'result':result})
+
+
+def user_ban_help(request):
+	return render(request,"user_ban_help.html",{})
+
+
+# def export_block_error(request):
+# 	logs = return_referrer_logs('block_error')
+# 	filename = 'blocked.csv'
+# 	if logs:
+# 		import csv, ast
+# 		with open(filename,'wb') as f:
+# 			wtr = csv.writer(f)
+# 			columns = ["obj_creator_reported_id","object_creator_actual_id","object_attributes"]
+# 			wtr.writerow(columns) # writing the columns
+# 			for log in logs:
+# 				dictionary = ast.literal_eval(log)
+# 				reported_id = dictionary["obj_creator_reported_id"]
+# 				creator_id = dictionary["object_creator_actual_id"]
+# 				object_attributes = dictionary["object_attributes"]
+# 				to_write = [reported_id,creator_id,object_attributes]
+# 				wtr.writerows([to_write])
+# 	return render(request,"404.html",{})
+
+########################################################Admin Banning#######################################################
 
 def find_time_to_go(photo_owner_id):
 	banned, time_remaining = check_photo_upload_ban(photo_owner_id)
@@ -44,7 +261,7 @@ def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_o
 		elif decision == '0':
 			#resurrect photo
 			Photo.objects.filter(id=photo_id).update(vote_score=0, visible_score=0)
-			update_object(object_id=photo_id,object_type='0',vote_score=0)
+			update_object(object_id=photo_id,object_type='0',vote_score=0,just_vote=True)
 			ban_photo(photo_id=photo_id,ban=False) #changes photo score in best_photos.html and photos.html
 			resurrect_home_photo(link_id)
 			photovote_usernames_and_values = get_photo_votes(photo_id)
@@ -61,7 +278,7 @@ def process_photo_upload_ban(duration,photo_id,photo_owner_id,ban_time,unban=Fal
 		remove_from_photo_vote_ban(photo_owner_id) #removing voting ban
 	else:
 		photo = Photo.objects.filter(id=photo_id).update(vote_score = -100) #to censor the photo from the list
-		update_object(object_id=photo_id,object_type='0',vote_score=-100)
+		update_object(object_id=photo_id,object_type='0',vote_score=-100,just_vote=True)
 		ban_photo(photo_id=photo_id,ban=True)
 		add_to_photo_upload_ban(photo_owner_id, ban_time) #to impede from adding more photos
 		add_user_to_photo_vote_ban(photo_owner_id, ban_time) #to impede from voting on other photos

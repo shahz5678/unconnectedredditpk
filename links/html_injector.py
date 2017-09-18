@@ -49,11 +49,11 @@ def category_formatting(categ):
 	if categ == '1':
 		#tyical home link
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
 	elif categ == '2':
 		#public mehfil creation announcement on home
 		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'
-		div_tail = '<p><hr size=1 COLOR="#ac39ac"></p></div>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p></div>'
 	elif categ == '3':
 		#Karachi Kings
 		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'
@@ -69,7 +69,7 @@ def category_formatting(categ):
 	elif categ == '6':
 		#Photo sharing
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#ff9933"></p>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
 	elif categ == '7':
 		#Quetta Glads
 		div_head = '<div style="background-color:#f5edf8;"><h1 style="font-size:0.7em;background-color:#9040a8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Quetta Gladiators</h1>'
@@ -81,7 +81,7 @@ def category_formatting(categ):
 	elif categ == '9':
 		#misc
 		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
-		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p></div>'
 	elif categ == '10':
 		#New Zealand
 		div_head = '<div style="background-color:#f2f2f2;"><h1 style="font-size:0.7em;background-color:#404040;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">New Zealand</h1>'
@@ -113,11 +113,16 @@ def category_formatting(categ):
 	elif categ == '17':
 		# urdu home link
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
+	elif categ == '18':
+		# World-XI
+		div_head = '<div style="background-color:#ffffcc;"><h1 style="font-size:0.7em;background-color:#4d0099;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">World-XI</h1>'
+		div_tail = '<p><hr size=1 COLOR="#4d0099"></p></div>'
 	else:
 		div_head = '<span></span>'
 		div_tail = '<span></span>'
 	return div_head, div_tail
+
 
 def device_formatting(device):
 	if device == '1':
@@ -166,7 +171,7 @@ def image_thumb_formatting(img_url,pid):
 	return '<button class="mls mbs" style="border-radius:0px;background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" height="38"></button>' \
 	% (pid,img_url)
 
-def av_url_formatting(av_url, style=None):
+def av_url_formatting(av_url, style=None, categ=None):
 	url = None
 	if av_url:
 		if 'res/avatars' in av_url:
@@ -177,9 +182,15 @@ def av_url_formatting(av_url, style=None):
 		if style == 'round':
 			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'.format(url)
 		else:
-			return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22"/>'.format(url)
+			if categ == '6':
+				return '<button class="mbs" alt="no avatar" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>'.format(url)
+			else:
+				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22"/>'.format(url)
 	else:
 		if style == 'round':
 			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'
 		else:
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border:1px solid lightgrey;" width="22" height="22"/>'
+			if categ == '6':
+				return '<button class="mbs" alt="no avatar" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>'
+			else:
+				return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border:1px solid lightgrey;" width="22" height="22"/>'

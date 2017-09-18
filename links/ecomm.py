@@ -12,15 +12,14 @@ from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
 save_ecomm_photo_hash, detail_click_logger
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
-from redis1 import first_time_classified_contacter, add_classified_contacter, add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, \
-first_time_photo_ads_visitor
+from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, namify, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
-unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_seller_details, get_city_ad_ids, get_all_pakistan_ad_count,\
+unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_city_ad_ids, get_all_pakistan_ad_count,\
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
-get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, temporarily_save_buyer_snapshot, \
-get_buyer_snapshot#, populate_ad_list, retrieve_spam_writers
+get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, \
+check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
 
 from django.middleware import csrf
 from django.shortcuts import render, redirect
@@ -44,6 +43,11 @@ from django.views.decorators.cache import cache_control
 def get_photo_urls(photo_ids):
 	return {x['id']:x['image_file'] for x in Photo.objects.filter(id__in=photo_ids).values('id','image_file')}
 
+
+def insert_MN_data(ad_list):
+	for ad in ad_list:
+		ad["MN_data"] = ast.literal_eval(ad["MN_data"])
+	return ad_list
 
 # inserts actual objects for photo_ids in ad list (of dictionaries)
 def insert_photo_urls(ad_list, photo_objs, photo_ids, tup=False, photo_tup=False, only_cover=False, must_eval_photo_list=False):
@@ -104,7 +108,7 @@ def get_photo_ids(ad_body, photo_tup=False, only_cover=False, must_eval_ad=False
 
 
 # preps ad list for display 
-def process_ad_objects(ad_list, tup=False, photo_tup=False, only_cover=False, must_eval_ad=False, must_eval_photo_list=False):
+def process_ad_objects(ad_list, tup=False, photo_tup=False, only_cover=False, must_eval_ad=False, must_eval_photo_list=False, must_eval_MN_data=False):
 	"""
 	tup: is the ad_list a list of tuples of the form [(ad_body,ad_id),(ad_body,ad_id).....]
 	photo_tup: is the "key" inside an ad a list of tuples of the form [(photo_id, True)(photo_id, False),......] True or False designates cover photo
@@ -124,6 +128,8 @@ def process_ad_objects(ad_list, tup=False, photo_tup=False, only_cover=False, mu
 	else:
 		for ad in ad_list:
 			photo_ids += get_photo_ids(ad_body=ad, only_cover=only_cover, must_eval_photo_list=must_eval_photo_list, photo_tup=photo_tup)
+		if must_eval_MN_data:
+			ad_list = insert_MN_data(ad_list)
 		if not photo_ids:
 			return ad_list
 		else:
@@ -178,6 +184,13 @@ def photo_size_exceeded(on_fbs,image):
 			# return True, OFF_FBS_PHOTO_THRESHOLD
 			return False, 0
 
+############################## Unregistered Users ###################################
+
+
+def redirect_to_social_section(request):
+	return render(request,"chat_and_photos.html",{})
+
+
 ############################## Buyer Functionality ###################################
 
 @csrf_protect
@@ -193,7 +206,7 @@ def process_ad_expiry_or_sms_feedback(request,*args,**kwargs):
 		else:
 			return render(request,"ad_expiry_or_sms_feedback.html",{'ad_id':ad_id,'form':form})
 	else:
-		return render(request,"404.html",{})
+		return redirect("show_user_ads")
 
 
 @csrf_protect
@@ -215,14 +228,14 @@ def change_my_sms_settings(request,*args,**kwargs):
 				elif decision == '0':
 					return redirect("show_user_ads")
 				else:
-					return render(request,"404.html",{})		
+					return render(request,"404.html",{'from_ecomm':True})		
 			else:
 				current_setting = get_SMS_setting(str(float(ad_id)))
 				return render(request,"change_ad_sms_settings.html",{'ad_id':ad_id,'current_setting':current_setting})
 		else:
 			return redirect("show_user_ads")
 	else:
-		return render(request,"404.html",{})
+		return redirect("show_user_ads")
 
 @csrf_protect
 def expire_my_ad(request,*args,**kwargs):
@@ -240,20 +253,17 @@ def expire_my_ad(request,*args,**kwargs):
 				return render(request,"confirm_ad_expiry.html",{'ad_id':ad_id})
 		return redirect("show_user_ads")
 	else:
-		return render(request,"404.html",{})
+		return redirect("show_user_ads")
 
 def ad_detail(request,ad_id,*args,**kwargs):
 	ad_body = get_single_approved_ad(float(ad_id))
 	if ad_body:
-		approved_user_ad = process_ad_objects(ad_list = [ad_body],must_eval_photo_list=True,photo_tup=True)[0]
+		approved_user_ad = process_ad_objects(ad_list = [ad_body],must_eval_photo_list=True,photo_tup=True, must_eval_MN_data=True)[0]
 		detail_click_logger.delay(ad_id, request.user.id)
-		############################################################################################################
-		#config_manager.get_obj().track('clicked_detail', request.user.id)
-		############################################################################################################
 		return render(request,"classified_detail.html",{'is_feature_phone':get_device(request),'ad_body':approved_user_ad,'referrer':request.META.get('HTTP_REFERER',None)})
 	else:
 		# id ad_id doesn't exist (E.g. deleted, or never existed)
-		return render(request,"404.html",{})
+		return redirect("classified_listing")
 
 @csrf_protect
 def process_unfinished_ad(request,*args,**kwargs):
@@ -279,12 +289,12 @@ def process_unfinished_ad(request,*args,**kwargs):
 			from_meray_ads = request.POST.get('from_meray_ads',None)
 			return render(request,"verify_seller_number.html",{'csrf':CSRF,'form':form,'from_meray_ads':from_meray_ads})
 		else:
-			return render(request,"404.html",{})
+			return render(request,"404.html",{'from_ecomm':True})
 	else:
-		return render(request,"404.html",{})
+		return render(request,"404.html",{'from_ecomm':True})
+
 
 def show_user_ads(request,*args,**kwargs):
-	
 	unapproved_user_ads = []
 	locations_and_counts = get_approved_places(withscores=True)
 	ads = get_all_user_ads(request.user.id)
@@ -313,88 +323,82 @@ def show_user_ads(request,*args,**kwargs):
 
 
 # can a person get here WITHOUT verifying?
-@csrf_protect
-def classified_tutorial_dec(request,*args,**kwargs):
-	if request.method == 'POST':
-		dec = request.POST.get('dec',None)
-		ad_id = request.POST.get('ad_id',None)
-		referrer = request.POST.get('referrer',None)
-		if dec == 'Theek hai':
-			temporarily_save_buyer_snapshot(user_id=str(request.user.id), referrer=referrer,redirect_to=ad_id)
-			return redirect("show_seller_number")
-		elif dec == 'Rehnay do':
-			if referrer:
-				return redirect(referrer)
-			else:
-				return redirect("classified_listing")
-		else:
-			return render(request,"404.html",{})
-	else:
-		return render(request,"404.html",{})
+# @csrf_protect
+# def classified_tutorial_dec(request,*args,**kwargs):
+# 	if request.method == 'POST':
+# 		dec = request.POST.get('dec',None)
+# 		ad_id = request.POST.get('ad_id',None)
+# 		referrer = request.POST.get('referrer',None)
+# 		if dec == 'Theek hai':
+# 			temporarily_save_buyer_snapshot(user_id=str(request.user.id), referrer=referrer,redirect_to=ad_id)
+# 			return redirect("show_seller_number")
+# 		elif dec == 'Rehnay do':
+# 			if referrer:
+# 				return redirect(referrer)
+# 			else:
+# 				return redirect("classified_listing")
+# 		else:
+# 			return render(request,"404.html",{'from_ecomm':True})
+# 	else:
+# 		return render(request,"404.html",{'from_ecomm':True})
 
 
-@csrf_protect
-def show_seller_number(request,*args,**kwargs):
-	user_id = request.user.id
-	is_verified = is_mobile_verified(user_id)
-	if request.method == 'POST':
-		ad_id = request.POST.get('ad_id',None)
-		if not is_verified:
-			# verify this person' mobile
-			CSRF = csrf.get_token(request)
-			temporarily_save_buyer_snapshot(user_id=str(user_id), referrer=request.META.get('HTTP_REFERER',None), redirect_to=ad_id, csrf=CSRF, uid=user_id)
-			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
-		elif is_verified and first_time_classified_contacter(user_id):
-			# show first_time tutorial and set number exchange expectation
-			add_classified_contacter(user_id)
-			referrer = request.META.get('HTTP_REFERER',None)
-			return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})
-		elif is_verified:
-			seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
-			MN_data = ast.literal_eval(seller_details["MN_data"])
-			if is_unique_click:
-				# enqueue sms
-				if is_expired:
-					enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
-				else:
-					send_sms = get_SMS_setting(str(float(ad_id)))
-					if send_sms == '1':
-						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-			############################################################################################################
-			#config_manager.get_obj().track('clicked_contact', user_id)
-			############################################################################################################
-			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-				'referrer':request.META.get('HTTP_REFERER',None)})
-		else:
-			return render(request,"404.html",{})
-	else:
-		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
-		if "redirect_to" in buyer_snapshot:
-			ad_id = buyer_snapshot.get("redirect_to",None)
-			referrer = buyer_snapshot.get("referrer",None)
-			if is_verified and first_time_classified_contacter(user_id):
-				add_classified_contacter(user_id)
-				return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
-			elif is_verified:
-				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(user_id, ad_id)
-				MN_data = ast.literal_eval(seller_details["MN_data"])
-				if is_unique_click:
-					# enqueue sms
-					if is_expired:
-						enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click_plus_expiry', buyer_number)
-					else:
-						send_sms = get_SMS_setting(str(float(ad_id)))
-						if send_sms == '1':
-							enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-				############################################################################################################
-				#config_manager.get_obj().track('clicked_contact', user_id)
-				############################################################################################################
-				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
-					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
-			else:
-				return render(request,"404.html",{})
-		else:
-			return render(request,"404.html",{})
+# @csrf_protect
+# def show_seller_number(request,*args,**kwargs):
+# 	user_id = request.user.id
+# 	is_verified = is_mobile_verified(user_id)
+# 	if request.method == 'POST':
+# 		ad_id = request.POST.get('ad_id',None)
+# 		if not is_verified:
+# 			# verify this person' mobile
+# 			CSRF = csrf.get_token(request)
+# 			temporarily_save_buyer_snapshot(user_id=str(user_id), referrer=request.META.get('HTTP_REFERER',None), redirect_to=ad_id, csrf=CSRF, uid=user_id)
+# 			return render(request,"ecomm_newbie_verify_mobile.html",{'ad_id':ad_id,'csrf':CSRF})
+# 		elif is_verified and first_time_classified_contacter(user_id):
+# 			# show first_time tutorial and set number exchange expectation
+# 			add_classified_contacter(user_id)
+# 			referrer = request.META.get('HTTP_REFERER',None)
+# 			return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})
+# 		elif is_verified:
+# 			seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(request.user.id, ad_id)
+# 			MN_data = ast.literal_eval(seller_details["MN_data"])
+# 			if is_unique_click:
+# 				# enqueue sms
+# 				if is_expired:
+# 					enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click_plus_expiry', buyer_number=buyer_number)
+# 				else:
+# 					send_sms = get_SMS_setting(str(float(ad_id)))
+# 					if send_sms == '1':
+# 						enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click', buyer_number=buyer_number)
+# 			return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
+# 				'referrer':request.META.get('HTTP_REFERER',None)})
+# 		else:
+# 			return render(request,"404.html",{'from_ecomm':True})
+# 	else:
+# 		buyer_snapshot = get_buyer_snapshot(user_id=str(user_id))
+# 		if "redirect_to" in buyer_snapshot:
+# 			ad_id = buyer_snapshot.get("redirect_to",None)
+# 			referrer = buyer_snapshot.get("referrer",None)
+# 			if is_verified and first_time_classified_contacter(user_id):
+# 				add_classified_contacter(user_id)
+# 				return render(request,"classified_contacter_tutorial.html",{'ad_id':ad_id, 'referrer':referrer})	
+# 			elif is_verified:
+# 				seller_details, is_unique_click, buyer_number, is_expired = get_seller_details(user_id, ad_id)
+# 				MN_data = ast.literal_eval(seller_details["MN_data"])
+# 				if is_unique_click:
+# 					# enqueue sms
+# 					if is_expired:
+# 						enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click_plus_expiry', buyer_number=buyer_number)
+# 					else:
+# 						send_sms = get_SMS_setting(str(float(ad_id)))
+# 						if send_sms == '1':
+# 							enqueue_sms.delay(mobile_number=MN_data["number"], ad_id=int(float(ad_id)), status='unique_click', buyer_number=buyer_number)
+# 				return render(request,"show_seller_number.html",{'seller_details':seller_details, "MN_data":MN_data, 'device':get_device(request),\
+# 					'referrer':referrer})#request.META.get('HTTP_REFERER',None)})
+# 			else:
+# 				return render(request,"404.html",{'from_ecomm':True})
+# 		else:
+# 			return render(request,"404.html",{'from_ecomm':True})
 
 
 def classified_listing(request,city=None,*args,**kwrags):
@@ -408,7 +412,7 @@ def classified_listing(request,city=None,*args,**kwrags):
 	all_ad_ids = get_city_ad_ids(city_name=city, exchange=exchange, photos=False) if city else get_approved_ad_ids(exchange=exchange, photos=False)
 	page_obj = get_page_obj(page_num,all_ad_ids,APPROVED_ADS_PER_PAGE)
 	ads = get_ad_objects(page_obj.object_list)
-	submissions = process_ad_objects(ad_list=ads, only_cover=True, must_eval_photo_list=True, photo_tup=True)
+	submissions = process_ad_objects(ad_list=ads, only_cover=True, must_eval_photo_list=True, photo_tup=True, must_eval_MN_data=True)
 	if city:
 		city = string_tokenizer(city)
 		origin = city
@@ -420,7 +424,7 @@ def classified_listing(request,city=None,*args,**kwrags):
 
 def city_list(request,*args,**kwargs):
 	locs_and_ad_counts = get_approved_places(withscores=True)
-	return render(request,"city_list.html",{'cities':locs_and_ad_counts,'ad_count':get_all_pakistan_ad_count()})
+	return render(request,"city_list.html",{'cities':locs_and_ad_counts,'ad_count':get_all_pakistan_ad_count(),'num_of_cities':len(locs_and_ad_counts)})
 
 
 ############################### Ad Approval & Editing ###############################
@@ -533,9 +537,9 @@ def edit_classified(request,*args,**kwargs):
 				return render(request,"edit_classified_field.html",{'form':f,'ad_id':ad_id,'name':text_string,'help_text':help_text,'admin_mode':admin_mode, \
 					'only_locked':only_locked})
 			else:
-				return render(request,"404.html",{})
+				return render(request,"404.html",{'from_ecomm':True})
 	else:
-		return render(request,"404.html",{})
+		return render(request,"404.html",{'from_ecomm':True})
 
 
 @csrf_protect
@@ -567,10 +571,10 @@ def ad_locked_by_agent(request,*args,**kwargs):
 				else:
 					return redirect(request,"cant_lock_ad.html",{'locked_by':unlocked[1],'only_locked':only_locked})
 		else:
-			return render(request,"404.html",{})
+			return render(request,"404.html",{'from_ecomm':True})
 		return redirect("approve_classified", only_locked)
 	else:
-		return render(request,"404.html",{})
+		return render(request,"404.html",{'from_ecomm':True})
 
 
 @csrf_protect
@@ -585,7 +589,7 @@ def change_cover_photo(request,*args,**kwargs):
 		edit_single_unapproved_ad(ad_id,'photos',photo_id)
 		return redirect("approve_classified", only_locked)
 	else:
-		return render(request,"404.html",{})
+		return render(request,"404.html",{'from_ecomm':True})
 
 
 @csrf_protect
@@ -609,13 +613,15 @@ def process_ad_approval(request,*args,**kwargs):
 			mobile_number = move_to_approved_ads(ad_id=ad_id, expiration_clicks=expiration_clicks, closed_by=request.user.username, closer_id=str(request.user.id))
 		if mobile_number:
 			# enqueue sms
+			status = 'forward'
+			enqueue_sms.delay(mobile_number=mobile_number, ad_id=int(float(ad_id)), status=status, item_name=get_item_name(ad_id))
 			status = 'approved'
-			enqueue_sms.delay(mobile_number, int(float(ad_id)), status)
+			enqueue_sms.delay(mobile_number=mobile_number, ad_id=int(float(ad_id)), status=status)
 		else:
 			return render(request,"500.html",{})
 		return redirect("approve_classified", only_locked)
 	else:
-		return render(request,"404.html",{})
+		return render(request,"404.html",{'from_ecomm':True})
 
 
 @csrf_protect
@@ -667,9 +673,6 @@ def post_seller_info(request,*args,**kwargs):
 			# save uploaded photo hashes at this point - ad content is finalized (only verification remains)
 			photo_hashes = get_temporarily_saved_ad_data(str(user_id),photo_hashes=True)
 			save_ecomm_photo_hash.delay(photo_hashes["photo1_hash"], photo_hashes["photo2_hash"], photo_hashes["photo3_hash"])
-			######################################################
-			# mp.track(request.user.id, 'Entered Num Verification')#
-			######################################################
 			#############################################################################################################
 			if mobile is None or mobile == 'Kisi aur number pe':
 				# time to verify a new number
@@ -685,15 +688,23 @@ def post_seller_info(request,*args,**kwargs):
 				context={'desc':data["desc"],'is_new':data["is_new"],'ask':data["ask"],'is_barter':data["is_barter"],'ad_id':data["ad_id"],\
 				'seller_name':namify(seller_name),'city':namify(city), 'town':namify(town), 'AK_ID':'just_number','MN_data':mobile,'user_id':user_id,\
 				'username':request.user.username,'submission_device':device,'on_fbs':str(on_fbs)}
-				# register with Tilio's Notify service
+				# register with Twilio's Notify service
 				set_user_binding_with_twilio_notify_service.delay(user_id=user_id, phone_number="+92"+mobile)
 				save_basic_ad_data(context)
-				# reset_temporarily_saved_ad(str(user_id)) #save_basic_ad_data already deletes temporarily_saved_ad
 				return render(request,"basic_item_ad_submitted.html",{})
 		else:
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 	else:
-		return render(request,"404.html",{})
+		is_step_one_saved = check_status_of_temporarily_saved_ad(user_id=str(user_id),check_step_one=True)
+		if is_step_one_saved:
+			mob_nums = get_user_verified_number(user_id)
+			# check if we have any of the user's nums on file
+			if mob_nums:
+				temporarily_save_ad(user_id=str(user_id),mob_nums=mob_nums) # mob_nums is a list
+			form = SellerInfoForm(nums=mob_nums)
+			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
+		else:
+			return render(request,"dont_click_again_and_again.html",{'from_ecomm':True})
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -703,9 +714,6 @@ def post_basic_item_photos(request,*args,**kwargs):
 	if request.method == 'POST':
 		decision = request.POST.get("dec",None)
 		if decision == 'Skip':
-			#################################################
-			# mp.track(request.user.id, 'Entered Seller Info')#
-			#################################################
 			mob_nums = get_user_verified_number(user_id)
 			# check if we have any of the user's nums on file
 			if mob_nums:
@@ -715,7 +723,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 		else:
 			secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_ecomm_photos_secret_key(user_id)
 			if str(secret_key_from_form) != str(secret_key_from_session):
-				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True})
+				return render(request,"dont_click_again_and_again.html",{'from_ecomm_ad_creation':True,'from_ecomm':True})
 			form = BasicItemPhotosForm(request.POST,request.FILES)
 			if form.is_valid():	
 				photo1, photo2, photo3 = form.cleaned_data.get('photo1',None), form.cleaned_data.get('photo2',None), form.cleaned_data.get('photo3',None)
@@ -770,9 +778,6 @@ def post_basic_item_photos(request,*args,**kwargs):
 					set_ecomm_photos_secret_key(user_id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 				elif (photo1 and photo2 and photo3) or (decision == 'Agey'): # e.g. pressed "Agey" and all/any photos uploaded correctly
-					#################################################
-					# mp.track(request.user.id, 'Entered Seller Info')#
-					#################################################
 					mob_nums = get_user_verified_number(user_id)
 					# check if we have any of the user's nums on file
 					if mob_nums:
@@ -788,24 +793,30 @@ def post_basic_item_photos(request,*args,**kwargs):
 				set_ecomm_photos_secret_key(user_id, secret_key)
 				return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
 	else:
-		return render(request,"404.html",{})
+		is_step_one_saved, is_step_two_saved = check_status_of_temporarily_saved_ad(user_id=str(user_id),check_step_one=True,check_step_two=True)
+		if is_step_one_saved and is_step_two_saved:
+			mob_nums = get_user_verified_number(user_id)
+			# check if we have any of the user's nums on file
+			if mob_nums:
+				temporarily_save_ad(user_id=str(user_id),mob_nums=mob_nums) # mob_nums is a list
+			form = SellerInfoForm(nums=mob_nums)
+			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
+		elif is_step_one_saved:
+			form = BasicItemPhotosForm()
+			secret_key = uuid.uuid4()
+			set_ecomm_photos_secret_key(user_id, secret_key)
+			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
+			return render(request,"post_basic_item_photos.html",context)
+		else:
+			return redirect("init_classified")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def post_basic_item(request,*args,**kwargs):
+	user_id = request.user.id
 	if request.method == 'POST':
-		user_id = request.user.id
 		form = BasicItemDetailForm(request.POST)
-		#############################################################
-		# d = request.POST.get("description",None)                    #
-		# p = request.POST.get("ask",None)                            #
-		# if d:	 						                            #
-		# 	save_ad_desc(d,p,user_id, request.user.username)#
-		#############################################################
 		if form.is_valid():
-			#################################################
-			# mp.track(request.user.id, 'Entered Post Photos')#
-			#################################################
 			description = form.cleaned_data.get("description",None)
 			new = form.cleaned_data.get("new",None)
 			ask = form.cleaned_data.get("ask",None)
@@ -817,33 +828,50 @@ def post_basic_item(request,*args,**kwargs):
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
 		else:
-			###############################################
-			# mp.track(request.user.id, 'Gave Invalid Desc')#
-			###############################################
 			return render(request,"post_basic_item.html",{'form':form})	
 	else:
-		return render(request,"404.html",{})
+		is_step_one_saved, is_step_two_saved = check_status_of_temporarily_saved_ad(user_id=str(user_id),check_step_one=True,check_step_two=True)
+		if is_step_one_saved and is_step_two_saved:
+			mob_nums = get_user_verified_number(user_id)
+			# check if we have any of the user's nums on file
+			if mob_nums:
+				temporarily_save_ad(user_id=str(user_id),mob_nums=mob_nums) # mob_nums is a list
+			form = SellerInfoForm(nums=mob_nums)
+			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
+		elif is_step_one_saved:
+			form = BasicItemPhotosForm()
+			secret_key = uuid.uuid4()
+			set_ecomm_photos_secret_key(user_id, secret_key)
+			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
+			return render(request,"post_basic_item_photos.html",context)
+		else:
+			return redirect("init_classified")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def init_classified(request,*args,**kwargs):
 	if request.method == 'POST':
-		if request.POST.get('category',None) == '1':
-			###############################################
-			# mp.track(request.user.id, 'Entered Item Desc')#
-			################################################################
-			# config_manager.get_obj().track('clicked_agey', request.user.id)#
-			################################################################
-			form = BasicItemDetailForm()
-			reset_temporarily_saved_ad(str(request.user.id))
-			return render(request,"post_basic_item.html",{'form':form})
+		if request.user.is_authenticated():
+			if request.POST.get('category',None) == '1':
+				form = BasicItemDetailForm()
+				reset_temporarily_saved_ad(str(request.user.id))
+				return render(request,"post_basic_item.html",{'form':form})
+			else:
+				return render(request,"404.html",{'from_ecomm':True})
 		else:
-			return render(request,"404.html",{})
+			return redirect("initiate_seller_verification_process")
 	else:
-		#################################################
-		# mp.track(request.user.id, 'Entered Kuch Baicho')#
-		#################################################
 		return render(request,"basic_classified_instructions.html",{})
+
+
+def initiate_seller_verification_process(request):
+	form = VerifySellerMobileForm()
+	# CSRF = csrf.get_token(request)
+	# temporarily_save_ad(user_id=str(user_id),csrf=CSRF,description=request.POST.get('desc',None),ask=request.POST.get('ask',None),\
+	# 	is_new=request.POST.get('is_new',None),is_barter=request.POST.get('is_barter',None),seller_name=request.POST.get('seller_name',None),\
+	# 	city=request.POST.get('city',None),town=request.POST.get('town',None))
+	# from_meray_ads = request.POST.get('from_meray_ads',None)
+	# return render(request,"verify_seller_number.html",{'csrf':CSRF,'form':form,'from_meray_ads':from_meray_ads})
 
 
 #################################################################
@@ -892,7 +920,7 @@ def buyer_loc(request,*args,**kwargs):
 		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
 		return render(request,"buyer_loc.html",{'merch_id':merch_id})
 	else:
-		return render(request,'404.html',{})
+		return render(request,'404.html',{'from_ecomm':True})
 
 @csrf_protect
 def process_city(request,*args,**kwargs):
@@ -923,10 +951,10 @@ def process_city(request,*args,**kwargs):
 		else:
 			return render(request,"ecomm_choices.html",{})
 	else:
-		return render(request,'404.html',{})
+		return render(request,'404.html',{'from_ecomm':True})
 
 def print_referrer_logs(request):
-	logs = return_referrer_logs()
+	logs = return_referrer_logs('referrer')
 	readable_logs = []
 	for log in logs:
 		readable_logs.append(ast.literal_eval(log))
@@ -935,15 +963,14 @@ def print_referrer_logs(request):
 	with open(filename,'wb') as f:
 		wtr = csv.writer(f)
 		for log in readable_logs:
-			print log
 			user_id = log["user_id"] if "user_id" in log else None
 			origin = log["origin"]
 			referrer = log["referrer"]
 			time = log["time_stamp"] if "time_stamp" in log else 0
 			to_write = [user_id, origin, referrer, time]
 			wtr.writerows([to_write])
-	return render(request, "404.html", {})
+	return render(request, "404.html", {'from_ecomm':True})
 
 #def populate_photo_ads(request):
 	# populate_ad_list(which_list="photos")
-	# return render(request,'404.html',{})
+	# return render(request,'404.html',{'from_ecomm':True})

@@ -31,7 +31,8 @@ sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this s
 hash_name = "lah:"+str(user_id)
 link_vote_cooldown = "lc:"+str(user_id)
 hash_name = "lk:"+str(link_pk) #lk is 'link'
-hash_name = "slk:"+str(parent_id) #slk is sorted 'set of link'
+hash_name = "rlk:"+str(parent_id) #rlk is ranked 'set of links'
+my_server.setex("lgr:"+str(group_id),reply_id,ONE_WEEK) #latest group_reply_id is stored here
 hash_name = "lpvt:"+str(photo_id) #lpvt is 'last photo vote time'
 hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
 hash_name = "nah:"+str(target_id) #nah is 'nick abuse hash', it contains latest integrity value
@@ -78,6 +79,7 @@ GRP_TGR = 700
 
 VOTE_LIMIT = 6
 
+TWO_WEEKS = 2*7*24*60*60 
 ONE_WEEK = 7*24*60*60
 FOUR_DAYS = 4*24*60*60
 THREE_DAYS = 3*24*60*60
@@ -728,7 +730,7 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 	if my_server.exists(hash_name):
 		#################################Saving latest photo comment################################
 		existing_payload = my_server.hget(hash_name,'comments')
-		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+\
+		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+str(photo_id)+"#"+\
 		latest_comm_text+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
 			existing_payload = truncate_payload(existing_payload)
@@ -990,16 +992,22 @@ def add_video(video_id):
 #####################Link objects#####################
 
 
-def retrieve_all_home_links_with_scores(score_type,urdu_only=False):
+def retrieve_all_home_links_with_scores(score_type,urdu_only=False,exclude_photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if urdu_only:
 		all_link_ids = my_server.lrange("filteredurduposts:1000", 0, -1)
 	else:
 		all_link_ids = my_server.lrange("filteredposts:1000", 0, -1)
 	if score_type == 'votes':
-		prefix = 'v:'
+		if exclude_photos:
+			prefix = 'v:'
+		else:
+			prefix = 'v:'
 	elif score_type == 'comments':
-		prefix = 'slk:'
+		if exclude_photos:
+			prefix = 'rlk1:'
+		else:
+			prefix = 'rlk:'
 	pipeline1 = my_server.pipeline()
 	for link_id in all_link_ids:
 		pipeline1.zrange(prefix+link_id,0,-1,withscores=True)
@@ -1024,6 +1032,12 @@ def retrieve_home_links(link_id_list):
 		count += 1
 	return photo_links, list_of_dictionaries
 
+
+def get_photo_link_mapping(photo_pk):
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
+	return my_server.hget(hash_name,'l')
+
 def photo_link_mapping(photo_pk, link_pk):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
@@ -1044,7 +1058,7 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		#################################Saving latest publicreply################################
 		latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
 		existing_payload = my_server.hget(hash_name,'replies')
-		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+writer+"#"+reply+"#el#" #el# signifies an end-of-line character
+		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+writer+"#"+str(link_pk)+"#"+reply+"#el#" #el# signifies an end-of-line character
 		if existing_payload:
 			existing_payload = truncate_payload(existing_payload)
 			payload = existing_payload.decode('utf-8')+payload
@@ -1056,19 +1070,26 @@ def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is
 		return 0
 
 # maintains a sorted set containing rate-able attributes for any given home_link ("lk:"+str(link_pk))
-def add_home_rating_ingredients(parent_id, text, replier_id, time):
+def add_home_rating_ingredients(parent_id, text, replier_id, time, link_writer_id, photo_post):
 	my_server = redis.Redis(connection_pool=POOL)
 	parent_id = str(parent_id)
 	hash_name = "lk:"+parent_id #lk is 'link'
 	if my_server.exists(hash_name):
-		my_server.zadd("slk:"+parent_id,replier_id,recency_and_length_score(epoch_time=time,text=text))
+		my_server.zadd("rlk:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))
+		##################################################################################################################################
+		########################################Helps in creating text only home rating###################################################
+		if not photo_post:																												 #
+			my_server.zadd("rlk1:"+parent_id,str(replier_id)+":"+str(link_writer_id),recency_and_length_score(epoch_time=time,text=text))#
+		##################################################################################################################################
+		##################################################################################################################################
+
 
 def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	meh_url=None, awld=None, hot_sc=None, img_url=None, v_sc=None, ph_pk=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	av_url = av_url_formatting(av_url=av_url)
+	av_url = av_url_formatting(av_url=av_url,categ=categ)
 	scr = scr_formatting(scr)
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
@@ -1144,6 +1165,10 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		# this is a link in Urdu
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
+	elif categ == '18':
+		# this is a link for World-XI Cricket
+		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash
 	my_server.hmset(hash_name, mapping)
 
@@ -1154,8 +1179,8 @@ def can_vote_on_link(user_id):
 	current_spree = my_server.get(votes_allowed)
 	if current_spree is None:
 		pipeline1 = my_server.pipeline()
-		my_server.incr(votes_allowed)
-		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
+		pipeline1.incr(votes_allowed)
+		pipeline1.expire(votes_allowed,FORTY_FIVE_SECS)
 		pipeline1.execute()
 		return None, True
 	elif int(current_spree) > (VOTE_SPREE_ALWD-1):
@@ -1163,8 +1188,8 @@ def can_vote_on_link(user_id):
 		return ttl, False
 	else:
 		pipeline1 = my_server.pipeline()
-		my_server.incr(votes_allowed)
-		my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+		pipeline1.incr(votes_allowed)
+		pipeline1.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
 		pipeline1.execute()
 		return None, True
 
@@ -1172,6 +1197,18 @@ def get_link_writer(link_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
+
+
+def get_latest_group_replies(group_id_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_id_list:
+		pipeline1.get("lgr:"+group_id)
+	return pipeline1.execute()
+
+def set_latest_group_reply(group_id, reply_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.setex("lgr:"+str(group_id),reply_id,TWO_WEEKS)
 
 def set_prev_group_replies(user_id,text):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1301,15 +1338,24 @@ def all_unfiltered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("unfilteredposts:1000", 0, -1)
 
-def set_best_posts_on_home(link_ids,urdu_only=False):
+def set_best_posts_on_home(link_ids,urdu_only=False,exclude_photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	if urdu_only:
-		pipeline1.delete("besturduposts")
-		pipeline1.lpush("besturduposts",*link_ids)
+	if exclude_photos:
+		if urdu_only:
+			pipeline1.delete("besturduposts")
+			pipeline1.lpush("besturduposts",*link_ids)
+		else:
+			# contains text_only best posts
+			pipeline1.delete("bestposts_2")
+			pipeline1.lpush("bestposts_2",*link_ids)
 	else:
-		pipeline1.delete("bestposts")
-		pipeline1.lpush("bestposts",*link_ids)
+		if urdu_only:
+			pipeline1.delete("besturduposts")
+			pipeline1.lpush("besturduposts",*link_ids)
+		else:
+			pipeline1.delete("bestposts")
+			pipeline1.lpush("bestposts",*link_ids)
 	pipeline1.execute()
 		
 
@@ -1320,6 +1366,20 @@ def all_best_urdu_posts():
 def all_best_posts():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("bestposts", 0, -1)
+
+###############################################################################################################################
+#########################################################Optimizely Exp########################################################
+
+# def all_best_posts_1():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts", 0, -1)
+
+# def all_best_posts_2():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("bestposts_2", 0, -1)
+
+###############################################################################################################################
+###############################################################################################################################
 
 def all_filtered_posts():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1357,7 +1417,7 @@ def delete_queue():
 	pipeline1 = my_server.pipeline()
 	for link_id in hashes:
 		pipeline1.delete("lk:"+link_id)
-		pipeline1.delete("slk:"+link_id)
+		pipeline1.delete("rlk:"+link_id)
 		pipeline1.delete("v:"+link_id)
 	pipeline1.execute()
 	my_server.delete("deletionqueue:200")
@@ -1479,6 +1539,11 @@ def remove_group_for_all_members(group_id, member_ids):
 		set_name = "ug:"+str(mem_id) #ug is user's groups
 		pipeline1.srem(set_name,group_id)
 	pipeline1.execute()
+
+def remove_latest_group_reply(group_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("lgr:"+str(group_id))
+
 
 def remove_all_group_members(group_id):
 	my_server = redis.Redis(connection_pool=POOL)

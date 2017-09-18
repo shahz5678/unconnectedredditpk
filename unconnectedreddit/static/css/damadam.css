@@ -241,6 +241,44 @@ S1: Html styling
 
     /*font san serif*/ .fss{font-family:sans-serif;}
 
+    button.jh:hover, button.bjh:hover{
+            background-color:#00C853; 
+            border:1px solid #00C853;
+        }
+
+        button.ch:hover, button.bch:hover{
+            background-color:#FF5722;
+            border:1px solid #FF5722;  
+        }
+
+
+        .jh{
+            
+            border:1px solid #69F0AE;
+            border-radius: 4px 17px 17px 17px; 
+            width:50px;
+            height:50px;
+        }
+        .ch{
+            border:1px solid #FFCCBC; 
+            border-radius: 17px 4px 17px 17px;
+            width:50px;
+            height:50px;
+        }
+
+        .bjh{
+            border:1px solid #69F0AE;
+            width:50px;
+            background-color: #69F0AE;
+        }
+
+        .bch{
+            border:1px solid #FFCCBC;
+            width:50px;
+            background-color: #FFCCBC;
+        }
+
+
     .emoji-table{
 
     border: 1px solid #d9d9d9;
@@ -569,6 +607,11 @@ button color golden
 .bcc {
     background-color:#FFEFD5;
     border:solid 1px orange;
+}
+
+.wxi {
+    background-color:#4d0099;
+    border-color:#330066;
 }
 
 .pak {

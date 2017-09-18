@@ -1,3 +1,5 @@
+import shortuuid
+from django.db import transaction
 from django.contrib.auth import login as quick_login
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -8,12 +10,14 @@ from django.shortcuts import redirect, render
 from django.middleware import csrf
 from tasks import registration_task
 from redis1 import account_creation_disallowed
+from redis3 import insert_nick
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
+from score import PW
 from brake.decorators import ratelimit
 
 ######################################################################################
@@ -29,6 +33,18 @@ from brake.decorators import ratelimit
 # from unconnectedreddit.optimizely_settings import PID
 
 # config_manager = OptimizelyConfigManager(PID)
+
+######################################################################################
+
+# this enables an unregistered user to access limited functionality on Damadam (e.g. creating an ad)
+def create_dummy_user(request):
+	uname = shortuuid.uuid()
+	user = User(username=uname)
+	user.set_password(PW)
+	with transaction.commit_on_success():
+		user.save()
+		insert_nick(uname)
+	return uname
 
 ######################################################################################
 
@@ -133,7 +149,7 @@ def log_google_in(request, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-@ratelimit(method='POST', rate='8/h')
+@ratelimit(method='POST', rate='11/h')
 def login(request, lang=None, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
@@ -196,7 +212,6 @@ def unauth_home_new(request,*args,**kwargs):
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
 		#########################################################################
-		# variation = config_manager.get_obj().activate('reg_with_i8ln', guest_id)
 		# print guest_id
 		# print variation
 		# if variation == 'with_loc':
@@ -232,14 +247,13 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			###############################################################
-			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
-			# request.session.pop("guest_id", None)
-			###############################################################
-			# mp.track(user.id,'sign_ups')
-			# mp.alias(request.user.id, unreg_id)
-			###############################################################
-			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
+			return redirect("new_user_gateway",lang=lang)
+			# return redirect("first_time_link")
+			####################################################################################
+			####################################################################################
+			# return redirect("new_user_gateway",lang=lang)
+			####################################################################################
+			####################################################################################
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
 			username = slug1.decode("hex")

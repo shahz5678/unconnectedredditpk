@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load future_time %}
+{% block content %}
+<div class="margin clb">
+<h2>Top 50 banned users</h2>
+{% for username, score in result reversed %}
+
+<div class="mt">
+<span class="cs cgy">{{ forloop.counter }}.&nbsp;</span><a href="{% url 'profile' username %}">{{ username }}</a>&nbsp;(score: {{ score|floatformat:"0" }})<br>
+</div>
+
+
+{% endfor %}
+
+</div>
+<br><br>
+{% endblock %}

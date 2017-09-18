@@ -1,6 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% load join_string %}
 {% block content %}
+
+<head>
+<title>
+	Free classifieds across Pakistan ({{ ad_count }} items, {{ num_of_cities }} cities) | Damadam.pk
+</title>
+</head>
+
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">
 
@@ -21,7 +28,10 @@
 		{% for city, ad_count in cities %}
 			{% if ad_count > 0 %}
 			<div class="mbl">
-			<span class="cgy cs">{{ forloop.counter }}.</span>&nbsp;<a href="{% url 'city_classified_listing' city|join_string %}#section0" class="clb cl hov">{{ city }}&nbsp;<span class="cs">(<span class="cb">{{ ad_count|floatformat:"0" }} {% if ad_count > 1 %}ads{% else %}ad{% endif %}</span>)</span></a><br>
+			<span itemscope itemtype="http://schema.org/Offer">
+			
+
+			<span class="cgy cs">{{ forloop.counter }}.</span>&nbsp;<a href="{% url 'city_classified_listing' city|join_string %}#section0" class="clb cl hov"><span itemprop="availableAtOrFrom">{{ city }}</span>&nbsp;</span><span class="cs">(<span class="cb">{{ ad_count|floatformat:"0" }}{% if ad_count > 1 %}ads{% else %}ad{% endif %}</span>)</span></a><br>
 			</div>
 			{% endif %}
 		{% endfor %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
 <div class="margin clb">
 <span class="cxl">Ye number kisi aur profile ke sath munsalik hai</span><br><span class="cgy">Isko sirf ussi profile se use kiya ja sakta hai</span><br>

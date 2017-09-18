@@ -314,7 +314,7 @@ class VideoCommentForm(forms.ModelForm):
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}), error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
 	class Meta:
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
@@ -349,8 +349,6 @@ class PublicreplyMiniForm(PublicreplyForm):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
 		self.fields['description'].widget.attrs['style'] = 'border: 1px solid #229ec3'
-		# 'background-color:#F8F8F8; width:98%; border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
-		# 'background-color:#F8F8F8;width:1000px;max-width:95%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
 class SearchNicknameForm(forms.Form):
@@ -1049,10 +1047,6 @@ class SmsReinviteForm(forms.Form):
 		pass
 
 class SmsInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class NotifHelpForm(forms.Form):
 	class Meta:
 		pass
 

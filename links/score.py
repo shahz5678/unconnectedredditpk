@@ -1,13 +1,13 @@
-VOTE_TEXT = {'1':'<span class="cg" style="font-size:80%;"> ne barri si <b>jhappi</b> di</span><br>',\
-'-1':'<span class="cr" style="font-size:80%;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
-'2': '<span class="cg" style="font-size:80%;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
-'-2': '<span class="cr" style="font-size:80%;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-20)</b></span><br>',\
-'3': '<span class="cg" style="font-size:80%;"> ko ye photo <b>zabrdast</b> lagi</span><br>',\
-'-3': '<span class="cr" style="font-size:80%;"> ko ye photo <b>bekaar</b> lagi</span><br>',\
-'4':'<span class="cg" style="font-size:80%;"> ne iski shot pe <b>taliyan</b> bajaien</span><br>',\
-'-4':'<span class="cr" style="font-size:80%;"> ne isko ghuma ke <b>balla</b> mara</span><br>',\
-'5': '<span class="cg" style="font-size:80%;"> ne iske <b>six</b> pe chalangein lagaien <b>(+20)</b></span><br>',\
-'-5': '<span class="cr" style="font-size:80%;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}
+VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jhappi</b> di</span><br>',\
+'-1':'<span style="font-size:80%;color:#F4511E;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
+'2': '<span style="font-size:80%;color:#009940;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
+'-2': '<span style="font-size:80%;color:#F4511E;"> ne <b>chupair</b> mr mr ke nani yad kra di <b>(-20)</b></span><br>',\
+'3': '<span style="font-size:80%;color:#009940;"> ko ye photo <b>zabrdast</b> lagi</span><br>',\
+'-3': '<span style="font-size:80%;color:#F4511E;"> ko ye photo <b>bekaar</b> lagi</span><br>',\
+'4':'<span style="font-size:80%;color:#009940;"> ne iski shot pe <b>taliyan</b> bajaien</span><br>',\
+'-4':'<span style="font-size:80%;color:#F4511E;"> ne isko ghuma ke <b>balla</b> mara</span><br>',\
+'5': '<span style="font-size:80%;color:#009940;"> ne iske <b>six</b> pe chalangein lagaien <b>(+20)</b></span><br>',\
+'-5': '<span style="font-size:80%;color:#F4511E;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}
 UPVOTE = 3
 SUPER_UPVOTE = 20
 DOWNVOTE = -3
@@ -26,14 +26,15 @@ CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
 'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
 'South Africa':'South Africa','New Zealand':'New Zealand', 'Pakistan':'Pakistan',\
-'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka','England':'England'}
+'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka','England':'England',\
+'World-XI':'World-XI'}
 CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
 'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10',\
-'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16'}
+'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18'}
 CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
 'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind',\
-'Sri Lanka':'slk','England':'eng'}
+'Sri Lanka':'slk','England':'eng','World-XI':'wxi'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 SEARCH_FEATURE_THRESHOLD = 100
@@ -57,5 +58,7 @@ MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
-NUMBER_VERIFICATION_THRESHOLD = 10
+NUMBER_VERIFICATION_THRESHOLD = 25
 NUMBER_VERIFICATION_BONUS = 500
+###############################################################################################################
+PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'

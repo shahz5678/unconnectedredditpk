@@ -13,22 +13,22 @@ from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
-from .models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList
-from order_home_posts import order_home_posts, order_home_posts2
+from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
+Video, HotUser, PhotoStream, HellBanList, UserFan
+from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
 from .redis4 import expire_online_users, get_recent_online, set_online_users
 from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
-get_fan_counts_in_bulk, get_all_fans, is_fan
+get_fan_counts_in_bulk, get_all_fans, is_fan, remove_notification_of_banned_user, remove_from_photo_owner_activity
 from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply, get_photo_link_mapping
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -82,6 +82,34 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
+
+
+def retrieve_object_type(origin):
+	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
+	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0','profile:fans':'99'}
+	try:
+		return PARENT_OBJECT_TYPE[origin]
+	except:
+		return -1
+
+
+@celery_app1.task(name='tasks.post_banning_tasks')
+def post_banning_tasks(own_id, target_id, object_id, origin):
+	object_type = retrieve_object_type(origin)
+	if object_type != -1:
+		if object_id != 'fan':
+			remove_notification_of_banned_user(target_id,object_id,object_type)
+		################################################################################
+		# unfan (in case was a fan)
+		UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
+		UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
+		remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
+		remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+
+
+@celery_app1.task(name='tasks.sanitize_expired_bans')
+def sanitize_expired_bans(own_id, banned_ids_to_unban):
+	remove_banned_users_in_bulk(own_id, banned_ids_to_unban)
 
 
 @celery_app1.task(name='tasks.increase_user_points')
@@ -186,8 +214,8 @@ def detail_click_logger(ad_id, clicker_id):
 
 
 @celery_app1.task(name='tasks.enqueue_sms')
-def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None):
-	process_sms(mobile_number,ad_id,status, buyer_number)
+def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
+	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):
@@ -304,17 +332,17 @@ def public_group_attendance_tasks(group_id,user_id):
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	slug,image_url,priority,from_unseen):
+	slug,image_url,priority,from_unseen, reply_id):
 	if from_unseen:
 		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
 	else:
 		created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
 			lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
-			group_privacy=priv,slug=slug)
+			group_privacy=priv,slug=slug, lt_res_wid=sender_id)
 		if not created:
 			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic)
+				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
 	all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
 	all_group_member_ids.remove(sender_id)
 	if all_group_member_ids:
@@ -326,19 +354,19 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
 	set_prev_group_replies(sender_id,reply_text)
+	set_latest_group_reply(group_id,reply_id)
 	# set_prev_retort(sender_id,reply_text)
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
-	order_home_posts2(urdu_only=False)
-	order_home_posts(urdu_only=True)
+	order_home_posts2(urdu_only=False,exclude_photos=False)
+	order_home_posts1(urdu_only=False,exclude_photos=True)
+	order_home_posts(urdu_only=True,exclude_photos=False)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	previous_best_photo_id = get_previous_best_photo()
-	# print "previous best_photo: %s" % previous_best_photo_id
 	current_best_photo_id = get_best_photo()
-	# print "current best_photo: %s" % current_best_photo_id
 	if current_best_photo_id is not None:
 		if previous_best_photo_id is not None:
 			if previous_best_photo_id == current_best_photo_id:
@@ -524,7 +552,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	except:
 		owner_url = None
 	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
-		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
 	if photo_owner_id == user_id:
 		is_seen = True
 		unseen_activity = True
@@ -571,20 +599,19 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
-	user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
 	photo_owner_id = photo.owner_id
 	try:
 		owner_url = photo.owner.userprofile.avatar.url
 	except:
 		owner_url = None
-	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_id,\
+	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
 		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,\
-		photourl=photo.image_file.url)
+		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,photourl=photo.image_file.url,\
+		lt_res_wid=user_id)
 	if not created:
 		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score)
+			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
 	if photo_owner_id == user_id:
 		is_seen = True
 		unseen_activity = True
@@ -622,18 +649,16 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
+	photo.save()
 	set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
-		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
 		if is_citizen:
-			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+			UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
 			photo.visible_score = photo.visible_score + 2
-			photo.owner.userprofile.save()
 	photo.save()
-	user.userprofile.save()
 
 @celery_app1.task(name='tasks.video_vote_tasks')
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
@@ -709,21 +734,29 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	video.save()
 	user.userprofile.save()	
 
+@celery_app1.task(name='tasks.home_photo_tasks')
+def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo_id=None):
+	if not link_id:
+		link_id = get_photo_link_mapping(photo_id)
+	if link_id:
+		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id, photo_post=True)
+
+
 @celery_app1.task(name='tasks.publicreply_tasks')
-def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post):
+def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 	set_prev_replies(user_id,description)
 	if is_someone_elses_post:
 		# ensuring self commenting doesn't add anything to a post's rating
-		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime)
+		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\
 	reply_time,reply_poster_url,reply_poster_username,reply_desc,is_welc,reply_count,priority,from_unseen):
 	if from_unseen:
 		update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
 		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').\
 			values_list('submitted_by', flat=True)[:25]))
 		if link_submitter_id not in all_reply_ids:
@@ -744,10 +777,10 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 		created = create_object(object_id=link_id, object_type='2', object_owner_avurl=link_submitter_url,\
 			object_owner_id=link_submitter_id,object_owner_name=link_submitter_username,object_desc=link_desc,lt_res_time=reply_time,\
 			lt_res_avurl=reply_poster_url,lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,is_welc=is_welc,\
-			res_count=reply_count)
+			res_count=reply_count, lt_res_wid=sender_id)
 		if not created:
 			update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count)
+				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
 		if link_submitter_id == sender_id:
 			is_seen = True
 			unseen_activity = True

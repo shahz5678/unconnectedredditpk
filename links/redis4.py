@@ -1,3 +1,4 @@
+
 # coding=utf-8
 import redis, time, random
 from location import REDLOC4
@@ -23,17 +24,36 @@ TEN_MINS = 10*60
 FIVE_MINS = 5*60
 
 
-def log_html_error(obj_list, forms, page, nickname, referrer):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
 
-def log_referrer(referrer, loc, user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
+# def save_user_choice(user_id, choice):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
 
-def return_referrer_logs():
+# def log_referrer(referrer, loc, user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
+
+def return_referrer_logs(log_name):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("referrer",0,-1)
+	return my_server.lrange(log_name,0,-1)
+
+
+# def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc, is_post_request,referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\
+# 		'actual_object_attributes':actual_object_attributes, 'reported_link_attributes':reported_link_attributes,'where_from':from_loc, \
+# 		'is_post_request':is_post_request,'referrer':referrer})
+
+
+# def log_html_error(obj_list, forms, page, nickname, referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
+
+# def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
+# 		'object_id':object_id,'referrer':referrer,'time':time.time()})
+
 
 # def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
 # 	my_server = redis.Redis(connection_pool=POOL)

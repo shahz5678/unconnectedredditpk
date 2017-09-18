@@ -1,27 +1,40 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% block content %}
 {% load cache %}
 {% cache 3600 ad_cache_2 %}
+
+<head>
+<title>
+	How to create free classified ad | Damadam.pk
+</title>
+</head>
+
+
 <div class="margin clb">
 
 <b class="cxl">Muft ad lagao!</b><br>
 <div class="mt">
-<span style="font-size:15px;" class="cgy">Business karney ka shandar moqa</span><br>
+	<span itemscope itemtype="http://schema.org/BreadcrumbList">
+	<span style="font-size:15px;" class="cgy"><span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">Business karney ka shandar moqa</span><br>
 </div>
 <div class="mtl mbs">
-<b style="color:#fb8c00;" class="cs">Step 1:</b>&nbsp;<span class="clb cl">Jo baichna hai uski <b>tafseel</b> likho</span>
+	<span itemscope itemtype="http://schema.org/BreadcrumbList">
+<b style="color:#fb8c00;" class="cs">Step 1:</b>&nbsp;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><span itemprop="name"><span class="clb cl">Jo baichna hai uski <b>tafseel</b> likho</span></span><meta itemprop="position" content="1" />
 </div>
 <div class="mbs">
-<b style="color:#fb8c00;" class="cs">Step 2:</b>&nbsp;<span class="clb cl">Cheez ki <b>3 fotos</b> lagao</span>
+	<span itemscope itemtype="http://schema.org/BreadcrumbList">
+<b style="color:#fb8c00;" class="cs">Step 2:</b>&nbsp;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><span itemprop="name"><span class="clb cl">Cheez ki <b>3 fotos</b> lagao</span></span><meta itemprop="position" content="2" />
 </div>
 <div class="mbs">
-<b style="color:#fb8c00;" class="cs">Step 3:</b>&nbsp;<span class="clb cl">Apna <b>naam</b> aur <b>city</b> likho</span>
+	<span itemscope itemtype="http://schema.org/BreadcrumbList">
+<b style="color:#fb8c00;" class="cs">Step 3:</b>&nbsp;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><span itemprop="name"><span class="clb cl">Apna <b>naam</b> aur <b>city</b> likho</span></span><meta itemprop="position" content="3" />
 </div>
 <div class="mbl">
-<b style="color:#fb8c00;" class="cs">Step 4:</b>&nbsp;<span class="clb cl"><b>Mobile number</b> ki tasdiq karwao</span>
+	<span itemscope itemtype="http://schema.org/BreadcrumbList">
+<b style="color:#fb8c00;" class="cs">Step 4:</b>&nbsp;<b><span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><span class="clb cl"><span itemprop="name">Mobile number</b> ki tasdiq karwao</span>/span><meta itemprop="position" content="4" />
 </div>
 
-<span class="cg">Agey chalo aur ad banao!</span>
+<span class="cg"><span itemprop="name">Agey chalo aur ad banao!</span></span>
 
 <hr size=1 COLOR="#b3e6b3">
 {% endcache %}

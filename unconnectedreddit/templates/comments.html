@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load get_block_button %}
 {% load emoticons_tags %}
 {% load thumbnail %}
 {% block content %}
@@ -115,6 +116,7 @@
         <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
         {% endif %}
     <br>
+    <input type="hidden" name="popk" value="{{ photo.owner_id }}">
     <button class="btn bco cs bms mts mbl" type="submit"  id="id_submit">OK</button>
     </form>
     {% endif %}
@@ -192,20 +194,10 @@
            {% if comment.submitted_by.username in verified %}
              <span class="pkstr"><b>*</b></span>
             {% endif %}
-    :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
-        {% if comment.device == '1' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-        {% elif comment.device == '2' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-        {% elif comment.device == '4' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-        {% elif comment.device == '5' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-        {% elif comment.device == '3' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-        {% else %}
-        {% endif %}
+    :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy mrl"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+    
     </span>
+    {% block_button comment.submitted_by_id comment.submitted_by.username user.id photo.pk 'photo:comments' STATIC_URL %}
     {% if authenticated and user == photo.owner %}
     &nbsp;
     <form action="{% url 'report_comment' %}" method="POST" style="display:inline">

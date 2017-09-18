@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% load complete_url %}
 {% load join_string %}
 {% load human_time %}
@@ -6,6 +6,16 @@
 {% load get_ecomm_navbar %}
 {% load get_pagination_buttons %}
 {% block content %}
+
+<head>
+<title>
+	{% if origin == 'global' %}
+	Used and second-hand item classifieds in Pakistan | Damadam.pk
+	{% else %}
+	Used and second-hand item classifieds in {{ origin }} | Damadam.pk
+	{% endif %}
+</title>
+</head>
 
 
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
@@ -21,42 +31,60 @@
 
 <div class="mbl" style="line-height:25px; letter-spacing:0.05px; width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
 
-{% if ad.photos %}
-<img class="pht" src="{{ ad.photos.0|complete_url }}"><br>
+	<div itemscope itemtype="http://schema.org/Thing">
+		{% if ad.photos %}
+		<span itemprop="image" content="{{ ad.photos.0|complete_url }}"><img class="pht" src="{{ ad.photos.0|complete_url }}" alt="{{ ad.title }}"></span><br>
 
-{% else %}
-<div style="width:100%;max-width:400px;background-color:#e6e6e6;height:3em;color:#ffffff;text-align: center;line-height: 3em;">
-<b>NO FOTOS</b>
-</div>
-{% endif %}
+		{% else %}
+			<div style="width:100%;max-width:400px;background-color:#e6e6e6;height:3em;color:#ffffff;text-align: center;line-height: 3em;">
+			<b>NO FOTOS</b>
+			</div>
+		{% endif %}
+	</div>
+
+
+<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+
 <div class="mls">
+	
+	<span class="cs" style="color:#9e9e9e; float:right; margin-right:0px"><span itemprop="availabilityStarts">{{ ad.submission_time|human_time }}</span></span><br>
 
-<span class="cs" style="color:#9e9e9e; float:right; margin-right:0px">{{ ad.submission_time|human_time }}</span><br>
+	{% if ad.photo_count|add:"0" > 1 %}
+	<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span>
+	{% endif %}
+	
+	<div class="mt">
+	<span style="font-size:25px;"><span itemprop="itemOffered"> {{ ad.title }}</span></span>
+	{% if ad.is_new %}<span class="cgy" style="font-size:13px;"><span itemprop="itemCondition">({{ ad.is_new }})</span></span>{% endif %}<br>
+	</div>
+	
+	<div class="mt">
+	<b style="font-size:25px"><meta itemprop="priceCurrency" content="PKR"/><span itemprop="price">{{ ad.ask }}</span></b><br>
+	</div>
 
-{% if ad.photo_count|add:"0" > 1 %}
-<span style="color:#9e9e9e;">{{ ad.photo_count }} fotos</span>
-{% endif %}
-<div class="mt">
-<span style="font-size:25px;"> {{ ad.title }}</span>
-{% if ad.is_new %}<span class="cgy" style="font-size:13px;">({{ ad.is_new }})</span>{% endif %}<br>
-</div>
-<div class="mt">
-<b style="font-size:25px">{{ ad.ask }}</b><br>
-</div>
 {% if ad.is_barter == 'Paisey aur badley mein cheez dono' %}
-<div class="mt">
-<img src="{{ STATIC_URL }}img/ostar.png" width="15" height="14">&nbsp;<span style="font-size:15px;color:#fb8c00;">Badley mein barabar ki cheez bhi qabul hai</span><br>
-</div>
+	
+	<div class="mt">
+	<img src="{{ STATIC_URL }}img/ostar.png" width="15" height="14">&nbsp;<span style="font-size:15px;color:#fb8c00;"><span itemprop="category">Badley mein barabar ki cheez bhi qabul hai</span></span><br>
+	</div>
+
 {% endif %}
-<div class="mt">
-<b style="color:#9e9e9e;" class="cm">{{ ad.town }}, {{ ad.city }}</b><br>
-</div>
+	
+	<div class="mt">
+	<b style="color:#9e9e9e;" class="cm"><span itemprop="availableAtOrFrom">{{ ad.town }}</span>, <span itemprop="eligibleRegion">{{ ad.city }}</span></b><br>
+	</div>
+
+	<div class="mt">
+	<span style="color:#9e9e9e;" class="cm"><span itemprop="offeredBy">{{ ad.seller_name }}</span>, 0{{ ad.MN_data.national_number }}</span><br>
+	</div>
 
 </div>
 
-<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:124px" type="submit" name="ad_id" value="{{ ad.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:170px" type="submit" name="ad_id" value="{{ ad.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
-<a href="{% url 'ad_detail' ad.ad_id %}"><button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">detail</button></a>
+	<div itemscope itemtype="http://schema.org/ViewAction">
+	<a href="{% url 'ad_detail' ad.ad_id %}"><button class="btn mts" style="width:100%; background-color:#00C853; border-color:#00C853; font-size:25px; display:inline-block; min-width:80px"><span itemprop="potentialAction">detail</span></button></a>
+	</div>
 
+</div>
 </div>
 
 {% endfor %}

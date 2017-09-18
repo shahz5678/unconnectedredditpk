@@ -1,8 +1,16 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% load human_time %}
 {% load get_ecomm_navbar %}
 {% load complete_url %}
 {% block content %}
+
+<head>
+<title>
+	{{ ad_body.title }} in {{ ad_body.town }}, {{ ad_body.city }} - Price: {{ ad_body.ask }} | Damadam.pk
+</title>
+</head>
+
+
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">
 
@@ -11,42 +19,53 @@
 {% ecomm_navbar 'ad_detail' is_feature_phone %}<br>
 
 <div class="mbl" style=" width: 95%; max-width:400px; background-color:#F8F8F8; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; display:block">
+	
+<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+	
 	<div class="mbs mts">
-	<span style="font-size: 1.5625em; max-width: 90%;">{{ ad_body.title }}</span>&nbsp; <span style="font-size:12px" class="cgy">({{ ad_body.is_new }})</span><br>
+	<span style="font-size: 12px; color:grey" itemprop="availabilityStarts">{{ ad_body.submission_time|human_time }}</span><br>
+	</div>
+
+	<div class="mbs mts">
+	<span itemprop="itemOffered" style="font-size: 1.5625em; max-width: 90%;">{{ ad_body.title }}</span>&nbsp; <span style="font-size:12px" itemprop="itemCondition" class="cgy">({{ ad_body.is_new }})</span><br>
 	</div>
 
 	<div class="mbs">
-	<span style="font-size: 1.375em; font-weight: 700;">{{ ad_body.ask }}</span><br>
+	<meta itemprop="priceCurrency" content="PKR"/><span style="font-size: 1.375em; font-weight: 700;" itemprop="price">{{ ad_body.ask }}</span><br>
 	</div>
 
 	{% if ad_body.is_barter == 'Paisey aur badley mein cheez dono' %}
-	<div class="mbs">
-	<img src="{{ STATIC_URL }}img/ostar.png" width="15" height="14">&nbsp;<span style="color:#fb8c00;font-size:15px">Badley mein barabar ki cheez bhi qabul hai</span>
-	</div>
+		<div class="mbs">
+		<img src="{{ STATIC_URL }}img/ostar.png" width="15" height="14">&nbsp;<span style="color:#fb8c00;font-size:15px" itemprop="category">Badley mein barabar ki cheez bhi qabul hai</span>
+		</div>
 	{% endif %}
 
 	<div class="mbs">
-	<b style="font-size:15px; color:grey" >{{ ad_body.town }}, {{ ad_body.city }}</b><br>
+	<b style="font-size:15px; color:grey" ><span itemprop="availableAtOrFrom">{{ ad_body.town }}</span>, <span itemprop="eligibleRegion">{{ ad_body.city }}</b></span><br>
 	</div>
 
 	<div class="mbs">
-	<span style="font-size: 12px; color:grey">{{ ad_body.submission_time|human_time }}</span><br>
+	<span style="color:#9e9e9e;" class="cm"><span itemprop="offeredBy">{{ ad_body.seller_name }}</span>, 0{{ ad_body.MN_data.national_number }}</span><br>
 	</div>
 
-	{% if ad_body.photos %}
-	<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:124px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
-	{% if referrer %}{% if referrer|slice:"-15:" == '/seller_number/' %}<a href="{% url 'classified_listing' %}">{% else %}<a href="{{ referrer }}">{% endif %}{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
-	<hr size=1 COLOR="lightgrey">
-	{% for photo in ad_body.photos %}
-	<img src="{{ photo.0|complete_url }}" style="display:block;margin: 0 auto; padding-bottom:0.5em;">
-	{% endfor %}
-	<hr size=1 COLOR="lightgrey">
-	{% endif %}
 
-	<b style="font-size:18px;">Detail:</b><br><span style="font-size:18px;font-weight:lighter;">{{ ad_body.desc }}</span><br>
+	<div itemscope itemtype="http://schema.org/Thing">
+		{% if ad_body.photos %}
+		<hr size=1 COLOR="lightgrey">
+		{% for photo in ad_body.photos %}
+		<span itemprop="image" content="{{ ad.photos.0|complete_url }}"><img src="{{ photo.0|complete_url }}" style="display:block;margin: 0 auto; padding-bottom:0.5em;" alt="{{ ad_body.title }}" /></span>
+		{% endfor %}
+		<hr size=1 COLOR="lightgrey">
+		{% endif %}
 
-	<form method="POST" style="display:inline" action="{% url 'show_seller_number' %}">{% csrf_token %}{% if is_feature_phone == '1' %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:124px" name="ad_id" value="{{ ad_body.ad_id }}">contact</button>{% else %}<button class="btn mts" style="width:68%; background-color:#00c853; border-color:#00cc55; font-size:25px; display:inline-block; min-width:80px" name="ad_id" value="{{ ad_body.ad_id }}"><img width="20" height="20" src="{{ STATIC_URL }}img/phone.png">&nbsp;&nbsp;contact</button>{% endif %}</form>
-	{% if referrer %}{% if referrer|slice:"-15:" == '/seller_number/' %}<a href="{% url 'classified_listing' %}">{% else %}<a href="{{ referrer }}">{% endif %}{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:30%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
+		<b style="font-size:18px;">Detail:</b><br><span style="font-size:18px;font-weight:lighter;"><span itemprop="description">{{ ad_body.desc }}</span></span><br>
+	</div>
+
+	<div itemscope itemtype="http://schema.org/ViewAction">
+	{% if referrer %}{% if referrer|slice:"-15:" == '/seller_number/' %}<a href="{% url 'classified_listing' %}">{% else %}<a href="{{ referrer }}">{% endif %}{% else %}<a href="{% url 'classified_listing' %}">{% endif %}<button class="btn mts" style="width:100%; background-color:#ffa726; border-color:#ffa726; font-size:25px; display:inline-block; min-width:80px">back</button></a>
+	</div>
+
+</div>
 </div>
 </div>
 <br><br>

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load future_time %}
+{% block content %}
+<div class="margin clb">
+{% if own_id == banned_by %}
+
+	<span class="cxl">Aap is post pe nahi likh saktey {% emoticons %}.i6{% endemoticons %}</span><br>
+	<div class="mt">
+	<span class="cgy cl">Is post ke likhne waley ko ap ne block kiya hua hai. Ap khud iski post pe bhi nahi likhe saktey</span>
+	</div>
+	<div class="mt">
+	<span class="cgy cl">Block khatam ho ga <b>{{ ban_time|future_time }}</b>. Abhi block time change karney ke liye <a href="{% url 'banned_users_list' %}#section0"><button class="btn bcgy cs bm mt">ye dabao</button></a></span>
+	</div>
+
+{% else %}
+
+	<span class="cxl">Aap is user ki home-posts aur fotos pe nahi likh saktey {% emoticons %}.g5{% endemoticons %}</span><br>
+
+{% endif %}
+
+{% if origin == 'home' %}
+	<a href="{% url 'home' %}#section0">
+{% elif origin == 'matka' %}
+	{% if uname != 'None' %}
+	<a href="{% url 'unseen_activity' uname %}#section0">
+	{% else %}
+	<a href="{% url 'home' %}#section0">
+	{% endif %}
+{% elif origin == 'photos' %}
+	<a href="{% url 'photo' %}#section0">
+{% elif origin == 'best_photos' %}
+	<a href="{% url 'best_photo' %}#section0">
+{% elif origin == 'profile_photos' %}
+{% elif origin == 'cricket_comment_page' %}
+	<form method="POST" action="{% url 'cricket_comment_page' %}">
+	{% csrf_token %}
+	<button class="btn bcg bm mtl mbs">wapis</button>
+	</form>
+{% else %}
+	<a href="{% url 'home' %}#section0">
+{% endif %}
+
+
+{% if origin != 'cricket_comment_page' %}
+<button class="btn bcg bm mtl mbs">wapis</button></a>
+{% endif %}
+
+
+</div>
+<br><br>
+{% endblock %}

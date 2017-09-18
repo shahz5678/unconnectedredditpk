@@ -8,7 +8,7 @@
 
 {% if no_credentials %}
 	{% load emoticons_tags %}
-	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">Damadam tumhara naam bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
+	<span class="cl" style="text-shadow:1px 1px #009940;color:white;">Damadam apka naam bhool gaya {% emoticons %}.j5{% endemoticons %}</span><br>
 	<a href="{% url 'unauth_home_new' %}#section0"><button class="btn bs bco mtl">wapis</button></a>
 {% else %}
 	<form method="post" action="{% url 'create_account' slug1=uhex length1=ulen slug2=phex length2=plen %}#section0" class="mtl">
@@ -18,7 +18,7 @@
 		{% elif form.password.errors %}
 			<span class="cl" style="color:#ffff00;text-shadow:1px 1px #009940;">{{ form.password.errors.0 }} {% load emoticons_tags %}{% emoticons %}.i5{% endemoticons %}</span><br><br>
 		{% else %}
-			<span class="cxl" style="text-shadow:1px 1px #009940;color:white;"><b>{{ username }}</b> tumhara password <b style="color:#ffff00;text-shadow:1px 1px #009940;word-wrap:break-word;">{{ password }}</b> hai. Yad rakhna!</span><br>
+			<span class="cxl" style="text-shadow:1px 1px #009940;color:white;"><b>{{ username }}</b> apka password <b style="color:#ffff00;text-shadow:1px 1px #009940;word-wrap:break-word;">{{ password }}</b> hai. Yad rakhna!</span><br>
 			<input type="hidden" name="username" value="{{ username }}">
 			<input type="hidden" name="password" value="{{ password }}">
 			<input type="submit" class="mtl mbl" style="color:white;background-color:#ffd600;font-size:120%;border:solid 1px #e6bf00;width:4em;font-weight:bold;text-shadow:1px 1px #b39500;" value="OK">

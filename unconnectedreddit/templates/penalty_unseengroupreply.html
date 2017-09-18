@@ -2,8 +2,12 @@
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
-<h2 style="color:#404040;text-shadow: 0 0 0.3px rgba(0,0,0,0.3);">Damadam ka sans hi band kr diya! Kam zor lagao {% emoticons %}:p{% endemoticons %}</h2>
-<a href="{% url 'unseen_activity' username %}"><button>wapis</button></a>
+{% if not_member %}
+<h2>Is mehfil mein nahi likh saktey!&nbsp;{% emoticons %}.k2{% endemoticons %}</h2>
+{% else %}
+<h2>Bar bar likhne pe apke <b class="cr">{{ penalty }}</b> points cut gaye!&nbsp;{% emoticons %}.g5{% endemoticons %}</h2>
+{% endif %}
+<a href="{% url 'unseen_activity' uname %}#section0"><button class="btn bcg bm mtS mbs">wapis</button></a>
 </div>
 <br><br><br>
 {% endblock %}

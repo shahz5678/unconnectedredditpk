@@ -1,5 +1,6 @@
 {% load thumbedge %}
 {% load photoedge %}
+{% load get_block_button %}
 {% load emoticons_tags %}
 	{% if notification %}
 		{% if type_of_object == '2' %}
@@ -17,9 +18,9 @@
 					<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 				{% endif %}
 				<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
-				<form method="POST" action="{% url 'reply_pk' parent_pk %}" style="display:inline;">
+				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
-				<button class="btn nw bs cs bct mls" type="submit">post</button></form>
+				<button name="lid" class="btn nw bs cs bct mls" type="submit" value="{{ parent_pk }}">post</button></form>
 				<p style="margin-top:.5em;"></p>
 			
 				<span class="ct cs">
@@ -38,8 +39,8 @@
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar" ><b>*</b></span>
 			    {% endif %}</a>
-			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs"><bdi>, {{ parent.lrti|human_time }}</bdi>
-			</span>
+			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
 				<p style="margin-top:.5em;"></p>
 				{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
@@ -51,6 +52,7 @@
 				<input type="hidden" name="public_group_reply" value="111">
 				<input type="hidden" name="private_group_reply" value="111">
 				<input type="hidden" name="photo_comment" value="111">
+				<input type="hidden" name="lwpk" value="{{ parent.ooi }}">
 				{{ form.home_comment }}
 				<button class="btn bct bms mts" type="submit">jawab do</button>
 				</div>
@@ -87,7 +89,7 @@
 		<span class="clb">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		<p style="margin-top:.5em;"></p>
 		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
-		<form method="POST" action="{% url 'unseen_group' parent.oi %}">
+		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
 			<input type="hidden" name="origin" value="{{ origin }}">
@@ -100,7 +102,7 @@
 			<button class="btn bcg bms mts" type="submit" >jawab do</button>
 		</div>
 		</form>
-		<a href="{% url 'x_group_notif' parent.oi ident origin lang sort_by %}"><button class="btn mtl bco bs cs" >skip</button></a>
+		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn mtl bco bs cs" >skip</button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -130,7 +132,7 @@
 		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		<p style="margin-top:.5em;"></p>
 		{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
-		<form method="POST" action="{% url 'unseen_group' parent.oi %}">
+		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
 			<input type="hidden" name="origin" value="{{ origin }}">
@@ -143,7 +145,7 @@
 			<button class="btn bcp bms mts" type="submit">jawab do</button>
 		</div>
 		</form>
-		<a href="{% url 'x_group_notif' parent.oi ident origin lang sort_by %}"><button class="btn bs cs bco mtl">skip</button></a>
+		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn bs cs bco mtl">skip</button></a>
 	</div>
 			<p style="margin-top:.5em;"></p>
 				<hr size=1>
@@ -208,7 +210,7 @@
 				{% if latest_comment.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}</a>
-		:&nbsp;<span class="cl clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
+		:&nbsp;<span class="cl clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
 		<p style="margin-top:.5em;"></p>
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
@@ -220,6 +222,7 @@
 			<input type="hidden" name="private_group_reply" value="111">
 			<input type="hidden" name="public_group_reply" value="111">
 			<input type="hidden" name="home_comment" value="111">
+			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
 			<button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>
@@ -261,7 +264,17 @@
 			<img src="{{ parent.p|photoedge }}" alt="no pic" class="pht"></img>
 		{% endif %}
 		</a>&nbsp;&nbsp;
-		<br><span class="cl cgy">{{ parent.od }}</span><br>
+		<br><span class="cl cgy mrl">{{ parent.od }}</span>
+		<form method="POST" action="{% url 'fan' %}" style="display:inline">
+		{% csrf_token %}
+			<input type="hidden" name="oid" value="{{ parent.oi }}">
+		{% if fanned %}
+			<button name="sid_btn" class="btn bms bco mts mbs" style="background-image: url({{ static_url }}img/fan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
+		{% else %}
+			<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ static_url }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
+		{% endif %}
+		</form>
+		<br>
 		<p style="margin-top:.5em;"></p>
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
@@ -273,6 +286,7 @@
 			<input type="hidden" name="private_group_reply" value="111">
 			<input type="hidden" name="public_group_reply" value="111">
 			<input type="hidden" name="home_comment" value="111">
+			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
 			<button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>

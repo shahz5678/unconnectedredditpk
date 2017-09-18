@@ -18,10 +18,18 @@ def process_sms(target_number,ad_id,status=None, buyer_number=None, item_name=No
 	message = client.messages.create(to=target_number, from_="+18328955063",body=body)
 	
 
+def process_buyer_sms(target_number,order_id,order_data, buyer_number=None):
+	if order_data and order_id:
+		body = order_data
+	message = client.messages.create(to=target_number, from_="+18328955063",body=body)
+
+
+
 # def process_bulk_sms(target_number_list, ad_ids=None, status=None, buyer_number_list=None):
 # 	for target_number in target_number_list:
 # 		body = "Damadam pe apka muft ad khatam ho gaya hai. Neya ad laganey ke liye yahan ao: https://damadam.pk/kuch_baicho/"
 # 		message = client.messages.create(to=target_number, from_="+18328955063",body=body)
+
 
 
 def bind_user_to_twilio_notify_service(user_id,phone_number):

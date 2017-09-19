@@ -1,0 +1,51 @@
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb">
+{% if mobile_verified %}
+	<p class="cxs clg"  >Step 1: Shaher batao / Enter City</p>
+	<p class="cxs clg">Step 2: Naam aur Address batao / Enter Name and Delivery Address</p>
+	<p class="cs cbl">Step 3: Order ki tasdeeq kero / Confirm order</p>
+{% else %}
+	<p class="cxs clg">Step 1: Shaher batao / Enter City</p>
+	<p class="cxs clg" >Step 2: Naam aur Address batao / Enter Name and Delivery Address</p>
+	<p class="cxs clg">Step 3: Phone number batao / Verify Phone number</p>
+	<p class="cs cbl">Step 4: Order ki tasdeeq kero / Confirm order</p>
+<br>
+{% endif %}
+	<br>
+	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
+		<b class="cxl co">Aap key order ki tafseel</b><br>
+		<!-- process city in ecomm.py -->
+		<form method="POST" action="{% url 'confirm_order' %}" class="mtl">
+		{% csrf_token %}
+		<b>Mobile Phone:</b> {{ model }}<span class='cg'> One Year Warranty</span><br>
+		<b >Qeemat: </b> {{ price }} <span class='cg'>Ye Pasiay aap daak waley ko deien gay</span><br>
+		<b>Delivery:</b> Free <span class='cg'>(2-5 din mein order aap ko wasool ho ga)</span><br>
+		
+
+		{% if buy_possible%}
+		Aap key <span class="cr"> 5000</span> points Damadam Score mein say kaat diay jien gay<br>
+		Aap key <span class="cr">{{remaining_score}}</span> points reh jien gay<br>
+		<br>
+
+		order confirm ker deien?
+		<br>
+
+		<button type="submit" class="btn bcg mtl bm cl"><b>Order ker deien</b></button>
+		{% else %}
+		<br>
+		<b class="cr">Ye phone aap abhi nahi order ker sakte.</b><br>
+		<div class="cs">
+			Phone ko discount per haasil kerne ki qeemat <b class="cr">{{score_cost}}</b> damadam points hai
+			<br>
+			Aap key pass <b class="cr">{{user_score}}</b> damadam points hain<br>
+			<a class="cs" href="#">Points barhane ka tareeka parhien</a>
+		</div>
+		{% endif %}
+		</form>
+	</div>
+	<br><a href="{% url 'mobile_shop' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+
+</div>
+<br><br>
+{% endblock %}

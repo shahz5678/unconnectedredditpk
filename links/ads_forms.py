@@ -66,3 +66,45 @@ class CareemAdForm(forms.Form):
 		phonenumber = ''.join(re.split('[, \-_!?:]+',phonenumber)) #removes any excess characters from the mobile number
 		return phonenumber[-11:]
 
+class BuyerForm(forms.Form):
+
+	username = forms.RegexField(max_length=43, regex=re.compile("^[a-zA-Z\s]+$"),\
+		error_messages={'invalid': _("Name mein sirf english harf ho sakta hai"),\
+		'required':_("Is mein apna name likhien")})
+#	phonenumber = forms.CharField(max_length=11)#,validators=[validate_whitespaces_in_nickname])
+	address = forms.RegexField(max_length=300, regex=re.compile("^[A-Za-z0-9999!-/@#,$%^&* ]+$"),\
+		error_messages={'required':_("Is mein apna address likhien")})
+	
+	class Meta:
+		fields = ('username','address')
+
+	def __init__(self, *args, **kwargs):
+		super(BuyerForm, self).__init__(*args, **kwargs)
+		self.fields['username'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['address'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['address'].widget.attrs['class'] = 'cxl'
+		self.fields['address'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['address'].widget.attrs['autocomplete'] = 'off'
+
+	def clean_username(self):
+		username = self.cleaned_data.get('username')
+		if len(username) < 5:
+			raise forms.ValidationError('(tip: is se ziyada likho)')
+		elif len(username) > 250:
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
+		return username
+
+	def clean_address(self):
+		address = self.cleaned_data.get('address')
+		if len(address) < 5:
+			raise forms.ValidationError('(tip: is se ziyada likho)')
+		elif len(address) > 250:
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
+		return address
+
+

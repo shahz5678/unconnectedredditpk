@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data #log_referrer, save_number_verification_error_data
+from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, is_mobile_verified, \
 get_user_verified_number#, get_buyer_snapshot
@@ -139,3 +139,62 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 		return render(request,"try_again.html",{'type':'seller','from_ecomm':True})
 	else:
 		return render(request,"unverified_number.html",{'referrer':'classified_listing','from_ecomm':True})
+
+
+####################################################################################
+def verify_buyer_number(request):
+	# try:
+	# 	csrf = request.session["csrf"]
+	# except:
+	# 	return redirect("mobile_shop")
+	csrf = request.session["csrf"]	
+	AK_ID, MN_data, err = get_requirements(request=request,csrf=csrf)
+	if AK_ID and MN_data:
+		user_id = request.user.id
+		if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+			return render(request,"wrong_number.html",{'referrer':'mobile_shop'})
+		else:
+			save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+			order_data =  get_temp_order_data(user_id)
+			order_data['phonenumber']=MN_data['number']
+			merch_id = order_data['merch_id']
+			saved = save_order_data(order_data)
+			if saved:
+				return redirect("confirm_order")#,{'merch_id':merch_id})
+			else:
+				return render(request,"404.html",{})
+	else:
+		return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'type':'mobile_buyer','from_ecomm':False})
+
+		####replace with page reminding importance of number verification
+
+	# next step: now check if this is a uniquely new number, or is this someone else's number (use func someone_elses_number from redis3)
+	# next step: now that you're sure the number hasn't been used before, use save_consumer_number (redis3) to save the number to our DB
+	# next step: render the template that helps use complete the order
+
+	# else:
+	# 	print "data not received"
+	# 	return render(request,"careem_number_already_used.html",{})
+
+#			if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+#				return render(request,"wrong_number.html",{'referrer':data["referrer"]})
+#			else:
+#			save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+#			if data["redirect_to"]:
+	# 			return redirect("show_seller_number")
+	# 		else:
+	# 			return redirect("classified_listing")
+	# 	elif err['status'] == "NOT_AUTHENTICATED":
+	# 		return render(request,"dont_worry_just_authenticate.html",{'csrf':data["csrf"],'referrer':data["referrer"],'type':'consumer'})
+	# 	else:
+	# 		save_number_verification_error_data(user_id=user_id, err_data=err, err_type='1', on_fbs=request.META.get('HTTP_X_IORG_FBS',False), is_auth=request.user.is_authenticated(),which_flow='consumer')
+	# 		return render(request,"unverified_number.html",{})
+	# else:
+	# 	return render(request,"try_again.html",{'type':'consumer'})
+
+
+#	return render(request,"buyer_verification.html")
+
+
+
+

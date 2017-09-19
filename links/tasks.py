@@ -10,7 +10,7 @@ from django.utils import timezone
 from cricket_score import cricket_scr
 from imagestorage import delete_from_blob
 from image_processing import clean_image_file_with_hash
-from send_sms import process_sms, bind_user_to_twilio_notify_service
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
@@ -216,6 +216,11 @@ def detail_click_logger(ad_id, clicker_id):
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
 	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
+
+@celery_app1.task(name='tasks.enqueue_buyer_sms')
+def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
+	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['city'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):

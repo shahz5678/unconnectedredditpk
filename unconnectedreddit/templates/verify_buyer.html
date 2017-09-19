@@ -1,0 +1,29 @@
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb">
+  <p class="cxs clg">Step 1: Shaher batao / Enter City</p>
+  <p class="cxs clg">Step 2: Naam aur Address batao / Enter Name and Delivery Address</p>
+  <p class="cs cbl" >Step 3: Phone number batao / Verify Phone number</p>
+  <p class="cxs clg">Step 4: Order ki tasdeeq kero / Confirm order</p>
+  <br>
+  <b class="cxl clb">Ab ham aap ke mobile number ki tasdeeq karien ge</b><br>
+  <span class="cs cgy">(Neechay <b>OK</b> ka button dabao, aur agli screen par apna mobile number likho)</span><br>
+
+  <form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+  <input type="hidden" name="country_code" value="PK">
+  <input type="hidden" name="app_id" value="1758220174446684">
+  <input type="hidden" name="locale" value="ur_PK">
+  <input type="hidden" name="debug" value=true>
+  {% if ON_AZURE %}
+  <input type="hidden" name="redirect" value="https://damadam.pk/vbn/">
+  {% else %}<input type="hidden" name="redirect" value="http://127.0.0.1:8000/vbn/">{% endif %}
+
+
+  <input type="hidden" name="state" value="{{ csrf }}">
+  <input type="hidden" name="fbAppEventsEnabled" value=true>
+  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:120%;font-weight:bold;text-shadow:1px 1px #003315;" value="OK">
+  </form><br>
+  <b class="cgy cs">Tasdiq karney mein hamari partner company FACEBOOK shamil hai</b>
+</div>
+<br><br>
+{% endblock %}

@@ -1,9 +1,12 @@
-from links.ecomm import x2lite_details, x32_details, buyer_loc, process_city, post_basic_item, post_seller_info, post_basic_item_photos, \
+from links.ecomm import x2lite_details, x32_details, buyer_loc, mobile_shop, post_basic_item, post_seller_info, post_basic_item_photos, \
 init_classified, approve_classified, edit_classified, process_ad_approval, change_cover_photo, show_user_ads, ad_detail, process_unfinished_ad, \
 ad_locked_by_agent, city_list, expire_my_ad, change_my_sms_settings, classified_listing, process_ad_expiry_or_sms_feedback, print_referrer_logs, \
-redirect_to_social_section, initiate_seller_verification_process#classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
+redirect_to_social_section, initiate_seller_verification_process,show_city, buyer_details, buyer_verify, get_new_orders, confirm_order,i6metal_details,\
+in_process,x33_details, x29_details, i8i_details, s6_details, j1_details, delivery, warranty, order_successful
+
+#classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
 from links.ecomm_tracking import display_latest_metrics, get_ad_export, get_click_distribution
-from links.number_verification import verify_basic_item_seller_number#, verify_consumer_number
+from links.number_verification import verify_basic_item_seller_number,verify_buyer_number#, verify_consumer_number
 from django.contrib.auth.decorators import login_required as auth
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
@@ -53,8 +56,31 @@ urlpatterns = patterns('',
 	# url(r'^add_shop/$', auth(add_shop),name='add_shop'),
 	# url(r'^mobile/$', auth(show_shop_choices),name='ecomm'),
 
-	# url(r'^mobile/x32/$', x32_details,name='x32'),
-	# url(r'^mobile/x2lite/$', x2lite_details,name='x2lite'),
-	# url(r'^mobile/loc/$', auth(buyer_loc),name='buyer_loc'),
+	url(r'^mobile_shop/$', auth(mobile_shop),name='mobile_shop'),
+	url(r'^mobile_shop/x33/$', x33_details,name='x33'),
+	url(r'^mobile_shop/x29/$', x29_details,name='x29'),
+	url(r'^mobile_shop/i8i/$', i8i_details,name='i8i'),
+	url(r'^mobile_shop/s6/$', s6_details,name='s6'),			
+	url(r'^mobile_shop/j1/$', j1_details,name='j1'),
+	url(r'^mobile_shop/i6metal/$', i6metal_details,name='i6metal'),
+
+	#url(r'^mobile/x32/$', x32_details,name='x32'),
+	#url(r'^mobile/x2lite/$', x2lite_details,name='x2lite'),
+	url(r'^mobile/i6metal/$', i6metal_details,name='i6metal'),
+	url(r'^mobile/loc/$', auth(buyer_loc),name='buyer_loc'),
 	# url(r'^mobile/proc_city/$', auth(process_city),name='process_city'),
+
+	url(r'^show_city/$', auth(show_city),name='show_city'),
+	url(r'^buyer_details/$', auth(buyer_details),name='buyer_details'),
+#	url(r'^num_verification/$', auth(num_verification),name='num_verification'),
+	url(r'^buyer_verify/$', auth(buyer_verify),name='buyer_verify'),
+	url(r'^new_orders/$', auth(get_new_orders),name='new_orders'),
+	url(r'^vbn/', auth(verify_buyer_number), name='verify_buyer_number'),
+	url(r'^confirm_order/', auth(confirm_order), name='confirm_order'),
+	url(r'^in_process/', auth(in_process), name='in_process'),
+	url(r'^order_successful/', auth(order_successful), name='order_successful'),
+
+
+	url(r'^delivery/(?P<origin>[\w.@+-]+)/$', auth(delivery), name='delivery'),
+	url(r'^warranty/(?P<origin>[\w.@+-]+)/$', auth(warranty), name='warranty'),
 )

@@ -22,7 +22,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
-
+TWELVE_HOURS = 60*60*12
 
 
 # def save_user_choice(user_id, choice):
@@ -298,4 +298,69 @@ def del_careem_data():
 	my_server.delete("careem_applicant_nums_live")
 
 
-#########################################################
+##################################################Mobile_Shop
+
+def save_order_data(order_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "order_data:"+str(order_data['user_id'])
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,order_data)
+	pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+def place_order(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	order_data = False
+	order_data = get_temp_order_data(user_id)
+	order_id = get_order_id()
+	order_data['order_id'] = order_id
+	pipeline1.zadd('orders_in_process',user_id,time.time())
+	# after a few months, export this to excel and clean the list (it takes up needless space)
+	pipeline1.hmset("placed_orders:"+str(order_id),order_data)
+	pipeline1.execute()
+	return order_data
+
+def get_temp_order_data(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "order_data:"+str(user_id)
+	if my_server.exists(temp_storage):
+		order_details = my_server.hgetall("order_data:"+str(user_id))
+#		my_server.delete("order_data:"+str(user_id))
+		return order_details
+	else:
+		return {}
+
+def check_orders_processing(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user = my_server.zscore('orders_in_process',user_id)
+	if user == None:
+		return False
+	else:
+		return True
+
+def get_order_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("order_id")
+
+def get_total_orders():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("order_id")
+
+def show_new_orders():
+	total_orders = get_total_orders()
+	if total_orders <1:
+		return False
+	else:
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		num = 0
+		
+		while num <= int(total_orders):
+			temp_storage = "placed_orders:"+str(num)
+			if my_server.exists(temp_storage):
+				pipeline1.hgetall('placed_orders:'+str(num))
+			num = num + 1
+		orders = pipeline1.execute()
+		return orders

@@ -1,5 +1,5 @@
-from models import Photo
-import ast, json, time, uuid
+from models import Photo, UserProfile
+import ast, json, time, uuid, os
 from views import get_page_obj
 # from mixpanel import Mixpanel
 # from send_sms import get_all_bindings_to_date
@@ -7,10 +7,11 @@ from views import get_page_obj
 # from unconnectedreddit.settings import MIXPANEL_TOKEN
 from image_processing import clean_image_file_with_hash
 from page_controls import ADS_TO_APPROVE_PER_PAGE, APPROVED_ADS_PER_PAGE
-from redis4 import save_ad_desc, return_referrer_logs#, get_city_shop_listing
+from redis4 import save_ad_desc, return_referrer_logs,get_order_id, save_order_data, show_new_orders,\
+ place_order, get_temp_order_data, check_orders_processing#, get_city_shop_listing#, get_city_shop_listing
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
-save_ecomm_photo_hash, detail_click_logger
+save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
@@ -20,7 +21,9 @@ unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_dat
 string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
 get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, \
 check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
+from django.db.models import F
 
+from links.ads_forms import BuyerForm
 from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
@@ -36,8 +39,33 @@ from django.views.decorators.cache import cache_control
 #################################################################
 
 # mp = Mixpanel(MIXPANEL_TOKEN)
+from mixpanel import Mixpanel
+from unconnectedreddit.settings import MIXPANEL_TOKEN
 
+mp = Mixpanel(MIXPANEL_TOKEN)
 #################################################################
+
+MERCH = { 
+'1': {'price':'4000' ,'discounted_price':'3600', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
+'2': {'price':'5000' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
+'3': {'price':'6800' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'4': {'price':'7300' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
+'5': {'price':'9000','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
+'6': {'price':'10700','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
+}
+
+LOCATION = { 
+'khi': 'Karachi', \
+'lhr': 'Lahore', \
+'isb': 'Islamabad', \
+'rwp': 'Rawalpindi', \
+'pes': 'Peshawar', \
+'hyd': 'Hyderabad', \
+'fsd': 'Faisalabad', \
+'mul': 'Multan', \
+'sbi': 'Sawabi',\
+'atk': 'Attock'
+}
 
 
 def get_photo_urls(photo_ids):
@@ -914,44 +942,262 @@ def x32_details(request,*args,**kwargs):
 def x2lite_details(request,*args,**kwargs):
 	return render(request,"x2lite_details.html",{})
 
-@csrf_protect
-def buyer_loc(request,*args,**kwargs):
-	if request.method == 'POST':
-		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
-		return render(request,"buyer_loc.html",{'merch_id':merch_id})
-	else:
-		return render(request,'404.html',{'from_ecomm':True})
+def i6metal_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"qmobile_i6_metal.html",{'user_score':user_score,'score_diff':score_diff})
+
+
+def x33_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"qmobile_x33.html",{'user_score':user_score,'score_diff':score_diff})
+
+def x29_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"qmobile_x29.html",{'user_score':user_score,'score_diff':score_diff})
+
+def i8i_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"qmobile_i8i.html",{'user_score':user_score,'score_diff':score_diff})
+
+def s6_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"qmobile_s6.html",{'user_score':user_score,'score_diff':score_diff})
+
+def j1_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"samsung_j1.html",{'user_score':user_score,'score_diff':score_diff})
+
+def delivery(request,origin,*args,**kwargs):
+	context = {}
+	context["origin"] = origin
+	return render(request,"delivery.html",context)
+
+def warranty(request,origin,*args,**kwargs):
+	context = {}
+	context["origin"] = origin
+	return render(request,"warranty.html",context)
+
+
 
 @csrf_protect
-def process_city(request,*args,**kwargs):
+def buyer_loc(request,*args,**kwargs):
+	user_id = request.user.id
 	if request.method == 'POST':
+		mobile_verified = is_mobile_verified(user_id)
+		request.session['mobile_verified']=mobile_verified
+		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
+		request.session["which_phone"] = merch_id
+		request.session.modified = True
+		return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':mobile_verified})
+	else:
+		try:
+			merch_id = request.session["which_phone"]
+		except:
+			merch_id = None
+		if merch_id:
+			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':is_mobile_verified(user_id)})
+		else:
+			user_score = 0
+			user_score = request.user.userprofile.score
+			score_diff = 5000-int(user_score)
+			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
+
+
+@csrf_protect
+def mobile_shop(request,*args,**kwargs):
+	if request.method == 'POST':
+		user_id = request.user.id
+		request.session.pop('mobile_verified',None)
+		mobile_verified = is_mobile_verified(user_id)
+		request.session['mobile_verified']=mobile_verified
 		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
 		loc = request.POST.get('loc',None)
-		if merch_id and loc:
-			if loc == 'lhr' or loc == 'rwp' or loc == 'isb':
-				# move on to asking the user their mobile numer and their real name
-				return redirect("home")
-			elif loc == 'khi':
-				log_unserviced_city(request.user.id,'karachi',('x32' if merch_id == '1' else 'x2lite'))
-				return render(request,"no_delivery.html",{'loc':'Karachi'})
-			elif loc == 'other':
-				form = EcommCityForm()
-				return render(request,"enter_city.html",{'merch_id':merch_id,'form':form})
-			else:
-				form = EcommCityForm(request.POST)
-				if form.is_valid():
-					loc = form.cleaned_data.get("loc",None)
-					if loc:
-						log_unserviced_city(request.user.id,loc.lower(),('x32' if merch_id == '1' else 'x2lite'))
-						return render(request,"no_delivery.html",{'loc':loc})
-					else:
-						return render(request,"ecomm_choices.html",{})			
-				else:
-					return render(request,"enter_city.html",{'merch_id':merch_id,'form':form})
+		if loc == None or merch_id == None:
+				return render(request,"buyer_loc.html",{'merch_id':merch_id,"mobile_verified":mobile_verified})
 		else:
-			return render(request,"ecomm_choices.html",{})
+			if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
+			or loc == 'sbi' or loc == 'atk':
+	 			# move on to asking the user their mobile numer and their real name
+	 			request.session['mobile_buyer_city'] = loc
+	 			request.session['merch_id'] = merch_id
+	 			request.session.modified = True
+	 			return redirect("buyer_details")
+			else:
+				return render(request,"service_unavailable.html",{}) 	
 	else:
-		return render(request,'404.html',{'from_ecomm':True})
+		user_score = 0
+		user_score = request.user.userprofile.score
+		score_diff = 5000-int(user_score)
+		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
+
+@csrf_protect
+def buyer_details(request,*args,**kwargs):
+	if request.method == 'POST':
+		form = BuyerForm(request.POST)
+		if form.is_valid():
+			username = form.cleaned_data.get("username",None)
+			name = username.strip().title()
+			i=0
+			firstname, lastname = '',''
+			for word in name.split():
+				if i==0:
+					firstname=word
+					i+=1
+				else:
+					lastname+=word
+					lastname+=' '
+					i+=1
+			address = form.cleaned_data.get("address",None)
+			ON_AZURE = os.environ.get('ON_AZURE',None)
+			user_id = request.user.id
+			request.session['mobile_buyer_id'] = user_id
+			request.session.modified = True
+			city = LOCATION[request.session['mobile_buyer_city']]
+			merch_id = request.session['merch_id']
+ 			phonenumber = ''
+ 			price = MERCH[merch_id]['price']
+ 			model = MERCH[merch_id]['name']
+ 			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':user_id,\
+ 			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model} 
+
+			if is_mobile_verified(user_id):
+				number = get_user_verified_number(user_id)
+				request.session['buyer_phonenumber']=number[0]
+				request.session.modified = True
+				order_data['phonenumber']=number[0]
+				saved = save_order_data(order_data)
+				
+				if saved:
+					return redirect("confirm_order")
+				else:
+					return render(request,"404.html",{})
+			else:
+				CSRF = csrf.get_token(request)
+				request.session["csrf"] = CSRF
+				request.session.modified = True	
+				saved = save_order_data(order_data)
+			 	if saved:
+			 		return render(request,'verify_buyer.html',{'ON_AZURE':ON_AZURE,'csrf':CSRF})
+		 		else:
+		 			return render(request,"404.html",{})	
+		else:
+			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
+	else:
+		form = BuyerForm()
+		mobile_verified = request.session['mobile_verified']
+#		mp.track(request.user.id, 'Entered details for order')
+		return render(request,'buyer_detail.html',{'form':form,'device':get_device(request),'mobile_verified':mobile_verified})
+
+
+@csrf_protect
+def confirm_order(request):
+
+	if request.method == 'POST':
+		user_id = request.session['mobile_buyer_id']
+		check = check_orders_processing(user_id)
+		if check:
+			return redirect("in_process")
+		else:
+			merch_id = request.session['merch_id']
+			score_cost = 5000
+			saved = place_order(user_id)
+			if saved:
+				user_score = request.user.userprofile.score			
+				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
+				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)				
+				return redirect("order_successful")
+			else:
+				return render(request,"404.html",{})
+	else:
+		user_id = request.session['mobile_buyer_id']
+		order_data = get_temp_order_data(user_id)
+		if order_data:
+			model = order_data['model']
+			price = order_data['price']
+			user_score = request.user.userprofile.score			
+			merch_id = order_data['merch_id']
+			score_charge = 5000
+			remaining_score = user_score - 5000
+			buy_possible=0
+			mobile_verified = request.session['mobile_verified']
+			if int(score_charge) <= int(user_score):
+				buy_possible = 1
+			return render(request,"confirm_order.html",{'model':model,'price':price, 'buy_possible':buy_possible,\
+			 'score_cost':score_charge,'user_score':user_score,'mobile_verified':mobile_verified, 'remaining_score':remaining_score })
+		else:
+			return render(request,"404.html",{})
+
+# def buy_possbile(user_id):
+# 	order_data = get_temp_order_data(user_id)
+# 	if order_data:
+# 		model = order_data['model']
+# 		price = order_data['price']
+# 		user_score = request.user.userprofile.score			
+# 		merch_id = order_data['merch_id']
+# 		score_cost = MERCH[merch_id]['points_cost']
+# 		if score_cost > user_score:
+# 			buy_possible = 0
+# 		else:
+# 			buy_possible = 1 
+	
+def order_successful(request):
+	return render(request,"order_placed_successfully.html",{})
+
+def in_process(request):
+	return render(request,"in_process.html")
+
+def get_new_orders(request):
+	orders = show_new_orders()
+	return render(request,'new_orders.html', {'orders':orders})
+
+
+# def num_verification(request,*args,**kwargs):
+# 	user_id = request.user.id
+# 	ON_AZURE = request.session['ON_AZURE']
+# 	csrf = request.session['csrf']
+# 	if is_mobile_verified(user_id):
+# 		print "mobile verified"
+# 		return redirect('buyer_verification.html',{})
+# 	else:
+# 	 	print "mobile not verified"
+# 	 	return render(request,'verify_buyer_number.html',{'ON_AZURE':ON_AZURE,'csrf':csrf})
+
+
+# 			#city = request.session['city']
+# 			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':request.user.id,'order_id':order_id}
+# 			#enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
+# 			saved = save_order_data(order_data)
+# 			request.session.pop('city',None)
+# 			if saved:
+# #				mp.track(request.user.id, 'Completed order')
+# # 				if is_mobile_verified():
+# #						UserProfile.objects.filter(user_id=user_id).update(score=F('score')-10000)
+# # 				else:
+
+# 				return render(request,"order_placed_successfully.html",{})
+# 			else:
+# 				return render(request,'404.html',{})
+
+	
+
+def buyer_verify():
+	return render(request,"buyer_verification.html",{})
+
+def show_city(request):
+	form = EcommCityForm()
+	return render(request,'enter_city.html',{'form':form})
 
 def print_referrer_logs(request):
 	logs = return_referrer_logs('referrer')

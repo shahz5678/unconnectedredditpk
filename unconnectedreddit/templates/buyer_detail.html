@@ -1,0 +1,37 @@
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb">
+	
+{% if mobile_verified %}
+<p class="cxs clg"  >Step 1: Shaher batao / Enter City</p>
+<p class="cs cbl">Step 2: Naam aur Address batao / Enter Name and Delivery Address</p>
+<p class="cxs clg">Step 3: Order ki tasdeeq kero / Confirm order</p>
+{% else %}
+<p class="cxs clg"  >Step 1: Shaher batao / Enter City</p>
+<p class="cs cbl">Step 2: Naam aur Address batao / Enter Name and Delivery Address</p>
+<p class="cxs clg">Step 3: Phone number batao / Verify Phone number</p>
+<p class="cxs clg">Step 4: Order ki tasdeeq kero / Confirm order</p>
+<br>
+{% endif %}
+
+	<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/eshop.png"><br>
+	<br>{% else %}<img style="max-width:150px;" src="{{ STATIC_URL }}img/eshop.png"><br>{% endif %}
+	<h2 class="cg bw">Apni malumat likhien:</h2>
+
+	<form method="post" action="{% url 'buyer_details' %}" class="mtl">
+	{% csrf_token %}
+	<b>1. Apna poora naam likhien:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>
+	<br>{% if form.username.errors %}<span class="cr">{{ form.username.errors.0 }}</span><br>{% endif %}
+	{{ form.username }}<br>
+	<br>
+	<b>2. Apna ghar ka pata aur mohalla likhien:</b><br><b class='cs cgy'>misaal: Makan 30-B, Lane 4, Akbar Colony, Lalazar</b><br> 
+	{% if form.address.errors %}<span class="cr mtl">{{ form.address.errors.0 }}</span><br>{% endif %}
+	{{ form.address }}<br>
+	<input class="btn bcg bl mtl mbl" type="submit" value="Order">
+	</form>
+	<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+
+
+</div>
+<br><br>
+{% endblock %}

@@ -5,6 +5,8 @@
 
 {% if referrer == 'home' %}
 <a href="{% url 'home' %}">
+{% elif referrer == 'mobile_shop' %}
+<a href="{% url 'mobile_shop' %}">
 {% elif referrer %}
 <a href="{{ referrer }}">
 {% else %}

@@ -1,0 +1,37 @@
+{% extends "base_min.html" %}
+{% block content %}
+	<div class="margin clb mtl">
+	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
+		<div class="cxl cg" align="center">* Warranty ki ihteyati tadabeer *</div><br>
+		
+		* Hamarey tamam phone bilkul naiey pin packed hotey hein<br>
+		* Warranty ki tareekh jub aap ko order bheja jaiey <br>
+		&nbsp;&nbsp;ga uss din say shuru hogi<br>
+		* Phone ki raseed aap key order key sath aiey gi<br>
+		* Warranty kissi bhi Qmobile ya Samsung ki Dukan say hasil ki ja sakti hai<br>
+		* Kissi bhi masley ki surat mein order ki raseed mein<br>
+		&nbsp;&nbsp;diay gaiey phone number per baat kerien <br>
+				* Phone order wasool na kernay ya order cancel kernay per<br>&nbsp;&nbsp;Damdam score wapis nahi hoga<br>
+		 <br>
+		 <div class="cl cr"> Hamari Offers Mehdood Mudat Key Liay Hain</div>	  
+	</div>
+	<br>
+{% if origin == 'main' %}
+<a href="{% url 'mobile_shop' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'x29' %}
+<a href="{% url 'x29' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'x33' %}
+<a href="{% url 'x33' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'i8i' %}
+<a href="{% url 'i8i' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'i6' %}
+<a href="{% url 'i6metal' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 's6' %}
+<a href="{% url 's6' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'j1' %}
+<a href="{% url 'j1' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% endif %}
+</div>
+
+<br><br>
+{% endblock %}

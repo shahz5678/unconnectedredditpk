@@ -1,56 +1,567 @@
+
+<style>
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
+}
+
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
+}
+
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+.ordernow{
+font-size:20px;
+color: ;
+}
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px; 
+ width: 95%; 
+ max-width:400px; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+
+</style>
+
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<div class="cs clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">Tamam offers <b>Friday raat 12 bajay</b> tak hain!</div>
-	<div class="mtl">
-	<b class="cxl">QMobile</b>&nbsp;<span class="cxl">Noir X32</span>
-	<br><div class="mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-	<b class="cb cxl">Price: Rs. 5000</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(shop price: Rs. 5500)</span></span>
+<span itemscope itemtype="http://schema.org/Product">
+		<div id="background-box" class="mbl background-box" style="text-align:center">
+
+<!-- #################################HEADER############################################ -->
+	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
+		Damadam Laaya,<br>
+		Sub say sastey Phone<br> 
+		* One year warranty<br>
+		* Free Delivery<br>
+		* Cash on Delivery<br>
+		* Koi bhi phone khareednay key liay 
+		  <br><div>&nbsp;&nbsp;5000 Damadam points lagana zaroori hein</div><br>
+		 <div class="cl cr"> Ye Qeematien Mehdood Mudat Key Liay Hein</div>	  
 	</div>
-	<br><img class="mbl mtl" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/x32.png" alt="no pic">
-	<br><div>
-		<a class="co" href="{% url 'x32' %}">
-		RAM: <b class="mls">1&nbsp;GB</b><br>
-		Camera: <b class="mls">5&nbsp;Megapixel</b><br>
-		Memory: <b class="mls">8&nbsp;GB</b><br>
-		<span class="cb">... (tafseel)</span>
-		</a>
+
+			<hr size=2 COLOR="#A9A9A9">	
+
+<!-- #################################ITEM BLOCK############################################ -->
+
+		<div id="product-name">
+		<span itemscope itemtype="http://schema.org/Product">
+		<h1 class="cl" style="font-weight:normal"> 
+			<span itemprop="brand">QMobile </span> 
+			<span itemprop="name">Noir X29</span>
+			<br>
+			<span style="color:#B12704">Price: Rs.3600</span>
+		</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main' %}" >One Year Qmobile Warranty</a> <br>
+				<a href="{% url 'delivery' 'main' %}" >Payment: Cash On Delivery</a> <br>
+			</div>
+
+	<div id="image" style="text-align:center; margin-top:10px;">
+
+		<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/x29.png" alt="qmobile x29">
+	</div><br>
+	<div id="price-comparison" class="cheapoffer">
+		<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+		<b style="color:#B12704">Damadam Price: 
+			<meta itemprop="priceCurrency" content="PKR"/> Rs.
+			<span itemprop="price">3600</span>
+		</b>
+		<a href="{% url 'delivery' 'main' %}" target="_blank">Free Delivery</a>
+
+		<hr width"100%" class="style-offer">
+
+		<span style="color:grey; font-size:12px">
+			PriceOye.pk: 4850 <a href="https://priceoye.pk/mobiles/qmobile/qmobile-x29" target="_blank">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			What Mobile: Rs.4850  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-X29" target="_blank">(dekho)</a>
+			<hr width"100%" class="style-offer">
+			<span style="color:grey; font-size:12px">Dukandar: Rs.4000 - Rs.4850</span>
+		</span>
 	</div>
-	<div class="mtl">
-	<span class="cgy cs">QMobile X32 Noir ko <b>25 log</b> order kar chukey hain!</span>
+	<br>
+	<span class="co cm"> Qmobile Noir X29:</span>
+	<a class="clb" href="{% url 'x29' %}"> 
+	<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">512MB RAM, 8GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">2 MP (rear) + VGA (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">4.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+			</a>
 	</div>
-	<form method="POST" action="{% url 'buyer_loc' %}">
-	{% csrf_token %}
-	<input type="hidden" name="merch_id" value="1">
-	<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order karo</b></button>
-	</form>
-	</div>
+
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="1">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
+
 <hr size=1 COLOR="#A9A9A9">
-	<div class="mtl">
-	<b class="cxl">QMobile</b>&nbsp;<span class="cxl">X2 Lite</span>
-	<br><div class="mtl" style="border: 3px dashed #ccc;display: inline-block;border-radius:4px;padding:5px 5px 5px 5px;background-color:#ffffcc;">
-	<b class="cb cxl">Price: Rs. 3200</b><br><span style="color:#B8B8B8;text-decoration: line-through"><span class="cgy">(shop price: Rs. 3700)</span></span>
+<!-- ################################# END ITEM BLOCK 1 ############################################ -->
+
+
+		<div id="product-name">
+		<span itemscope itemtype="http://schema.org/Product">
+		<h1 class="cl" style="font-weight:normal"> 
+			<span itemprop="brand">QMobile </span> 
+			<span itemprop="name">Noir X33</span>
+			<br>
+			<span style="color:#B12704">Price: Rs.4500</span>
+		</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main'%}" target="_blank">One Year Qmobile Warranty</a> <br>
+				<a href="{% url 'delivery' 'main'%}" target="_blank">Payment: Cash On Delivery</a>			
+			</div>
+
+	<div id="image" style="text-align:center; margin-top:10px;">
+		<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/x33.png" alt="qmobile noir x33">
 	</div>
-	<br><img class="mbl mtl" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/x2lite.png" alt="no pic">
-	<br><div>
-		<a class="co" href="{% url 'x2lite' %}">
-		RAM: <b class="mls">256&nbsp;MB</b><br>
-		Camera: <b class="mls">1&nbsp;Megapixel</b><br>
-		Memory: <b class="mls">512&nbsp;MB</b><br>
-		<span class="cb">... (tafseel)</span>
-		</a>
+	<br>
+	<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+		<b style="color:#B12704">Damadam Price: 
+			<meta itemprop="priceCurrency" content="PKR"/> Rs.
+			<span itemprop="price">4500</span>
+		</b>
+		<a href="{% url 'delivery' 'main'%}" target="_blank">Free Delivery</a>
+		<hr width"100%" class="style-offer">
+
+		<span style="color:grey; font-size:12px">
+			PriceOye: Rs. 5400 <a href="https://priceoye.pk/mobiles/qmobile/qmobile-noir-x33" target="_blank">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			What Mobile: Rs.5400 <a href="https://www.whatmobile.com.pk/Qmobile_Noir-X33" target="_blank">(dekho)</a>
+			<hr width"100%" class="style-offer">
+			<span style="color:grey; font-size:12px">Dukandar: Rs.5000 - Rs.5400</span>
+		</span>
 	</div>
-	<div class="mtl">
-	<span class="cgy cs">QMobile X2 Lite ko <b>15 log</b> order kar chukey hain!</span>
+	<br>
+	<span class="co cm"> QMobile Noir X33:</span>
+	<a class="clb" href="{% url 'x33' %}"> 
+	<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">1GB RAM, 8GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">5 MP (rear) + 5 MP (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">4.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+				</a>
 	</div>
-	<form method="POST" action="{% url 'buyer_loc' %}">
-	{% csrf_token %}
-	<input type="hidden" name="merch_id" value="2">
-	<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order karo</b></button>
-	</form>
-	</div>
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="2">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
 <hr size=1 COLOR="#A9A9A9">
-Koi aur phone chahiye? Yahan likh do, hum us pe bhi discount dilwane ki koshish karein ge!
+
+<!-- ################################# END ITEM BLOCK 2 ############################################ -->
+
+
+		<div id="product-name">
+		<span itemscope itemtype="http://schema.org/Product">
+		<h1 class="cl" style="font-weight:normal"> 
+			<span itemprop="brand">QMobile </span> 
+			<span itemprop="name">Noir i8i</span>
+			<br>
+			<span style="color:#B12704">Price: Rs.6120</span>
+		</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main'%}" >One Year Qmobile Warranty</a> <br>
+				<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a>
+			</div>
+		
+
+
+
+	<div id="image" style="text-align:center; margin-top:10px;">
+
+		<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/i8i.png" alt="qmobile i8i">
+	</div>
+	<br>
+	<div id="price-comparison" class="cheapoffer">
+		<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+		<b style="color:#B12704">Damadam Price: 
+			<meta itemprop="priceCurrency" content="PKR"/> Rs.
+			<span itemprop="price">6120</span>
+		</b>
+		<a href="{% url 'delivery' 'main'%}" target="_blank">Free Delivery</a>
+		<hr width"100%" class="style-offer">
+
+		<span style="color:grey; font-size:12px">
+			ShopHive Price: Rs. 7499 <a href="http://www.shophive.com/qmobile-i8i" target="_blank">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			What Mobile: Rs.7500 <a href="https://www.whatmobile.com.pk/Qmobile_Noir-I8i" target="_blank">(dekho)</a>
+			<hr width"100%" class="style-offer">
+			<span style="color:grey; font-size:12px">Dukandar: Rs.6800 - Rs.7500</span>
+		</span>
+	</div>
+	<br>
+	<span class="co cm">QMobile Noir i8i:</span>
+	<a class="clb" href="{% url 'i8i' %}"> 
+	<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">1 GB RAM, 8GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">5 MP (rear) + 5 MP (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+			</a>
+	</div>
+
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="3">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
+
+	<hr size=1 COLOR="#A9A9A9">
+<!-- ################################# END ITEM BLOCK 3 ############################################ -->
+
+				<div id="product-name"> 
+				
+					<div class="cl">
+						<span itemprop="brand">QMobile </span> 
+						<span itemprop="name">Noir i6 Metal One</span><br>
+			 			<span itemprop="cost" class="cr">Price: </span> <span itemprop="price" class="cr">Rs. 6570</span><br>
+					</div>
+					<div class="cs cb">	
+						<a href="{% url 'warranty' 'main'%}" >One Year Qmobile Warranty</a> <br>
+						<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+					</div>
+			</div>
+			<div id="image" style="margin-top:5px;">
+				<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/i6metal.png" alt="qmobile i6 metal">
+			</div><br>
+				<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer"></span>
+				<p><b style="color:#B12704">Damadam Price:<meta itemprop="priceCurrency" content="PKR"/> Rs.<span itemprop="price">6570</span></b>
+				<a href="{% url 'delivery' 'main' %}" target="_blank">Free Delivery</a>
+				<hr width"100%" class="style-offer">
+
+				<span style="color:grey; font-size:12px">ShopHive: Rs 7449+Delivery<a target="_blank" href="http://www.shophive.com/qmobile-noir-i6-metal-one-3g-8gb-rom-1gb-ram-5mp">&nbsp;(dekho)</a>
+				<hr width"100%" class="style-offer">
+				<span style="color:grey; font-size:12px">What Mobile: Rs.7850<a target="_blank" href="https://www.whatmobile.com.pk/Qmobile_Noir-i6-Metal-One">&nbsp;(dekho)</a></span>
+				<hr width"100%" class="style-offer">
+				<span style="color:grey; font-size:12px">Dukandar: Rs.7300 - Rs.8000</span>
+
+			</div>
+			<a class="co" href="{% url 'i6metal' %}">
+				
+			<span class="co cm"> QMobile Noir i6 Metal One:</span>
+			<a class="clb" href="{% url 'i6metal' %}"> 
+			<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">1GB RAM, 8GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">5 MP (rear) + 5 MP (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+				</a>
+			</div>
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="4">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
+			<hr size=1 COLOR="#A9A9A9">
+<!-- ################################# END ITEM BLOCK 4 ############################################ -->
+
+
+
+		<div id="product-name">
+		<span itemscope itemtype="http://schema.org/Product">
+		<h1 class="cl" style="font-weight:normal"> 
+			<span itemprop="brand">Samsung </span> 
+			<span itemprop="name">J1 Mini Prime</span>
+			<br>
+			<span style="color:#B12704">Price: Rs.8100</span>
+		</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main' %}">One Year Samsung Warranty</a> <br>
+				<a href="{% url 'delivery' 'main' %}">Payment: Cash On Delivery</a> <br>
+			</div>
+		
+
+
+
+	<div id="image" style="text-align:center; margin-top:10px;">
+
+		<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/j1.png" alt="samsung j1 mini prime">
+	</div><br>
+	<div id="price-comparison" class="cheapoffer">
+		<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+		<b style="color:#B12704">Damadam Price: 
+			<meta itemprop="priceCurrency" content="PKR"/> Rs.
+			<span itemprop="price">8100</span>
+		</b>
+		<a href="{% url 'delivery' 'main' %}" target="_blank">Free Delivery</a>	
+		<hr width"100%" class="style-offer">
+
+		<span style="color:grey; font-size:12px">
+			HomeShopping Price: 9999 <a href="https://homeshopping.pk/products/Samsung-Galaxy-J1-Mini-Prime-J106H-Price-in-Pakistan.html" target="_blank">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			ShopHive Price: Rs. 9749 <a href="http://www.shophive.com/samsung-galaxy-j1-mini-prime-2016-white" target="_blank">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			What Mobile: Rs.10000 <a href="https://www.whatmobile.com.pk/Samsung_Galaxy-J1-mini-Prime" target="_blank">(dekho)</a>
+			<hr width"100%" class="style-offer">
+				<span style="color:grey; font-size:12px">Dukandar: Rs.9000 - Rs.10000</span>
+		</span>
+	</div>
+	<br>
+	<span class="co cm"> Samsung J1 Mini Prime:</span>
+	<a class="clb" href="{% url 'j1' %}"> 
+	<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">1 GB RAM, 8GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">5 MP (rear) + VGA (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">4.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+			</a>
+	</div>
+
+
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="5">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
+				<hr size=1 COLOR="#A9A9A9">
+<!-- ################################# END ITEM BLOCK 5 ############################################ -->
+
+
+		<div id="product-name">
+		<span itemscope itemtype="http://schema.org/Product">
+		<h1 class="cl" style="font-weight:normal"> 
+			<span itemprop="brand">QMobile </span> 
+			<span itemprop="name">Noir S6</span>
+			<br>
+			<span style="color:#B12704">Price: Rs.9630</span>
+		</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main' %}">One Year Qmobile Warranty</a> <br>
+				<a href="{% url 'delivery' 'main' %}">Payment: Cash On Delivery</a> <br>
+			</div>
+		
+
+
+
+	<div id="image" style="text-align:center; margin-top:10px;">
+
+		<img  itemprop="image" style="width:100%;max-width:125px;" src="{{ STATIC_URL }}img/s6.png" alt="qmobile noir s6">
+	</div>
+	<br>
+	<div id="price-comparison" class="cheapoffer">
+		<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+				<hr width"100%" class="style-offer">
+		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+		<b style="color:#B12704">Damadam Price: 
+			<meta itemprop="priceCurrency" content="PKR"/> Rs.
+			<span itemprop="price">9630</span>
+		</b>
+		<a href="{% url 'delivery' 'main' %}" target="_blank">Free Delivery</a>
+		<hr width"100%" class="style-offer">
+
+		<span style="color:grey; font-size:12px">
+			ShopHive Price: Rs. 13499 <a target="_blank" href="http://www.shophive.com/qmobile-noir-s6-3g-16gb-rom-2gb-ram-13mp-fingerprint-sensor">(dekho)</a>
+		<hr width"100%" class="style-offer">
+			What Mobile: Rs.11800 <a target="_blank" href="https://www.whatmobile.com.pk/Qmobile_Noir-S6">(dekho)</a>
+			<hr width"100%" class="style-offer">
+				<span style="color:grey; font-size:12px">Dukandar: Rs.10700 - Rs.11800</span>
+		</span>
+	</div>
+	<br>
+	<span class="co cm"> QMobile Noir S6:</span>
+	<a class="clb" href="{% url 's6' %}"> 
+	<div id="product-description" class="productdescription">
+				<span itemprop="description">
+				<b>Memory:</b> <span class="mls">2 GB RAM, 16GB ROM</span>
+				<hr width"100%" class="style-offer">
+				<b>Camera:</b> <span class="mls">13 MP (rear) + 5 MP (front)</span>
+				<hr width"100%" class="style-offer">
+				<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
+				<hr width"100%" class="style-offer">
+				<button class="btn mtl mbs bxl bcb cl" type="submit"><b>tafseel</b></button>	
+				</span>	
+			</a>
+	</div>
+
+			{% if user_score < 5000 %}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
+				</b><br>
+
+			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+			 </div>
+			{%else%}
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
+				</b><br>
+
+				<form method="POST" action="{% url 'buyer_loc' %}">
+					{% csrf_token %}
+					<input type="hidden" name="merch_id" value="6">
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
+					<br>
+					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
+				</form>
+			{% endif %}
+
+
+
+<!-- ################################# END ITEM BLOCK 6 ############################################ -->
+
+
 </div>
+
+</div>
+
+	</span>
+
+	<hr size=1 COLOR="#A9A9A9">
+		 <div class="cl cr"> Ye Qeematien Mehdood Mudat Key Liay Hein</div>	  
+
+</div>
+</div>
+</div>
+</div>
+
+
+
 <br><br>
 {% endblock %}

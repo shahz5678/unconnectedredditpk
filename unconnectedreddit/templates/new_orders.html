@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}\
+<div class="ml">
+<h2>Latest orders</h2><hr />
+
+	{% for order in orders %}
+	{% if order.city %}
+	<h2>{{order.order_id}}</h2>
+	<a>{{order.firstname}} </a><a>{{order.lastname}}</a><br> 
+	{{order.city}}
+	{{order.}}
+	<hr>
+	{%endif%}
+	{% endfor %}
+  </div>
+ 
+
+{% endblock %}

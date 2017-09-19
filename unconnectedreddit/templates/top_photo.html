@@ -2,7 +2,60 @@
 {% load thumbnail %}
 {% block content %}
 
+<style>
+
+.secondary-nav {
+    text-align: center;
+
+}
+
+.circular-button {
+
+    color:white; 
+    border-radius:50%; 
+    height:55px; 
+    width:55px; 
+    border-style:none; 
+    margin-left:10px
+
+}
+    
+
+.secondary-nav .circular-button:hover  {
+    background-color:#FF9800 !important;
+    color:white !important;
+}
+
+
+@media only screen and (max-width: 200px) {
+  
+
+.circular-button {
+
+    color:white; 
+    height:40px; 
+    width:41px; 
+    border-style:none; 
+    margin-left:1px;
+
+}
+
+.secondary-nav hr {
+
+    color:white;
+}
+
+</style>
+
     <div class="margin clb">
+
+        <div class="secondary-nav">
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd;">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:grey; background-color:#dfdddd">Latest fotos</button></a><button class="circular-button" style="color:white; background-color:#ffa726">Top <br>stars</button>
+<hr size=1 COLOR="#ffa726" style="margin-top:-1.9em; margin-left:0" ><br>
+<br>
+<br>
+</div>
+
     <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>
     {% for user,total_photos,userprofile,total_fans in object_list %}
     <span class="co cs">{{ forloop.counter }}.</span>

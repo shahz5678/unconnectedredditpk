@@ -3,190 +3,167 @@
 <head>
     <meta charset="utf-8">
     <script async src="https://cdn.ampproject.org/v0.js"></script>
-    <title>QMobile Noir S6</title>
-    <link rel="canonical" href="http://www.damadam.pk/mobile/i6metal">
+    <title>QMobile Noir S6 Details</title>
+    <link rel="canonical" href="http://www.damadam.pk/mobile/s6">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
    
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
   </head>
-  <body>
+<body>
 
-<style>
-.cheapoffer {
-border: 1px solid lightgrey;
-padding:3px;
-width: 100%;
-max-width:200px;
-border-radius:6px;
-margin:0 auto;
+	<style>
+		.cheapoffer {
+			border: 1px solid lightgrey;
+			padding:3px;
+			width: 100%;
+			max-width:200px;
+			border-radius:6px;
+			margin:0 auto;
 
-}
+		}
 
-.productdescription {
-
-border: 1px solid lightgrey;
-padding:3px;
-margin-top:5px;
-margin-bottom:5px;
-width: 95%;
-border-radius:6px;
-max-width:300px;
-text-align:left;
-margin: 0 auto;
-
-
-}
+		.productdescription {
+			border: 1px solid lightgrey;
+			padding:3px;
+			margin-top:5px;
+			margin-bottom:5px;
+			width: 95%;
+			border-radius:6px;
+			max-width:300px;
+			text-align:left;
+			margin: 0 auto;
+		}
 
 
-hr.style-offer {
-    border: 0;
-    height: 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    margin:-2px;
-    
-}
+		hr.style-offer {
+		    border: 0;
+		    height: 0;
+		    border-top: 1px solid rgba(0, 0, 0, 0.1);
+		    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+		    margin:-2px;    
+		}
 
-.ordernow{
-font-size:20px;
-color: ;
-}
+		.ordernow{
+			font-size:20px;
+			color: ;
+		}
 
-.background-box {
- line-height:25px;
- letter-spacing:0.05px; 
- width: 95%; 
- max-width:400px; 
- background-color:#F8F8F8; 
- padding:5px;
- box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
- display:block;
- padding-top:1px;
-}
+		.background-box {
+			line-height:25px;
+			letter-spacing:0.05px; 
+			width: 95%; 
+			max-width:400px; 
+			background-color:#F8F8F8; 
+			padding:5px;
+			box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+			display:block;
+			padding-top:1px;
+		}
+	</style>
 
+	{% extends "base.html" %}
+	{% block content %}
 
-</style>
-{% extends "base.html" %}
-{% block content %}
-<div class="margin clb">
-<!-- #################################ITEM BLOCK############################################ -->
+	<div class="margin clb">
+	<!-- #################################ITEM BLOCK############################################ -->
 
-
-
-	<div id="background-box" class="mbl background-box" style="text-align:center">
-		<div id="product-name">
-		<span itemscope itemtype="http://schema.org/Product">
-		<h1 class="cl" style="font-weight:normal"> 
-			<span itemprop="brand">QMobile </span> 
-			<span itemprop="name">Noir S6</span>
-			<br>
-			<span style="color:#B12704">Price: Rs.9630</span>
-		</h1>
-			<div class="cs cb" style="margin-top:-10px;">	
-				<a href="{% url 'warranty' 's6' %}" >One Year Qmobile Warranty</a> <br>
-				<a href="{% url 'delivery' 's6' %}" >Payment: Cash On Delivery</a> <br>
+		<div id="background-box" class="mbl background-box" style="text-align:center">
+			<div id="product-name">
+				<span itemscope itemtype="http://schema.org/Product">
+				<h1 class="cl" style="font-weight:normal"> 
+					<span itemprop="brand">QMobile</span> 
+					<span itemprop="name">Noir S6</span>
+					<br>
+					<span style="color:#B12704">Price: Rs.9630</span>
+				</h1>
+				<div class="cs cb" style="margin-top:-10px;">	
+					<a href="{% url 'warranty' 's6'%}" >One Year QMobile Warranty</a> <br>
+					<a href="{% url 'delivery' 's6'%}" >Payment: Cash On Delivery</a> <br>
+				</div>
 			</div>
-		
-
-
-
-	<div id="image" style="text-align:center; margin-top:10px;">
-
-		<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/s6.png" alt="qmobile noir s6">
-	</div>
-	<div id="price-comparison" class="cheapoffer">
-		<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+			<div id="image" style="text-align:center; margin-top:10px;">
+				<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/s6.png" alt="qmobile s6">
+			</div>
+			<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+						<hr width"100%" class="style-offer">
+				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+				<b style="color:#B12704">Damadam Price: 
+					<meta itemprop="priceCurrency" content="PKR"/> Rs.
+					<span itemprop="price">9630</span>
+				</b>
+				<a href="{% url 'delivery' 's6'%}" target="_blank">Free Delivery</a>
 				<hr width"100%" class="style-offer">
-		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-		<b style="color:#B12704">Damadam Price: 
-			<meta itemprop="priceCurrency" content="PKR"/> Rs.
-			<span itemprop="price">9630</span>
-		</b>
-		<a href="{% url 'delivery' 's6' %}" target="_blank">Free Delivery</a>
-		<hr width"100%" class="style-offer">
-
-		<span style="color:grey; font-size:12px">
-			ShopHive Price: Rs. 13499 <a target="_blank" href="http://www.shophive.com/qmobile-noir-s6-3g-16gb-rom-2gb-ram-13mp-fingerprint-sensor">(dekho)</a>
-		<hr width"100%" class="style-offer">
-			What Mobile: Rs.11800 <a target="_blank" href="https://www.whatmobile.com.pk/Qmobile_Noir-S6">(dekho)</a>
-			<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.10700 - Rs.11800</span>
-		</span>
-	</div>
-	<br>
-	<span class="co cm"> QMobile Noir S6:</span>
-	<div class="clb"> 
-	<div id="product-description" class="productdescription">
-		<span itemprop="description">
-		<b>Memory:</b> <span class="mls">2GB RAM, 16GB ROM</span>
-		<hr width"100%" class="style-offer">
-		<b>Camera:</b> <span class="mls">13 MP (rear) + 5 MP (front)</span>
-		<hr width"100%" class="style-offer">
-		<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
-		<hr width"100%" class="style-offer">
-		<b>Mem Card:</b> <span class="mls">microSD up to 64GB</span>
-		<hr width"100%" class="style-offer">
-		<b>Internet:</b> <span class="mls">3G</span>
-		<hr width"100%" class="style-offer">
-		<b>Warranty:</b> <span class="mls">1 year</span>
-		<hr width"100%" class="style-offer">
-		<b>Sims:</b> <span class="mls">2</span>
-		<hr width"100%" class="style-offer">
-		<b>WiFi:</b> <span class="mls">Yes</span>
-		<hr width"100%" class="style-offer">
-		<b>Bluetooth:</b> <span class="mls">Yes</span>
-		<hr width"100%" class="style-offer">
-		<b>Android:</b> <span class="mls">Android 6.0 Marshmellow</span>
-		<hr width"100%" class="style-offer">
-		<b>Processor:</b> <span class="mls">1.3GHz Quad core</span>
-		<hr width"100%" class="style-offer">
-		<b>Battery:</b> <span class="mls">3000 mAh</span>
-		</span>
-	</div>
-</div>
+				<span style="color:grey; font-size:12px">
+					ShopHive: Rs. 13499<a href="http://www.shophive.com/qmobile-noir-s6-3g-16gb-rom-2gb-ram-13mp-fingerprint-sensor" target="_blank">(dekho)</a>
+					<hr width"100%" class="style-offer">
+					WhatMobile: Rs.11800  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-S6" target="_blank">(dekho)</a>
+					<hr width"100%" class="style-offer">
+					<span style="color:grey; font-size:12px">Dukandar: Rs.10700 - Rs.11800
+					</span>
+				</span>
+			</div>	
+			<br>
+			<span class="co cm"> QMobile Noir S6:
+			</span>
+			<div class="clb"> 
+				<div id="product-description" class="productdescription">
+					<b>Memory:</b> <span class="mls">2GB RAM, 16GB ROM</span>
+					<hr width"100%" class="style-offer">
+					<b>Camera:</b> <span class="mls">13 MP (rear) + 5 MP (front)</span>
+					<hr width"100%" class="style-offer">
+					<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
+					<hr width"100%" class="style-offer">
+					<b>Mem Card:</b> <span class="mls">microSD up to 64GB</span>
+					<hr width"100%" class="style-offer">
+					<b>Internet:</b> <span class="mls">3G</span>
+					<hr width"100%" class="style-offer">
+					<b>Warranty:</b> <span class="mls">1 year</span>
+					<hr width"100%" class="style-offer">
+					<b>Sims:</b> <span class="mls">2</span>
+					<hr width"100%" class="style-offer">
+					<b>WiFi:</b> <span class="mls">Yes</span>
+					<hr width"100%" class="style-offer">
+					<b>Bluetooth:</b> <span class="mls">Yes</span>
+					<hr width"100%" class="style-offer">
+					<b>Android:</b> <span class="mls">Android 6.0 Marshmellow</span>
+					<hr width"100%" class="style-offer">
+					<b>Processor:</b> <span class="mls">1.3GHz Quad core</span>
+					<hr width"100%" class="style-offer">
+					<b>Battery:</b> <span class="mls">3000 mAh</span>
+					</span>
+				</div>
+			</div>
 
 			{% if user_score < 5000 %}
-				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein
-				</b><br>
-
-			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
-				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
-				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
-			 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
-			 </div>
-			 </div>
-			<a href="{% url 'mobile_shop' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
-			<br><br>
-			</div>
-
+				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+				<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
+					<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
+					<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
+				 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
+				</div>
+			 	<br>
+				<a href="{% url 'mobile_shop' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a><br>
 			{%else%}
 				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
 				</b><br>
-
 				<form method="POST" action="{% url 'buyer_loc' %}">
 					{% csrf_token %}
-					<input type="hidden" name="merch_id" value="1">
+					<input type="hidden" name="merch_id" value="6">
 					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
 					<br>
 					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
 				</form>
-				</div>
 				<a href="{% url 'mobile_shop' %}"><button class="btn bcgy mts bl cm"><b>wapis</b></button></a>
 				<br><br>
-				</div>
-
 			{% endif %}
 
+	<!-- #################################END ITEM BLOCK############################################ -->
 
-<!-- #################################END ITEM BLOCK############################################ -->
+		</div>
+	</div>
+	
 
-
-</div>
-
-</div>
-
-{% endblock %}
-</span>
-</span>
+	{% endblock %}
+	</body>
 </html>
-</body>

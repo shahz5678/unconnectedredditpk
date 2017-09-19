@@ -94,17 +94,17 @@ class BuyerForm(forms.Form):
 	def clean_username(self):
 		username = self.cleaned_data.get('username')
 		if len(username) < 5:
-			raise forms.ValidationError('(tip: is se ziyada likho)')
+			raise forms.ValidationError('(tip: apna poora naam likhien)')
 		elif len(username) > 250:
-			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota kerien)')
 		return username
 
 	def clean_address(self):
 		address = self.cleaned_data.get('address')
-		if len(address) < 5:
-			raise forms.ValidationError('(tip: is se ziyada likho)')
+		if len(address) < 10:
+			raise forms.ValidationError('(tip: apna poora address bataien jiss per daak bheji ja sakey)')
 		elif len(address) > 250:
-			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karien)')
 		return address
 
 

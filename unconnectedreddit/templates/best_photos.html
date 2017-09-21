@@ -23,11 +23,11 @@
 .circular-button {
 
 	color:white; 
-	border-radius:50%; 
-	height:55px; 
-	width:55px; 
-	border-style:none; 
-	margin-left:10px
+	border-radius: 17px 17px 17px 17px; 
+	height:65px; 
+	width:65px;  
+	border:none;
+	margin-left:25px
 
 }
 	
@@ -75,19 +75,17 @@
 
 
 	{% if score >= threshold and not banned %}
-	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bcg mbl mtl" style="padding:10px; font-size:14px;background-image: url(/static/img/upload_emoji.png);background-repeat: no-repeat;background-position: 8% 50%; border:none; width:120px; height:50px; padding-right:7px;  text-align:right; padding-bottom:10px;">New Foto<br>Charhao&nbsp;<br></button></a>
-	</p>
+	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bcg mbl mts" style="font-size:14px;border:none; width:120px; height:50px; padding-right:7px;  text-align:center;font-weight:bold; ">New Foto<br>Lagao<br></button></a>
+	<br>
 	{% elif banned %}
 	{% elif first_time_user %}
 	{% else %}
 	<span class="co cm">Foto charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhao</b></button></a></span><br>
 	{% endif %}
 
-		<div class="secondary-nav">
-<button class="circular-button" style=" background-color:#ffa726; ">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd">Latest fotos</button></a><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#dfdddd">Top <br>stars</button></a>
-<hr size=1 COLOR="#ffa726" style="margin-top:-1.9em; margin-left:0" ><br>
-<br>
-<br>
+<div class="secondary-nav mbl mts">
+<button class="circular-button" style="color:#FF8F00; background-color:#FFECB3; margin-left:0px;">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Latest fotos</button></a><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top <br>stars</button></a>
+<hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
 {% endif %}	

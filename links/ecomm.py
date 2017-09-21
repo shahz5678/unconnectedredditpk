@@ -46,12 +46,12 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 #################################################################
 
 MERCH = { 
-'1': {'price':'4000' ,'discounted_price':'3600', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
-'2': {'price':'5000' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
-'3': {'price':'6800' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
-'4': {'price':'7300' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
-'5': {'price':'9000','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
-'6': {'price':'10700','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
+'1': {'price':'3600' ,'discounted_price':'3600', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
+'2': {'price':'4500' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
+'3': {'price':'6120' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'4': {'price':'6570' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
+'5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
+'6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
 }
 
 LOCATION = { 
@@ -1037,10 +1037,12 @@ def mobile_shop(request,*args,**kwargs):
 			else:
 				return render(request,"service_unavailable.html",{}) 	
 	else:
+		user_id=request.user.id
+		order_in_process = check_orders_processing(user_id)
 		user_score = 0
 		user_score = request.user.userprofile.score
 		score_diff = 5000-int(user_score)
-		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
+		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 @csrf_protect
 def buyer_details(request,*args,**kwargs):
@@ -1161,36 +1163,6 @@ def in_process(request):
 def get_new_orders(request):
 	orders = show_new_orders()
 	return render(request,'new_orders.html', {'orders':orders})
-
-
-# def num_verification(request,*args,**kwargs):
-# 	user_id = request.user.id
-# 	ON_AZURE = request.session['ON_AZURE']
-# 	csrf = request.session['csrf']
-# 	if is_mobile_verified(user_id):
-# 		print "mobile verified"
-# 		return redirect('buyer_verification.html',{})
-# 	else:
-# 	 	print "mobile not verified"
-# 	 	return render(request,'verify_buyer_number.html',{'ON_AZURE':ON_AZURE,'csrf':csrf})
-
-
-# 			#city = request.session['city']
-# 			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':request.user.id,'order_id':order_id}
-# 			#enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-# 			saved = save_order_data(order_data)
-# 			request.session.pop('city',None)
-# 			if saved:
-# #				mp.track(request.user.id, 'Completed order')
-# # 				if is_mobile_verified():
-# #						UserProfile.objects.filter(user_id=user_id).update(score=F('score')-10000)
-# # 				else:
-
-# 				return render(request,"order_placed_successfully.html",{})
-# 			else:
-# 				return render(request,'404.html',{})
-
-	
 
 def buyer_verify():
 	return render(request,"buyer_verification.html",{})

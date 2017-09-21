@@ -56,7 +56,17 @@ color: ;
 	<span itemscope itemtype="http://schema.org/Product">
 	<div id="background-box" class="mbl background-box" style="text-align:center">
 
+{% if order_in_process %}
+		<div class="cl clb mbs" align="center" style="border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#B3E5FC;">
+				<b>
+				Aaa aik say ziada phone order nahi ker sakte</b> <br> 
+				<div class="cr" style="text-align:center; font-size:15px; margin:10px; margin-bottom:2px; background-color:#E1F5FE; border-radius:6px; padding:2px;">Note: Aap ka aik order hamarey pass pehle hee maujood hai</br></div> 
+		</div>
+		<hr size=2 COLOR="#A9A9A9">	
+
+
 <!-- #################################HEADER############################################ -->
+{% else %}
 		<div class="cl clb mbs" align="center" style="border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#B3E5FC;">
 				<b>
 				New Touchscreen Phone Discount Offer</b> <br> 
@@ -69,7 +79,12 @@ color: ;
 		</div>
 
 		<hr size=2 COLOR="#A9A9A9">	
+
 <!-- #################################ITEM BLOCK############################################ -->
+{% endif %}
+
+<!-- #################################ITEM BLOCK############################################ -->
+
 		<div id="product-name">
 				<span itemscope itemtype="http://schema.org/Product">
 				<h1 class="cl" style="font-weight:normal"> 

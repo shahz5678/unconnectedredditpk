@@ -13,6 +13,52 @@
 {% load get_mobile_verification_bar %}
 {% load get_curate_photo %}
 {% block content %}
+
+<style>
+
+.secondary-nav {
+	text-align: center;
+
+}
+
+.circular-button {
+
+	color:white; 
+	border-radius: 17px 17px 17px 17px; 
+	height:65px; 
+	width:65px;
+	border:none;
+	margin-left:25px
+
+}
+	
+
+.secondary-nav .circular-button:hover  {
+    background-color:#FF9800 !important;
+    color:white !important;
+}
+
+
+@media only screen and (max-width: 200px) {
+  
+
+.circular-button {
+
+	color:white; 
+	height:40px; 
+	width:41px; 
+	border-style:none; 
+	margin-left:1px;
+
+}
+
+.secondary-nav hr {
+
+	color:white;
+}
+
+</style>
+
 <div class="margin">
 	
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
@@ -23,16 +69,18 @@
 
 	
 {% if score >= threshold and not banned %}
-<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bxl bco mbl mtl"><b>New Foto Charhao</b></button></a>
-</p>
+<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bcg mbl mts" style="font-size:14px;border:none; width:120px; height:50px; padding-right:7px;  text-align:center; font-weight:bold;">New Foto<br>Lagao<br></button></a>
+<br>
 {% elif banned %}
 {% elif first_time_user %}
 {% else %}
-<span class="co cm">Foto charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhao</b></button></a></span><br>
+<span class="co cm">Yahan foto lagane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhain</b></button></a></span><br>
 {% endif %}
-	<hr size=1 COLOR="#ffbf00" style="margin-bottom:-0.1em;">
-	<a href="{% url 'best_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Best fotos&nbsp;&nbsp;</a><span class="co">|</span><span class="cs cb"><b>&nbsp;&nbsp;Latest fotos&nbsp;&nbsp;</b></span><span class="co">|</span><a href="{% url 'top_photo' %}#section0" class="cs cgy">&nbsp;&nbsp;Top stars&nbsp;&nbsp;</a>
-	<hr size=1 COLOR="#ffbf00" style="margin-top:-0.0em;"><br>
+
+<div class="secondary-nav mbl mts">
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;margin-left:0px;">Best fotos</button><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Latest fotos</button><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top <br>stars</button></a>
+<hr size=1 COLOR="#ffa726" style="margin-top:-1.9em; margin-left:0" ><br>
+</div>
 
 {% for photo in object_list %}
 

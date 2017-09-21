@@ -1,7 +1,11 @@
 # coding=utf-8
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
+from math import log, ceil
+from urllib import quote
 from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
+import datetime, time
+from datetime import datetime, timedelta
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.middleware import csrf
@@ -19,6 +23,41 @@ from location import MEMLOC
 from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView, DetailView
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
+from image_processing import clean_image_file, clean_image_file_with_hash
+from salutations import SALUTATIONS
+from forms import getip
+from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
+ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
+ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
+PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
+PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
+MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
+AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
+PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
+GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
+HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
+UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
+ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
+VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
+AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
+HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchNicknameForm, \
+AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import redirect, get_object_or_404, render
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+from user_sessions.models import Session
+from django.utils import timezone
+from django.utils.timezone import utc
+from django.views.decorators.cache import cache_page, never_cache, cache_control
+from fuzzywuzzy import fuzz
+from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
@@ -29,20 +68,6 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-#from links.azurevids.azurevids import uploadvid
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from salutations import SALUTATIONS
-###############################################################################################################################
-#########################################################Optimizely Exp########################################################
-# from redis3 import set_user_type, get_user_type
-# from redis1 import all_best_posts_1, all_best_posts_2
-# from redis4 import save_user_choice
-###############################################################################################################################
-###############################################################################################################################
 from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
@@ -71,40 +96,6 @@ get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_sea
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
 get_latest_group_replies
 from .website_feedback_form import AdvertiseWithUsForm
-from image_processing import clean_image_file, clean_image_file_with_hash
-from forms import getip
-from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
-ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
-ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
-PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
-PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
-MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
-AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
-PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
-GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
-HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
-UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
-ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
-VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
-AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
-HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchNicknameForm, \
-AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm
-
-from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404, render
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from math import log, ceil
-from urllib import quote
-from PIL import Image, ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-import datetime, time
-from datetime import datetime, timedelta
-from user_sessions.models import Session
-from django.utils import timezone
-from django.utils.timezone import utc
-from django.views.decorators.cache import cache_page, never_cache, cache_control
-from fuzzywuzzy import fuzz
-from brake.decorators import ratelimit
 
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -1376,6 +1367,10 @@ def home_location(request, lang=None, *args, **kwargs):
 	return redirect(url)
 
 def home_link_list(request, lang=None, *args, **kwargs):
+	"""This function renders the current home page.
+
+    It gets the most recent conversational data from redis, and displays it on the template.
+    """
 	if request.user.is_authenticated():
 		form = HomeLinkListForm()
 		context = {}

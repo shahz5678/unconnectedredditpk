@@ -69,8 +69,8 @@
 
 	
 {% if score >= threshold and not banned %}
-<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bcg mbl mts" style="font-size:14px;border:none; width:120px; height:50px; padding-right:7px;  text-align:center; font-weight:bold;">New Foto<br>Lagao<br></button></a>
-<br>
+	{% include "upload_photo_button.html" %}
+	<br>
 {% elif banned %}
 {% elif first_time_user %}
 {% else %}

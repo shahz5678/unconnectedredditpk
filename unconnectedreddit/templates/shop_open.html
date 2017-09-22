@@ -1,0 +1,11 @@
+{% load future_time %}
+<div class="margin clb" align="center" style="color:white">
+<a href="{% url 'home' %}">
+	<img style="width:124px;" src="{{ static_url }}img/shop_open.png"><br>
+	
+	<div class="mts" style="color:white;">
+		<button class="btn mtl mbs bxl bcp cl" type="submit"><b>Saste Mobile Dekhien</b></button>
+	</div>
+	<br><b class="cl" style="color:#FFEB3B">{{ test_time|future_time }} Damadam Discount Shop bund ho jaiey gi!</b><br>
+</a>
+</div>

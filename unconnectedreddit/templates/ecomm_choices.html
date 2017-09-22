@@ -51,8 +51,6 @@ color: ;
 </style>
 
 {% extends "base.html" %}
-{% load get_live_mobile_shop %}
-
 {% block content %}
 <div class="margin clb">
 	<span itemscope itemtype="http://schema.org/Product">
@@ -60,9 +58,8 @@ color: ;
 
 <!-- #################################HEADER############################################ -->
 
-<div style="margin-top:-1em;padding-top:1em;background-color:#f36155" >
-		{% open_mobile_shop STATIC_URL %}
-		<p><hr size=1 COLOR="#BDBDBD"></p></div>
+
+
 {% if order_in_process %}
 		<div class="cl clb mbs" align="center" style="border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#B3E5FC;">
 				<b>

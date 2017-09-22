@@ -63,7 +63,7 @@ LOCATION = {
 'hyd': 'Hyderabad', \
 'fsd': 'Faisalabad', \
 'mul': 'Multan', \
-'sbi': 'Sawabi',\
+'sbi': 'Swabi',\
 'atk': 'Attock'
 }
 
@@ -1000,6 +1000,7 @@ def buyer_loc(request,*args,**kwargs):
 		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
 		request.session["which_phone"] = merch_id
 		request.session.modified = True
+		mp.track(request.user.id, 'M_S_2 On_location')
 		return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':mobile_verified})
 	else:
 		try:
@@ -1007,6 +1008,7 @@ def buyer_loc(request,*args,**kwargs):
 		except:
 			merch_id = None
 		if merch_id:
+			mp.track(request.user.id, 'M_S_2 On_location')
 			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':is_mobile_verified(user_id)})
 		else:
 			user_score = 0
@@ -1033,8 +1035,10 @@ def mobile_shop(request,*args,**kwargs):
 	 			request.session['mobile_buyer_city'] = loc
 	 			request.session['merch_id'] = merch_id
 	 			request.session.modified = True
+	 			mp.track(request.user.id, 'M_S_3 relevant_location')
 	 			return redirect("buyer_details")
 			else:
+				mp.track(request.user.id, 'M_S_4 No_service_city')
 				return render(request,"service_unavailable.html",{}) 	
 	else:
 		user_id=request.user.id
@@ -1042,6 +1046,7 @@ def mobile_shop(request,*args,**kwargs):
 		user_score = 0
 		user_score = request.user.userprofile.score
 		score_diff = 5000-int(user_score)
+		mp.track(request.user.id, 'M_S_1 came to shop')
 		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 @csrf_protect
@@ -1082,6 +1087,7 @@ def buyer_details(request,*args,**kwargs):
 				saved = save_order_data(order_data)
 				
 				if saved:
+					mp.track(request.user.id, 'M_S_7 On confirm order')
 					return redirect("confirm_order")
 				else:
 					return render(request,"404.html",{})
@@ -1095,11 +1101,12 @@ def buyer_details(request,*args,**kwargs):
 		 		else:
 		 			return render(request,"404.html",{})	
 		else:
+			mp.track(request.user.id, 'M_S_5 on buyer detail')
 			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
 	else:
 		form = BuyerForm()
 		mobile_verified = request.session['mobile_verified']
-#		mp.track(request.user.id, 'Entered details for order')
+		mp.track(request.user.id, 'M_S_6 entered incorrect info')
 		return render(request,'buyer_detail.html',{'form':form,'device':get_device(request),'mobile_verified':mobile_verified})
 
 
@@ -1110,6 +1117,7 @@ def confirm_order(request):
 		user_id = request.session['mobile_buyer_id']
 		check = check_orders_processing(user_id)
 		if check:
+			mp.track(request.user.id, 'M_S_8 ordering second')
 			return redirect("in_process")
 		else:
 			merch_id = request.session['merch_id']
@@ -1118,7 +1126,9 @@ def confirm_order(request):
 			if saved:
 				user_score = request.user.userprofile.score			
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
-				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)				
+				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)
+				enqueue_buyer_sms.delay('+923335196812', saved["order_id"], saved, None)
+				mp.track(request.user.id, 'M_S_9 order placed')				
 				return redirect("order_successful")
 			else:
 				return render(request,"404.html",{})

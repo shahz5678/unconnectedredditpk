@@ -1,3 +1,53 @@
+
+	<style>
+		.cheapoffer {
+			border: 1px solid lightgrey;
+			padding:3px;
+			width: 100%;
+			max-width:200px;
+			border-radius:6px;
+			margin:0 auto;
+
+		}
+
+		.productdescription {
+			border: 1px solid lightgrey;
+			padding:3px;
+			margin-top:5px;
+			margin-bottom:5px;
+			width: 95%;
+			border-radius:6px;
+			max-width:300px;
+			text-align:left;
+			margin: 0 auto;
+		}
+
+
+		hr.style-offer {
+		    border: 0;
+		    height: 0;
+		    border-top: 1px solid rgba(0, 0, 0, 0.1);
+		    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+		    margin:-2px;    
+		}
+
+		.ordernow{
+			font-size:20px;
+			color: ;
+		}
+
+		.background-box {
+			line-height:25px;
+			letter-spacing:0.05px; 
+			width: 95%; 
+			max-width:400px; 
+			background-color:#F8F8F8; 
+			padding:5px;
+			box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+			display:block;
+			padding-top:1px;
+		}
+	</style>
 {% extends "base.html" %}
 {% block content %}\
 <div class="ml">
@@ -5,11 +55,33 @@
 
 	{% for order in orders %}
 	{% if order.city %}
-	<h2>{{order.order_id}}</h2>
-	<a>{{order.firstname}} </a><a>{{order.lastname}}</a><br> 
-	{{order.city}}
-	{{order.}}
-	<hr>
+	
+			<div class="clb"> 
+				<div id="product-description" class="productdescription">
+					<span itemprop="description">
+					<b>Order ID:</b> <span class="mls">{{order.order_id}}</span>
+					<hr width"100%" class="style-offer">
+					<b>Name:</b> <span class="mls">{{order.firstname}}&nbsp;{{order.lastnamename}} </span>
+					<hr width"100%" class="style-offer">
+					<b>City:</b> <span class="mls">{{order.city}}</span>
+					<hr width"100%" class="style-offer">
+					<b>User_id:</b> <span class="mls">{{order.user_id}}</span>
+					<hr width"100%" class="style-offer">
+					<b>Model:</b> <span class="mls">{{order.model}}</span>
+					<hr width"100%" class="style-offer">
+					<b>Price:</b> <span class="mls">{{order.price}}</span>
+					<hr width"100%" class="style-offer">
+					<b>Price:</b> <span class="mls">{{order.phonenumber}}</span>
+					<hr width"100%" class="style-offer">
+					<br><button class="btn mtl mbs bm bcb cs" align="center" type="submit"><b>Cancel</b></button>
+					<br><button class="btn mtl mbs bm bcr cs" align="center" type="submit"><b>Ban</b></button>
+					<br><button class="btn mtl mbs bm bcg cs" align="center" type="submit"><b>Posted</b></button>
+					<br><button class="btn mtl mbs bm bco cs" align="center" type="submit"><b>Accidental</b></button>
+					</span>
+					<br>
+				</div>
+			</div>
+			<br>
 	{%endif%}
 	{% endfor %}
   </div>

@@ -19,6 +19,7 @@
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
+{% load get_live_mobile_shop %}
 {% block content %}
 
 <div class="margin">
@@ -84,8 +85,8 @@
 		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
 	{% if forloop.counter == 8 %}
-		<div style="margin-top:-1em;padding-top:1em;background-color:#00c853" >
-		{% mobile_shop STATIC_URL %}
+		<div style="margin-top:-1em;padding-top:1em;background-color:#f36155" >
+		{% open_mobile_shop STATIC_URL %}
 		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
 	{% if forloop.counter == 13 %}

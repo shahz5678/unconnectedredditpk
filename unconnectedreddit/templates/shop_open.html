@@ -1,11 +1,20 @@
 {% load future_time %}
+<a href="{% url 'mobile_shop' %}">
 <div class="margin clb" align="center" style="color:white">
-<a href="{% url 'home' %}">
 	<img style="width:124px;" src="{{ static_url }}img/shop_open.png"><br>
-	
+	<br>
 	<div class="mts" style="color:white;">
 		<button class="btn mtl mbs bxl bcp cl" type="submit"><b>Saste Mobile Dekhien</b></button>
 	</div>
-	<br><b class="cl" style="color:#FFEB3B">{{ test_time|future_time }} Damadam Discount Shop bund ho jaiey gi!</b><br>
-</a>
+	<div class="cl clb mts" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;">
+		<div class="mts" style="color:white;">
+			<div style="text-align:center;" class="mbl">
+			<b class="cl" style="color:white;" class="mt">Damadam Mobile Discount Shop 25 Sept, Raat 12 bajey tuk khuli hai</b><br>
+			<b class="cm" style="color:#FFEB3B">{{ test_time|future_time }}</b> <b style="color:white;" class="mt"> Damadam Discount Shop band ho jaiey gi!</b><br>	
+			</div>
+		</div>
+	</div>
+	
+
 </div>
+</a>

@@ -16,7 +16,7 @@
     height:65px; 
     width:65px; 
     border-style:none; 
-    margin-left:25px
+    margin-left:25px;
 
 }
     
@@ -27,7 +27,7 @@
 }
 
 
-@media only screen and (max-width: 200px) {
+@media only screen and (max-width: 260px) {
   
 
 .circular-button {
@@ -37,6 +37,8 @@
     width:41px; 
     border-style:none; 
     margin-left:1px;
+    font-size: 10px;
+    margin:2%;
 
 }
 
@@ -51,8 +53,8 @@
 
 
 <div class="secondary-nav mbl mtl">
-<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd;margin-left:0px;">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:grey; background-color:#dfdddd;">Latest fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Top <br>stars</button>
-<hr size=1 COLOR="#ffa726" style="margin-top:-1.9em; margin-left:0" ><br>
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd;margin-left:0px;">Best<br>fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:grey; background-color:#dfdddd;">Latest<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Top<br>stars</button>
+<hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
     <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>

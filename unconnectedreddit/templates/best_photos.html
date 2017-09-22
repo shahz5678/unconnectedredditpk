@@ -38,7 +38,7 @@
 }
 
 
-@media only screen and (max-width: 200px) {
+@media only screen and (max-width: 260px) {
   
 
 .circular-button {
@@ -48,6 +48,8 @@
 	width:41px; 
 	border-style:none; 
 	margin-left:1px;
+	font-size:10px;
+	margin:2%;
 
 }
 
@@ -75,8 +77,9 @@
 
 
 	{% if score >= threshold and not banned %}
-	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bcg mbl mts" style="font-size:14px;border:none; width:120px; height:50px; padding-right:7px;  text-align:center;font-weight:bold; ">New Foto<br>Lagao<br></button></a>
+	{% include "upload_photo_button.html" %}
 	<br>
+
 	{% elif banned %}
 	{% elif first_time_user %}
 	{% else %}
@@ -84,7 +87,7 @@
 	{% endif %}
 
 <div class="secondary-nav mbl mts">
-<button class="circular-button" style="color:#FF8F00; background-color:#FFECB3; margin-left:0px;">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Latest fotos</button></a><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top <br>stars</button></a>
+<button class="circular-button" style="color:#FF8F00; background-color:#FFECB3; margin-left:0px;">Best<br>fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Latest<br>fotos</button></a><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top<br>stars</button></a>
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 

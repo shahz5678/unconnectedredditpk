@@ -365,6 +365,7 @@ def bulk_add_search_photos(owner_uname, ids_with_urls):
 def insert_nick_list(nickname_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	nicknames = []
+	my_server.delete("nicknames")
 	for nickname in nickname_list:
 		generic_nick, specific_nick = process_nick(nickname)
 		nicknames.append(generic_nick)

@@ -1014,6 +1014,7 @@ def buyer_loc(request,*args,**kwargs):
 			user_score = 0
 			user_score = request.user.userprofile.score
 			score_diff = 5000-int(user_score)
+			mp.track(request.user.id, 'M_S_1.1 came to shop')
 			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
 
 
@@ -1054,6 +1055,7 @@ def buyer_details(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = BuyerForm(request.POST)
 		if form.is_valid():
+			mp.track(request.user.id, 'M_S_5.1 correct buyer detail')
 			username = form.cleaned_data.get("username",None)
 			name = username.strip().title()
 			i=0
@@ -1080,6 +1082,7 @@ def buyer_details(request,*args,**kwargs):
  			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model} 
 
 			if is_mobile_verified(user_id):
+
 				number = get_user_verified_number(user_id)
 				request.session['buyer_phonenumber']=number[0]
 				request.session.modified = True
@@ -1092,6 +1095,7 @@ def buyer_details(request,*args,**kwargs):
 				else:
 					return render(request,"404.html",{})
 			else:
+				mp.track(request.user.id, 'M_S_7.1 on confirm Phone`')
 				CSRF = csrf.get_token(request)
 				request.session["csrf"] = CSRF
 				request.session.modified = True	
@@ -1099,6 +1103,7 @@ def buyer_details(request,*args,**kwargs):
 			 	if saved:
 			 		return render(request,'verify_buyer.html',{'ON_AZURE':ON_AZURE,'csrf':CSRF})
 		 		else:
+					mp.track(request.user.id, 'M_S_E phone verification')
 		 			return render(request,"404.html",{})	
 		else:
 			mp.track(request.user.id, 'M_S_5 on buyer detail')
@@ -1165,6 +1170,7 @@ def confirm_order(request):
 # 			buy_possible = 1 
 	
 def order_successful(request):
+					mp.track(request.user.id, 'M_S_9.1 order placed shown')	
 	return render(request,"order_placed_successfully.html",{})
 
 def in_process(request):

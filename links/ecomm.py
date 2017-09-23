@@ -1170,7 +1170,7 @@ def confirm_order(request):
 # 			buy_possible = 1 
 	
 def order_successful(request):
-					mp.track(request.user.id, 'M_S_9.1 order placed shown')	
+	mp.track(request.user.id, 'M_S_9.1 order placed shown')	
 	return render(request,"order_placed_successfully.html",{})
 
 def in_process(request):

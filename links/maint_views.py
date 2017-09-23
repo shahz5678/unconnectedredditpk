@@ -128,7 +128,6 @@ def insert_nicks(request,*args,**kwargs):
     """
 	if request.user.username == 'mhb11':
 		nicknames = User.objects.values_list('username',flat=True)
-		print nicknames
 		list_len = len(nicknames)
 		each_slice = int(list_len/10)
 		counter = 0
@@ -137,9 +136,7 @@ def insert_nicks(request,*args,**kwargs):
 			slices.append((counter,counter+each_slice))
 			counter += each_slice
 		for sublist in slices:
-			print "-----------"
-			print nicknames[sublist[0]:sublist[1]]
-			# insert_nick_list(nicknames[sublist[0]:sublist[1]])
+			insert_nick_list(nicknames[sublist[0]:sublist[1]])
 		return render(request,'nicks_populated.html',{})
 	else:
 		return render(request,'404.html',{})

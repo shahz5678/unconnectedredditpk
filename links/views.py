@@ -8127,7 +8127,18 @@ def export_nicks(request,*args,**kwargs):
 		import csv
 		with open('inactives.csv','wb') as f:
 			wtr = csv.writer(f, delimiter=',')
-			wtr.writerows(inactives)
+			columns = "username score id".split()
+			wtr.writerow(columns)
+			for inactive in inactives:
+				tup = inactive[0].split(":")
+				username = tup[0]
+				try:
+					score = tup[1]
+				except:
+					score = None
+				id_ = inactive[1]
+				to_write = [username, score, id_]
+				wtr.writerows([to_write])
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})
@@ -8184,6 +8195,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		list1 = inactives[:size/2]
 		list2 = inactives[size/2:]
 		from itertools import chain
+		# breaking it into two lists avoids socket time out
 		set_inactives([x for x in chain.from_iterable(list1)])
 		set_inactives([x for x in chain.from_iterable(list2)])
 		return render(request,'deprecate_nicks.html',{})

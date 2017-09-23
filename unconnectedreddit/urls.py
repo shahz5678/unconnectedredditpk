@@ -28,7 +28,7 @@ best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_i
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
-number_verification_help, photo_comment, public_reply_view, post_public_reply#, insert_nicks
+number_verification_help, photo_comment, public_reply_view, post_public_reply, deprecate_nicks#, insert_nicks
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -61,7 +61,7 @@ urlpatterns = patterns('',
 	# url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
 	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
 	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
-	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
+	url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),

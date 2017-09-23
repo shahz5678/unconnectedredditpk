@@ -8187,6 +8187,11 @@ def deprecate_nicks(request,*args,**kwargs):
 		# # intersection of all such ids
 		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000]
 		inactive = set.intersection(*sets)
+		#################
+		#sanitize pink stars:
+		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
+		inactive = inactive - pink_stars
+		#################
 		inactives = []
 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
 		for inact in inactives_data:

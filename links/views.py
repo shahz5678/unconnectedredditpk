@@ -5,7 +5,7 @@ from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
 import datetime, time
 from datetime import datetime, timedelta
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.middleware import csrf
@@ -8102,132 +8102,6 @@ def show_advertisers(request,*args,**kwargs):
 		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
 			'num':len(list_of_advertisers)})
 
-###############################################################
-
-# this frees up the name space of nicks
-def change_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		inactives = get_inactives()
-		id_list = map(itemgetter(1), inactives)
-		id_len = len(id_list)
-		rand_nums = random.sample(xrange(100000,999999), id_len+10)
-		counter = 0
-		for pk in id_list:
-			nick = "dmdm_"+str(rand_nums[counter])
-			User.objects.filter(id=int(pk)).update(username=nick)
-			counter += 1
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
-
-# shows deprecated nicks in a CSV
-def export_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		inactives = get_inactives()
-		import csv
-		with open('inactives.csv','wb') as f:
-			wtr = csv.writer(f, delimiter=',')
-			columns = "username score id".split()
-			wtr.writerow(columns)
-			for inactive in inactives:
-				tup = inactive[0].split(":")
-				username = tup[0]
-				try:
-					score = tup[1]
-				except:
-					score = None
-				id_ = inactive[1]
-				to_write = [username, score, id_]
-				wtr.writerows([to_write])
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
-
-def deprecate_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		# all user ids who last logged in more than 3 months ago
-		three_months_ago = datetime.utcnow()-timedelta(days=90)
-		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
-		# print all_old_ids
-		# print "------"
-		# user ids not found in Sessions
-		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
-		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-		# print logged_out_users
-		# print "------"
-		# # messaged on home more than 3 months ago
-		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
-		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-		# print never_home_message
-		# print "------"
-		# # never submitted a publicreply
-		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
-		# print never_publicreply
-		# print "------"
-		# never sent a photocomment
-		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
-		# print never_photocomment
-		# print "------"
-		# # never uploaded a photo
-		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
-		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-		# print never_uploaded_photo
-		# print "------"
-		# # never fanned anyone
-		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
-		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-		# print never_fanned
-		# print "------"
-		# # score is below 15000
-		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
-		# print less_than_15000
-		# print "------"
-		# # intersection of all such ids
-		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000]
-		inactive = set.intersection(*sets)
-		#################
-		#sanitize pink stars:
-		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
-		inactive = inactive - pink_stars
-		#################
-		inactives = []
-		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
-		for inact in inactives_data:
-			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-		size = len(inactives)
-		list1 = inactives[:size/2]
-		list2 = inactives[size/2:]
-		from itertools import chain
-		# breaking it into two lists avoids socket time out
-		set_inactives([x for x in chain.from_iterable(list1)])
-		set_inactives([x for x in chain.from_iterable(list2)])
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
-
-def check_nick(request,nick=None,*args,**kwargs):
-	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
-
-def insert_nicks(request,*args,**kwargs):
-	if request.user.username == 'mhb11':
-		nicknames = User.objects.values_list('username',flat=True)
-		list_len = len(nicknames)
-		each_slice = int(list_len/10)
-		counter = 0
-		slices = []
-		while counter < list_len:
-			slices.append((counter,counter+each_slice))
-			counter += each_slice
-		for sublist in slices:
-			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
-			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-		return render(request,'nicks_populated.html',{})
-	else:
-		return render(request,'404.html',{})
-
-###############################################################
 
 # Report run on 18/3/2017
 #              Table               |  Size   | External Size 

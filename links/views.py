@@ -8180,8 +8180,12 @@ def deprecate_nicks(request,*args,**kwargs):
 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
 		for inact in inactives_data:
 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
+		size = len(inactives)
+		list1 = inactives[:size/2]
+		list2 = inactives[size/2:]
 		from itertools import chain
-		set_inactives([x for x in chain.from_iterable(inactives)])
+		set_inactives([x for x in chain.from_iterable(list1)])
+		set_inactives([x for x in chain.from_iterable(list2)])
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

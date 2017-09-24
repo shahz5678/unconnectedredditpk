@@ -100,26 +100,56 @@ PHOTO_VOTE_SPREE_ALWD = 6
 SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
 
 
-def get_inactive_count(server=None):
+
+
+def create_inactives_copy():
+	"""Creates a copy of the sorted set using redis' zunionstore.
+
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zunionstore("copy_of_inactive_users",["inactive_users"])
+
+def delete_inactives_copy(delete_orig=False):
+	"""Deletes the copy of the sorted set using redis' zunionstore.
+
+	Can optionally delete the original version as well.
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if delete_orig:
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete("copy_of_inactive_users")
+		pipeline1.delete("inactive_users")
+		pipeline1.execute()
+	else:
+		my_server.delete("copy_of_inactive_users")
+
+
+
+def get_inactive_count(server=None, key_name=None):
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	return server.zcard("inactive_users")
+	if not key_name:
+		return server.zcard("inactive_users")
+	else:
+		return server.zcard(key_name)
 
 
-def get_inactives(get_10K=False):
+def get_inactives(get_10K=False, key=None):
 	my_server = redis.Redis(connection_pool=POOL)
+	if not key:
+		key = "inactive_users"
 	if get_10K:
-		remaining = get_inactive_count(my_server)
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
 		if remaining < 10000:
-			data = my_server.zrange("inactive_users",0,-1,withscores=True)
-			my_server.delete("inactive_users")
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
 			return data, True
 		else:
-			data = my_server.zrange("inactive_users",0,10000,withscores=True)
-			my_server.zremrangebyrank("inactive_users",0,10000)
+			data = my_server.zrange(key,0,9999,withscores=True)
+			my_server.zremrangebyrank(key,0,9999)
 			return data, False
 	else:
-		return my_server.zrange("inactive_users",0,-1,withscores=True)
+		return my_server.zrange(key,0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)

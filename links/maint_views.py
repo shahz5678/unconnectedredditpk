@@ -6,8 +6,12 @@ from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
-from redis1 import get_inactives, set_inactives, get_inactive_count
+from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy
 from redis3 import insert_nick_list, get_nick_likeness
+from redis2 import bulk_sanitize_notifications
+
+
+######################################## Username Sanitzation ########################################
 
 
 # IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO
@@ -163,4 +167,38 @@ def insert_nicks(request,*args,**kwargs):
 	else:
 		return render(request,'404.html',{})
 
-###############################################################
+
+
+######################################## Redis Sanitzation ########################################
+
+
+def remove_inactives_notification_activity(request,*args,**kwargs):
+	"""Sanitize all notification acitivity of inactive users from redis2.
+
+    We will be removing the following for each inactive user:
+    1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
+    2) ua:<user_id> --- a sorted set containing notifications for 'matka',
+    3) uar:<user_id> --- a sorted set containing resorted notifications,
+    4) np:<user_id>:*:* --- all notification objects associated to the user,
+    5) o:*:* --- any objects that remain with 0 subscribers,
+    We will do everything in chunks of 10K, so that no server timeouts are encountered.
+    """
+	if request.user.username == 'mhb11':
+		if request.method == "POST":
+			decision = request.POST.get("dec",None)
+			if decision == 'No':
+				delete_inactives_copy()
+				return redirect("home")
+			elif decision == 'Yes':
+				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
+				id_list = map(itemgetter(1), inactives) #list of user ids
+				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = bulk_sanitize_notifications(id_list)
+				if last_batch:
+					delete_inactives_copy(delete_orig=True)
+				return render(request,'sanitize_inactives_activity.html',{'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users"),\
+					'last_batch':last_batch,'notif_deleted':notification_hash_deleted,'sorted_sets_deleted':sorted_sets_deleted,\
+					'objs_deleted':object_hash_deleted})
+		else:
+			return render(request,'sanitize_inactives_activity.html',{'inactives_remaining':create_inactives_copy()})
+	else:
+		return redirect("missing_page")

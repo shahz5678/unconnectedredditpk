@@ -111,6 +111,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
 		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
 		# # never fanned anyone
+		# # change this to never fanned ever (not in the last 3 months, because that could include people like 'Sit' too)
 		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
 		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
 		# # score is below 15000

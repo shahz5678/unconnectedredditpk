@@ -101,7 +101,7 @@ SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per mi
 
 def get_inactives():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("inactives",0,-1,withscores=True)
+	return my_server.zrange("inactive_users",0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)

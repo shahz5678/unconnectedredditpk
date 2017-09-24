@@ -10,7 +10,7 @@ from redis1 import get_inactives, set_inactives, get_inactive_count
 from redis3 import insert_nick_list, get_nick_likeness
 
 
-
+# IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO
 def change_nicks(request,*args,**kwargs):
 	"""This frees up the name space of nicks, 100K at a time.
 

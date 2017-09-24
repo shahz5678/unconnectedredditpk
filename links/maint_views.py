@@ -1,4 +1,5 @@
 import random, itertools
+from verified import FEMALES
 from operator import itemgetter
 from django.shortcuts import render
 from datetime import datetime, timedelta

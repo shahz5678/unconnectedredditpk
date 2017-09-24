@@ -1,10 +1,10 @@
 import random, itertools
 from verified import FEMALES
 from operator import itemgetter
-from django.shortcuts import render
 from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy
 from redis3 import insert_nick_list, get_nick_likeness
@@ -190,7 +190,7 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 				delete_inactives_copy()
 				return redirect("home")
 			elif decision == 'Yes':
-				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
+				inactives, last_batch = get_inactives(get_5K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
 				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = bulk_sanitize_notifications(id_list)
 				if last_batch:

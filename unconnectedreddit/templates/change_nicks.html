@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block content %}
 <div class="margin clb">
-<span class="cxl">Proceed with renaming usernames? <span class="cgy">(max batch-size: 100,000)</span></span><br>
-<span class="cgy">Total usernames left: {{ nicks_remaining }}</span><br>
+<span class="cxl">Proceed with renaming usernames? <span class="cgy">(max batch-size: 10,000)</span></span><br>
+<span class="cgy">Total usernames left: {{ nicks_remaining|intcomma }}</span><br>
 <form method="POST" action="{% url 'change_nicks' %}">
 {% csrf_token %}
 <input type="hidden" name="count" value="{{ count }}">

@@ -24,18 +24,18 @@ def change_nicks(request,*args,**kwargs):
 			if decision == 'No':
 				return redirect("home")
 			elif decision == 'Yes':
-				inactives, last_batch = get_inactives(get_100K=True)
+				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
 				id_len = len(id_list)
-				start = count*1000000
-				end = start+1000000-1
+				start = count*100000
+				end = start+100000-1
 				rand_nums = random.sample(xrange(start,end), id_len+10)
 				counter = 0
 				for pk in id_list:
-					# change 'd_d__' next time this is run; otherwise there will be collisions
-					nick = "d_d__"+str(rand_nums[counter])
-					# print "changing user id %s to %s" % (User.objects.get(id=int(pk)).username, nick)
+					# change 'i_i__' next time this is run; otherwise there will be collisions
 					try:
+						nick = "i_i__"+str(rand_nums[counter])
+						# print "changing user id %s to %s" % (User.objects.get(id=int(pk)).username, nick)
 						User.objects.filter(id=int(pk)).update(username=nick)
 					except:
 						pass

@@ -106,17 +106,17 @@ def get_inactive_count(server=None):
 	return server.zcard("inactive_users")
 
 
-def get_inactives(get_100K=False):
+def get_inactives(get_20K=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if get_100K:
 		remaining = get_inactive_count(my_server)
-		if remaining < 100000:
+		if remaining < 10000:
 			data = my_server.zrange("inactive_users",0,-1,withscores=True)
 			my_server.delete("inactive_users")
 			return data, True
 		else:
-			data = my_server.zrange("inactive_users",0,100000,withscores=True)
-			my_server.zremrangebyrank("inactive_users",0,100000)
+			data = my_server.zrange("inactive_users",0,10000,withscores=True)
+			my_server.zremrangebyrank("inactive_users",0,10000)
 			return data, False
 	else:
 		return my_server.zrange("inactive_users",0,-1,withscores=True)

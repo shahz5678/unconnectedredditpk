@@ -24,7 +24,7 @@ def change_nicks(request,*args,**kwargs):
 		rand_nums = random.sample(xrange(100000,999999), id_len+10)
 		counter = 0
 		for pk in id_list:
-			nick = "dmdm_"+str(rand_nums[counter])
+			nick = "exdmdm_"+str(rand_nums[counter])
 			User.objects.filter(id=int(pk)).update(username=nick)
 			counter += 1
 		return render(request,'deprecate_nicks.html',{})

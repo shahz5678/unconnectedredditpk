@@ -3,6 +3,7 @@ from verified import FEMALES
 from operator import itemgetter
 from django.shortcuts import render
 from datetime import datetime, timedelta
+from user_sessions.models import Session
 from django.contrib.auth.models import User
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis3 import insert_nick_list, get_nick_likeness

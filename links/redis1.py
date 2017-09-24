@@ -106,7 +106,7 @@ def get_inactive_count(server=None):
 	return server.zcard("inactive_users")
 
 
-def get_inactives(get_20K=False):
+def get_inactives(get_10K=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if get_100K:
 		remaining = get_inactive_count(my_server)

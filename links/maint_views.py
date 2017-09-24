@@ -1,6 +1,7 @@
+import random, itertools
 from operator import itemgetter
-import random, itertools, datetime
 from django.shortcuts import render
+from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis3 import insert_nick_list, get_nick_likeness

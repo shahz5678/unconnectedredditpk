@@ -1048,6 +1048,10 @@ def mobile_shop(request,*args,**kwargs):
 		user_score = request.user.userprofile.score
 		score_diff = 5000-int(user_score)
 		mp.track(request.user.id, 'M_S_1 came to shop')
+		if user_score < 5000:
+			mp.track(request.user.id,'M_S_S Score not enough')
+		else:
+			mp.track(request.user.id,'M_S_S Score enough')
 		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 @csrf_protect

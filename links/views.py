@@ -5,7 +5,7 @@ from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
 import datetime, time
 from datetime import datetime, timedelta
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.middleware import csrf
@@ -8102,91 +8102,6 @@ def show_advertisers(request,*args,**kwargs):
 		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
 			'num':len(list_of_advertisers)})
 
-# def change_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		inactives = get_inactives()
-# 		id_list = map(itemgetter(1), inactives)
-# 		id_len = len(id_list)
-# 		rand_nums = random.sample(xrange(100000,999999), id_len+10)
-# 		counter = 0
-# 		for pk in id_list:
-# 			nick = "dmdm_"+str(rand_nums[counter])
-# 			User.objects.filter(id=int(pk)).update(username=nick)
-# 			counter += 1
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def export_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		inactives = get_inactives()
-# 		import csv
-# 		with open('inactives.csv','wb') as f:
-# 			wtr = csv.writer(f, delimiter=',')
-# 			wtr.writerows(inactives)
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def deprecate_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		# all user ids who last logged in more than 3 months ago
-# 		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
-		
-# 		# user ids not found in Sessions
-# 		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
-# 		logged_out_users = set(User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True))
-
-# 		# # never messaged on home
-# 		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True))
-
-# 		# # never submitted a publicreply
-# 		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
-# 			.values_list('id',flat=True))
-		
-# 		# never sent a photocomment
-# 		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # never uploaded a photo
-# 		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # never fanned anyone
-# 		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # score is below 300
-# 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
-
-# 		# # intersection of all such ids
-# 		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
-# 			never_fanned,less_than_300)
-# 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
-# 		from itertools import chain
-# 		set_inactives([x for x in chain.from_iterable(inactives)])
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def check_nick(request,nick=None,*args,**kwargs):
-# 	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
-
-# def insert_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		nicknames = User.objects.values_list('username',flat=True)
-# 		list_len = len(nicknames)
-# 		each_slice = int(list_len/10)
-# 		counter = 0
-# 		slices = []
-# 		while counter < list_len:
-# 			slices.append((counter,counter+each_slice))
-# 			counter += each_slice
-# 		for sublist in slices:
-# 			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
-# 			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-# 		return render(request,'nicks_populated.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-###############################################################
 
 # Report run on 18/3/2017
 #              Table               |  Size   | External Size 

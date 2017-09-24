@@ -8,6 +8,7 @@ from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
+from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
@@ -58,10 +59,6 @@ urlpatterns = patterns('',
 	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
 	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
 	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/(?P<add_score>\d+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
-	# url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
-	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
-	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
-	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
@@ -336,3 +333,4 @@ urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
 urlpatterns += urlpatterns_banning
+urlpatterns += urlpatterns_maint

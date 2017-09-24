@@ -99,14 +99,32 @@ PHOTO_VOTE_SPREE_ALWD = 6
 
 SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
 
-def get_inactives():
+
+def get_inactive_count(server=None):
+	if not server:
+		server = redis.Redis(connection_pool=POOL)
+	return server.zcard("inactive_users")
+
+
+def get_inactives(get_10K=False):
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("inactives",0,-1,withscores=True)
+	if get_10K:
+		remaining = get_inactive_count(my_server)
+		if remaining < 10000:
+			data = my_server.zrange("inactive_users",0,-1,withscores=True)
+			my_server.delete("inactive_users")
+			return data, True
+		else:
+			data = my_server.zrange("inactive_users",0,10000,withscores=True)
+			my_server.zremrangebyrank("inactive_users",0,10000)
+			return data, False
+	else:
+		return my_server.zrange("inactive_users",0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)
 	if inactive_list:
-		my_server.zadd("inactives", *inactive_list)
+		my_server.zadd("inactive_users", *inactive_list)
 
 #####################Photo Reports######################
 

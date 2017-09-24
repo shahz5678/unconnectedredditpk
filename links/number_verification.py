@@ -152,23 +152,23 @@ def verify_buyer_number(request):
 	if AK_ID and MN_data:
 		user_id = request.user.id
 		if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
-			mp.track(request.user.id, 'M_S_7.2 someelses Phone')
+			# mp.track(request.user.id, 'M_S_7.2 someelses Phone')
 			return render(request,"wrong_number.html",{'referrer':'mobile_shop'})
 		else:
-			mp.track(request.user.id, 'M_S_7.3 Phone confirmed')
+			# mp.track(request.user.id, 'M_S_7.3 Phone confirmed')
 			save_consumer_credentials.delay(AK_ID, MN_data, user_id)
 			order_data =  get_temp_order_data(user_id)
 			order_data['phonenumber']=MN_data['number']
 			merch_id = order_data['merch_id']
 			saved = save_order_data(order_data)
 			if saved:
-				mp.track(request.user.id, 'M_S_7 On confirm order')
+				# mp.track(request.user.id, 'M_S_7 On confirm order')
 				return redirect("confirm_order")#,{'merch_id':merch_id})
 			else:
-				mp.track(request.user.id, 'M_S_E phone verification 2')
+				# mp.track(request.user.id, 'M_S_E phone verification 2')
 				return render(request,"404.html",{})
 	else:
-		mp.track(request.user.id, 'M_S_7.4 canceled phone verification')
+		# mp.track(request.user.id, 'M_S_7.4 canceled phone verification')
 		return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'type':'mobile_buyer','from_ecomm':False})
 
 		####replace with page reminding importance of number verification

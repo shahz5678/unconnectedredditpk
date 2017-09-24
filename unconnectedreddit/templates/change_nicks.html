@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<span class="cxl">Proceed with renaming usernames? <span class="cgy">(max batch-size: 100,000)</span></span><br>
+<span class="cgy">Total usernames left: {{ nicks_remaining }}</span><br>
+<form method="POST" action="{% url 'change_nicks' %}">
+{% csrf_token %}
+<input type="hidden" name="count" value="{{ count }}">
+<input type="submit" class="btn bcg bm mtl mbl" name="dec" value="Yes"><br>
+<input type="submit" class="btn bcgy bm mts mbl" style="border-color:grey" name="dec" value="No"><br>
+</form>
+</div>
+<br><br>
+{% endblock %}

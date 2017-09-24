@@ -6,34 +6,48 @@ from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
+from redis1 import get_inactives, set_inactives, get_inactive_count
 from redis3 import insert_nick_list, get_nick_likeness
-from redis1 import get_inactives, set_inactives
 
 
 
 def change_nicks(request,*args,**kwargs):
-	"""This frees up the name space of nicks.
+	"""This frees up the name space of nicks, 100K at a time.
 
     Nicks, once taken, are locked out of the namespace.
     This changes nicknames that aren't in use anymore to a random string.
     """
 	if request.user.username == 'mhb11':
-		inactives = get_inactives()
-		id_list = map(itemgetter(1), inactives) #list of ids to deprecate
-		id_len = len(id_list)
-		rand_nums = random.sample(xrange(100000,999999), id_len+10)
-		counter = 0
-		for pk in id_list:
-			# change 'dmdm_ex_' next time this is run, otherwise there will be collisions
-			nick = "dmdm_ex_"+str(rand_nums[counter])
-			try:
-				User.objects.filter(id=int(pk)).update(username=nick)
-			except:
-				pass
-			counter += 1
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
+		if request.method=='POST':
+			decision = request.POST.get("dec",None)
+			count = int(request.POST.get("count",None))
+			if decision == 'No':
+				return redirect("home")
+			elif decision == 'Yes':
+				inactives, last_batch = get_inactives(get_100K=True)
+				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
+				id_len = len(id_list)
+				start = count*1000000
+				end = start+1000000-1
+				rand_nums = random.sample(xrange(start,end), id_len+10)
+				counter = 0
+				for pk in id_list:
+					# change 'd_d__' next time this is run; otherwise there will be collisions
+					nick = "d_d__"+str(rand_nums[counter])
+					# print "changing user id %s to %s" % (User.objects.get(id=int(pk)).username, nick)
+					try:
+						User.objects.filter(id=int(pk)).update(username=nick)
+					except:
+						pass
+					counter += 1
+				if last_batch:
+					return render(request,'deprecate_nicks.html',{})
+				else:
+					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
+		else:
+			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
+
+
 
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.

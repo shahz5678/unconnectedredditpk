@@ -336,7 +336,7 @@ def remove_notification_of_banned_user(target_id, object_id, object_type):
 	pipeline1.execute()
 	my_server.delete(notification)
 
-def remove_group_object(group_id=None):
+def remove_group_object(group_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_object = "o:3:"+str(group_id)
 	my_server.delete(group_object)

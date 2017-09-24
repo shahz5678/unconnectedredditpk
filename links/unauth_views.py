@@ -204,9 +204,9 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		# return render(request,"work_in_progress.html",{})
-		form = CreateNickNewForm()
-		return render(request,"unauth_home.html",{'form':form})
+		return render(request,"work_in_progress.html",{})
+		# form = CreateNickNewForm()
+		# return render(request,"unauth_home.html",{'form':form})
 
 
 

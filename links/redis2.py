@@ -320,6 +320,7 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 		count += 1
 	return replies_list
 
+######################################## Sanitization functions ########################################
 
 def remove_notification_of_banned_user(target_id, object_id, object_type):
 	my_server = redis.Redis(connection_pool=POOL)

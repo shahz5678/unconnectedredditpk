@@ -38,7 +38,7 @@
         <br>
     {% else %}
         <br>
-        <form action="{% url 'publicreply_post' %}" method="POST">
+        <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
             {% csrf_token %}
             {% if form.description.errors %}
             <span class="cr">{{ form.description.errors.0 }}</span>
@@ -51,8 +51,10 @@
             <br class="mbs">
             </span>{{ form.description }}
         <br>
-        <button class="btn bms bct mbl mts" type="submit" id="id_submit">OK</button>
+        <button class="btn bm bct mbl mts mrl" type="submit" id="id_submit">OK</button>
         </form>
+        <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="btn bms bco mrs mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></form><br>
+
     {% endif %}
 
     {% if parent.reply_count == 0 %}

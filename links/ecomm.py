@@ -1020,39 +1020,41 @@ def buyer_loc(request,*args,**kwargs):
 
 @csrf_protect
 def mobile_shop(request,*args,**kwargs):
-	if request.method == 'POST':
-		user_id = request.user.id
-		request.session.pop('mobile_verified',None)
-		mobile_verified = is_mobile_verified(user_id)
-		request.session['mobile_verified']=mobile_verified
-		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
-		loc = request.POST.get('loc',None)
-		if loc == None or merch_id == None:
-				return render(request,"buyer_loc.html",{'merch_id':merch_id,"mobile_verified":mobile_verified})
-		else:
-			if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
-			or loc == 'sbi' or loc == 'atk':
-	 			# move on to asking the user their mobile numer and their real name
-	 			request.session['mobile_buyer_city'] = loc
-	 			request.session['merch_id'] = merch_id
-	 			request.session.modified = True
-	 			mp.track(request.user.id, 'M_S_3 relevant_location')
-	 			return redirect("buyer_details")
-			else:
-				mp.track(request.user.id, 'M_S_4 No_service_city')
-				return render(request,"service_unavailable.html",{}) 	
-	else:
-		user_id=request.user.id
-		order_in_process = check_orders_processing(user_id)
-		user_score = 0
-		user_score = request.user.userprofile.score
-		score_diff = 5000-int(user_score)
-		mp.track(request.user.id, 'M_S_1 came to shop')
-		if user_score < 5000:
-			mp.track(request.user.id,'M_S_S Score not enough')
-		else:
-			mp.track(request.user.id,'M_S_S Score enough')
-		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
+	return render(request,"404.html",{})
+	
+	# if request.method == 'POST':
+	# 	user_id = request.user.id
+	# 	request.session.pop('mobile_verified',None)
+	# 	mobile_verified = is_mobile_verified(user_id)
+	# 	request.session['mobile_verified']=mobile_verified
+	# 	merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
+	# 	loc = request.POST.get('loc',None)
+	# 	if loc == None or merch_id == None:
+	# 			return render(request,"buyer_loc.html",{'merch_id':merch_id,"mobile_verified":mobile_verified})
+	# 	else:
+	# 		if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
+	# 		or loc == 'sbi' or loc == 'atk':
+	#  			# move on to asking the user their mobile numer and their real name
+	#  			request.session['mobile_buyer_city'] = loc
+	#  			request.session['merch_id'] = merch_id
+	#  			request.session.modified = True
+	#  			mp.track(request.user.id, 'M_S_3 relevant_location')
+	#  			return redirect("buyer_details")
+	# 		else:
+	# 			mp.track(request.user.id, 'M_S_4 No_service_city')
+	# 			return render(request,"service_unavailable.html",{}) 	
+	# else:
+	# 	user_id=request.user.id
+	# 	order_in_process = check_orders_processing(user_id)
+	# 	user_score = 0
+	# 	user_score = request.user.userprofile.score
+	# 	score_diff = 5000-int(user_score)
+	# 	mp.track(request.user.id, 'M_S_1 came to shop')
+	# 	if user_score < 5000:
+	# 		mp.track(request.user.id,'M_S_S Score not enough')
+	# 	else:
+	# 		mp.track(request.user.id,'M_S_S Score enough')
+	# 	return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 @csrf_protect
 def buyer_details(request,*args,**kwargs):

@@ -8,5 +8,5 @@ register = template.Library()
 @register.inclusion_tag(file_name='shop_open.html')
 def open_mobile_shop(static_url):
 	get_time = time.time()
-	test_time = 1506362400-get_time 
+	test_time = 1506366901-get_time 
 	return {'static_url':static_url,'test_time':test_time}

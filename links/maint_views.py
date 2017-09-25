@@ -202,3 +202,29 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 			return render(request,'sanitize_inactives_activity.html',{'inactives_remaining':create_inactives_copy()})
 	else:
 		return redirect("missing_page")
+
+######################################## PSQL Sanitzation ########################################
+
+def remove_inactive_user_sessions(request,*args,**kwargs):
+	"""Sanitize all sessions of deprecated ids.
+
+    """
+	if request.user.username == 'mhb11':
+		if request.method == "POST":
+			decision = request.POST.get("dec",None)
+			if decision == 'No':
+				delete_inactives_copy()
+				return redirect("home")
+			elif decision == 'Yes':
+				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
+				id_list = map(itemgetter(1), inactives) #list of user ids
+				# print "Deleting %s sessions created by %s users" % (Session.objects.filter(user_id__in=id_list).count(), len(id_list))
+				Session.objects.filter(user_id__in=id_list).delete()
+				if last_batch:
+					delete_inactives_copy(delete_orig=True)
+				return render(request,'sanitize_inactive_sessions.html',{'last_batch':last_batch, \
+					'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users")})
+		else:
+			return render(request,'sanitize_inactive_sessions.html',{'inactives_remaining':create_inactives_copy()})
+	else:
+		return redirect("missing_page")

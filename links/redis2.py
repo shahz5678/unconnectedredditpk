@@ -418,7 +418,6 @@ def bulk_sanitize_notifications(inactive_user_ids):
 		for user_id in ids_to_process:
 			pipeline1.zrange("sn:"+user_id, 0, -1)
 			pipeline1.zrange("ua:"+user_id, 0, -1)
-			pipeline1.zrange("uar:"+user_id, 0, -1)
 		all_notifications_to_delete = list(set(chain.from_iterable(pipeline1.execute())))
 		#####################################################
 		# get all sorted sets to delete

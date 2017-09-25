@@ -434,31 +434,34 @@ def bulk_sanitize_notifications(inactive_user_ids):
 		pipeline2.execute()
 		#####################################################
 		# decrement all related objects
-		pipeline3 = my_server.pipeline()
-		for notif in all_notifications_to_delete:
-			object_hash="o:"+notif.split(":",2)[2]
-			pipeline3.hincrby(object_hash,"n",amount=-1)
-		pipeline3.execute()
-		#####################################################
-		# delete all objects with no subscribers
-		objects_to_review = []
-		for notif in all_notifications_to_delete:
-			object_hash="o:"+notif.split(":",2)[2]
-			objects_to_review.append(object_hash)
-		objects_to_review = list(set(objects_to_review))
-		pipeline4 = my_server.pipeline()
-		for obj in objects_to_review:
-			pipeline4.hget(obj,'n')
-		subscribers = pipeline4.execute()
-		count, objects_deleted= 0, 0
-		pipeline5 = my_server.pipeline()
-		for obj in objects_to_review:
-			if subscribers[count] and int(subscribers[count]) < 1:
-				objects_deleted += 1
-				pipeline5.delete(obj)
-			count += 1
-		pipeline5.execute()
-		return len(all_notifications_to_delete), len(all_sorted_sets_to_delete), objects_deleted
+		if all_notifications_to_delete:
+			pipeline3 = my_server.pipeline()
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				pipeline3.hincrby(object_hash,"n",amount=-1)
+			pipeline3.execute()
+			#####################################################
+			# delete all objects with no subscribers
+			objects_to_review = []
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				objects_to_review.append(object_hash)
+			objects_to_review = list(set(objects_to_review))
+			pipeline4 = my_server.pipeline()
+			for obj in objects_to_review:
+				pipeline4.hget(obj,'n')
+			subscribers = pipeline4.execute()
+			count, objects_deleted= 0, 0
+			pipeline5 = my_server.pipeline()
+			for obj in objects_to_review:
+				if subscribers[count] and int(subscribers[count]) < 1:
+					objects_deleted += 1
+					pipeline5.delete(obj)
+				count += 1
+			pipeline5.execute()
+			return len(all_notifications_to_delete), len(all_sorted_sets_to_delete), objects_deleted
+		else:
+			return 0, len(all_sorted_sets_to_delete), 0
 	else:
 		return 0, 0, 0
 

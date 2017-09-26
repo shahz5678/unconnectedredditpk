@@ -6,7 +6,7 @@ from user_sessions.models import Session
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
-from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy
+from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
 from redis3 import insert_nick_list, get_nick_likeness
 from redis2 import bulk_sanitize_notifications
 
@@ -18,9 +18,9 @@ from redis2 import bulk_sanitize_notifications
 def change_nicks(request,*args,**kwargs):
 	"""This frees up the name space of nicks, 100K at a time.
 
-    Nicks, once taken, are locked out of the namespace.
-    This changes nicknames that aren't in use anymore to a random string.
-    """
+	Nicks, once taken, are locked out of the namespace.
+	This changes nicknames that aren't in use anymore to a random string.
+	"""
 	if request.user.username == 'mhb11':
 		if request.method=='POST':
 			decision = request.POST.get("dec",None)
@@ -56,9 +56,9 @@ def change_nicks(request,*args,**kwargs):
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.
 
-    This writes all nicks, scores and ids into a CSV.
-    The CSV is then exported.
-    """
+	This writes all nicks, scores and ids into a CSV.
+	The CSV is then exported.
+	"""
 	if request.user.username == 'mhb11':
 		inactives = get_inactives()
 		import csv
@@ -85,10 +85,10 @@ def export_nicks(request,*args,**kwargs):
 def deprecate_nicks(request,*args,**kwargs):
 	"""This singles out user_ids and nicks that haven't been in use over the past 3 months.
 
-    It looks at criteria such as last messaging time and a ton of other things.
-    It ensures pink stars are not included in the list.
-    Only 'mhb11' can run this function.
-    """
+	It looks at criteria such as last messaging time and a ton of other things.
+	It ensures pink stars are not included in the list.
+	Only 'mhb11' can run this function.
+	"""
 	if request.user.username == 'mhb11':
 		# all user ids who last logged in more than 3 months ago
 		three_months_ago = datetime.utcnow()-timedelta(days=90)
@@ -149,9 +149,9 @@ def deprecate_nicks(request,*args,**kwargs):
 def insert_nicks(request,*args,**kwargs):
 	"""Inserts nicks in a redis sorted set for quick checking at the time of sign up
 
-    All nicknames are first retrieved from the database.
-    They are then inserted, chunk-wise, into the redis sorted set.
-    """
+	All nicknames are first retrieved from the database.
+	They are then inserted, chunk-wise, into the redis sorted set.
+	"""
 	if request.user.username == 'mhb11':
 		nicknames = User.objects.values_list('username',flat=True)
 		list_len = len(nicknames)
@@ -175,14 +175,14 @@ def insert_nicks(request,*args,**kwargs):
 def remove_inactives_notification_activity(request,*args,**kwargs):
 	"""Sanitize all notification acitivity of inactive users from redis2.
 
-    We will be removing the following for each inactive user:
-    1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
-    2) ua:<user_id> --- a sorted set containing notifications for 'matka',
-    3) uar:<user_id> --- a sorted set containing resorted notifications,
-    4) np:<user_id>:*:* --- all notification objects associated to the user,
-    5) o:*:* --- any objects that remain with 0 subscribers,
-    We will do everything in chunks of 10K, so that no server timeouts are encountered.
-    """
+	We will be removing the following for each inactive user:
+	1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
+	2) ua:<user_id> --- a sorted set containing notifications for 'matka',
+	3) uar:<user_id> --- a sorted set containing resorted notifications,
+	4) np:<user_id>:*:* --- all notification objects associated to the user,
+	5) o:*:* --- any objects that remain with 0 subscribers,
+	We will do everything in chunks of 10K, so that no server timeouts are encountered.
+	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":
 			decision = request.POST.get("dec",None)
@@ -203,12 +203,37 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 	else:
 		return redirect("missing_page")
 
+
+def remove_inactives_groups(request,*args,**kwargs):
+	"""Sanitize all group invites and memberships.
+
+	"""
+	if request.user.username == 'mhb11':
+		if request.method == "POST":
+			decision = request.POST.get("dec",None)
+			if decision == 'No':
+				delete_inactives_copy()
+				return redirect("home")
+			elif decision == 'Yes':
+				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
+				id_list = map(itemgetter(1), inactives) #list of user ids
+				bulk_sanitize_group_invite_and_membership(id_list)
+				if last_batch:
+					delete_inactives_copy(delete_orig=True)
+				return render(request,"sanitize_groups.html",{'last_batch':last_batch, \
+					'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users")})
+		else:
+			return render(request,"sanitize_groups.html",{'inactives_remaining':create_inactives_copy()})
+	else:
+		return redirect("missing_page")
+
+
 ######################################## PSQL Sanitzation ########################################
 
 def remove_inactive_user_sessions(request,*args,**kwargs):
 	"""Sanitize all sessions of deprecated ids.
 
-    """
+	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":
 			decision = request.POST.get("dec",None)
@@ -228,3 +253,32 @@ def remove_inactive_user_sessions(request,*args,**kwargs):
 			return render(request,'sanitize_inactive_sessions.html',{'inactives_remaining':create_inactives_copy()})
 	else:
 		return redirect("missing_page")
+
+
+
+# def remove_inactives_groups(request,*args,**kwargs):
+# 	"""Sanitize all home links and publicreplies.
+
+# 	1) We pick a date constant from over 5 months ago.
+# 	2) Set all latest_reply fields to 0 among links created before 5 months ago.
+# 	3) Delete all links created before 5 months ago.
+# 	4) Delete all publicreplies created before 5 months ago.
+
+#     """
+#     if request.user.username == 'mhb11':
+#     	if request.method == "POST":
+#     		decision = request.POST.get("dec",None)
+# 			if decision == 'No':
+# 				delete_inactives_copy()
+# 				return redirect("home")
+# 			elif decision == 'Yes':
+# 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
+# 				id_list = map(itemgetter(1), inactives) #list of user ids
+# 				if last_batch:
+# 					delete_inactives_copy(delete_orig=True)
+# 				return render(request,"santize_groups.html",{'last_batch':last_batch, \
+# 					'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users")})
+#     	else:
+#     		return render(request,"sanitize_groups.html",{'inactives_remaining':create_inactives_copy()})
+#     else:
+#     	return redirect("missing_page")

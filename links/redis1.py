@@ -140,13 +140,13 @@ def get_inactives(get_50K=False, get_10K=False, get_5K=False, key=None):
 		key = "inactive_users"
 	if get_50K:
 		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-		if remaining < 5:
+		if remaining < 50000:
 			data = my_server.zrange(key,0,-1,withscores=True)
 			my_server.delete(key)
 			return data, True
 		else:
-			data = my_server.zrange(key,0,4,withscores=True)
-			my_server.zremrangebyrank(key,0,4)
+			data = my_server.zrange(key,0,49999,withscores=True)
+			my_server.zremrangebyrank(key,0,49999)
 			return data, False
 	elif get_10K:
 		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)

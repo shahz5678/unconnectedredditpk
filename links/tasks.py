@@ -822,50 +822,50 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 				create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
 					unseen_activity=True)
 
-@celery_app1.task(name='tasks.report')
-def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
-	if report_origin == '1':
-		#origin:chupair
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
-	elif report_origin == '2':
-		#origin:publicreply
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Publicreply', report_origin=report_origin, which_publicreply_id=which_publicreply_id)
-	elif report_origin == '7':
-		#origin:photocomment
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
-	elif report_origin == '3':
-		#origin:nickname
-		userprofile = UserProfile.objects.get(user_id=reporter_id)
-		target = User.objects.get(id=target_id)
-		latest_user = User.objects.latest('id')
-		userprofile.score = userprofile.score - 10
-		userprofile.save()
-		if int(latest_user.id) - int(target_id) < 50:
-			Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason=target.username, report_origin=report_origin)
-		else:
-			# i.e. do nothing if it's an old id
-			pass
-	elif report_origin == '4':
-		#origin:profile
-		if report_reason == '1':
-			reason = 'gali di'
-		elif report_reason == '2':
-			reason = 'dhamki di'
-		elif report_reason == '3':
-			reason = 'fake profile'
-		elif report_reason == '4':
-			reason = 'gandi baat'
-		elif report_reason == '5':
-			reason = 'password manga'
-		elif report_reason == '6':
-			reason = 'firqa wariyat'
-		elif report_reason == '7':
-			reason = 'gandi photo'
-		elif report_reason == '8':
-			reason = 'fake admin'
-		else:
-			reason = report_reason
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
+# @celery_app1.task(name='tasks.report')
+# def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
+# 	if report_origin == '1':
+# 		#origin:chupair
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
+# 	elif report_origin == '2':
+# 		#origin:publicreply
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Publicreply', report_origin=report_origin, which_publicreply_id=which_publicreply_id)
+# 	elif report_origin == '7':
+# 		#origin:photocomment
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
+# 	elif report_origin == '3':
+# 		#origin:nickname
+# 		userprofile = UserProfile.objects.get(user_id=reporter_id)
+# 		target = User.objects.get(id=target_id)
+# 		latest_user = User.objects.latest('id')
+# 		userprofile.score = userprofile.score - 10
+# 		userprofile.save()
+# 		if int(latest_user.id) - int(target_id) < 50:
+# 			Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason=target.username, report_origin=report_origin)
+# 		else:
+# 			# i.e. do nothing if it's an old id
+# 			pass
+# 	elif report_origin == '4':
+# 		#origin:profile
+# 		if report_reason == '1':
+# 			reason = 'gali di'
+# 		elif report_reason == '2':
+# 			reason = 'dhamki di'
+# 		elif report_reason == '3':
+# 			reason = 'fake profile'
+# 		elif report_reason == '4':
+# 			reason = 'gandi baat'
+# 		elif report_reason == '5':
+# 			reason = 'password manga'
+# 		elif report_reason == '6':
+# 			reason = 'firqa wariyat'
+# 		elif report_reason == '7':
+# 			reason = 'gandi photo'
+# 		elif report_reason == '8':
+# 			reason = 'fake admin'
+# 		else:
+# 			reason = report_reason
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 
 @celery_app1.task(name='tasks.video_upload_tasks')
 def video_upload_tasks(video_name, video_id, user_id):

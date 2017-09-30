@@ -100,26 +100,76 @@ PHOTO_VOTE_SPREE_ALWD = 6
 SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
 
 
-def get_inactive_count(server=None):
+
+
+def create_inactives_copy():
+	"""Creates a copy of the sorted set using redis' zunionstore.
+
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zunionstore("copy_of_inactive_users",["inactive_users"])
+
+def delete_inactives_copy(delete_orig=False):
+	"""Deletes the copy of the sorted set using redis' zunionstore.
+
+	Can optionally delete the original version as well.
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if delete_orig:
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete("copy_of_inactive_users")
+		pipeline1.delete("inactive_users")
+		pipeline1.execute()
+	else:
+		my_server.delete("copy_of_inactive_users")
+
+
+
+def get_inactive_count(server=None, key_name=None):
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	return server.zcard("inactive_users")
+	if not key_name:
+		return server.zcard("inactive_users")
+	else:
+		return server.zcard(key_name)
 
 
-def get_inactives(get_10K=False):
+def get_inactives(get_50K=False, get_10K=False, get_5K=False, key=None):
 	my_server = redis.Redis(connection_pool=POOL)
-	if get_10K:
-		remaining = get_inactive_count(my_server)
-		if remaining < 10000:
-			data = my_server.zrange("inactive_users",0,-1,withscores=True)
-			my_server.delete("inactive_users")
+	if not key:
+		key = "inactive_users"
+	if get_50K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 50000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
 			return data, True
 		else:
-			data = my_server.zrange("inactive_users",0,10000,withscores=True)
-			my_server.zremrangebyrank("inactive_users",0,10000)
+			data = my_server.zrange(key,0,49999,withscores=True)
+			my_server.zremrangebyrank(key,0,49999)
+			return data, False
+	elif get_10K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 10000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,9999,withscores=True)
+			my_server.zremrangebyrank(key,0,9999)
+			return data, False
+	elif get_5K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 5000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,4999,withscores=True)
+			my_server.zremrangebyrank(key,0,4999)
 			return data, False
 	else:
-		return my_server.zrange("inactive_users",0,-1,withscores=True)
+		return my_server.zrange(key,0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1460,6 +1510,15 @@ def bulk_check_group_membership(user_ids_list,group_id):
 			non_member_ids.append(user_ids_list[count])
 		count += 1
 	return non_member_ids
+
+def bulk_sanitize_group_invite_and_membership(user_ids_list):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids_list:
+		user_id = str(int(user_id))
+		pipeline1.delete("ug:"+user_id)
+		pipeline1.delete("pir:"+user_id)
+	pipeline1.execute()
 
 def remove_user_group(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -61,7 +61,8 @@
 </style>
 
 <div class="margin">
-
+{% load get_outage_notif %}
+{% outage_notif STATIC_URL ident '2' %}
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	<div class="mbs mts">

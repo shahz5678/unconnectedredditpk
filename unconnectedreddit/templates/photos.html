@@ -61,7 +61,8 @@
 </style>
 
 <div class="margin">
-	
+	{% load get_outage_notif %}
+	{% outage_notif STATIC_URL user.id '0' %}
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	
 	{% mobile_verification_bar user.id csrf score %}

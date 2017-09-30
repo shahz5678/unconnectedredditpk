@@ -1597,9 +1597,19 @@ def retrieve_erroneous_passwords():
 # 	my_server.expire(key_name,ONE_WEEK)
 
 #############################################################################################################################
-#############################################################################################################################
+#####################################################Notifying Damadam Outage###############################################
 
+def seen_outage_notif(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists("outage:"+str(user_id)):
+		return True
+	else:
+		return False
+	
 
+def skip_outage(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.set("outage:"+str(user_id),'1')
 
 
 ###########################################################

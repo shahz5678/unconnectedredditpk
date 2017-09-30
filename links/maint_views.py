@@ -5,11 +5,36 @@ from datetime import datetime, timedelta
 from user_sessions.models import Session
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage
 from redis2 import bulk_sanitize_notifications
 
+######################################## Notifications ########################################
+
+@csrf_protect
+def skip_outage_notif(request, *args, **kwargs):
+	if request.method == "POST":
+		which_user = request.POST.get("skip",None)
+		origin = request.POST.get("orig",'1')
+		if which_user is not None:
+			skip_outage(which_user)
+		if origin == '1':
+				return redirect("home")
+		elif origin == '2':
+			return redirect("best_photo")
+		elif origin == '0':
+			return redirect("photo")
+		else:
+			return redirect("home")
+	else:
+		return redirect("home")
+
+
+def damadam_cleanup(request, *args, **kwargs):
+	context = {'referrer':request.META.get('HTTP_REFERER',None)}
+	return render(request,"damadam_cleanup.html",context)
 
 ######################################## Username Sanitzation ########################################
 

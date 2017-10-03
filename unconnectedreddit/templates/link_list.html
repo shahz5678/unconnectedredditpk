@@ -23,8 +23,6 @@
 {% block content %}
 
 <div class="margin">
-{% load get_outage_notif %}
-{% outage_notif STATIC_URL ident '1' %}
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	{% newbie_rules 'home' STATIC_URL newbie_lang %}

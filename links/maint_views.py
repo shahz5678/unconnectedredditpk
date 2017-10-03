@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
 from redis3 import insert_nick_list, get_nick_likeness, skip_outage
+from redis4 import save_deprecated_photo_ids_and_filenames
 from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
@@ -38,7 +39,7 @@ def damadam_cleanup(request, *args, **kwargs):
 
 ######################################## Username Sanitzation ########################################
 
-
+@csrf_protect
 # IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO
 def change_nicks(request,*args,**kwargs):
 	"""This frees up the name space of nicks, 100K at a time.
@@ -196,7 +197,7 @@ def insert_nicks(request,*args,**kwargs):
 
 ######################################## Redis Sanitzation ########################################
 
-
+@csrf_protect
 def remove_inactives_notification_activity(request,*args,**kwargs):
 	"""Sanitize all notification acitivity of inactive users from redis2.
 
@@ -228,7 +229,7 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 	else:
 		return redirect("missing_page")
 
-
+@csrf_protect
 def remove_inactives_groups(request,*args,**kwargs):
 	"""Sanitize all group invites and memberships.
 
@@ -255,6 +256,7 @@ def remove_inactives_groups(request,*args,**kwargs):
 
 ######################################## PSQL Sanitzation ########################################
 
+@csrf_protect
 def remove_inactive_user_sessions(request,*args,**kwargs):
 	"""Sanitize all sessions of deprecated ids.
 
@@ -276,6 +278,61 @@ def remove_inactive_user_sessions(request,*args,**kwargs):
 					'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users")})
 		else:
 			return render(request,'sanitize_inactive_sessions.html',{'inactives_remaining':create_inactives_copy()})
+	else:
+		return redirect("missing_page")
+
+
+
+
+# def process_filenames(list_of_filenames):
+# 	"""Parse filenames and save them in redis for exporting
+
+# 	"""
+# 	for filename,photo_id in list_of_filenames:
+# 		filename = filename.split('photos/')[1]
+
+
+def confirm_uninteresting(photo_ids):
+	"""Returns photo_ids of photos that are uninteresting
+
+	1) Photos that have no related comments, and comment_count is 0
+	2) Where the vote score was 0 (although, this could be net 0 couting positives and negatives both. Acknowledging and ignoring that)
+	3) Where latest_comment and second_latest_comment were null
+	"""
+	############
+	photo_ids_with_associated_comments = PhotoComment.objects.filter(which_photo_id__in=photo_ids).values_list('which_photo_id',flat=True)
+	return list(set(photo_ids) - set(photo_ids_with_associated_comments))
+	############
+
+@csrf_protect
+def remove_inactives_photos(request,*args,**kwargs):
+	"""Sanitize all inactives' photos that garnered 0 comments.
+
+	1) We get the list of inactive ids (divided into batches for performance)
+	2) For each batch, find all photo ids
+	3) For each photo id, mark photos that do not have a corresponding photocomment
+	4) Retrieve the file name of all such photos and store them in a redis list
+	"""
+	if request.user.username == 'mhb11':
+		if request.method == "POST":
+			decision = request.POST.get("dec",None)
+			if decision == 'No':
+				delete_inactives_copy()
+				return redirect("home")
+			elif decision == 'Yes':
+				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
+				id_list = map(itemgetter(1), inactives) #list of user ids
+				uninteresting_photo_ids = Photo.objects.filter(owner_id__in=id_list, comment_count=0,vote_score=0,latest_comment__isnull=True).\
+				values_list('id',flat=True)
+				uninteresting_photo_ids = confirm_uninteresting(uninteresting_photo_ids)
+				filenames_and_ids = Photo.objects.filter(id__in=uninteresting_photo_ids).values_list('image_file','id')
+				save_deprecated_photo_ids_and_filenames(filenames_and_ids)
+				if last_batch:
+					delete_inactives_copy(delete_orig=True)
+				return render(request,"sanitize_photos.html",{'last_batch':last_batch, \
+					'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users")})
+		else:
+			return render(request,"sanitize_photos.html",{'inactives_remaining':create_inactives_copy()})
 	else:
 		return redirect("missing_page")
 

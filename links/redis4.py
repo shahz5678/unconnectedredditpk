@@ -25,6 +25,16 @@ FIVE_MINS = 5*60
 TWELVE_HOURS = 60*60*12
 
 
+
+def save_deprecated_photo_ids_and_filenames(deprecated_photos):
+	my_server = redis.Redis(connection_pool=POOL)
+	final_list = []
+	for filename, photo_id in deprecated_photos:
+		filename = filename.split('photos/')[1]
+		final_list.append(filename)
+		final_list.append(photo_id)
+	my_server.zadd("deprecated_photos",*final_list)
+
 # def save_user_choice(user_id, choice):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})

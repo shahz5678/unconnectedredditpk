@@ -326,7 +326,7 @@ def place_order(user_id):
 	order_data = get_temp_order_data(user_id)
 	order_id = get_order_id()
 	order_data['order_id'] = order_id
-	pipeline1.zadd('orders_in_process',user_id,time.time())
+	pipeline1.zadd('orders_in_process',user_id,order_id)
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	pipeline1.hmset("placed_orders:"+str(order_id),order_data)
 	pipeline1.execute()

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load thumbedge %}
-{% load photoedge %}
+{% load s3 %}
 {% load human_time %}
 {% load mathfilters %}
 {% load emoticons_tags %}
@@ -134,13 +134,12 @@
 		{% else %}
 		<b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
 		{% endif %}<br>
-
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}"></img>
 			{% else %}
-				<img class="pht" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}"></img>
 			{% endif %}<br>
 
 

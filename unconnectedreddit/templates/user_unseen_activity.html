@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load sub %}
 {% load thumbedge %}
-{% load photoedge %}
+{% load s3 %}
 {% load human_time %}
 {% load get_item %}
 {% load emoticons_tags %}
@@ -111,7 +111,7 @@
 	<span class="cgy cs">jawab aya {{ notif.lrti|human_time }}:</span>
 		<br>
 		{% if notif.rp != 'None' %}
-		<img src="{{ notif.rp|photoedge }}" class="ibg">
+		<img src="{{ notif.rp|s3 }}" class="ibg" alt="{{ notif.lrtx }}">
 		<br>
 		{% endif %}
 		<a href="{% url 'profile' notif.lrsn %}">
@@ -164,8 +164,8 @@
 		<div class="mls mtl">
 		<span class="cg cs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
 		<br>
-		{% if notif.rp != 'None' %}
-		<img src="{{ notif.rp|photoedge }}" class="ibgn">
+		{% if notif.rp != 'None' %}	
+		<img src="{{ notif.rp|s3 }}" class="ibgn" alt="{{ notif.lrtx }}">
 		<br>
 		{% endif %}
 
@@ -198,7 +198,7 @@
 		<span class="cp cs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span>
 		<br>
 		{% if notif.rp != 'None' %}
-		<img src="{{ notif.rp|photoedge }}" class="ibp">
+		<img src="{{ notif.rp|s3 }}" class="ibp" alt="{{ notif.lrtx }}">
 		<br>
 		{% endif %}
 
@@ -243,13 +243,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		    {% elif notif.v|add:"0" < -1 %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|photoedge }}" class="fbl ibg"></img>
+			    <img src="{{ notif.p|s3 }}" class="fbl ibg" alt="{{ notif.od }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|photoedge }}" class="ibg"></img>
+			    <img src="{{ notif.p|s3 }}" class="ibg" alt="{{ notif.od }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
@@ -263,13 +263,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		    {% elif notif.v|add:"0" < -1 %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|photoedge }}" class="fbl ibo"></img>
+			    <img src="{{ notif.p|s3 }}" class="fbl ibo" alt="{{ notif.od }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|photoedge }}" class="ibo"></img>
+			    <img src="{{ notif.p|s3 }}" class="ibo" alt="{{ notif.od }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			    {% endif %}

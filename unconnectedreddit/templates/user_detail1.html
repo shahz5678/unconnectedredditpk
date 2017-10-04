@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load photoedge %}
+{% load s3 %}
 {% load thumbedge %}
 {% load future_time %}
 {% load get_voting %}
@@ -37,7 +37,7 @@
                     <br>
                     {% if subject.userprofile.avatar %}
                     <b>Profile photo:</b><br>
-                    <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+                    <img class="pht" src="{{ subject.userprofile.avatar|s3 }}" alt="profile photo"></img>
                     {% endif %}
                   {% else %}
                     <span class="cr">
@@ -93,7 +93,7 @@
                     </div>
                       {% if subject.userprofile.avatar %}
                       <b>Profile photo:</b><br>
-                      <img class="pht" src="{{ subject.userprofile.avatar.url|photoedge }}" alt="no photo"></img>  
+                      <img class="pht" src="{{ subject.userprofile.avatar|s3 }}" alt="profile photo"></img>  
                       {% endif %}
                     {% else %}
                     <span class="cr">
@@ -168,9 +168,9 @@
 
 
                           {% if time_remaining == '-2' %}
-                          <img class="iw ibg" src="{{ photo.image_file.url|photoedge }}"></img>
+                          <img class="iw ibg" src="{{ photo.image_file|s3 }}" alt="{{ photo.caption }}"></img>
                           {% else %}
-                          <img class="iw ibg" src="{{ photo.image_file.url|thumbedge }}"></img>
+                          <img class="iw ibg" src="{{ photo.image_file.url|thumbedge }}" alt="{{ photo.caption }}"></img>
                           {% endif %}
                           <br>
                           
@@ -190,7 +190,7 @@
                                 <button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
-                
+                              
                                 <br>
 
 

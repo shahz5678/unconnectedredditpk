@@ -7,7 +7,7 @@
 {% load voted %}
 {% load photo_voted %}
 {% load human_time %}
-{% load photoedge %}
+{% load s3 %}
 {% load get_mobile_shop %}
 {% load get_fan_button %}
 {% load get_voting %}
@@ -23,8 +23,6 @@
 {% block content %}
 
 <div class="margin">
-{% load get_outage_notif %}
-{% outage_notif STATIC_URL ident '1' %}
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	{% newbie_rules 'home' STATIC_URL newbie_lang %}
@@ -181,14 +179,14 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|thumbedge }}" class="pht bright" alt="{{ link.de }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 			{% else %}
 			    {% if link.i %}
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}" alt="{{ link.de }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

@@ -174,8 +174,8 @@ def image_thumb_formatting(img_url,pid):
 def av_url_formatting(av_url, style=None, categ=None):
 	url = None
 	if av_url:
-		if 'res/avatars' in av_url:
-			url = string.replace(av_url, "damadam.blob.core.windows.net/pictures/avatars", "damadamthumbs.azureedge.net")
+		if 'avatars' in av_url:
+			url = "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+av_url.split("avatars/")[1]
 		else:
 			url = av_url
 	if url:

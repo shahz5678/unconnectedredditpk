@@ -141,7 +141,7 @@
 
 
 		<div style="display:inline-block">
-		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"True" lid=link.l origin=3 static_url=STATIC_URL %}
+		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
 		</div><br>	    
 	
 	</div>
@@ -157,13 +157,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"True" }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"True" }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -177,7 +177,7 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"True" }}" class="pht bright" alt="{{ link.de }}"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright" alt="{{ link.de }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

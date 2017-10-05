@@ -4,7 +4,7 @@ import string
 register = template.Library()
 
 @register.filter(name='s3')
-def get_s3_object(filename):
+def get_s3_object(filename,is_thumb=False):
 	filename = str(filename)
 	if "photos/" in filename:
 		split_by = "photos/"
@@ -12,4 +12,9 @@ def get_s3_object(filename):
 		split_by = "avatars/"
 	elif "mehfils/" in filename:
 		split_by = "mehfils/"
-	return "//s3.eu-central-1.amazonaws.com/damadam/"+split_by+filename.split(split_by)[1]
+	else:
+		split_by = "photos/"
+	if is_thumb:
+		return "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+filename.split(split_by)[1]
+	else:
+		return "//s3.eu-central-1.amazonaws.com/damadam/"+split_by+filename.split(split_by)[1]

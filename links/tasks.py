@@ -8,7 +8,7 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
-from imagestorage import delete_from_blob
+# from imagestorage import delete_from_blob
 from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
@@ -154,7 +154,7 @@ def sanitize_unused_ecomm_photos(photo_ids=None):
 		qset.delete()
 		# deleting actual images+thumbnails in azure storage
 		delete_avg_hash(avg_hashes,categ='ecomm')
-		delete_from_blob(image_names)
+		# delete_from_blob(image_names)
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
 def set_user_binding_with_twilio_notify_service(user_id,phone_number):

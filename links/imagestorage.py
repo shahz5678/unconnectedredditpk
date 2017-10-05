@@ -1,173 +1,15 @@
 import PIL
 from PIL import Image
-import uuid, StringIO, string, os
+import uuid, StringIO, string, os, mimetypes
+from storages.backends.s3boto import S3BotoStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.files.storage import Storage
-from azure.storage.blob import BlobService
+from unconnectedreddit.env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_LOCATION
 
-accountName = 'damadam'
-accountKey = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
 
-class OverwriteStorage(Storage):
-	container = 'pictures'#settings.AZURE_STORAGE.get('CONTAINER')
-	account_name = accountName
-	account_key = accountKey
-	#cdn_host = settings.AZURE_STORAGE.get('CDN_HOST')
-	def __init__(self, account_name=None, account_key=None, container=None):
+os.environ['S3_USE_SIGV4'] = 'True'
 
-		if account_name is not None:
-			self.account_name = account_name
 
-		if account_key is not None:
-			self.account_key = account_key
-
-		if container is not None:
-			self.container = container
-	def __getstate__(self):
-		return dict(
-			account_name=self.account_name,
-			account_key=self.account_key,
-			container=self.container
-		)
-	def _save(self,name,content):
-		blob_service = BlobService(account_name=accountName, account_key=accountKey)
-		import mimetypes
-		small_content = content
-		content.open()
-		content_type = None
-		if hasattr(content.file, 'content_type'):
-			content_type = content.file.content_type
-		else:
-			content_type = mimetypes.guess_type(name)[0]
-		content_str = content.read()
-		blob_service.put_blob(
-			'pictures',
-			name,
-			content_str,
-			x_ms_blob_type='BlockBlob',
-			x_ms_blob_content_type=content_type,
-			x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
-		)
-		content.close()
-		if "avatars" in name: #creating and saving thumbnail
-			small_image_name = name
-			small_image_name = string.replace(small_image_name, "avatars", "thumbnails")
-			thumbnail = StringIO.StringIO()
-			size = 22, 22
-			image = small_content.file		
-			image = Image.open(image)
-			small_image = image.resize(size, Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
-			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
-			small_content.file = img
-			small_content.open()
-			stream = small_content.read()
-			blob_service.put_blob(
-				'pictures',
-				small_image_name,
-				stream,
-				x_ms_blob_type='BlockBlob',
-				x_ms_blob_content_type=content_type,
-				x_ms_blob_cache_control ='public, max-age=604800, s-maxage=604800' #cache in the browser and on the edge for 7 days
-			)
-			small_content.close()
-		elif "photos" in name:
-			small_image_name = name
-			small_image_name = string.replace(small_image_name, "photos", "thumbnails")
-			thumbnail = StringIO.StringIO()
-			#size = 40, 40
-			height = 38
-			image = small_content.file		
-			image = Image.open(image)
-			wpercent = (height/float(image.size[1]))
-			bsize = int((float(image.size[0])*float(wpercent)))
-			small_image = image.resize((bsize,height), PIL.Image.ANTIALIAS)
-			small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
-			img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
-			small_content.file = img
-			small_content.open()
-			stream = small_content.read()
-			blob_service.put_blob(
-				'pictures',
-				small_image_name,
-				stream,
-				x_ms_blob_type='BlockBlob',
-				x_ms_blob_content_type=content_type,
-				x_ms_blob_cache_control ='public, max-age=3600, s-maxage=86400' #cache in the browser for 1 hr, on the edge for 24 hrs
-			)
-			small_content.close()
-		else: 
-			pass
-		return name
-	def get_available_name(self,name):
-		#print "exiting get_available_name"
-		return name
-	def _get_service(self):
-		if not hasattr(self, '_blob_service'):
-			self._blob_service = BlobService(
-				account_name=self.account_name,
-				account_key=self.account_key,
-				protocol='http'
-			)
-		#print "exiting _get_service"    
-		return self._blob_service
-	def _open(self, name, mode='rb'):
-		"""
-		Return the AzureStorageFile.
-		"""
-		from django.core.files.base import ContentFile
-		contents = self._get_service().get_blob(self.container, name)
-		#print "exiting _open"
-		return ContentFile(contents)
-	def _get_properties(self, name):
-		#print "exiting _get_properties"
-		return self._get_service().get_blob_properties(
-			self.container,
-			name
-		)
-	def _get_container_url(self):
-		if not hasattr(self, '_container_url'):
-			base_url = 'http://{host}/{container}'
-			#if self.cdn_host:
-			#    base_url = self.cdn_host
-			self._container_url = base_url.format({
-				#'protocol': 'http',
-				'host': self._get_service()._get_host(),
-				'container': self.container,
-			})
-		#print "exiting _get_container_url"
-		return self._container_url
-	def url(self, name):
-		"""
-		Returns the URL where the contents of the file referenced by name can
-		be accessed.
-		"""
-		url = '%s/%s/%s' % ('//damadam.blob.core.windows.net','pictures', name)
-		return url
-
-def upload_to_location(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1]
-		filename = "%s.%s" % (uuid.uuid4(), ext)
-		instance.title = blocks[0]
-		return os.path.join('links/', filename)
-	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
-		return 0
-
-def upload_pic_to_location(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1]
-		filename = "%s.%s" % (uuid.uuid4(), ext)
-		instance.title = blocks[0]
-		return os.path.join('mehfils/', filename)
-	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
-		return 0
-
-def upload_chatpic_to_location(instance, filename):
+def upload_to_picschat(instance, filename):
 	try:
 		blocks = filename.split('.') 
 		ext = blocks[-1]
@@ -175,10 +17,23 @@ def upload_chatpic_to_location(instance, filename):
 		instance.title = blocks[0]
 		return os.path.join('picschat/', filename)
 	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
+		# print '%s (%s)' % (e.message, type(e))
 		return 0
 
-def upload_avatar_to_location(instance, filename):
+
+def upload_to_mehfils(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1] #whether jpg or png
+		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
+		instance.title = blocks[0]
+		return os.path.join('mehfils/', filename)
+	except Exception as e:
+		# print '%s (%s)' % (e.message, type(e))
+		return 0
+
+
+def upload_to_avatars(instance, filename):
 	try:
 		blocks = filename.split('.') 
 		ext = blocks[-1] #whether jpg or png
@@ -186,10 +41,34 @@ def upload_avatar_to_location(instance, filename):
 		instance.title = blocks[0]
 		return os.path.join('avatars/', filename)
 	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
+		# print '%s (%s)' % (e.message, type(e))
 		return 0
 
-def upload_photo_to_location(instance, filename):
+def upload_to_photos(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1]
+		filename = "%s.%s" % (uuid.uuid4(), ext)
+		instance.title = blocks[0]
+		return os.path.join('photos/', filename)
+	except Exception as e:
+		# print '%s (%s)' % (e.message, type(e))
+		return 0
+
+
+def upload_to_links(instance, filename):
+	try:
+		blocks = filename.split('.') 
+		ext = blocks[-1]
+		filename = "%s.%s" % (uuid.uuid4(), ext)
+		instance.title = blocks[0]
+		return os.path.join('links/', filename)
+	except Exception as e:
+		# print '%s (%s)' % (e.message, type(e))
+		return 0
+
+
+def upload_to_photocomments(instance, filename):
 	try:
 		blocks = filename.split('.') 
 		ext = blocks[-1] #whether jpg or png
@@ -197,24 +76,98 @@ def upload_photo_to_location(instance, filename):
 		instance.title = blocks[0]
 		return os.path.join('photos/', filename)
 	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
+		# print '%s (%s)' % (e.message, type(e))
 		return 0
 
-def upload_photocomment_to_location(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1] #whether jpg or png
-		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-		instance.title = blocks[0]
-		return os.path.join('photos/', filename)
-	except Exception as e:
-		print '%s (%s)' % (e.message, type(e))
-		return 0
 
-def delete_from_blob(image_list):
-	blob_service = BlobService(account_name=accountName, account_key=accountKey)
-	if image_list:
-		for image_name in image_list:
-			thumbnail_name = image_name.replace("photos","thumbnails")
-			blob_service.delete_blob(container_name='pictures', blob_name=image_name)
-			blob_service.delete_blob(container_name='pictures', blob_name=thumbnail_name)
+
+# creates thumbs out of images passed into it
+def get_thumb(filename, content, folder_name):
+	# thumb_name = filename
+	thumb_name = string.replace(filename, folder_name, "thumbnails")
+	image = content.file		
+	image = Image.open(image)
+	if folder_name == 'avatars':
+		size = 22, 22
+	elif folder_name == 'photos':
+		height = 38
+		image = content.file		
+		image = Image.open(image)
+		wpercent = (height/float(image.size[1]))
+		bsize = int((float(image.size[0])*float(wpercent)))
+		size = (bsize,height)
+	small_image = image.resize(size, Image.ANTIALIAS)
+	thumbnail = StringIO.StringIO()
+	small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
+	img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
+	content.file = img
+	return thumb_name, content
+
+
+class S3Storage(S3BotoStorage):	
+
+	acc_key = AWS_ACCESS_KEY_ID
+	sec_key = AWS_SECRET_ACCESS_KEY
+	calling_format = 'boto.s3.connection.OrdinaryCallingFormat'
+
+	@property
+	def connection(self):
+		if self._connection is None:
+			self._connection = self.connection_class(
+				self.access_key, self.secret_key,
+				calling_format=self.calling_format, host=AWS_S3_LOCATION)
+		return self._connection
+
+
+	def _save(self, name, content):
+		cleaned_name = self._clean_name(name)
+		name = self._normalize_name(cleaned_name)
+		headers = self.headers.copy()
+		content_type = getattr(content, 'content_type',
+			mimetypes.guess_type(name)[0] or self.key_class.DefaultContentType)
+		# setting the content_type in the key object is not enough.
+		headers.update({'Content-Type': content_type})
+
+		if self.gzip and content_type in self.gzip_content_types:
+			content = self._compress_content(content)
+			headers.update({'Content-Encoding': 'gzip'})
+
+		content.name = cleaned_name
+		encoded_name = self._encode_name(name)
+		key = self.bucket.get_key(encoded_name)
+		if not key:
+			key = self.bucket.new_key(encoded_name)
+		if self.preload_metadata:
+			self._entries[encoded_name] = key
+		key.set_metadata('Content-Type', content_type)
+		self._save_content(key, content, headers=headers)
+		if 'photos' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'photos')
+			thumb_key = self.bucket.get_key(thumb_name)
+			if not thumb_key:
+				thumb_key = self.bucket.new_key(thumb_name)
+		elif 'avatars' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatars')
+			thumb_key = self.bucket.get_key(thumb_name)
+			if not thumb_key:
+				thumb_key = self.bucket.new_key(thumb_name)
+		else:
+			thumb_key = None
+		if thumb_key:
+			if self.preload_metadata:
+				self._entries[encoded_name] = key
+			key.set_metadata('Content-Type', content_type)
+			self._save_content(thumb_key, thumb_content, headers=headers)
+		return cleaned_name
+
+
+	def _save_content(self, key, content, headers):
+		kwargs = {}
+		if self.encryption:
+			kwargs['encrypt_key'] = self.encryption
+		key.set_contents_from_file(content, headers=headers,
+								   policy=self.default_acl,
+								   reduced_redundancy=self.reduced_redundancy,
+								   rewind=True, **kwargs)
+
+

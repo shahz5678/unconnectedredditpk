@@ -97,9 +97,9 @@
 	
 	<a href="{% url 'profile' photo.o %}#section0"  class="mrl mtl">
 	{% if photo.oa != 'None' and username == photo.o %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"True" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
+		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
 	{% elif photo.oa != 'None' %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"True" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>
+		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>
 	{% else %}
 		
 		<button class="mbs" alt="no avatar" style="background-image: url({{ STATIC_URL }}img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>
@@ -121,7 +121,7 @@
 		</div>
 
 		<div style="display:inline-block">
-		{% curate_photo pid=photo.i vsc=photo.vo oun=photo.o caption=photo.ca oid=photo.oi purl=photo.u|s3:"True" origin=2 static_url=STATIC_URL %}
+		{% curate_photo pid=photo.i vsc=photo.vo oun=photo.o caption=photo.ca oid=photo.oi purl=photo.u|s3:"thumb" origin=2 static_url=STATIC_URL %}
 		</div>
 
 		<br>	

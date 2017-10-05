@@ -41,7 +41,7 @@
 {% if notif.ot == '2' %}
 <a href="{% url 'profile' notif.oon %}" class="cgy">
 	{% if notif.ooa != 'None' %}
-	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
+	<img src="{{ notif.ooa|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}

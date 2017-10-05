@@ -1,14 +1,16 @@
 # Django settings for unconnectedreddit project.
 import os
+from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
 
-ON_AZURE = os.environ.get('ON_AZURE')
+#ON_AZURE = os.environ.get('ON_AZURE')
 ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
 # os.getenv is equivalent, and can also give a default value instead of `None`
-MIXPANEL_TOKEN = os.getenv('MIXPANEL_TOKEN', '1')
+#MIXPANEL_TOKEN = os.getenv('MIXPANEL_TOKEN', '1')
 # print MIXPANEL_TOKEN
 
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
@@ -277,10 +279,10 @@ if ON_AZURE == '1':
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
 		'NAME': 'damadam',                      # Or path to database file if using sqlite3.
-		'USER': 'mhb11',
-		'PASSWORD': 'asdasdASFDA234',
+		'USER': 'ubuntu',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-		'PORT': '6432',
+		#'PORT': '6432',
 	}
 }
 elif ON_MAC == '1':
@@ -295,7 +297,7 @@ elif ON_MAC == '1':
 		'NAME': 'damadampakistan',                      # Or path to database file if using sqlite3.
 		# The following settings are not used with sqlite3:
 		'USER': MAC_USER,
-		'PASSWORD': 'asdasdASFDA234',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '',
 		'PORT': '5432',
 	}
@@ -312,7 +314,7 @@ else:
 		'NAME': 'damadampakistan',                      # Or path to database file if using sqlite3.
 		# The following settings are not used with sqlite3:
 		'USER': 'hassan',
-		'PASSWORD': 'asdasdASFDA234',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
 		'PORT': '6432',                      # Set to empty string for default.
 	}
@@ -328,6 +330,8 @@ djcelery.setup_loader()
 # Redis broker
 if ON_MAC == '1':
 	BROKER_URL = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+elif ON_AZURE == '1':
+	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 else:
 	BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
 
@@ -341,6 +345,8 @@ CELERY_ALWAYS_EAGER = False
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
 if ON_MAC == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+elif ON_AZURE == '1':
+	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 else:
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
 
@@ -425,15 +431,15 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
-REQUEST_TRAFFIC_MODULES = (
-'request.traffic.UniqueVisitor',
-#'request.traffic.UniqueVisit',
-'request.traffic.Hit',
-#'request.traffic.Error',
-'request.traffic.UniqueUser',
-)
+# REQUEST_TRAFFIC_MODULES = (
+# 'request.traffic.UniqueVisitor',
+# #'request.traffic.UniqueVisit',
+# 'request.traffic.Hit',
+# #'request.traffic.Error',
+# 'request.traffic.UniqueUser',
+# )
 
-REQUEST_LOG_USER = True
+# REQUEST_LOG_USER = True
 
 ABSOLUTE_URL_OVERRIDES = {
 	'auth.user': lambda u: "/link/first_time/"

@@ -6,18 +6,9 @@ from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
 
-#ON_AZURE = os.environ.get('ON_AZURE')
 ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
-# os.getenv is equivalent, and can also give a default value instead of `None`
-#MIXPANEL_TOKEN = os.getenv('MIXPANEL_TOKEN', '1')
-# print MIXPANEL_TOKEN
-
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
-
-#DEBUG_TOOLBAR_CONFIG = {
-#    'SHOW_TOOLBAR_CALLBACK': 'unconnectedreddit.settings.show_toolbar',
-#}
 
 #git init
 #git remote add origin https://github.com/mhb11/unconnectedredditpk.git
@@ -35,7 +26,7 @@ else:
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-	('Hassan Baig', 'baig.hassan@gmail.com'),
+	('H B', 'baig.hassan@gmail.com'),
 )
 
 MANAGERS = ADMINS

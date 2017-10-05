@@ -268,7 +268,7 @@ LOGGING = {
 
 import dj_database_url
 if ON_AZURE == '1':
-	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/damadam'
+	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/myapp'
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
 	# }

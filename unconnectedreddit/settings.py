@@ -1,7 +1,7 @@
 # Django settings for unconnectedreddit project.
 import os
-from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN
-
+from datetime import datetime, timedelta
+from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, AWS_STORAGE_BUCKET
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
@@ -16,12 +16,22 @@ RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 #git add <files>
 #git push origin master	
 
+expires = datetime.utcnow() + timedelta(days=365)
+expires = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+S3_STORAGE_CLASS = 'links.imagestorage.S3Storage'
+AWS_HEADERS = {'Expires': expires,'Cache-Control': 'max-age=31536000'}
+AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET
+AWS_QUERYSTRING_AUTH = False
+
+
 if ON_AZURE == '1':
 	DEBUG=False
-	STATIC_URL = '//damadamstatic.azureedge.net/'
+	# STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True
-	STATIC_URL = '/static/'
+	
+STATIC_URL = '/static/'
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -262,10 +272,7 @@ if ON_AZURE == '1':
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
 	# }
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -278,10 +285,7 @@ if ON_AZURE == '1':
 }
 elif ON_MAC == '1':
 	# Parse database configuration from $DATABASE_URL
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -295,10 +299,7 @@ elif ON_MAC == '1':
 }
 else:
 	# Parse database configuration from $DATABASE_URL
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS#'storages.backends.azure_storage.AzureStorage'
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -421,16 +422,6 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
-
-# REQUEST_TRAFFIC_MODULES = (
-# 'request.traffic.UniqueVisitor',
-# #'request.traffic.UniqueVisit',
-# 'request.traffic.Hit',
-# #'request.traffic.Error',
-# 'request.traffic.UniqueUser',
-# )
-
-# REQUEST_LOG_USER = True
 
 ABSOLUTE_URL_OVERRIDES = {
 	'auth.user': lambda u: "/link/first_time/"

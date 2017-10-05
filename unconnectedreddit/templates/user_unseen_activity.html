@@ -52,7 +52,7 @@
 	<br>
 		<a href="{% url 'profile' notif.lrsn %}" class="cgy">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
+		<img src="{{ notif.lrau|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
@@ -116,7 +116,7 @@
 		{% endif %}
 		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
+		<img src="{{ notif.lrau|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
@@ -279,7 +279,7 @@
 	<br>
 	<a href="{% url 'profile' notif.oon %}" class="cgy mls">
 	{% if notif.ooa != 'None' %}
-	<img src="{{ notif.ooa|thumbedge }}" width="22" height="22" alt="no pic"></img>
+	<img src="{{ notif.ooa|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
@@ -298,7 +298,7 @@
 			<span class="cgy cs">tabsra aya {{ notif.lrti|human_time }}:</span><br>
 			<a href="{% url 'profile' notif.lrsn %}">
 			{% if notif.lrau != 'None' %}
-			<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic"></img>
+			<img src="{{ notif.lrau|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 			{% endif %}
@@ -361,17 +361,17 @@
 {% elif notif.ot == '1' %}
 	<span class="co">
 	{% if notif.t == '0' %}
-		Ye photo <img src="{{ notif.p|thumbedge }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
+		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
 		<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bs">kiyun?</button></a>
 	{% elif notif.t == '1' %}
-		Ye photo <img src="{{ notif.p|thumbedge }}" class="ibo"> tumhare <b>tamam fans</b> ke matke mein pohonch gayee {% emoticons %}.c1.c2.c3.c4{% endemoticons %}
+		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>tamam fans</b> ke matke mein pohonch gayee {% emoticons %}.c1.c2.c3.c4{% endemoticons %}
 		<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bxs">?</button></a>
 	{% else %}
 		{% if notif.l == '0' %}
-			Ye photo <img src="{{ notif.p|thumbedge }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
+			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
 			<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bs">kiyun?</button></a>
 		{% else %}
-			Ye photo <img src="{{ notif.p|thumbedge }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se
+			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se
 			<form method="post" action="{% url 'unseen_fans' %}" style="display:inline">
 				{% csrf_token %}
 				<input type="hidden" name="fan_list" value="{{ notif.r }}">

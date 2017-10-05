@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% load s3 %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbedge %}
 {% load photoedge %}
 {% load get_mobile_verification_bar %}
 {% block content %}
@@ -24,7 +24,7 @@
         <span class="cgy cs">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+            <img src="{{ group.owner.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -152,7 +152,7 @@
 
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
             {% endif %}

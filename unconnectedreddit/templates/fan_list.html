@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% load get_block_button %}
 {% load emoticons_tags %}
 {% block content %}
@@ -25,7 +25,7 @@
         <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}.</span>
         <a href="{% url 'profile' slug=fan.username %}#section0">
     	{% if fan.userprofile.avatar %}
-    		<img src="{{ fan.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+    		<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
     	{% else %}
     		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
     	{% endif %}

@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load s3 %}
-{% load thumbedge %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% block content %}
@@ -16,7 +15,7 @@
 		<br>
 		{% else %}
 		{% if parent.submitter.userprofile.avatar %}
-			<img src="{{ parent.submitter.userprofile.avatar.url|thumbedge }}" width="22" height="22" alt="no pic"></img>
+			<img src="{{ parent.submitter.userprofile.avatar|s3:'thumb' }}" width="22" height="22" alt="no pic"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
@@ -49,7 +48,7 @@
 		<div style="background-color:lightyellow;border:solid;border-width:1px;border-color:#2DB92D;">
 		<a href="{% url 'profile' parent.inviter.username %}#section0">
 		{% if parent.inviter.userprofile.avatar %}
-		<img src="{{ parent.inviter.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.inviter.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22">
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
 		{% endif %}
@@ -79,12 +78,12 @@
 		<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		{% elif parent.vote_score < -1 %}
 		{% if parent.image_file %}
-	        <img src="{{ parent.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+	        <img src="{{ parent.image_file|s3:'thumb' }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 	    {% else %}
 	        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 	    {% endif %}
 		{% else %}
-		<img src="{{ parent.image_file.url|thumbedge }}" style="border:1px solid lightgrey"></img>
+		<img src="{{ parent.image_file|s3:'thumb' }}" style="border:1px solid lightgrey"></img>
 		{% endif %}
 		<span style="color:grey;">{% emoticons %}{{ parent.caption|truncatechars:30 }}{% endemoticons %}</span>
 		<p style="margin-top:.3em;"></p>
@@ -107,12 +106,12 @@
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 		{% elif parent.vote_score < -1 %}
 			{% if parent.image_file %}
-			<img src="{{ parent.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
+			<img src="{{ parent.image_file|s3:'thumb' }}" alt="no pic" style="filter:brightness(50%);border:1px solid lightgrey;width:auto;"></img>
 			{% else %}
 			<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.image_file.url|thumbedge }}" style="border:1px solid lightgrey"></img>
+			<img src="{{ parent.image_file|s3:'thumb' }}" style="border:1px solid lightgrey"></img>
 		{% endif %}
 		<span style="color:grey;">{{ parent.caption|truncatechars:30 }}</span>
 		<p style="margin-top:.3em;"></p>
@@ -158,9 +157,9 @@
 	
 	<a href="{% url 'profile' photo.owner.username %}#section0">
 	{% if photo.owner.userprofile.avatar and user == picstream.cover.owner %}
-		<img style="border: 1px solid #00B800;" src="{{ photo.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
+		<img style="border: 1px solid #00B800;" src="{{ photo.owner.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% elif photo.owner.userprofile.avatar %}
-		<img style="border: 1px solid #A9A9A9;" src="{{ photo.owner.userprofile.avatar.url|thumbedge }}" alt="no pic" width="22" height="22"></img>
+		<img style="border: 1px solid #A9A9A9;" src="{{ photo.owner.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% else %}
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 	{% endif %}

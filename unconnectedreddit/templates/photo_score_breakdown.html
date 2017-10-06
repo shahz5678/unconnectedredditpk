@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbedge %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin">
@@ -28,13 +28,13 @@
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 {% elif photo.vote_score < -1 and not defender %}
     {% if photo.image_file %}
-        <img src="{{ photo.image_file.url|thumbedge }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+        <img src="{{ photo.image_file|s3:'thumb' }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
     {% else %}
         <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
     {% endif %}
 {% else %}
 	{% if photo.image_file %}
-    	<img src="{{ photo.image_file.url|thumbedge }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    	<img src="{{ photo.image_file|s3:'thumb' }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
     {% else %}
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
     {% endif %}

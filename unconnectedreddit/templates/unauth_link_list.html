@@ -4,7 +4,7 @@
 {% load emoticons_tags %}
 {% load thumbedge %}
 {% load human_time %}
-{% load photoedge %}
+{% load s3 %}
 {% block content %}
 
 <div style="background-color:#00c853;overflow: auto;">
@@ -90,7 +90,7 @@
 			{% else %}
 			    {% if link.i %}
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

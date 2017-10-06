@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load complete_url %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
 <div class="margin clb">
@@ -17,7 +17,7 @@
 
 		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
 			{% if visitor.userprofile__avatar %}
-		        <img src="{{ visitor.userprofile__avatar|complete_url:'True' }}" alt="no pic"></img>
+		        <img src="{{ visitor.userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>
 		    {% else %}
 		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		    {% endif %}

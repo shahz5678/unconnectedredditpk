@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 
 <style>
@@ -57,12 +57,12 @@
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
-    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>
+    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b>Pichle 2 days ke mashoor stars:</b><br><br>
     {% for user,total_photos,userprofile,total_fans in object_list %}
     <span class="co cs">{{ forloop.counter }}.</span>
     <a href="{% url 'profile' slug=user.username %}#section0" class="cb">
 	{% if userprofile.avatar %}
-		<img src="{{ userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+		<img src="{{ userprofile.avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}

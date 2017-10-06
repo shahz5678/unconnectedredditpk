@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load get_block_button %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 <div class="margin">
 {% if authorized %}
@@ -54,13 +54,13 @@
     {% elif photo.vote_score < -1 %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="fbl ibg" alt="no pic" src="{{ photo.image_file.url|thumbnail }}"></img>
+                <img class="fbl ibg" alt="no pic" src="{{ photo.image_file|s3:"thumb" }}"></img>
             {% else %}
                 <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}    
             {% if photo.image_file %}
-                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="fbh ibg"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="fbh ibg"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
             {% endif %}
@@ -68,13 +68,13 @@
     {% else %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="ibg iw" alt="no pic" src="{{ photo.image_file.url }}"></img>
+                <img class="ibg iw" alt="no pic" src="{{ photo.image_file|s3 }}"></img>
             {% else %}
                 <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}
             {% if photo.image_file %}
-                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
             {% endif %}
@@ -136,7 +136,7 @@
     <hr size=1 COLOR="ORANGE">
     {% endif %}
         {% if comment.abuse %}
-        {% if authenticated and viewed_at %}<!-- what is 'viewed_at?' -->
+        {% if authenticated and viewed_at %}
             {% if not comment_time %}
                 <b class="cs co">(new)</b>&nbsp;
             {% elif comment.submitted_on > comment_time %}
@@ -145,7 +145,7 @@
         {% endif %}
         <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cs">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -176,7 +176,7 @@
     {% endif %}
     <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cm">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}

@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load sub %}
-{% load thumbedge %}
 {% load s3 %}
 {% load human_time %}
 {% load get_item %}
@@ -76,9 +75,9 @@
 	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
 	<span class="ct cs mbs">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</span><br>
-	<span class="clb"><a href="{% url 'profile' notif.lrsn %}">	
+	<span class="clb"><a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}"  width="22" height="22" alt="no pic" class="ibt"></img>
+		<img src="{{ notif.lrau|s3:'thumb' }}"  width="22" height="22" alt="no pic" class="ibt"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibt"></img>
 		{% endif %}
@@ -171,7 +170,7 @@
 
 		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
-		<input type="image" height="22" width="22" src="{{ notif.lrau|thumbedge }}">
+		<input type="image" height="22" width="22" src="{{ notif.lrau|s3:'thumb' }}">
 		{% else %}
 		<input type="image" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg">
 		{% endif %}
@@ -204,7 +203,7 @@
 
 		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" class="ibp"></img>
+		<img src="{{ notif.lrau|s3:'thumb' }}" width="22" height="22" alt="no pic" class="ibp"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 		{% endif %}
@@ -334,7 +333,7 @@
 		<span class="co cs">new tabsra hua <b>{{ notif.lrti|human_time }}</b>:</span><br>
 		<a href="{% url 'profile' notif.lrsn %}">
 		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|thumbedge }}" width="22" height="22" alt="no pic" class="ibo"></img>
+		<img src="{{ notif.lrau|s3:'thumb' }}" width="22" height="22" alt="no pic" class="ibo"></img>
 		{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic" class="ibo"></img>
 		{% endif %}

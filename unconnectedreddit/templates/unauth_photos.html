@@ -1,6 +1,5 @@
 {% extends "base_min.html" %}
 {% load humanize %}
-{% load photoedge %}
 {% load human_time %}
 {% load thumbedge %}
 {% load mathfilters %}
@@ -76,9 +75,9 @@
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}"></img>
 			{% else %}
-				<img class="pht" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}"></img>
 			{% endif %}<br>
 
 			<a href="{% url 'comment_pk' photo.i 1 %}">

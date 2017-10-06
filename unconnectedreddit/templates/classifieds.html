@@ -1,5 +1,5 @@
 {% extends "base_ecomm.html" %}
-{% load complete_url %}
+{% load s3 %}
 {% load join_string %}
 {% load human_time %}
 {% load get_ecomm_tabs %}
@@ -33,7 +33,7 @@
 
 	<div itemscope itemtype="http://schema.org/Thing">
 		{% if ad.photos %}
-		<span itemprop="image" content="{{ ad.photos.0|complete_url }}"><img class="pht" src="{{ ad.photos.0|complete_url }}" alt="{{ ad.title }}"></span><br>
+		<span itemprop="image" content="{{ ad.photos.0|s3 }}"><img class="pht" src="{{ ad.photos.0|s3 }}" alt="{{ ad.title }}"></span><br>
 
 		{% else %}
 			<div style="width:100%;max-width:400px;background-color:#e6e6e6;height:3em;color:#ffffff;text-align: center;line-height: 3em;">

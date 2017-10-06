@@ -242,9 +242,10 @@
 			{% endif %}
 			
 			{% if link.cc|add:"0" > 6 %}
-			<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
-			{% csrf_token %}
-			&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>
+				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
+				{% csrf_token %}
+				&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>
+				</form>
 			{% endif %}
 
 			

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% load humanize %}
 {% block content %}
 <div class="margin">
@@ -12,7 +12,7 @@
 	</span>
 	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
 		{% if object.salatee.userprofile.avatar %}
-			<img src="{{ object.salatee.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+			<img src="{{ object.salatee.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}

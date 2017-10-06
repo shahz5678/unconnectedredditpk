@@ -16,7 +16,7 @@ SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
-from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
+from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
 from .redis4 import expire_online_users, get_recent_online, set_online_users
@@ -459,8 +459,11 @@ def fans():
 	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').in_bulk(user_ids)
 	top_list = []
 	for user_id in user_ids:
-		top_list.append((user_ids_and_user_objects[int(user_id)],user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
-			user_ids_and_user_objects[int(user_id)].userprofile,user_ids_and_fan_counts[user_id]))
+		top_list.append({"user_obj":user_ids_and_user_objects[int(user_id)],'username':user_ids_and_user_objects[int(user_id)].username,\
+			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
+			"user_profile":user_ids_and_user_objects[int(user_id)].userprofile,\
+			"fan_count":user_ids_and_fan_counts[user_id]})
+	top_list = retrieve_thumbs(top_list)
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': MEMLOC, 'TIMEOUT': 1260,
 		})

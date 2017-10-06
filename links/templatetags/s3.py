@@ -12,6 +12,8 @@ def get_s3_object(filename,category='image'):
 		split_by = "avatars/"
 	elif "mehfils/" in filename:
 		split_by = "mehfils/"
+	elif "users/" in filename:
+		split_by = "users/"
 	else:
 		split_by = "photos/"
 	if category=='thumb':

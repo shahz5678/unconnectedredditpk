@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load thumbedge %}
+{% load s3 %}
 {% block content %}
 <div class="margin clb"> 
 
-	&nbsp;<img src="{{ photo_url|thumbedge }}" alt="no pic">
+	&nbsp;<img src="{{ photo_url|s3:'thumb' }}" alt="no pic">
 	&nbsp;Ye photo <a href="{% url 'profile' photo_owner %}#section0">{{ photo_owner }}</a> ne charhai hai.
 		{% if already_banned == '-1' %}
 			{{ photo_owner }} pehle se hi <b class="co">hamesha ke liye</b> yahan pr photo charhane se banned hai. Kya iske ban ka waqt change krna hai?

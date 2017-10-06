@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load s3 %}
-{% load thumbedge %}
 {% load future_time %}
 {% load get_voting %}
 {% load get_curate_photo %}
@@ -157,7 +156,7 @@
                             {% if time_remaining == '-2' or defender %}
 
                             <div style="display:inline-block">
-                            {% curate_photo pid=photo.id vsc=photo.vote_score oun=subject.username caption=photo.caption oid=star_id purl=photo.image_file.url|thumbedge origin=4 static_url=STATIC_URL %}
+                            {% curate_photo pid=photo.id vsc=photo.vote_score oun=subject.username caption=photo.caption oid=star_id purl=photo.image_file|s3:'thumb' origin=4 static_url=STATIC_URL %}
                             </div>
 
                             {% endif %}
@@ -166,11 +165,10 @@
 
                           <b class="cb cl"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b><span class="cxs cgy">, {{ photo.upload_time|naturaltime }}</span><br>
 
-
                           {% if time_remaining == '-2' %}
                           <img class="iw ibg" src="{{ photo.image_file|s3 }}" alt="{{ photo.caption }}"></img>
-                          {% else %}
-                          <img class="iw ibg" src="{{ photo.image_file.url|thumbedge }}" alt="{{ photo.caption }}"></img>
+                          {% else %}  
+                          <img class="iw ibg" src="{{ photo.image_file|s3:'thumb' }}" alt="{{ photo.caption }}"></img>
                           {% endif %}
                           <br>
                           
@@ -190,7 +188,7 @@
                                 <button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
-                              
+                        
                                 <br>
 
 

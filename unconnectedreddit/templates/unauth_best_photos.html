@@ -1,7 +1,6 @@
 {% extends "base_min.html" %}
 {% load humanize %}
-{% load thumbedge %}
-{% load photoedge %}
+{% load s3 %}
 {% load human_time %}
 {% load mathfilters %}
 {% load emoticons_tags %}
@@ -41,9 +40,9 @@
 	
 	<a href="{% url 'profile' photo.o %}#section0">
 	{% if photo.oa != 'None' and username == photo.o %}
-		<img style="border: 1px solid #00B800;" src="{{ photo.oa|thumbedge }}" alt="no pic"></img>
+		<img style="border: 1px solid #00B800;" src="{{ photo.oa|s3:'thumb' }}" alt="no pic"></img>
 	{% elif photo.oa != 'None' %}
-		<img style="border: 1px solid #A9A9A9;" src="{{ photo.oa|thumbedge }}" alt="no pic"></img>
+		<img style="border: 1px solid #A9A9A9;" src="{{ photo.oa|s3:'thumb' }}" alt="no pic"></img>
 	{% else %}
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
@@ -74,9 +73,9 @@
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}"></img>
 			{% else %}
-				<img class="pht" src="{{ photo.u|photoedge }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}"></img>
 			{% endif %}<br>
 
 			<a href="{% url 'comment_pk' photo.i 2 %}">

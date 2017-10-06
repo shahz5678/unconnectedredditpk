@@ -2,9 +2,8 @@
 {% load humanize %}
 {% load mathfilters %}
 {% load emoticons_tags %}
-{% load thumbedge %}
 {% load human_time %}
-{% load photoedge %}
+{% load s3 %}
 {% block content %}
 
 <div style="background-color:#00c853;overflow: auto;">
@@ -83,14 +82,14 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 			{% else %}
 			    {% if link.i %}
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -108,13 +107,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

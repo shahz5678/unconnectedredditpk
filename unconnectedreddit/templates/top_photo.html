@@ -59,7 +59,7 @@
 
     <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b>Pichle 2 days ke mashoor stars:</b><br><br>
     {% for row in object_list %}
-    <span class="co cs">{{ forloop.counter }}.</span>
+    <b class="co cs">{{ forloop.counter }}.</b>
     <a href="{% url 'profile' slug=row.username %}#section0" class="cb">
 	{% if row.user_profile.avatar %}
 		<img src="{{ row.user_profile.avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>

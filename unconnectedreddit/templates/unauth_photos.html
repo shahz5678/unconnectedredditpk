@@ -2,7 +2,6 @@
 {% load humanize %}
 {% load human_time %}
 {% load s3 %}
-{% load thumbedge %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% block content %}
@@ -43,9 +42,9 @@
 	
 	<a href="{% url 'profile' photo.o %}#section0">
 	{% if photo.oa != 'None' and username == photo.o %}
-		<img style="border: 1px solid #00B800;" src="{{ photo.oa|thumbedge }}" alt="no pic" width="22" height="22"></img>
+		<img style="border: 1px solid #00B800;" src="{{ photo.oa|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% elif photo.oa != 'None' %}
-		<img style="border: 1px solid #A9A9A9;" src="{{ photo.oa|thumbedge }}" alt="no pic" width="22" height="22"></img>
+		<img style="border: 1px solid #A9A9A9;" src="{{ photo.oa|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% else %}
 		<img style="border: 1px solid #DCDCDC" src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
 	{% endif %}

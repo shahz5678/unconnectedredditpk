@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load get_block_button %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 <div class="margin clb">
 {% if error %}
@@ -75,8 +75,7 @@
         </span>
         <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
         {% if reply.submitted_by.userprofile.avatar %}
-            
-            <img src="{{ reply.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ reply.submitted_by.userprofile.avatar|s3: "thumb" }}" alt="no pic"></img>
             
         {% else %}
             

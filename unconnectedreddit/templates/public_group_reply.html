@@ -2,7 +2,6 @@
 {% load s3 %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load photoedge %}
 {% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin">
@@ -139,7 +138,7 @@
             <span class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
-            <img class="pht" src="{{ reply.image.url|photoedge }}"></img><br>
+            <img class="pht" src="{{ reply.image.url|s3 }}"></img><br>
             {% endif %}
 
                 {% if time < 51 %}

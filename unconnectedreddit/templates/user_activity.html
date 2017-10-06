@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
-{% load thumbnail %}
+{% load s3 %}
 {% load get_votes %}
 {% load emoticons_tags %}
 {% load get_block_button %}
@@ -24,7 +24,7 @@
 	<a href="{% url 'profile' slug=link.submitter %}#section0">
     {% if link.submitter.userprofile.avatar %}
 		
-		<img src="{{ link.submitter.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 		
 	{% else %}
 		

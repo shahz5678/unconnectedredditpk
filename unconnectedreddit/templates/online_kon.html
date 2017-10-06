@@ -46,7 +46,7 @@
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">
-                        {% if obj.userprofile__avatar %} {{ obj.userprofile__avatar }}
+                        {% if obj.userprofile__avatar %}
                             <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
                         {% else %}
                             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>

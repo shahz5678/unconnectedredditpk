@@ -1,5 +1,5 @@
 {% load thumbedge %}
-{% load photoedge %}
+{% load s3 %}
 {% load get_block_button %}
 {% load emoticons_tags %}
 	{% if notification %}
@@ -225,12 +225,12 @@
 			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|photoedge }}" alt="no pic" class="pht bright"></img>
+			<img src="{{ parent.p|s3 }}" alt="no pic" class="pht bright"></img>
 			{% else %}
 			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|photoedge }}" alt="no pic" class="pht"></img>
+			<img src="{{ parent.p|s3 }}" alt="no pic" class="pht"></img>
 		{% endif %}
 		</a>&nbsp;&nbsp;
 		<br><span class="cl cgy mrl">{{ parent.od }}</span>

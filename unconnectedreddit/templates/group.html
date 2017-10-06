@@ -15,8 +15,6 @@
 <a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
 <a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a>
 <br><br>
-<!-- reply.category, reply.which_group.private, reply.writer, reply.which_group_id, reply.which_group.unique, reply.writer.userprofile.avatar, reply.writer.username, 
-	reply.which_group.topic, reply.submitted_on, reply.text -->
 {% for reply in object_list %}
 
 
@@ -27,7 +25,6 @@
 			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
 			<b class="cs cg">(INVITE)</b>
 			{% if reply.0.writer__userprofile__avatar %}
-					{{ reply.0.writer__userprofile__avatar}}
 				<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>
 			{% else %}
 				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>

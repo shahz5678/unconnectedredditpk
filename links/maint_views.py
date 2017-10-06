@@ -177,6 +177,7 @@ def insert_nicks(request,*args,**kwargs):
 
 	All nicknames are first retrieved from the database.
 	They are then inserted, chunk-wise, into the redis sorted set.
+	It's a standalone function. One only needs to block new signups before running this.
 	"""
 	if request.user.username == 'mhb11':
 		nicknames = User.objects.values_list('username',flat=True)

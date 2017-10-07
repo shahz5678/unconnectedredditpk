@@ -5476,7 +5476,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
-				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-id')[:25]
 				time_now = timezone.now()
 				updated_at = convert_to_epoch(time_now)
 				save_user_presence(user_id,group.id,updated_at)

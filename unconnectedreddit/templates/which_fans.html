@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% s3 %}
+{% load s3 %}
 {% block content %}
 <div class="margin clb">
 Ye photo <img src="{{ photo_url|s3:'thumb' }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:

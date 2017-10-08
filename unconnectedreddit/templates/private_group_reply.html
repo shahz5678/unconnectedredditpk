@@ -80,7 +80,7 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                     {% if writer.userprofile.avatar %}
                     <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                     {% else %}
@@ -111,7 +111,7 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>
@@ -137,7 +137,7 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>

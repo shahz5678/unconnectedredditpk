@@ -5476,7 +5476,12 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
-				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-id')[:25]
+				replies = Reply.objects.select_related('writer__userprofile').defer('writer__userprofile__attractiveness',\
+					'writer__userprofile__mobilenumber','writer__userprofile__previous_retort','writer__userprofile__age',\
+					'writer__userprofile__gender','writer__userprofile__bio','writer__userprofile__streak','writer__userprofile__media_score',\
+					'writer__userprofile__shadi_shuda','writer__userprofile__id','writer__is_superuser','writer__first_name','writer__last_name',\
+					'writer__last_login','writer__email','writer__date_joined','writer__is_staff','writer__is_active','writer__password').\
+				filter(which_group_id=group.id).order_by('-id')[:25]
 				time_now = timezone.now()
 				updated_at = convert_to_epoch(time_now)
 				save_user_presence(user_id,group.id,updated_at)
@@ -5494,7 +5499,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
 						try:
 							#finding latest time user herself replied
-							context["reply_time"] = max(reply.submitted_on for reply in replies if reply.writer == self.request.user)
+							context["reply_time"] = max(reply.submitted_on for reply in replies if str(reply.writer) == str(self.request.user))
 						except:
 							context["reply_time"] = None #i.e. it's the first reply in the last 25 replies (i.e. all were unseen)
 					else:

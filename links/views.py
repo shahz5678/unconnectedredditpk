@@ -5481,7 +5481,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					'writer__userprofile__gender','writer__userprofile__bio','writer__userprofile__streak','writer__userprofile__media_score',\
 					'writer__userprofile__shadi_shuda','writer__userprofile__id','writer__is_superuser','writer__first_name','writer__last_name',\
 					'writer__last_login','writer__email','writer__date_joined','writer__is_staff','writer__is_active','writer__password').\
-				filter(which_group_id=group.id).order_by('-id')[:25]
+				filter(which_group_id=group.id).order_by('-submitted_on')[:25]
 				time_now = timezone.now()
 				updated_at = convert_to_epoch(time_now)
 				save_user_presence(user_id,group.id,updated_at)

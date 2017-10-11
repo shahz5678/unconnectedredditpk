@@ -81,13 +81,16 @@ def account_kit_handshake(csrf, state, status, auth_code, csrf_omitted):
 		if csrf == state and status=='PARTIALLY_AUTHENTICATED':
 			mobile_data = AccountKitManager(FAID, AKAS)
 			user_data = mobile_data.get_user_cred(auth_code)
-			if user_data == 'expired' or user_data == 'used' or user_data == 'generic' or user_data == 'invalid':
-				return user_data, None, {}
-			elif FAID == user_data["application"]["id"]:
-				return user_data["id"], user_data["phone"], {}
-			else:
-				# app id mismatch
-				return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
+			try:
+				if user_data == 'expired' or user_data == 'used' or user_data == 'generic' or user_data == 'invalid':
+					return user_data, None, {}
+				elif FAID == user_data["application"]["id"]:
+					return user_data["id"], user_data["phone"], {}
+				else:
+					# app id mismatch
+					return None, None, {'csrf':csrf,'state':state,'status':status,'facebook_id':FAID,'returned_id':user_data["application"]["id"], 'auth_code':auth_code}
+			except:
+				return None, None, {'csrf':csrf,'state':state,'status':status,'user_data':user_data}
 		elif status == 'NOT_AUTHENTICATED':
 			return None, None, {'csrf':csrf,'state':state,'status':status,'auth_code':auth_code}
 		else:

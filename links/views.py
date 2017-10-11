@@ -70,9 +70,9 @@ Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, To
 VideoComment
 from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
-get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
-temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, log_erroneous_passwords
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
+purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
+get_banned_users_count, is_already_banned#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -607,7 +607,7 @@ class RegisterHelpView(FormView):
 
 def logout_rules(request):
 	user_id = request.user.id
-	if is_mobile_verified(user_id):
+	if request.mobile_verified:
 		if first_time_log_outter(user_id):
 			add_log_outter(user_id)
 			return render(request,"logout_tutorial.html",{})
@@ -1392,6 +1392,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
+		context["mobile_verified"] = request.mobile_verified
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
 		enqueued_match = get_current_cricket_match()
@@ -1886,7 +1887,7 @@ class UserProfilePhotosView(ListView):
 			context["error"] = True
 			return context
 		star_id = subject.id
-		context["mobile_verified"] = is_mobile_verified(star_id)
+		context["mobile_verified"] = self.request.mobile_verified
 		###########
 		banned, time_remaining = check_photo_upload_ban(star_id)
 		if banned:
@@ -3651,7 +3652,7 @@ class CommentView(CreateView):
 				url = user.userprofile.avatar.url
 			except:
 				url = None
-			citizen = is_mobile_verified(user.id)
+			citizen = request.mobile_verified
 			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
 			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \
@@ -4074,7 +4075,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
-				citizen = is_mobile_verified(user_id)
+				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
@@ -4225,6 +4226,7 @@ def photo_list(request,*args, **kwargs):
 			context["voted"] = []
 			context["csrf"] = csrf.get_token(request)
 			context["girls"] = FEMALES
+			context["mobile_verified"] = request.mobile_verified
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(user.id)
 			##########################################################################################################
@@ -4382,6 +4384,7 @@ def best_photos_list(request,*args,**kwargs):
 			context["voted"] = []
 			context["girls"] = FEMALES
 			context["csrf"] = csrf.get_token(request)
+			context["mobile_verified"] = request.mobile_verified
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(context["ident"])
 			##########################################################################################################
@@ -5245,6 +5248,7 @@ class PublicGroupView(CreateView):
 					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
 				public_group_attendance_tasks.delay(group_id=group_id, user_id=self.request.user.id)
 				context["ensured"] = FEMALES
+				context["mobile_verified"] = self.request.mobile_verified
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
 				#time_now = datetime.utcnow().replace(tzinfo=utc)
 				time_now = timezone.now()
@@ -5476,6 +5480,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
+				context["mobile_verified"] = self.request.mobile_verified
 				replies = Reply.objects.select_related('writer__userprofile').defer('writer__userprofile__attractiveness',\
 					'writer__userprofile__mobilenumber','writer__userprofile__previous_retort','writer__userprofile__age',\
 					'writer__userprofile__gender','writer__userprofile__bio','writer__userprofile__streak','writer__userprofile__media_score',\
@@ -5869,7 +5874,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
-				citizen = is_mobile_verified(user_id)
+				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
@@ -7058,8 +7063,7 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
-		is_verified = is_mobile_verified(own_id)
-		if is_verified:
+		if request.mobile_verified:
 			photo_id = request.POST.get("pid","")
 			photo_owner_id = get_photo_owner(photo_id)
 			if not photo_owner_id:
@@ -7114,7 +7118,7 @@ def cast_photo_vote(request,*args,**kwargs):
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
-		if is_mobile_verified(own_id):
+		if request.mobile_verified:
 			link_id = request.POST.get("lid","")
 			lang = request.POST.get("lang",None)
 			sort_by = request.POST.get("sort_by",None)

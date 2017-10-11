@@ -18,7 +18,7 @@ from page_controls import ITEMS_PER_PAGE
 from views import get_price, get_addendum, get_page_obj, convert_to_epoch
 from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
 from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
-from redis3 import set_inter_user_ban, is_mobile_verified, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
+from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
 save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, get_global_ban_leaderboard
 from redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
 remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo_culler,first_time_photo_judger,add_photo_judger,\
@@ -69,14 +69,14 @@ def banned_users_list(request):
 def first_time_inter_user_banner(request):
 	user_id = request.user.id
 	target_username = get_ban_target_credentials(own_id=user_id, username_only=True, destroy=True)
-	if not target_username or not first_time_banner(user_id) or not is_mobile_verified(user_id):
+	if not target_username or not first_time_banner(user_id) or not request.mobile_verified:
 		return redirect("home")
 	return render(request,"inter_user_ban.html",{'first_time_banner_instructions':True,'target_username':target_username,\
 		'own_username':request.user.username})
 
 def inter_user_ban_not_permitted(request):
 	delete_ban_target_credentials(request.user.id)
-	if is_mobile_verified(request.user.id):
+	if request.mobile_verified:
 		return render(request,"404.html",{})
 	else:
 		CSRF = csrf.get_token(request)
@@ -151,7 +151,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				else:
 					return redirect("banned_users_list")
 		elif initial_decision:
-			if not is_mobile_verified(user_id):
+			if not request.mobile_verified:
 				return redirect("inter_user_ban_not_permitted")
 			elif initial_decision == '1':
 				return render(request,"inter_user_ban.html",{'target_username':get_ban_target_credentials(own_id=user_id, username_only=True),'decide_time':True})

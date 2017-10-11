@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
+from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data, log_verification_error #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, get_user_verified_number#, get_buyer_snapshot
 
@@ -81,6 +81,9 @@ def verify_user_number(request,*args,**kwargs):
 				return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
 			elif err['status'] == "NOT_AUTHENTICATED":
 				return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'referrer':'home','type':'user','from_ecomm':False})
+			elif err['status'] == "PARTIALLY_AUTHENTICATED":
+				log_verification_error(err)
+				return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 			else:
 				return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})
 		else:

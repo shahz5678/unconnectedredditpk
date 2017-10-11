@@ -72,7 +72,7 @@ from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_uploa
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
-get_banned_users_count, is_already_banned#, log_erroneous_passwords
+get_banned_users_count, is_already_banned, is_mobile_verified#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -1887,7 +1887,7 @@ class UserProfilePhotosView(ListView):
 			context["error"] = True
 			return context
 		star_id = subject.id
-		context["mobile_verified"] = self.request.mobile_verified
+		context["mobile_verified"] = is_mobile_verified(star_id)
 		###########
 		banned, time_remaining = check_photo_upload_ban(star_id)
 		if banned:

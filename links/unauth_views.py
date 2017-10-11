@@ -107,8 +107,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 				else:
 					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
 			###################################################################################################
-			is_verified = is_mobile_verified(user_id)
-			if is_verified:
+			if is_mobile_verified(user_id):
 				################################################
 				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
 				################################################

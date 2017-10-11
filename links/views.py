@@ -6327,10 +6327,14 @@ class LinkCreateView(CreateView):
 			return redirect("profile", slug=self.request.user.username)
 		self.request.session["link_create_token"] = None
 		self.request.session.modified = True
+		user = self.request.user
+		user_id = user.id
+		if not self.request.mobile_verified:
+			CSRF = csrf.get_token(self.request)
+			temporarily_save_user_csrf(str(user_id), CSRF)
+			return render(self.request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF})
 		if valid_uuid(str(token)):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			user_id = user.id
 			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
 			if user.userprofile.score < -25:
 				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already

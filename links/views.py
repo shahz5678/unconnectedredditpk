@@ -7093,7 +7093,7 @@ def cast_photo_vote(request,*args,**kwargs):
 				else:
 					#process the vote
 					value = request.POST.get("photo_vote","")
-					citizen = is_verified
+					citizen = request.mobile_verified
 					if value == '1':
 						added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
 					elif value == '-1':

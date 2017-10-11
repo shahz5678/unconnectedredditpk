@@ -17,10 +17,9 @@ from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, namify, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
-unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_city_ad_ids, get_all_pakistan_ad_count,\
-string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
-get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, \
-check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
+unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, get_city_ad_ids, get_all_pakistan_ad_count, string_tokenizer, ad_owner_id, \
+process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, get_and_delete_ecomm_photos_secret_key, \
+reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
 from django.db.models import F
 
 from links.ads_forms import BuyerForm
@@ -374,7 +373,7 @@ def show_user_ads(request,*args,**kwargs):
 # @csrf_protect
 # def show_seller_number(request,*args,**kwargs):
 # 	user_id = request.user.id
-# 	is_verified = is_mobile_verified(user_id)
+# 	is_verified = request.mobile_verified
 # 	if request.method == 'POST':
 # 		ad_id = request.POST.get('ad_id',None)
 # 		if not is_verified:
@@ -995,7 +994,7 @@ def warranty(request,origin,*args,**kwargs):
 def buyer_loc(request,*args,**kwargs):
 	user_id = request.user.id
 	if request.method == 'POST':
-		mobile_verified = is_mobile_verified(user_id)
+		mobile_verified = request.mobile_verified
 		request.session['mobile_verified']=mobile_verified
 		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
 		request.session["which_phone"] = merch_id
@@ -1009,7 +1008,7 @@ def buyer_loc(request,*args,**kwargs):
 			merch_id = None
 		if merch_id:
 			mp.track(request.user.id, 'M_S_2 On_location')
-			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':is_mobile_verified(user_id)})
+			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':request.mobile_verified})
 		else:
 			user_score = 0
 			user_score = request.user.userprofile.score
@@ -1025,7 +1024,7 @@ def mobile_shop(request,*args,**kwargs):
 	# if request.method == 'POST':
 	# 	user_id = request.user.id
 	# 	request.session.pop('mobile_verified',None)
-	# 	mobile_verified = is_mobile_verified(user_id)
+	# 	mobile_verified = request.mobile_verified
 	# 	request.session['mobile_verified']=mobile_verified
 	# 	merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
 	# 	loc = request.POST.get('loc',None)
@@ -1087,7 +1086,7 @@ def buyer_details(request,*args,**kwargs):
  			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':user_id,\
  			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model} 
 
-			if is_mobile_verified(user_id):
+			if request.mobile_verified:
 
 				number = get_user_verified_number(user_id)
 				request.session['buyer_phonenumber']=number[0]

@@ -3652,7 +3652,7 @@ class CommentView(CreateView):
 				url = user.userprofile.avatar.url
 			except:
 				url = None
-			citizen = request.mobile_verified
+			citizen = self.request.mobile_verified
 			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
 			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \

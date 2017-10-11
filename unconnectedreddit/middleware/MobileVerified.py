@@ -1,6 +1,6 @@
 from links.redis3 import is_mobile_verified
 
-class HellBannedMiddleware(object):
+class MobVerifiedMiddleware(object):
 
     def process_request(self, request):
         if request.user.is_authenticated():

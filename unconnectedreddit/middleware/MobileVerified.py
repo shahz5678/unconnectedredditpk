@@ -4,9 +4,6 @@ class MobVerifiedMiddleware(object):
 
     def process_request(self, request):
         if request.user.is_authenticated():
-        	if is_mobile_verified(request.user.id):
-        		return True
-        	else:
-        		return False	
+        	request.mobile_verified = True if is_mobile_verified(request.user.id) else False	
     	else:
-    		return False
+    		request.mobile_verified = False

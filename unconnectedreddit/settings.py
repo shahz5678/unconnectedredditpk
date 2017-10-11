@@ -133,9 +133,9 @@ MIDDLEWARE_CLASSES = (
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
 	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
-	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
 	#'request.middleware.RequestMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',

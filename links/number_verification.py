@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data, log_verification_error #log_referrer, save_number_verification_error_data
+from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, get_user_verified_number#, get_buyer_snapshot
 

@@ -82,7 +82,6 @@ def verify_user_number(request,*args,**kwargs):
 			elif err['status'] == "NOT_AUTHENTICATED":
 				return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'referrer':'home','type':'user','from_ecomm':False})
 			elif err['status'] == "PARTIALLY_AUTHENTICATED":
-				log_verification_error(err)
 				return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 			else:
 				return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})

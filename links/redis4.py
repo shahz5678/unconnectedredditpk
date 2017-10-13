@@ -48,11 +48,6 @@ def return_referrer_logs(log_name):
 	return my_server.lrange(log_name,0,-1)
 
 
-def log_verification_error(error):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.hmset("verif_error",error)
-
-
 # def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc, is_post_request,referrer):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\

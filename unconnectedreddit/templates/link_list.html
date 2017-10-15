@@ -87,11 +87,6 @@
 		</div>
 		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
-	{% if forloop.counter == 8 %}
-		<div style="margin-top:-1em;padding-top:1em;background-color:#72c461" >
-		{% mobile_shop STATIC_URL %}
-		<p><hr size=1 COLOR="#BDBDBD"></p></div>
-	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
@@ -230,6 +225,7 @@
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
+
 
 			<br>
 

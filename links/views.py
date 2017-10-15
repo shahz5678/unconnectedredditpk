@@ -2851,16 +2851,14 @@ class TopView(ListView):
 	template_name = "top.html"
 
 	def get_queryset(self):
-		if self.request.user_banned:
-			return User.objects.order_by('-userprofile__score')[:100]
-		else:
-			global condemned
-			return User.objects.exclude(id__in=condemned).order_by('-userprofile__score').prefetch_related('userprofile')[:100]
+		return UserProfile.objects.select_related('user').defer('attractiveness','previous_retort','age','gender','bio','shadi_shuda',\
+			'media_score','mobilenumber','streak','user__first_name','user__last_name','user__email','user__is_staff','user__is_active',\
+			'user__is_superuser','user__email','user__date_joined','user__last_login','user__password','user__id').order_by('-score')[:100]
 
 	def get_context_data(self, **kwargs):
 		context = super(TopView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES
+			context["verified"] = FEMALES		
 		return context
 
 class GroupPageView(ListView):

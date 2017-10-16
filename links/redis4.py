@@ -35,6 +35,12 @@ def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 		final_list.append(photo_id)
 	my_server.zadd("deprecated_photos",*final_list)
 
+
+def log_pic_uploader_status(user_id, is_verified):
+	my_server = redis.Redis(connection_pool=POOL)
+	verified = '1' if is_verified else '0'
+	my_server.lpush('uploaded_pics',verified+":"+str(user_id))
+
 # def save_user_choice(user_id, choice):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})

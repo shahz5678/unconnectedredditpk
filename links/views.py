@@ -6206,7 +6206,7 @@ class UserActivityView(ListView):
 		username = self.kwargs['slug']
 		try:
 			user = User.objects.get(username=username)
-			return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:40]
+			return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:200] if username == self.request.user.username else Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:40]
 		except:
 			return []
 

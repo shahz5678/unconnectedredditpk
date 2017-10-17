@@ -1,7 +1,7 @@
 {% extends "base_ecomm.html" %}
 {% load human_time %}
 {% load get_ecomm_navbar %}
-{% load complete_url %}
+{% load s3 %}
 {% block content %}
 
 <head>
@@ -27,7 +27,7 @@
 	</div>
 
 	<div class="mbs mts">
-	<span itemprop="itemOffered" style="font-size: 1.5625em; max-width: 90%;">{{ ad_body.title }}</span>&nbsp; <span style="font-size:12px" itemprop="itemCondition" class="cgy">({{ ad_body.is_new }})</span><br>
+	<span itemprop="itemOffered" style="font-size: 1.5625em; max-width: 90%;">{{ ad_body.title }}</span>{% if ad_body.is_new %}&nbsp; <span style="font-size:12px" itemprop="itemCondition" class="cgy">({{ ad_body.is_new }})</span>{% endif %}<br>
 	</div>
 
 	<div class="mbs">
@@ -53,7 +53,7 @@
 		{% if ad_body.photos %}
 		<hr size=1 COLOR="lightgrey">
 		{% for photo in ad_body.photos %}
-		<span itemprop="image" content="{{ ad.photos.0|complete_url }}"><img src="{{ photo.0|complete_url }}" style="display:block;margin: 0 auto; padding-bottom:0.5em;" alt="{{ ad_body.title }}" /></span>
+		<span itemprop="image" content="{{ photo.0|s3 }}"><img src="{{ photo.0|s3 }}" style="display:block;margin: 0 auto; padding-bottom:0.5em;" alt="{{ ad_body.title }}" /></span>
 		{% endfor %}
 		<hr size=1 COLOR="lightgrey">
 		{% endif %}

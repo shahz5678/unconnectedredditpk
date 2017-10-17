@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load thumbedge %}
-{% load photoedge %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% load get_mobile_verification_bar %}
 {% block content %}
@@ -13,7 +12,7 @@
     <a href="{% url 'group_page' %}#section0"><button class="btn bs bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    {% mobile_verification_bar user.id csrf score %}
+    {% mobile_verification_bar user.id csrf mobile_verified score %}
     <a href="{% url 'leave_private_group' pk=group.id unique=group.unique private=1 inside_grp=1 %}"><button class="btn bcr bxs"><b>X</b></button></a>
     <b class="clb cl bw">{% emoticons %}{{ group.topic }}{% endemoticons %}</b>&nbsp;<a href="{% url 'change_private_topic' %}"><button class="btn bm bcg cs mbs">change</button></a>
     <br>
@@ -81,9 +80,9 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                     {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                    <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                     {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
@@ -112,7 +111,7 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>
@@ -138,7 +137,7 @@
                     {% endif %}
                 
                 <span class="cg cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>
@@ -158,7 +157,7 @@
             {% else %}
         
                 {% if reply.image %}
-                <img class="pht" src="{{ reply.image.url|photoedge }}"></img><br>
+                <img class="pht" src="{{ reply.image|s3 }}"></img><br>
                 {% endif %}
                 {% if time < 41 %}
                     <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
@@ -178,7 +177,7 @@
                     {% endif %}
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
             {% endif %}

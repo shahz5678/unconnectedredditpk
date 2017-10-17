@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 <div class="margin clb">
-Ye photo <img src="{{ photo_url|thumbnail }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:
+Ye photo <img src="{{ photo_url|s3:'thumb' }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:
 <br><br>
 {% for fan in fan_list %}
 	{% if fan.userprofile.avatar %}	
-	<img src="{{ fan.userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic">
+	<img src="{{ fan.userprofile.avatar|s3:'thumb' }}" width="22" height="22" alt="no pic">
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic">
 	{% endif %}

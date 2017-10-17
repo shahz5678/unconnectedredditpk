@@ -25,6 +25,22 @@ FIVE_MINS = 5*60
 TWELVE_HOURS = 60*60*12
 
 
+
+def save_deprecated_photo_ids_and_filenames(deprecated_photos):
+	my_server = redis.Redis(connection_pool=POOL)
+	final_list = []
+	for filename, photo_id in deprecated_photos:
+		filename = filename.split('photos/')[1]
+		final_list.append(filename)
+		final_list.append(photo_id)
+	my_server.zadd("deprecated_photos",*final_list)
+
+
+def log_pic_uploader_status(user_id, is_verified):
+	my_server = redis.Redis(connection_pool=POOL)
+	verified = '1' if is_verified else '0'
+	my_server.lpush('uploaded_pics',verified+":"+str(user_id))
+
 # def save_user_choice(user_id, choice):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
@@ -316,7 +332,7 @@ def place_order(user_id):
 	order_data = get_temp_order_data(user_id)
 	order_id = get_order_id()
 	order_data['order_id'] = order_id
-	pipeline1.zadd('orders_in_process',user_id,time.time())
+	pipeline1.zadd('orders_in_process',user_id,order_id)
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	pipeline1.hmset("placed_orders:"+str(order_id),order_data)
 	pipeline1.execute()

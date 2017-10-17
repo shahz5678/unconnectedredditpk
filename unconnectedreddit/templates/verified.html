@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
     <div class="margin">
     <b>Verified females:</b><br>
@@ -7,7 +7,7 @@
     {% for user in object_list %}
     <a href="{% url 'profile' slug=user.username %}#section0">
 	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+		<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}

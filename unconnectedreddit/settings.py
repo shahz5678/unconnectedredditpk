@@ -1,21 +1,14 @@
 # Django settings for unconnectedreddit project.
 import os
+from datetime import datetime, timedelta
+from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, AWS_STORAGE_BUCKET
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
 
-ON_AZURE = os.environ.get('ON_AZURE')
 ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
-# os.getenv is equivalent, and can also give a default value instead of `None`
-MIXPANEL_TOKEN = os.getenv('MIXPANEL_TOKEN', '1')
-# print MIXPANEL_TOKEN
-
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
-
-#DEBUG_TOOLBAR_CONFIG = {
-#    'SHOW_TOOLBAR_CALLBACK': 'unconnectedreddit.settings.show_toolbar',
-#}
 
 #git init
 #git remote add origin https://github.com/mhb11/unconnectedredditpk.git
@@ -23,17 +16,27 @@ RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 #git add <files>
 #git push origin master	
 
+expires = datetime.utcnow() + timedelta(days=365)
+expires = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+S3_STORAGE_CLASS = 'links.imagestorage.S3Storage'
+AWS_HEADERS = {'Expires': expires,'Cache-Control': 'max-age=31536000'}
+AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET
+AWS_QUERYSTRING_AUTH = False
+
+
 if ON_AZURE == '1':
 	DEBUG=False
-	STATIC_URL = '//damadamstatic.azureedge.net/'
+	# STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True
-	STATIC_URL = '/static/'
+	
+STATIC_URL = '/static/'
 
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-	('Hassan Baig', 'baig.hassan@gmail.com'),
+	('H B', 'baig.hassan@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -121,7 +124,7 @@ else:
 	)
 
 MIDDLEWARE_CLASSES = (
-	'unconnectedreddit.middleware.NoWWWRedirect.NoWWWRedirectMiddleware',
+	# 'unconnectedreddit.middleware.NoWWWRedirect.NoWWWRedirectMiddleware',
  #   'debug_toolbar.middleware.DebugToolbarMiddleware',
 	'unconnectedreddit.middleware.XForwardedFor.XForwardedForMiddleware',
 	'user_sessions.middleware.SessionMiddleware',
@@ -130,6 +133,7 @@ MIDDLEWARE_CLASSES = (
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
 	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
@@ -265,54 +269,45 @@ LOGGING = {
 
 import dj_database_url
 if ON_AZURE == '1':
-	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/damadam'
+	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/myapp'
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
 	# }
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
 		'NAME': 'damadam',                      # Or path to database file if using sqlite3.
-		'USER': 'mhb11',
-		'PASSWORD': 'asdasdASFDA234',
+		'USER': 'ubuntu',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-		'PORT': '6432',
+		#'PORT': '6432',
 	}
 }
 elif ON_MAC == '1':
 	# Parse database configuration from $DATABASE_URL
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
 		'NAME': 'damadampakistan',                      # Or path to database file if using sqlite3.
 		# The following settings are not used with sqlite3:
 		'USER': MAC_USER,
-		'PASSWORD': 'asdasdASFDA234',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '',
 		'PORT': '5432',
 	}
 }
 else:
 	# Parse database configuration from $DATABASE_URL
-	DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-	AZURE_ACCOUNT_NAME = 'damadam'
-	AZURE_ACCOUNT_KEY = 'xgYsEzkHXoRN+IsruzVOt7KJwK4iEeueomVDItV0DFSaruXlKFCvvq/kKzZevat74zbg/Hs6v+wQYicWDZF8Og=='
-	AZURE_CONTAINER = 'pictures'
+	DEFAULT_FILE_STORAGE = S3_STORAGE_CLASS#'storages.backends.azure_storage.AzureStorage'
 	DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
 		'NAME': 'damadampakistan',                      # Or path to database file if using sqlite3.
 		# The following settings are not used with sqlite3:
 		'USER': 'hassan',
-		'PASSWORD': 'asdasdASFDA234',
+		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
 		'PORT': '6432',                      # Set to empty string for default.
 	}
@@ -328,6 +323,8 @@ djcelery.setup_loader()
 # Redis broker
 if ON_MAC == '1':
 	BROKER_URL = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+elif ON_AZURE == '1':
+	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 else:
 	BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
 
@@ -341,6 +338,8 @@ CELERY_ALWAYS_EAGER = False
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
 if ON_MAC == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///usr/local/var/run/redis/redis.sock'
+elif ON_AZURE == '1':
+	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 else:
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
 
@@ -424,16 +423,6 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
-
-REQUEST_TRAFFIC_MODULES = (
-'request.traffic.UniqueVisitor',
-#'request.traffic.UniqueVisit',
-'request.traffic.Hit',
-#'request.traffic.Error',
-'request.traffic.UniqueUser',
-)
-
-REQUEST_LOG_USER = True
 
 ABSOLUTE_URL_OVERRIDES = {
 	'auth.user': lambda u: "/link/first_time/"

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbedge %}
+{% load s3 %}
 {% block content %}
 <div class="margin">
 <span class="ct">
@@ -21,7 +21,7 @@ Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey tumhari <b class="cg"
 	<span class="numbers">{{ forloop.counter }}.</span>
 	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
 		{% if object.salatee.userprofile.avatar %}
-			<img src="{{ object.salatee.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+			<img src="{{ object.salatee.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 		{% else %}
 			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 		{% endif %}

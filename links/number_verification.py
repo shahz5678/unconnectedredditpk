@@ -5,8 +5,7 @@ from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
 from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
-from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, is_mobile_verified, \
-get_user_verified_number#, get_buyer_snapshot
+from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, get_user_verified_number#, get_buyer_snapshot
 
 def get_requirements(request, csrf, careem=False, csrf_omitted=False):
 	status = request.GET.get('status', None)
@@ -64,10 +63,10 @@ def verify_forgetter_number(request,*args,**kwargs):
 
 
 def verify_user_number(request,*args,**kwargs):
-	user_id = request.user.id
-	if is_mobile_verified(user_id):
+	if request.mobile_verified:
 		return render(request,"already_verified.html",{})
 	else:
+		user_id = request.user.id
 		csrf = get_user_csrf(user_id=str(user_id))
 		if csrf:
 			AK_ID, MN_data, err = get_requirements(request=request,csrf=csrf)
@@ -82,6 +81,8 @@ def verify_user_number(request,*args,**kwargs):
 				return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
 			elif err['status'] == "NOT_AUTHENTICATED":
 				return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'referrer':'home','type':'user','from_ecomm':False})
+			elif err['status'] == "PARTIALLY_AUTHENTICATED":
+				return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 			else:
 				return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})
 		else:
@@ -152,18 +153,23 @@ def verify_buyer_number(request):
 	if AK_ID and MN_data:
 		user_id = request.user.id
 		if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+			# mp.track(request.user.id, 'M_S_7.2 someelses Phone')
 			return render(request,"wrong_number.html",{'referrer':'mobile_shop'})
 		else:
+			# mp.track(request.user.id, 'M_S_7.3 Phone confirmed')
 			save_consumer_credentials.delay(AK_ID, MN_data, user_id)
 			order_data =  get_temp_order_data(user_id)
 			order_data['phonenumber']=MN_data['number']
 			merch_id = order_data['merch_id']
 			saved = save_order_data(order_data)
 			if saved:
+				# mp.track(request.user.id, 'M_S_7 On confirm order')
 				return redirect("confirm_order")#,{'merch_id':merch_id})
 			else:
+				# mp.track(request.user.id, 'M_S_E phone verification 2')
 				return render(request,"404.html",{})
 	else:
+		# mp.track(request.user.id, 'M_S_7.4 canceled phone verification')
 		return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'type':'mobile_buyer','from_ecomm':False})
 
 		####replace with page reminding importance of number verification

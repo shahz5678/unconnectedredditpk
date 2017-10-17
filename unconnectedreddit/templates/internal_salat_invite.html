@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
 
@@ -18,7 +18,7 @@
             <span class="numbers">{{ forloop.counter }}.</span>
             <a href="{% url 'profile' invitee.username %}#section0">
             {% if invitee.userprofile.avatar %}
-            <img src="{{ invitee.userprofile.avatar.url|thumbnail }}" alt="no pic" width="22" height="22"></img>
+            <img src="{{ invitee.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
             {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
             {% endif %}

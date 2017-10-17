@@ -5,7 +5,7 @@ from location import REDLOC3
 from datetime import datetime
 from operator import itemgetter
 # from redis4 import save_seller_number_error
-from templatetags.thumbedge import cdnize_target_url
+from templatetags.s3 import get_s3_object
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
@@ -338,7 +338,7 @@ def search_thumbs_missing(username):
 def add_search_photo(img_url,photo_id,owner_uname):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname
-	new_payload = image_thumb_formatting(cdnize_target_url(img_url),photo_id)
+	new_payload = image_thumb_formatting(get_s3_object(img_url,category='thumb'),photo_id)
 	existing_payload = my_server.get(user_thumbs)
 	if existing_payload:
 		payload = new_payload+'&nbsp;'+existing_payload
@@ -355,7 +355,7 @@ def add_search_photo(img_url,photo_id,owner_uname):
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname
-	ids_with_thumbs = [(item[0],cdnize_target_url(item[1])) for item in ids_with_urls]
+	ids_with_thumbs = [(item[0],get_s3_object(item[1],category=thumb)) for item in ids_with_urls]
 	payload = []
 	for obj in ids_with_thumbs:
 		payload.append(image_thumb_formatting(obj[1],obj[0]))
@@ -1597,9 +1597,19 @@ def retrieve_erroneous_passwords():
 # 	my_server.expire(key_name,ONE_WEEK)
 
 #############################################################################################################################
-#############################################################################################################################
+#####################################################Notifying Damadam Outage###############################################
 
+def seen_outage_notif(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists("maint:"+str(user_id)):
+		return True
+	else:
+		return False
+	
 
+def skip_outage(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.setex("maint:"+str(user_id),'1',TWO_WEEKS)
 
 
 ###########################################################

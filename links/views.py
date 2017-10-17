@@ -1,7 +1,11 @@
 # coding=utf-8
-import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast#, itertools#, sys
+from math import log, ceil
+from urllib import quote
 from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
+import datetime, time
+from datetime import datetime, timedelta
+import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, json, ast
 from target_urls import call_aasan_api
 from django.utils.decorators import method_decorator
 from django.middleware import csrf
@@ -19,7 +23,42 @@ from location import MEMLOC
 from django.views.decorators.debug import sensitive_post_parameters
 from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
-from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, report, photo_upload_tasks, \
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView, DetailView
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
+from image_processing import clean_image_file, clean_image_file_with_hash
+from salutations import SALUTATIONS
+from forms import getip
+from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
+ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
+ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
+PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
+PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
+MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
+AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
+PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
+GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
+HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
+UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
+ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
+VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
+AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
+HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchNicknameForm, \
+AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import redirect, get_object_or_404, render
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+from user_sessions.models import Session
+from django.utils import timezone
+from django.utils.timezone import utc
+from django.views.decorators.cache import cache_page, never_cache, cache_control
+from fuzzywuzzy import fuzz
+from brake.decorators import ratelimit
+from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, calc_photo_quality_benchmark, queue_for_deletion, \
 VOTE_WEIGHT, public_group_vote_tasks, public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, home_photo_tasks
@@ -29,25 +68,11 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-#from links.azurevids.azurevids import uploadvid
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
-from salutations import SALUTATIONS
-###############################################################################################################################
-#########################################################Optimizely Exp########################################################
-# from redis3 import set_user_type, get_user_type
-# from redis1 import all_best_posts_1, all_best_posts_2
-# from redis4 import save_user_choice
-###############################################################################################################################
-###############################################################################################################################
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, log_pic_uploader_status
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
-search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, is_mobile_verified, \
-get_advertisers, purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, \
-temporarily_save_user_csrf, get_banned_users_count, is_already_banned#, log_erroneous_passwords
+search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
+purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
+get_banned_users_count, is_already_banned, is_mobile_verified#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -71,40 +96,6 @@ get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_sea
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
 get_latest_group_replies
 from .website_feedback_form import AdvertiseWithUsForm
-from image_processing import clean_image_file, clean_image_file_with_hash
-from forms import getip
-from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
-ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
-ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
-PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
-PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
-MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, GroupReportForm, \
-AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, KickForm, PrivateGroupReplyForm, \
-PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
-GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
-HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
-UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
-ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
-VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
-AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
-HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchNicknameForm, \
-AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm
-
-from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404, render
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from math import log, ceil
-from urllib import quote
-from PIL import Image, ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-import datetime, time
-from datetime import datetime, timedelta
-from user_sessions.models import Session
-from django.utils import timezone
-from django.utils.timezone import utc
-from django.views.decorators.cache import cache_page, never_cache, cache_control
-from fuzzywuzzy import fuzz
-from brake.decorators import ratelimit
 
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -616,7 +607,7 @@ class RegisterHelpView(FormView):
 
 def logout_rules(request):
 	user_id = request.user.id
-	if is_mobile_verified(user_id):
+	if request.mobile_verified:
 		if first_time_log_outter(user_id):
 			add_log_outter(user_id)
 			return render(request,"logout_tutorial.html",{})
@@ -1376,6 +1367,10 @@ def home_location(request, lang=None, *args, **kwargs):
 	return redirect(url)
 
 def home_link_list(request, lang=None, *args, **kwargs):
+	"""This function renders the current home page.
+
+    It gets the most recent conversational data from redis, and displays it on the template.
+    """
 	if request.user.is_authenticated():
 		form = HomeLinkListForm()
 		context = {}
@@ -1397,6 +1392,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
+		context["mobile_verified"] = request.mobile_verified
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
 		enqueued_match = get_current_cricket_match()
@@ -1830,8 +1826,7 @@ class OnlineKonView(ListView):
 			if self.request.is_feature_phone:
 				on_feature_phone = True
 			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-			if not (on_fbs or self.request.is_feature_phone):
-				# context["on_fbs"] = self.request.META
+			if not on_fbs:
 				context["object_list"] = retrieve_thumbs(context["object_list"])
 				context["with_thumbs"] = True
 		return context
@@ -1892,7 +1887,7 @@ class UserProfilePhotosView(ListView):
 			context["error"] = True
 			return context
 		star_id = subject.id
-		context["mobile_verified"] = is_mobile_verified(star_id)
+		context["mobile_verified"] = self.request.mobile_verified if star_id == self.request.user.id else is_mobile_verified(star_id)
 		###########
 		banned, time_remaining = check_photo_upload_ban(star_id)
 		if banned:
@@ -2856,16 +2851,14 @@ class TopView(ListView):
 	template_name = "top.html"
 
 	def get_queryset(self):
-		if self.request.user_banned:
-			return User.objects.order_by('-userprofile__score')[:100]
-		else:
-			global condemned
-			return User.objects.exclude(id__in=condemned).order_by('-userprofile__score').prefetch_related('userprofile')[:100]
+		return UserProfile.objects.select_related('user').defer('attractiveness','previous_retort','age','gender','bio','shadi_shuda',\
+			'media_score','mobilenumber','streak','user__first_name','user__last_name','user__email','user__is_staff','user__is_active',\
+			'user__is_superuser','user__email','user__date_joined','user__last_login','user__password','user__id').order_by('-score')[:100]
 
 	def get_context_data(self, **kwargs):
 		context = super(TopView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES
+			context["verified"] = FEMALES		
 		return context
 
 class GroupPageView(ListView):
@@ -3657,7 +3650,7 @@ class CommentView(CreateView):
 				url = user.userprofile.avatar.url
 			except:
 				url = None
-			citizen = is_mobile_verified(user.id)
+			citizen = self.request.mobile_verified
 			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
 			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \
@@ -4080,7 +4073,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
-				citizen = is_mobile_verified(user_id)
+				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=request.user.username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
@@ -4231,6 +4224,7 @@ def photo_list(request,*args, **kwargs):
 			context["voted"] = []
 			context["csrf"] = csrf.get_token(request)
 			context["girls"] = FEMALES
+			context["mobile_verified"] = request.mobile_verified
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(user.id)
 			##########################################################################################################
@@ -4388,6 +4382,7 @@ def best_photos_list(request,*args,**kwargs):
 			context["voted"] = []
 			context["girls"] = FEMALES
 			context["csrf"] = csrf.get_token(request)
+			context["mobile_verified"] = request.mobile_verified
 			############################################# Home Rules #################################################
 			context["home_rules"] = spammer_punishment_text(context["ident"])
 			##########################################################################################################
@@ -4606,6 +4601,11 @@ def upload_public_photo(request,*args,**kwargs):
 				if number_of_photos:
 					set_uploader_score(user_id, ((total_score*1.0)/number_of_photos)) #only from last 5 photos!
 				bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
+				############################################
+				############################################
+				log_pic_uploader_status(user_id, request.mobile_verified)
+				############################################
+				############################################
 				return redirect("photo")
 			else:
 				return render(request, 'big_photo.html', {'photo':'photo'})
@@ -5251,6 +5251,7 @@ class PublicGroupView(CreateView):
 					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
 				public_group_attendance_tasks.delay(group_id=group_id, user_id=self.request.user.id)
 				context["ensured"] = FEMALES
+				context["mobile_verified"] = self.request.mobile_verified
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
 				#time_now = datetime.utcnow().replace(tzinfo=utc)
 				time_now = timezone.now()
@@ -5482,7 +5483,13 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
-				replies = Reply.objects.select_related('writer__userprofile').filter(which_group=group).order_by('-submitted_on')[:25]
+				context["mobile_verified"] = self.request.mobile_verified
+				replies = Reply.objects.select_related('writer__userprofile').defer('writer__userprofile__attractiveness',\
+					'writer__userprofile__mobilenumber','writer__userprofile__previous_retort','writer__userprofile__age',\
+					'writer__userprofile__gender','writer__userprofile__bio','writer__userprofile__streak','writer__userprofile__media_score',\
+					'writer__userprofile__shadi_shuda','writer__userprofile__id','writer__is_superuser','writer__first_name','writer__last_name',\
+					'writer__last_login','writer__email','writer__date_joined','writer__is_staff','writer__is_active','writer__password').\
+				filter(which_group_id=group.id).order_by('-submitted_on')[:25]
 				time_now = timezone.now()
 				updated_at = convert_to_epoch(time_now)
 				save_user_presence(user_id,group.id,updated_at)
@@ -5500,7 +5507,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
 						try:
 							#finding latest time user herself replied
-							context["reply_time"] = max(reply.submitted_on for reply in replies if reply.writer == self.request.user)
+							context["reply_time"] = max(reply.submitted_on for reply in replies if str(reply.writer) == str(self.request.user))
 						except:
 							context["reply_time"] = None #i.e. it's the first reply in the last 25 replies (i.e. all were unseen)
 					else:
@@ -5870,7 +5877,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					url = request.user.userprofile.avatar.url
 				except:
 					url = None
-				citizen = is_mobile_verified(user_id)
+				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
 					latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
 				unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
@@ -6031,7 +6038,7 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
-@ratelimit(rate='10/38s')
+@ratelimit(rate='12/38s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6089,18 +6096,20 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 	else:
 		return redirect("unseen_activity",request.user.username)
 
-
 def public_reply_view(request,*args,**kwargs):
-	context = {}
+	context, user_id = {}, request.user.id
 	if request.method == "POST":
+		from_refresh = request.POST.get("from_rfrsh",None)
 		link_id = request.POST.get("lid",None)
 		request.session["link_pk"] = link_id
 		request.session.modified = True
+		if from_refresh == '1' and first_time_refresher(user_id):
+			add_refresher(user_id)
+			return render(request, 'jawab_refresh.html', {'lid':link_id})
 	else:
 		link_id = request.session.pop("link_pk",None)
 	if link_id:
 		link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
-		user_id = request.user.id
 		form = request.session.pop("publicreply_form",None)
 		context["form"] = form if form else PublicreplyForm() 
 		context["error"] = False
@@ -6202,7 +6211,7 @@ class UserActivityView(ListView):
 		username = self.kwargs['slug']
 		try:
 			user = User.objects.get(username=username)
-			return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:40]
+			return Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:200] if username == self.request.user.username else Link.objects.select_related('submitter__userprofile').filter(submitter=user).order_by('-id')[:40]
 		except:
 			return []
 
@@ -6321,10 +6330,14 @@ class LinkCreateView(CreateView):
 			return redirect("profile", slug=self.request.user.username)
 		self.request.session["link_create_token"] = None
 		self.request.session.modified = True
+		user = self.request.user
+		user_id = user.id
+		if not self.request.mobile_verified:
+			CSRF = csrf.get_token(self.request)
+			temporarily_save_user_csrf(str(user_id), CSRF)
+			return render(self.request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF})
 		if valid_uuid(str(token)):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			user_id = user.id
 			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
 			if user.userprofile.score < -25:
 				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
@@ -7057,8 +7070,7 @@ def process_photo_vote(pk, ident, val, voter_id):
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
-		is_verified = is_mobile_verified(own_id)
-		if is_verified:
+		if request.mobile_verified:
 			photo_id = request.POST.get("pid","")
 			photo_owner_id = get_photo_owner(photo_id)
 			if not photo_owner_id:
@@ -7088,7 +7100,7 @@ def cast_photo_vote(request,*args,**kwargs):
 				else:
 					#process the vote
 					value = request.POST.get("photo_vote","")
-					citizen = is_verified
+					citizen = request.mobile_verified
 					if value == '1':
 						added = add_vote_to_photo(photo_id, own_username, 1,(True if own_username in FEMALES else False),citizen)
 					elif value == '-1':
@@ -7113,7 +7125,7 @@ def cast_photo_vote(request,*args,**kwargs):
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
-		if is_mobile_verified(own_id):
+		if request.mobile_verified:
 			link_id = request.POST.get("lid","")
 			lang = request.POST.get("lang",None)
 			sort_by = request.POST.get("sort_by",None)
@@ -8107,91 +8119,6 @@ def show_advertisers(request,*args,**kwargs):
 		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
 			'num':len(list_of_advertisers)})
 
-# def change_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		inactives = get_inactives()
-# 		id_list = map(itemgetter(1), inactives)
-# 		id_len = len(id_list)
-# 		rand_nums = random.sample(xrange(100000,999999), id_len+10)
-# 		counter = 0
-# 		for pk in id_list:
-# 			nick = "dmdm_"+str(rand_nums[counter])
-# 			User.objects.filter(id=int(pk)).update(username=nick)
-# 			counter += 1
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def export_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		inactives = get_inactives()
-# 		import csv
-# 		with open('inactives.csv','wb') as f:
-# 			wtr = csv.writer(f, delimiter=',')
-# 			wtr.writerows(inactives)
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def deprecate_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		# all user ids who last logged in more than 3 months ago
-# 		all_old_ids = set(User.objects.filter(last_login__lte=datetime.utcnow()-timedelta(days=90)).values_list('id',flat=True))
-		
-# 		# user ids not found in Sessions
-# 		logged_in_users = Session.objects.filter(user__isnull=False).values_list('user__id', flat=True).distinct()
-# 		logged_out_users = set(User.objects.exclude(id__in=logged_in_users).values_list('id', flat=True))
-
-# 		# # never messaged on home
-# 		never_home_message = set(User.objects.exclude(id__in=Link.objects.values_list('submitter_id',flat=True).distinct()).values_list('id',flat=True))
-
-# 		# # never submitted a publicreply
-# 		never_publicreply = set(User.objects.exclude(id__in=Publicreply.objects.values_list('submitted_by_id',flat=True).distinct())\
-# 			.values_list('id',flat=True))
-		
-# 		# never sent a photocomment
-# 		never_photocomment = set(User.objects.exclude(id__in=PhotoComment.objects.values_list('submitted_by_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # never uploaded a photo
-# 		never_uploaded_photo = set(User.objects.exclude(id__in=Photo.objects.values_list('owner_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # never fanned anyone
-# 		never_fanned = set(User.objects.exclude(id__in=UserFan.objects.values_list('fan_id',flat=True).distinct()).values_list('id',flat=True))
-		
-# 		# # score is below 300
-# 		less_than_300 = set(UserProfile.objects.filter(score__lte=300).values_list('user_id',flat=True))
-
-# 		# # intersection of all such ids
-# 		inactive = set.intersection(all_old_ids,logged_out_users,never_home_message,never_publicreply,never_photocomment,never_uploaded_photo,\
-# 			never_fanned,less_than_300)
-# 		inactives = User.objects.filter(id__in=inactive).values_list('username','id')
-# 		from itertools import chain
-# 		set_inactives([x for x in chain.from_iterable(inactives)])
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-# def check_nick(request,nick=None,*args,**kwargs):
-# 	return render(request,'nick_search.html',{'nicks':get_nick_likeness(nick)})
-
-# def insert_nicks(request,*args,**kwargs):
-# 	if request.user.username == 'mhb11':
-# 		nicknames = User.objects.values_list('username',flat=True)
-# 		list_len = len(nicknames)
-# 		each_slice = int(list_len/10)
-# 		counter = 0
-# 		slices = []
-# 		while counter < list_len:
-# 			slices.append((counter,counter+each_slice))
-# 			counter += each_slice
-# 		for sublist in slices:
-# 			# print "nicknames["+str(sublist[0])+","+str(sublist[1])+"] = %s" % nicknames[sublist[0]:sublist[1]]
-# 			insert_nick_list(nicknames[sublist[0]:sublist[1]])
-# 		return render(request,'nicks_populated.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-###############################################################
 
 # Report run on 18/3/2017
 #              Table               |  Size   | External Size 

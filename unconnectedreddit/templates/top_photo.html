@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 
 <style>
@@ -12,11 +12,11 @@
 .circular-button {
 
     color:white; 
-    border-radius:50%; 
-    height:55px; 
-    width:55px; 
+    border-radius: 17px 17px 17px 17px; 
+    height:65px; 
+    width:65px; 
     border-style:none; 
-    margin-left:10px
+    margin-left:25px;
 
 }
     
@@ -27,7 +27,7 @@
 }
 
 
-@media only screen and (max-width: 200px) {
+@media only screen and (max-width: 260px) {
   
 
 .circular-button {
@@ -37,6 +37,8 @@
     width:41px; 
     border-style:none; 
     margin-left:1px;
+    font-size: 10px;
+    margin:2%;
 
 }
 
@@ -47,36 +49,37 @@
 
 </style>
 
-    <div class="margin clb">
+<div class="margin clb">
 
-        <div class="secondary-nav">
-<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd;">Best fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:grey; background-color:#dfdddd">Latest fotos</button></a><button class="circular-button" style="color:white; background-color:#ffa726">Top <br>stars</button>
-<hr size=1 COLOR="#ffa726" style="margin-top:-1.9em; margin-left:0" ><br>
-<br>
-<br>
+
+<div class="secondary-nav mbl mtl">
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#dfdddd;margin-left:0px;">Best<br>fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:grey; background-color:#dfdddd;">Latest<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Top<br>stars</button>
+<hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
-    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b class="cm">Pichle 2 days ke mashoor stars:</b><br><br>
-    {% for user,total_photos,userprofile,total_fans in object_list %}
-    <span class="co cs">{{ forloop.counter }}.</span>
-    <a href="{% url 'profile' slug=user.username %}#section0" class="cb">
-	{% if userprofile.avatar %}
-		<img src="{{ userprofile.avatar.url|thumbnail }}" width="22" height="22" alt="no pic"></img>
+    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b>Pichle 2 days ke mashoor stars:</b><br><br>
+    {% for row in object_list %}
+    <b class="co cs">{{ forloop.counter }}.</b>
+    <a href="{% url 'profile' slug=row.username %}#section0" class="cb">
+	{% if row.user_profile.avatar %}
+		<img src="{{ row.user_profile.avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
 	{% endif %}
-    {{ user.username }}</a>{% if user.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
-	{% if userprofile.media_score %}
-		{% if userprofile.media_score < 0 %}
+    {{ row.username }}</a>{% if row.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
+	{% if row.user_profile.media_score %}
+		{% if row.user_profile.media_score < 0 %}
 	    	<span class="cs" style="color:#9900cc;">(1)</span>
 	    {% else %}
-	    	<span class="cs" style="color:#9900cc;">({{ userprofile.media_score }})</span>
+	    	<span class="cs" style="color:#9900cc;">({{ row.user_profile.media_score }})</span>
 		{% endif %}
     {% else %}
-    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=user.username %}#section0" class="co">{{ total_fans }} fans</a></b>
-    <span class="co cs">({{ total_photos }} photos)</a></span>
-    <br>
-    
+    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=row.username %}#section0" class="co">{{ row.fan_count }} fans</a></b>
+    <span class="co cs">({{ row.photo_count }} photos)</a></span><br>
+    <div class="mtl">
+    {{ row.thumbs|safe }}
+    </div>
+    <hr size=1 COLOR="#E0E0E0">
     {% endfor %}
     </div>
 <br><br>

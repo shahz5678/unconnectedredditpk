@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 <div class="margin">
 {% if video %}
@@ -54,7 +54,7 @@
 
 	     <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}

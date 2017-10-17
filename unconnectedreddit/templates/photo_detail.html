@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% load humanize %}
-{% load thumbedge %}
 {% load get_voting %}
-{% load photoedge %}
+{% load s3 %}
 {% block content %}
 <div class="margin">
 {% if not absent %}
-
+	
 	{% if defender and from_cull_queue %}
 		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 
@@ -27,12 +26,12 @@
 		{% endif %}
 		<br>
 		{% if photo.image_file %}
-		<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
+		<img class="pht" src="{{ photo.image_file|s3 }}"></img>
 		{% else %}
 		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 		{% endif %}
 		<br>
-		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|thumbedge }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
 		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
@@ -46,7 +45,7 @@
 		{% if other_photos %}
 		<br><span class="csw co"><b>{{ photo.owner }} ki aur photos:</b></span><br><br>
 		{% for pht in other_photos %}
-		<a href="{% url 'photo_detail' pht.id 6 %}"><img src="{{ pht.image_file.url|thumbedge }}" style="max-width:100px;width:100%;" class="mrs mbs"></img></a>
+		<a href="{% url 'photo_detail' pht.id 6 %}"><img src="{{ pht.image_file|s3:"thumb" }}" style="max-width:100px;width:100%;" class="mrs mbs"></img></a>
 		{% endfor %}
 		<hr size=1 COLOR="ORANGE">
 		{% else %}
@@ -84,20 +83,20 @@
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vote_score < -1 %}
 				{% if photo.image_file %}
-				<img class="pht bright" src="{{ photo.image_file.url|photoedge }}"></img>
+				<img class="pht bright" src="{{ photo.image_file|s3 }}"></img>
 				{% else %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% else %}
 				{% if photo.image_file %}
-				<img class="pht" src="{{ photo.image_file.url|photoedge }}"></img>
+				<img class="pht" src="{{ photo.image_file|s3 }}"></img>
 				{% else %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 				{% endif %}
 			{% endif %}
 
 		<br>
-			<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|thumbedge }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner.username }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+			<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner.username }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
 
 
 				{% if can_vote and not own_photo and not voted %}
@@ -116,7 +115,6 @@
 					<button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
 					{% endif %}
 					</a>
-
 
 				<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
 	{% endif %}

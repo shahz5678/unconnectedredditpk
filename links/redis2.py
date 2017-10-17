@@ -320,6 +320,7 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 		count += 1
 	return replies_list
 
+######################################## Sanitization functions ########################################
 
 def remove_notification_of_banned_user(target_id, object_id, object_type):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -336,7 +337,7 @@ def remove_notification_of_banned_user(target_id, object_id, object_type):
 	pipeline1.execute()
 	my_server.delete(notification)
 
-def remove_group_object(group_id=None):
+def remove_group_object(group_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_object = "o:3:"+str(group_id)
 	my_server.delete(group_object)
@@ -387,6 +388,83 @@ def clean_expired_notifications(viewer_id):
 				pipeline3.delete(object_hash)
 			count += 1
 		result3 = pipeline3.execute()
+
+
+def bulk_sanitize_notifications(inactive_user_ids):
+	"""Sanitize all notification acitivity of inactive users.
+
+	This is a helper function for remove_inactives_notification_activity()
+	We will be removing the following for each inactive user:
+	1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
+	2) ua:<user_id> --- a sorted set containing notifications for 'matka',
+	3) uar:<user_id> --- a sorted set containing resorted notifications,
+	4) np:<user_id>:*:* --- all notification objects associated to the user,
+	5) o:*:* --- any objects that remain with 0 subscribers,
+	We will do everything in chunks of 10K, so that no server timeouts are encountered.
+	"""
+	if inactive_user_ids:
+		from itertools import chain
+		my_server = redis.Redis(connection_pool=POOL)
+		#####################################################
+		ids_to_process = []
+		for user_id in inactive_user_ids:
+			try:
+				ids_to_process.append(str(int(user_id)))
+			except:
+				pass
+		#####################################################
+		# get all notification objects to delete
+		pipeline1 = my_server.pipeline()
+		for user_id in ids_to_process:
+			pipeline1.zrange("sn:"+user_id, 0, -1)
+			pipeline1.zrange("ua:"+user_id, 0, -1)
+		all_notifications_to_delete = list(set(chain.from_iterable(pipeline1.execute())))
+		#####################################################
+		# get all sorted sets to delete
+		all_sorted_sets_to_delete = []
+		for user_id in ids_to_process:
+			all_sorted_sets_to_delete.append("sn:"+user_id)
+			all_sorted_sets_to_delete.append("ua:"+user_id)
+			all_sorted_sets_to_delete.append("uar:"+user_id)
+		#####################################################
+		# delete all notification objects and sorted sets
+		pipeline2 = my_server.pipeline()
+		for key_name in all_notifications_to_delete+all_sorted_sets_to_delete:
+			pipeline2.delete(key_name)
+		pipeline2.execute()
+		#####################################################
+		# decrement all related objects
+		if all_notifications_to_delete:
+			pipeline3 = my_server.pipeline()
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				pipeline3.hincrby(object_hash,"n",amount=-1)
+			pipeline3.execute()
+			#####################################################
+			# delete all objects with no subscribers
+			objects_to_review = []
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				objects_to_review.append(object_hash)
+			objects_to_review = list(set(objects_to_review))
+			pipeline4 = my_server.pipeline()
+			for obj in objects_to_review:
+				pipeline4.hget(obj,'n')
+			subscribers = pipeline4.execute()
+			count, objects_deleted= 0, 0
+			pipeline5 = my_server.pipeline()
+			for obj in objects_to_review:
+				if subscribers[count] and int(subscribers[count]) < 1:
+					objects_deleted += 1
+					pipeline5.delete(obj)
+				count += 1
+			pipeline5.execute()
+			return len(all_notifications_to_delete), len(all_sorted_sets_to_delete), objects_deleted
+		else:
+			return 0, len(all_sorted_sets_to_delete), 0
+	else:
+		return 0, 0, 0
+
 
 def prev_unseen_activity_visit(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)

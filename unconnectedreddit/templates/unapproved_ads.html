@@ -1,5 +1,5 @@
 {% extends "base_ecomm.html" %}
-{% load complete_url %}
+{% load s3 %}
 {% load human_time %}
 {% load get_pagination_buttons %}
 {% load show_device %}
@@ -121,7 +121,7 @@
 		<input type="hidden" name="only_locked" value="{{ only_locked }}">
 		<button type="submit" style="border-color:#ff8000;" class="btn bco bl" name="dec" value="{{ pht_id }}">Make cover</button><br>
 		{% endif %}
-		<img class="pht mrs mts" src="{{ photo_url|complete_url }}">
+		<img class="pht mrs mts" src="{{ photo_url|s3 }}">
 		</td>
 	{% endfor %}
 	</form>
@@ -174,7 +174,7 @@
 	<tr style="vertical-align: top;">
 	{% for photo_url,status,pht_id in submission.photos %}
 		<td style="display: inline-block;">
-		<img class="pht mrs mts" src="{{ photo_url|complete_url }}">
+		<img class="pht mrs mts" src="{{ photo_url|s3 }}">
 		</td>
 	{% endfor %}
 	</tr>

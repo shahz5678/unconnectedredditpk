@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbedge %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
     <div class="margin">
@@ -13,10 +13,10 @@
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
             {% for obj in object_list %}
-                <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+                <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' slug=obj.username %}#section0">
                 {% if obj.userprofile__avatar %}
-                    <img src='//damadamthumbs.azureedge.net{{ obj.userprofile__avatar|slice:"7:" }}' width="22" height="22" alt="no pic"></img>
+                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
                 {% else %}
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                 {% endif %}
@@ -44,10 +44,10 @@
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
             {% for obj in object_list %}
-                <span class="cgy cm">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+                <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">
                         {% if obj.userprofile__avatar %}
-                            <img src='//damadamthumbs.azureedge.net{{ obj.userprofile__avatar|slice:"7:" }}' width="22" height="22" alt="no pic"></img>
+                            <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
                         {% else %}
                             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
                         {% endif %}

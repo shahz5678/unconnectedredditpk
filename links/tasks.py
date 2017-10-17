@@ -8,7 +8,7 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
-from imagestorage import delete_from_blob
+# from imagestorage import delete_from_blob
 from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
@@ -16,7 +16,7 @@ SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
-from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, \
+from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
 from .redis4 import expire_online_users, get_recent_online, set_online_users
@@ -154,7 +154,7 @@ def sanitize_unused_ecomm_photos(photo_ids=None):
 		qset.delete()
 		# deleting actual images+thumbnails in azure storage
 		delete_avg_hash(avg_hashes,categ='ecomm')
-		delete_from_blob(image_names)
+		# delete_from_blob(image_names)
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
 def set_user_binding_with_twilio_notify_service(user_id,phone_number):
@@ -459,8 +459,11 @@ def fans():
 	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').in_bulk(user_ids)
 	top_list = []
 	for user_id in user_ids:
-		top_list.append((user_ids_and_user_objects[int(user_id)],user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
-			user_ids_and_user_objects[int(user_id)].userprofile,user_ids_and_fan_counts[user_id]))
+		top_list.append({"user_obj":user_ids_and_user_objects[int(user_id)],'username':user_ids_and_user_objects[int(user_id)].username,\
+			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
+			"user_profile":user_ids_and_user_objects[int(user_id)].userprofile,\
+			"fan_count":user_ids_and_fan_counts[user_id]})
+	top_list = retrieve_thumbs(top_list)
 	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
 			'LOCATION': MEMLOC, 'TIMEOUT': 1260,
 		})
@@ -822,50 +825,50 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 				create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
 					unseen_activity=True)
 
-@celery_app1.task(name='tasks.report')
-def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
-	if report_origin == '1':
-		#origin:chupair
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
-	elif report_origin == '2':
-		#origin:publicreply
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Publicreply', report_origin=report_origin, which_publicreply_id=which_publicreply_id)
-	elif report_origin == '7':
-		#origin:photocomment
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
-	elif report_origin == '3':
-		#origin:nickname
-		userprofile = UserProfile.objects.get(user_id=reporter_id)
-		target = User.objects.get(id=target_id)
-		latest_user = User.objects.latest('id')
-		userprofile.score = userprofile.score - 10
-		userprofile.save()
-		if int(latest_user.id) - int(target_id) < 50:
-			Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason=target.username, report_origin=report_origin)
-		else:
-			# i.e. do nothing if it's an old id
-			pass
-	elif report_origin == '4':
-		#origin:profile
-		if report_reason == '1':
-			reason = 'gali di'
-		elif report_reason == '2':
-			reason = 'dhamki di'
-		elif report_reason == '3':
-			reason = 'fake profile'
-		elif report_reason == '4':
-			reason = 'gandi baat'
-		elif report_reason == '5':
-			reason = 'password manga'
-		elif report_reason == '6':
-			reason = 'firqa wariyat'
-		elif report_reason == '7':
-			reason = 'gandi photo'
-		elif report_reason == '8':
-			reason = 'fake admin'
-		else:
-			reason = report_reason
-		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
+# @celery_app1.task(name='tasks.report')
+# def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):
+# 	if report_origin == '1':
+# 		#origin:chupair
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Chupair', report_origin=report_origin, which_link_id=which_link_id)
+# 	elif report_origin == '2':
+# 		#origin:publicreply
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='Publicreply', report_origin=report_origin, which_publicreply_id=which_publicreply_id)
+# 	elif report_origin == '7':
+# 		#origin:photocomment
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason='PhotoComment', report_origin=report_origin, which_photocomment_id=which_photocomment_id, which_photo_id=which_photo_id)
+# 	elif report_origin == '3':
+# 		#origin:nickname
+# 		userprofile = UserProfile.objects.get(user_id=reporter_id)
+# 		target = User.objects.get(id=target_id)
+# 		latest_user = User.objects.latest('id')
+# 		userprofile.score = userprofile.score - 10
+# 		userprofile.save()
+# 		if int(latest_user.id) - int(target_id) < 50:
+# 			Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_reason=target.username, report_origin=report_origin)
+# 		else:
+# 			# i.e. do nothing if it's an old id
+# 			pass
+# 	elif report_origin == '4':
+# 		#origin:profile
+# 		if report_reason == '1':
+# 			reason = 'gali di'
+# 		elif report_reason == '2':
+# 			reason = 'dhamki di'
+# 		elif report_reason == '3':
+# 			reason = 'fake profile'
+# 		elif report_reason == '4':
+# 			reason = 'gandi baat'
+# 		elif report_reason == '5':
+# 			reason = 'password manga'
+# 		elif report_reason == '6':
+# 			reason = 'firqa wariyat'
+# 		elif report_reason == '7':
+# 			reason = 'gandi photo'
+# 		elif report_reason == '8':
+# 			reason = 'fake admin'
+# 		else:
+# 			reason = report_reason
+# 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 
 @celery_app1.task(name='tasks.video_upload_tasks')
 def video_upload_tasks(video_name, video_id, user_id):

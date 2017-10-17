@@ -1,0 +1,16 @@
+{% if allowed %}
+	<div class="mbs" style="background-color:#69F0AE;color:#01579B;padding:5px 5px 5px 5px;border-radius:4px;">
+	<div style="text-align:center;">
+	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="star">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="star">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="star">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="star"><br>
+	<b class="cxl">&nbsp;Welcome! Damadam safai ke baad wapis aa gaya!&nbsp;</b>
+	</div>
+		<div style="text-align:center;">
+		<a href="{% url 'damadam_cleanup' %}"><button class="btn bcb bl mtl mbs mrl">Tafseel</button></a>
+		<form method="POST" action="{% url 'skip_outage_notif' %}" style="display:inline">
+			{% csrf_token %}
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<button class="btn bs cs bco mts mbs" name="skip" value="{{ user_id }}">skip</button>
+		</form>
+		</div>
+	</div>
+{% endif %}

@@ -2,12 +2,11 @@
 {% load humanize %}
 {% load mathfilters %}
 {% load emoticons_tags %}
-{% load thumbedge %}
 {% load get_item %}
 {% load voted %}
 {% load photo_voted %}
 {% load human_time %}
-{% load photoedge %}
+{% load s3 %}
 {% load get_mobile_shop %}
 {% load get_fan_button %}
 {% load get_voting %}
@@ -19,16 +18,21 @@
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
+{% load get_live_mobile_shop %}
 {% block content %}
 
 <div class="margin">
+
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	{% newbie_rules 'home' STATIC_URL newbie_lang %}
 {% else %}
+	<!-- -->
+
+	<!-- -->
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 
-	{% mobile_verification_bar ident csrf score %}
+	{% mobile_verification_bar ident csrf mobile_verified score %}
 
 	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True %}	
 {% endif %}
@@ -81,11 +85,6 @@
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
-		<p><hr size=1 COLOR="#BDBDBD"></p></div>
-	{% endif %}
-	{% if forloop.counter == 8 %}
-		<div style="margin-top:-1em;padding-top:1em;background-color:#00c853" >
-		{% mobile_shop STATIC_URL %}
 		<p><hr size=1 COLOR="#BDBDBD"></p></div>
 	{% endif %}
 	{% if forloop.counter == 13 %}
@@ -141,7 +140,7 @@
 
 
 		<div style="display:inline-block">
-		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|thumbedge lid=link.l origin=3 static_url=STATIC_URL %}
+		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
 		</div><br>	    
 	
 	</div>
@@ -157,13 +156,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -172,20 +171,19 @@
 		    {% endif %}
 		    
 
-
 		{% if link.aw == '1' and link.h|add:"0" > 5 %}
 	    	{% if link.v|add:"0" < -2 %}
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|thumbedge }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright" alt="{{ link.de }}"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 			{% else %}
 			    {% if link.i %}
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|photoedge }}"></img></a>
+			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}" alt="{{ link.de }}"></img></a>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -228,6 +226,7 @@
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
 
+
 			<br>
 
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
@@ -243,9 +242,10 @@
 			{% endif %}
 			
 			{% if link.cc|add:"0" > 6 %}
-			<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
-			{% csrf_token %}
-			&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button></form>
+				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
+				{% csrf_token %}
+				&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>
+				</form>
 			{% endif %}
 
 			

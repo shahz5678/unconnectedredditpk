@@ -1,8 +1,7 @@
 {% extends "base.html" %}
+{% load s3 %}
 {% load humanize %}
 {% load emoticons_tags %}
-{% load thumbedge %}
-{% load photoedge %}
 {% load get_mobile_verification_bar %}
 {% block content %}
 <div class="margin">
@@ -18,13 +17,13 @@
     <a href="{% url 'group_page' %}#section0"><button class="btn bm bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    {% mobile_verification_bar user.id csrf score %}
+    {% mobile_verification_bar user.id csrf mobile_verified score %}
     <a href="{% url 'leave_public_group' pk=group.id unique=group.unique private=0 inside_grp=1 %}"><button class="btn bxs bcr"><b>X</b></button></a>
         &nbsp;<span class="clb"><b><bdi>{% emoticons %}{{ group.topic }}{% endemoticons %}</bdi></b></span>
         <span class="cgy cs">, by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+            <img src="{{ group.owner.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -139,7 +138,7 @@
             <span class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne&nbsp;qanoon&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b>&nbsp;rakh&nbsp;diya</span>
         {% else %}
             {% if reply.image %}
-            <img class="pht" src="{{ reply.image.url|photoedge }}"></img><br>
+            <img class="pht" src="{{ reply.image.url|s3 }}"></img><br>
             {% endif %}
 
                 {% if time < 51 %}
@@ -152,7 +151,7 @@
 
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar.url|thumbedge }}" alt="no pic"></img>
+                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
             {% endif %}

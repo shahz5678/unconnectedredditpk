@@ -17,10 +17,9 @@ from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, namify, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
-unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, is_mobile_verified, get_city_ad_ids, get_all_pakistan_ad_count,\
-string_tokenizer, ad_owner_id, process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, \
-get_and_delete_ecomm_photos_secret_key, reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, \
-check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
+unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, get_city_ad_ids, get_all_pakistan_ad_count, string_tokenizer, ad_owner_id, \
+process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, get_and_delete_ecomm_photos_secret_key, \
+reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
 from django.db.models import F
 
 from links.ads_forms import BuyerForm
@@ -46,12 +45,12 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 #################################################################
 
 MERCH = { 
-'1': {'price':'4000' ,'discounted_price':'3600', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
-'2': {'price':'5000' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
-'3': {'price':'6800' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
-'4': {'price':'7300' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
-'5': {'price':'9000','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
-'6': {'price':'10700','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
+'1': {'price':'3600' ,'discounted_price':'3600', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
+'2': {'price':'4500' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
+'3': {'price':'6120' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'4': {'price':'6570' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
+'5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
+'6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
 }
 
 LOCATION = { 
@@ -63,7 +62,7 @@ LOCATION = {
 'hyd': 'Hyderabad', \
 'fsd': 'Faisalabad', \
 'mul': 'Multan', \
-'sbi': 'Sawabi',\
+'sbi': 'Swabi',\
 'atk': 'Attock'
 }
 
@@ -374,7 +373,7 @@ def show_user_ads(request,*args,**kwargs):
 # @csrf_protect
 # def show_seller_number(request,*args,**kwargs):
 # 	user_id = request.user.id
-# 	is_verified = is_mobile_verified(user_id)
+# 	is_verified = request.mobile_verified
 # 	if request.method == 'POST':
 # 		ad_id = request.POST.get('ad_id',None)
 # 		if not is_verified:
@@ -995,11 +994,12 @@ def warranty(request,origin,*args,**kwargs):
 def buyer_loc(request,*args,**kwargs):
 	user_id = request.user.id
 	if request.method == 'POST':
-		mobile_verified = is_mobile_verified(user_id)
+		mobile_verified = request.mobile_verified
 		request.session['mobile_verified']=mobile_verified
 		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
 		request.session["which_phone"] = merch_id
 		request.session.modified = True
+		mp.track(request.user.id, 'M_S_2 On_location')
 		return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':mobile_verified})
 	else:
 		try:
@@ -1007,46 +1007,60 @@ def buyer_loc(request,*args,**kwargs):
 		except:
 			merch_id = None
 		if merch_id:
-			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':is_mobile_verified(user_id)})
+			mp.track(request.user.id, 'M_S_2 On_location')
+			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':request.mobile_verified})
 		else:
 			user_score = 0
 			user_score = request.user.userprofile.score
 			score_diff = 5000-int(user_score)
+			mp.track(request.user.id, 'M_S_1.1 came to shop')
 			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
 
 
 @csrf_protect
 def mobile_shop(request,*args,**kwargs):
-	if request.method == 'POST':
-		user_id = request.user.id
-		request.session.pop('mobile_verified',None)
-		mobile_verified = is_mobile_verified(user_id)
-		request.session['mobile_verified']=mobile_verified
-		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
-		loc = request.POST.get('loc',None)
-		if loc == None or merch_id == None:
-				return render(request,"buyer_loc.html",{'merch_id':merch_id,"mobile_verified":mobile_verified})
-		else:
-			if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
-			or loc == 'sbi' or loc == 'atk':
-	 			# move on to asking the user their mobile numer and their real name
-	 			request.session['mobile_buyer_city'] = loc
-	 			request.session['merch_id'] = merch_id
-	 			request.session.modified = True
-	 			return redirect("buyer_details")
-			else:
-				return render(request,"service_unavailable.html",{}) 	
-	else:
-		user_score = 0
-		user_score = request.user.userprofile.score
-		score_diff = 5000-int(user_score)
-		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
+	return render(request,"404.html",{})
+	
+	# if request.method == 'POST':
+	# 	user_id = request.user.id
+	# 	request.session.pop('mobile_verified',None)
+	# 	mobile_verified = request.mobile_verified
+	# 	request.session['mobile_verified']=mobile_verified
+	# 	merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
+	# 	loc = request.POST.get('loc',None)
+	# 	if loc == None or merch_id == None:
+	# 			return render(request,"buyer_loc.html",{'merch_id':merch_id,"mobile_verified":mobile_verified})
+	# 	else:
+	# 		if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
+	# 		or loc == 'sbi' or loc == 'atk':
+	#  			# move on to asking the user their mobile numer and their real name
+	#  			request.session['mobile_buyer_city'] = loc
+	#  			request.session['merch_id'] = merch_id
+	#  			request.session.modified = True
+	#  			mp.track(request.user.id, 'M_S_3 relevant_location')
+	#  			return redirect("buyer_details")
+	# 		else:
+	# 			mp.track(request.user.id, 'M_S_4 No_service_city')
+	# 			return render(request,"service_unavailable.html",{}) 	
+	# else:
+	# 	user_id=request.user.id
+	# 	order_in_process = check_orders_processing(user_id)
+	# 	user_score = 0
+	# 	user_score = request.user.userprofile.score
+	# 	score_diff = 5000-int(user_score)
+	# 	mp.track(request.user.id, 'M_S_1 came to shop')
+	# 	if user_score < 5000:
+	# 		mp.track(request.user.id,'M_S_S Score not enough')
+	# 	else:
+	# 		mp.track(request.user.id,'M_S_S Score enough')
+	# 	return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 @csrf_protect
 def buyer_details(request,*args,**kwargs):
 	if request.method == 'POST':
 		form = BuyerForm(request.POST)
 		if form.is_valid():
+			mp.track(request.user.id, 'M_S_5.1 correct buyer detail')
 			username = form.cleaned_data.get("username",None)
 			name = username.strip().title()
 			i=0
@@ -1072,7 +1086,8 @@ def buyer_details(request,*args,**kwargs):
  			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':user_id,\
  			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model} 
 
-			if is_mobile_verified(user_id):
+			if request.mobile_verified:
+
 				number = get_user_verified_number(user_id)
 				request.session['buyer_phonenumber']=number[0]
 				request.session.modified = True
@@ -1080,10 +1095,12 @@ def buyer_details(request,*args,**kwargs):
 				saved = save_order_data(order_data)
 				
 				if saved:
+					mp.track(request.user.id, 'M_S_7 On confirm order')
 					return redirect("confirm_order")
 				else:
 					return render(request,"404.html",{})
 			else:
+				mp.track(request.user.id, 'M_S_7.1 on confirm Phone`')
 				CSRF = csrf.get_token(request)
 				request.session["csrf"] = CSRF
 				request.session.modified = True	
@@ -1091,13 +1108,15 @@ def buyer_details(request,*args,**kwargs):
 			 	if saved:
 			 		return render(request,'verify_buyer.html',{'ON_AZURE':ON_AZURE,'csrf':CSRF})
 		 		else:
+					mp.track(request.user.id, 'M_S_E phone verification')
 		 			return render(request,"404.html",{})	
 		else:
+			mp.track(request.user.id, 'M_S_5 on buyer detail')
 			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
 	else:
 		form = BuyerForm()
 		mobile_verified = request.session['mobile_verified']
-#		mp.track(request.user.id, 'Entered details for order')
+		mp.track(request.user.id, 'M_S_6 entered incorrect info')
 		return render(request,'buyer_detail.html',{'form':form,'device':get_device(request),'mobile_verified':mobile_verified})
 
 
@@ -1108,6 +1127,7 @@ def confirm_order(request):
 		user_id = request.session['mobile_buyer_id']
 		check = check_orders_processing(user_id)
 		if check:
+			mp.track(request.user.id, 'M_S_8 ordering second')
 			return redirect("in_process")
 		else:
 			merch_id = request.session['merch_id']
@@ -1116,7 +1136,9 @@ def confirm_order(request):
 			if saved:
 				user_score = request.user.userprofile.score			
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
-				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)				
+				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)
+				enqueue_buyer_sms.delay('+923335196812', saved["order_id"], saved, None)
+				mp.track(request.user.id, 'M_S_9 order placed')				
 				return redirect("order_successful")
 			else:
 				return render(request,"404.html",{})
@@ -1153,6 +1175,7 @@ def confirm_order(request):
 # 			buy_possible = 1 
 	
 def order_successful(request):
+	mp.track(request.user.id, 'M_S_9.1 order placed shown')	
 	return render(request,"order_placed_successfully.html",{})
 
 def in_process(request):
@@ -1161,36 +1184,6 @@ def in_process(request):
 def get_new_orders(request):
 	orders = show_new_orders()
 	return render(request,'new_orders.html', {'orders':orders})
-
-
-# def num_verification(request,*args,**kwargs):
-# 	user_id = request.user.id
-# 	ON_AZURE = request.session['ON_AZURE']
-# 	csrf = request.session['csrf']
-# 	if is_mobile_verified(user_id):
-# 		print "mobile verified"
-# 		return redirect('buyer_verification.html',{})
-# 	else:
-# 	 	print "mobile not verified"
-# 	 	return render(request,'verify_buyer_number.html',{'ON_AZURE':ON_AZURE,'csrf':csrf})
-
-
-# 			#city = request.session['city']
-# 			order_data = {'firstname':firstname,'lastname':lastname,'city':city,'address':address,'user_id':request.user.id,'order_id':order_id}
-# 			#enqueue_sms.delay(MN_data["number"], int(float(ad_id)), 'unique_click', buyer_number)
-# 			saved = save_order_data(order_data)
-# 			request.session.pop('city',None)
-# 			if saved:
-# #				mp.track(request.user.id, 'Completed order')
-# # 				if is_mobile_verified():
-# #						UserProfile.objects.filter(user_id=user_id).update(score=F('score')-10000)
-# # 				else:
-
-# 				return render(request,"order_placed_successfully.html",{})
-# 			else:
-# 				return render(request,'404.html',{})
-
-	
 
 def buyer_verify():
 	return render(request,"buyer_verification.html",{})

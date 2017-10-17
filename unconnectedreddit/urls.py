@@ -2,12 +2,12 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
-from django.contrib.auth.views import logout_then_login
 from links.models import UserProfile
 from links.api import process_req, suspend_req, delete_req, resume_req
 from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
+from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
@@ -58,10 +58,6 @@ urlpatterns = patterns('',
 	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
 	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
 	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/(?P<add_score>\d+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
-	# url(r'^populate_nicks/$', auth(insert_nicks), name='insert_nicks'),
-	# url(r'^change_nicks/$', auth(change_nicks), name='change_nicks'),
-	# url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
-	# url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
@@ -80,7 +76,6 @@ urlpatterns = patterns('',
 	url(r'^calculator/$', auth(calculator), name='calculator'),
 	url(r'^whook/$', webhook_event, name='webhook_event'),
 	#########################################Logging out############################################
-	url(r'^log_me_out/$', auth(logout_then_login), name="log_me_out"),
 	url(r'^are_you_sure/$', auth(logout_rules), name="bahirniklo"),
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	url(r'^click_ad/(?P<ad_id>\d+)/', auth(click_ad),name='click_ad'),
@@ -336,3 +331,4 @@ urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
 urlpatterns += urlpatterns_banning
+urlpatterns += urlpatterns_maint

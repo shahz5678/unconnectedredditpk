@@ -57,6 +57,19 @@ color: ;
 	<div id="background-box" class="mbl background-box" style="text-align:center">
 
 <!-- #################################HEADER############################################ -->
+
+
+
+{% if order_in_process %}
+		<div class="cl clb mbs" align="center" style="border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#B3E5FC;">
+				<b>
+				Aap aik say ziada phone order nahi ker sakte</b> <br> 
+				<div class="cr" style="text-align:center; font-size:15px; margin:10px; margin-bottom:2px; background-color:#E1F5FE; border-radius:6px; padding:2px;">Note: Aap ka aik order hamarey pass pehle hee maujood hai</br></div> 
+		</div>
+		<hr size=2 COLOR="#A9A9A9">	
+
+
+{% else %}
 		<div class="cl clb mbs" align="center" style="border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#B3E5FC;">
 				<b>
 				New Touchscreen Phone Discount Offer</b> <br> 
@@ -69,7 +82,11 @@ color: ;
 		</div>
 
 		<hr size=2 COLOR="#A9A9A9">	
+
+{% endif %}
+
 <!-- #################################ITEM BLOCK############################################ -->
+
 		<div id="product-name">
 				<span itemscope itemtype="http://schema.org/Product">
 				<h1 class="cl" style="font-weight:normal"> 
@@ -125,6 +142,7 @@ color: ;
 
 		{% if user_score < 5000 %}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -132,8 +150,8 @@ color: ;
 			</div>
 		 	<br>
 		{%else%}
-			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
-			</b><br>
+			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 			<form method="POST" action="{% url 'buyer_loc' %}">
 				{% csrf_token %}
 				<input type="hidden" name="merch_id" value="1">
@@ -200,6 +218,7 @@ color: ;
 		</a>
 		{% if user_score < 5000 %}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -207,8 +226,8 @@ color: ;
 			</div>
 		 	<br>
 		{%else%}
-			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
-			</b><br>
+			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 			<form method="POST" action="{% url 'buyer_loc' %}">
 				{% csrf_token %}
 				<input type="hidden" name="merch_id" value="2">
@@ -275,6 +294,7 @@ color: ;
 
 		{% if user_score < 5000 %}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -282,8 +302,8 @@ color: ;
 			</div>
 		 	<br>
 		{%else%}
-			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
-			</b><br>
+			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 			<form method="POST" action="{% url 'buyer_loc' %}">
 				{% csrf_token %}
 				<input type="hidden" name="merch_id" value="3">
@@ -351,6 +371,7 @@ color: ;
 
 		{% if user_score < 5000 %}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -358,8 +379,8 @@ color: ;
 			</div>
 		 	<br>
 		{%else%}
-			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
-			</b><br>
+			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 			<form method="POST" action="{% url 'buyer_loc' %}">
 				{% csrf_token %}
 				<input type="hidden" name="merch_id" value="4">
@@ -428,7 +449,8 @@ color: ;
 			</a>
 
 			{% if user_score < 5000 %}
-				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 				<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 					<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 					<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -438,6 +460,7 @@ color: ;
 			{%else%}
 				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
 				</b><br>
+				<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 				<form method="POST" action="{% url 'buyer_loc' %}">
 					{% csrf_token %}
 					<input type="hidden" name="merch_id" value="5">
@@ -505,6 +528,7 @@ color: ;
 		</a>	
 		{% if user_score < 5000 %}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
 			<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
 				<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
 				<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
@@ -514,6 +538,7 @@ color: ;
 		{%else%}
 			<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points kaate jaien gay
 			</b><br>
+			<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
 			<form method="POST" action="{% url 'buyer_loc' %}">
 				{% csrf_token %}
 				<input type="hidden" name="merch_id" value="6">

@@ -15,8 +15,8 @@
 <hr size=1 COLOR="#b3e6b3">
 	<b class="profile">Profile photo:</b>
 	{% if object.userprofile.avatar %}
-	{% load photoedge %}
-		<br><img class="pht" src="{{ object.userprofile.avatar.url|photoedge }}" alt="no photo"></img>
+	{% load s3 %}
+		<br><img class="pht" src="{{ object.userprofile.avatar|s3 }}" alt="no photo"></img>
 	{% elif object.username == user.username %}
 		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" alt="no photo"></img>
 	{% else %}

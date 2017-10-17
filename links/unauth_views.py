@@ -1,7 +1,7 @@
 import shortuuid
 from django.db import transaction
 from django.contrib.auth import login as quick_login
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 ######################################################################################
 from django.contrib.auth.views import login as log_me_in
@@ -45,6 +45,17 @@ def create_dummy_user(request):
 		user.save()
 		insert_nick(uname)
 	return uname
+
+######################################################################################
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def logout_then_login(request):
+	if request.method == "POST":
+		logout(request)
+		return redirect("login")
+	else:
+		return redirect("home")
 
 ######################################################################################
 
@@ -107,8 +118,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 				else:
 					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
 			###################################################################################################
-			is_verified = is_mobile_verified(user_id)
-			if is_verified:
+			if is_mobile_verified(user_id):
 				################################################
 				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
 				################################################
@@ -204,24 +214,11 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		# guest_id = request.session.get('guest_id',None)
-  # 		if not guest_id:
-  # 			guest_id = get_temp_id()
-  # 			request.session['guest_id'] = guest_id
-  # 		mp.track(guest_id, 'new_signup_page')
+		# return render(request,"work_in_progress.html",{})
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
-		#########################################################################
-		# print guest_id
-		# print variation
-		# if variation == 'with_loc':
-		# 	# load new unauth_page (with Urdu translation)
-		# 	return render(request,"unauth_home.html",{'form':form})
-		# elif variation == 'without_loc':
-		# 	return render(request,"unauth_home_old.html",{'form':form})
-		# else:
-		# 	return render(request,"unauth_home_old.html",{'form':form})
-		#########################################################################
+
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
@@ -342,7 +339,6 @@ def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
 		# mp.track(request.session.get('tid',None), 'load_pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			# mp.track(request.session.get('tid',None), 'create_new_pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -382,7 +378,6 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			# mp.track(request.session.get('guest_id',None), 'name_finalized')
 			if lang == "ur":
 				return redirect('create_password_new', lang=lang, slug=result,length=length)
 			else:
@@ -412,7 +407,6 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('guest_id',None), 'name_finalized')
 					if lang == "ur":
 						return redirect('create_password_new',lang=lang, slug=result,length=length)
 					else:
@@ -428,14 +422,12 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 				# except:
 				# 	pass
 				###############################################################################	
-				# mp.track(request.session.get('tid',None), 'retry_new_nick')
 				if lang == 'ur':
 					return render(request, 'create_nick_new_ur.html', context)
 				else:
 					return render(request, 'create_nick_new.html', context)
 	else:
 		form = CreateNickNewForm()
-		# mp.track(request.session.get('tid',None), 'create_new_nick')
 		if lang == 'ur':
 			return render(request, 'create_nick_new_ur.html', {'form':form})
 		else:

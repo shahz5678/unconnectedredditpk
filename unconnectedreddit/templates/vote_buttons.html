@@ -35,10 +35,11 @@
 						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ cricket_downvote }}" type="submit">&nbsp;</button><br>
 						<button class="btn mbs mrs bjh bjh_att" type="submit" name="{{ vote_type }}" value="{{ super_cricket_upvote }}">+20</button>&nbsp;&nbsp;
 						<button class="btn mbs bch bch_att" type="submit" name="{{ vote_type }}" value="{{ super_cricket_downvote }}">- 20</button><br>
+						</form>
 					{% else %}
 						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ cricket_upvote }}" type="submit">&nbsp;</button>
 						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ cricket_downvote }}" type="submit">&nbsp;</button>
-					</form>
+						</form>
 					{% endif %}
 				{% else %}
 					{% if females and oun in females %}
@@ -46,10 +47,11 @@
 						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ downvote }}" type="submit">&nbsp;</button><br>
 						<button class="btn mbs mrs bjh bjh_att" type="submit" name="{{ vote_type }}" value="{{ super_upvote }}">+20</button>&nbsp;&nbsp;
 						<button class="btn mbs bch bch_att" type="submit" name="{{ vote_type }}" value="{{ super_downvote }}">- 20</button><br>
+						</form>
 					{% else %}
 						<button class="mrs mbs jh jh_bg" name="{{ vote_type }}" value="{{ upvote }}" type="submit">&nbsp;</button>
 						<button class="mts mls mbs ch ch_bg" name="{{ vote_type }}" value="{{ downvote }}" type="submit">&nbsp;</button>
-					</form>
+						</form>
 					{% endif %}
 				{% endif %}
 

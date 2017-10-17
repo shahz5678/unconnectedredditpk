@@ -1,3 +1,6 @@
+import uuid, os
+############################################
+############################################
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -7,8 +10,7 @@ from datetime import datetime
 from math import log
 from django.core.validators import MaxLengthValidator, MaxValueValidator, URLValidator
 from django.conf import settings
-from imagestorage import OverwriteStorage, upload_to_location, upload_pic_to_location, upload_chatpic_to_location, upload_avatar_to_location, \
-upload_photo_to_location, upload_photocomment_to_location
+from imagestorage import upload_to_photos, upload_to_avatars, upload_to_mehfils, upload_to_links, upload_to_photocomments, upload_to_picschat
 from videostorage import OverwriteVideoStorage, upload_video_to_location
 
 PHOTOS = (
@@ -116,6 +118,7 @@ REPLIES = (
 ('7','Unaccepted Invite'),
 	)
 
+
 class LinkVoteCountManager(models.Manager): #this class is derived from model manager
 	pass
 	#def get_query_set(self): #all we're doing here is over-riding get_query_set. 
@@ -134,8 +137,8 @@ class Link(models.Model):
 	net_votes = models.IntegerField(default=0) #only counts votes, for censorship purposes
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
-	image_file = models.ImageField("Photo charhao:",upload_to=upload_to_location, storage=OverwriteStorage(), null=True, blank=True )
-	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, on_delete=models.CASCADE)#models.SET_NULL)
+	image_file = models.ImageField("Photo charhao:",upload_to=upload_to_links, null=True, blank=True )
+	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, db_index=True, on_delete=models.CASCADE)#models.SET_NULL)
 	
 	with_votes = LinkVoteCountManager() #change this to set_rank()
 	objects = models.Manager() #default, in-built manager
@@ -180,7 +183,7 @@ class PhotoStream(models.Model):
 class Photo(models.Model):
 	owner = models.ForeignKey(User)
 	which_stream = models.ManyToManyField(PhotoStream)
-	image_file = models.ImageField(upload_to=upload_photo_to_location, storage=OverwriteStorage())
+	image_file = models.ImageField(upload_to=upload_to_photos)
 	upload_time = models.DateTimeField(auto_now_add=True, db_index=True)
 	comment_count = models.IntegerField()
 	is_public = models.BooleanField(default=True) #in case user wants to upload private photos too
@@ -239,7 +242,7 @@ class PhotoComment(models.Model):
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	submitted_by = models.ForeignKey(User)
 	submitted_on = models.DateTimeField(auto_now_add=True)
-	image_comment = models.ImageField(upload_to=upload_photocomment_to_location, storage=OverwriteStorage())
+	image_comment = models.ImageField(upload_to=upload_to_photocomments)
 	has_image = models.BooleanField(default=False)
 	abuse = models.BooleanField(default=False)
 
@@ -253,7 +256,7 @@ class Video(models.Model):
 	#high_res_thumb = models.TextField(validators=[URLValidator()], null=True, default=None)
 	low_res_video = models.TextField(validators=[URLValidator()], null=True, default=None)
 	high_res_video = models.TextField(validators=[URLValidator()], null=True, default=None)
-	video_file = models.FileField(upload_to=upload_video_to_location, storage=OverwriteVideoStorage())
+	video_file = models.FileField(upload_to=upload_video_to_location)
 	category = models.CharField(choices=VIDEOS, default='1', max_length=11)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	is_public = models.BooleanField(default=True) #in case user wants to upload private videos too
@@ -364,13 +367,13 @@ class Logout(models.Model):
 		return u"%s logged out at %s, dropping score to 10 from %s" % (self.logout_user,self.logout_time,self.pre_logout_score)
 
 class Reply(models.Model):
-	text = models.TextField("Likho:",db_index=True, validators=[MaxLengthValidator(500)])
+	text = models.TextField("Likho:", validators=[MaxLengthValidator(500)])
 	which_group = models.ForeignKey(Group)
 	writer = models.ForeignKey(User) # reply.writer is a user!
 	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
-	image = models.ImageField("Tasveer:", upload_to=upload_pic_to_location, storage=OverwriteStorage(), null=True, blank=True )
+	image = models.ImageField("Tasveer:", upload_to=upload_to_mehfils, null=True, blank=True)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-	category = models.CharField(db_index=True,choices=REPLIES, default='0', max_length=15)
+	category = models.CharField(choices=REPLIES, default='0', max_length=15)
 
 	def __unicode__(self):
 		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)
@@ -432,7 +435,7 @@ class UserProfile(models.Model):
 	score = models.IntegerField("Score", default=0)
 	streak = models.IntegerField("Streak", default=0, db_index=True)
 	media_score = models.IntegerField("Media Score", default=0)
-	avatar = models.ImageField(upload_to=upload_avatar_to_location, storage=OverwriteStorage(), null=True, blank=True )
+	avatar = models.ImageField(upload_to=upload_to_avatars, null=True, blank=True )
 
 	def __unicode__(self):
 		return u"%s's profile" % self.user
@@ -503,7 +506,7 @@ class UserSettings(models.Model):
 		return u"%s's settings" % self.user
 
 class ChatPic(models.Model):
-	image = models.ImageField("Tasveer lagao:", upload_to=upload_chatpic_to_location, storage=OverwriteStorage())
+	image = models.ImageField("Tasveer lagao:", upload_to=upload_to_picschat)
 	owner = models.ForeignKey(User)
 	upload_time = models.DateTimeField(db_index=True, auto_now_add=True)
 	times_sent = models.IntegerField(default=0)

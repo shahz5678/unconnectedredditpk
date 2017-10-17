@@ -13,8 +13,12 @@ middleware here, or combine a Django application with an application of another
 framework.
 
 """
-import newrelic.agent
-newrelic.agent.initialize('/home/mhb11/newrelic.ini')
+# place env.py in the server separately, but never commit it
+from env import NEW_RELIC_CONFIG_FILE
+
+if NEW_RELIC_CONFIG_FILE:
+	import newrelic.agent
+	newrelic.agent.initialize(NEW_RELIC_CONFIG_FILE)
 
 import os
 
@@ -29,12 +33,4 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "unconnectedreddit.settings")
 # setting points here.
 from django.core.wsgi import get_wsgi_application
 from dj_static import Cling
-#import newrelic.agent
-
-#newrelic.agent.initialize('newrelic.ini')
-
 application = Cling(get_wsgi_application())
-
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)

@@ -1095,11 +1095,11 @@ def process_home_links(list_of_dicts):
 		count += 1
 	return photo_result, links_result
 
-def process_home_dicts(single_dict):
-	if 'pi' in single_dict:
-		return single_dict, single_dict
-	else:
-		return [], single_dict
+# def process_home_dicts(single_dict):
+# 	if 'pi' in single_dict:
+# 		return single_dict, single_dict
+# 	else:
+# 		return [], single_dict
 
 
 def retrieve_home_links(link_id_list):
@@ -1109,12 +1109,12 @@ def retrieve_home_links(link_id_list):
 		hash_name="lk:"+str(link_id)
 		pipeline1.hgetall(hash_name)
 	result1 = filter(None, pipeline1.execute())
-	# return process_home_links(result1)
-	pool = Pool()
-	results = pool.map(process_home_dicts, result1) # returns list of tuples containing a dictionary object and an empty list (for 'pi')
-	photo_result = [i[0] for i in results if i[0]]
-	link_result = [i[1] for i in results]
-	return photo_result, link_result
+	return process_home_links(result1)
+	# pool = Pool()
+	# results = pool.map(process_home_dicts, result1) # returns list of tuples containing a dictionary object and an empty list (for 'pi')
+	# photo_result = [i[0] for i in results if i[0]]
+	# link_result = [i[1] for i in results]
+	# return photo_result, link_result
 	
 
 def get_photo_link_mapping(photo_pk):

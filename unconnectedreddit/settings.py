@@ -281,7 +281,7 @@ if ON_AZURE == '1':
 		'USER': 'ubuntu',
 		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-		#'PORT': '6432',
+		'PORT': '6432',
 	}
 }
 elif ON_MAC == '1':

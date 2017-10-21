@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, public_group_vote_tasks, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, reset_best_photos_cache
+home_photo_tasks#, reset_best_photos_cache
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -3654,7 +3654,7 @@ class CommentView(CreateView):
 				latest_comm_av_url=url,latest_comm_writer_uname=user.username, exists=exists, citizen = citizen, time=comment_time)
 			photo_tasks.delay(user.id, pk, comment_time, photocomment.id, which_photo.comment_count, text, \
 				exists, user.username, url, citizen)
-			reset_best_photos_cache.delay(pk)
+			# reset_best_photos_cache.delay(pk)
 			##############################################################################################
 			##############################################################################################
 			# config_manager.get_obj().track('wrote_photocomment', user.id)
@@ -4068,7 +4068,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
 				update_cc_in_home_photo(pk)
-				reset_best_photos_cache.delay(pk)
+				# reset_best_photos_cache.delay(pk)
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url
@@ -4294,8 +4294,8 @@ def best_photo_location(request, *args, **kwargs):
 		request.session['best_photos'] = photos
 		request.session['best_photo_page'] = page_obj
 		request.session.modified = True
-		cache.set('best_photos'+str(page_num), photos, timeout=5*60)
-		cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
+		# cache.set('best_photos'+str(page_num), photos, timeout=5*60)
+		# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
 		return redirect("best_photo")
 	else:
 		try:
@@ -4309,8 +4309,8 @@ def best_photo_location(request, *args, **kwargs):
 		request.session['best_photos'] = photos
 		request.session['best_photo_page'] = page_obj
 		request.session.modified = True
-		cache.set('best_photos'+str(page_num), photos, timeout=5*60)
-		cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
+		# cache.set('best_photos'+str(page_num), photos, timeout=5*60)
+		# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
 		return redirect(url)
 
 @cache_page(60)
@@ -4371,29 +4371,34 @@ def best_photos_list(request,*args,**kwargs):
 					obj_list_keys = map(itemgetter(0), obj_list)
 					page_num = request.GET.get('page', '1')
 					page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-					cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
+					# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
 					context["page"] = page_obj
 					context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-					cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
+					# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
 				del request.session['best_photos']
 				del request.session['best_photo_page']
 			else:
 				# "normal refresh or toggling between pages"
 				page_num = request.GET.get('page', '1')
-				photos = cache.get('best_photos'+str(page_num))
-				page_obj = cache.get('best_photos_page_obj'+str(page_num))
-				if page_obj:
-					context["page"] = page_obj	
-				else:
-					obj_list = all_best_photos()
-					obj_list_keys = map(itemgetter(0), obj_list)
-					page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-					cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
-				if photos:
-					context["object_list"] = photos
-				else:
-					context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-					cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
+				obj_list = all_best_photos()
+				obj_list_keys = map(itemgetter(0), obj_list)
+				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+				context["page"] = page_obj
+				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+				# photos = cache.get('best_photos'+str(page_num))
+				# page_obj = cache.get('best_photos_page_obj'+str(page_num))
+				# if page_obj:
+				# 	context["page"] = page_obj	
+				# else:
+				# 	obj_list = all_best_photos()
+				# 	obj_list_keys = map(itemgetter(0), obj_list)
+				# 	page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+					# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
+				# if photos:
+				# 	context["object_list"] = photos
+				# else:
+				# 	context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+					# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = user.username
@@ -5893,7 +5898,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					device = '3'
 				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
 				photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo_id=pk, text=description,device=device)
-				reset_best_photos_cache.delay(pk)
+				# reset_best_photos_cache.delay(pk)
 				update_cc_in_home_photo(pk)
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
@@ -7122,7 +7127,7 @@ def cast_photo_vote(request,*args,**kwargs):
 					return render(request,'already_photovoted.html')
 				else:
 					#process the vote
-					reset_best_photos_cache.delay(photo_id)
+					# reset_best_photos_cache.delay(photo_id)
 					value = request.POST.get("photo_vote","")
 					citizen = request.mobile_verified
 					if value == '1':

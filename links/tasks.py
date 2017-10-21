@@ -8,12 +8,12 @@ from django.db.models import Count, Q, F, Sum
 from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+# from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
-from page_controls import PHOTOS_PER_PAGE
+# from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
@@ -51,22 +51,22 @@ MAX_FANS_TARGETED = 0.95 # 95%
 
 
 
-def get_page(index,objs_per_page):
-	page = (index // objs_per_page)+1 #determining page number
-	return page
+# def get_page(index,objs_per_page):
+# 	page = (index // objs_per_page)+1 #determining page number
+# 	return page
 
 
-def get_page_obj(page_num,obj_list,items_per_page):
-	# pass list of objects and number of objects to show per page, it does the rest
-	paginator = Paginator(obj_list, items_per_page)
-	try:
-		return paginator.page(page_num)
-	except PageNotAnInteger:
-		# If page is not an integer, deliver first page.
-		return paginator.page(1)
-	except EmptyPage:
-		# If page is out of range (e.g. 9999), deliver last page of results.
-		return paginator.page(paginator.num_pages)
+# def get_page_obj(page_num,obj_list,items_per_page):
+# 	# pass list of objects and number of objects to show per page, it does the rest
+# 	paginator = Paginator(obj_list, items_per_page)
+# 	try:
+# 		return paginator.page(page_num)
+# 	except PageNotAnInteger:
+# 		# If page is not an integer, deliver first page.
+# 		return paginator.page(1)
+# 	except EmptyPage:
+# 		# If page is out of range (e.g. 9999), deliver last page of results.
+# 		return paginator.page(paginator.num_pages)
 
 
 def convert_to_epoch(time):
@@ -453,27 +453,27 @@ def rank_all_photos1():
 			del_cricket_match(enqueued_match['id'])
 
 
-@celery_app1.task(name='tasks.reset_best_photos_cache')
-def reset_best_photos_cache(photo_id):
-	obj_list = all_best_photos()
-	obj_list_keys = map(itemgetter(0), obj_list)
-	try:
-		index = obj_list_keys.index(photo_id)
-		page_num = get_page(index,PHOTOS_PER_PAGE)
-		cache.delete('best_photos'+str(page_num))
-		cache.delete('best_photos_page_obj'+str(page_num))
-	except:
-		pass
+# @celery_app1.task(name='tasks.reset_best_photos_cache')
+# def reset_best_photos_cache(photo_id):
+# 	obj_list = all_best_photos()
+# 	obj_list_keys = map(itemgetter(0), obj_list)
+# 	try:
+# 		index = obj_list_keys.index(photo_id)
+# 		page_num = get_page(index,PHOTOS_PER_PAGE)
+# 		cache.delete('best_photos'+str(page_num))
+# 		cache.delete('best_photos_page_obj'+str(page_num))
+# 	except:
+# 		pass
 		
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
 	photos = retrieve_photo_posts(all_photos())
-	num_of_photos = len(photos)
-	num_of_pages = int(num_of_photos/PHOTOS_PER_PAGE)
-	for page_num in range(num_of_pages+1):
-		cache.delete('best_photos'+str(page_num))
-		cache.delete('best_photos_page_obj'+str(page_num))
+	# num_of_photos = len(photos)
+	# num_of_pages = int(num_of_photos/PHOTOS_PER_PAGE)
+	# for page_num in range(num_of_pages+1):
+	# 	cache.delete('best_photos'+str(page_num))
+	# 	cache.delete('best_photos_page_obj'+str(page_num))
 	photo_id_and_scr = []
 	for photo in photos:
 		try:

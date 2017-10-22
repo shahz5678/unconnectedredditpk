@@ -7148,7 +7148,7 @@ def cast_photo_vote(request,*args,**kwargs):
 			temporarily_save_user_csrf(str(own_id), CSRF)
 			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
 	else:
-		return render(request, 'penalty_suspicious.html', {})
+		return redirect("home")
 
 @csrf_protect
 def cast_vote(request,*args,**kwargs):
@@ -7240,7 +7240,7 @@ def cast_vote(request,*args,**kwargs):
 			temporarily_save_user_csrf(str(own_id), CSRF)
 			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
 	else:
-		return render(request, 'penalty_suspicious.html', {})
+		return redirect("home")
 
 @csrf_protect
 def hell_ban(request,*args,**kwargs):

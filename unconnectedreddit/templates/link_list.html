@@ -21,6 +21,32 @@
 {% load get_live_mobile_shop %}
 {% block content %}
 
+<style>
+body {
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
+
+.card {
+    /* Add shadows to create the "card" effect */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    padding:3px;
+    margin-bottom:5px;
+    background-color:white;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+
+</style>
+
 <div class="margin">
 
 {% if newbie_flag %}
@@ -52,7 +78,7 @@
 {% with replyforms|get_item:link.l as replyform %}
 	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
-		<div style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
+		<div  class="card" style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
 			{% if enqueued_match.ended == '1' %}
 				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
 			{% elif enqueued_match.ended == '0' %}
@@ -76,16 +102,16 @@
 					{% endif %}
 				</form>
 		
-				<p><hr size=1 COLOR="#BDBDBD"></p></div>
+				</div>
 		{% endif %}
 	{% endif %}
 	{% if forloop.counter == 3 %}
-		<div style="margin-top:-1em;padding-top:1em;background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
-		<p><hr size=1 COLOR="#BDBDBD"></p></div>
+		</div>
 	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
@@ -94,11 +120,11 @@
 			<span class="ct"><b style="color:#179b36;">{{ current_namaz }}</b> parhne ke baad ye button dabao:</span>&nbsp;
 			<a href="{% url 'salat_tutorial_init' current_namaz %}">
 			<img src="{{ STATIC_URL }}img/tick.png" alt="no pic" style="margin-bottom:-0.2em;" width="24" height="24"></a>&nbsp;<br>
-			<p><hr size=1 COLOR="#BDBDBD"></p>
+			
 		{% elif not show_current and show_next %}
 			<div class="ct"><b style="color:#179b36;">{{ next_namaz }}</b> ka time <b style="color:#179b36;">{{ next_namaz_start_time }}</b> ke kuch der baad ho ga<br>{{ next_namaz }} parh kr yahan uska <a href="{% url 'salat_ranking' %}#section0"><button class="btn nw bcg mts" style="width:12em;"><b>record save krna</b></button></a>&nbsp;
 			</div>
-			<p><hr size=1 COLOR="#BDBDBD"></p>
+			
 		{% else %}
 			<!-- nothing to show -->
 		{% endif %}
@@ -115,7 +141,7 @@
 		{{ link.ct|safe }}
 
 	{% elif link.c == '6' %}
-		
+		<div class="card">
 	<div class="mbs">
 		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
 		{{ link.au|safe }}
@@ -189,6 +215,7 @@
 			    {% endif %}
 		    {% endif %}    
 	    	<br>
+	    </div>
 		{% endif %}
 
 
@@ -206,10 +233,11 @@
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
 
 		
-		<p><hr size=1 COLOR="#BDBDBD"></p>
+	</div>
 	
 	
 	{% else %}
+	<div class="card">
 			{{ link.ch|safe }}
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				{{ link.au|safe }}

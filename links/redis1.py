@@ -1,5 +1,6 @@
 # coding=utf-8
 import redis, time
+from multiprocessing import Pool
 from random import randint, random
 from location import REDLOC1
 from score import VOTE_TEXT
@@ -1083,23 +1084,38 @@ def retrieve_all_home_links_with_scores(score_type,urdu_only=False,exclude_photo
 	return all_sorted_sets, all_link_ids
 	
 
+def process_home_links(list_of_dicts):
+	photo_result = []
+	links_result = []
+	count = 0
+	for dictionary in list_of_dicts:
+		links_result.append(dictionary)
+		if 'pi' in dictionary:
+			photo_result.append(dictionary)
+		count += 1
+	return photo_result, links_result
+
+# def process_home_dicts(single_dict):
+# 	if 'pi' in single_dict:
+# 		return single_dict, single_dict
+# 	else:
+# 		return [], single_dict
+
+
 def retrieve_home_links(link_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
-	list_of_dictionaries = []
-	photo_links = []
 	pipeline1 = my_server.pipeline()
 	for link_id in link_id_list:
 		hash_name="lk:"+str(link_id)
 		pipeline1.hgetall(hash_name)
 	result1 = filter(None, pipeline1.execute())
-	count = 0
-	for hash_obj in result1:
-		list_of_dictionaries.append(hash_obj)
-		if 'pi' in hash_obj:
-			photo_links.append(hash_obj)
-		count += 1
-	return photo_links, list_of_dictionaries
-
+	return process_home_links(result1)
+	# pool = Pool()
+	# results = pool.map(process_home_dicts, result1) # returns list of tuples containing a dictionary object and an empty list (for 'pi')
+	# photo_result = [i[0] for i in results if i[0]]
+	# link_result = [i[1] for i in results]
+	# return photo_result, link_result
+	
 
 def get_photo_link_mapping(photo_pk):
 	my_server = redis.Redis(connection_pool=POOL)

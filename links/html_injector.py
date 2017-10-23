@@ -49,7 +49,7 @@ def category_formatting(categ):
 	if categ == '1':
 		#tyical home link
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
+		div_tail = '</div>'
 	elif categ == '2':
 		#public mehfil creation announcement on home
 		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'

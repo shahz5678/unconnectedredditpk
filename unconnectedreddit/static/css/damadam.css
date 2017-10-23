@@ -48,6 +48,18 @@ S1: Html styling
     font-family: helvetica,'Droid Arabic Naskh',arial,sans-serif;
     }
 
+
+
+    .card {
+    /* Add shadows to create the "card" effect */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    padding:3px;
+    margin-bottom:5px;
+    background-color:white;
+    border-radius: 6px;
+    margin-top: 10px;
+    }
+
     /*border colors*/
 
     .signup  {
@@ -540,9 +552,9 @@ Buttons
          width:9.7em;
     }
 
-/*makes labels yellow when input (E.g. radio button) is selected*/
+/*colors labels when input (E.g. radio button) is selected*/
 input:checked + label{
-  background: yellow;
+  background: #e6fff3;
 }
 
 

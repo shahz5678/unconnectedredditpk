@@ -120,7 +120,7 @@ body {
 	{% endif %}
 
 	{% if link.c == '2' %}
-		
+		<div class="card">
 		{{ link.ch|safe }}
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{{ link.au|safe }}
@@ -128,7 +128,7 @@ body {
 		    
 		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		{{ link.ct|safe }}
-
+		</div>
 	{% elif link.c == '6' %}
 		<div class="card">
 	<div class="mbs">
@@ -204,7 +204,7 @@ body {
 			    {% endif %}
 		    {% endif %}    
 	    	<br>
-	    </div>
+	    
 		{% endif %}
 
 

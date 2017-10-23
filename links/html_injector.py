@@ -52,8 +52,8 @@ def category_formatting(categ):
 		div_tail = '</div>'
 	elif categ == '2':
 		#public mehfil creation announcement on home
-		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'
-		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p></div>'
+		div_head = '<div style="background-color:#faebeb;padding-top:1em;padding-bottom:1em;" >'
+		div_tail = '</div>'
 	elif categ == '3':
 		#Karachi Kings
 		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'

@@ -68,7 +68,7 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, log_pic_uploader_status
+from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key#, log_pic_uploader_status
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
@@ -4630,7 +4630,7 @@ def upload_public_photo(request,*args,**kwargs):
 				bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
 				############################################
 				############################################
-				log_pic_uploader_status(user_id, request.mobile_verified)
+				# log_pic_uploader_status(user_id, request.mobile_verified)
 				############################################
 				############################################
 				return redirect("photo")

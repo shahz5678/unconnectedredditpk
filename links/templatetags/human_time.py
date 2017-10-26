@@ -32,7 +32,9 @@ def human_time(value):
 		else:
 			return "%s mins ago" % int(m)
 	elif s:
-		if int(s) == 1:
+		if int(s) == 0:
+			return "now"
+		elif int(s) == 1:
 			return "%s sec ago" % int(s)
 		else:
 			return "%s secs ago" % int(s)

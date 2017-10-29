@@ -92,6 +92,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		self.user = kwargs.pop('user', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
+		self.fields['avatar'].widget.attrs['accept'] = 'image/*'
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -659,6 +660,7 @@ class UploadPhotoForm(forms.ModelForm):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'
+		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
@@ -678,6 +680,7 @@ class PicsChatUploadForm(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
+		self.fields['image'].widget.attrs['accept'] = 'image/*'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))

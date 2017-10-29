@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from image_processing import compute_avg_hash, restyle_image, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
+from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import re, time

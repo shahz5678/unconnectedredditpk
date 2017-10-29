@@ -15,11 +15,17 @@
 
 <style>
 
-.secondary-nav {
-	text-align: center;
 
-}
+body {
 
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
 .circular-button {
 
 	color:white; 
@@ -81,13 +87,16 @@
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
+
+
 {% for photo in object_list %}
+	
 
 		{% if forloop.counter == 4 %}
-		<div class="cm co">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
-		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a><br><hr size=1 COLOR="#ff9933"></div>
+		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
+		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>
 		{% endif %}
-
+<div class="card">
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0" class="mrl mtl">
@@ -160,9 +169,11 @@
 			{% endif %}
 
 			{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}
+			
 
-			<p><hr size=1 COLOR="#BDBDBD"></p>
+			
 	{% endif %}
+</div>
 	{% empty %}
 	<span class="clb">Fotos kuch time mein nazr aien gi!</span>
 	<p><hr size=1 COLOR="#ff9933"></p>

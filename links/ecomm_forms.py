@@ -113,6 +113,9 @@ class BasicItemPhotosForm(forms.Form):
         self.fields["photo1"].widget.attrs['style'] = 'width:98%;'
         self.fields["photo2"].widget.attrs['style'] = 'width:98%;'
         self.fields["photo3"].widget.attrs['style'] = 'width:98%;'
+        self.fields['photo1'].widget.attrs['accept'] = 'image/*'
+        self.fields['photo2'].widget.attrs['accept'] = 'image/*'
+        self.fields['photo3'].widget.attrs['accept'] = 'image/*'
 
 class BasicItemDetailForm(forms.Form):
     NEWORUSED = (

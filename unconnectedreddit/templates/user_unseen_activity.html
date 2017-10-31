@@ -8,11 +8,29 @@
 {% load css %}
 {% block content %}
 
+
+<style>
+body {
+
+	background: #E8F5E9;
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
+
+
+</style>
+
 <div class="margin">
 {% if page.object_list %}
 <form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline;">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></form>
 <span class="clb cs">Dekho matke mein kia hai:</span><p></p>
 {% for notif in object_list %}
+<div class="card">
 <a name="section{{ forloop.counter }}">
 	{% with forms|get_item:notif.oi as form %}
 	{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
@@ -70,7 +88,6 @@
 		</div>
 		</form>
 	</div>
-	<hr size=1 COLOR="#cccccc">
 {% else %}
 	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 	<div class="mls mtl">
@@ -95,7 +112,6 @@
 		</div>
 		</form>
 	</div>
-	<hr size=1 COLOR="#cccccc">
 {% endif %}
 <br>
 
@@ -152,7 +168,6 @@
 			
 		{% endif %}
 	</div>
-	<hr size=1 COLOR="#cccccc">
 
 	{% else %}
 	
@@ -189,7 +204,6 @@
 				</div>
 			</form>
 		</div>
-		<hr size=1 COLOR="#cccccc">
 		{% else %}
 
 		<a href="{% url 'public_group' notif.l %}"><b class="cp bw">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a> &nbsp;&nbsp;<a href="{% url 'public_group' notif.l %}"><button class="btn nw bcp bs cs">mehfil</button></a>
@@ -224,7 +238,6 @@
 				</div>
 			</form>
 		</div>
-		<hr size=1 COLOR="#cccccc">
 		{% endif %}
 		
 		
@@ -317,7 +330,6 @@
 		</div>
 		</form>
 		</div>
-		<hr size=1 COLOR="#cccccc">
 	{% else %}
 	<span class="co">{{ notif.oon }}</a></span><span class="co bw">:
 	{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span>
@@ -353,24 +365,23 @@
 		</div>
 		</form>
 	</div>
-	<hr size=1 COLOR="#cccccc">
 	
 	{% endif %}
 <br>
 {% elif notif.ot == '1' %}
 	<span class="co">
 	{% if notif.t == '0' %}
-		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
+		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="mts ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
 		<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bs">kiyun?</button></a>
 	{% elif notif.t == '1' %}
-		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>tamam fans</b> ke matke mein pohonch gayee {% emoticons %}.c1.c2.c3.c4{% endemoticons %}
+		Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="mts ibo"> tumhare <b>tamam fans</b> ke matke mein pohonch gayee {% emoticons %}.c1.c2.c3.c4{% endemoticons %}
 		<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bxs">?</button></a>
 	{% else %}
 		{% if notif.l == '0' %}
-			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
+			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="mts ibo"> tumhare <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki &nbsp;{% emoticons %}.k1{% endemoticons %}
 			<a href="{% url 'unseen_help' %}#section0"><button class="btn bco cs bs">kiyun?</button></a>
 		{% else %}
-			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="ibo"> tumhare <b>{{ notif.v }} fans</b> mein se
+			Ye photo <img src="{{ notif.p|s3:"thumb" }}" class="mts ibo"> tumhare <b>{{ notif.v }} fans</b> mein se
 			<form method="post" action="{% url 'unseen_fans' %}" style="display:inline">
 				{% csrf_token %}
 				<input type="hidden" name="fan_list" value="{{ notif.r }}">
@@ -389,11 +400,11 @@
 	
 	<span class="cgy cxs">{{ notif.u|human_time }}</span>
 	</span>
-	<hr size=1 COLOR="#cccccc" class="mts">
 <br>
 {% endif %}
 
 {% endwith %}
+</div>
 {% endfor %}
 
 {% else %}

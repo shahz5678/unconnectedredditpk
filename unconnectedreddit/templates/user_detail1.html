@@ -6,6 +6,23 @@
 {% load get_curate_photo %}
 {% load emoticons_tags %}
 {% block content %}
+
+<style>
+body {
+
+  background: #E8F5E9;
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
+
+
+</style>
+
 <div class="margin clb">
 {% if error %}
 
@@ -76,8 +93,8 @@
                   <a href="{% url 'banned_users_list' %}#section0" class="cs">
                   <button class="btn bcg">&nbsp;{{ blocked }}&nbsp;</button>
                   </a>
-                  <hr size=1 COLOR="#ff9933">
-                  <br>
+                  
+                  
     {% else %}
                   {% if time_remaining == '-2' %}
                     <h2 class="cg">{{ slug }}{% if slug in legit %}<span class="pkstr">*</span>{% endif %} ki photos:</h2>
@@ -131,13 +148,13 @@
                       {% endif %}
                     </form>
                     {% endif %}
-                  <hr size=1 COLOR="#ff9933">
-                  <br>
+                  
+                  
     {% endif %}
   {% endif %}
-
+<div class="mtl">
 {% for photo in object_list %}
-  
+  <div class="card">
                           <a name="sectionJ">
                           <a name="section{{ forloop.counter }}"></a>
                           <a href="{% url 'comment_pk' photo.id 3 star_id %}">
@@ -188,14 +205,11 @@
                                 <button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}</b> points</button>
                                 {% endif %}
                                 </a>
-                        
                                 <br>
 
 
-                                <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
-                          
-                          <br>
-                          <p><hr size=1 COLOR="#BDBDBD"></p>                        
+                                <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bcp mts mbs" style="width:12em;">photo share kro</button></a>
+</div>                  
 {% empty %}
   {% if own_profile %}
   <span class="cgy">Damadam pe&nbsp;<a href="{% url 'upload_public_photo' %}#section0"><button class="btn nw bco mts" style="width:11em;">photos charhao</button></a></span>
@@ -203,6 +217,7 @@
   <span class="cgy">{{ slug }} ne photos nahi lagain, kisi aur ki&nbsp;<a href="{% url 'best_photo' %}#section0"><button class="btn nw bco bxl mts">photos dekho</button></a></span>
   {% endif %}
 {% endfor %}
+</div>
 {% endif %}
 </div>
 {% endblock %}

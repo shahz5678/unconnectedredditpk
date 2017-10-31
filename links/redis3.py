@@ -1601,7 +1601,7 @@ def retrieve_erroneous_passwords():
 
 def seen_outage_notif(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists("outage:"+str(user_id)):
+	if my_server.exists("maint:"+str(user_id)):
 		return True
 	else:
 		return False
@@ -1609,7 +1609,7 @@ def seen_outage_notif(user_id):
 
 def skip_outage(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.set("outage:"+str(user_id),'1')
+	my_server.setex("maint:"+str(user_id),'1',TWO_WEEKS)
 
 
 ###########################################################

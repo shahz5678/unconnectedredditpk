@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from image_processing import compute_avg_hash, restyle_image, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
+from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import re, time
@@ -92,6 +92,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		self.user = kwargs.pop('user', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
+		self.fields['avatar'].widget.attrs['accept'] = 'image/*'
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -659,6 +660,7 @@ class UploadPhotoForm(forms.ModelForm):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'
+		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
@@ -678,6 +680,7 @@ class PicsChatUploadForm(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
+		self.fields['image'].widget.attrs['accept'] = 'image/*'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))

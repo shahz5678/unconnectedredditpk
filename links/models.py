@@ -367,13 +367,13 @@ class Logout(models.Model):
 		return u"%s logged out at %s, dropping score to 10 from %s" % (self.logout_user,self.logout_time,self.pre_logout_score)
 
 class Reply(models.Model):
-	text = models.TextField("Likho:",db_index=True, validators=[MaxLengthValidator(500)])
+	text = models.TextField("Likho:", validators=[MaxLengthValidator(500)])
 	which_group = models.ForeignKey(Group)
 	writer = models.ForeignKey(User) # reply.writer is a user!
 	submitted_on = models.DateTimeField(db_index=True, auto_now_add=True)
 	image = models.ImageField("Tasveer:", upload_to=upload_to_mehfils, null=True, blank=True)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-	category = models.CharField(db_index=True,choices=REPLIES, default='0', max_length=15)
+	category = models.CharField(choices=REPLIES, default='0', max_length=15)
 
 	def __unicode__(self):
 		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)

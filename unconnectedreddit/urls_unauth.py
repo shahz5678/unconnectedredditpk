@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from links.unauth_views import unauth_home_new, unauth_home_new_ur, create_nick_new, create_password_new, create_account, login, forgot_password, log_google_in, \
-set_forgetters_password, create_dummy_user
+set_forgetters_password, create_dummy_user, logout_then_login
 from django.contrib.auth.decorators import login_required as auth    
 from links.views import first_time_choice, new_user_gateway
 from links.number_verification import verify_forgetter_number
@@ -19,6 +19,8 @@ urlpatterns = patterns('',
 	# url(r'^new_user_choice/(?P<best>[\w.@+-]+)/(?P<algo>[\w.@+-]+)/$', auth(first_time_choice), name='first_time_choice'),
 	######################################################################################################
 
+	url(r'^logout_then_login/$', auth(logout_then_login), name='logout_then_login'),
+	
 	url(r'^new_user_gateway/$', auth(new_user_gateway), name='new_user_gateway'),
 	url(r'^new_user_gateway/(?P<lang>[\w.@+-]+)/$', auth(new_user_gateway), name='new_user_gateway'),
 	url(r'^new_user_choice/$', auth(first_time_choice), name='first_time_choice'),

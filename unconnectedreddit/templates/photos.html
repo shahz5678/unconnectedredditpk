@@ -15,6 +15,19 @@
 
 <style>
 
+
+body {
+
+   background: #E8F5E9;
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
+
 .secondary-nav {
 	text-align: center;
 
@@ -62,7 +75,7 @@
 <div class="margin">
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	
-	{% mobile_verification_bar user.id csrf score %}
+	{% mobile_verification_bar user.id csrf mobile_verified score %}
 
 	{% notification_bar notification=process_notification origin='0' notif_form=notif_form user=user user_id=user.id females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False %}
 
@@ -81,13 +94,16 @@
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
+
+
 {% for photo in object_list %}
+	
 
 		{% if forloop.counter == 4 %}
-		<div class="cm co">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
-		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a><br><hr size=1 COLOR="#ff9933"></div>
+		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
+		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>
 		{% endif %}
-
+<div class="card">
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0" class="mrl mtl">
@@ -160,9 +176,11 @@
 			{% endif %}
 
 			{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}
+			
 
-			<p><hr size=1 COLOR="#BDBDBD"></p>
+			
 	{% endif %}
+</div>
 	{% empty %}
 	<span class="clb">Fotos kuch time mein nazr aien gi!</span>
 	<p><hr size=1 COLOR="#ff9933"></p>

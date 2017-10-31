@@ -133,6 +133,7 @@ MIDDLEWARE_CLASSES = (
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
 	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
@@ -280,7 +281,7 @@ if ON_AZURE == '1':
 		'USER': 'ubuntu',
 		'PASSWORD': DB_PASSWORD,
 		'HOST': '/var/run/postgresql',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-		#'PORT': '6432',
+		'PORT': '6432',
 	}
 }
 elif ON_MAC == '1':
@@ -354,7 +355,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=4.5*60), #execute every 4.5 mins
+		'schedule': timedelta(seconds=12*60), #execute every 12 mins
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',

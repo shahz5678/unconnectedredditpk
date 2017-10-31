@@ -2,23 +2,23 @@
 {% load s3 %}
 {% block content %}
 {% load cache %}
-{% cache 300 top_frag %}
+{% cache 600 top_frg %}
     <div class="margin clb">
     <b>Top chatters:</b><br><br>
-    {% for user in object_list %}
+    {% for userprofile in object_list %}
     <span class="cg cs">{{ forloop.counter }}.</span>
-    <a href="{% url 'profile' slug=user.username %}#section0">
-	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
+    <a href="{% url 'profile' slug=userprofile.user.username %}#section0">
+	{% if userprofile.avatar %}
+		<img src="{{ userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 	{% else %}
 		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
 	{% endif %}
-    {{ user }}</a>{% if user.username in verified %}<b class="pinkstar">*</b>{% endif %}
-	{% if user.userprofile.score %}
-		{% if user.userprofile.score < 0 %}
+    {{ userprofile.user.username }}</a>{% if userprofile.user.username in verified %}<b class="pinkstar">*</b>{% endif %}
+	{% if userprofile.score %}
+		{% if userprofile.score < 0 %}
 	    	<span class="cg">(1)</span>
 	    {% else %}
-	    	<span class="cg">({{ user.userprofile.score }})</span>
+	    	<span class="cg">({{ userprofile.score }})</span>
 		{% endif %}
     {% else %}
     {% endif %}

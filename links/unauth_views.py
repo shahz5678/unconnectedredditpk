@@ -1,7 +1,7 @@
 import shortuuid
 from django.db import transaction
 from django.contrib.auth import login as quick_login
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 ######################################################################################
 from django.contrib.auth.views import login as log_me_in
@@ -45,6 +45,17 @@ def create_dummy_user(request):
 		user.save()
 		insert_nick(uname)
 	return uname
+
+######################################################################################
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def logout_then_login(request):
+	if request.method == "POST":
+		logout(request)
+		return redirect("login")
+	else:
+		return redirect("home")
 
 ######################################################################################
 
@@ -107,8 +118,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 				else:
 					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
 			###################################################################################################
-			is_verified = is_mobile_verified(user_id)
-			if is_verified:
+			if is_mobile_verified(user_id):
 				################################################
 				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
 				################################################

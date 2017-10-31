@@ -24,6 +24,12 @@
 <style>
 body {
 
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
    background: repeating-linear-gradient(
   to right,
  #FAFAFA,
@@ -242,7 +248,6 @@ body {
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
-
 
 			<br>
 

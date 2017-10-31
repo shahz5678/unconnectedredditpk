@@ -4,7 +4,7 @@
 	{% if notification %}
 		{% if type_of_object == '2' %}
 			
-			<div class="box dbt mbl">
+			<div class="card box dbt mbl">
 			{% if first_time_user %}
 				<div class="ct cs mbs">
 				Tumhe <b>welcome</b> kiya:
@@ -62,7 +62,7 @@
 			
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
-	<div class="box dbg mbl">
+	<div class="card box dbg mbl">
 		<b class="cg cm">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mbl mls">mehfil</button></form>
 		<br><span class="cg cs" >mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
@@ -99,7 +99,7 @@
 			
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
-	<div class="box dbp mbl">
+	<div class="card box dbp mbl">
 		<b class="cp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl">mehfil</button></a>
 		<br><span class="cp cs">mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
@@ -136,7 +136,7 @@
 	
 	
 	{% elif type_of_object == '4' %}
-		<div class="box dbg mbl">
+		<div class="card box dbg mbl">
 		<a href="{% url 'profile' parent.oon %}#section0">
 		{% if parent.ooa != 'None' %}
 		<img src="{{ parent.ooa|s3:'thumb' }}" alt="no pic" width="22" height="22">
@@ -156,7 +156,7 @@
 		</div>
 	
 	{% elif type_of_object == '0' %}
-		<div class="box dby mbl">
+		<div class="card box dby mbl">
 		
 		<div class="mbl">
 		<a href="{% url 'comment_pk' parent_pk 6 %}">
@@ -206,7 +206,7 @@
 		</div>
 		
 	{% elif type_of_object == '1' %}
-		<div class="box dby mbl">
+		<div class="card box dby mbl">
 		<span class="co cm">
 		<a href="{% url 'profile' parent.oon %}">
 		{% if parent.ooa != 'None' %}

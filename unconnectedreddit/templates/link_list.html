@@ -22,6 +22,8 @@
 {% block content %}
 
 <style>
+
+
 body {
 
 	background: #E8F5E9;
@@ -73,7 +75,7 @@ body {
 {% with replyforms|get_item:link.l as replyform %}
 	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
-		<div  class="card" style="background-color:#FFFF33;margin-top:-1em;padding-top:1em;">
+		<div  class="card" style="background-color:#FFFF33;margin-top:-1em;padding-top:1em; position: relative; margin-bottom:30px; padding-bottom:10px;">
 			{% if enqueued_match.ended == '1' %}
 				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
 			{% elif enqueued_match.ended == '0' %}
@@ -101,7 +103,7 @@ body {
 		{% endif %}
 	{% endif %}
 	{% if forloop.counter == 3 %}
-		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');">
+		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png'); position: relative; margin-bottom:30px; padding-bottom:10px;">
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
@@ -126,7 +128,7 @@ body {
 	{% endif %}
 
 	{% if link.c == '2' %}
-		<div class="card">
+		<div class="card" style="position: relative; margin-bottom:30px; padding-bottom:10px;">
 		{{ link.ch|safe }}
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{{ link.au|safe }}
@@ -136,7 +138,7 @@ body {
 		{{ link.ct|safe }}
 		</div>
 	{% elif link.c == '6' %}
-		<div class="card">
+		<div class="card" style="margin-bottom:30px; positive:relative; padding-bottom:10px;">
 	<div class="mbs">
 		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
 		{{ link.au|safe }}
@@ -232,7 +234,7 @@ body {
 	
 	
 	{% else %}
-	<div class="card">
+	<div class="card" style="position: relative; margin-bottom:30px; margin-top:10px; padding-bottom:10px;">
 			{{ link.ch|safe }}
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				{{ link.au|safe }}

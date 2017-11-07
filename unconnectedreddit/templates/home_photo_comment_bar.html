@@ -7,8 +7,8 @@
 <input type="hidden" name="user_id" value="{{ user_id }}">
 <input type="hidden" name="popk" value="{{ photo_owner_id }}">
 {% if comment_form.photo_comment.errors %}<span class="cr">{{ comment_form.photo_comment.errors.0 }}</span><br>{% endif %}
-<div class="box-with-button-right mts mbs">
+<div class="box-with-button-right" style="position: absolute; width:93%; margin-left:3%; margin-right:3% border-radius:10px;">
 {{ comment_form.photo_comment }}
-<button class="btn bco bms mts" type="submit">tabsra kro</button>
+<button class="btn bco bms mts" type="submit" style="border-top-right-radius:20px; border-bottom-right-radius:20px; ">tabsra kro</button>
 </div>
 </form>

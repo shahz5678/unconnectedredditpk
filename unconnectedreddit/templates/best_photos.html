@@ -14,6 +14,25 @@
 {% block content %}
 <style>
 
+
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ }
+
+
 .secondary-nav {
 	text-align: center;
 
@@ -95,7 +114,7 @@
 {% endif %}	
 
 {% for photo in object_list %}
-
+<div class="card">
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0"  class="mrl mtl">
@@ -117,6 +136,7 @@
 			<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
 			<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
 			<b>{{ photo.co }}</b> tabsrey</button></a>
+
 		{% endif %}
 			
 		<div style="display:inline-block">
@@ -166,8 +186,7 @@
 			{% endif %}
 
 			{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}
-
-			<p><hr size=1 COLOR="#BDBDBD"></p>
+</div>
 	{% endif %}
 	{% empty %}
 
@@ -186,5 +205,6 @@
 	</div>
 </div>
 <br><br>
+
 {% endblock %}
 

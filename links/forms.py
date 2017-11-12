@@ -348,8 +348,12 @@ class PublicreplyMiniForm(PublicreplyForm):
 
 	def __init__(self,*args,**kwargs):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
+		self.fields['description'].widget.attrs['style'] = 'background-color:transparent;'
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
-		self.fields['description'].widget.attrs['style'] = 'border: 1px solid #229ec3'
+		self.fields['description'].widget.attrs['style'] = 'border: 1px solid lightgrey'
+		self.fields['description'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:20px; line-height:30px;'
+
+
 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
 class SearchNicknameForm(forms.Form):
@@ -470,7 +474,7 @@ class PhotoCommentForm(forms.Form):
 		self.user_id = kwargs.pop('user_id',None)
 		super(PhotoCommentForm, self).__init__(*args, **kwargs)
 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
-		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
+		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:20px;'
 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_photo_comment(self):

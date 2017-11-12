@@ -9,8 +9,8 @@
 <input type="hidden" name="user_id" value="{{ user_id }}">
 <input type="hidden" name="lwpk" value="{{ link_writer_pk }}">
 {% if replyform.description.errors %}<span class="cr">{{ replyform.description.errors.0 }}</span><br>{% endif %}
-<div class="box-with-button-right mls mbs">
+<div class="box-with-button-right mls mbs" style="position: absolute; width:93%; margin-left:3%; margin-right:3% border-radius:10px;">
 	{{ replyform.description }}
-<button type="submit" class="bct">jawab do</button>
+<button type="submit" class="bct" style="border-top-right-radius:20px; border-bottom-right-radius:20px; ">jawab do</button>
 </div>
 </form>

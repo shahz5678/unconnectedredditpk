@@ -1,0 +1,79 @@
+{% extends "base_min.html" %}
+
+{% block content %}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+
+</style>
+
+    <body>
+    <div class="margin clb">
+    <br><img style="width:124px;" src="{{ STATIC_URL }}img/question_guy.png"><br><br>
+
+    <h2>Sub say ziada poochey gaiey sawalat ye hein!</h2>
+
+
+<table>
+  <tr>
+    <th>Sawal</th>
+    <th>Jawab</th>
+    
+  </tr>
+  <tr>
+    <td><span style="background-color:orange; color:white">
+        Phone meray pass kaise aiey ga?
+        </span></td>
+    <td>Daak ke zariye.<a href="{% url 'delivery' 'faq'%}"> Free delivery ki mazeed maloomat</a></td> 
+    
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Payment kaise kerni hai?
+        </span></td>
+    <td>Daak walay ko paise day kr phone le lein.</td>
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Phone China ka tuo nahi? <br><br> Phone second hand tuo nahi?      
+        </span></td>
+    <td>Nahi. Tamam phone Qmobile company say khareeday jatey hein.<a href="{% url 'warranty' 'faq'%}"> Warranty ki mazeed maloomat</a></td>    
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Phone itna sasta kiyoun hai
+        </span></td>
+    <td>Ye qeematien mehdood mudat key liay hein. Hum chahte hein hum apne users ko itni aasaish deien key wo humesha phone damadam say khareedien.<br> </td>   
+  </tr>
+   <tr>
+    <td><span style="background-color:orange; color:white; padding-left:2px; padding-right:2px" >
+        Phone mein ager koi masla ho?
+        </span></td>
+    <td>Aap aik saal tuk poorey Pakistan mein kissi bhi QMobile ki dukan say phone ki warranty dikha ker masla theek kerwa sakte hein. <a href="{% url 'warranty' 'faq'%}">Warranty ki mazeed maloomat</a></td>
+    
+  </tr> 
+</table>
+<br>
+    <span class="cl" style="color:#1CB841;"><b>Inn ke illawa koi aur sawal hai?</b> <a href="{% url 'buyer_info' 'main' %}"><button class="bl btn bcg mtl bm cs">Haan</button></a></span>
+    <br><br>
+
+
+    <span class="cl" style="color:#1CB841;align:center;"><b>Sawal ka jawab mil gya tuo phone khareedien phir?</b> <a href="{% url 'mobile_shop'%}"><button class="btn mtl mbs bl bcb cs">Phone List</button></a></span>
+    <br>
+<br>
+    </div>
+
+</body>
+</html>
+    </body>
+{% endblock %}

@@ -1,0 +1,64 @@
+<style>
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
+
+</style>
+
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb card">
+	<br> 
+	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
+		<b class="cxl co">Inn mein say aik ka intekhab kerien</b><br>
+		<!-- process city in ecomm.py -->
+		<form method="POST" action="{% url 'buyer_details' 'main' %}" class="mtl">
+		{% csrf_token %}
+		Aap <b>{{model}}</b> khareedna chahte hein? <br>
+		<div style="text-align:center"><button type="submit" class="btn mtl mbs bl bcb cs"><b>Order kerien</b></button></div>
+		</form>
+		<form method="POST" action="{% url 'faq' %}" class="mtl">
+		{% csrf_token %}
+		Phone khareedne say pehle kuch sawal hein? <br>
+		<div style="text-align:center"><button type="submit" class="bl btn bcg mtl bm cs"><b>Sawal kerien</b></button></div>
+		</form><br>
+		</div>
+<br>
+{% if origin == 'main' %}
+<a href="{% url 'mobile_shop' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'x29' %}
+<a href="{% url 'x29' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'lt550' %}
+<a href="{% url 'lt550' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'i8i' %}
+<a href="{% url 'i8i' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'i6' %}
+<a href="{% url 'i6metal' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 's6' %}
+<a href="{% url 's6' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'j1' %}
+<a href="{% url 'j1' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% elif origin == 'faq' %}
+<a href="{% url 'faq' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+{% endif %}
+</div>
+<br><br>
+
+
+</div>
+<br><br>
+{% endblock %}

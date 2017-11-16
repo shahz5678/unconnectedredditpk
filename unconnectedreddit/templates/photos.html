@@ -103,7 +103,7 @@ body {
 		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
 		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>
 		{% endif %}
-<div class="card" style="position: relative; margin-bottom:30px; margin-top:10px; padding-bottom:10px;" >
+<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;" >
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0" class="mrl mtl">
@@ -175,7 +175,7 @@ body {
 				{% photo_comments_section photo.comments STATIC_URL user.id '1' score %}
 			{% endif %}
 
-			<div style="position:absolute; width:97%; margin:0 auto">{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}</div>
+			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}</div>
 			
 
 			

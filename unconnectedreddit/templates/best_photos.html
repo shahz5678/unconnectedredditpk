@@ -114,7 +114,8 @@ body {
 {% endif %}	
 
 {% for photo in object_list %}
-<div class="card" style="position: relative; margin-bottom:30px; margin-top:10px; padding-bottom:10px;">
+<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
+
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0"  class="mrl mtl">
@@ -185,13 +186,14 @@ body {
 				{% photo_comments_section photo.comments STATIC_URL ident '2' score %}
 			{% endif %}
 
-			<div style="position:absolute; width:97%; margin:0 auto; margin-top:15px;">{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}
+			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}</div>
 </div>
 	{% endif %}
 	{% empty %}
 
 	<span class="clb">Top fotos kuch time mein nazr aien gi!</span>
 	<p><hr size=1 COLOR="#ff9933"></p>
+
 {% endfor %}
 
 <br><div style="text-align: center;">

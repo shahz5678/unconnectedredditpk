@@ -325,6 +325,17 @@ def save_order_data(order_data):
 	pipeline1.execute()
 	return True
 
+def save_query_data(query_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "query_data:"+str(query_data['user_id'])
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,query_data)
+	pipeline1.sadd('query_users',query_data['user_id'])
+#	pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+
 def place_order(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
@@ -380,3 +391,21 @@ def show_new_orders():
 			num = num + 1
 		orders = pipeline1.execute()
 		return orders
+
+
+def show_new_queries():
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	users = my_server.smembers("query_users")
+	if users == 0:
+		return False
+	else:
+		pipeline1 = my_server.pipeline()
+		for obj in users:
+			pipeline1.hgetall('query_data:'+obj)
+		result1 = pipeline1.execute()
+		return result1
+
+
+
+

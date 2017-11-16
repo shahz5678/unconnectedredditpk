@@ -241,7 +241,7 @@ def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=
 
 @celery_app1.task(name='tasks.enqueue_buyer_sms')
 def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
-	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['city'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
 @celery_app1.task(name='tasks.delete_notifications')

@@ -27,10 +27,6 @@
 body {
 
 	background: #E8F5E9;
-	/*
-		Fallback for Mini and other browsers
-		that don’t support CSS gradients
-	*/
 
    background: repeating-linear-gradient(
   to right,
@@ -108,6 +104,13 @@ body {
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
+		</div>
+	{% endif %}
+	{% if forloop.counter == 8 %}
+		<div class="card" style="background-color:#72c461">
+			<div style="padding-top:10px;">
+			{% open_mobile_shop STATIC_URL %}
+			</div>
 		</div>
 	{% endif %}
 	{% if forloop.counter == 13 %}

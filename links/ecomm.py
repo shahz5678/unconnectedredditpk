@@ -22,7 +22,7 @@ process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_fe
 reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
 from django.db.models import F
 
-from links.ads_forms import BuyerForm
+from links.ads_forms import BuyerForm, InfoForm
 from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
@@ -1161,11 +1161,11 @@ def queryrequest(request,*args,**kwargs):
 def buyer_info(request,origin,*args,**kwargs):
 	if origin == 'main':
 		merch_id = request.session['merch_id']
-		form = BuyerForm()
+		form = InfoForm()
 		mp.track(request.user.id, 'M_S_4 On_Query_Detail')
 		return render(request,'buyer_info.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
 	else:
-		form = BuyerForm(request.POST)
+		form = InfoForm(request.POST)
 		merch_id = request.session['merch_id']	
 		if form.is_valid() and origin =='buy_det':
 			username = form.cleaned_data.get("username",None)
@@ -1198,7 +1198,6 @@ def buyer_info(request,origin,*args,**kwargs):
 			else:
 				return render(request,"404.html",{})
 		else:
-			print ('entered incorrect info')
 			mp.track(request.user.id, 'M_S_4.05 Incorrect_Query_Info')
 			return render(request,'buyer_info.html',{'form':form,'device':get_device(request)})
 

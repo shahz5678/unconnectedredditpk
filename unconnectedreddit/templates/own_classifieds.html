@@ -1,9 +1,17 @@
-{% extends "base.html" %}
-{% load complete_url %}
+{% extends "base_ecomm.html" %}
+{% load s3 %}
 {% load human_time %}
 {% load get_ecomm_navbar %}
 {% load join_string %}
 {% block content %}
+
+<head>
+<title>
+	My classified ads | Damadam.pk
+</title>
+</head>
+
+
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">
 
@@ -44,7 +52,7 @@
 <hr size=1 COLOR="#e0e0e0">
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in unfinished.photos %}
-	<img class="mrs" src="{{ photo.0|complete_url:'True' }}">
+	<img class="mrs" src="{{ photo.0|s3:'thumb' }}">
 	{% empty %}
 	<span class="cr cs">Fotos laganey ke liye ad delete kar ke phir se banao</span>
 	{% endfor %}<br>
@@ -94,7 +102,7 @@
 </form>
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in ad.photos %}
-	<img class="mrs mts mbs" src="{{ photo.0|complete_url:'True' }}">
+	<img class="mrs mts mbs" src="{{ photo.0|s3:'thumb' }}">
 	{% empty %}
 	<span class="mls cr cs">Foto nahi hai</span>
 	{% endfor %}
@@ -129,7 +137,7 @@
 <span style="font-size:15px"><b>City:</b> {{ ad.city }}&nbsp;<span class="cgy">(from {{ ad.town }})</span></span><br>
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in ad.photos %}
-	<img class="mrs" src="{{ photo.0|complete_url:'True' }}">
+	<img class="mrs" src="{{ photo.0|s3:'thumb' }}">
 	{% empty %}
 	<span class="mls cr cs">Foto nahi hai</span>
 	{% endfor %}
@@ -154,7 +162,7 @@
 <span style="font-size:15px"><b>City:</b> {{ ad.city }}&nbsp;<span class="cgy">(from {{ ad.town }})</span></span><br>
 <b style="font-size:15px">Fotos:</b><br>
 	{% for photo in ad.photos %}
-	<img class="mrs mts mbs" src="{{ photo.0|complete_url:'True' }}">
+	<img class="mrs mts mbs" src="{{ photo.0|s3:'thumb' }}">
 	{% empty %}
 	<span class="mls cr cs">Foto nahi hai</span>
 	{% endfor %}

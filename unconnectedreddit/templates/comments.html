@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load get_block_button %}
 {% load emoticons_tags %}
-{% load thumbnail %}
+{% load s3 %}
 {% block content %}
 <div class="margin">
 {% if authorized %}
@@ -53,13 +54,13 @@
     {% elif photo.vote_score < -1 %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="fbl ibg" alt="no pic" src="{{ photo.image_file.url|thumbnail }}"></img>
+                <img class="fbl ibg" alt="no pic" src="{{ photo.image_file|s3:"thumb" }}"></img>
             {% else %}
                 <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}    
             {% if photo.image_file %}
-                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="fbh ibg"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="fbh ibg"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
             {% endif %}
@@ -67,13 +68,13 @@
     {% else %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="ibg iw" alt="no pic" src="{{ photo.image_file.url }}"></img>
+                <img class="ibg iw" alt="no pic" src="{{ photo.image_file|s3 }}"></img>
             {% else %}
                 <img class="ibg iw" alt="no pic" src="{{ STATIC_URL }}img/broken_pic.png"></img>
             {% endif %}
         {% else %}
             {% if photo.image_file %}
-                <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
             {% endif %}
@@ -115,6 +116,7 @@
         <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likho jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
         {% endif %}
     <br>
+    <input type="hidden" name="popk" value="{{ photo.owner_id }}">
     <button class="btn bco cs bms mts mbl" type="submit"  id="id_submit">OK</button>
     </form>
     {% endif %}
@@ -134,7 +136,7 @@
     <hr size=1 COLOR="ORANGE">
     {% endif %}
         {% if comment.abuse %}
-        {% if authenticated and viewed_at %}<!-- what is 'viewed_at?' -->
+        {% if authenticated and viewed_at %}
             {% if not comment_time %}
                 <b class="cs co">(new)</b>&nbsp;
             {% elif comment.submitted_on > comment_time %}
@@ -143,7 +145,7 @@
         {% endif %}
         <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cs">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -174,7 +176,7 @@
     {% endif %}
     <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cm">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}
@@ -192,37 +194,28 @@
            {% if comment.submitted_by.username in verified %}
              <span class="pkstr"><b>*</b></span>
             {% endif %}
-    :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
-        {% if comment.device == '1' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-        {% elif comment.device == '2' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-        {% elif comment.device == '4' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-        {% elif comment.device == '5' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-        {% elif comment.device == '3' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-        {% else %}
-        {% endif %}
+    :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy mrl"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+    
     </span>
+    {% block_button comment.submitted_by_id comment.submitted_by.username user.id photo.pk 'photo:comments' STATIC_URL %}
     {% if authenticated and user == photo.owner %}
     &nbsp;
-    {% if origin == '3' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=photo.owner_id %}">
-    {% elif origin == '4' %}
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=slug_id %}">
-    {% elif origin == '6' %}
-        {% if link_ident %}
-        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin slug=link_ident %}">
-        {% else %}
-        <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
+    <form action="{% url 'report_comment' %}" method="POST" style="display:inline">
+    {% csrf_token %}
+        <input type="hidden" name="comm_pk" value="{{ comment.pk }}">
+        <input type="hidden" name="ph_pk" value="{{ photo.pk }}">
+        <input type="hidden" name="org" value="{{ origin }}">
+        {% if origin == '3' %}
+            <input type="hidden" name="slug" value="{{ photo.owner_id }}">
+        {% elif origin == '4' %}
+            <input type="hidden" name="slug" value="{{ slug_id }}">
+        {% elif origin == '6' %}
+            {% if link_ident %}
+            <input type="hidden" name="slug" value="{{ link_ident }}">
+            {% endif %}
         {% endif %}
-    {% else %} 
-    <a href="{% url 'reportcomment_pk' pk=comment.pk num=photo.pk origin=origin %}">
-    {% endif %}
-
-    <button class="btn bcgy cxs bs" >hide</button></a>
+    <button class="btn bcgy cxs bs" >hide</button>
+    </form>
     {% endif %}
 
     {% if authenticated and user != comment.submitted_by %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% load humanize %}
 {% block content %}
@@ -11,13 +11,13 @@
 	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 	{% elif photo.vote_score < -3 %}
 		{% if photo.image_file %}
-	    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+	    	<img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
 	    {% else %}
 	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 	    {% endif %}
 	{% else %}
 		{% if photo.image_file %}
-	    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+	    	<img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
 	    {% else %}
 	    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 	    {% endif %}
@@ -42,7 +42,7 @@
 	  
 	  <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
     	{% if comment.submitted_by.userprofile.avatar %}
-        	<img src="{{ comment.submitted_by.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+        	<img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}
         	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
         {% endif %}

@@ -1,0 +1,32 @@
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb">
+
+	<p class="cs clg">Step 1: Naam aur Address bataien / Enter Name and Delivery Address</p>
+	<p class="cs cbl">Step 2: Order ki tasdeeq kerien / Confirm order</p>
+	<br>
+	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
+		<b class="cxl co">Aap key order ki tafseel</b><br>
+		<!-- process city in ecomm.py -->
+		<form method="POST" action="{% url 'confirm_order' %}" class="mtl">
+		{% csrf_token %}
+		<b>Mobile Phone:</b> {{ model }}<span class='cg'> One Year Warranty</span><br>
+		<b >Qeemat: </b> {{ price }} <span class='cg'>Ye Pasiay aap daak waley ko deien gay</span><br>
+		<b>Delivery:</b> Free <span class='cg'>(3-6 din mein order aap ko wasool ho ga)</span><br>
+		
+
+
+
+
+		order confirm ker deien?
+		<br>
+
+		<button type="submit" class="btn bcg mtl bm cl"><b>Order ker deien</b></button>
+		</form>
+	</div>
+	<br><a href="{% url 'mobile_shop' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+
+</div>
+<br><br>
+{% endblock %}
+

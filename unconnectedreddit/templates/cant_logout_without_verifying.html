@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="margin clb">
+<b class="cxl">Mobile number ki tasdiq ke beghair logout nahi chalta</b><br>
+<div class="mt">
+<span class="cl">Tasdiq karwaney ke liye 'OK' dabain:</span><br>
+</div>
+
+	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+	  <input type="hidden" name="country_code" value="PK">
+	  <input type="hidden" name="app_id" value="1758220174446684">
+	  <input type="hidden" name="locale" value="ur_PK">
+	  <input type="hidden" name="debug" value=false>
+	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+	  <input type="hidden" name="state" value="{{ csrf }}">
+	  <input type="hidden" name="fbAppEventsEnabled" value=true>
+	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
+	</form><br>
+<b class="cgy cs">Tasdiq karney mein hamari partner company FACEBOOK shamil hai</b>
+</div>
+<br><br>
+{% endblock %}

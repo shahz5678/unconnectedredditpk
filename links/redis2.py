@@ -44,7 +44,7 @@ THREE_DAYS = 3*24*60*60
 HALF_LIFE = THREE_DAYS #used in ranking public groups
 
 # unseen_activity size limit (per user)
-UA_LIMIT = 110
+UA_LIMIT = 70
 UA_TO_TRIM = 20
 
 #######################Notifications#######################
@@ -64,6 +64,12 @@ def delete_salat_notification(notif_name, hash_name, viewer_id):
 	my_server.delete(hash_name)
 	my_server.delete(notif_name)
 
+def retrieve_object_data(obj_id,obj_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	obj_name = "o:"+obj_type+":"+str(obj_id)
+	return my_server.hgetall(obj_name)
+
+# populates the single notification on the screen
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "sn:"+str(viewer_id) # this contains the 'single notifications' of the user
@@ -73,6 +79,7 @@ def retrieve_latest_notification(viewer_id):
 	combined = dict(notification,**parent_object)
 	return notif[0],notification['c'],combined
 
+# populates the 'matka'
 def retrieve_unseen_notifications(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
@@ -81,6 +88,7 @@ def retrieve_unseen_notifications(viewer_id):
 	else:
 		return []
 
+# populates the 'matka'
 def retrieve_unseen_activity(notifications):
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_dictionaries = []
@@ -134,6 +142,8 @@ def bulk_create_photo_notifications_for_fans(viewer_id_list=None,object_id=None,
 	pipeline1.hincrby(parent_object, 'n', amount=increment)
 	pipeline1.execute()
 
+
+# this does not update notifications for users whose notification object was deleted
 def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
 	unseen_activity=None, priority=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -171,6 +181,8 @@ def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=N
 		count += 1
 	pipeline2.execute()
 
+
+# this does not update a notification whose notification object was deleted
 def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
 	single_notif=None, priority=None, bump_ua=None, no_comment=None):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -197,7 +209,7 @@ def update_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 				my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
 			elif unseen_activity:
 				# only zadd if the member doesn't exist
-				if my_server.zrank(sorted_set,hash_name) is None:
+				if my_server.zscore(sorted_set,hash_name) is None:
 					my_server.zadd(sorted_set,hash_name, epochtime)
 					my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
 				else:
@@ -239,25 +251,25 @@ def create_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 		return True
 
 def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
-	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None):
+	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None, lt_res_wid=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
 	if object_type == '2':
-		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count}
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'lrwi':lt_res_wid}
 	elif object_type == '3':
 		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,\
-		'od':object_desc}
+		'od':object_desc, 'lrwi':lt_res_wid}
 	elif object_type == '0':
 		if just_vote is True:
 			mapping={'v':vote_score}
 		else:
 			mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count,\
-			'v':vote_score}
+			'v':vote_score, 'lrwi':lt_res_wid}
 	my_server.hmset(hash_name, mapping)
 
 def create_object(object_id=None, object_type=None, object_owner_avurl=None,object_owner_id=None,object_owner_name=None,\
 	object_desc=None,lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,is_welc=None,res_count=None,\
-	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None):
+	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None, lt_res_wid=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc
 	# print hash_name
@@ -268,16 +280,17 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 			#creating link object, with latest_response
 			mapping={'oi':object_id,'ot':object_type,'ooa':object_owner_avurl,'ooi':object_owner_id,'oon':object_owner_name,\
 			'od':object_desc,'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'w':is_welc,\
-			'r':res_count}
+			'r':res_count,'lrwi':lt_res_wid}
 		elif object_type == '3':
 			#creating group chat object, with latest_response
 			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug}
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug,\
+			'lrwi':lt_res_wid}
 		elif object_type == '0':
 			#creating photo object, with latest_response
 			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'od':object_desc, 'ooa':object_owner_avurl,\
 			'ooi':object_owner_id,'oon':object_owner_name,'v':vote_score, 'r':res_count,'lrti':lt_res_time, \
-			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text}
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'lrwi':lt_res_wid}
 		elif object_type == '4':
 			#creating salat_invite object
 			mapping = {'oi':object_id,'ot':object_type,'oon':object_owner_name,'ooa':object_owner_avurl,'od':object_desc,\
@@ -307,7 +320,24 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 		count += 1
 	return replies_list
 
-def remove_group_object(group_id=None):
+######################################## Sanitization functions ########################################
+
+def remove_notification_of_banned_user(target_id, object_id, object_type):
+	my_server = redis.Redis(connection_pool=POOL)
+	target_id = str(target_id)
+	notification = "np:"+target_id+":"+object_type+":"+object_id
+	################################################################################
+	sorted_set = "sn:"+target_id
+	unseen_activity = "ua:"+target_id
+	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zrem(sorted_set, notification)
+	pipeline1.zrem(unseen_activity, notification)
+	pipeline1.zrem(unseen_activity_resorted, notification)
+	pipeline1.execute()
+	my_server.delete(notification)
+
+def remove_group_object(group_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_object = "o:3:"+str(group_id)
 	my_server.delete(group_object)
@@ -319,9 +349,9 @@ def remove_group_notification(user_id=None,group_id=None):
 	single_notif = "sn:"+str(user_id)
 	notification = "np:"+str(user_id)+":3:"+str(group_id)
 	parent_object = "o:3:"+str(group_id)
-	my_server.zrem(unseen_activity,notification)			#not worked
+	my_server.zrem(unseen_activity, notification)			#not worked
 	my_server.zrem(unseen_activity_resorted, notification)  #not worked
-	my_server.zrem(single_notif,notification)				#not worked
+	my_server.zrem(single_notif, notification)				#not worked
 	my_server.delete(notification)							#WORKED
 	num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
 
@@ -337,17 +367,19 @@ def clean_expired_notifications(viewer_id):
 		my_server.zrem(unseen_activity_resorted,*notif_to_del)
 		#sanitize the sn: sorted set
 		my_server.zrem(single_notif,*notif_to_del)
+		# deleting actual notification objects
 		pipeline1 = my_server.pipeline()
 		for notif in notif_to_del:
-			#delete the notification hash
 			pipeline1.delete(notif)							
-		result1 = pipeline1.execute()
+		pipeline1.execute()
+		# decrementing subscriber counts
 		pipeline2 = my_server.pipeline()
 		for notif in notif_to_del:
 			object_hash="o:"+notif.split(":",2)[2]
 			num_of_subscribers = pipeline2.hincrby(object_hash,"n",amount=-1)
 		result2 = pipeline2.execute()
 		count = 0
+		# deleting objects with no subscriptions
 		pipeline3 = my_server.pipeline()
 		for result in result2:
 			if result < 1:
@@ -356,6 +388,83 @@ def clean_expired_notifications(viewer_id):
 				pipeline3.delete(object_hash)
 			count += 1
 		result3 = pipeline3.execute()
+
+
+def bulk_sanitize_notifications(inactive_user_ids):
+	"""Sanitize all notification acitivity of inactive users.
+
+	This is a helper function for remove_inactives_notification_activity()
+	We will be removing the following for each inactive user:
+	1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
+	2) ua:<user_id> --- a sorted set containing notifications for 'matka',
+	3) uar:<user_id> --- a sorted set containing resorted notifications,
+	4) np:<user_id>:*:* --- all notification objects associated to the user,
+	5) o:*:* --- any objects that remain with 0 subscribers,
+	We will do everything in chunks of 10K, so that no server timeouts are encountered.
+	"""
+	if inactive_user_ids:
+		from itertools import chain
+		my_server = redis.Redis(connection_pool=POOL)
+		#####################################################
+		ids_to_process = []
+		for user_id in inactive_user_ids:
+			try:
+				ids_to_process.append(str(int(user_id)))
+			except:
+				pass
+		#####################################################
+		# get all notification objects to delete
+		pipeline1 = my_server.pipeline()
+		for user_id in ids_to_process:
+			pipeline1.zrange("sn:"+user_id, 0, -1)
+			pipeline1.zrange("ua:"+user_id, 0, -1)
+		all_notifications_to_delete = list(set(chain.from_iterable(pipeline1.execute())))
+		#####################################################
+		# get all sorted sets to delete
+		all_sorted_sets_to_delete = []
+		for user_id in ids_to_process:
+			all_sorted_sets_to_delete.append("sn:"+user_id)
+			all_sorted_sets_to_delete.append("ua:"+user_id)
+			all_sorted_sets_to_delete.append("uar:"+user_id)
+		#####################################################
+		# delete all notification objects and sorted sets
+		pipeline2 = my_server.pipeline()
+		for key_name in all_notifications_to_delete+all_sorted_sets_to_delete:
+			pipeline2.delete(key_name)
+		pipeline2.execute()
+		#####################################################
+		# decrement all related objects
+		if all_notifications_to_delete:
+			pipeline3 = my_server.pipeline()
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				pipeline3.hincrby(object_hash,"n",amount=-1)
+			pipeline3.execute()
+			#####################################################
+			# delete all objects with no subscribers
+			objects_to_review = []
+			for notif in all_notifications_to_delete:
+				object_hash="o:"+notif.split(":",2)[2]
+				objects_to_review.append(object_hash)
+			objects_to_review = list(set(objects_to_review))
+			pipeline4 = my_server.pipeline()
+			for obj in objects_to_review:
+				pipeline4.hget(obj,'n')
+			subscribers = pipeline4.execute()
+			count, objects_deleted= 0, 0
+			pipeline5 = my_server.pipeline()
+			for obj in objects_to_review:
+				if subscribers[count] and int(subscribers[count]) < 1:
+					objects_deleted += 1
+					pipeline5.delete(obj)
+				count += 1
+			pipeline5.execute()
+			return len(all_notifications_to_delete), len(all_sorted_sets_to_delete), objects_deleted
+		else:
+			return 0, len(all_sorted_sets_to_delete), 0
+	else:
+		return 0, 0, 0
+
 
 def prev_unseen_activity_visit(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -435,9 +544,7 @@ def public_group_vote_incr(group_id,priority):
 #saves the user's latest presence, to be used to show green, orange or grey blob
 def save_user_presence(user_id,group_id,epochtime):
 	my_server = redis.Redis(connection_pool=POOL)
-	user_presence = "up:"+str(user_id)+":"+str(group_id)
-	my_server.set(user_presence,epochtime)
-	my_server.expire(user_presence,100) #expire the key after 100 seconds
+	my_server.setex("up:"+str(user_id)+":"+str(group_id),epochtime,100)
 
 #gets the latest presence for all users participating in the most recent 25 replies
 def get_latest_presence(group_id, user_id_list):

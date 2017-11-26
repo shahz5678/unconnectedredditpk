@@ -1,0 +1,13 @@
+<form method="POST" action="{% url 'curate_photo' %}" class="mrl" style="display:inline;">
+	
+	{% csrf_token %}
+	<input type="hidden" name="orig" value="{{ origin }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="oid" value="{{ oid }}">
+	<input type="hidden" name="cap" value="{{ caption }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="vsc" value="{{ vsc }}">
+	<button value="{{ pid }}" style="background-image: url({{ static_url }}img/curate.png);background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;" name="curate" type="submit">&nbsp;</button>
+
+</form>

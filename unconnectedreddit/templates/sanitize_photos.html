@@ -1,0 +1,26 @@
+
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="margin clb">
+
+{% if last_batch %}
+
+	<span class="cxl"><b>Success:</b> Inactive users' photos have been retrieved!</span><br>
+
+{% else %}
+
+	<span class="cxl">Proceed with retrieving inactive users' photos in a redis list? <span class="cgy">(max batch-size: 10,000)</span></span><br>
+	<span class="cgy">Total inactives remaining: {{ inactives_remaining|intcomma }}</span><br>
+
+	<form method="POST" action="{% url 'remove_inactives_photos' %}">
+	{% csrf_token %}
+	<input type="submit" class="btn bcg bm mtl mbl" name="dec" value="Yes"><br>
+	<input type="submit" class="btn bcgy bm mts mbl" style="border-color:grey" name="dec" value="No"><br>
+	</form>
+
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

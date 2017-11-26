@@ -6,4 +6,4 @@ FORM_SUBMISSION_ERRORS = {\
 ################ CREATE PASSWORD ERRORS ################
 "Safed patti mein password likho:":"سفید پٹی میں پاس ورڈ لکھو","Kam se kam 6 harf likhna zaruri hai!":"کم سے کم چھ حرف لکھنا ضروری ہے",\
 ################ CREATE ACCOUNT ERRORS ################
-"password khali na choro":"","ye naam sahi nahi hai":"پاس ورڈ خالی نہ چھوڑو"}
+"password khali nah choro":"پاس ورڈ خالی نہ چھوڑو","ye naam sahi nahi hai":"پاس ورڈ خالی نہ چھوڑو"}

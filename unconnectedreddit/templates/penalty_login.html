@@ -1,8 +1,14 @@
-{% extends "base.html" %}
+{% extends "base_signup.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin clb">
-<h2>Dobara login kr sako ge 60 mins baad {% emoticons %}.g5.g6.g7.g8{% endemoticons %}</h2>
+<div style="margin-top: 5%;">
+<h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'login' 'ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
+<div class="signup mbs">
+<div style="background-color:#00c853;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+<span class="cxl" style="color:#ffeb3b;text-shadow:1px 1px #009940;">Ap dubara login ki koshish kr sako ge <b>60 mins baad</b> {% emoticons %}.j1.j2.j3.j4{% endemoticons %}</span><br>
+<a href="{% url 'login' %}"><button class="mtl mbl" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:4em;font-size:120%;font-weight:bold;text-shadow:1px 1px #b39500;">OK</button></a>
+</div>
+</div>
 </div>
 <br><br>
 {% endblock %}

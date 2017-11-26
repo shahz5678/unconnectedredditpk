@@ -1,19 +1,31 @@
+import shortuuid
+from django.db import transaction
+from django.contrib.auth import login as quick_login
+from django.contrib.auth import authenticate, logout
+from django.views.decorators.csrf import csrf_exempt
+######################################################################################
 from django.contrib.auth.views import login as log_me_in
-from django.contrib.auth import login, authenticate
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.middleware import csrf
+from tasks import registration_task
+from redis1 import account_creation_disallowed
+from redis3 import insert_nick
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
-from django.views.decorators.csrf import csrf_protect
-from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm
-from redis1 import account_creation_disallowed
-from redis3 import get_temp_id
-from tasks import registration_task
+from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
+from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+from score import PW
+from brake.decorators import ratelimit
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+######################################################################################
+
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
+
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
@@ -24,33 +36,170 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 
 ######################################################################################
 
-# def login_test(request,*args,**kwargs):
-# 	if request.user.is_authenticated():
-# 		return redirect("home")
-# 	else:
-# 		CSRF = csrf.get_token(request)
-# 		request.session["csrf"] = CSRF
-# 		if request.method == 'POST':
-# 			# opportunity to block entry here
-# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
-# 		else:
-# 			return log_me_in(request=request,template_name='test_login.html',extra_context={'csrf':CSRF})
+# this enables an unregistered user to access limited functionality on Damadam (e.g. creating an ad)
+def create_dummy_user(request):
+	uname = shortuuid.uuid()
+	user = User(username=uname)
+	user.set_password(PW)
+	with transaction.commit_on_success():
+		user.save()
+		insert_nick(uname)
+	return uname
 
-def login(request, lang=None, *args,**kwargs):
+######################################################################################
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def logout_then_login(request):
+	if request.method == "POST":
+		logout(request)
+		return redirect("login")
+	else:
+		return redirect("home")
+
+######################################################################################
+
+
+# this enables a verified user who's forgotten their password to create a new one
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def set_forgetters_password(request, *args, **kwargs):
+	if request.method == "POST":
+		user_id = request.POST.get("user_id",None)
+		if user_id:
+			user = User.objects.get(id=user_id)
+			form = ResetForgettersPasswordForm(data=request.POST, user=user)
+			if form.is_valid():
+				password = form.cleaned_data['password']
+				form.save()
+				user = authenticate(username=user.username,password=password)
+				quick_login(request,user)
+				request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+				##############################################
+				#log_forgot_password(user_id=user_id,username=user.username,flow_level='end')# it's okay if lots of dangling 'starts' remain. Dangling 'ends' should not exist though!
+				##############################################
+				return render(request,'new_password.html',{'new_pass':password})
+			else:
+				return render(request,"set_new_password.html",{'form':form,'user_id':user_id})
+		else:
+			# import time
+			# log_forgot_password(user_id=time.time(),username='None',flow_level='bad-end') # logging instances where user_id didn't exist
+			return render(request,"try_again.html",{'type':'forgetter'})
+	else:
+		return render(request, "404.html",{})
+
+
+# this initiates the forgot password flow, and ensures the user's mobile number if verified
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def forgot_password(request, lang=None, *args, **kwargs):
+	if request.method == "POST":
+		form = CreateNickNewForm(data=request.POST)
+		if form.is_valid():
+			username = form.cleaned_data['username'][2] # the returned username is a tuple with 3 entries, pick the last one
+			exists = nick_already_exists(username, exact=True)
+			if exists:
+				# the nickname exists
+				user_id = User.objects.only('id').get(username=username).id
+			elif exists is None:
+				try:
+					user_id = User.objects.only('id').get(username=username).id
+				except User.DoesNotExist:
+					# username is not taken
+					if lang == 'ur':
+						return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+					else:
+						return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+			elif exists is False:
+				if lang == "ur":
+					return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+				else:
+					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
+			###################################################################################################
+			if is_mobile_verified(user_id):
+				################################################
+				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
+				################################################
+				if lang == "ur":
+					return render(request,"verify_forgetters_account_ur.html",{'user_id':user_id, 'id_in_csrf':True})
+				else:
+					return render(request,"verify_forgetters_account.html",{'user_id':user_id, 'id_in_csrf':True})
+			else:
+				if lang == "ur":
+					return render(request,"nick_unassociated_with_mobnum_ur.html",{'nick':username})
+				else:
+					return render(request,"nick_unassociated_with_mobnum.html",{'nick':username})
+		else:
+			if lang == "ur":
+				return render(request,"forgot_password_ur.html",{'form':form})
+			else:
+				return render(request,"forgot_password.html",{'form':form})
+	else:
+		form = CreateNickNewForm()
+		if lang == 'ur':
+			return render(request,"forgot_password_ur.html",{'form':form})
+		else:
+			return render(request,"forgot_password.html",{'form':form})
+
+######################################################################################
+
+@csrf_exempt
+def log_google_in(request, *args, **kwargs):
+	if request.method == "POST":
+		user = authenticate(username=request.POST.get("username",None),password=request.POST.get("password",None))
+		quick_login(request,user)
+		return redirect("ur_home", 'urdu')
+	else:
+		form = CreateAccountForm()
+		return render(request,"login_backdoor.html",{'form':form})
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+@ratelimit(method='POST', rate='11/h')
+def login(request, lang=None, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		if request.method == 'POST':
-			# opportunity to block entry here
-			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			if lang == "ur":
+				return render(request, 'penalty_login_ur.html', {})
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				return render(request, 'penalty_login.html', {})
 		else:
-			if lang == 'ur':
-				return log_me_in(request=request,template_name='login_ur.html')
+			if request.method == 'POST':
+				if not request.session.test_cookie_worked():
+					context = {'referrer':request.META.get('HTTP_REFERER',None)}
+					return render(request,"CSRF_failure.html",context)
+				try:
+					request.session.delete_test_cookie() #cleaning up
+				except:
+					pass
+				form = SignInForm(data=request.POST)
+				if form.is_valid():
+					quick_login(request,form.cleaned_data)
+					if lang == "ur":
+						return redirect("ur_home", 'urdu')
+					else:
+						return redirect("home")
+				else:
+					request.session.set_test_cookie()
+					if lang == 'ur':
+						return render(request,"sign_in_ur.html",{'form':form})
+					else:
+						return render(request,"sign_in.html",{'form':form})
 			else:
-				return log_me_in(request=request,template_name='login.html')
+				form = SignInForm()
+				request.session.set_test_cookie()
+				if lang == 'ur':
+					return render(request,"sign_in_ur.html",{'form':form})
+				else:
+					return render(request,"sign_in.html",{'form':form})
+
 
 ######################################################################################
 
@@ -65,25 +214,11 @@ def unauth_home_new(request,*args,**kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		# guest_id = request.session.get('guest_id',None)
-  # 		if not guest_id:
-  # 			guest_id = get_temp_id()
-  # 			request.session['guest_id'] = guest_id
-  # 		mp.track(guest_id, 'new_signup_page')
+		# return render(request,"work_in_progress.html",{})
 		form = CreateNickNewForm()
 		return render(request,"unauth_home.html",{'form':form})
-		#########################################################################
-		# variation = config_manager.get_obj().activate('reg_with_i8ln', guest_id)
-		# print guest_id
-		# print variation
-		# if variation == 'with_loc':
-		# 	# load new unauth_page (with Urdu translation)
-		# 	return render(request,"unauth_home.html",{'form':form})
-		# elif variation == 'without_loc':
-		# 	return render(request,"unauth_home_old.html",{'form':form})
-		# else:
-		# 	return render(request,"unauth_home_old.html",{'form':form})
-		#########################################################################
+
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
@@ -96,7 +231,6 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			return render(request,'penalty_account_create.html',{})
 	elif request.method == 'POST':
 		form = CreateAccountForm(data=request.POST)
-		# print "recieved data"
 		if form.is_valid():
 			# ensured username is unique, no one else has booked it
 			password = slug2.decode("hex")
@@ -110,14 +244,13 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 			except:
 				pass
 			request.session["first_time_user"] = 1
-			###############################################################
-			# mp.track(request.session.get('guest_id',None), 'acc_finalized')
-			# request.session.pop("guest_id", None)
-			###############################################################
-			mp.track(user.id,'sign_ups')
-			# mp.alias(request.user.id, unreg_id)
-			###############################################################
-			return redirect("first_time_link") #REDIRECT TO A DIFFERENT PAGE
+			return redirect("new_user_gateway",lang=lang)
+			# return redirect("first_time_link")
+			####################################################################################
+			####################################################################################
+			# return redirect("new_user_gateway",lang=lang)
+			####################################################################################
+			####################################################################################
 		else:
 			# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
 			username = slug1.decode("hex")
@@ -206,7 +339,6 @@ def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
 		# mp.track(request.session.get('tid',None), 'load_pass')
 		if request.session.test_cookie_worked():
 			form = CreatePasswordForm()
-			# mp.track(request.session.get('tid',None), 'create_new_pass')
 			if int(length) == len(slug):
 				username = slug.decode("hex")
 				context={'form':form,'username':username,'uhex':slug,'length':length}
@@ -246,7 +378,6 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 			result = sys_sugg.encode("hex")
 			length = len(result)
 			request.session.set_test_cookie()
-			# mp.track(request.session.get('guest_id',None), 'name_finalized')
 			if lang == "ur":
 				return redirect('create_password_new', lang=lang, slug=result,length=length)
 			else:
@@ -276,7 +407,6 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 					result = original.encode("hex")
 					length = len(result)
 					request.session.set_test_cookie() #set it now, to test it in the next view
-					# mp.track(request.session.get('guest_id',None), 'name_finalized')
 					if lang == "ur":
 						return redirect('create_password_new',lang=lang, slug=result,length=length)
 					else:
@@ -292,29 +422,13 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 				# except:
 				# 	pass
 				###############################################################################	
-				# mp.track(request.session.get('tid',None), 'retry_new_nick')
 				if lang == 'ur':
 					return render(request, 'create_nick_new_ur.html', context)
 				else:
 					return render(request, 'create_nick_new.html', context)
 	else:
 		form = CreateNickNewForm()
-		# mp.track(request.session.get('tid',None), 'create_new_nick')
 		if lang == 'ur':
 			return render(request, 'create_nick_new_ur.html', {'form':form})
 		else:
 			return render(request, 'create_nick_new.html', {'form':form})
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @sensitive_post_parameters()
-# @csrf_protect
-# def create_account_ur(request,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
-# 	pass
-
-# @csrf_protect
-# def create_password_new_ur(request,slug=None,length=None,*args,**kwargs):
-# 	pass
-
-# @csrf_protect
-# def create_nick_new_ur(request,*args,**kwargs):
-# 	pass

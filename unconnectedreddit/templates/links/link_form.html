@@ -9,18 +9,16 @@
 	  {% if form.description.errors %}
 	  <span class="cr">{{ form.description.errors.0 }}</span>
 	  {% else %}
-		  {% if user.userprofile.score < 8 %}
-		  <span class="cm ct"><b>Chat ke liye neechay kuch likho:</b></span>
+		  {% if user.userprofile.score < 10 %}
+		  <span class="cl ct"><b>Apna taaruf karao, ya koi pegham likho:</b></span>
 		  {% else %}
-		  <span class="cm ct"><b>Kuch likho:</b></span>
+		  <span class="cl ct"><b>Koi pegham likho:</b></span>
 		  {% endif %}
 	  {% endif %}
 	  <br>{{ form.description }}<br>
 	  	<button class="btn bm bct mtl mbs" name="btn" value="1" type="submit">OK</button>
 	</form>
-	{% if user.userprofile.score and user.userprofile.score < 50 %}
-	<span class="cs cgy">maslan koi acha sa shair likho</span><br>
-	{% endif %}
+	<span class="cgy">tip: yahan koi bhi mazedar baat likh saktey ho jis ko parh ke log apko jawab dein. Maslan shairi, lateefay, news, gupshup, etc.</span><br>
 	<br>
 	<hr size=1>
 	<span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>

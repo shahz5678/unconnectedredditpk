@@ -1,6 +1,6 @@
 {% extends user.is_authenticated|yesno:"base.html,empty.html" %}
 {% load humanize %}
-{% load thumbnail %}
+{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
 {% if switching %}
@@ -53,7 +53,7 @@
                     <span style="font-size:90%;color:purple;font-family:arial;">mehman</span>
                     {% else %}
                     {% if reply.writer.userprofile.avatar %}
-                        <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                        <img src="{{ reply.writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                     {% else %}
                         <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                     {% endif %}
@@ -129,7 +129,7 @@
                     <span style="color:purple;font-size:90%;">
                     <a href="{% url 'profile' slug=reply.writer.username %}">
                         {% if reply.writer.userprofile.avatar %}
-                        <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                        <img src="{{ reply.writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                         {% else %}
                         <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                         {% endif %}
@@ -162,7 +162,7 @@
                     {% else %}
                         <a href="{% url 'profile' slug=reply.writer.username %}#section0">
                         {% if reply.writer.userprofile.avatar %}
-                            <img src="{{ reply.writer.userprofile.avatar.url|thumbnail }}" alt="no pic"></img>
+                            <img src="{{ reply.writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                         {% else %}
                             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                         {% endif %}

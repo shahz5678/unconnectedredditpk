@@ -1,3 +1,4 @@
+
 # coding=utf-8
 import redis, time, random
 from location import REDLOC4
@@ -21,47 +22,120 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
+TWELVE_HOURS = 60*60*12
 
 
-def save_unfinished_ad_processing_error(is_auth, user_id, editor_id, ad_id, next_step, referrer, on_fbs):
+
+def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 	my_server = redis.Redis(connection_pool=POOL)
-	data = {'is_auth':is_auth,'user_id':user_id,'editor_id':editor_id,'ad_id':ad_id,'next_step':next_step,'referrer':referrer,'on_fbs':on_fbs}
-	my_server.lpush("unfinished_ad_processing_error",data)
+	final_list = []
+	for filename, photo_id in deprecated_photos:
+		filename = filename.split('photos/')[1]
+		final_list.append(filename)
+		final_list.append(photo_id)
+	my_server.zadd("deprecated_photos",*final_list)
 
-def save_seller_number_error(user_id, user_id_type, data):
-	my_server = redis.Redis(connection_pool=POOL)
-	um_data = {"user_id":user_id, "user_id_type":user_id_type,"um_data":data}
-	my_server.lpush("show_seller_number_errors",um_data)
 
-def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	if which_flow == 'consumer':
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("consumer_number_errors",err_data)
-	else:
-		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-		my_server.lpush("seller_number_errors",err_data)
-
-#######################Test Function######################
-
-# def set_test_payload(payload_list):
+# def log_pic_uploader_status(user_id, is_verified):
 # 	my_server = redis.Redis(connection_pool=POOL)
-# 	try:
-# 		return my_server.lpush("my_test",payload_list)
-# 	except:
-# 		return None
+# 	verified = '1' if is_verified else '0'
+# 	my_server.lpush('uploaded_pics',verified+":"+str(user_id))
+
+# def save_user_choice(user_id, choice):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
+
+# def log_referrer(referrer, loc, user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
+
+def return_referrer_logs(log_name):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange(log_name,0,-1)
+
+
+# def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc, is_post_request,referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\
+# 		'actual_object_attributes':actual_object_attributes, 'reported_link_attributes':reported_link_attributes,'where_from':from_loc, \
+# 		'is_post_request':is_post_request,'referrer':referrer})
+
+
+# def log_html_error(obj_list, forms, page, nickname, referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
+
+# def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
+# 		'object_id':object_id,'referrer':referrer,'time':time.time()})
+
+
+# def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if which_flow == 'consumer':
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("consumer_number_errors",err_data)
+# 	else:
+# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
+# 		my_server.lpush("seller_number_errors",err_data)
+
+#######################Ecomm Metrics######################
+
+def log_ecomm_user_visit(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("ecomm_visits",user_id)
+
+def get_and_reset_daily_ecomm_visits():
+	my_server = redis.Redis(connection_pool=POOL)
+	all_visits = my_server.lrange("ecomm_visits",0,-1)
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush("weekly_ecomm_visits",all_visits)
+	pipeline1.delete("ecomm_visits")
+	pipeline1.execute()
+	return all_visits, my_server.llen("weekly_ecomm_visits")
+
+def get_and_reset_weekly_ecomm_visits():
+	import ast
+	my_server = redis.Redis(connection_pool=POOL)
+	weekly_visits = my_server.lrange("weekly_ecomm_visits",0,-1)
+	weekly_gross_visits = []
+	for daily_visits in weekly_visits:
+		weekly_gross_visits += ast.literal_eval(daily_visits)
+	my_server.delete("weekly_ecomm_visits")
+	return weekly_gross_visits
+
+
+def insert_metrics(ecomm_metrics, reporting_time, period=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if period == 'daily':
+		mapping = {'entry_time':reporting_time, 'unique_clicks_per_unique_visitor':ecomm_metrics[0], 'unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'proportion_of_clickers_to_visitors':ecomm_metrics[2], 'unique_new_clickers_per_unique_new_visitors':ecomm_metrics[3], \
+		'unique_new_clicks_per_unique_new_visitor':ecomm_metrics[4], 'total_unique_visitors':ecomm_metrics[5], 'total_unique_clicks':ecomm_metrics[6]}
+		my_server.lpush("ecomm_metrics",mapping)
+	if period == 'weekly':
+		mapping = {'entry_time':reporting_time, 'weekly_unique_clicks_per_unique_visitor':ecomm_metrics[0], 'weekly_unique_clicks_per_unique_clicker':ecomm_metrics[1], \
+		'weekly_proportion_of_clickers_to_visitors':ecomm_metrics[2], 'weekly_unique_visitors':ecomm_metrics[3], \
+		'weekly_unique_clicks':ecomm_metrics[4]}
+		my_server.lpush("weekly_ecomm_metrics",mapping)
+
+
+
+def return_all_metrics_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.lrange("ecomm_metrics", 0, -1), my_server.lrange("weekly_ecomm_metrics", 0, -1)
+
+#######################Photo Secret Key######################
 
 def set_photo_upload_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
-	user_id = str(user_id)
-	my_server.set("pusk:"+user_id,secret_key)
-	my_server.expire("pusk:"+user_id,TEN_MINS)
+	my_server.setex("pusk:"+str(user_id),secret_key,TEN_MINS)
 
 def get_and_delete_photo_upload_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	if my_server.exists("pusk:"+user_id):
-		secret_key = my_server.get("pusk:"+user_id)
+	secret_key = my_server.get("pusk:"+user_id)
+	if secret_key:
 		my_server.delete("pusk:"+user_id)
 		return secret_key
 	else:
@@ -116,11 +190,11 @@ def expire_online_users():
 def set_online_users(user_id,user_ip):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "online_users"
-	user_id = str(user_id)
 	latest_user_ip = "lip:"+user_id #latest ip of user with 'user_id'
-	my_server.zadd(sorted_set,user_id+":"+str(user_ip),time.time())
-	my_server.set(latest_user_ip,user_ip)
-	my_server.expire(latest_user_ip,FIVE_MINS)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zadd(sorted_set,user_id+":"+user_ip,time.time())
+	pipeline1.setex(latest_user_ip,user_ip,FIVE_MINS)
+	pipeline1.execute()
 	############ logging user retention ############
 	# if random.random() < 0.45:
 	# 	log_retention(my_server,user_id)
@@ -216,28 +290,122 @@ def save_careem_data(careem_data):
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("cad:"+str(careem_data['phonenumber']),careem_data)
 		pipeline1.zadd('careem_applicant_nums',careem_data['phonenumber'],time.time())
-#		print my_server.zrange("careem_applicant_nums",0,-1)
+		pipeline1.zadd('careem_applicant_nums_live',careem_data['phonenumber'],time.time())
 		pipeline1.execute()
 
 		return True
 
 def export_careem_data():
-	import csv
 	my_server = redis.Redis(connection_pool=POOL)
-	nums = my_server.zrange("careem_applicant_nums",0,-1)
 	pipeline1 = my_server.pipeline()
-	for num in nums:
-		pipeline1.hgetall('cad:'+num)
-	result1 = pipeline1.execute()
-	filename = 'careem_'+str(int(time.time()))+'.csv'
-	with open(filename,'wb') as f:
-		wtr = csv.writer(f)
-		columns = ["Firstname","Lastname","Mobile","City","License","Car Ownership"]
-		wtr.writerow(columns)
-		for user in result1:
-			firstname,lastname,phonenumber,city,license,car=user['firstname'],user['lastname'],user['phonenumber'],\
-			user['city'],user['license'],user['car']
-			to_write = [firstname,lastname,phonenumber,city,license,car]
-			wtr.writerows([to_write])
+	user = my_server.zcard("careem_applicant_nums_live")
+	if user == 0:
+		return False
+	else:
+		nums = my_server.zrange("careem_applicant_nums_live",0,-1)
+		pipeline1 = my_server.pipeline()
+		for num in nums:
+			pipeline1.hgetall('cad:'+num)
+		result1 = pipeline1.execute()
+		return result1
 
-#########################################################
+def del_careem_data():
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.delete("careem_applicant_nums_live")
+
+
+##################################################Mobile_Shop
+
+def save_order_data(order_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "order_data:"+str(order_data['user_id'])
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,order_data)
+	pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+def save_query_data(query_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "query_data:"+str(query_data['user_id'])
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,query_data)
+	pipeline1.sadd('query_users',query_data['user_id'])
+#	pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+
+def place_order(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	order_data = False
+	order_data = get_temp_order_data(user_id)
+	order_id = get_order_id()
+	order_data['order_id'] = order_id
+	pipeline1.zadd('orders_in_process',user_id,order_id)
+	# after a few months, export this to excel and clean the list (it takes up needless space)
+	pipeline1.hmset("placed_orders:"+str(order_id),order_data)
+	pipeline1.execute()
+	return order_data
+
+def get_temp_order_data(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	temp_storage = "order_data:"+str(user_id)
+	if my_server.exists(temp_storage):
+		order_details = my_server.hgetall("order_data:"+str(user_id))
+#		my_server.delete("order_data:"+str(user_id))
+		return order_details
+	else:
+		return {}
+
+def check_orders_processing(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	user = my_server.zscore('orders_in_process',user_id)
+	if user == None:
+		return False
+	else:
+		return True
+
+def get_order_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("order_id")
+
+def get_total_orders():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("order_id")
+
+def show_new_orders():
+	total_orders = get_total_orders()
+	if total_orders <1:
+		return False
+	else:
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		num = 0
+		
+		while num <= int(total_orders):
+			temp_storage = "placed_orders:"+str(num)
+			if my_server.exists(temp_storage):
+				pipeline1.hgetall('placed_orders:'+str(num))
+			num = num + 1
+		orders = pipeline1.execute()
+		return orders
+
+
+def show_new_queries():
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	users = my_server.smembers("query_users")
+	if users == 0:
+		return False
+	else:
+		pipeline1 = my_server.pipeline()
+		for obj in users:
+			pipeline1.hgetall('query_data:'+obj)
+		result1 = pipeline1.execute()
+		return result1
+
+
+
+

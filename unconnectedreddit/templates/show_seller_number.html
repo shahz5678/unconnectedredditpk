@@ -1,6 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% load get_ecomm_navbar %}
 {% block content %}
+
+<head>
+<title>
+	 {{ seller_details.title }} seller contact details ({{ seller_details.town }}, {{ seller_details.city }}) | Damadam.pk
+</title>
+</head>
+
 <body style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');background-attachment: fixed;">
 <div class="margin clb">
 

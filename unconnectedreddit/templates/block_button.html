@@ -1,0 +1,9 @@
+{% if possible %}
+<form method="POST" action="{% url 'enter_inter_user_ban' %}" style="display:inline">
+  {% csrf_token %}
+  <input type="hidden" name="tunm" value="{{ target_username }}">
+  <input type="hidden" name="origin" value="{{ referrer }}">
+  <input type="hidden" name="oid" value="{{ object_id }}">
+  <button style="background-image: url({{ static_url }}img/stop.png);background-repeat: no-repeat;background-position: center; width:17px; height:17px;border:none;background-color:white;" value="{{ target_user_id }}" name="tuid" type="submit">&nbsp;</button>
+</form>
+{% endif %}

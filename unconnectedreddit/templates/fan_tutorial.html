@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Dostoon ke fan bano </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic">
-<br><br>
-Jo pasand aye uske fan ban jao. Is terah tumhe uski photos sb se pehle nazr aya krein gi.<br>
-<span class="cs">Ab OK dbao takey tumhe <b>{{ name }}</b> ka fan bana diya jaye</span>
+<div class="mbl">
+<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Ye button daba kar aap fan ban jatey ho </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><br>
+</div>
+<span class="cl">Jin ke aap fan ho, unki fotos aap ko sab se pehle nazar aati hain<br>
+OK dabao takey aap <b>{{ name }}</b> ke fan ban jao!</span>
 <br>
-<a href="{% url 'fan' star_id obj_id origin %}"><button class="btn bcg bm mtl">OK</button></a>
+<form action="{% url 'fan' %}" method="POST">
+ 	{% csrf_token %}
+	<input type="hidden" name="oid" value="{{ obj_id }}">
+	<input type="hidden" name="org" value="{{ origin }}">
+	<button type="submit" name="sid_btn" class="btn bcg bm mtl" value="{{ star_id }}">OK</button>
+</form>
 </div>
 <br><br>
 {% endblock %}

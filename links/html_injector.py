@@ -19,17 +19,17 @@ def create_gibberish_punishment_text(amount):
 	a_href_tail = '</a>'
 	#################################################
 	header = bold_cxl+'Ap ke '+span_colored+str(amount)+' points'+span_tail+' cut gaye!'+bold_tail
-	sub_header1 = 'Ap ko home ke rules break kartay huay report kiya gaya.'
+	sub_header1 = 'Apko home ke rules break kartay huay pakra gaya hai'
 	sub_header2 = 'Home Rules:'
 	sub_header3 = '... aur last rule...'
 	one = bold_head+'1) '+bold_tail
 	two = bold_head+'2) '+bold_tail
 	three = bold_head+'3) '+bold_tail
 	four = bold_head+'4) '
-	rule_one = 'Points barhaney ke liye home ka najaiz istimal na karein'
-	rule_two = 'Gandi baatoon aur galiyun se dur rehain'
-	rule_three = 'Kisi ko bila waja chupair na marein'
-	rule_four = 'Boring hona mana hai.'+bold_tail+' Dil khol ke mazedar gup shup, jokes, shairi aur news share karein ;-)'
+	rule_one = 'Points barhaney ke liye home pe bar bar aik jesi baatien na likho'
+	rule_two = 'Gandi baatoon aur galiyun se dur raho'
+	rule_three = 'Kisi ko bila waja chupair na maro'
+	rule_four = 'Boring hona mana hai.'+bold_tail+' Dil khol ke mazedar gup shup, jokes, shairi aur news share karo ;-)'
 	button_text = bold_head+'OK'+bold_tail
 	#################################################
 	return outer_div_head+header+line_break+inner_div_1+sub_header1+line_break+div_tail+line+\
@@ -38,26 +38,6 @@ def create_gibberish_punishment_text(amount):
 	bold_tail+line_break+div_tail+four+rule_four+line_break+a_href_head+button_head+button_text+\
 	button_tail+a_href_tail+div_tail
 
-
-# <div style="background-color:#0091ea;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-# <b class="cxl">Ap ke <span style="color:#ffeb3b;">12 points</span> cut ho gaye!</b>
-# <br>
-# 	<div class="mts mbs">
-# 	Ap ko home ke rules break kartay huay report kiya gaya.<br>
-# 	</div>
-# <hr size=1 COLOR="#ffeb3b">
-# <div class="mts mbs cl">
-# <b style="color:#ffeb3b;">Home Rules:</b><br>
-# </div>
-# <b>1)</b> Points barhaney ke liye home ka najaiz istimal nah karein<br>
-# <b>2)</b> Gandi baatoon aur galiyun se dur rehain<br>
-# <b>3)</b> Kisi ko bila waja chupair na marien<br>
-# <div class="mts mbs cl">
-# <b style="color:#ffeb3b;">... aur last rule...</b><br>
-# </div>
-# <b>4) Boring hona mana hai.</b> Dil khol ke mazedar gup shup, lateefay, shairi aur khabrein sunaien!<br>
-# <a href="{% url 'retire_home_rules' %}"><button class="btn bco mbl mtl bm"><b>OK</b></button></a>
-# </div>
 
 def pinkstar_formatting(pinkstar):
 	if pinkstar:
@@ -69,11 +49,11 @@ def category_formatting(categ):
 	if categ == '1':
 		#tyical home link
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#3cb7dd"></p>'
+		div_tail = '</div>'
 	elif categ == '2':
 		#public mehfil creation announcement on home
-		div_head = '<div style="background-color:#faebeb;margin-top:-1em;padding-top:1em;" >'
-		div_tail = '<p><hr size=1 COLOR="#ac39ac"></p></div>'
+		div_head = '<div style="background-color:#faebeb;padding-top:1em;padding-bottom:1em;" >'
+		div_tail = '</div>'
 	elif categ == '3':
 		#Karachi Kings
 		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'
@@ -89,7 +69,7 @@ def category_formatting(categ):
 	elif categ == '6':
 		#Photo sharing
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#ff9933"></p>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
 	elif categ == '7':
 		#Quetta Glads
 		div_head = '<div style="background-color:#f5edf8;"><h1 style="font-size:0.7em;background-color:#9040a8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Quetta Gladiators</h1>'
@@ -101,7 +81,7 @@ def category_formatting(categ):
 	elif categ == '9':
 		#misc
 		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
-		div_tail = '<p><hr size=1 COLOR="#59A5F5"></p></div>'
+		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p></div>'
 	elif categ == '10':
 		#New Zealand
 		div_head = '<div style="background-color:#f2f2f2;"><h1 style="font-size:0.7em;background-color:#404040;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">New Zealand</h1>'
@@ -130,10 +110,19 @@ def category_formatting(categ):
 		# England
 		div_head = '<div style="background-color:#e6e6ff;"><h1 style="font-size:0.7em;background-color:#020277;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">England</h1>'
 		div_tail = '<p><hr size=1 COLOR="#020277"></p></div>'
+	elif categ == '17':
+		# urdu home link
+		div_head = '<span></span>'
+		div_tail = '</div>'
+	elif categ == '18':
+		# World-XI
+		div_head = '<div style="background-color:#ffffcc;"><h1 style="font-size:0.7em;background-color:#4d0099;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">World-XI</h1>'
+		div_tail = '<p><hr size=1 COLOR="#4d0099"></p></div>'
 	else:
 		div_head = '<span></span>'
 		div_tail = '<span></span>'
 	return div_head, div_tail
+
 
 def device_formatting(device):
 	if device == '1':
@@ -182,15 +171,26 @@ def image_thumb_formatting(img_url,pid):
 	return '<button class="mls mbs" style="border-radius:0px;background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" height="38"></button>' \
 	% (pid,img_url)
 
-def av_url_formatting(av_url):
+def av_url_formatting(av_url, style=None, categ=None):
+	url = None
 	if av_url:
-		if 'res/avatars' in av_url:
-			url = string.replace(av_url, "damadam.blob.core.windows.net/pictures/avatars", "damadamthumbs.azureedge.net")
+		if 'avatars' in av_url:
+			url = "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+av_url.split("avatars/")[1]
 		else:
 			url = av_url
-		return '<img src="%s" width="22" height="22"></img>' % url
+	if url:
+		if style == 'round':
+			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'.format(url)
+		else:
+			if categ == '6':
+				return '<button class="mbs" alt="no avatar" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>'.format(url)
+			else:
+				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22"/>'.format(url)
 	else:
-		return '<img src="/static/img/default-avatar-min.jpg" alt="no pic"  width="22" height="22"></img>'
-
-# def contacter_string(phone_number):
-# 	return '<span class="cg"><b>%s</b> ne tumhara mobile number hasil kiya</span><br>' % phone_number
+		if style == 'round':
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'
+		else:
+			if categ == '6':
+				return '<button class="mbs" alt="no avatar" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>'
+			else:
+				return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border:1px solid lightgrey;" width="22" height="22"/>'

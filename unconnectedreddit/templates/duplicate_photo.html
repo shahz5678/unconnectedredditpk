@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load thumbnail %}
+{% load s3 %}
 {% load humanize %}
 {% block content %}
 <div class="margin">
@@ -8,13 +8,13 @@
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
 {% elif photo.vote_score < -1 %}
     {% if photo.image_file %}
-        <img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="filter:brightness(50%);width:auto;"></img>
+        <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="filter:brightness(50%);width:auto;"></img>
     {% else %}
         <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
     {% endif %}
 {% else %}
 	{% if photo.image_file %}
-    	<img src="{{ photo.image_file.url|thumbnail }}" alt="no pic" style="width:auto;"></img>
+    	<img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="width:auto;"></img>
     {% else %}
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
     {% endif %}

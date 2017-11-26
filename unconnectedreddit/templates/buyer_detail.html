@@ -1,0 +1,31 @@
+{% extends "base_min.html" %}
+{% block content %}
+<div class="margin clb">
+	
+
+<p class="cs cbl">Step 1: Naam aur Address bataien / Enter Name and Delivery Address</p>
+<p class="cs clg">Step 2: Order ki tasdeeq kerien / Confirm order</p>
+
+	<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/eshop.png"><br>
+	<br>{% else %}<img style="max-width:150px;" src="{{ STATIC_URL }}img/eshop.png"><br>{% endif %}
+	<h2 class="cg bw">Apni malumat likhien:</h2>
+
+	<form method="post" action="{% url 'buyer_details' 'buy_det'%}" class="mtl">
+	{% csrf_token %}
+	<b>1. Apna poora naam likhien:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>
+	<br>{% if form.username.errors %}<span class="cr">{{ form.username.errors.0 }}</span><br>{% endif %}
+	{{ form.username }}<br>
+	<br>
+	<b>2. Apna ghar ka pata, mohalla aur city likhien:</b><br><b class='cs cgy'>misaal: Makan 30-B, Lane 4, Akbar Colony, Lahore</b><br> 
+	{% if form.address.errors %}<span class="cr mtl">{{ form.address.errors.0 }}</span><br>{% endif %}
+	{{ form.address }}<br>
+	<br>
+	<b>3. Apna mobile number likhien:</b><br><b class='cs cgy'>misaal: 03451234567</b><br>
+	{% if form.phonenumber.errors %}<span class="cr mtl">{{ form.phonenumber.errors.0 }}</span><br>{% endif %}
+	{{ form.phonenumber }}<br>
+	<input class="btn bcg bl mtl mbl" type="submit" value="Order">
+	</form>
+	<a href="{% url 'intermediate' 'main'%}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
+</div>
+<br><br>
+{% endblock %}

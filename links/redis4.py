@@ -15,8 +15,20 @@ my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
 
+
+
+
+
 ###########
 '''
+
+
+
+
+
+
+
+
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
@@ -327,13 +339,21 @@ def save_order_data(order_data):
 
 def save_query_data(query_data):
 	my_server = redis.Redis(connection_pool=POOL)
-	key_name = "query_data:"+str(query_data['user_id'])
+	key_name = "querydata:"+str(query_data['user_id'])
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(key_name,query_data)
-	pipeline1.sadd('query_users',query_data['user_id'])
+	pipeline1.sadd('queryusers',query_data['user_id'])
 #	pipeline1.expire(key_name,TWELVE_HOURS)
 	pipeline1.execute()
 	return True
+
+def delete_query(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	my_server.srem("queryusers",user_id)
+	my_server.delete("querydata:"+str(user_id))
+	pipeline1.execute()
+	return {}
 
 
 def place_order(user_id):
@@ -343,11 +363,24 @@ def place_order(user_id):
 	order_data = get_temp_order_data(user_id)
 	order_id = get_order_id()
 	order_data['order_id'] = order_id
-	pipeline1.zadd('orders_in_process',user_id,order_id)
+	pipeline1.zadd('ordersinprocess',user_id,order_id)
 	# after a few months, export this to excel and clean the list (it takes up needless space)
-	pipeline1.hmset("placed_orders:"+str(order_id),order_data)
+	pipeline1.hmset("placedorders:"+str(order_id),order_data)
 	pipeline1.execute()
 	return order_data
+
+def delete_order(order_id,user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	# after a few months, export this to excel and clean the list (it takes up needless space)
+	my_server.zrem("ordersinprocess",user_id)
+	my_server.delete("placedorders:"+str(order_id))
+	pipeline1.execute()
+	return {}
+
+
+
+
 
 def get_temp_order_data(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -361,7 +394,7 @@ def get_temp_order_data(user_id):
 
 def check_orders_processing(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
-	user = my_server.zscore('orders_in_process',user_id)
+	user = my_server.zscore('ordersinprocess',user_id)
 	if user == None:
 		return False
 	else:
@@ -385,9 +418,9 @@ def show_new_orders():
 		num = 0
 		
 		while num <= int(total_orders):
-			temp_storage = "placed_orders:"+str(num)
+			temp_storage = "placedorders:"+str(num)
 			if my_server.exists(temp_storage):
-				pipeline1.hgetall('placed_orders:'+str(num))
+				pipeline1.hgetall('placedorders:'+str(num))
 			num = num + 1
 		orders = pipeline1.execute()
 		return orders
@@ -396,16 +429,25 @@ def show_new_orders():
 def show_new_queries():
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	users = my_server.smembers("query_users")
+	users = my_server.smembers("queryusers")
 	if users == 0:
-		return False
+		return []
 	else:
 		pipeline1 = my_server.pipeline()
 		for obj in users:
-			pipeline1.hgetall('query_data:'+obj)
+			pipeline1.hgetall('querydata:'+obj)
 		result1 = pipeline1.execute()
 		return result1
 
 
 
+'''
+####################
+M_S Deprecated Key Names
+query_data now querydata
+query_users now queryusers
+orders_in_process now ordersinprocess
+placed_orders now placedorders
 
+####################
+'''

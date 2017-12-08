@@ -244,6 +244,11 @@ def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
 	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
+@celery_app1.task(name='tasks.enqueue_orderer_sms')
+def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):
+	cleansed_data = "Assalam-o-Alikum! Apka "+str(order_data['model'])+" ka order hamarey pas agya hai. Mobile shop ka numainda ap se jald rabta keray ga. Shukriya :-)"
+	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):
 	clean_expired_notifications(user_id)

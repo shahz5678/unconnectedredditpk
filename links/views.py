@@ -1603,6 +1603,8 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		elif choice == '2':
 			# this user wants to see fotos
 			return redirect("best_photo")
+		else:
+			return redirect("home")
 	else:
 		if lang == 'ur':
 			return render(request,"first_time_choice_ur.html")

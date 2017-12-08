@@ -15,25 +15,14 @@ my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
 
-
-
-
-
 ###########
 '''
-
-
-
-
-
-
-
-
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
 TEN_MINS = 10*60
 FIVE_MINS = 5*60
+ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
 
 
@@ -141,7 +130,7 @@ def return_all_metrics_data():
 
 def set_photo_upload_key(user_id, secret_key):
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.setex("pusk:"+str(user_id),secret_key,TEN_MINS)
+	my_server.setex("pusk:"+str(user_id),secret_key,ONE_HOUR)
 
 def get_and_delete_photo_upload_key(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

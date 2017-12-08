@@ -107,10 +107,10 @@ body {
 		<div id="product-name">
 				<span itemscope itemtype="http://schema.org/Product">
 				<h1 class="cl" style="font-weight:normal"> 
-					<span itemprop="brand">QMobile </span> 
-					<span itemprop="name">Noir X29</span>
+					<b itemprop="brand">QMobile </b> 
+					<b itemprop="name">Noir X29</b>
 					<br>
-					<span style="color:#B12704">Price: Rs.3600</span>
+					<span style="color:#B12704">Price: Rs.4200</span>
 				</h1>
 				<div class="cs cb" style="margin-top:-10px;">	
 					<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
@@ -128,7 +128,7 @@ body {
 			<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 			<b style="color:#B12704">Damadam Price: 
 				<meta itemprop="priceCurrency" content="PKR"/> Rs.
-				<span itemprop="price">3600</span>
+				<span itemprop="price">4200</span>
 			</b>
 			<a href="{% url 'delivery' 'main'%}" target="_blank">(Free Delivery)</a>
 			<hr width"100%" class="style-offer">
@@ -137,7 +137,7 @@ body {
 			<hr width"100%" class="style-offer">
 				WhatMobile: Rs.4850  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-X29" target="_blank">(dekho)</a>
 				<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.4000 - Rs.4850
+				<span style="color:grey; font-size:12px">Dukandar: Rs.4400 - Rs.4850
 				</span>
 			</span>
 		</div>	
@@ -173,20 +173,20 @@ body {
 <!-- ################################# END ITEM BLOCK 1 ############################################ -->
 
 		<div id="product-name">
-				<span itemscope itemtype="http://schema.org/Product">
-				<h1 class="cl" style="font-weight:normal"> 
-					<span itemprop="brand">QMobile </span> 
-					<span itemprop="name">Noir i8i</span>
-					<br>
-					<span style="color:#B12704">Price: Rs.6120</span>
-				</h1>
-				<div class="cs cb" style="margin-top:-10px;">	
-					<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
-					<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
-				</div>
+			<span itemscope itemtype="http://schema.org/Product">
+			<h1 class="cl" style="font-weight:normal"> 
+				<b itemprop="brand">Infinix </b> 
+				<b itemprop="name">Smart</b>
+				<br>
+				<span style="color:#B12704">Price: Rs.7850</span>
+			</h1>
+			<div class="cs cb" style="margin-top:-10px;">	
+				<a href="{% url 'warranty' 'main'%}" >One Year Infinix Warranty</a> <br>
+				<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+			</div>
 		</div>
 		<div id="image" style="text-align:center; margin-top:10px;">
-			<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/i8i.png" alt="qmobile i8i">
+			<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/insmart.png" alt="Infinix Smart">
 		</div><br>
 		<div id="price-comparison" class="cheapoffer">
 			<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
@@ -194,29 +194,27 @@ body {
 			<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 			<b style="color:#B12704">Damadam Price: 
 				<meta itemprop="priceCurrency" content="PKR"/> Rs.
-				<span itemprop="price">6120</span>
+				<span itemprop="price">7850</span>
 			</b>
-			<a href="{% url 'delivery' 'main'%}" target="_blank">(Free Delivery)</a>
+			<a href="{% url 'delivery' 'main'%}" target="_blank">Free Delivery</a>
 			<hr width"100%" class="style-offer">
 			<span style="color:grey; font-size:12px">
-				ShopHive: Rs.7499 <a href="http://www.shophive.com/qmobile-i8i" target="_blank">(dekho)</a>
-			<hr width"100%" class="style-offer">
-				WhatMobile: Rs.7500  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-I8i" target="_blank">(dekho)</a>
+				WhatMobile: Rs.8900  <a href="https://www.whatmobile.com.pk/Infinix_Smart" target="_blank">(dekho)</a>
 				<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.6800 - Rs.7500
+				<span style="color:grey; font-size:12px">Dukandar: Rs.8500 - Rs.9000
 				</span>
 			</span>
 		</div>	
 		<br>
-		<span class="co cm"> QMobile Noir i8i:
+		<span class="co cm"> Infinix Smart:
 		</span>
-		<a href="{% url 'i8i' %}">
+		<a href="{% url 'insmart' %}">
 			<div class="clb"> 
 				<div id="product-description" class="productdescription">
 					<span itemprop="description">
-					<b>Memory:</b> <span class="mls">1GB RAM, 8GB ROM</span>
+					<b>Memory:</b> <span class="mls">1GB RAM, 16GB ROM</span>
 					<hr width"100%" class="style-offer">
-					<b>Camera:</b> <span class="mls">5 MP (rear) + 2 MP (front)</span>
+					<b>Camera:</b> <span class="mls">8 MP (rear) + 2 MP (front)</span>
 					<hr width"100%" class="style-offer">
 					<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
 					<hr width"100%" class="style-offer">
@@ -227,55 +225,51 @@ body {
 		</a>
 			<form method="POST" action="{% url 'intermediate' 'main' %}">
 				{% csrf_token %}
-				<input type="hidden" name="merch_id" value="3">
+				<input type="hidden" name="merch_id" value="8">
 				<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
 				<br>
-
 			</form>
-
 		<hr size=1 COLOR="#A9A9A9">
 
 
 <!-- ################################# END ITEM BLOCK 2 ############################################ -->
-		<div id="product-name">
+	<div id="product-name">
 				<span itemscope itemtype="http://schema.org/Product">
 				<h1 class="cl" style="font-weight:normal"> 
-					<span itemprop="brand">QMobile </span> 
-					<span itemprop="name">LT550 4G</span>
+					<b itemprop="brand">Huawei </b> 
+					<b itemprop="name">Y3 2017</b>
 					<br>
-					<span style="color:#B12704">Price: Rs.6500</span>
+					<span style="color:#B12704">Price: Rs.8840</span>
 				</h1>
 				<div class="cs cb" style="margin-top:-10px;">	
-					<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
+					<a href="{% url 'warranty' 'main'%}" >One Year Huawei Warranty</a> <br>
 					<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
 				</div>
-		</div>
-		<div id="image" style="text-align:center; margin-top:10px;">
-			<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/lt550.png" alt="qmobile x33">
-		</div><br>
-		<div id="price-comparison" class="cheapoffer">
-			<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
-					<hr width"100%" class="style-offer">
-			<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-			<b style="color:#B12704">Damadam Price: 
-				<meta itemprop="priceCurrency" content="PKR"/> Rs.
-				<span itemprop="price">6500</span>
-			</b>
-			<a href="{% url 'delivery' 'main'%}" target="_blank">(Free Delivery)</a>
-			<hr width"100%" class="style-offer">
-			<span style="color:grey; font-size:12px">
-				PriceOye.pk: Rs.7200 <a href="https://priceoye.pk/mobiles/qmobile/qmobile-lt550" target="_blank">(dekho)</a>
-			<hr width"100%" class="style-offer">
-				WhatMobile: Rs.7750  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-LT550" target="_blank">(dekho)</a>
+			</div>
+			<div id="image" style="text-align:center; margin-top:10px;">
+				<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/y3.png" alt="Huawei y3 2017">
+			</div><br>
+			<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+						<hr width"100%" class="style-offer">
+				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+				<b style="color:#B12704">Damadam Price: 
+					<meta itemprop="priceCurrency" content="PKR"/> Rs.
+					<span itemprop="price">8840</span>
+				</b>
+				<a href="{% url 'delivery' 'y3'%}" target="_blank">Free Delivery</a>
 				<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.7000 - Rs.8000
+				<span style="color:grey; font-size:12px">
+					WhatMobile: Rs.10500  <a href="https://www.whatmobile.com.pk/Huawei_Y3-2017-3G" target="_blank">(dekho)</a>
+					<hr width"100%" class="style-offer">
+					<span style="color:grey; font-size:12px">Dukandar: Rs.9600 - Rs.10500
+					</span>
 				</span>
-			</span>
-		</div>	
+			</div>	
 		<br>
-		<span class="co cm"> QMobile Noir LT550 4G:
+		<span class="co cm"> Huawei Y3 3G 2017:
 		</span>
-		<a class="clb" href="{% url 'lt550' %}"> 
+		<a class="clb" href="{% url 'y3' %}"> 
 			<div class="clb"> 
 				<div id="product-description" class="productdescription">
 					<span itemprop="description">
@@ -285,7 +279,7 @@ body {
 					<hr width"100%" class="style-offer">
 					<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
 					<hr width"100%" class="style-offer">
-					<b>Internet:</b> <span class="mls">4G</span>
+					<b>Internet:</b> <span class="mls">3G</span>
 					<hr width"100%" class="style-offer">
 					<h3 class="mtl mbs cl" style='color:#0000fb'type="submit"><b><u>Phone ki tafseel dekhien</u></b></h3>
 					</span>
@@ -295,118 +289,112 @@ body {
 
 			<form method="POST" action="{% url 'intermediate' 'main' %}">
 				{% csrf_token %}
-				<input type="hidden" name="merch_id" value="7">
+				<input type="hidden" name="merch_id" value="9">
 				<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
 				<br>
 			</form>	
 
 		<hr size=1 COLOR="#A9A9A9">
 
-<!-- ################################# END ITEM BLOCK 3 ############################################ -->
+<!-- ################################# END ITEM BLOCK 4 ############################################ -->
 		<div id="product-name">
-			<span itemscope itemtype="http://schema.org/Product">
-			<h1 class="cl" style="font-weight:normal"> 
-				<span itemprop="brand">QMobile </span> 
-				<span itemprop="name">Noir i6 Metal 2017</span>
-				<br>
-				<span style="color:#B12704">Price: Rs.6570</span>
-			</h1>
-			<div class="cs cb" style="margin-top:-10px;">	
-				<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
-				<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+				<span itemscope itemtype="http://schema.org/Product">
+				<h1 class="cl" style="font-weight:normal"> 
+					<b itemprop="brand">Samsung </b> 
+					<b itemprop="name">Grand Prime Plus</b>
+					<br>
+					<span style="color:#B12704">Price: Rs.12,550</span>
+				</h1>
+				<div class="cs cb" style="margin-top:-10px;">	
+					<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
+					<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+				</div>
 			</div>
-		</div>
-		<div id="image" style="text-align:center; margin-top:10px;">
-			<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/i6metal.png" alt="qmobile i6metalone">
-		</div><br>
-		<div id="price-comparison" class="cheapoffer">
-			<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
-					<hr width"100%" class="style-offer">
-			<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-			<b style="color:#B12704">Damadam Price: 
-				<meta itemprop="priceCurrency" content="PKR"/> Rs.
-				<span itemprop="price">6570</span>
-			</b>
-			<a href="{% url 'delivery' 'main'%}" target="_blank">(Free Delivery)</a>
-			<hr width"100%" class="style-offer">
-			<span style="color:grey; font-size:12px">
-				ShopHive: Rs.7449 <a href="http://www.shophive.com/qmobile-noir-i6-metal-one-3g-8gb-rom-1gb-ram-5mp" target="_blank">(dekho)</a>
-			<hr width"100%" class="style-offer">
-				WhatMobile: Rs.7850  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-i6-Metal-One" target="_blank">(dekho)</a>
+			<div id="image" style="text-align:center; margin-top:10px;">
+				<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/gprimep.png" alt="sammsung grand prime plus">
+			</div><br>
+			<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+						<hr width"100%" class="style-offer">
+				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+				<b style="color:#B12704">Damadam Price: 
+					<meta itemprop="priceCurrency" content="PKR"/>Rs.<span itemprop="price">12,550</span>
+				</b><br>
+				<a href="{% url 'delivery' 'gprimep'%}" target="_blank">Free Delivery</a>
 				<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.7300 - Rs.8000
+				<span style="color:grey; font-size:12px">
+					WhatMobile: Rs.16,000  <a href="https://www.whatmobile.com.pk/Samsung_Galaxy-Grand-Prime-Plus" target="_blank">(dekho)</a>
+					<hr width"100%" class="style-offer">
+					<span style="color:grey; font-size:12px">Dukandar: Rs.13,700 - Rs.16,000
+					</span>
 				</span>
-			</span>
-		</div>	
-		<br>
-		<span class="co cm"> QMobile Noir i6 Metal 2017:
+			</div>	
+			<br>
+		<span class="co cm"> Samsung Grand Prime Plus:
 		</span>
-		<a href="{% url 'i6metal' %}"> 
+		<a href="{% url 'gprimep' %}">
 			<div class="clb"> 
 				<div id="product-description" class="productdescription">
-					<span itemprop="description">
-					<b>Memory:</b> <span class="mls">1GB RAM, 8GB ROM</span>
+					<b>Memory:</b> <span class="mls">1.5 GB RAM, 8GB ROM</span>
 					<hr width"100%" class="style-offer">
-					<b>Camera:</b> <span class="mls">5 MP (rear) + 5 MP (front)</span>
+					<b>Camera:</b> <span class="mls">8 MP (rear) + 5 MP (front)</span>
 					<hr width"100%" class="style-offer">
 					<b>Screen:</b> <span class="mls">5.0&nbsp;inches</span>
 					<hr width"100%" class="style-offer">
-					<h3 class="mtl mbs cl" style='color:#0000fb'type="submit"><b><u>Phone ki tafseel dekhien</u></b></h3>
+					<h3 class="mtl mbs cl" style='color:#0000fb' type="submit"><b>Phone ki tafseel dekhien</b></h3>
 					</span>
 				</div>
 			</div>
-		</a>
-			<form method="POST" action="{% url 'intermediate' 'main' %}">
-				{% csrf_token %}
-				<input type="hidden" name="merch_id" value="4">
-				<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
-				<br>
-			</form>
+		</a>	
+		<form method="POST" action="{% url 'intermediate' 'main' %}">
+			{% csrf_token %}
+			<input type="hidden" name="merch_id" value="11">
+			<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
+			<br>
+		</form>
 		<hr size=1 COLOR="#A9A9A9">
-<!-- ################################# END ITEM BLOCK 4 ############################################ -->
+
+
 <!-- ################################# END ITEM BLOCK 5 ############################################ -->
-		<div id="product-name">
-			<span itemscope itemtype="http://schema.org/Product">
-			<h1 class="cl" style="font-weight:normal"> 
-				<span itemprop="brand">QMobile</span> 
-				<span itemprop="name">Noir S6</span>
-				<br>
-				<span style="color:#B12704">Price: Rs.9630</span>
-			</h1>
-			<div class="cs cb" style="margin-top:-10px;">	
-				<a href="{% url 'warranty' 'main'%}" >One Year QMobile Warranty</a> <br>
-				<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+					<div id="product-name">
+				<span itemscope itemtype="http://schema.org/Product">
+				<h1 class="cl" style="font-weight:normal"> 
+					<b itemprop="brand">Samsung </b> 
+					<b itemprop="name">J5 Prime</b>
+					<br>
+					<span style="color:#B12704">Price: Rs.18,900</span>
+				</h1>
+				<div class="cs cb" style="margin-top:-10px;">	
+					<a href="{% url 'warranty' 'main'%}" >One Year Samsung Warranty</a> <br>
+					<a href="{% url 'delivery' 'main'%}" >Payment: Cash On Delivery</a> <br>
+				</div>
 			</div>
-		</div>
-		<div id="image" style="text-align:center; margin-top:10px;">
-			<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/s6.png" alt="qmobile s6">
-		</div><br>
-		<div id="price-comparison" class="cheapoffer">
-			<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+			<div id="image" style="text-align:center; margin-top:10px;">
+				<img  itemprop="image" style="width:100%;max-width:165px;" src="{{ STATIC_URL }}img/j5p.png" alt="samsung j5p">
+			</div><br>
+			<div id="price-comparison" class="cheapoffer">
+				<span><b class="cs co">Sasta Rate Kahan Hai?</b><span>
+						<hr width"100%" class="style-offer">
+				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+				<b style="color:#B12704">Damadam Price: 
+					<meta itemprop="priceCurrency" content="PKR"/>Rs.<span itemprop="price">18,900</span>
+				</b><br>
+				<a href="{% url 'delivery' 'j5p'%}" target="_blank">Free Delivery</a>
+				<hr width"100%" class="style-offer">
+				<span style="color:grey; font-size:12px">
+					WhatMobile: Rs.23,000  <a href="https://www.whatmobile.com.pk/Samsung_Galaxy-J5-Prime" target="_blank">(dekho)</a>
 					<hr width"100%" class="style-offer">
-			<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-			<b style="color:#B12704">Damadam Price: 
-				<meta itemprop="priceCurrency" content="PKR"/> Rs.
-				<span itemprop="price">9630</span>
-			</b>
-			<a href="{% url 'delivery' 'main'%}" target="_blank">(Free Delivery)</a>
-			<hr width"100%" class="style-offer">
-			<span style="color:grey; font-size:12px">
-				ShopHive: Rs.13499<a href="http://www.shophive.com/qmobile-noir-s6-3g-16gb-rom-2gb-ram-13mp-fingerprint-sensor" target="_blank">(dekho)</a>
-				<hr width"100%" class="style-offer">
-				WhatMobile: Rs.11800  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-S6" target="_blank">(dekho)</a>
-				<hr width"100%" class="style-offer">
-				<span style="color:grey; font-size:12px">Dukandar: Rs.10700 - Rs.11800
+					<span style="color:grey; font-size:12px">Dukandar: Rs.20,800 - Rs.22,000
+					</span>
 				</span>
-			</span>
-		</div>	
-		<br>
-		<span class="co cm"> QMobile Noir S6:
+			</div>	
+	<br>
+		<span class="co cm"> Samsung J5 Prime:
 		</span>
-		<a href="{% url 's6' %}">
+		<a href="{% url 'j5p' %}">
 			<div class="clb"> 
 				<div id="product-description" class="productdescription">
-					<b>Memory:</b> <span class="mls">2GB RAM, 16GB ROM</span>
+					<b>Memory:</b> <span class="mls">2 GB RAM, 16GB ROM</span>
 					<hr width"100%" class="style-offer">
 					<b>Camera:</b> <span class="mls">13 MP (rear) + 5 MP (front)</span>
 					<hr width"100%" class="style-offer">
@@ -419,7 +407,7 @@ body {
 		</a>	
 		<form method="POST" action="{% url 'intermediate' 'main' %}">
 			{% csrf_token %}
-			<input type="hidden" name="merch_id" value="6">
+			<input type="hidden" name="merch_id" value="12">
 			<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
 			<br>
 		</form>

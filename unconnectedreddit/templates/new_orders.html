@@ -49,9 +49,10 @@
 		}
 	</style>
 {% extends "base.html" %}
-{% block content %}\
+{% load human_time %}
+{% block content %}
 <div class="ml">
-<h2>Latest orders</h2><hr />
+<h2>Latest Orders</h2><hr />
 
 	{% for order in orders %}
 	{% if order.phonenumber %}
@@ -59,11 +60,14 @@
 			<div class="clb"> 
 				<div id="product-description" class="productdescription">
 					<span itemprop="description">
+
 					<b>Order ID:</b> <span class="mls">{{order.order_id}}</span>
 					<hr width"100%" class="style-offer">
 					<b>Name:</b> <span class="mls">{{order.firstname}}&nbsp;{{order.lastname}}</span>
 					<hr width"100%" class="style-offer">
-					<b>User_id:</b> <span class="mls">{{order.user_id}}</span>
+					<b>Damadam Username:</b> <span class="mls">{{order.username}}</span>
+					<hr width"100%" class="style-offer">
+					<b>Time since:</b> <span class="mls ct">{{order.time|human_time}}</span>
 					<hr width"100%" class="style-offer">
 					<b>Model:</b> <span class="mls">{{order.model}}</span>
 					<hr width"100%" class="style-offer">
@@ -75,10 +79,12 @@
 					<hr width"100%" class="style-offer">
 					<b>User ID:</b> <span class="mls">{{order.user_id}}</span>
 					<hr width"100%" class="style-offer">
-					<br><button class="btn mtl mbs bm bcb cs" align="center" type="submit"><b>Cancel</b></button>
-					<br><button class="btn mtl mbs bm bcr cs" align="center" type="submit"><b>Ban</b></button>
-					<br><button class="btn mtl mbs bm bcg cs" align="center" type="submit"><b>Posted</b></button>
-					<br><button class="btn mtl mbs bm bco cs" align="center" type="submit"><b>Accidental</b></button>
+					<form method="POST" action="{% url 'close_order' %}" class="mtl">
+						{% csrf_token %}
+						<input type="hidden" name="order_id" value="{{ order.order_id }}">
+						<input type="hidden" name="user_id" value="{{ order.user_id }}">
+						<br><button class="btn mtl mbs bm bcb cs" align="center" type="submit"><b>Close</b></button>
+					</form>
 					</span>
 					<br>
 				</div>

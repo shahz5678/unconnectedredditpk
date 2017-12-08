@@ -3,7 +3,7 @@ init_classified, approve_classified, edit_classified, process_ad_approval, chang
 ad_locked_by_agent, city_list, expire_my_ad, change_my_sms_settings, classified_listing, process_ad_expiry_or_sms_feedback, print_referrer_logs, \
 redirect_to_social_section, initiate_seller_verification_process,show_city, buyer_details, buyer_verify, get_new_orders, confirm_order,i6metal_details,\
 in_process,x33_details, x29_details, i8i_details, s6_details, j1_details, delivery, warranty, order_successful, intermediate, buyer_info, faq,\
-queryrequest,lt550_details,get_new_queries
+queryrequest,lt550_details,get_new_queries,close_order,close_query, insmart_details, y3_details, qx2_details, gprimep_details, j5p_details
 #classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
 from links.ecomm_tracking import display_latest_metrics, get_ad_export, get_click_distribution
 from links.number_verification import verify_basic_item_seller_number,verify_buyer_number#, verify_consumer_number
@@ -64,6 +64,19 @@ urlpatterns = patterns('',
 	url(r'^mobile_shop/j1/$', j1_details,name='j1'),
 	url(r'^mobile_shop/i6metal/$', i6metal_details,name='i6metal'),
 	url(r'^mobile_shop/lt550/$', lt550_details,name='lt550'),
+	url(r'^mobile_shop/insmart/$', insmart_details,name='insmart'),
+	url(r'^mobile_shop/y3/$', y3_details,name='y3'),
+	url(r'^mobile_shop/qx2/$', qx2_details,name='qx2'),
+	url(r'^mobile_shop/gprimep/$', gprimep_details,name='gprimep'),
+	url(r'^mobile_shop/j5p/$', j5p_details,name='j5p'),
+
+
+
+
+
+
+
+
 	#url(r'^mobile/x32/$', x32_details,name='x32'),
 	#url(r'^mobile/x2lite/$', x2lite_details,name='x2lite'),
 	url(r'^mobile/i6metal/$', i6metal_details,name='i6metal'),
@@ -81,6 +94,8 @@ urlpatterns = patterns('',
 	url(r'^new_queries/$', auth(get_new_queries),name='new_queries'),
 	url(r'^vbn/', auth(verify_buyer_number), name='verify_buyer_number'),
 	url(r'^confirm_order/', auth(confirm_order), name='confirm_order'),
+	url(r'^close_order/$', auth(close_order), name='close_order'),
+	url(r'^close_query/$', auth(close_query), name='close_query'),	
 	url(r'^queryrequest/', auth(queryrequest), name='queryrequest'),
 	url(r'^in_process/', auth(in_process), name='in_process'),
 	url(r'^order_successful/', auth(order_successful), name='order_successful'),

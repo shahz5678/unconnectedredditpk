@@ -8,7 +8,7 @@
     <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a><br>
         {% if not whose_online %}
             <br>
-            <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}</span><br>
+            <span class="cgy">-- Ye abhi khali hai --</span><br>
         {% elif with_thumbs %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
@@ -39,7 +39,7 @@
                 {% endif %}
                 <hr size=1 COLOR="#b3e6b3">
             {% endfor %}
-            <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+            <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% else %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
@@ -66,7 +66,7 @@
                 <br>
             {% endfor %}
         <hr size=1 COLOR="#b3e6b3">
-        <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+        <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% endif %}
 
     {% if show_locked_search %}

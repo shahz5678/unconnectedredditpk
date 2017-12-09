@@ -1096,18 +1096,6 @@ def mobile_shop(request,*args,**kwargs):
 		#loc = request.POST.get('loc',None)
 		#if loc == None or merch_id == None:
 		return redirect("buyer_details")#,{'merch_id':merch_id,"mobile_verified":mobile_verified})
-	# else:
-	# 	if loc == 'lhr' or loc == 'rwp' or loc == 'isb' or loc == 'khi' or loc == 'fsd' or loc == 'hyd' or loc == 'pes' or loc == 'mul'\
-	# 	or loc == 'sbi' or loc == 'atk':
-	# 			# move on to asking the user their mobile numer and their real name
-	# 			request.session['mobile_buyer_city'] = loc
-	# 			request.session['merch_id'] = merch_id
-	# 			request.session.modified = True
-	# 			mp.track(request.user.id, 'M_S_3 relevant_location')
-	# 			return redirect("buyer_details",'merch_id':merch_id)
-	# 	else:
-	# 		mp.track(request.user.id, 'M_S_4 No_service_city')
-	# 		return render(request,"service_unavailable.html",{}) 	
 	else:
 		user_id=request.user.id
 		order_in_process = check_orders_processing(user_id)
@@ -1212,8 +1200,11 @@ def intermediate(request,origin,*args,**kwargs):
 
 
 def faq(request,*args,**kwargs):
+	merch_id = request.session['merch_id']
+	print merch_id
+	model = MERCH[merch_id]['name']
 	mp.track(request.user.id, 'M_S_3 On_FAQ')
-	return render(request,"ms_faq.html")
+	return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})
 
 def queryrequest(request,*args,**kwargs):
 	return render(request,"ms_queryrequest.html")
@@ -1283,6 +1274,7 @@ def confirm_order(request):
 				#UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
 				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)
 				enqueue_buyer_sms.delay('+923335196812', saved["order_id"], saved, None)
+				enqueue_buyer_sms.delay('+923334404403', saved["order_id"], saved, None)				
 				orderer_phonenumber='+92'+saved["phonenumber"][1:]
 				enqueue_orderer_sms.delay(orderer_phonenumber,saved["order_id"], saved, None)
 				mp.track(request.user.id, 'M_S_7 order placed')				

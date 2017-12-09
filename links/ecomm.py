@@ -11,7 +11,7 @@ from redis4 import save_ad_desc, return_referrer_logs,get_order_id, save_order_d
  place_order, get_temp_order_data, check_orders_processing,save_query_data,show_new_queries,delete_order,delete_query#, get_city_shop_listing#, get_city_shop_listing
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
-save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms,enqueue_orderer_sms
+save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms,enqueue_orderer_sms,enqueue_query_sms
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
@@ -1247,6 +1247,8 @@ def buyer_info(request,origin,*args,**kwargs):
 			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model,'verified':verified,'time':time.time(),'username':target_username} 
 			saved = save_query_data(order_data)
 			if saved:
+				orderer_phonenumber='+92'+order_data["phonenumber"][1:]
+				enqueue_query_sms.delay(orderer_phonenumber,order_data["user_id"], order_data, None)
 				mp.track(request.user.id, 'M_S_4.1 Correct_Query_Detail')
 				return redirect("queryrequest")
 			else:

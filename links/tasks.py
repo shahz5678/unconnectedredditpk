@@ -20,12 +20,13 @@ from order_home_posts import order_home_posts, order_home_posts2, order_home_pos
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
-from .redis4 import expire_online_users, get_recent_online, set_online_users
-from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
+# from redis5 import trim_personal_group, set_personal_group_image_storage
+from redis4 import expire_online_users, get_recent_online, set_online_users
+from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
 get_fan_counts_in_bulk, get_all_fans, is_fan, remove_notification_of_banned_user, remove_from_photo_owner_activity
-from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
+from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
@@ -104,6 +105,16 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
+
+
+# @celery_app1.task(name='tasks.add_image_to_personal_group_storage')
+# def add_image_to_personal_group_storage(img_url, img_id, img_quality, blob_id, index, own_id, group_id):
+# 	set_personal_group_image_storage(img_url, img_id, img_quality, blob_id, index, own_id, group_id)
+
+
+# @celery_app1.task(name='tasks.personal_group_trimming_task')
+# def personal_group_trimming_task(group_id, object_count):
+# 	trim_personal_group(group_id,object_count)
 
 
 def retrieve_object_type(origin):

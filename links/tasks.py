@@ -257,12 +257,12 @@ def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
 
 @celery_app1.task(name='tasks.enqueue_orderer_sms')
 def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):
-	cleansed_data = "Assalam-o-Alikum! Apka "+str(order_data['model'])+" ka order hamarey pas agya hai. Mobile shop ka numainda ap se jald rabta keray ga. Shukriya :-)"
+	cleansed_data = "Assalam-o-Alikum! Apka "+str(order_data['model'])+" ka order hamarey pas agya hai. Mobile shop ka numainda apko jald call keray ga. Shukriya :-)"
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
-	cleansed_data = "Assalam-o-Alikum! Ap ka Damadam Mobile shop say mutaliq jo bhi sawal hai wo 03455885441 per sms kerien. Shukriya :-)"
+	cleansed_data = "Assalam-o-Alikum! Apko 03105430851 se Damadam Mobile Shop ka numainda rabta kare ga. Ap khud bhi is number per rabta kr sakte hein. Shukriya :-)"
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
 @celery_app1.task(name='tasks.delete_notifications')

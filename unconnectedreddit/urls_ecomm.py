@@ -58,7 +58,7 @@ urlpatterns = patterns('',
 
 	url(r'^mobile_shop/$', auth(mobile_shop),name='mobile_shop'),
 	url(r'^mobile_shop/x33/$', x33_details,name='x33'),
-	url(r'^mobile_shop/x29/$', x29_details,name='x29'),
+#	url(r'^mobile_shop/x29/$', x29_details,name='x29'),
 	url(r'^mobile_shop/i8i/$', i8i_details,name='i8i'),
 	url(r'^mobile_shop/s6/$', s6_details,name='s6'),			
 	url(r'^mobile_shop/j1/$', j1_details,name='j1'),

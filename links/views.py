@@ -744,7 +744,6 @@ def left_public_group(request, pk=None, unique=None, private=None, *args, **kwar
 		remove_group_notification(request.user.id,pk)
 	elif check_group_invite(request.user.id, pk):
 		remove_group_invite(request.user.id, pk)
-		# remove_group_notification(request.user.id,pk) # commented out since no notifications generated
 	else:
 		pass
 	return redirect("group_page")
@@ -798,7 +797,6 @@ def left_private_group(request, pk=None, unique=None, private=None, *args, **kwa
 		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='leaving group', category='6', device=device)
 	elif check_group_invite(request.user.id, pk):
 		remove_group_invite(request.user.id, pk)
-		remove_group_notification(request.user.id,pk)
 		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='unaccepted invite', category='7', device=device)
 	else:
 		pass

@@ -260,7 +260,7 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		if len(text) < 2:
 			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
 		elif len(text) > 500:
-			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
+			raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 		text = clear_zalgo_text(text)
 		uni_str = uniform_string(text)
 		if uni_str:

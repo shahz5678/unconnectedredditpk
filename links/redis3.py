@@ -355,7 +355,7 @@ def add_search_photo(img_url,photo_id,owner_uname):
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname
-	ids_with_thumbs = [(item[0],get_s3_object(item[1],category=thumb)) for item in ids_with_urls]
+	ids_with_thumbs = [(item[0],get_s3_object(item[1],category='thumb')) for item in ids_with_urls]
 	payload = []
 	for obj in ids_with_thumbs:
 		payload.append(image_thumb_formatting(obj[1],obj[0]))
@@ -1627,3 +1627,21 @@ def return_all_ad_data():
 		pipeline2.hgetall("ad:"+ad_id)
 	result2 = pipeline2.execute()
 	return result1, result2
+
+
+###################### First Time User Tutorials #########################
+
+# '0' 'personal group anonymous invite'
+# '1' 'personal group sms settings'
+
+# def tutorial_unseen(user_id, which_tut, renew_lease=False):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+# 	if my_server.exists(key_name):
+# 		if renew_lease:
+# 			# increase TTL if renew_lease is passed
+# 			my_server.expire(key_name,TWO_WEEKS)
+# 		return False
+# 	else:
+# 		my_server.setex(key_name,1,ONE_MONTH)
+# 		return True

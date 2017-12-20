@@ -5255,6 +5255,7 @@ class PublicGroupView(CreateView):
 	def get_form_kwargs( self ):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
+		kwargs['is_mob_verified'] = self.request.mobile_verified
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5324,7 +5325,7 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-			if f.image:
+			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:
 					if f.image.size > 200000:

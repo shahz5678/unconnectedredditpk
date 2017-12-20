@@ -630,11 +630,32 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 		model = Group
 		fields = ("topic",)
 
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		topic = clear_zalgo_text(topic)
+		return topic
+
 class ChangeGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
+
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		topic = clear_zalgo_text(topic)
+		return topic
+
 
 class UploadPhotoReplyForm(forms.ModelForm):
 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})

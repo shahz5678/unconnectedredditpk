@@ -22,7 +22,7 @@ queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, s
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
 # from redis5 import trim_personal_group, set_personal_group_image_storage
 from redis4 import expire_online_users, get_recent_online, set_online_users
-from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
+from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
 get_fan_counts_in_bulk, get_all_fans, is_fan, remove_notification_of_banned_user, remove_from_photo_owner_activity
@@ -108,8 +108,8 @@ def punish_gibberish_writers(dict_of_targets):
 
 
 # @celery_app1.task(name='tasks.add_image_to_personal_group_storage')
-# def add_image_to_personal_group_storage(img_url, img_id, img_quality, blob_id, index, own_id, group_id):
-# 	set_personal_group_image_storage(img_url, img_id, img_quality, blob_id, index, own_id, group_id)
+# def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
+# 	set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
 
 
 # @celery_app1.task(name='tasks.personal_group_trimming_task')
@@ -367,6 +367,10 @@ def process_reporter_payables(payables):
 @celery_app1.task(name='tasks.populate_search_thumbs')
 def populate_search_thumbs(username,ids_with_urls):
 	bulk_add_search_photos(username,ids_with_urls)
+
+@celery_app1.task(name='tasks.sanitize_erroneous_notif')
+def sanitize_erroneous_notif(notif_name, user_id):
+	remove_erroneous_notif(notif_name, user_id)
 
 #used to calculate group ranking
 @celery_app1.task(name='tasks.public_group_vote_tasks')

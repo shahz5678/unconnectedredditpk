@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, public_group_vote_tasks, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks#, reset_best_photos_cache
+home_photo_tasks, sanitize_erroneous_notif
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -270,8 +270,8 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 
 
 def GetLatest(user):
+	notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
 	try:
-		notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
 		if latest_notif['ot'] == '3':
 			# group chat - 'g' is privacy status
 			return latest_notif['g'], latest_notif, False, False, True, False
@@ -315,7 +315,9 @@ def GetLatest(user):
 				else:
 					delete_salat_notification(notif_name, hash_name, user.id)			
 					return None, None, False, False, False, False
-	except:
+	except (KeyError,TypeError):
+		if latest_notif and notif_name:
+			sanitize_erroneous_notif.delay(notif_name, user.id)
 		return None, None, False, False, False, False
 
 def retire_home_rules(request,*args,**kwargs):

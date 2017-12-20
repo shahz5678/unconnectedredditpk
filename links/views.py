@@ -5164,7 +5164,8 @@ class ChangePrivateGroupTopicView(CreateView):
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
 		else:
-			topic = self.request.POST.get("topic")
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
 			unique = self.request.session["unique_id"]
 			group = Group.objects.get(unique=unique)
 			if (group.private == '0' or group.private == '2') and group.owner != user:
@@ -5215,7 +5216,8 @@ class ChangeGroupTopicView(CreateView):
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
 		else:
-			topic = self.request.POST.get("topic")
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
 			unique = self.request.session['public_uuid']
 			group = Group.objects.get(unique=unique)
 			if group.private == '0' and group.owner != user:

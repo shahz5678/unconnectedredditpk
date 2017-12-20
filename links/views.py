@@ -5770,6 +5770,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
 	elif not check_group_member(pk, username):
 		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
+	elif not request.mobile_verified:
+		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:

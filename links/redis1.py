@@ -762,6 +762,7 @@ def truncate_payload(payload):
 		raw_text_set = filter(None,payload.split('#el#'))[-5:] #just keeping the latest 5 entries
 		payload = '#el#'.join(raw_text_set)+"#el#" #reforming the payload
 	return payload
+	
 
 def retrieve_photo_posts(photo_id_list):
 	my_server = redis.Redis(connection_pool=POOL)

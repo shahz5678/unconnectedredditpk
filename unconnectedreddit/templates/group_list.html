@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load emoticons_tags %}
 {% block content %}
 
 
@@ -8,10 +9,10 @@
 <br><br>
 <b class="clb">Mashoor mehfilein:</b><br><br>
 {% for group in object_list %}
-<a href="{% url 'public_group' slug=group.unique %}" class="cp"><b>{{ group.topic }}</b></a>
-<span class="cgy cs">by</span>&nbsp;<span class="cb cs">{{ group.owner }}</span>
+<a href="{% url 'public_group' slug=group.unique %}" class="cp"><span class="cs cgy">{{ forloop.counter }}</span>.&nbsp;<b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></a><br>
+<span class="mls mrs cgy cs">by</span><span class="cb cs">{{ group.owner }}</span>
 <br>
-<hr size=1 COLOR="#b3b3b3">
+<hr size=1 COLOR="#e6e6e6">
 {% endfor %}
 </div>
 <br><br>

@@ -5765,12 +5765,13 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
 	username = request.user.username
 	user_id = request.user.id
+	grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 	if was_limited:
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
 		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
 	elif not check_group_member(pk, username):
 		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
-	elif not request.mobile_verified:
+	elif not request.mobile_verified and not grp["private"] == '1':
 		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 	elif request.user_banned:
 		return render(request,"500.html",{})
@@ -5801,7 +5802,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					image_url = groupreply.image.url
 				except:
 					image_url = None
-				grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
+				# grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 				if grp["private"] == '1':
 					priority='priv_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)

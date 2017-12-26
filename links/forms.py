@@ -636,11 +636,11 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 	def clean_topic(self):
 		topic = self.cleaned_data.get("topic")
 		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
 		if not topic:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
 		elif topic < 1:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
-		topic = clear_zalgo_text(topic)
 		return topic
 
 class ChangeGroupTopicForm(forms.ModelForm):
@@ -652,11 +652,11 @@ class ChangeGroupTopicForm(forms.ModelForm):
 	def clean_topic(self):
 		topic = self.cleaned_data.get("topic")
 		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
 		if not topic:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
 		elif topic < 1:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
-		topic = clear_zalgo_text(topic)
 		return topic
 
 

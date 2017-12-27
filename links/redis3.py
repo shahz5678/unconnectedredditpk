@@ -56,11 +56,13 @@ search_history = "sh:"+str(searcher_id)
 
 user_thumbs = "upt:"+owner_uname
 
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
+FIVE_MINS = 5*60
 TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
@@ -781,6 +783,7 @@ def someone_elses_number(national_number, user_id):
 	else:
 		# someone else's number
 		return True
+
 
 
 def get_user_verified_number(user_id):
@@ -1627,6 +1630,71 @@ def return_all_ad_data():
 		pipeline2.hgetall("ad:"+ad_id)
 	result2 = pipeline2.execute()
 	return result1, result2
+
+
+###################### Public Group Ranking System #######################
+
+
+def public_group_ranking_clean_up():
+	"""
+	Periodically clean up dormant public groups from the ranking system
+
+	Run every 1.5 hours
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_ids = my_server.zrange("public_group_rank",0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_ids:
+		last_public_group_writer = "lpubgw:"+group_id 
+		pipeline1.exists(last_public_group_writer)
+	exists = pipeline1.execute()
+	counter = 0
+	pipeline2 = my_server.pipeline()
+	for group_id in group_ids:
+		if not exists[counter]:
+			pipeline2.delete("pugbs:"+group_id)
+			pipeline2.zrem("public_group_rank",group_id)
+		counter += 1
+	pipeline2.execute()
+
+
+
+def public_group_ranking(group_id,writer_id):
+	"""
+	Ascertains whether the group earned a ranking vote or not
+	
+	Based on unique switchover pairs within a given time
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, current_time = str(group_id), time.time()
+	last_public_group_writer = "lpubgw:"+group_id
+	recent_writer_id = my_server.get(last_public_group_writer)
+	if recent_writer_id:
+		if recent_writer_id != str(writer_id):
+			public_group_last_cull_time = "pubglct:"+group_id
+			culled_recently = my_server.exists(public_group_last_cull_time)
+			# ensuring only last 5 mins are counted
+			public_group_switchovers = "pubgs:"+group_id
+			if not culled_recently:
+				# ensures only culls once in a 5 min window
+				pipeline1 = my_server.pipeline()
+				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-FIVE_MINS)
+				pipeline1.setex(public_group_last_cull_time,1,FIVE_MINS)
+				pipeline1.execute()
+			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
+			if added:
+				# it was a unique switchover in the last 5 mins
+				sorted_set = "public_group_rank"
+				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
+	my_server.setex(last_public_group_writer,writer_id,FORTY_FIVE_MINS)
+
+
+def get_ranked_public_groups():
+	"""
+	Returns top 10 public groups
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrevrange("public_group_rank",0,25,withscores=True) # returning highest 25 groups
 
 
 ###################### First Time User Tutorials #########################

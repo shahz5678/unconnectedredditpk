@@ -416,6 +416,11 @@ CELERYBEAT_SCHEDULE = {
 		'schedule': timedelta(seconds=90),  # execute every 110 seconds
 		'args': (),
 	},
+	'tasks.public_group_ranking_clean_up_task': {
+		'task': 'tasks.public_group_ranking_clean_up_task',
+		'schedule': timedelta(seconds=5400),  # execute every 1.5 hrs
+		'args': (),
+	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
 		'schedule': timedelta(seconds=60), #execute every 60 seconds

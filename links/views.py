@@ -59,9 +59,9 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, public_group_vote_tasks, \
+video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, rank_public_groups
+home_photo_tasks, sanitize_erroneous_notif
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -2429,7 +2429,7 @@ class OpenGroupCreateView(CreateView):
 				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
 				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
-			public_group_vote_tasks.delay(group_id=f_id,priority=2)
+			# public_group_vote_tasks.delay(group_id=f_id,priority=2)
 			rank_public_groups.delay(group_id=f_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
 			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
@@ -5301,9 +5301,9 @@ class PublicGroupView(CreateView):
 				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
 					context["group_banned"]=True
 					return context#no need to process more
-				if random.random() < 0.5:
-					#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
-					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
+				# if random.random() < 0.5:
+				# 	#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
+				# 	public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
 				public_group_attendance_tasks.delay(group_id=group_id, user_id=user_id)
 				context["ensured"] = FEMALES
 				context["mobile_verified"] = self.request.mobile_verified
@@ -5393,9 +5393,9 @@ class PublicGroupView(CreateView):
 				image_url = reply.image.url
 			except:
 				image_url = None
-			if random.random() < 0.5:
-				#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
-				public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
+			# if random.random() < 0.5:
+			# 	#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
+			# 	public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
 			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
@@ -5833,7 +5833,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				else:
 					priority='public_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-					public_group_vote_tasks.delay(group_id=pk,priority=2)
+					# public_group_vote_tasks.delay(group_id=pk,priority=2)
 					rank_public_groups.delay(group_id=pk,writer_id=user_id)
 					public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
 				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\

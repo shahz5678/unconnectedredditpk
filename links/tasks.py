@@ -10,7 +10,7 @@ from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from image_processing import clean_image_file_with_hash
-from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms#, send_personal_group_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 # from page_controls import PHOTOS_PER_PAGE
@@ -118,9 +118,9 @@ def punish_gibberish_writers(dict_of_targets):
 # 	trim_personal_group(group_id,object_count)
 
 
-@celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
-def queue_personal_group_invitational_sms(mobile_number, sms_text):
-	send_personal_group_sms(mobile_number, sms_text)
+# @celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
+# def queue_personal_group_invitational_sms(mobile_number, sms_text):
+# 	send_personal_group_sms(mobile_number, sms_text)
 
 
 def retrieve_object_type(origin):

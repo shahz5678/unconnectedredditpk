@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, public_group_vote_tasks, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif
+home_photo_tasks, sanitize_erroneous_notif, rank_public_groups
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -72,7 +72,7 @@ from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_uploa
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
-get_banned_users_count, is_already_banned, is_mobile_verified#, log_erroneous_passwords
+get_banned_users_count, is_already_banned, is_mobile_verified, get_ranked_public_groups#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -2430,6 +2430,7 @@ class OpenGroupCreateView(CreateView):
 				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
 			public_group_vote_tasks.delay(group_id=f_id,priority=2)
+			rank_public_groups.delay(group_id=f_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
 			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
 			try:
@@ -2732,6 +2733,26 @@ class InternalSalatInviteView(ListView):
 				context["unauthorized"] = True #it's not time for any namaz!
 			return context
 	
+
+class GroupRankingView(ListView):
+	model = Group
+	form_class = GroupListForm
+	template_name = "group_ranking.html"
+
+	def get_queryset(self):
+		trending_groups = []
+		group_ids_list = get_ranked_public_groups()
+		group_ids_dict = dict(group_ids_list)
+		group_ids = map(itemgetter(0), group_ids_list)
+		groups = Group.objects.select_related('owner').filter(id__in=group_ids)
+		for group in groups:
+			group_id = str(group.id)
+			trending_groups.append((group,group_ids_dict[group_id]))
+		trending_groups.sort(key=itemgetter(1), reverse=True)
+		trending_groups = map(itemgetter(0), trending_groups)
+		return trending_groups
+
+
 class GroupListView(ListView):
 	model = Group
 	form_class = GroupListForm
@@ -5273,15 +5294,16 @@ class PublicGroupView(CreateView):
 				context["score"] = self.request.user.userprofile.score
 				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
+				user_id = self.request.user.id
 				context["switching"] = False
 				context["group"] = group
-				if GroupBanList.objects.filter(which_user_id=self.request.user.id,which_group_id=group_id).exists():
+				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
 					context["group_banned"]=True
 					return context#no need to process more
 				if random.random() < 0.5:
 					#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
 					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
-				public_group_attendance_tasks.delay(group_id=group_id, user_id=self.request.user.id)
+				public_group_attendance_tasks.delay(group_id=group_id, user_id=user_id)
 				context["ensured"] = FEMALES
 				context["mobile_verified"] = self.request.mobile_verified
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
@@ -5373,6 +5395,7 @@ class PublicGroupView(CreateView):
 			if random.random() < 0.5:
 				#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
 				public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
+			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
 				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
@@ -5809,6 +5832,9 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				else:
 					priority='public_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+					public_group_vote_tasks.delay(group_id=pk,priority=2)
+					rank_public_groups.delay(group_id=pk,writer_id=user_id)
+					public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
 				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
 					topic=grp["topic"],reply_time=reply_time,poster_url=url, poster_username=username,\
 					reply_text=description,priv=grp["private"], slug=grp["unique"],image_url=image_url,\

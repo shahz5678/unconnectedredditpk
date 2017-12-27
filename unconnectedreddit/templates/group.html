@@ -6,14 +6,14 @@
 <div class="margin">
 {% if not object_list %}
 <a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
-<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a><span class="cs"> |</span>
-<a href="{% url 'group_help' %}#section0" class="cxs"><b>mehfil kiya hai?</b></a>
+<a href="{% url 'group_ranking' %}#section0" class="cxs"><b>popular mehfilein</b></a><span class="cs"> |</span>
+<a href="{% url 'group_help' %}#section0" class="cxs"><b>mehfil kya hai?</b></a>
 <br><br>
 	<b>Mehfil</b> mein doston ke sath pics wali chat ki ja sakti hai. <a href="{% url 'group_type' %}">New mehfil banao</a>, aur shuru ho jao.
 {% else %}
 <b>Tumhari mehfilein:</b><br><br>
 <a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
-<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a>
+<a href="{% url 'group_ranking' %}#section0" class="cxs"><b>popular mehfilein</b></a>
 <br><br>
 {% for reply in object_list %}
 

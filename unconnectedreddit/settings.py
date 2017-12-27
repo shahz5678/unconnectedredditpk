@@ -413,12 +413,12 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=90),  # execute every 110 seconds
+		'schedule': timedelta(seconds=110),  # execute every 110 seconds
 		'args': (),
 	},
 	'tasks.public_group_ranking_clean_up_task': {
 		'task': 'tasks.public_group_ranking_clean_up_task',
-		'schedule': timedelta(seconds=5400),  # execute every 1.5 hrs
+		'schedule': timedelta(seconds=30*60),  # execute every 30 mins
 		'args': (),
 	},
 		'tasks.salat_info': {

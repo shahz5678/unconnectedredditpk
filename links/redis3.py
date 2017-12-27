@@ -62,7 +62,7 @@ user_thumbs = "upt:"+owner_uname
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-FIVE_MINS = 5*60
+TEN_MINS = 10*60
 TWENTY_MINS = 20*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
@@ -1639,7 +1639,7 @@ def public_group_ranking_clean_up():
 	"""
 	Periodically clean up dormant public groups from the ranking system
 
-	Run every 1.5 hours
+	Run every 30 mins
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrange("public_group_rank",0,-1)
@@ -1678,15 +1678,15 @@ def public_group_ranking(group_id,writer_id):
 			if not culled_recently:
 				# ensures only culls once in a 5 min window
 				pipeline1 = my_server.pipeline()
-				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-FIVE_MINS)
-				pipeline1.setex(public_group_last_cull_time,1,FIVE_MINS)
+				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-TEN_MINS)
+				pipeline1.setex(public_group_last_cull_time,1,TEN_MINS)
 				pipeline1.execute()
 			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
 			if added:
 				# it was a unique switchover in the last 5 mins
 				sorted_set = "public_group_rank"
 				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
-	my_server.setex(last_public_group_writer,writer_id,FORTY_FIVE_MINS)
+	my_server.setex(last_public_group_writer,writer_id,TWENTY_MINS)
 
 
 def get_ranked_public_groups():
@@ -1694,7 +1694,7 @@ def get_ranked_public_groups():
 	Returns top 10 public groups
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrevrange("public_group_rank",0,25,withscores=True) # returning highest 25 groups
+	return my_server.zrevrange("public_group_rank",0,49,withscores=True) # returning highest 50 groups
 
 
 ###################### First Time User Tutorials #########################

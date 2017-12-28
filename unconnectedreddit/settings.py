@@ -418,7 +418,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.public_group_ranking_clean_up_task': {
 		'task': 'tasks.public_group_ranking_clean_up_task',
-		'schedule': timedelta(seconds=30*60),  # execute every 30 mins
+		'schedule': timedelta(seconds=25*60),  # execute every 25 mins
 		'args': (),
 	},
 		'tasks.salat_info': {

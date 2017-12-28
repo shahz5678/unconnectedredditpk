@@ -1676,7 +1676,7 @@ def public_group_ranking(group_id,writer_id):
 			# ensuring only last 10 mins are counted
 			public_group_switchovers = "pubgs:"+group_id
 			if not culled_recently:
-				# ensures only culls once in a 5 min window
+				# ensures only culls once in a 10 min window
 				pipeline1 = my_server.pipeline()
 				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-TEN_MINS)
 				pipeline1.setex(public_group_last_cull_time,1,TEN_MINS)
@@ -1687,7 +1687,10 @@ def public_group_ranking(group_id,writer_id):
 				sorted_set = "public_group_rank"
 				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
 				# only increase ttl if it was a unique switchover
-			my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+	else:
+		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+
 
 
 def get_ranked_public_groups():

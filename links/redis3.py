@@ -1687,7 +1687,7 @@ def public_group_ranking(group_id,writer_id):
 				sorted_set = "public_group_rank"
 				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
 				# only increase ttl if it was a unique switchover
-				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+			my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
 
 
 def get_ranked_public_groups():

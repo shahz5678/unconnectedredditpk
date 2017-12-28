@@ -63,7 +63,7 @@ user_thumbs = "upt:"+owner_uname
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
 TEN_MINS = 10*60
-TWENTY_MINS = 20*60
+FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
 SIX_HOURS = 6*60*60
@@ -1673,7 +1673,7 @@ def public_group_ranking(group_id,writer_id):
 		if recent_writer_id != str(writer_id):
 			public_group_last_cull_time = "pubglct:"+group_id
 			culled_recently = my_server.exists(public_group_last_cull_time)
-			# ensuring only last 5 mins are counted
+			# ensuring only last 10 mins are counted
 			public_group_switchovers = "pubgs:"+group_id
 			if not culled_recently:
 				# ensures only culls once in a 5 min window
@@ -1683,10 +1683,11 @@ def public_group_ranking(group_id,writer_id):
 				pipeline1.execute()
 			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
 			if added:
-				# it was a unique switchover in the last 5 mins
+				# it was a unique switchover in the last 10 mins
 				sorted_set = "public_group_rank"
 				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
-	my_server.setex(last_public_group_writer,writer_id,TWENTY_MINS)
+				# only increase ttl if it was a unique switchover
+				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
 
 
 def get_ranked_public_groups():

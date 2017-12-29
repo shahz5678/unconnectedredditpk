@@ -94,7 +94,7 @@ add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
-get_latest_group_replies
+get_latest_group_replies, set_latest_group_reply
 from .website_feedback_form import AdvertiseWithUsForm
 
 from mixpanel import Mixpanel
@@ -769,39 +769,51 @@ def del_public_group(request, pk=None, unique=None, private=None, *args, **kwarg
 		context={'private':'0','unique':unique}
 		return render(request,'penalty_groupbanned.html', context)
 
-def leave_private_group(request, pk=None, unique=None, private=None, inside_grp=None, *args, **kwargs):
-	topic = Group.objects.get(id=pk).topic
-	context={'unique':unique, 'pk':pk, 'private':private,'topic':topic, 'inside_grp':inside_grp}
-	return render(request, 'leave_private_group.html', context)
 
-def left_private_group(request, pk=None, unique=None, private=None, *args, **kwargs):
-	# banned, ban_type, time_remaining, warned = private_group_posting_allowed(request.user.id)
-	# if banned:
-	# 	context={'unique':unique, 'private':private}
-	# 	return render(request, 'penalty_groupbanned.html', context)
-	# else:
-	if request.is_feature_phone:
-		device = '1'
-	elif request.is_phone:
-		device = '2'
-	elif request.is_tablet:
-		device = '4'
-	elif request.is_mobile:
-		device = '5'
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def leave_private_group(request, *args, **kwargs):
+	if request.method == "POST":
+		pk = request.POST.get("gid",None)
+		unique = request.POST.get("guuid",None)
+		private = request.POST.get("prv",None)
+		inside_grp = request.POST.get('insg',None)
+		topic = Group.objects.get(id=pk).topic
+		context={'unique':unique, 'pk':pk, 'private':private,'topic':topic, 'inside_grp':inside_grp}
+		return render(request, 'leave_private_group.html', context)
 	else:
-		device = '3'
-	if check_group_member(pk, request.user.username):
-		memcount = remove_group_member(pk, request.user.username) #group membership is truncated
-		remove_user_group(request.user.id, pk) #user's groups are truncated
-		remove_group_notification(request.user.id,pk) #group removed from user's notifications
-		if memcount < 1:
-			remove_group_object(pk)
-		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='leaving group', category='6', device=device)
-	elif check_group_invite(request.user.id, pk):
-		remove_group_invite(request.user.id, pk)
-		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='unaccepted invite', category='7', device=device)
-	else:
-		pass
+		return redirect("group_page")
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def left_private_group(request, *args, **kwargs):
+	if request.method=="POST":
+		user_id = request.user.id
+		pk = request.POST.get("gid",None)
+		private = request.POST.get("prv",None)
+		unique = request.POST.get("guid",None)
+		if request.is_feature_phone:
+			device = '1'
+		elif request.is_phone:
+			device = '2'
+		elif request.is_tablet:
+			device = '4'
+		elif request.is_mobile:
+			device = '5'
+		else:
+			device = '3'
+		if check_group_member(pk, request.user.username):
+			memcount = remove_group_member(pk, request.user.username) #group membership is truncated
+			remove_user_group(user_id, pk) #user's groups are truncated
+			remove_group_notification(user_id,pk) #group removed from user's notifications
+			if memcount < 1:
+				remove_group_object(pk)
+			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='leaving group', category='6', device=device)
+		elif check_group_invite(user_id, pk):
+			remove_group_invite(user_id, pk)
+			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='unaccepted invite', category='7', device=device)
+		else:
+			pass
 	return redirect("group_page")
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -2504,26 +2516,35 @@ class ReinvitePrivateView(FormView):
 			context["unique"] = unique
 		return context
 
-def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
-	if request.user_banned:
-		return redirect("group_page")
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def process_private_group_invite(request, *args, **kwargs):
+	if request.method=="POST":
+		if request.user_banned:
+			return redirect("group_page")
+		else:
+			uuid = request.POST.get("puid",None)
+			pk = request.POST.get("vid",None)
+			try:
+				group = Group.objects.get(unique=uuid)
+				group_id = group.id
+			except:
+				group_id = -1
+			if group_id > -1:
+				invitee = User.objects.get(id=pk)
+				if check_group_invite(pk, group_id) or check_group_member(group_id, invitee.username):
+					return redirect("reinvite_private_help")
+				else:#this person ought to be sent an invite
+					#send a notification to this person to check out the group
+					reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
+					reply_id = reply.id
+					add_group_invite(pk, group_id,reply_id)
+					set_latest_group_reply(group_id,reply_id)
+			request.session["unique_id"] = None
+			request.session.modified = True
+			return redirect("invite_private", slug=uuid)
 	else:
-		try:
-			group = Group.objects.get(unique=uuid)
-			group_id = group.id
-		except:
-			group_id = -1
-		if group_id > -1:
-			invitee = User.objects.get(id=pk)
-			if check_group_invite(pk, group_id) or check_group_member(group_id, invitee.username):
-				return redirect("reinvite_private_help")
-			else:#this person ought to be sent an invite
-				#send a notification to this person to check out the group
-				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
-				add_group_invite(pk, group_id,reply.id)
-		request.session["unique_id"] = None
-		request.session.modified = True
-		return redirect("invite_private", slug=uuid)
+		return redirect("group_page")
 
 def invite_private(request, slug=None, *args, **kwargs):
 	if valid_uuid(slug):

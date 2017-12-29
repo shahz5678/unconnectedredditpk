@@ -1717,3 +1717,21 @@ def get_ranked_public_groups():
 # 	else:
 # 		my_server.setex(key_name,1,ONE_MONTH)
 # 		return True
+
+###################### Retrieving all mobile numbers ######################
+
+def retrieve_all_mobile_numbers():
+	"""
+	Return all mobile numbers and their associated user ids
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange('verified_numbers',0,-1,withscores=True)
+	# pipeline1.zadd('ecomm_verified_users',user_id, verif_time) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+	# 	pipeline1.zadd('verified_numbers',mobile_data["national_number"], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+
+def isolate_bogus_number_user_ids(list_of_numbers_and_user_ids):
+	"""
+	Adding bogus numbers to a sorted set
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd("bogus_number_list",*list_of_numbers_and_user_ids)

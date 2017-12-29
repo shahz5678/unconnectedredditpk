@@ -8,8 +8,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, isolate_bogus_number_user_ids, \
-retrieve_numbers_with_country_codes
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes
 from redis4 import save_deprecated_photo_ids_and_filenames
 from redis2 import bulk_sanitize_notifications
 

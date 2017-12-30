@@ -13,6 +13,7 @@ from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
+# from urls_groups import urlpatterns as urlpatterns_groups
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
@@ -33,7 +34,7 @@ from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
 AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, \
-DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, \
+DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, GroupRankingView,\
 PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeMessageView, MehfilView, UserPhoneNumberView, \
 LogoutReconfirmView, LogoutPenaltyView, GroupReportView, OwnerGroupOnlineKonView, AppointCaptainView, KickView, SmsReinviteView, \
 OpenGroupHelpView, SmsInviteView, DirectMessageCreateView, DirectMessageView, PrivateGroupView,PublicGroupView, ReinviteView, \
@@ -219,7 +220,7 @@ urlpatterns = patterns('',
 	url(r'^closed_group/create/$', auth(ClosedGroupCreateView.as_view()), name='closed_group_create'),
 	url(r'^group/invite/$', auth(InviteUsersToGroupView.as_view()), name='invite'),
 	url(r'^privatemehfil/invite/$', auth(InviteUsersToPrivateGroupView.as_view()), name='invite_private_group'),
-	url(r'^privmef/invite/(?P<uuid>[\w.@+-]+)/(?P<pk>\d+)/$', auth(process_private_group_invite), name='process_private_group_invite'),
+	url(r'^privmef/invite/$', auth(process_private_group_invite), name='process_private_group_invite'),
 	url(r'^pubmef/invite/(?P<uuid>[\w.@+-]+)/(?P<pk>\d+)/$', auth(process_public_group_invite), name='process_public_group_invite'),
 	url(r'^privateinvite/(?P<slug>[\w.@+-]+)/$', auth(invite_private), name='invite_private'),
 	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/(?P<name>[\w.@+-]+)/$', auth(SmsInviteView.as_view()), name='sms_invite'),
@@ -249,8 +250,8 @@ urlpatterns = patterns('',
 	url(r'^dlpgr/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(del_public_group), name='del_public_group'),
 	url(r'^lvpgr/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<inside_grp>\d+)/$', auth(leave_public_group), name='leave_public_group'),
 	url(r'^leftpgroup/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(left_public_group), name='left_public_group'),
-	url(r'^lvpg/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/(?P<inside_grp>\d+)/$', auth(leave_private_group), name='leave_private_group'),
-	url(r'^leftgroup/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/(?P<private>\d+)/$', auth(left_private_group), name='left_private_group'),
+	url(r'^lvpg/$', auth(leave_private_group), name='leave_private_group'),
+	url(r'^leftgroup/$', auth(left_private_group), name='left_private_group'),
 	url(r'^user_SMS/(?P<fbs>\d+)/(?P<num>[\w.@+-]+)/$', UserSMSView.as_view(), name='user_SMS'),
 	url(r'^p/$', PicHelpView.as_view(), name='pic_help'),
 	url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy_policy'),
@@ -286,6 +287,7 @@ urlpatterns = patterns('',
 	url(r'^group/owner_online_kon/$', auth(OwnerGroupOnlineKonView.as_view()), name='owner_group_online_kon'),
 	url(r'^group/$', auth(GroupPageView.as_view()), name='group_page'),
 	url(r'^group_list/$', auth(GroupListView.as_view()), name='group_list'),
+	url(r'^popular_mehfil/$', auth(GroupRankingView.as_view()), name='group_ranking'),
 	url(r'^group_type/$', auth(GroupTypeView.as_view()), name='group_type'),
 	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
 	url(r'^report/$', auth(ReportView.as_view()), name="report"),
@@ -332,3 +334,4 @@ urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
 urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
+# urlpatterns += urlpatterns_groups

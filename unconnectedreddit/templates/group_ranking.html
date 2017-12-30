@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+
+
+<div class="margin">
+<a href="{% url 'group_type' %}" class="cxs"><b>naee mehfil banao</b></a>&nbsp;<span class="cs">|</span>
+<a href="{% url 'group_page' %}" class="cxs"><b>tumhari mehfilein</b></a>&nbsp;
+<br><br>
+<b class="clb">Latest popular mehfilein:</b><br><br>
+{% for group in object_list %}
+<a href="{% url 'public_group' slug=group.unique %}" class="cp"><span class="cs cgy">{{ page_obj.start_index|add:forloop.counter0 }}</span>.&nbsp;<b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></a><br>
+<span class="mls mrs cgy cs">by</span><span class="cb cs">{{ group.owner }}</span>
+<br>
+<hr size=1 COLOR="#e6e6e6">
+{% endfor %}
+</div>
+<br><br>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div style="text-align: center;">
+	{% if page_obj.has_previous %}
+    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0" class="fss"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
+    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}#section0" style="font-family:arial;"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
+    {% endif %}
+</div>
+{% endif %}
+<br><br>
+{% endblock %}

@@ -212,6 +212,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
+		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
 
 	def clean_text(self):
@@ -220,7 +221,9 @@ class PublicGroupReplyForm(forms.ModelForm):
 		if len(text) < 2:
 			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
 		elif len(text) > 500:
-			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
+			raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+		elif not self.is_mob_verified:
+			raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
 		text = clear_zalgo_text(text)
 		uni_str = uniform_string(text)
 		if uni_str:
@@ -257,7 +260,7 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		if len(text) < 2:
 			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
 		elif len(text) > 500:
-			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
+			raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 		text = clear_zalgo_text(text)
 		uni_str = uniform_string(text)
 		if uni_str:
@@ -630,11 +633,32 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 		model = Group
 		fields = ("topic",)
 
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		return topic
+
 class ChangeGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
+
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		return topic
+
 
 class UploadPhotoReplyForm(forms.ModelForm):
 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})

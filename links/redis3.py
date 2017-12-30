@@ -56,12 +56,14 @@ search_history = "sh:"+str(searcher_id)
 
 user_thumbs = "upt:"+owner_uname
 
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-TWENTY_MINS = 20*60
+TEN_MINS = 10*60
+FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
 SIX_HOURS = 6*60*60
@@ -355,7 +357,7 @@ def add_search_photo(img_url,photo_id,owner_uname):
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname
-	ids_with_thumbs = [(item[0],get_s3_object(item[1],category=thumb)) for item in ids_with_urls]
+	ids_with_thumbs = [(item[0],get_s3_object(item[1],category='thumb')) for item in ids_with_urls]
 	payload = []
 	for obj in ids_with_thumbs:
 		payload.append(image_thumb_formatting(obj[1],obj[0]))
@@ -781,6 +783,7 @@ def someone_elses_number(national_number, user_id):
 	else:
 		# someone else's number
 		return True
+
 
 
 def get_user_verified_number(user_id):
@@ -1627,3 +1630,108 @@ def return_all_ad_data():
 		pipeline2.hgetall("ad:"+ad_id)
 	result2 = pipeline2.execute()
 	return result1, result2
+
+
+###################### Public Group Ranking System #######################
+
+
+def public_group_ranking_clean_up():
+	"""
+	Periodically clean up dormant public groups from the ranking system
+
+	Run every 30 mins
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_ids = my_server.zrange("public_group_rank",0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_ids:
+		last_public_group_writer = "lpubgw:"+group_id 
+		pipeline1.exists(last_public_group_writer)
+	exists = pipeline1.execute()
+	counter = 0
+	pipeline2 = my_server.pipeline()
+	for group_id in group_ids:
+		if not exists[counter]:
+			pipeline2.delete("pugbs:"+group_id)
+			pipeline2.zrem("public_group_rank",group_id)
+		counter += 1
+	pipeline2.execute()
+
+
+
+def public_group_ranking(group_id,writer_id):
+	"""
+	Ascertains whether the group earned a ranking vote or not
+	
+	Based on unique switchover pairs within a given time
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, current_time = str(group_id), time.time()
+	last_public_group_writer = "lpubgw:"+group_id
+	recent_writer_id = my_server.get(last_public_group_writer)
+	if recent_writer_id:
+		if recent_writer_id != str(writer_id):
+			public_group_last_cull_time = "pubglct:"+group_id
+			culled_recently = my_server.exists(public_group_last_cull_time)
+			# ensuring only last 10 mins are counted
+			public_group_switchovers = "pubgs:"+group_id
+			if not culled_recently:
+				# ensures only culls once in a 10 min window
+				pipeline1 = my_server.pipeline()
+				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-TEN_MINS)
+				pipeline1.setex(public_group_last_cull_time,1,TEN_MINS)
+				pipeline1.execute()
+			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
+			if added:
+				# it was a unique switchover in the last 10 mins
+				sorted_set = "public_group_rank"
+				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
+				# only increase ttl if it was a unique switchover
+				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+	else:
+		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+
+
+
+def get_ranked_public_groups():
+	"""
+	Returns top 10 public groups
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrevrange("public_group_rank",0,49,withscores=True) # returning highest 50 groups
+
+
+###################### First Time User Tutorials #########################
+
+# '0' 'personal group anonymous invite'
+# '1' 'personal group sms settings'
+
+# def tutorial_unseen(user_id, which_tut, renew_lease=False):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+# 	if my_server.exists(key_name):
+# 		if renew_lease:
+# 			# increase TTL if renew_lease is passed
+# 			my_server.expire(key_name,TWO_WEEKS)
+# 		return False
+# 	else:
+# 		my_server.setex(key_name,1,ONE_MONTH)
+# 		return True
+
+###################### Retrieving all mobile numbers ######################
+
+def retrieve_all_mobile_numbers():
+	"""
+	Return all mobile numbers and their associated user ids
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange('verified_numbers',0,-1,withscores=True)
+
+def retrieve_numbers_with_country_codes(list_of_user_ids):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in list_of_user_ids:
+		pipeline1.lrange("um:"+str(user_id), 0, -1)
+	return pipeline1.execute()

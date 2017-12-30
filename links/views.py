@@ -59,9 +59,9 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, public_group_vote_tasks, \
+video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks#, reset_best_photos_cache
+home_photo_tasks, sanitize_erroneous_notif
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -72,7 +72,7 @@ from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_uploa
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
-get_banned_users_count, is_already_banned, is_mobile_verified#, log_erroneous_passwords
+get_banned_users_count, is_already_banned, is_mobile_verified, get_ranked_public_groups#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, del_from_rankings, public_group_ranking, retrieve_latest_notification, \
@@ -94,7 +94,7 @@ add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
 get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
-get_latest_group_replies
+get_latest_group_replies, set_latest_group_reply
 from .website_feedback_form import AdvertiseWithUsForm
 
 from mixpanel import Mixpanel
@@ -270,8 +270,8 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 
 
 def GetLatest(user):
+	notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
 	try:
-		notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
 		if latest_notif['ot'] == '3':
 			# group chat - 'g' is privacy status
 			return latest_notif['g'], latest_notif, False, False, True, False
@@ -315,7 +315,9 @@ def GetLatest(user):
 				else:
 					delete_salat_notification(notif_name, hash_name, user.id)			
 					return None, None, False, False, False, False
-	except:
+	except (KeyError,TypeError):
+		if latest_notif and notif_name:
+			sanitize_erroneous_notif.delay(notif_name, user.id)
 		return None, None, False, False, False, False
 
 def retire_home_rules(request,*args,**kwargs):
@@ -744,7 +746,6 @@ def left_public_group(request, pk=None, unique=None, private=None, *args, **kwar
 		remove_group_notification(request.user.id,pk)
 	elif check_group_invite(request.user.id, pk):
 		remove_group_invite(request.user.id, pk)
-		# remove_group_notification(request.user.id,pk) # commented out since no notifications generated
 	else:
 		pass
 	return redirect("group_page")
@@ -768,40 +769,51 @@ def del_public_group(request, pk=None, unique=None, private=None, *args, **kwarg
 		context={'private':'0','unique':unique}
 		return render(request,'penalty_groupbanned.html', context)
 
-def leave_private_group(request, pk=None, unique=None, private=None, inside_grp=None, *args, **kwargs):
-	topic = Group.objects.get(id=pk).topic
-	context={'unique':unique, 'pk':pk, 'private':private,'topic':topic, 'inside_grp':inside_grp}
-	return render(request, 'leave_private_group.html', context)
 
-def left_private_group(request, pk=None, unique=None, private=None, *args, **kwargs):
-	# banned, ban_type, time_remaining, warned = private_group_posting_allowed(request.user.id)
-	# if banned:
-	# 	context={'unique':unique, 'private':private}
-	# 	return render(request, 'penalty_groupbanned.html', context)
-	# else:
-	if request.is_feature_phone:
-		device = '1'
-	elif request.is_phone:
-		device = '2'
-	elif request.is_tablet:
-		device = '4'
-	elif request.is_mobile:
-		device = '5'
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def leave_private_group(request, *args, **kwargs):
+	if request.method == "POST":
+		pk = request.POST.get("gid",None)
+		unique = request.POST.get("guuid",None)
+		private = request.POST.get("prv",None)
+		inside_grp = request.POST.get('insg',None)
+		topic = Group.objects.get(id=pk).topic
+		context={'unique':unique, 'pk':pk, 'private':private,'topic':topic, 'inside_grp':inside_grp}
+		return render(request, 'leave_private_group.html', context)
 	else:
-		device = '3'
-	if check_group_member(pk, request.user.username):
-		memcount = remove_group_member(pk, request.user.username) #group membership is truncated
-		remove_user_group(request.user.id, pk) #user's groups are truncated
-		remove_group_notification(request.user.id,pk) #group removed from user's notifications
-		if memcount < 1:
-			remove_group_object(pk)
-		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='leaving group', category='6', device=device)
-	elif check_group_invite(request.user.id, pk):
-		remove_group_invite(request.user.id, pk)
-		remove_group_notification(request.user.id,pk)
-		reply = Reply.objects.create(which_group_id=pk, writer=request.user, text='unaccepted invite', category='7', device=device)
-	else:
-		pass
+		return redirect("group_page")
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def left_private_group(request, *args, **kwargs):
+	if request.method=="POST":
+		user_id = request.user.id
+		pk = request.POST.get("gid",None)
+		private = request.POST.get("prv",None)
+		unique = request.POST.get("guid",None)
+		if request.is_feature_phone:
+			device = '1'
+		elif request.is_phone:
+			device = '2'
+		elif request.is_tablet:
+			device = '4'
+		elif request.is_mobile:
+			device = '5'
+		else:
+			device = '3'
+		if check_group_member(pk, request.user.username):
+			memcount = remove_group_member(pk, request.user.username) #group membership is truncated
+			remove_user_group(user_id, pk) #user's groups are truncated
+			remove_group_notification(user_id,pk) #group removed from user's notifications
+			if memcount < 1:
+				remove_group_object(pk)
+			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='leaving group', category='6', device=device)
+		elif check_group_invite(user_id, pk):
+			remove_group_invite(user_id, pk)
+			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='unaccepted invite', category='7', device=device)
+		else:
+			pass
 	return redirect("group_page")
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -2429,7 +2441,8 @@ class OpenGroupCreateView(CreateView):
 				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
 				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
-			public_group_vote_tasks.delay(group_id=f_id,priority=2)
+			# public_group_vote_tasks.delay(group_id=f_id,priority=2)
+			rank_public_groups.delay(group_id=f_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
 			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
 			try:
@@ -2503,26 +2516,35 @@ class ReinvitePrivateView(FormView):
 			context["unique"] = unique
 		return context
 
-def process_private_group_invite(request, uuid=None, pk=None, *args, **kwargs):
-	if request.user_banned:
-		return redirect("group_page")
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def process_private_group_invite(request, *args, **kwargs):
+	if request.method=="POST":
+		if request.user_banned:
+			return redirect("group_page")
+		else:
+			uuid = request.POST.get("puid",None)
+			pk = request.POST.get("vid",None)
+			try:
+				group = Group.objects.get(unique=uuid)
+				group_id = group.id
+			except:
+				group_id = -1
+			if group_id > -1:
+				invitee = User.objects.get(id=pk)
+				if check_group_invite(pk, group_id) or check_group_member(group_id, invitee.username):
+					return redirect("reinvite_private_help")
+				else:#this person ought to be sent an invite
+					#send a notification to this person to check out the group
+					reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
+					reply_id = reply.id
+					add_group_invite(pk, group_id,reply_id)
+					set_latest_group_reply(group_id,reply_id)
+			request.session["unique_id"] = None
+			request.session.modified = True
+			return redirect("invite_private", slug=uuid)
 	else:
-		try:
-			group = Group.objects.get(unique=uuid)
-			group_id = group.id
-		except:
-			group_id = -1
-		if group_id > -1:
-			invitee = User.objects.get(id=pk)
-			if check_group_invite(pk, group_id) or check_group_member(group_id, invitee.username):
-				return redirect("reinvite_private_help")
-			else:#this person ought to be sent an invite
-				#send a notification to this person to check out the group
-				reply = Reply.objects.create(text=invitee.username, category='1', which_group_id=group_id,writer=request.user)
-				add_group_invite(pk, group_id,reply.id)
-		request.session["unique_id"] = None
-		request.session.modified = True
-		return redirect("invite_private", slug=uuid)
+		return redirect("group_page")
 
 def invite_private(request, slug=None, *args, **kwargs):
 	if valid_uuid(slug):
@@ -2732,6 +2754,27 @@ class InternalSalatInviteView(ListView):
 				context["unauthorized"] = True #it's not time for any namaz!
 			return context
 	
+
+class GroupRankingView(ListView):
+	model = Group
+	form_class = GroupListForm
+	template_name = "group_ranking.html"
+	paginate_by = 25
+
+	def get_queryset(self):
+		trending_groups = []
+		group_ids_list = get_ranked_public_groups()
+		group_ids_dict = dict(group_ids_list)
+		group_ids = map(itemgetter(0), group_ids_list)
+		groups = Group.objects.select_related('owner').filter(id__in=group_ids)
+		for group in groups:
+			group_id = str(group.id)
+			trending_groups.append((group,group_ids_dict[group_id]))
+		trending_groups.sort(key=itemgetter(1), reverse=True)
+		trending_groups = map(itemgetter(0), trending_groups)
+		return trending_groups
+
+
 class GroupListView(ListView):
 	model = Group
 	form_class = GroupListForm
@@ -5164,7 +5207,8 @@ class ChangePrivateGroupTopicView(CreateView):
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
 		else:
-			topic = self.request.POST.get("topic")
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
 			unique = self.request.session["unique_id"]
 			group = Group.objects.get(unique=unique)
 			if (group.private == '0' or group.private == '2') and group.owner != user:
@@ -5215,7 +5259,8 @@ class ChangeGroupTopicView(CreateView):
 		if self.request.user_banned:
 			return render(self.request,'500.html',{})
 		else:
-			topic = self.request.POST.get("topic")
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
 			unique = self.request.session['public_uuid']
 			group = Group.objects.get(unique=unique)
 			if group.private == '0' and group.owner != user:
@@ -5253,6 +5298,7 @@ class PublicGroupView(CreateView):
 	def get_form_kwargs( self ):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
+		kwargs['is_mob_verified'] = self.request.mobile_verified
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5270,15 +5316,16 @@ class PublicGroupView(CreateView):
 				context["score"] = self.request.user.userprofile.score
 				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
+				user_id = self.request.user.id
 				context["switching"] = False
 				context["group"] = group
-				if GroupBanList.objects.filter(which_user_id=self.request.user.id,which_group_id=group_id).exists():
+				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
 					context["group_banned"]=True
 					return context#no need to process more
-				if random.random() < 0.5:
-					#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
-					public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
-				public_group_attendance_tasks.delay(group_id=group_id, user_id=self.request.user.id)
+				# if random.random() < 0.5:
+				# 	#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 0.14 to 0.25 to compensate)
+				# 	public_group_vote_tasks.delay(group_id=group_id,priority=0.25)
+				public_group_attendance_tasks.delay(group_id=group_id, user_id=user_id)
 				context["ensured"] = FEMALES
 				context["mobile_verified"] = self.request.mobile_verified
 				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
@@ -5322,7 +5369,7 @@ class PublicGroupView(CreateView):
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-			if f.image:
+			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:
 					if f.image.size > 200000:
@@ -5367,9 +5414,10 @@ class PublicGroupView(CreateView):
 				image_url = reply.image.url
 			except:
 				image_url = None
-			if random.random() < 0.5:
-				#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
-				public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
+			# if random.random() < 0.5:
+			# 	#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
+			# 	public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
+			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
 				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
@@ -5762,11 +5810,14 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
 	username = request.user.username
 	user_id = request.user.id
+	grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 	if was_limited:
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
 		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
 	elif not check_group_member(pk, username):
 		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
+	elif not request.mobile_verified and not grp["private"] == '1':
+		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -5796,13 +5847,16 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					image_url = groupreply.image.url
 				except:
 					image_url = None
-				grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
+				# grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 				if grp["private"] == '1':
 					priority='priv_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 				else:
 					priority='public_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+					# public_group_vote_tasks.delay(group_id=pk,priority=2)
+					rank_public_groups.delay(group_id=pk,writer_id=user_id)
+					public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
 				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
 					topic=grp["topic"],reply_time=reply_time,poster_url=url, poster_username=username,\
 					reply_text=description,priv=grp["private"], slug=grp["unique"],image_url=image_url,\
@@ -6609,6 +6663,9 @@ class GroupReportView(FormView):
 					if not GroupCaptain.objects.filter(which_user=self.request.user, which_group=unique).exists() \
 					or reply.text == self.request.user.username: #this checks if this particular captain has reported this particular reply before (doesn't defend against another captain reporting an already-reported group reply)
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-100) #punish the hacker
+						return redirect("public_group", slug=unique.unique)
+					elif reply.category == '3':
+						# already hidden
 						return redirect("public_group", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'

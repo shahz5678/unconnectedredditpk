@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes
 from redis4 import save_deprecated_photo_ids_and_filenames
 from redis2 import bulk_sanitize_notifications
 
@@ -365,3 +365,24 @@ def remove_inactives_photos(request,*args,**kwargs):
 #     		return render(request,"sanitize_groups.html",{'inactives_remaining':create_inactives_copy()})
 #     else:
 #     	return redirect("missing_page")
+
+######################################## Mobile Number Sanitzation ########################################
+
+def isolate_non_national_phone_numbers(request):
+	all_numbers_and_user_ids = retrieve_all_mobile_numbers() # this produces a list of tuples
+	dictionary_of_nums_and_ids = dict(all_numbers_and_user_ids)
+	bogus_numbers, users = [], []
+	for number, user_id in all_numbers_and_user_ids:
+		users.append(int(float(user_id)))
+	all_numbers = retrieve_numbers_with_country_codes(set(users))
+	import ast
+	for entry in all_numbers:
+		for number in entry:
+			number = ast.literal_eval(number)
+			if number["country_prefix"] != '92':
+				bogus_numbers.append(((int(float(dictionary_of_nums_and_ids[number["national_number"]]))),number["number"]))
+	processed_bogus_pairs = []
+	for user_id, number in bogus_numbers:
+		user = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
+		processed_bogus_pairs.append((user,number))
+	return render(request,"show_bogus_mobile_user_ids.html",{'bogus_pairs':processed_bogus_pairs,'total':len(processed_bogus_pairs)})

@@ -1201,7 +1201,6 @@ def intermediate(request,origin,*args,**kwargs):
 
 def faq(request,*args,**kwargs):
 	merch_id = request.session['merch_id']
-	print merch_id
 	model = MERCH[merch_id]['name']
 	mp.track(request.user.id, 'M_S_3 On_FAQ')
 	return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})

@@ -6664,6 +6664,9 @@ class GroupReportView(FormView):
 					or reply.text == self.request.user.username: #this checks if this particular captain has reported this particular reply before (doesn't defend against another captain reporting an already-reported group reply)
 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-100) #punish the hacker
 						return redirect("public_group", slug=unique.unique)
+					elif reply.category == '3':
+						# already hidden
+						return redirect("public_group", slug=unique.unique)
 					else: #i.e. the person requesting this is a group captain
 						reply.category = '3'
 						reply.text = self.request.user.username

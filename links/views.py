@@ -2775,25 +2775,6 @@ class GroupRankingView(ListView):
 		return trending_groups
 
 
-class GroupListView(ListView):
-	model = Group
-	form_class = GroupListForm
-	template_name = "group_list.html"
-	paginate_by = 25
-
-	def get_queryset(self):
-		trending_groups = []
-		group_ids_list = public_group_ranking()
-		group_ids_dict = dict(group_ids_list)
-		group_ids = map(itemgetter(0), group_ids_list)
-		groups = Group.objects.select_related('owner').filter(id__in=group_ids)
-		for group in groups:
-			group_id = str(group.id)
-			trending_groups.append((group,group_ids_dict[group_id]))
-		trending_groups.sort(key=itemgetter(1), reverse=True)
-		trending_groups = map(itemgetter(0), trending_groups)
-		return trending_groups
-
 ############################################################################################################
 
 #rate limit this

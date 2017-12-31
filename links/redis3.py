@@ -1691,7 +1691,15 @@ def public_group_ranking(group_id,writer_id):
 	else:
 		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
 
-
+def del_from_rankings(group_id):
+	"""
+	Used when group owner deletes public group
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	pipeline1.delete("pugbs:"+str(group_id))
+	pipeline1.zrem("public_group_rank",group_id)
+	pipeline1.execute()
 
 def get_ranked_public_groups():
 	"""

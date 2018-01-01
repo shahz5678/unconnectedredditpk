@@ -349,7 +349,8 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
-	expire_top_groups()
+	pass
+	# expire_top_groups()
 
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():

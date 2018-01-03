@@ -7137,6 +7137,8 @@ def process_photo_vote(pk, ident, val, voter_id):
 @csrf_protect
 def cast_photo_vote(request,*args,**kwargs):
 	if request.method == 'POST':
+		if request.user_banned:
+			return redirect("missing_page")
 		own_id = request.user.id
 		if request.mobile_verified:
 			photo_id = request.POST.get("pid","")
@@ -7193,6 +7195,8 @@ def cast_photo_vote(request,*args,**kwargs):
 @csrf_protect
 def cast_vote(request,*args,**kwargs):
 	if request.method == 'POST':
+		if request.user_banned:
+			return redirect("missing_page")
 		own_id = request.user.id
 		if request.mobile_verified:
 			link_id = request.POST.get("lid","")

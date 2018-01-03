@@ -1230,7 +1230,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 ############################################################################################################################################################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='10/38s')
+@ratelimit(field='user_id',ip=False,rate='22/38s')
 def home_reply(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -4045,7 +4045,7 @@ class VideoView(ListView):
 #########################Views for fresh photos#########################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='10/38s')
+@ratelimit(field='user_id',ip=False,rate='22/38s')
 def photo_comment(request,pk=None,*args,**kwargs):
 	if request.method == 'POST':
 		was_limited = getattr(request, 'limits', False)
@@ -6103,7 +6103,7 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
-@ratelimit(rate='12/38s')
+@ratelimit(rate='22/38s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6222,7 +6222,7 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='10/38s')
+@ratelimit(field='user_id',ip=False,rate='22/38s')
 def post_public_reply(request,*args,**kwargs):
 	was_limited, context = getattr(request, 'limits', False), {}
 	if was_limited:

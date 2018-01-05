@@ -106,13 +106,6 @@ body {
 		</div>
 		</div>
 	{% endif %}
-	{% if forloop.counter == 8 %}
-		<div class="card" style="background-color:#72c461">
-			<div style="padding-top:10px;">
-			{% open_mobile_shop STATIC_URL %}
-			</div>
-		</div>
-	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->

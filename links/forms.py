@@ -972,17 +972,17 @@ class ReinviteForm(forms.Form):
 	class Meta:
 		pass
 
-class KickForm(forms.Form):
-	class Meta:
-		pass
+# class KickForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class MehfilForm(forms.Form):
 	class Meta:
 		pass
 
-class GroupReportForm(forms.Form):
-	class Meta:
-		model = Reply
+# class GroupReportForm(forms.Form):
+# 	class Meta:
+# 		model = Reply
 
 class MehfildecisionForm(forms.Form):
 	class Meta:

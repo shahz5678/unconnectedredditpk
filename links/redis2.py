@@ -578,10 +578,10 @@ def get_latest_presence(group_id, user_id_list):
 			user_presence = "up:"+str(user_id)+":"+str(group_id)
 			time_since_last_viewing = pipeline1.get(user_presence) #time since last viewing
 		result1 = pipeline1.execute()
-		count = 0
+		time_now, count = time.time(), 0
 		for user_id in user_id_list:
 			try:
-				pres_dict[user_id] = time.time() - float(result1[count])
+				pres_dict[user_id] = time_now - float(result1[count])
 			except:
 				pres_dict[user_id] = 100.0
 			count += 1

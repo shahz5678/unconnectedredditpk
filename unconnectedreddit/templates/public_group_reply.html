@@ -17,8 +17,8 @@
 
     .st-dot{
       display:inline-block;
-      width: 10px;
-      height: 10px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;  
     }
 
@@ -128,11 +128,11 @@
 
         {% if reply.category == '2' %}
                 {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00"></div>
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#82DB82"></div>
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8"></div>
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
                 <span id="lsp" class="cp cs">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
@@ -145,29 +145,29 @@
                 </span>
         {% elif reply.category == '3' %}
                 {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00"></div>
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#82DB82"></div>
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8"></div>
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
         {% elif reply.category == '4' %}
                 {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00"></div>
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#82DB82"></div>
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8"></div>
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne topic change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diya</span>
         {% elif reply.category == '5' %}
                 {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00"></div>
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#82DB82"></div>
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8"></div>
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne rules change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diye</span>
         {% else %}
@@ -176,11 +176,11 @@
             {% endif %}
 
                 {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00"></div>
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#82DB82"></div>
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8"></div>
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
 
 

@@ -5279,7 +5279,7 @@ class PublicGroupView(CreateView):
 				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
 					context["group_banned"]=True
 					culprit_username = self.request.user.username
-					if check_group_member(user_id, culprit_username):
+					if check_group_member(group_id, culprit_username):
 						remove_group_member(group_id, culprit_username)
 						remove_group_notification(user_id,group_id)
 						remove_user_group(user_id, group_id)
@@ -6565,7 +6565,7 @@ def kick_pk(request, *args, **kwargs):
 								pass
 							UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-50) #punish the hacker
 							culprit_username = User.objects.filter(id=writer_id).values_list('username',flat=True)[0]
-							if check_group_member(writer_id, culprit_username):
+							if check_group_member(group_id, culprit_username):
 								remove_group_member(group_id, culprit_username)
 								remove_group_notification(writer_id,group_id)
 								remove_user_group(writer_id, group_id)

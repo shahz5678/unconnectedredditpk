@@ -106,6 +106,13 @@ body {
 		</div>
 		</div>
 	{% endif %}
+	{% if forloop.counter == 8 %}
+		<div class="card" style="background-color:#1de2a0">
+			<div style="padding-top:10px;">
+			{% open_mobile_shop STATIC_URL %}
+			</div>
+		</div>
+	{% endif %}
 	{% if forloop.counter == 13 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
@@ -246,6 +253,7 @@ body {
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
+
 
 			<br>
 

@@ -52,7 +52,7 @@
 			<hr size=1 COLOR="#F4F4E4">
 			<div id="sp" class="mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi zahir ki, maslan:</div>
 			<div id="sp" class="cs mbs" style="color:lightgrey">
-			{% for username in relevant_usernames %}<a href="{% url 'profile' username %}" class="cb"><b>{{ username }}</b></a>, {% endfor %}{% for username in other_usernames %}<a href="{% url 'profile' username %}" class="cb">{{ username }}</a>, {% endfor %}{% if num > 25 %}... and more!{% endif %}
+			{% for username in relevant_usernames %}<a href="{% url 'profile' username %}" class="cb"><b>{{ username }}</b></a>, {% endfor %}{% for username in other_usernames %}<a href="{% url 'profile' username %}" class="cb">{{ username }}</a>, {% endfor %}{% if num > 25 %}<span class="cgy">... and more!</span>{% endif %}
 			</div>
 			<hr size=1 COLOR="#F4F4E4">
 			<form method="POST" action="{% url 'mobile_shop_consultancy' %}">

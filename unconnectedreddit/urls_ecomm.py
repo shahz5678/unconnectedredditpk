@@ -3,7 +3,8 @@ init_classified, approve_classified, edit_classified, process_ad_approval, chang
 ad_locked_by_agent, city_list, expire_my_ad, change_my_sms_settings, classified_listing, process_ad_expiry_or_sms_feedback, print_referrer_logs, \
 redirect_to_social_section, initiate_seller_verification_process,show_city, buyer_details, buyer_verify, get_new_orders, confirm_order,i6metal_details,\
 in_process,x33_details, x29_details, i8i_details, s6_details, j1_details, delivery, warranty, order_successful, intermediate, buyer_info, faq,\
-queryrequest,lt550_details,get_new_queries,close_order,close_query, insmart_details, y3_details, qx2_details, gprimep_details, j5p_details
+queryrequest,lt550_details,get_new_queries,close_order,close_query, insmart_details, y3_details, qx2_details, gprimep_details, j5p_details,\
+mobile_shop_consultancy
 #classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
 from links.ecomm_tracking import display_latest_metrics, get_ad_export, get_click_distribution
 from links.number_verification import verify_basic_item_seller_number,verify_buyer_number#, verify_consumer_number
@@ -73,7 +74,7 @@ urlpatterns = patterns('',
 
 
 
-
+	url(r'^mobile_shop_consultancy/$', auth(mobile_shop_consultancy),name='mobile_shop_consultancy'),
 
 
 

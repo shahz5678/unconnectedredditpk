@@ -1,4 +1,4 @@
-from models import Photo, UserProfile
+from models import Photo, UserProfile, UserFan
 import ast, json, time, uuid, os
 from views import get_page_obj
 # from mixpanel import Mixpanel
@@ -19,7 +19,7 @@ move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \
 unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_data, get_city_ad_ids, get_all_pakistan_ad_count, string_tokenizer, ad_owner_id, \
 process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, get_and_delete_ecomm_photos_secret_key, \
-reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad#, temporarily_save_buyer_snapshot, get_buyer_snapshot, get_seller_details, populate_ad_list, retrieve_spam_writers
+reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad, add_mobile_customer
 from django.db.models import F
 
 from links.ads_forms import BuyerForm, InfoForm
@@ -1081,10 +1081,45 @@ def buyer_loc(request,*args,**kwargs):
 			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
 
 
+def mobile_shop_consultancy(request):
+	"""
+	Allows users to ask for any mobile, instead of a pre-populated list
+	"""
+	if request.method == "POST":
+		consulting_decision = request.POST.get("cons",None)
+		if consulting_decision in ('1','2'):
+			type_ = 'advice' if consulting_decision == '2' else 'price'
+			star_ids = UserFan.objects.filter(fan_id=request.user.id).values_list('star_id',flat=True).order_by('-fanning_time')
+			total_users, relevant_ids_in_order, remaining_ids= add_mobile_customer(request.user.id, star_ids=star_ids, type_=type_)
+			len_relevant_ids = len(relevant_ids_in_order)
+			if len_relevant_ids >= 25:
+				final_list = relevant_ids_in_order[:25]
+			else:
+				final_list = relevant_ids_in_order + list(remaining_ids)[:(26-len_relevant_ids)]
+			users = User.objects.filter(id__in=final_list).values_list('id','username')
+			users_dict = dict(users)
+			relevant_usernames = []
+			for id_ in relevant_ids_in_order:
+				if id_ in users_dict:
+					relevant_usernames.append(users_dict[id_])
+			other_usernames = []
+			for id,username in users:
+				if id not in relevant_ids_in_order:
+					other_usernames.append(users_dict[id])
+			return render(request,'mobile_consultancy.html',{type_:True,'num':total_users,'relevant_usernames':relevant_usernames,\
+				'other_usernames':other_usernames})
+		elif consulting_decision is None:
+			return render(request,'mobile_consultancy.html',{})
+		else:
+			return redirect("missing_page")
+	else:
+		return render(request,'mobile_consultancy.html',{})
+
+
 @csrf_protect
 def mobile_shop(request,*args,**kwargs):
-	
-#	return render(request,"404.html",{})	
+	"""
+	"""
 	if request.method == 'POST':
 		user_id = request.user.id
 		#request.session.pop('mobile_verified',None)

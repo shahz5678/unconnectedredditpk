@@ -116,7 +116,7 @@
         <a href="{% url 'group_online_kon' %}" class="cs cb"><b>online kon</b></a>
         {% endif %}
         </div>
-    <div class="mtl mbl">
+    <div id="sp" class="mtl mbl">
         {% if replies|length < 25 %}
             <span class="cp cs">{{ replies|length }} baatien:</span>
         {% else %}
@@ -206,7 +206,7 @@
                 {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>
                 {% endif %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-            <span class="cgy cxs mrl">,{{ reply.submitted_on|naturaltime }}
+            <span id="sp" class="cgy cxs mrl">,{{ reply.submitted_on|naturaltime }}
                 {% if reply.device == '1' %}
                 &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic">
                 {% elif reply.device == '2' %}
@@ -238,7 +238,7 @@
             </span>
             <br>
         {% endif %}
-        <hr size=1 COLOR="#ecc6ec">
+        <hr size=1 COLOR="#f2d9f2">
         
         {% endfor %}
     

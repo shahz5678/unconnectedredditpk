@@ -4,6 +4,27 @@
 {% load emoticons_tags %}
 {% load get_mobile_verification_bar %}
 {% block content %}
+
+<style type="text/css">
+    
+    #lsp{
+      line-height:1.55;
+    }
+
+    #sp{
+      letter-spacing: 1px;
+    }   
+
+    .st-dot{
+      display:inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;  
+    }
+
+</style>
+
+
 <div class="margin clb">
 
 {% if switching %}
@@ -41,40 +62,37 @@
         <input type="hidden" name="unique" value="{{ unique }}">
        <span class="cm cg"><b>Photo:</b><br></span>{{ form.image }}<br>
         {% if not on_fbs %}
-        <span class="cs cgy"><b>10 mb</b> se barri pic nahi lagti</span><br>
-        {% else %}
-        <span class="cs cgy"><b>200 kb</b> se barri pic nahi lagti</span><br>
+        <div class="mt mbl cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>
         {% endif %}
-        <br>{% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
+        {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
         <br>
         {{ form.text }}
             <br>
-    <button class="btn bms bcg mrl" type="submit" id="id_submit">OK</button>
-    </form>
+    <button class="mts mbl btn bm bcg mrl" type="submit" id="id_submit">OK</button>
+    </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="btn bms bco mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
+        <button class="btn bms bco" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
     </form>
     
-    <p style="margin-top:.2em;"></p>
     <a name="sectionJ"></a> 
-    <span class="cg cs">
+    <div id="sp" class="cg cs">
     {% if replies|length < 25 %}
         <b>{{ replies|length }}</b> baatien:<br>
     {% else %}
         <b>Pichli 25 baatien:</b><br>
     {% endif %}
-    </span>
-    <table>
+    </div>
+
     {% for reply,writer,time in replies %}
-    <tr><td>
+
             {% if reply.category == '1' %}
                 {% if time < 41 %}
-                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
 
                     {% if unseen %}
@@ -85,12 +103,12 @@
                         {% endif %}
                     {% endif %}
                 
-                <span class="cg cs">
+                <span id="lsp" class="cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                     {% if writer.userprofile.avatar %}
-                    <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
+                    <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
                     {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic"></img>
                     {% endif %}
                 {{ writer }}
                     {% if writer.username in ensured %}
@@ -101,11 +119,11 @@
                 </span>
             {% elif reply.category == '6' %}
                 {% if time < 41 %}
-                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
 
                     {% if unseen %}
@@ -116,7 +134,7 @@
                         {% endif %}
                     {% endif %}
                 
-                <span class="cg cs">
+                <span id="lsp" class="cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
@@ -127,11 +145,11 @@
                 </span>
             {% elif reply.category == '7' %}
                 {% if time < 41 %}
-                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
 
                     {% if unseen %}
@@ -142,7 +160,7 @@
                         {% endif %}
                     {% endif %}
                 
-                <span class="cg cs">
+                <span id="lsp" class="cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
@@ -153,24 +171,24 @@
                 </span>
             {% elif reply.category = '4' %}
                 {% if time < 41 %}
-                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-                <span class="cg cs"><a href="{% url 'profile' slug=writer.username %}#section0">{{ writer }}{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                <span id="lsp" class="cg cs"><a href="{% url 'profile' slug=writer.username %}#section0">{{ writer }}{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
         
                 {% if reply.image %}
-                <img class="pht" src="{{ reply.image|s3 }}"></img><br>
+                <img class="pht" style="border-radius:12px" alt="photo" src="{{ reply.image|s3 }}"><br>
                 {% endif %}
                 {% if time < 41 %}
-                    <img src="{{ STATIC_URL }}img/green.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
-                    <img src="{{ STATIC_URL }}img/orange.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/grey.png" alt="no pic" height="10" width="10">
+                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             
                     {% if unseen %}
@@ -181,11 +199,12 @@
                         <b class="co cs">(new)</b>&nbsp;
                         {% endif %}
                     {% endif %}
+            <span id="lsp">
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
+                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
             {% else %}
-                <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+                <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic"></img>
             {% endif %}
             <bdi>{{ reply.writer }}</bdi>
             </a>
@@ -202,29 +221,28 @@
                 <span class="pinkstar"><b>*</b></span>
             {% endif %}:&nbsp;
             <bdi class="bw">{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-        
+            </span>
         {% endif %}
             
-            <span class="cgy cxs">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
+            <span id="sp" class="cgy cxs">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
         {% if reply.device == '1' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
+        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="pic"></img>
         {% elif reply.device == '2' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
+        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="pic"></img>
         {% elif reply.device == '4' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
+        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="pic"></img>
         {% elif reply.device == '5' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
+        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="pic"></img>
         {% elif reply.device == '3' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="pic"></img>
         {% else %}
         {% endif %}
             </span>
-        <hr size=1 COLOR="#2DB92D">
-        </td></tr>
+        <hr size=1 COLOR="#d6f5d6">
+
     {% endfor %}
 
-    </table>
-<span class="cgy cs"><i>jis jis ka <b>sabz gola</b> hai woh is mehfil mein abhi mojood hai, baqiyun ka pakka nahi</i></span><br>
+
 {% endif %}
 </div>
 <br><br>

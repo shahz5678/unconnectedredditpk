@@ -225,14 +225,14 @@
                 {% csrf_token %}
                 <input type="hidden" name="dec" value="rem">
                 <input type="hidden" name="slug" value="{{ unique }}">
-                <button type="submit" name="pk" class="btn bcp bm cxs" value="{{ writer.pk }}" style="border:none;height:15px;"><b>kick</b></button></a>
+                <button type="submit" name="pk" class="btn bcp mts bm cxs" value="{{ writer.pk }}" style="border:none;height:15px;line-height:15px"><b>kick</b></button></a>
                 </form>
             {% else %}
                 <form method="POST" action="{% url 'group_report_pk' %}" style="display:inline">
                 {% csrf_token %}
                 <input type="hidden" name="dec" value="rep">
                 <input type="hidden" name="slug" value="{{ unique }}">
-                <button type="submit" name="pk" class="btn bcgy bm cxs" value="{{ reply.pk }}" style="border:none;height:15px;"><b>report</b></button>
+                <button type="submit" name="pk" class="btn bcgy mts bm cxs" value="{{ reply.pk }}" style="border:none;height:15px;line-height:15px"><b>report</b></button>
                 </form>
             {% endif %}
             </span>

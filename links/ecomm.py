@@ -1087,6 +1087,7 @@ def mobile_shop_consultancy(request):
 	"""
 	if request.method == "POST":
 		consulting_decision = request.POST.get("cons",None)
+		which_phone = request.POST.get("phn",None)
 		if consulting_decision in ('1','2'):
 			type_ = 'advice' if consulting_decision == '2' else 'price'
 			star_ids = UserFan.objects.filter(fan_id=request.user.id).values_list('star_id',flat=True).order_by('-fanning_time')
@@ -1107,7 +1108,7 @@ def mobile_shop_consultancy(request):
 				if id not in relevant_ids_in_order:
 					other_usernames.append(users_dict[id])
 			return render(request,'mobile_consultancy.html',{type_:True,'num':total_users,'relevant_usernames':relevant_usernames,\
-				'other_usernames':other_usernames})
+				'other_usernames':other_usernames,'which_phone':which_phone})
 		elif consulting_decision is None:
 			return render(request,'mobile_consultancy.html',{})
 		else:

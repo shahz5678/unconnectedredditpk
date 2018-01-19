@@ -28,15 +28,14 @@
 <div class="margin clb mbl">
 
 
-<div class="card" style="max-width: 600px;background-color:#ffffe6;padding:10px;margin:0 auto">
+<div class="card" style="max-width: 500px;background-color:#FFFDE7;padding:10px;margin:0 auto">
 	<div id="lsp" class="cl" style="text-align:center">
-		<div class="cxl" style="font-weight:bold">Mobile khareedein Pakistan ke sb se suste rate pe</div>
-		<hr size=1 COLOR="#ffeb3b">
+		
 		{% if price %}
-			
-			<div class="mts mbl">Discounted price hasil karney ke liye mobile ka naam likh ke <b style="border-bottom:2px dotted #D3D3D3">0333-5196812</b> ya <b style="border-bottom:2px dotted #D3D3D3">0333-4404403</b> pe SMS karien</div>
+			<div class="mts mbs" style="color:#E91E63;border: 1px dotted #577591;background-color:#eff2f5;padding:5px;border-radius:6px">Koi bhi dukan hamarey discounts match nahi kar sakti</div>
+			<div class="mts mbl">{% if which_phone %}{{ which_phone }} pe discount{% else %}Discount{% endif %} hasil karney ke liye {% if which_phone %}"{{ which_phone }}"{% else %}kisi bhi mobile ka naam{% endif %} likh ke <b style="border-bottom:2px dotted #D3D3D3">0333-5196812</b> ya <b style="border-bottom:2px dotted #D3D3D3">0333-4404403</b> pe SMS karien</div>
 			<hr size=1 COLOR="#F4F4E4">
-			<div id="sp" class="mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi zahir ki, maslan:</div>
+			<div id="sp" class="mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi li, maslan:</div>
 			<div id="sp" class="cs mbs" style="color:lightgrey">
 			{% for username in relevant_usernames %}<a href="{% url 'profile' username %}" class="cb"><b>{{ username }}</b></a>, {% endfor %}{% for username in other_usernames %}<a href="{% url 'profile' username %}" class="cb">{{ username }}</a>, {% endfor %}{% if num > 25 %}<span class="cgy">... and more!</span>{% endif %}
 			</div>
@@ -48,6 +47,9 @@
 
 		{% elif advice %}
 
+			<div class="cxl" style="font-weight:bold">Mobile phones pe Pakistan ke sab se barey discounts</div>
+
+			<hr size=1 COLOR="#ffeb3b">
 			<div class="mts mbl">Mobile pe mashwara karney ke liye "Mashwara" likh ke <b style="border-bottom:2px dotted #D3D3D3">0333-5196812</b> ya <b style="border-bottom:2px dotted #D3D3D3">0333-4404403</b> pe SMS karien</div>
 			<hr size=1 COLOR="#F4F4E4">
 			<div id="sp" class="mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi zahir ki, maslan:</div>
@@ -61,22 +63,105 @@
 			</form>
 
 		{% else %}
+
+			<div class="cxl" style="font-weight:bold">Mobile phones pe Pakistan ke sab se barey discounts</div>
 		
-			<div class="mts">Dabba pack aur 1 saal ki warranty</div>
-			<div class="mts" style="font-weight:bold;background-color:#00bfff;color:white;padding:5px;border-radius:6px">Rs.2500 se Rs.20,000 ke Nokia, Samsung, Huawei, Oppo mobile discount pe apny ghar mangwain</div>
+			<div class="mts mbs" style="color:#E91E63;border: 1px dotted #577591;background-color:#eff2f5;padding:5px;border-radius:6px">Koi bhi dukan hamarey discounts match nahi kar sakti</div>
 
-			<div class="mtl">Kisi bhi mobile ki discounted price hasil karney ke liye <b>Price</b> dabain:</div>
-			<form method="POST" action="{% url 'mobile_shop_consultancy' %}">
+			<div class="mts mbs">Brand new, dabba pack, 1 year warranty!</div><hr size=1 COLOR="#F4F4E4"><div id="sp" class="mts cs cgy">- no used phones -</div><hr size=1 COLOR="#F4F4E4">
+
+			<div class="mts">Discount offers ki malumat ke liye <b>Offer</b> dabain:</div>
+			<form method="POST" class="mbl" action="{% url 'mobile_shop_consultancy' %}">
 			{% csrf_token %}
-			<button class="btn bco bl mts cm" style="border:none;height:24px" name="cons" value="1">Price</button>
+			<button class="btn bcg bl mts cm" style="background-color:#00CC66;border:none;height:30px" name="cons" value="1">Offer</button>
 			</form>
 
-			<div class="mtl">Mashwara karney ke liye ke konsa mobile khareeda jaye <b>Mashwara</b> dabain:</div>
-			<form method="POST" action="{% url 'mobile_shop_consultancy' %}">
-			{% csrf_token %}
-			<button class="btn bcp bl mts mbl cm" style="border:none;height:24px" name="cons" value="2">Mashwara</button>
-			</form>
 
+			<div class="cl" style="font-weight:bold;background-color:#D2F9EC;border-radius:6px;padding:7px;">Rs.5,000 - Rs.10,000 ki discount offers:</div>
+			<div class="mtl" style="text-align:left">
+				<b><span class="cb">Rs.6050</span> - Telenor Infinity E:</b><br>
+				<b id="sp" class="cs cb">Rs.1450 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a4b8f4;display:inline-block">Market price Rs.7500</div>, 4G, 1GB RAM, 8GB ROM, 8MP & 5MP Cams, 2000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Telenor Infinity">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0" name="cons" value="1"><div style="border-bottom:dotted 1px #1947D1" class="cb">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cg">Rs.6150</span> - QMobile Noir i2 Power:</b><br>
+				<b id="sp" class="cs cg">Rs.850 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #64e883;display:inline-block">Market price Rs.7000</div>, 3G, 1GB RAM, 8GB ROM, 5MP & 2MP Cams, 3000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="QMobile i2 Power">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #179b36" class="cg">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="ct">Rs.6850</span> - QMobile i6 Metal One:</b><br>
+				<b id="sp" class="cs ct">Rs.1000 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a8dff0;display:inline-block">Market price Rs.7850</div>, 3G, 1GB RAM, 8GB ROM, 5MP & VGA Cams, 2000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="QMobile i6 Metal One">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #229ec3;color:#229ec3">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cp">Rs.8150</span> - Infinix Smart:</b><br>
+				<b id="sp" class="cs cp">Rs.1200 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #cec1d7;display:inline-block">Market price Rs.9350</div>, 3G, 1GB RAM, 8GB ROM, 8MP & 2MP Cams, 3060 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Infinix Smart">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #765989" class="cp">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cr">Rs.8300</span> - Huawei Y3 II:</b><br>
+				<b id="sp" class="cs cr">Rs.1500 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #ffb3b3;display:inline-block">Market price Rs.9800</div>, 3G, 1GB RAM, 8GB ROM, 5MP & 2MP Cams, 2100 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Huawei Y3 II">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px red" class="cr">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+			</div>
+			<div class="cl" style="font-weight:bold;background-color:#D2F9EC;border-radius:6px;padding:7px;">Rs.10,000 - Rs.15,000 ki discount offers:</div>
+			<div class="mtl" style="text-align:left">
+				<b><span class="cb">Rs.10,500</span> - Nokia 2:</b><br>
+				<b id="sp" class="cs cb">Rs.1500 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a4b8f4;display:inline-block">Market price Rs.12,000</div>, 4G, 1GB RAM, 8GB ROM, 8MP & 5MP Cams, 4100 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Nokia 2">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #1947D1" class="cb">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cg">Rs.13,200</span> - Samsung Galaxy Grand Prime Plus:</b><br>
+				<b id="sp" class="cs cg">Rs.3300 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #64e883;display:inline-block">Market price Rs.16,500</div>, 4G, 1.5GB RAM, 8GB ROM, 8MP & 5MP Cams, 2600 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Samsung Grand Prime">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #179b36" class="cg">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="ct">Rs.14,400</span> - Oppo A37:</b><br>
+				<b id="sp" class="cs ct">Rs.2500 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a8dff0;display:inline-block">Market price Rs.16,900</div>, 4G, 2GB RAM, 16GB ROM, 8MP & 5MP Cams, 2630 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Oppo A37">
+				<button type="submit" class="cm" style="background:transparent;border:none;margin:0;" name="cons" value="1"><div style="display:inline;border-bottom:dotted 1px #229ec3;color:#229ec3">Buy now</div></button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+			</div>
+
+			<div class="mts">Discount offers ki malumat ke liye <b>Offer</b> dabain:</div>
+			<form method="POST" class="mbl" action="{% url 'mobile_shop_consultancy' %}">
+			{% csrf_token %}
+			<button class="btn bcg bl mts cm" style="background-color:#00CC66;border:none;height:30px" name="cons" value="1">Offer</button>
+			</form>
+			
 		{% endif %}
 	</div>
 </div>

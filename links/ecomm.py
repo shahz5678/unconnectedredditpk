@@ -1087,6 +1087,7 @@ def mobile_shop_consultancy(request):
 	"""
 	if request.method == "POST":
 		consulting_decision = request.POST.get("cons",None)
+		prices = request.POST.get("prc",None)
 		which_phone = request.POST.get("phn",None)
 		if consulting_decision in ('1','2'):
 			type_ = 'advice' if consulting_decision == '2' else 'price'
@@ -1107,8 +1108,13 @@ def mobile_shop_consultancy(request):
 			for id,username in users:
 				if id not in relevant_ids_in_order:
 					other_usernames.append(users_dict[id])
+			if prices:
+				prices = prices.split(":")
+				real_price, our_price, saving = prices[0], prices[1], prices[2]
+			else:
+				real_price, our_price, saving = None, None, None
 			return render(request,'mobile_consultancy.html',{type_:True,'num':total_users,'relevant_usernames':relevant_usernames,\
-				'other_usernames':other_usernames,'which_phone':which_phone})
+				'other_usernames':other_usernames,'which_phone':which_phone, 'real_price':real_price, 'our_price':our_price, 'saving':saving})
 		elif consulting_decision is None:
 			return render(request,'mobile_consultancy.html',{})
 		else:

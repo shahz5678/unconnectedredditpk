@@ -7,11 +7,11 @@
 
 <style type="text/css">
     
-    #lsp{
+    .lsp{
       line-height:1.55;
     }
 
-    #sp{
+    .sp{
       letter-spacing: 1px;
     }   
 
@@ -76,7 +76,7 @@
     </form>
     
     <a name="sectionJ"></a> 
-    <div id="sp" class="cg cs">
+    <div class="sp cg cs">
     {% if replies|length < 25 %}
         <b>{{ replies|length }}</b> baatien:<br>
     {% else %}
@@ -103,7 +103,7 @@
                         {% endif %}
                     {% endif %}
                 
-                <span id="lsp" class="cg cs">
+                <span class="lsp cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                     {% if writer.userprofile.avatar %}
                     <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
@@ -134,7 +134,7 @@
                         {% endif %}
                     {% endif %}
                 
-                <span id="lsp" class="cg cs">
+                <span class="lsp cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
@@ -160,7 +160,7 @@
                         {% endif %}
                     {% endif %}
                 
-                <span id="lsp" class="cg cs">
+                <span class="lsp cg cs">
                 <a href="{% url 'profile' slug=writer.username %}#section0">
                 {{ writer }}
                     {% if writer.username in ensured %}
@@ -177,7 +177,7 @@
                 {% else %}
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-                <span id="lsp" class="cg cs"><a href="{% url 'profile' slug=writer.username %}#section0">{{ writer }}{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                <span class="lsp cg cs"><a href="{% url 'profile' slug=writer.username %}#section0">{{ writer }}{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
             {% else %}
         
                 {% if reply.image %}
@@ -199,7 +199,7 @@
                         <b class="co cs">(new)</b>&nbsp;
                         {% endif %}
                     {% endif %}
-            <span id="lsp">
+            <span class="lsp">
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
                 <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
@@ -224,7 +224,7 @@
             </span>
         {% endif %}
             
-            <span id="sp" class="cgy cxs">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
+            <span class="sp cgy cxs">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
         {% if reply.device == '1' %}
         &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="pic"></img>
         {% elif reply.device == '2' %}

@@ -7,11 +7,11 @@
 
 <style type="text/css">
     
-    #lsp{
+    .lsp{
       line-height:1.55;
     }
 
-    #sp{
+    .sp{
       letter-spacing: 1px;
     }   
 
@@ -47,7 +47,7 @@
             <button class="btn bxs bcr" name="prv" value="0" style="border:none;height:23px;vertical-align:middle"><b>X</b></button>
         </form>
 
-        <span id="lsp" class="clb"><bdi><b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></bdi></span>
+        <span class="lsp clb"><bdi><b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></bdi></span>
         <span class="cgy cs">&nbsp;by&nbsp;
         <a href="{% url 'profile' slug=group.owner.username %}#section0">
         {% if group.owner.userprofile.avatar %}
@@ -77,15 +77,15 @@
     <br>
         
         {% if user == group.owner %}
-        <div class="mts"><a href="{% url 'change_topic' %}" id="sp" class="cxs">change topic</a><br></div>
+        <div class="mts"><a href="{% url 'change_topic' %}" class="sp cxs">change topic</a><br></div>
         {% endif %}
         
-        <div id="lsp" class="mts">
+        <div class="lsp mts">
         {% if group.rules %}
         <span class="clb cs">Rules:&nbsp;<span class="cp"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
         {% endif %}
         {% if user == group.owner %}
-        <a href="{% url 'change_rules' %}" id="sp" class="cxs">change rules</a>
+        <a href="{% url 'change_rules' %}" class="sp cxs">change rules</a>
         {% endif %}
         </div>
     <a name="sectionJ"></a> 
@@ -107,7 +107,7 @@
         {% csrf_token %}
         <button class="btn bms bco mts" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
     </form>
-        <div class="mts" id="sp">
+        <div class="mts sp">
         <a href="{% url 'invite' %}#section0" class="cs cb"><b>invite</b></a>
         {% if user == group.owner %}<span class="cs ms">|</span>
         <a href="{% url 'owner_group_online_kon' %}" class="cs cb"><b>afsar banao</b></a>
@@ -116,7 +116,7 @@
         <a href="{% url 'group_online_kon' %}" class="cs cb"><b>online kon</b></a>
         {% endif %}
         </div>
-    <div id="sp" class="mtl mbl">
+    <div class="sp mtl mbl">
         {% if replies|length < 25 %}
             <span class="cp cs">{{ replies|length }} baatien:</span>
         {% else %}
@@ -134,7 +134,7 @@
                 {% else %}
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-                <span id="lsp" class="cp cs">
+                <span class="lsp cp cs">
                 <a href="{% url 'profile' slug=reply.writer.username %}">
                     {{ writer }}
                     {% if writer.username in ensured %}
@@ -151,7 +151,7 @@
                 {% else %}
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-            <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
+            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
         {% elif reply.category == '4' %}
                 {% if time < 41 %}
                     <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
@@ -160,7 +160,7 @@
                 {% else %}
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-            <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne topic change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diya</span>
+            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne topic change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diya</span>
         {% elif reply.category == '5' %}
                 {% if time < 41 %}
                     <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
@@ -169,7 +169,7 @@
                 {% else %}
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
-            <span id="lsp" class="cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne rules change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diye</span>
+            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne rules change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diye</span>
         {% else %}
             {% if reply.image %}
             <img class="pht" src="{{ reply.image.url|s3 }}" style="border-radius:12px;" alt="foto"><br>
@@ -191,7 +191,7 @@
                 <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic">
             {% endif %}
             </a>          
-            <span id="lsp">
+            <span class="lsp">
             <a href="{% url 'profile' slug=writer.username %}" style="font-size:90%;"><bdi>{{ writer }}</bdi></a>
             <span style="font-size:70%;">
 
@@ -206,7 +206,7 @@
                 {% if writer.username in ensured %}
                     <span class="pinkstar"><b>*</b></span>
                 {% endif %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-            <span id="sp" class="cgy cxs mrl">,{{ reply.submitted_on|naturaltime }}
+            <span class="sp cgy cxs mrl">,{{ reply.submitted_on|naturaltime }}
                 {% if reply.device == '1' %}
                 &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic">
                 {% elif reply.device == '2' %}

@@ -1617,6 +1617,21 @@ def skip_outage(user_id):
 
 ###########################################################
 
+def add_mobile_customer(user_id,star_ids, type_):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = 'mobile_consultancy_'+type_
+	my_server.sadd(set_name,user_id)
+	all_ids = my_server.smembers(set_name)
+	relevant_ids_in_order = []
+	for star_id in star_ids:
+		if str(star_id) in all_ids:
+			relevant_ids_in_order.append(star_id)
+	return my_server.scard(set_name), relevant_ids_in_order, all_ids - set(relevant_ids_in_order)
+
+###########################################################
+
 def return_all_ad_data():
 	my_server = redis.Redis(connection_pool=POOL)
 	ad_ids = my_server.lrange("global_ads_list", 0, -1)
@@ -1691,7 +1706,15 @@ def public_group_ranking(group_id,writer_id):
 	else:
 		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
 
-
+def del_from_rankings(group_id):
+	"""
+	Used when group owner deletes public group
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	pipeline1.delete("pugbs:"+str(group_id))
+	pipeline1.zrem("public_group_rank",group_id)
+	pipeline1.execute()
 
 def get_ranked_public_groups():
 	"""

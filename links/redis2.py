@@ -532,34 +532,34 @@ def public_group_attendance(group_id,user_id):
 
 # sanitize group from rankings if group owner wants to delete it
 
-def del_from_rankings(group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zrem("public_group_rankings", group_id)
+# def del_from_rankings(group_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.zrem("public_group_rankings", group_id)
 
 #expire bottom feeders among top public groups
 
-def expire_top_groups():
-	my_server = redis.Redis(connection_pool=POOL)
-	limit = 1000
-	size = my_server.zcard("public_group_rankings")
-	if size > limit:
-		my_server.zremrangebyrank("public_group_rankings", 0, (size-limit-1))
+# def expire_top_groups():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	limit = 1000
+# 	size = my_server.zcard("public_group_rankings")
+# 	if size > limit:
+# 		my_server.zremrangebyrank("public_group_rankings", 0, (size-limit-1))
 
 #get public group rankings
 
-def public_group_ranking():
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "public_group_rankings"
-	return my_server.zrevrange(sorted_set,0,100,withscores=True) # returning highest 100 groups
+# def public_group_ranking():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "public_group_rankings"
+# 	return my_server.zrevrange(sorted_set,0,100,withscores=True) # returning highest 100 groups
 
 #each reply or refresh in a group means the group is voted up!
 
-def public_group_vote_incr(group_id,priority):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "public_group_rankings"
-	increment_amount = 2**((time.time()-FUTURE_EPOCH)/HALF_LIFE) # <---- replace in 4 years from 10th Dec, 2016!
-	increment_amount = increment_amount * priority #differentiate between refresh and reply, etc.
-	my_server.zincrby(name=sorted_set, value=group_id,amount=increment_amount)
+# def public_group_vote_incr(group_id,priority):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "public_group_rankings"
+# 	increment_amount = 2**((time.time()-FUTURE_EPOCH)/HALF_LIFE) # <---- replace in 4 years from 10th Dec, 2016!
+# 	increment_amount = increment_amount * priority #differentiate between refresh and reply, etc.
+# 	my_server.zincrby(name=sorted_set, value=group_id,amount=increment_amount)
 
 #####################Private Group Presence#####################
 
@@ -578,10 +578,10 @@ def get_latest_presence(group_id, user_id_list):
 			user_presence = "up:"+str(user_id)+":"+str(group_id)
 			time_since_last_viewing = pipeline1.get(user_presence) #time since last viewing
 		result1 = pipeline1.execute()
-		count = 0
+		time_now, count = time.time(), 0
 		for user_id in user_id_list:
 			try:
-				pres_dict[user_id] = time.time() - float(result1[count])
+				pres_dict[user_id] = time_now - float(result1[count])
 			except:
 				pres_dict[user_id] = 100.0
 			count += 1

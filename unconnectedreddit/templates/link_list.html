@@ -7,7 +7,6 @@
 {% load photo_voted %}
 {% load human_time %}
 {% load s3 %}
-{% load get_mobile_shop %}
 {% load get_fan_button %}
 {% load get_voting %}
 {% load get_curate_photo %}
@@ -18,7 +17,6 @@
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
-{% load get_live_mobile_shop %}
 {% block content %}
 
 <style>
@@ -104,13 +102,6 @@ body {
 		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
 		</div>
-		</div>
-	{% endif %}
-	{% if forloop.counter == 8 %}
-		<div class="card" style="background-color:#72c461">
-			<div style="padding-top:10px;">
-			{% open_mobile_shop STATIC_URL %}
-			</div>
 		</div>
 	{% endif %}
 	{% if forloop.counter == 13 %}

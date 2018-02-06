@@ -158,11 +158,11 @@ body {
 		<b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
 		{% endif %}<br>
 			{% if photo.vo|add:"0" < -2 %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px">
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px">
 			{% else %}
-				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px">
 			{% endif %}<br>
 
 

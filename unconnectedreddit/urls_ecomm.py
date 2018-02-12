@@ -1,3 +1,7 @@
+from django.contrib.auth.decorators import login_required as auth
+from django.conf.urls import patterns, include, url
+from django.http import HttpResponse
+from django.contrib import admin
 from links.ecomm import x2lite_details, x32_details, buyer_loc, mobile_shop, post_basic_item, post_seller_info, post_basic_item_photos, \
 init_classified, approve_classified, edit_classified, process_ad_approval, change_cover_photo, show_user_ads, ad_detail, process_unfinished_ad, \
 ad_locked_by_agent, city_list, expire_my_ad, change_my_sms_settings, classified_listing, process_ad_expiry_or_sms_feedback, print_referrer_logs, \
@@ -8,13 +12,12 @@ mobile_shop_consultancy
 #classified_tutorial_dec, show_seller_number, populate_photo_ads, get_spam_export
 from links.ecomm_tracking import display_latest_metrics, get_ad_export, get_click_distribution
 from links.number_verification import verify_basic_item_seller_number,verify_buyer_number#, verify_consumer_number
-from django.contrib.auth.decorators import login_required as auth
-from django.conf.urls import patterns, include, url
-from django.contrib import admin
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nAllow: /buy_and_sell/\nDisallow: /", content_type="text/plain"), name="robots_file"),
+	#################################################################################################
 	url(r'^social_networking/$', redirect_to_social_section,name='redirect_to_social_section'),
 	#################################################################################################
 	url(r'^buy_and_sell/cities/$', city_list,name='city_list'),

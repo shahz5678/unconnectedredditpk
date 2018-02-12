@@ -217,6 +217,8 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		self.fields['image'].widget.attrs['id'] = 'pub_group_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'pub_group_text_field'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")

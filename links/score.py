@@ -1,3 +1,5 @@
+THUMB_HEIGHT = 38
+###############################################################################################################
 VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jhappi</b> di</span><br>',\
 '-1':'<span style="font-size:80%;color:#F4511E;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
 '2': '<span style="font-size:80%;color:#009940;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
@@ -58,7 +60,12 @@ MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
-NUMBER_VERIFICATION_THRESHOLD = 25
+NUMBER_VERIFICATION_THRESHOLD = 10
 NUMBER_VERIFICATION_BONUS = 500
 ###############################################################################################################
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
+###############################################################################################################
+PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
+'mismatch':'Rabta munqata ho gaya, phir se karien'}
+PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki private chat mein bulaya'
+EXTRA_PADDING = 20 #used to adjust image sizes in cases where CSS uses box-sizing:border-box property

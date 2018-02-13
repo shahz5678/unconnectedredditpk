@@ -74,10 +74,13 @@ def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "sn:"+str(viewer_id) # this contains the 'single notifications' of the user
 	notif = my_server.zrange(sorted_set,-1,-1)
-	notification = my_server.hgetall(notif[0])
-	parent_object = my_server.hgetall(notification['c'])
-	combined = dict(notification,**parent_object)
-	return notif[0],notification['c'],combined
+	if notif:
+		notification = my_server.hgetall(notif[0])
+		parent_object = my_server.hgetall(notification['c'])
+		combined = dict(notification,**parent_object)
+		return notif[0],notification['c'],combined
+	else:
+		return None, None, None
 
 # populates the 'matka'
 def retrieve_unseen_notifications(viewer_id):
@@ -322,6 +325,25 @@ def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
 
 ######################################## Sanitization functions ########################################
 
+def remove_erroneous_notif(notif_name, user_id):
+	"""
+	Removes notification that does have associated object
+
+	This way the notification feed of users is not blocked
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	sorted_set = "sn:"+user_id
+	unseen_activity = "ua:"+user_id
+	unseen_activity_resorted = "uar:"+user_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zrem(sorted_set, notif_name)
+	pipeline1.zrem(unseen_activity, notif_name)
+	pipeline1.zrem(unseen_activity_resorted, notif_name)
+	pipeline1.execute()
+	my_server.delete(notif_name)
+
+
 def remove_notification_of_banned_user(target_id, object_id, object_type):
 	my_server = redis.Redis(connection_pool=POOL)
 	target_id = str(target_id)
@@ -510,34 +532,34 @@ def public_group_attendance(group_id,user_id):
 
 # sanitize group from rankings if group owner wants to delete it
 
-def del_from_rankings(group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zrem("public_group_rankings", group_id)
+# def del_from_rankings(group_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.zrem("public_group_rankings", group_id)
 
 #expire bottom feeders among top public groups
 
-def expire_top_groups():
-	my_server = redis.Redis(connection_pool=POOL)
-	limit = 1000
-	size = my_server.zcard("public_group_rankings")
-	if size > limit:
-		my_server.zremrangebyrank("public_group_rankings", 0, (size-limit-1))
+# def expire_top_groups():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	limit = 1000
+# 	size = my_server.zcard("public_group_rankings")
+# 	if size > limit:
+# 		my_server.zremrangebyrank("public_group_rankings", 0, (size-limit-1))
 
 #get public group rankings
 
-def public_group_ranking():
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "public_group_rankings"
-	return my_server.zrevrange(sorted_set,0,100,withscores=True) # returning highest 100 groups
+# def public_group_ranking():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "public_group_rankings"
+# 	return my_server.zrevrange(sorted_set,0,100,withscores=True) # returning highest 100 groups
 
 #each reply or refresh in a group means the group is voted up!
 
-def public_group_vote_incr(group_id,priority):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "public_group_rankings"
-	increment_amount = 2**((time.time()-FUTURE_EPOCH)/HALF_LIFE) # <---- replace in 4 years from 10th Dec, 2016!
-	increment_amount = increment_amount * priority #differentiate between refresh and reply, etc.
-	my_server.zincrby(name=sorted_set, value=group_id,amount=increment_amount)
+# def public_group_vote_incr(group_id,priority):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "public_group_rankings"
+# 	increment_amount = 2**((time.time()-FUTURE_EPOCH)/HALF_LIFE) # <---- replace in 4 years from 10th Dec, 2016!
+# 	increment_amount = increment_amount * priority #differentiate between refresh and reply, etc.
+# 	my_server.zincrby(name=sorted_set, value=group_id,amount=increment_amount)
 
 #####################Private Group Presence#####################
 
@@ -556,10 +578,10 @@ def get_latest_presence(group_id, user_id_list):
 			user_presence = "up:"+str(user_id)+":"+str(group_id)
 			time_since_last_viewing = pipeline1.get(user_presence) #time since last viewing
 		result1 = pipeline1.execute()
-		count = 0
+		time_now, count = time.time(), 0
 		for user_id in user_id_list:
 			try:
-				pres_dict[user_id] = time.time() - float(result1[count])
+				pres_dict[user_id] = time_now - float(result1[count])
 			except:
 				pres_dict[user_id] = 100.0
 			count += 1

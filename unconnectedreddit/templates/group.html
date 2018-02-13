@@ -5,15 +5,15 @@
 {% block content %}
 <div class="margin">
 {% if not object_list %}
-<a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
-<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a><span class="cs"> |</span>
-<a href="{% url 'group_help' %}#section0" class="cxs"><b>mehfil kiya hai?</b></a>
+<a href="{% url 'group_type' %}#section0" class="cs"><b>new mehfil</b></a><span class="cs">&nbsp;|</span>
+<a href="{% url 'group_ranking' %}#section0" class="cs"><b>popular mehfilein</b></a><span class="cs">&nbsp;|</span>
+<a href="{% url 'group_help' %}#section0" class="cs"><b>mehfil kya hai?</b></a>
 <br><br>
-	<b>Mehfil</b> mein doston ke sath pics wali chat ki ja sakti hai. <a href="{% url 'group_type' %}">New mehfil banao</a>, aur shuru ho jao.
+	<b>Mehfil</b> mein doston ke sath mil kar chat ki ja sakti hai. <a href="{% url 'group_type' %}">New mehfil banao</a>, aur shuru ho jao.
 {% else %}
 <b>Tumhari mehfilein:</b><br><br>
-<a href="{% url 'group_type' %}#section0" class="cxs"><b>new mehfil</b></a>&nbsp;<span class="cs">|</span>
-<a href="{% url 'group_list' %}#section0" class="cxs"><b>mashoor mehfilein</b></a>
+<a href="{% url 'group_type' %}#section0" class="cs"><b>new mehfil</b></a><span class="cs">&nbsp;|</span>
+<a href="{% url 'group_ranking' %}#section0" class="cs"><b>popular mehfilein</b></a>
 <br><br>
 {% for reply in object_list %}
 
@@ -22,7 +22,13 @@
 
 		{% if reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}
 			
-			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <button type="submit" name="prv" class="btn bcr bxs cs" value="1">X</button>
+		    </form>
 			<b class="cs cg">(INVITE)</b>
 			{% if reply.0.writer__userprofile__avatar %}
 				<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>
@@ -36,7 +42,7 @@
 				</a>
 			{% if reply.0.writer__username in verified %}
 					&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
-				{% endif %}</span>&nbsp;<span class="cgy">ne tumhe</span>
+				{% endif %}</span>&nbsp;<span class="cgy">ne apko</span>
 				<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}
 				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 				<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor:pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}
@@ -48,8 +54,14 @@
 
 		{% elif reply.0.which_group__private == '1' and reply.0.writer__username == user.username %}
 
-			<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
-			<span class="cgy">Tum&nbsp;ne</span>
+			<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <button type="submit" name="prv" class="btn bcr bxs cs" value="1">X</button>
+		    </form>
+			<span class="cgy">Ap&nbsp;ne</span>
 			<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
@@ -62,7 +74,14 @@
 
 		{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
 
-			<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+			<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <button type="submit" name="prv" class="btn bcr bxs cs" value="0">X</button>
+		    </form>
+
 			<b class="cp cs">(INVITE)</b>
 			{% if reply.0.writer__userprofile__avatar %}
 				<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>
@@ -76,7 +95,7 @@
 				</a>
 			{% if reply.0.writer__username in verified %}
 					&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
-				{% endif %} ne tumhe
+				{% endif %} ne apko
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
@@ -86,10 +105,17 @@
 			<p><hr size=1 COLOR="#ac39ac"></p>
 		{% elif reply.0.which_group__private == '0' and reply.0.writer__username == user.username %}
 
-			<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+
+			<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <button type="submit" name="prv" class="btn bcr bxs cs" value="0">X</button>
+		    </form>
 			
 			<span class="cgy">
-			Tum ne
+			Ap ne
 			</span>
 
 			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
@@ -104,9 +130,15 @@
 	{% else %}
 
 	{% if reply.0.which_group__private == '1' and reply.0.writer__username == user.username %}
-		<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+		<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
+	    {% csrf_token %}
+	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+	    <input type="hidden" name="insg" value="0">
+	    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+	    <button type="submit" name="prv" class="btn bcr bxs cs" value="1">X</button>
+	    </form>
 		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
-		<span class="cgy">Tum&nbsp;ne</span>
+		<span class="cgy">Ap&nbsp;ne</span>
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
@@ -116,7 +148,13 @@
 		
 		<p><hr size=1 COLOR="#2DB92D"></p>
 	{% elif reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}
-		<a href="{% url 'leave_private_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=1 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+		<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
+	    {% csrf_token %}
+	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+	    <input type="hidden" name="insg" value="0">
+	    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+	    <button type="submit" name="prv" class="btn bcr bxs cs" value="1">X</button>
+	    </form>
 		{% if reply.1 == 'False' %}<b class="co cs">(new)&nbsp;</b>{% endif %}
 		
 		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
@@ -133,8 +171,15 @@
 
 	{% elif reply.0.which_group__private == '0' and reply.0.writer__username == user.username %}
 
-		<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
-		<span class="cgy">Tum&nbsp;ne</span>
+		<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
+	    {% csrf_token %}
+	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+	    <input type="hidden" name="insg" value="0">
+	    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+	    <button type="submit" name="prv" class="btn bcr bxs cs" value="0">X</button>
+	    </form>
+
+		<span class="cgy">Ap&nbsp;ne</span>
 
 		<a href="{% url 'public_group' slug=reply.0.which_group__unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
@@ -144,7 +189,14 @@
 	
 	{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
 
-		<a href="{% url 'leave_public_group' pk=reply.0.which_group unique=reply.0.which_group__unique private=0 inside_grp=0 %}"><button class="btn bcr bxs cs">X</button></a>&nbsp;
+		<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
+	    {% csrf_token %}
+	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+	    <input type="hidden" name="insg" value="0">
+	    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+	    <button type="submit" name="prv" class="btn bcr bxs cs" value="0">X</button>
+	    </form>
+
 		{% if reply.0.writer__userprofile__avatar %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>{% endif %}&nbsp;
 
 		<span class="cgy"><a href="{% url 'profile' slug=reply.0.writer__username %}">{{ reply.0.writer__username }}</a>{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %} ne</span>&nbsp;

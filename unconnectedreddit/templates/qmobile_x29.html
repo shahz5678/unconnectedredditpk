@@ -67,10 +67,10 @@
 			<div id="product-name">
 				<span itemscope itemtype="http://schema.org/Product">
 				<h1 class="cl" style="font-weight:normal"> 
-					<span itemprop="brand">QMobile </span> 
-					<span itemprop="name">Noir X29</span>
+					<b itemprop="brand">QMobile </b> 
+					<b itemprop="name">Noir X29</b>
 					<br>
-					<span style="color:#B12704">Price: Rs.3600</span>
+					<span style="color:#B12704">Price: Rs.4200</span>
 				</h1>
 				<div class="cs cb" style="margin-top:-10px;">	
 					<a href="{% url 'warranty' 'x29'%}" >One Year QMobile Warranty</a> <br>
@@ -86,16 +86,14 @@
 				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 				<b style="color:#B12704">Damadam Price: 
 					<meta itemprop="priceCurrency" content="PKR"/> Rs.
-					<span itemprop="price">3600</span>
+					<span itemprop="price">4200</span>
 				</b>
 				<a href="{% url 'delivery' 'x29'%}" target="_blank">Free Delivery</a>
 				<hr width"100%" class="style-offer">
 				<span style="color:grey; font-size:12px">
-					PriceOye.pk: Rs.4850 <a href="https://priceoye.pk/mobiles/qmobile/qmobile-x29" target="_blank">(dekho)</a>
-				<hr width"100%" class="style-offer">
 					WhatMobile: Rs.4850  <a href="https://www.whatmobile.com.pk/Qmobile_Noir-X29" target="_blank">(dekho)</a>
 					<hr width"100%" class="style-offer">
-					<span style="color:grey; font-size:12px">Dukandar: Rs.4000 - Rs.4850
+					<span style="color:grey; font-size:12px">Dukandar: Rs.4600 - Rs.4850
 					</span>
 				</span>
 			</div>	
@@ -131,29 +129,17 @@
 				</div>
 			</div>
 
-			{% if user_score < 5000 %}
-				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
-				<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div><br>
-				<div class="cl clb mbs" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:2px 2px 2px 2px;background-color:#E8E8E8;">
-					<b class="cs clc">Ye phone order kerne key liay aapko <div class="cr">{{score_diff}}</div> points aur chahiye hein</b><br>
-					<button class="btn mtl mbs bxl bcgy cl" type="submit"><b>Order Kerien</b></button><br>
-				 	<a href="{% url 'score_help' %}#section0">score kaisey barhta hai?</a><br>
-				</div>
-			 	<br>
-				<a href="{% url 'mobile_shop' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a><br>
-			{%else%}
-				<b class="cs clb">Phone khareednay key liay <a class="cr">5000</a><br> points hona zaroori hein</b><br>
-				<div class='cs cg'>Points phone order kerne key baad kaatey jaien gay</div>
-				<form method="POST" action="{% url 'buyer_loc' %}">
+
+				<form method="POST" action="{% url 'intermediate' 'x29' %}">
 					{% csrf_token %}
 					<input type="hidden" name="merch_id" value="1">
-					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Order Kerien</b></button>
+					<button class="btn mtl mbs bxl bcg cl" type="submit"><b>Aagay</b></button>
 					<br>
 					<!-- <b class="cxs cr">Damadam Score required: 5000</b> -->
 				</form>
 				<a href="{% url 'mobile_shop' %}"><button class="btn bcgy mts bl cm"><b>wapis</b></button></a>
 				<br><br>
-			{% endif %}
+
 
 
 	<!-- #################################END ITEM BLOCK############################################ -->

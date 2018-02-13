@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<div class="margin clb">
+
+<div class="mts mbl">
+<span class="cl">A total of <b>{{ total }}</b> bogus mobile numbers!</span>
+</div>
+
+{% for user, number in bogus_pairs %}
+	<div class="mt">
+	<a href="{% url 'profile' user %}" class="cl mrl">{{ user }}</a><span class="cgy">{{ number }} </span>
+	</div>
+{% empty %}
+	<span class="cgy">There are no bogus pairs</span>
+{% endfor %}
+</div>
+<br><br>
+{% endblock %}

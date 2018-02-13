@@ -98,12 +98,14 @@ body {
 
 {% for photo in object_list %}
 	
-
-		{% if forloop.counter == 4 %}
+		{% if forloop.counter == 3 %}
+		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> <ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-8q+1w-dx+ec+gk" data-ad-client="ca-pub-2568547635306983" data-ad-slot="5056048422"></ins> <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+		{% endif %}
+		{% if forloop.counter == 5 %}
 		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
 		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>
 		{% endif %}
-<div class="card" style="position: relative; margin-bottom:30px; margin-top:10px; padding-bottom:10px;" >
+<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;" >
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<a href="{% url 'profile' photo.o %}#section0" class="mrl mtl">
@@ -147,11 +149,11 @@ body {
 
 	<br>
 			{% if photo.vo|add:"0" < -2 %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px;"></img>
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|s3 }}"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;"></img>
 			{% else %}
-				<img class="pht" src="{{ photo.u|s3 }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;"></img>
 			{% endif %}<br>
 
 
@@ -175,7 +177,7 @@ body {
 				{% photo_comments_section photo.comments STATIC_URL user.id '1' score %}
 			{% endif %}
 
-			<div style="position:absolute; width:97%; margin:0 auto">{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}</div>
+			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by user.id comment_form '1' %}</div>
 			
 
 			

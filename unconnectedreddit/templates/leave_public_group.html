@@ -3,13 +3,16 @@
 {% block content %}
 <div class="margin clb">
 <b class="cl"><span class="cp">{{ topic }}</span> ko chorna hai? {% emoticons %}.j1.j2.j3.j4{% endemoticons %}</b>
-<br class="mbl">
-&nbsp;<a href="{% url 'left_public_group' pk unique private %}"><button class="btn bcg bm mbl">Haan</button></a><br>
-{% if inside_grp == '1' %}
-&nbsp;<a href="{% url 'public_group' unique %}"><button class="btn bcr bm mbs">Nahi</button></a>
-{% else %}
-&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcr bm mbs">Nahi</button></a>
-{% endif %}
+
+	<form class="mbl mtl" method="POST" action="{% url 'left_public_group' %}">
+	{% csrf_token %}
+	<input type="hidden" name="slug" value="{{ unique }}">
+	<input type="hidden" name="pk" value="{{ pk }}">
+	<input type="hidden" name="igrp" value="{{ inside_grp }}">
+	<button type="submit" name="ldec" class="btn bcg bm mrl mbs" value="1">Haan</button>
+	<button type="submit" name="ldec" class="btn bcr bm mts" value="0">Nahi</button>
+	</form>
+
 </div>
 <br>
 {% endblock %}

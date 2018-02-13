@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
+from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import re, time
@@ -205,6 +205,8 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
 		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+	image = forms.ImageField(required=False)
+
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -212,7 +214,11 @@ class PublicGroupReplyForm(forms.ModelForm):
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
+		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
+		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		self.fields['image'].widget.attrs['id'] = 'pub_group_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'pub_group_text_field'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -220,7 +226,9 @@ class PublicGroupReplyForm(forms.ModelForm):
 		if len(text) < 2:
 			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
 		elif len(text) > 500:
-			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
+			raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+		elif not self.is_mob_verified:
+			raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
 		text = clear_zalgo_text(text)
 		uni_str = uniform_string(text)
 		if uni_str:
@@ -257,7 +265,7 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		if len(text) < 2:
 			raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
 		elif len(text) > 500:
-			raise forms.ValidationError('tip: intni barri baat nahi likh sakte')
+			raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 		text = clear_zalgo_text(text)
 		uni_str = uniform_string(text)
 		if uni_str:
@@ -348,13 +356,9 @@ class PublicreplyMiniForm(PublicreplyForm):
 
 	def __init__(self,*args,**kwargs):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'background-color:transparent;'
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
-		self.fields['description'].widget.attrs['style'] = 'border: 1px solid lightgrey'
 		self.fields['description'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:20px; line-height:30px;'
-
-
-		self.fields['description'].widget.attrs['autocomplete'] = 'off'
+		self.fields['description'].widget.attrs['autocomplete'] = 'off'											
 
 class SearchNicknameForm(forms.Form):
 	nickname = forms.CharField(max_length=71)
@@ -634,11 +638,32 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 		model = Group
 		fields = ("topic",)
 
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		return topic
+
 class ChangeGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
+
+	def clean_topic(self):
+		topic = self.cleaned_data.get("topic")
+		topic = topic.strip()
+		topic = clear_zalgo_text(topic)
+		if not topic:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		elif topic < 1:
+			raise forms.ValidationError('Topic rakhna zaruri hai')
+		return topic
+
 
 class UploadPhotoReplyForm(forms.ModelForm):
 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})
@@ -662,8 +687,10 @@ class UploadPhotoForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		# self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'
+		# self.fields['image_file'].widget.attrs['id'] = 'browse_public_image_btn'
 		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
@@ -952,17 +979,17 @@ class ReinviteForm(forms.Form):
 	class Meta:
 		pass
 
-class KickForm(forms.Form):
-	class Meta:
-		pass
+# class KickForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class MehfilForm(forms.Form):
 	class Meta:
 		pass
 
-class GroupReportForm(forms.Form):
-	class Meta:
-		model = Reply
+# class GroupReportForm(forms.Form):
+# 	class Meta:
+# 		model = Reply
 
 class MehfildecisionForm(forms.Form):
 	class Meta:

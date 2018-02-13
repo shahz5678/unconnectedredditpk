@@ -13,7 +13,7 @@
 	<span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
 	{% for visitor in object_list %}
 	{% if visitor.userprofile__score > 0 and visitor.username != user.username %}
-		<span class="cgy">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+		<span class="cgy cxs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
 
 		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
 			{% if visitor.userprofile__avatar %}
@@ -28,8 +28,13 @@
 			        <span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 			{% endfor %}	
-			<a href="{% url 'process_public_group_invite' unique visitor.id %}"><button class="btn bcp bm mbl mtl">invite</button></a><br>
-
+			
+			<form method="POST" action="{% url 'process_public_group_invite' %}" style="display:inline">
+			{% csrf_token %}
+			<input type="hidden" name="puid" value="{{ unique }}">
+			<button type="submit" name="vid" class="btn bcp bm mls mbs mts" value="{{ visitor.id }}" style="border:none;height:23px">invite</button>
+			</form>
+			<hr size=1 COLOR="#e6e6e6">
 
 	{% endif %}
 	{% endfor %}

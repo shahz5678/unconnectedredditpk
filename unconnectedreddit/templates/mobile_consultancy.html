@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style type="text/css">
+	
+
+	body {
+
+		background: 
+		linear-gradient(135deg, #d2f9ec 25%, transparent 25%) -50px 0,
+		linear-gradient(225deg, #d2f9ec 25%, transparent 25%) -50px 0,
+		linear-gradient(315deg, #d2f9ec 25%, transparent 25%),
+		linear-gradient(45deg, #d2f9ec 25%, transparent 25%);	
+		background-size: 100px 100px;
+		background-color: white;
+	 }
+
+	.lsp{
+      line-height:1.55;
+    }
+
+    .sp{
+      letter-spacing: 1px;
+    }
+
+</style>
+
+<div class="margin clb mbl">
+
+
+<div class="card" style="max-width: 500px;background-color:#FFFDE7;padding:10px;margin:0 auto">
+	<div class="cl lsp" style="text-align:center">
+		
+		{% if price %}
+			<div class="mts mbs" style="color:#E91E63;border: 1px dotted #577591;background-color:#eff2f5;padding:5px;border-radius:6px">Discount offers January 31st tak hain</div>
+
+			{% if real_price %}
+			<div class="cl" style="font-weight:bold">{{ which_phone }}:</div>
+			<div class="sp cm">Hamari price: Rs.{{ our_price }}</div>
+			<div class="sp cm">Market price: Rs.{{ real_price }}</div>
+			<div class="sp cm">Bachat: Rs.{{ saving }}</div>
+			<hr size=1 COLOR="#F4F4E4">
+			{% endif %}
+
+			<div class="mts mbl">{% if which_phone %}{{ which_phone }} ko discount pe{% else %}Discounted mobiles{% endif %} khareednay ke liye {% if which_phone %}"{{ which_phone }}"{% else %}mobile ka name aur apna address{% endif %} likh ke <b style="border-bottom:2px dotted #D3D3D3">0333-5196812</b> ya <b style="border-bottom:2px dotted #D3D3D3">0333-4404403</b> pe SMS kar dien{% if not which_phone %}. Agr apkey pas gahak hain tou wholesale prices pe mobiles ham bhijwa dein ge{% endif %}</div>
+			<hr size=1 COLOR="#F4F4E4">
+			<div class="sp mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi li, maslan:</div>
+			<div class="sp cs mbs" style="color:lightgrey">
+			{% for username in relevant_usernames %}<a href="{% url 'profile' username %}" class="cb"><b>{{ username }}</b></a>, {% endfor %}{% for username in other_usernames %}<a href="{% url 'profile' username %}" class="cb">{{ username }}</a>, {% endfor %}{% if num > 25 %}<span class="cgy">... and more!</span>{% endif %}
+			</div>
+			<hr size=1 COLOR="#F4F4E4">
+			<form method="POST" action="{% url 'mobile_shop_consultancy' %}">
+			{% csrf_token %}
+			<button class="btn bcgy mts mbs bm cs" style="border:none;height:24px">wapis</button>
+			</form>
+
+		{% elif advice %}
+
+			<div class="cxl" style="font-weight:bold">Mobile phones and tablets pe woh discount jo aap chahein !</div>
+
+			<hr size=1 COLOR="#ffeb3b">
+			<div class="mts mbl">Mobile pe mashwara karney ke liye "Mashwara" likh ke <b style="border-bottom:2px dotted #D3D3D3">0333-5196812</b> ya <b style="border-bottom:2px dotted #D3D3D3">0333-4404403</b> pe SMS karien</div>
+			<hr size=1 COLOR="#F4F4E4">
+			<div class="sp mt cs mbs">Is mein <b>{{ num }}</b> users ne dilchuspi zahir ki, maslan:</div>
+			<div class="sp cs mbs" style="color:lightgrey">
+			{% for username in relevant_usernames %}<a href="{% url 'profile' username %}" class="cb"><b>{{ username }}</b></a>, {% endfor %}{% for username in other_usernames %}<a href="{% url 'profile' username %}" class="cb">{{ username }}</a>, {% endfor %}{% if num > 25 %}<span class="cgy">... and more!</span>{% endif %}
+			</div>
+			<hr size=1 COLOR="#F4F4E4">
+			<form method="POST" action="{% url 'mobile_shop_consultancy' %}">
+			{% csrf_token %}
+			<button class="btn bcgy mts mbs bm cs" style="border:none;height:24px">wapis</button>
+			</form>
+
+		{% else %}
+
+			<div class="cxl" style="font-weight:bold">Mobile phones and tablets pe woh discount jo aap chahein !</div>
+		
+			<div class="mts mbs" style="color:#E91E63;border: 1px dotted #577591;background-color:#eff2f5;padding:5px;border-radius:6px">Discount offers January 31st tak hain</div>
+
+			<div class="mts mbs">Brand new, dabba pack, 1 year warranty!</div><hr size=1 COLOR="#F4F4E4"><div class="sp mts cs cgy">- no used phones -</div>
+
+
+			<div class="cl" style="font-weight:bold;background-color:#D2F9EC;border-radius:6px;padding:7px;">Rs.5,000 - Rs.10,000 ki discount offers:</div>
+			<div class="mtl" style="text-align:left">
+				<b><span class="cb">Rs.5400</span> - Telenor Infinity E:</b><br>
+				<b class="sp cs cb">Rs.600 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a4b8f4;display:inline-block">Market price Rs.6000</div>, 4G, 1GB RAM, 8GB ROM, 8MP & 5MP Cams, 2000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Telenor Infinity">
+				<input type="hidden" name="prc" value="6000:5400:600">
+				<button type="submit" class="cm btn bcb bm" style="height:24px;border:none;margin:0" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cg">Rs.6150</span> - QMobile Noir i2 Power:</b><br>
+				<b class="sp cs cg">Rs.850 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #64e883;display:inline-block">Market price Rs.7000</div>, 3G, 1GB RAM, 8GB ROM, 5MP & 2MP Cams, 3000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="QMobile i2 Power">
+				<input type="hidden" name="prc" value="7000:6150:850">
+				<button type="submit" class="cm btn bcg bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="ct">Rs.6850</span> - QMobile i6 Metal One:</b><br>
+				<b class="sp cs ct">Rs.1000 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a8dff0;display:inline-block">Market price Rs.7850</div>, 3G, 1GB RAM, 8GB ROM, 5MP & VGA Cams, 2000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="QMobile i6 Metal One">
+				<input type="hidden" name="prc" value="7850:6850:1000">
+				<button type="submit" class="cm btn bcb bm" style="background-color:#229ec3;height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cp">Rs.8150</span> - Infinix Smart:</b><br>
+				<b class="sp cs cp">Rs.1200 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #cec1d7;display:inline-block">Market price Rs.9350</div>, 3G, 1GB RAM, 8GB ROM, 8MP & 2MP Cams, 3060 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Infinix Smart">
+				<input type="hidden" name="prc" value="9350:8150:1200">
+				<button type="submit" class="cm btn bcp bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+				<b><span class="cr">Rs.8570</span> - Huawei Y3 II:</b><br>
+				<b class="sp cs cr">Rs.1230 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #ffb3b3;display:inline-block">Market price Rs.9800</div>, 3G, 1GB RAM, 8GB ROM, 5MP & 2MP Cams, 2100 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Huawei Y3 II">
+				<input type="hidden" name="prc" value="9800:8570:1230">
+				<button type="submit" class="cm btn bcr bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+			</div>
+			<div class="cl" style="font-weight:bold;background-color:#D2F9EC;border-radius:6px;padding:7px;">Rs.10,000 - Rs.15,000 ki discount offers:</div>
+			<div class="mtl" style="text-align:left">
+				<b><span class="cb">Rs.10,100</span> - HTC Desire 526 Dual Sim:</b><br>
+				<b class="sp cs cb">Rs.3900 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a4b8f4;display:inline-block">Market price Rs.14,000</div>, 3G, 1GB RAM, 16GB ROM, 8MP & 2MP Cams, 2000 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="HTC Desire 526">
+				<input type="hidden" name="prc" value="14000:10100:3900">
+				<button type="submit" class="cm btn bcb bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+
+				<b><span class="cg">Rs.10,500</span> - Nokia 2 Dual Sim:</b><br>
+				<b class="sp cs cg">Rs.1500 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #64e883;display:inline-block">Market price Rs.12,000</div>, 4G, 1GB RAM, 8GB ROM, 8MP & 5MP Cams, 4100 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Nokia 2">
+				<input type="hidden" name="prc" value="12000:10500:1500">
+				<button type="submit" class="cm btn bcg bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+
+				<b><span class="ct">Rs.13,200</span> - Samsung Galaxy Grand Prime Plus:</b><br>
+				<b class="sp cs ct">Rs.3300 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a8dff0;display:inline-block">Market price Rs.16,500</div>, 4G, 1.5GB RAM, 8GB ROM, 8MP & 5MP Cams, 2600 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Samsung Grand Prime">
+				<input type="hidden" name="prc" value="16500:13200:3300">
+				<button type="submit" class="cm btn bcb bm" style="background-color:#229ec3;height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+
+				<b><span class="cp">Rs.14,400</span> - Oppo A37:</b><br>
+				<b class="sp cs cp">Rs.2500 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #cec1d7;display:inline-block">Market price Rs.16,900</div>, 4G, 2GB RAM, 16GB ROM, 8MP & 5MP Cams, 2630 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Oppo A37">
+				<input type="hidden" name="prc" value="16900:14400:2500">
+				<button type="submit" class="cm btn bcp bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#F4F4E4">
+			</div>
+
+			<div class="cl" style="font-weight:bold;background-color:#cce6ff;border-radius:6px;padding:7px;">Tablet ki discount offer:</div>
+			<div class="mtl" style="text-align:left">
+				<b><span class="cb">Rs.12,980</span> - Lenovo Tab3 7 Essential 3G/WiFi:</b><br>
+				<b class="sp cs cb">Rs.2520 ki bachat!</b><br>
+				<div style="display:inline"><div style="border-bottom:dotted 1px #a4b8f4;display:inline-block">Market price Rs.15,500</div>, 3G/WiFi, 1GB RAM, 16GB ROM, 2MP & VGA Cams, 3450 mAh</div>
+				<form method="POST" action="{% url 'mobile_shop_consultancy' %}" style="display:inline;">
+				{% csrf_token %}
+				<input type="hidden" name="phn" value="Lenovo Tab3">
+				<input type="hidden" name="prc" value="15500:12980:2520">
+				<button type="submit" class="cm btn bcb bm" style="height:24px;border:none;margin:0;" name="cons" value="1">Buy now</button>
+				</form>
+				<hr size=1 COLOR="#b5b54a">
+			</div>
+
+			<div class="mts">Agr ap phones ka business kartey hain aur ham se wholesale prices pe phones khareedna chahtey hain tou 'Offer' daba ke hamey apni malumaat bhejain:</div>
+			<form method="POST" class="mbl" action="{% url 'mobile_shop_consultancy' %}">
+			{% csrf_token %}
+			<button class="btn bcg bl mts cm" style="background-color:#00CC66;border:none;height:30px" name="cons" value="1">Offer</button>
+			</form>
+			
+		{% endif %}
+	</div>
+</div>
+
+</div>
+{% endblock %}

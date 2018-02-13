@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required as auth
 from django.conf.urls import patterns, include, url
-from django.http import HttpResponse
+# from django.http import HttpResponse
 from django.contrib import admin
 from links.ecomm import x2lite_details, x32_details, buyer_loc, mobile_shop, post_basic_item, post_seller_info, post_basic_item_photos, \
 init_classified, approve_classified, edit_classified, process_ad_approval, change_cover_photo, show_user_ads, ad_detail, process_unfinished_ad, \
@@ -16,7 +16,7 @@ from links.number_verification import verify_basic_item_seller_number,verify_buy
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nAllow: /buy_and_sell/\nDisallow: /", content_type="text/plain"), name="robots_file"),
+	# url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nAllow: /buy_and_sell/\nAllow: /buy_and_sell/exchange/\nAllow: /buy_and_sell/Karachi/\nAllow: /buy_and_sell/Lahore/\nAllow: /buy_and_sell/Faisalabad/\nAllow: /buy_and_sell/cities/\nDisallow: /", content_type="text/plain"), name="robots_file"),
 	#################################################################################################
 	url(r'^social_networking/$', redirect_to_social_section,name='redirect_to_social_section'),
 	#################################################################################################

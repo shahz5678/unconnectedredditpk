@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file, clean_image_file_with_hash
+from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import re, time
@@ -205,6 +205,8 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
 		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+	image = forms.ImageField(required=False)
+
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -214,6 +216,9 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.user_id = kwargs.pop('user_id',None)
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
+		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		self.fields['image'].widget.attrs['id'] = 'pub_group_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'pub_group_text_field'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -682,8 +687,10 @@ class UploadPhotoForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		# self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'
+		# self.fields['image_file'].widget.attrs['id'] = 'browse_public_image_btn'
 		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):

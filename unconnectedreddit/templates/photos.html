@@ -97,10 +97,7 @@ body {
 
 
 {% for photo in object_list %}
-	
-		{% if forloop.counter == 3 %}
-		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> <ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-8q+1w-dx+ec+gk" data-ad-client="ca-pub-2568547635306983" data-ad-slot="5056048422"></ins> <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
-		{% endif %}
+
 		{% if forloop.counter == 5 %}
 		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
 		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>

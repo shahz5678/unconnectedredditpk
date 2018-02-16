@@ -69,7 +69,7 @@ body {
 
 	color:white;
 }
-
+}
 </style>
 
 <div class="margin">
@@ -90,7 +90,7 @@ body {
 {% endif %}
 
 <div class="secondary-nav mbl mts">
-<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;margin-left:0px;">Best<br>fotos</button><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Latest<br>fotos</button><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top<br>stars</button></a>
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;margin-left:0px;">Best<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Latest<br>fotos</button><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top<br>stars</button></a>
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
@@ -105,6 +105,8 @@ body {
 <div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;" >
 	<a name="section{{ forloop.counter }}"></a>
 	
+	<div itemscope itemtype="http://schema.org/CreativeWork">
+	<span itemprop="creator">
 	<a href="{% url 'profile' photo.o %}#section0" class="mrl mtl">
 	{% if photo.oa != 'None' and username == photo.o %}
 		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
@@ -113,7 +115,7 @@ body {
 	{% else %}
 		<button class="mbs" alt="no avatar" style="background-image: url({{ STATIC_URL }}img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>
 	{% endif %}
-	</a>
+	</a></span>
 
 	{% if photo.vo|add:"0" < -50 %}
 		<span class="co cl">&nbsp;{{ photo.o|truncatechars:15 }} ko buri fotos lagane se ban kr diya gaya&nbsp;{% emoticons %}.h1{% endemoticons %}</span>
@@ -122,7 +124,7 @@ body {
 		{% if photo.co|default_if_none:"0"|add:"0" > 6 %}
 		<a href="{% url 'comment_pk' photo.i '1' %}" class="cb cl">
 		<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
-		<b>{{ photo.co }}</b> tabsrey</button></a>
+		<span itemprop="commentCount"><b>{{ photo.co }}</b></span> tabsrey</button></a>
 		{% endif %}
 
 		<div style="display:inline-block">
@@ -139,12 +141,14 @@ body {
 		{% if photo.vo|add:"0" < -2 %}
 		<span class="cgy">--- --- ---</span>
 		{% else %}
-		<b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b>
+		<div itemscope itemtype="http://schema.org/ImageObject">
+		<span itemprop="caption"><b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b></span>
 		{% endif %}
 
 
 
 	<br>
+			<span itemprop="contentUrl">
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px;"></img>
 			{% elif photo.vo|add:"0" < -1 %}
@@ -152,14 +156,15 @@ body {
 			{% else %}
 				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;"></img>
 			{% endif %}<br>
-
+			</span>
+			</div>
 
 			{% if can_vote and photo.i not in voted and photo.o != username %}
 				{% vote_buttons vote_type='photo_vote' pid=photo.i origin=1 oun=photo.o static_url=STATIC_URL %}
 			{% endif %}
 
 
-			<a href="{% url 'photo_izzat' photo.i 1 %}">
+			<span itemprop="contentRating"><a href="{% url 'photo_izzat' photo.i 1 %}">
 			{% if photo.vi|add:"0" > 1 %}
 			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% elif photo.vi|add:"0" == 1 %}
@@ -167,8 +172,8 @@ body {
 			{% else %}
 			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% endif %}
-			</a>
-
+			</a></span>
+			</div>
 
 			{% if photo.comments %}
 				{% photo_comments_section photo.comments STATIC_URL user.id '1' score %}

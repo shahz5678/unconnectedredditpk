@@ -9,7 +9,7 @@
 <img src="{{ STATIC_URL }}img/wink3.png" style="width:10%; margin:3px;"><img src="{{ STATIC_URL }}img/stache.png" style="width:11%; margin:3px;"><img src="{{ STATIC_URL }}img/glasses1.png" style="width:11%; margin:3px;"><img src="{{ STATIC_URL }}img/cool2.png" style="width:12%; margin:3px;"><img src="{{ STATIC_URL }}img/headset.png" style="width:12%; margin:3px;"><img src="{{ STATIC_URL }}img/jhappi1.png" style="width:12%; margin:3px;"><img src="{{ STATIC_URL }}img/bandit.png" style="width:10%; margin:3px;">
 	<div class="mbl bw" style="max-width:90%;text-align:center;display:block;margin-left:auto;margin-right:auto;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
 	
-	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna koi mazay ka naam rakho:</b>
+	<b class="cxl" style="color:white;text-shadow:2px 2px #009940;">Apna aik mazay ka nickname likhein:</b>
 		<form method="POST" action="{% url 'create_nick_new' %}">
 		{% csrf_token %}
 		{{ form.username }}<br>

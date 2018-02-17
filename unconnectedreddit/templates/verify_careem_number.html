@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="margin clb">
-<b class="cxl clb">Ab ham aap ke mobile number ki tasdeeq karien ge</b><br>
-<span class="cl cgy">Neechay <b>OK</b> ka button dabao, aur agli screen par apna mobile number likho</span><br>
+<b class="cxl clb">Ab ham apka mobile number verify karien ge</b><br>
+<span class="cl cgy sp">Neechay <b>OK</b> ka button dabain, aur agli screen pe apna mobile number likhein</span><br>
 
 <form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
   <input type="hidden" name="country_code" value="PK">
@@ -16,9 +16,9 @@
 
   <input type="hidden" name="state" value="{{ csrf }}">
   <input type="hidden" name="fbAppEventsEnabled" value=true>
-  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:120%;font-weight:bold;text-shadow:1px 1px #003315;" value="OK">
+  <input type="submit" class="mtl mbl ma" style="color:white;background-color:#00c853;border:solid 1px #008035;font-size:120%;font-weight:bold;text-shadow:1px 1px #003315;" value="OK">
 </form><br>
-<b class="cgy cs">Tasdiq karney mein hamari partner company FACEBOOK shamil hai</b>
+<b class="cgy cs">Verify karney mein hamari partner company FACEBOOK shamil hai</b>
 </div>
 <br><br>
 {% endblock %}

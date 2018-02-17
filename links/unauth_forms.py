@@ -31,15 +31,15 @@ class ResetForgettersPasswordForm(forms.Form):
 		if len(password) < 6:
 			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_nick in lower_pass:
 			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')
 		return password
 
 
@@ -134,13 +134,13 @@ class CreateAccountForm(forms.ModelForm):
 		if len(password) < 6:
 			raise ValidationError('password mein kam se kam 6 harf zaruri hai')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein' % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')	
 		return password
 
 	def save(self, commit=True):
@@ -183,15 +183,15 @@ class CreatePasswordForm(forms.Form):
 		if len(password) < 6:
 			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein' % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_nick in lower_pass:
 			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')	
 		return password
 
 ############################################################################################################
@@ -301,10 +301,10 @@ class CreateNickNewForm(forms.Form):
 				username = ''.join(username.split())
 				altered = {'status':'joined'}
 				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likho' % username_original)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username_original)
 			else:
 				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 			return [username], altered, username
 		############################################
 		else:
@@ -315,7 +315,7 @@ class CreateNickNewForm(forms.Form):
 				alt_choices = process_choices(alternatives)
 				if not alt_choices:
 					# no suggestions could be unearthed
-					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 				else:
 					# some suggestions unearthed
 					altered = {'status':'joined'}
@@ -326,7 +326,7 @@ class CreateNickNewForm(forms.Form):
 					alternatives = form_suggestions(username) #returns list of tuples containing suggestions and their statuses
 					alt_choices = process_choices(alternatives)
 					if not alt_choices:
-						raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likho' % username)
+						raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 					else:
 						altered = {'status':'replaced'}
 						return alt_choices, altered, username

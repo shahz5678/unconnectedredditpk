@@ -32,7 +32,7 @@
 
 {% else %}
 
-	<b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b><br><span class="cgy">Is se milte julte nicknames dekh lo:</span><br><br>
+	<b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b><br><span class="cgy sp">Is se milte julte nicknames ye hain:</span><br><br>
 	{% for nick in similar %}
 	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
 	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
@@ -52,9 +52,9 @@
 <span class="cr cl">{{ form.nickname.errors.0 }}</span><br>
 {% else %}
 {% if found_flag != None %}
-<br><span class="cg cl">Koi aur <b>nickname</b> dhoondun?</span><br>
+<br><span class="cg cl">Koi aur <b>nickname</b> dhoondna hai?</span><br>
 {% else %}
-<span class="cg cl">Konsa <b>nickname</b> dhoondun?</span><br>
+<span class="cg cl">Konsa <b>nickname</b> dhoondna hai?</span><br>
 {% endif %}
 {% endif %}
 <form method="POST" action="{% url 'search_username' %}" class="mtl">
@@ -65,7 +65,7 @@
 <hr size=1 COLOR="#179b36">
 {% if search_history %}
 
-	<b class="cl ct">Pehle tumhare liye Khoji ne ye dhoonda:</b><br><br>
+	<b class="cl ct">Pehle apke liye Khoji ne ye dhoonda:</b><br><br>
 	{% for nick in search_history %}
 	<form method="POST" action="{% url 'remove_searched_username' nick.0 %}" style="display:inline;">{% csrf_token %}
 	<input type="hidden" name="uid" value="{{ user.id }}">

@@ -2,20 +2,20 @@
 {% block content %}
 <div class="margin clb">
 
-    <h2 style="color:black">Tasdiq karwatay huay kia masla aa raha hai?</h2>
+    <h2 style="color:black">Verify karwatay huay kia masla aa raha hai?</h2>
 
     <div class="mtl">
   <b class="cg cl">Mera number kis ke pas jaye ga?</b><br>
   <div class="mt">
-  <span class="clb">Apka number kisi ko nahi diya jaye ga, aur na hi apko kabhi call ki jaye gi. Tasdiq karwanay say hum fake accounts khatam kar saktey hain. Ye sahulat ap ke faiday ke liye banai gaye hai</span>
+  <span class="clb">Apka number kisi ko nahi diya jaye ga, aur na hi apko kabhi call ki jaye gi. Verify karwanay say hum fake accounts khatam kar saktey hain. Ye sahulat ap ke faiday ke liye banai gaye hai</span>
   </div>
 </div>
 
 <hr size=1 COLOR="#e0e0e0">
      <div class="mtl">
-  <b class="cg cl">Tasdiq kaisay hoti hai?</b><br>
+  <b class="cg cl">Verify kaisay hota hai?</b><br>
   <div class="mt">
-  <span class="clb">Step 1: Shuru mein ap ne mobile number aur country code <b>+92</b> likhna hai<br> Step 2: Iskey baad apko aik SMS aye ga<br>Step 3: SMS main aik code ho ga<br>Step 4: Ye code apne agley page pe likh kar OK dabana hai. Tasdiq ho jaye gi!<br>Step 5: Agr SMS waqt par mosool na ho, tou tasdiq karney ke liye kuch time intezar kar lein<br></span>
+  <span class="clb">Step 1: Shuru mein ap ne mobile number aur country code <b>+92</b> likhna hai<br> Step 2: Iskey baad apko aik SMS aye ga<br>Step 3: SMS main aik code ho ga<br>Step 4: Ye code ap ne agley page pe likh kar OK dabana hai. Verify ho jaye ga!<br>Step 5: Agr SMS waqt par mosool na ho, tou verify karney ke liye kuch time intezar kar lein<br></span>
   </div>
   <span class="cl cr"> Khiyal rakhein: code wahan na likhein jahan phone number likha tha. Us se agley page pe likhein!</span>
 </div>
@@ -37,14 +37,14 @@
 
 
 <div class="mtl">
-  <b class="cg cl">Mujh se tasdiq nahin ho rahi, kiun?</b>
+  <b class="cg cl">Mujh se verify nahin ho raha, kiun?</b>
   <div class="mt">
-  <span class="clb">Baar baar 'back' button dabaney ya 'cross' karney se tasdiq nai hoti.'Back' ya 'cross' ka button na dabain</span>
+  <span class="clb">Baar baar 'back' button dabaney ya 'cross' karney se verify nai hota.'Back' ya 'cross' ka button na dabain</span>
   </div>
 </div>
 {% if csrf %}
 <hr size=1 COLOR="#e0e0e0">
-<h2 style="color:black">Abhi number tasdiq karwaney ke liye ye dabain:</h2>
+<h2 style="color:black">Abhi number verify karwaney ke liye ye dabain:</h2>
 <form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
   <input type="hidden" name="country_code" value="PK">
   <input type="hidden" name="app_id" value="1758220174446684">
@@ -53,7 +53,7 @@
   <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
   <input type="hidden" name="state" value="{{ csrf }}">
   <input type="hidden" name="fbAppEventsEnabled" value=true>
-  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
+  <input type="submit" class="mtl mbl ma" style="color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
 </form><br>
 {% endif %}
 </div>

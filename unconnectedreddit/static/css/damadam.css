@@ -7,15 +7,13 @@ Section 2 is text formatting:
 Section 3 is Button formatting. Naming a class for a Button is also a combination of size and color
 */
 
-<style>
-
 /*=================================================
 S1: Html styling
 ==================================================*/
     html{
     width:100%;
     background-color:#FFFFFF;
-    font-family: helvetica,'Droid Arabic Naskh',arial,sans-serif;
+    font-family: helvetica,"Droid Arabic Naskh",arial,sans-serif;
     height:100%;
     margin-left: 0px;
     max-width:100%;
@@ -23,8 +21,8 @@ S1: Html styling
 
     body{
     width:100%;
-    font-family: helvetica,'Droid Arabic Naskh',arial,sans-serif;
-    font: helvetica,'Droid Arabic Naskh',arial,sans-serif;
+    font-family: helvetica,"Droid Arabic Naskh",arial,sans-serif;
+    font: helvetica,"Droid Arabic Naskh",arial,sans-serif;
     margin-left: 0px;
     max-width:100%;
     margin-top: 0em;
@@ -52,7 +50,9 @@ S1: Html styling
 
     .card {
     /* Add shadows to create the "card" effect */
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    -webkit-box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
+    -moz-box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
     padding:3px;
     margin-bottom:5px;
     background-color:white;
@@ -74,13 +74,6 @@ S1: Html styling
     
     }
 
-
-    .brcg {
-
-        border-color: solid 1px blue;
-
-    }
-
     .header {
     background-color: #00c853;
     font-family: arial;
@@ -91,6 +84,20 @@ S1: Html styling
     text-align: center;
     padding-top: 5px;
     padding-bottom: 5px;
+    }
+
+    .circles-bg{
+      -moz-background-size:350px 350px;
+      -webkit-background-size:350px 350px;
+      background-position: -120px -195px, 405px 270px;
+      background-size:350px 350px;
+    }
+
+    .checkerboard-bg{
+      -moz-background-size:29px 29px;
+      -webkit-background-size:29px 29px;
+      background-size:29px 29px;
+      background-position:0 0, 14px 14px;
     }
 
     /* navigation bar*/
@@ -251,8 +258,6 @@ S1: Html styling
         color:#fb8c00;
     }
 
-    /*font san serif*/ .fss{font-family:sans-serif;}
-
     button.jh:hover, button.bjh:hover{
             background-color:#00C853; 
             border:1px solid #00C853;
@@ -390,6 +395,25 @@ font size 80% grey text will be class = "cs cgy",
         color:red;
     }
 
+    /*color aquamarine*/    
+    .ca{
+        background-color:#77FFD1;
+    }
+
+    .ab{
+        border: 1px #77FFD1 solid;
+    }
+
+    /*color sky blue*/
+    .csb{
+        background-color:#BDEBFE;
+    }
+
+    .sbb{
+        border: 1px #BDEBFE solid;
+    }
+
+    /*color dark green*/
     .cdg{
         color:#008035;
     }
@@ -510,7 +534,7 @@ Buttons
     /*for all buttons*/
     .btn{
         border-radius:4px;
-        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
         text-align: center;
         color: white;
         padding-left:2px;
@@ -728,10 +752,6 @@ Photos
     -webkit-filter: brightness(0.3);
 }
 
-.pht-pnt {
-    margin-bottom:-1em;
-    margin-top:0.3em;"
-}
 
 /*=================================================
 Divs
@@ -799,19 +819,9 @@ border-radius: 4px;
 MARGINS
 ==================================================*/
 
-/*margin*/          /*.margin{margin-left:3px;margin-right:3px;padding: 10px;border-radius:6px;padding-top:0px;padding-bottom:5px;}*/
-/*margin*/          .margin{margin: 0 auto; margin-top: 0px: margin-bottom: 0px; margin-right: auto; margin-left: auto; max-width: 98%; padding: 0px;border-radius:6px;padding-top:0px;padding-bottom:5px;}
+/*margin*/          .margin{margin: 0 auto; max-width: 98%; padding: 0px;border-radius:6px;padding-bottom:5px;}
 /*margin auto*/     .ma{margin:auto;}
-/*margin left*/     .ml{margin-left:2em;}
 /*margin top*/      .mt{margin-top:0.2em;}
-/*margin bottom*/   .mb{margin-bottom:0.5em;}
-
-/*--ZERO MARGINS--*/
-/*margin zero*/     .mz{margin:0em;}
-/*margin bot zero*/ .mbz{margin-bottom:0em;}
-/*margin top zero*/ .mtz{margin-top:0em;}
-/*margin left zero*/.mlz{margin-left:0em;}
-/*margin right zero*/.mrz{margin-right:0em;}
 
 /*--SMALL MARGINS--*/
 /*margin small*/     .ms{margin:0.5em;}
@@ -821,31 +831,18 @@ MARGINS
 /*margin right small*/.mrs{margin-right:0.5em;}
 
 /*--ZERO LARGE--*/
-/*margin large*/     .ml{margin:1em;}
 /*margin bot large*/ .mbl{margin-bottom:1em;}
 /*margin top large*/ .mtl{margin-top:1em;}
 /*margin left large*/.mll{margin-left:1em;}
 /*margin right large*/.mrl{margin-right:1em;}
 
-
-
-/*margin auto*/     .ma{margin:auto;}
-/*margin left*/     .ml{margin-left:2em;}
-/*margin top*/      .mt{margin-top:0.2em;}
-/*margin bottom*/   .mb{margin-bottom:0.5em;}
-
 /*========*/
-
-/*font san serif*/      .fss{font-family:sans-serif;}
 
 
 
 /*===============================================================================================================*/
 /*caption shadow*/  .csw{text-shadow: 0 0 0.3px rgba(0,0,0,0.3);margin-bottom:0.5em;}
 /*===============================================================================================================*/
-/*pink star*/       .pkstr{font-size:110%;color:deeppink;}
-
-/*button with colored text*/.btnc{border-radius:4px; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);margin-bottom:0.5em;margin-top:1em;text-align: center;white-space: nowrap;padding-left:2px;padding-right:2px;}
 
 /*image border blue*/   .ibb{border:1px solid blue;width:auto;}
 /*image border teal*/   .ibt{border:1px solid teal;width:auto;}
@@ -866,23 +863,23 @@ MARGINS
 .bubble {
    position: relative;
    background: #f3961c;
-border: 0px solid #f3961c;
+    border: 0px solid #f3961c;
    max-width:80%;
-min-width:5%;
+    min-width:5%;
    padding:10px;
    font-family:arial;
    margin:0 auto;
    margin-left: 10px;
    font-size:14px;
    border-radius:6px;
-display:inline-block;
+    display:inline-block;
 
 }
 .bubble:after,
 .bubble:before {
    right: 100%;
    top: 50%;
- border: solid transparent;
+    border: solid transparent;
    content: " ";
    height: 0;
    width: 0;
@@ -891,14 +888,14 @@ display:inline-block;
 }
 
 .bubble:after {
-   border-color: FFFFCC;
+   border-color: #FFFFCC;
    border-right-color: #f3961c;
    border-width: 15px;
    margin-top: -15px;
 }
 .bubble:before {
-border-color: FFFFCC;
-   border-right-color: FFFFCC;
+    border-color: #FFFFCC;
+   border-right-color: #FFFFCC;
    border-width: 16px;
    margin-top: -16px;
 }

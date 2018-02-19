@@ -74,7 +74,7 @@
             {% endif %}
         {% else %}
             {% if photo.image_file %}
-                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="ibb"style="border:1px solid blue;width:auto;"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" class="ibb" style="border:1px solid blue;width:auto;"></img>
             {% else %}
                 <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
             {% endif %}
@@ -161,7 +161,7 @@
         </span>
 
             {% if comment.submitted_by.username in verified %}
-                <span class="pkstr"><b>*</b></span>
+                <span class="pinkstar"><b>*</b></span>
             {% endif %}        
         <span class="cgy cs">ke tabsrey ko <b>{{ photo.owner }}</b> ne hide kr dia</span>
 
@@ -192,7 +192,7 @@
         </span>
 
            {% if comment.submitted_by.username in verified %}
-             <span class="pkstr"><b>*</b></span>
+             <span class="pinkstar"><b>*</b></span>
             {% endif %}
     :&nbsp;<bdi class="clb">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs cgy mrl"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
     

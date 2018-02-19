@@ -217,8 +217,8 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
-		self.fields['image'].widget.attrs['id'] = 'pub_group_browse_image_btn'
-		self.fields['text'].widget.attrs['id'] = 'pub_group_text_field'
+		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -375,7 +375,7 @@ class SearchNicknameForm(forms.Form):
 		nickname = self.cleaned_data.get("nickname")
 		nickname = nickname.strip()
 		if len(nickname) > 70:
-			raise forms.ValidationError('tip: inta bara naam nahi likh sakte')
+			raise forms.ValidationError('tip: inta bara nickname nahi likh sakte')
 		nickname = clear_zalgo_text(nickname)
 		return nickname
 
@@ -690,7 +690,7 @@ class UploadPhotoForm(forms.ModelForm):
 		# self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'
-		# self.fields['image_file'].widget.attrs['id'] = 'browse_public_image_btn'
+		# self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
@@ -1044,19 +1044,19 @@ class ResetPasswordForm(forms.Form):
 		nickname = self.request.user.username
 		lower_nick = nickname.lower()
 		if check_password(password,old_password):
-			raise ValidationError('New password purane password se mukhtalif rakho')
+			raise ValidationError('New password purane password se mukhtalif rakhein')
 		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_nick in lower_pass:
-			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)
+			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')
 		return password
 
 

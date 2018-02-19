@@ -13,6 +13,8 @@
 {% load get_curate_photo %}
 {% block content %}
 
+<head><title>Latest photos and memes | Damadam.pk</title></head>
+
 <style>
 
 
@@ -64,12 +66,8 @@ body {
 	font-size: 10px;
 	margin:2%;
 }
-
-.secondary-nav hr {
-
-	color:white;
 }
-}
+
 </style>
 
 <div class="margin">
@@ -143,18 +141,14 @@ body {
 		{% else %}
 		<div itemscope itemtype="http://schema.org/ImageObject">
 		<span itemprop="caption"><b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b></span>
-		{% endif %}
-
-
-
-	<br>
+		{% endif %}<br>
 			<span itemprop="contentUrl">
 			{% if photo.vo|add:"0" < -2 %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px;"></img>
+				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px;">
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;"></img>
+				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;">
 			{% else %}
-				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;"></img>
+				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px;">
 			{% endif %}<br>
 			</span>
 			</div>

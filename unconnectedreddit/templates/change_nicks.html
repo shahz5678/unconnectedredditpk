@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Rename usernames in bulk (maintenance) | Damadam.pk</title></head>
 <div class="margin clb">
 <span class="cxl">Proceed with renaming usernames? <span class="cgy">(max batch-size: 10,000)</span></span><br>
 <span class="cgy">Total usernames left: {{ nicks_remaining|intcomma }}</span><br>

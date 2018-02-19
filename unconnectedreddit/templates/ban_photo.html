@@ -2,6 +2,9 @@
 {% load humanize %}
 {% load s3 %}
 {% block content %}
+
+<head><title>Block {{ photo_owner }}'s photo upload | Damadam.pk</title></head>
+
 <div class="margin clb"> 
 
 	&nbsp;<img src="{{ photo_url|s3:'thumb' }}" alt="no pic">

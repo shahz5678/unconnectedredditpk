@@ -1,5 +1,8 @@
 {% extends "base_ecomm.html" %}
 {% block content %}
+
+<head><title>Editing locked by {{ locked_by }} | Damadam.pk</title></head>
+
 <div class="margin clb">
 This entry is locked by <b class="cg">{{ locked_by }}</b>. If required, please ask them to unlock it<br>
 <a href="{% url 'approve_classified' only_locked %}"><button class="btn bcg bm mtl">back</button></a>

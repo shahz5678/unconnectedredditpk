@@ -2,8 +2,9 @@
 {% load humanize %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Photo report tutorial | Damadam.pk</title></head>
 <div class="margin cg cl"> 
-<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;&nbsp;Ye daba kr tum kisi bhi photo ke charhane wale ko, ya us photo pe vote karne waley ko report kr sakte ho&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic"><br><br>
+<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;&nbsp;Ye daba kr ap kisi bhi photo ke upload karney wale ko, ya us photo pe vote karne waley ko report kr sakte hain&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic"><br><br>
 <form method="POST" action="{% url 'curate_photo' %}">
 	{% csrf_token %}
 	<input type="hidden" name="curate" value="{{ pid }}">

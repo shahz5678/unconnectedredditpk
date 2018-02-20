@@ -39,7 +39,7 @@ body {
     {% endif %}
     {% if own_profile %}
                   {% if time_remaining == '-2' %}
-                    <h2 class="cg">Tumhari photos:</h2>
+                    <h2 class="cg">Apki photos:</h2>
                     <span class="cgy">
                     {% if recent_fans > 1 %}
                     <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
@@ -49,7 +49,7 @@ body {
                     <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
                     {% endif %}
                     </span>
-                    <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Profile set kro</button></a>
+                    <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl">Edit Profile</button></a>
                     <br>
                     {% if subject.userprofile.avatar %}
                     <b>Profile photo:</b><br>
@@ -59,13 +59,13 @@ body {
                     <span class="cr">
                       {% if time_remaining == '-1' %}
                         {% if own_profile %}
-                          <b>BANNED:</b> Tumhari photos <b>hamesha</b> ke liye banned hain
+                          <b>BANNED:</b> Apki photos <b>hamesha</b> ke liye banned hain
                         {% else %}
                           <b>BANNED:</b> {{ slug }} ki photos <b>hamesha</b> ke liye banned hain
                         {% endif %}
                       {% else %}
                         {% if own_profile %}
-                          <b>BANNED:</b> Tumhari photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                          <b>BANNED:</b> Apki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
                         {% else %}
                           <b>BANNED:</b> {{ slug }} ki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
                         {% endif %}
@@ -115,13 +115,13 @@ body {
                     <span class="cr">
                       {% if time_remaining == '-1' %}
                         {% if own_profile %}
-                          <b>BANNED:</b> Tumhari photos hamesha ke liye banned hain
+                          <b>BANNED:</b> Apki photos hamesha ke liye banned hain
                         {% else %}
                           <b>BANNED:</b> {{ slug }} ki photos hamesha ke liye banned hain
                         {% endif %}
                       {% else %}
                         {% if own_profile %}
-                          <b>BANNED:</b> Tumhari photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
+                          <b>BANNED:</b> Apki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
                         {% else %}
                           <b>BANNED:</b> {{ slug }} ki photos ka ban khatm ho ga <b>{{ time_remaining|future_time }}</b>
                         {% endif %}

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Send welcome message {% if authorized %}to {{ target_user.username }}{% endif %} | Damadam.pk</title></head>
 <div class="margin clb">
 {% if authorized %}
 	<b class="cl">{{ target_user.username }} ko sath mein pegham bhi do:</b>

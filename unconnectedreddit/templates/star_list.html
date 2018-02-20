@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
+<head><title>Users followed by {{ user.username }} | Damadam.pk</title></head>
     <div class="margin">
         {% if not users %}
-        <b class="clb csw">Stars woh hote hain jin ke tum fan ho</b><br>
-        <span class="clb csw">Is waqt tum kisi ke bhi fan nahi</span>
+        <b class="clb csw">Stars woh hote hain jin ke ap fan hein</b><br>
+        <span class="clb csw">Is waqt ap kisi ke bhi fan nahi</span>
         <br><br>
         <a href="{% url 'profile' user.username %}#section0">
         <button class="btn bcg bs cs">wapis</button>
         </a>
         {% else %}
-        <b class="clb csw">Users jin ke <a href="{% url 'profile' user.username %}#section0">tum</a> fan ho:</b><br><br>
+        <b class="clb csw">Users jin ke <a href="{% url 'profile' user.username %}#section0">ap</a> fan hein:</b><br><br>
 
             {% for star in users %}
             <b class="cs">{{ forloop.counter0|add:page_obj.start_index }}.</b>

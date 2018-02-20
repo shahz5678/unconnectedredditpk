@@ -4,6 +4,7 @@
 {% load emoticons_tags %}
 {% load s3 %}
 {% block content %}
+<head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
 <div class="margin clb">
 {% if error %}
     <span class="co"><b>Jawab nahi de sakte!</b></span>

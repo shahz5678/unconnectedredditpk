@@ -28,13 +28,13 @@
 
 
     {% if score < -9 %}
-        <b class="co">Tumhara score itna nahi ke jawab de sko</b>
+        <b class="co">Apka score itna nahi ke jawab de sako</b>
         <br><br>
     {% elif banned %}
         <br><hr size=1 COLOR="#3cb7dd">
-        <span class="cr">Tum jawab de sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <span class="cr">Ap jawab de sakein ge <b>{{ time_remaining }}</b> ke baad</span>
         <br>
-        <span class="cm ct">Aese jawab na likho jo logoon ko burre lagein</span>
+        <span class="cm ct">Aese jawab na likhein jo logoon ko burre lagein</span>
          <hr size=1 COLOR="#3cb7dd">
         <br>
     {% else %}
@@ -141,8 +141,8 @@
     <hr size=1 COLOR="#3cb7dd">
     <p style="margin-top:-0.9em;"></p>
     <hr size=1 COLOR="#3cb7dd">
-    <span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-    <span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cs">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
+    <span class="cs cgy"><b>Faces banane ke liye unke sath likha '.' aur harf likhein:</b></span><br>
+    {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs sp">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}faces full list</a>
     {% emoticons_index as emoticons_list %}
     {% for emoticons in emoticons_list %}
     {% if forloop.counter in random %}

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-
+<head><title>Top public groups | Damadam.pk</title></head>
 
 <div class="margin">
-<a href="{% url 'group_type' %}" class="cxs"><b>naee mehfil banao</b></a>&nbsp;<span class="cs">|</span>
-<a href="{% url 'group_page' %}" class="cxs"><b>tumhari mehfilein</b></a>&nbsp;
+<a href="{% url 'group_type' %}" class="cxs"><b>New mehfil banain</b></a>&nbsp;<span class="cs">|</span>
+<a href="{% url 'group_page' %}" class="cxs"><b>Apki mehfilein</b></a>&nbsp;
 <br><br>
 <b class="clb">Latest popular mehfilein:</b><br><br>
 {% for group in object_list %}

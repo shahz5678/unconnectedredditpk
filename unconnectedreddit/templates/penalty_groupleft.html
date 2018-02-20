@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin clb">
-<h2><span class="ct">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kr sakte dasdas</h2>
+<h2><span class="ct">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kar sakte</h2>
 {% if private == '1' %}
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ uuid }}" class="btn bm bcg mbs">wapis</button></form>
 {% else %}

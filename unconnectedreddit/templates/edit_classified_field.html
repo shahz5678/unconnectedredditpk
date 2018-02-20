@@ -1,6 +1,7 @@
 {% extends "base_ecomm.html" %}
 {% load human_time %}
 {% block content %}
+<head><title>Edit classified ad submission | Damadam.pk</title></head>
 <div class="margin clb">
 {% if admin_mode == 1 %}
 <form method="POST" action="{% url 'edit_classified' %}">

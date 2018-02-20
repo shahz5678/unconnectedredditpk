@@ -2,7 +2,7 @@
 {% block content %}
 <head><title>Manage {{ target_uname }} | Damadam.pk</title></head>
 <div class="margin clb">
-<h2><span class="ct">{{ target_uname }}</span> management options:</h2><br>
+<h2><span class="ct">{{ target_uname }}</span> management options:</h2>
 <!-- Cut Score -->
 <form method="POST" action="{% url 'cut_user_score' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl">Cut Score</button></form>&nbsp;
 
@@ -22,7 +22,7 @@
 <!-- Check Clones -->
 <form method="POST" action="{% url 'show_clones' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bl mtl">Check Clones</button></form>&nbsp;
 
-<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br>
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br><br>
 <!-- Nevermind -->
 <a href="{% url 'profile' target_uname %}#section0"><button class="btn bcgy bl mtl">Rehne Do</button></a>&nbsp;<br>
 </div>

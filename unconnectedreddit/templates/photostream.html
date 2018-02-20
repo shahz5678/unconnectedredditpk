@@ -2,9 +2,10 @@
 {% load emoticons_tags %}
 {% load humanize %}
 {% block content %}
+<head><title>Chained photos | Damadam.pk</title></head>
 <div class="margin">
 {% if valid %}
-<a href="{% url 'see_photo_pk' stream_id %}#section0" style="font-size:85%;"><< wapis</a>
+<a href="{% url 'see_photo_pk' stream_id %}#section0" class="cs sp">wapis</a>
 <br><a name="section1"></a>
 	<div style="background-color:#faebeb;margin-top:0.5em;padding-top:0.5em;padding-bottom:0.5em;"><span style="font-size:95%;color:#a22a2a;">(<a href="{% url 'photo_qataar_help' stream_id %}#section0">?</a>)&nbsp;<b>{{ number }} photos ki qataar:</b></span></div>
 		{% for pic in object_list %}

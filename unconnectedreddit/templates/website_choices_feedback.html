@@ -1,5 +1,6 @@
 {% extends "base_min.html" %}
 {% block content %}
+<head><title>Feedback form | Damadam.pk</title></head>
 <div class="margin clb mtl">
 <form action="{% url 'website_choices_feedback' %}" method="POST">
 {% csrf_token %}

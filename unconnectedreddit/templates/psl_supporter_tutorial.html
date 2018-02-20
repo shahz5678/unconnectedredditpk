@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 {% load emoticons_tags %}
+<head><title>Cricket commentary tutorial | Damadam.pk</title></head>
 <div class="margin clb">
-<b class="cg">Cricket pe tabsra kro&nbsp;{% emoticons %}.b3{% endemoticons %}</b><br><br>
-<span class="cg">1)</span> Agli screen pe is match ke barey mein apni raye likho<br>
-<span class="cg">2)</span> Likhne ke baad us team ka button dabao jo tumhe pasand ho<br>
+<b class="cg">Cricket pe tabsra karein&nbsp;{% emoticons %}.b3{% endemoticons %}</b><br><br>
+<span class="cg">1)</span> Agli screen pe is match ke barey mein apni raye likhein<br>
+<span class="cg">2)</span> Likhne ke baad us team ka button dabain jo apko pasand ho<br>
 <form method="POST" action="{% url 'cricket_comment_page' %}">
 	{% csrf_token %}
 	<button class="btn nw bcg bl mtl mbs" type="submit">Theek hai</button>

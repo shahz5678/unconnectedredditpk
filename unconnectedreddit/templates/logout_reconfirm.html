@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-
+<head><title>Goodbye | Damadam.pk</title></head>
 <div class="margin">
-Agar kabhi wapis ana ho toh isi nickname aur password ko istimal kar ke wapis ana, Damadam tumhara intezar karey ga. Khuda Hafiz!<br><br>
+Agar kabhi wapis ana ho toh isi nickname aur password ko istimal kar ke wapis ana, Damadam apka intezar karey ga. Khuda Hafiz!<br><br>
 
 <form action="{% url 'logout_reconfirm' %}" method="POST">
 {% csrf_token %}

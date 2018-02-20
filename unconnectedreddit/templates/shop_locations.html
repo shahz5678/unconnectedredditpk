@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Shop locations | Damadam.pk</title></head>
+<div class="margin clb">
+
+<b class="cxl">Is waqt in cities ki mobile shops mojood hain:</b><br>
+	<form method="POST" action="{% url 'ecomm' %}">
+	{% csrf_token %}
+	<input type="hidden" name="listing" value="1">
+	<input type="submit" class="mtl mbl bcg cl" style="color:white;width:9em;border-color:#179b36;" name="city" value="Rawalpindi"><br>
+	<input type="submit" class="mbl bcg cl" style="color:white;width:9em;border-color:#179b36;" name="city" value="Islamabad"><br>
+	</form>
+	<hr size=1 COLOR="#A9A9A9">
+	<div class="mtl mbl">
+	<i class="cgy">Agar aap ki mobiles ki shop hai, aur aap usko yahan lagwana chahtey hain, tou neechay <b>'Advertise'</b> mein jaien</i>
+	</div>
+</div>
+<br>
+<br>
+{% endblock %}

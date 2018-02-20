@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin clb">
 <h2>Damadam ka sans nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bcg bm">wapis</button></form>

@@ -4,6 +4,7 @@
 {% load get_voting %}
 {% load s3 %}
 {% block content %}
+<head><title>Photo titled {{ photo.caption }} (uploaded by {{ photo.owner }} {{ photo.upload_time|naturaltime }}) | Damadam.pk</title></head>
 <div class="margin">
 {% if not absent %}
 	

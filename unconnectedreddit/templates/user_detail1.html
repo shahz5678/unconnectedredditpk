@@ -6,7 +6,7 @@
 {% load get_curate_photo %}
 {% load emoticons_tags %}
 {% block content %}
-
+<head><title>{{ slug }}'s photos and memes | Damadam.pk</title></head>
 <style>
 body {
 
@@ -34,7 +34,7 @@ body {
 
 {% if page_obj.number == 1 %}
     {% if not mobile_verified %}
-    <div class="cr cl" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 1em 5px 1em;background-color:#E8E8E8;font-weight:bold;">Ye profile verified nahi hai
+    <div class="cr cl" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 1em 5px 1em;background-color:#E8E8E8;font-weight:bold;">Ye profile verified nahi
     </div>
     {% endif %}
     {% if own_profile %}

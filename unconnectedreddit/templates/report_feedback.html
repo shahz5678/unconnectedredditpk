@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Report {{ nick }} | Damadam.pk</title></head>
 <div class="margin" style="color:#404040;">
 {% if nick %}
-<span style="color:#229ec3;"><b>{{ nick }}</b></span> ke barey mein kya batana chahte ho?
+<span style="color:#229ec3;">Ap <b>{{ nick }}</b></span> ke barey mein kya batana chahtey hain?
 <form action="{% url 'report_feedback' pk=pk nick=nick uuid=uuid private=private scr=scr %}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="nick" class="hidden_id" value="{{ nick }}">
@@ -15,7 +16,7 @@
 <br><input type="submit" style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#3cb7dd;border-color:#229ec3;color:white;border-radius:4px;width:2.7em;" name="haan" value="OK"><br>
 </form>
 {% else %}
-<b>Damadam ki yad daasht chali gaii! Tum kon ho?!</b>
+<b>Damadam ki yad daasht chali gai!</b>
 {% endif %}
 </div>
 <br><br>

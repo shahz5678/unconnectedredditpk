@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Logout reconfirm | Damadam.pk</title></head>
 <div class="margin">
-<h2 class="cg">Kiya aap waqai logout karna chahtey ho? {% emoticons %}.k1.k2.k3.k4{% endemoticons %}</h2>
+<h2 class="cg">Kya ap waqai logout karna chahtey hein? {% emoticons %}.k1.k2.k3.k4{% endemoticons %}</h2>
 
 <form method="POST" action="{% url 'logout_then_login' %}" style="display:inline;">
 {% csrf_token %}
@@ -12,7 +13,7 @@
 <br>
 <a href="{% url 'home' %}"><button class="btn bcg bl mtl mbs">Nahi</button></a><br>
 <hr size=1 COLOR="#ffeb3b">
-<span class="cs cgy">Logout ke bad ap Damadam mein enter nahi ho sako ge. Lekin kuch browsers (e.g. Opera Mini) phir bhi website ke pages dikha detay hain. In browsers pe logout karne ke bad window (or tab) close kar dena chahiye, ya kisi aur website ko khol lena chahiye</span>
+<span class="cs cgy">Kuch browsers (e.g. Opera Mini) logout ke baad bhi back kar ke website ke pages dikha detay hain. In browsers pe logout karne ke baad browser close kar dena chahiye</span>
 </div>
 <br><br>
 {% endblock %}

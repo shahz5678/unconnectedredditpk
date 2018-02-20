@@ -2,10 +2,11 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Invite users to group | Damadam.pk</title></head>
 <div class="margin clb">
 {% if group %}
 		{% if group.private == '1' %}
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</button></form>mein invite karo:<br>
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</button></form>mein invite karein:<br>
 		{% else %}
 		<a href="{% url 'public_group' unique %}">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</a> mein invite karo:<br>
 		{% endif %}

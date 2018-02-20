@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_ecomm.html" %}
 {% load emoticons_tags %}
 {% load humanize %}
 {% load get_voting %}
 {% load s3 %}
 {% block content %}
-<head><title>Photo titled {{ photo.caption }} (uploaded by {{ photo.owner }} {{ photo.upload_time|naturaltime }}) | Damadam.pk</title></head>
+<head><title>Photo titled {{ photo.caption }} (uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title></head>
 <div class="margin">
 {% if not absent %}
 	

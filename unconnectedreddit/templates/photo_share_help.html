@@ -2,12 +2,13 @@
 {% load humanize %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Photo sharing (help) | Damadam.pk</title></head>
 <div class="margin clb"> 
 {% if not no_id %}
 	Jis se photo share krni hai, kya woh <b class="co">freebasics</b> pe hai?<br><br>
-	<b class="cgy">.</b> Agr <span class="co">haan</span>, toh usse ye link bhejo:<br><b class="cl co" style="word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br><br>
+	<b class="cgy">.</b> Agr <span class="co">haan</span>, toh usse ye link bhejein:<br><b class="cl co" style="word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br><br>
 	
-	<b class="cgy">.</b> Agr <span class="cp">nahi</span>, toh usse ye link bhejo:<br><b class="cl cp" style="word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br>
+	<b class="cgy">.</b> Agr <span class="cp">nahi</span>, toh usse ye link bhejein/<br><b class="cl cp" style="word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br>
 
 	{% if loc == '1' %}
 		{% if authenticated %}
@@ -31,7 +32,7 @@
 	<button class="btn bco bs mtl mbl">wapis</button></a>
 
 	<hr size=1 COLOR="#ff9933">
-	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mtl mbl">freebasics SMS</button></a><br>
+	Agr link copy kar ke bhejna nahi ata, toh button dabain:</span><br><a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mtl mbl">freebasics SMS</button></a><br>
     <a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mbl">normal SMS</button></a>
 {% else %}
 		<b>Ye photo kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>

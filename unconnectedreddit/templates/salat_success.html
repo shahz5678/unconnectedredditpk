@@ -3,17 +3,18 @@
 {% load emoticons_tags %}
 {% load s3 %}
 {% block content %}
+<head><title>{{ namaz }} | Damadam.pk</title></head>
 <div class="margin">
 <span class="ct">
 {% if user.userprofile.streak < 2 %}
-<b>{% emoticons %}.g3.g3 ALHUMDULILLAH! .g3.g3{% endemoticons %}</b><br>Tum ne {% if namaz == 'Jummah' %}<b class="co">{{ namaz }}</b>{% else %}<b class="cg">{{ namaz }}</b>{% endif %} parh kr nekiyan kamai!<br><br>Agli namaz <b class="cg">{{ time }}</b> bajey hai
+<b>{% emoticons %}.g3.g3 ALHUMDULILLAH! .g3.g3{% endemoticons %}</b><br>Ap ne {% if namaz == 'Jummah' %}<b class="co">{{ namaz }}</b>{% else %}<b class="cg">{{ namaz }}</b>{% endif %} parh ke nekiyan kamai!<br><br>Agli namaz <b class="cg">{{ time }}</b> bajey hai
 {% else %}
-{% emoticons %}.g3.g3{% endemoticons %} <b>ALHUMDULILLAH!</b> Tum <b class="cg cl">lagatar {{ user.userprofile.streak }} namazein</b> parh chuke ho! {% emoticons %}.g3.g3{% endemoticons %}<br><br>
-Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey tumhari <b class="cg">lagatar namazein</b> barhti jaein!</span>
+{% emoticons %}.g3.g3{% endemoticons %} <b>ALHUMDULILLAH!</b> Ap <b class="cg cl">lagatar {{ user.userprofile.streak }} namazein</b> parh chuke hein! {% emoticons %}.g3.g3{% endemoticons %}<br><br>
+Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey apki <b class="cg">lagatar namazein</b> barhti jaein!</span>
 {% endif %}</span>
 <br><br>
 <hr size=1 COLOR="#3cb7dd"><span class="clb">Doston ko {{ namaz }} ki</span>
-<a href="{% url 'salat_invite' %}"><button class="btn nw bcg bm"><b>dawat do</b></button></a><br>
+<a href="{% url 'salat_invite' %}"><button class="btn nw bcg bm"><b>dawat dein</b></button></a><br>
 <hr size=1 COLOR="#3cb7dd">
 <br>
 	{% for object in object_list %}

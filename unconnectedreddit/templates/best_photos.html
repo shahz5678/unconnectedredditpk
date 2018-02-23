@@ -135,7 +135,7 @@ body {
 	{% else %}
 		{% if photo.co|default_if_none:"0"|add:"0" > 6 %}
 			<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
-			<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
+			<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px">
 			<span itemprop="commentCount"><b>{{ photo.co }}</b></span> tabsrey</button></a>
 
 		{% endif %}
@@ -176,11 +176,11 @@ body {
 
 			<span itemprop="contentRating"><a href="{% url 'photo_izzat' photo.i 2 %}">
 			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;point</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;point</button>
 			{% else %}
-			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% endif %}
 			</a></span>
 			</div>

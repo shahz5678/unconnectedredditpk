@@ -965,3 +965,24 @@ MARGINS
         transform: rotate(360deg);
     }
 }
+
+/* CSS FOR PRIVATE CHAT */
+
+/* ensures buttons don't get highlighted after being pressed */
+
+::-moz-focus-inner, :active, :focus {
+    outline:none;
+    -moz-outline-style: none;
+}
+
+/* increasing line height for better readability */
+
+.lsp{
+  line-height:1.55;
+}
+
+/* spacing out characters for cases when small font is used */
+
+.sp{
+  letter-spacing: 1px;
+}

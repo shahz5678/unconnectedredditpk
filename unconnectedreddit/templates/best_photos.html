@@ -13,7 +13,7 @@
 {% load get_mobile_verification_bar %}
 {% block content %}
 
-<head><title>Best photos and memes | Damadam.pk</title></head>
+<head><title>Trending photos and memes | Damadam.pk</title></head>
 
 <style>
 
@@ -120,12 +120,12 @@ body {
 	<span itemprop="creator">
 	<a href="{% url 'profile' photo.o %}#section0"  class="mrl mtl">
 	{% if photo.oa != 'None' and username == photo.o %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
+		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
 	{% elif photo.oa != 'None' %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>
+		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>
 	{% else %}
 		
-		<button class="mbs" alt="no avatar" style="background-image: url({{ STATIC_URL }}img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>
+		<button class="mbs" alt="no avatar" style="background-image: url({{ STATIC_URL }}img/default-avatar-min.jpg);border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>
 	{% endif %}
 	</a></span>
 
@@ -176,11 +176,11 @@ body {
 
 			<span itemprop="contentRating"><a href="{% url 'photo_izzat' photo.i 2 %}">
 			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.vi }}</b>&nbsp;point</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;point</button>
 			{% else %}
-			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.vi }}</b>&nbsp;points</button>
 			{% endif %}
 			</a></span>
 			</div>

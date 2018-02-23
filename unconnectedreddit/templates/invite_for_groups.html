@@ -18,9 +18,9 @@
 
 		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
 			{% if visitor.userprofile__avatar %}
-		        <img src="{{ visitor.userprofile__avatar|s3:'thumb' }}" alt="no pic"></img>
+		        <img src="{{ visitor.userprofile__avatar|s3:'thumb' }}" alt="pic" style="border-radius:50%">
 		    {% else %}
-		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="pic" style="border-radius:50%">
 		    {% endif %}
 			{{ visitor.username }}
 		    <span class="cg">({{ visitor.userprofile__score }})</span>
@@ -33,7 +33,7 @@
 			<form method="POST" action="{% url 'process_public_group_invite' %}" style="display:inline">
 			{% csrf_token %}
 			<input type="hidden" name="puid" value="{{ unique }}">
-			<button type="submit" name="vid" class="btn bcp bm mls mbs mts" value="{{ visitor.id }}" style="border:none;height:23px">invite</button>
+			<button type="submit" name="vid" class="btn bcp bm mls mbs mts" value="{{ visitor.id }}" style="height:23px">invite</button>
 			</form>
 			<hr size=1 COLOR="#e6e6e6">
 

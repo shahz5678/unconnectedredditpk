@@ -67,7 +67,7 @@ body {
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-	
+
 	{% if forloop.counter == 3 %}
 		{% if enqueued_match %}
 			{% load get_cricket_summary %}
@@ -79,7 +79,7 @@ body {
 
 
 	{% if forloop.counter == 6 %}
-		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png'); position: relative; margin-bottom:14px; padding-bottom:10px;">
+		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
 		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs" style="height:25px">Start</button></a>
@@ -118,7 +118,7 @@ body {
 	<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
 	
 	<div class="mbs">
-		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
+		<a href="{% url 'profile' link.n %}#secton0" class="mrl" style="vertical-align:middle">
 		{{ link.au|safe }}
 		</a>
 
@@ -196,6 +196,7 @@ body {
 
 		{{ link.vt|safe }}
 
+		
 		{% if link.pi %}
 			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
 		{% endif %}

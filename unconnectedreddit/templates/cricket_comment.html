@@ -8,29 +8,44 @@
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
 {% block content %}
-<head><title>{{ status }} | Damadam.pk</title></head>
+<head><title>{% if cric_summ %}{{ cric_summ }} (PSL score 2018) - {{ cc }} comments (live PSL commentary){% else %}{{ status }}{% endif %} | Damadam.pk</title></head>
+<style>
+body {
+	background: #CCFFF2;
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #CCFFF2 50px,
+  #CCFFF2 100px
+);
+ }
+</style>
+
 <div class="margin clb">
-	<h2 class="cg">{{ status }}</h2>
+	<div class="cxl mbs mrs" style="font-weight:bold;color:#FF1547;display:inline">{% if cric_summ %}{{ cric_summ }}{% else %}{{ status }}{% endif %}</div>
+	<form action="{% url 'first_time_cricket_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px" type="submit">&nbsp;</button></form>
+	
 	  {% if form.description.errors %}
-	  <span class="cr">{{ form.description.errors.0 }}</span>
+	  <div class="cb mtl">{{ form.description.errors.0 }}</div>
 	  {% else %}
-	  <span class="ct"><b>Tabsra:</b></span>
+	  <div class="cgy sp mtl">Match pe commentary karein:</div>
 	  {% endif %}
-	<form method="post" action="{% url 'cricket_comment' %}">
+
+	<form method="post" class="mt" action="{% url 'cricket_comment' %}">
 	  {% csrf_token %}
 	  {{ form.description }}<br>
-	  	<button class="btn bl mtl {{ css_class1 }}" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button><br>
-	  	<button class="btn bl mtl mbl {{ css_class2 }}" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
+	  	<button class="btn bl mtl mrl {{ css_class1 }}" style="height:25px" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button>
+	  	<button class="btn bl mtl mbs {{ css_class2 }}" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
 	</form>
-	 <hr size=1 COLOR="#2DB92D">
- <div class="cg cs" style="margin-bottom:1.5em;">
- <form action="{% url 'first_time_cricket_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline;">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button></form><b>Latest match tabsre:</b>
- </div>
-<br>
+	 
+<div class="cgy cs sp mts mbs">
+Latest commentary:
+</div>
 
  {% for comment in object_list %}
- {% with replyforms|get_item:comment.l as replyform %}
-
+ 	{% with replyforms|get_item:comment.l as replyform %}
+ 			<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
 			{{ comment.ch|safe }}
 
 			<a href="{% url 'profile' slug=comment.n %}#section0">
@@ -43,27 +58,32 @@
 			{{ comment.p|safe }}</a>:&nbsp;<span class="cl bw"><bdi>{% emoticons %}{{ comment.de }}{% endemoticons %}</bdi></span>
 			    <a name="section{{ forloop.counter }}"></a> 
 			    <span class="cs cgy"><bdi>, {{ comment.t|human_time }}</bdi></span>{{ comment.dc|safe }}
-		 		{% if comment.cc|add:"0" > 0 %}<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button name="lid" class="btn nw bl mbs mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ comment.l }}"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
+		 		{% if comment.cc|add:"0" > 0 %}<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">{% csrf_token %}&nbsp;&nbsp;<button name="lid" class="btn nw bl mts" type="submit" style="color:#229ec3;background-color:#F8F8F8;border:1px solid #B8B8B8;height:23px" value="{{ comment.l }}"><b>{{ comment.cc }}</b>&nbsp;&nbsp;jawab</button></form>{% endif %}
 		 	
+		 		{% if comment.n != nickname and not comment.l|voted:nickname %}
+					<div class="mts">
+					{% vote_buttons vote_type='vote' lid=comment.l origin=1 females=checked static_url=STATIC_URL from_cricket='1' %}
+					</div>
+				{% else %}
+					<div class="mbs"></div>
+				{% endif %}
 
+				<div class="mls sp">
+				{{ comment.vt|safe }}
+				</div>
 
 		 	{% if comment.replies %}
+				<div class="mtl">
 				{% home_replies_section comment.replies STATIC_URL user.id score %}
-			{% else %}
-				<br>
+				</div>
 			{% endif %}
 
 			<div class="mtl">
 				{% home_publicreply_bar link_pk=comment.l link_writer_pk=comment.w lang='None' sort_by='None' user_id=user.id replyform=replyform origin='cricket'%}
 			</div>
-
-				{% if comment.n != nickname and not comment.l|voted:nickname %}
-					{% vote_buttons vote_type='vote' lid=comment.l origin=1 females=checked static_url=STATIC_URL from_cricket='1' %}
-				{% endif %}
  		
-				{{ comment.vt|safe }}
-				{{ comment.ct|safe }}
- {% endwith %}
+			</div>
+ 	{% endwith %}
  {% endfor %}
 
 	<div style="text-align: center;">

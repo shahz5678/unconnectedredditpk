@@ -1,12 +1,11 @@
+<head><title>Select group type | Damadam.pk</title></head>
 {% extends "base.html" %}
 {% block content %}
-<head><title>Select group type | Damadam.pk</title></head>
-
 <div class="margin clb">
-<b>Konsi mehfil banani hai:</b><br>
+<b class="cl">Konsi mehfil banani hai:</b><br>
 Jo public ke liye open ho, ya aisi mehfil jo ke private ho?<br><br>
-&nbsp;<a href="{% url 'open_group_help' %}"><button class="btn nw bcp bxl">Open mehfil</button></a>&nbsp;<span class="cp cs">(qeemat: 5000 points)</span><br>
-&nbsp;<a href="{% url 'closed_group_help' %}"><button class="btn nw bcg bxl mtl">Private mehfil</button></a>&nbsp;<span class="cg cs">(qeemat: 500 points)</span><br><br>			
+&nbsp;<a href="{% url 'open_group_help' %}"><button class="btn nw bcp bxl" style="height:25px">Open mehfil</button></a>&nbsp;<span class="cp cs">(qeemat: 5000 points)</span><br>
+&nbsp;<a href="{% url 'closed_group_help' %}"><button class="btn nw bcg bxl mtl" style="height:25px">Private mehfil</button></a>&nbsp;<span class="cg cs">(qeemat: 500 points)</span><br><br>			
 &nbsp;<a href="{% url 'group_help' %}#section0" class="cs">mehfil kya hai?</a>
 </div>
 <br><br>

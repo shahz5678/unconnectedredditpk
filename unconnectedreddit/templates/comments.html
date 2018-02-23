@@ -51,33 +51,33 @@
         <a href="{% url 'best_photo' %}#section0">
     {% endif %}
     {% if photo.vote_score < -2 %}
-        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38px;"></img>
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38px;">
     {% elif photo.vote_score < -1 %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="fbl ibg" alt="photo" style="border-radius:4px" src="{{ photo.image_file|s3:"thumb" }}"></img>
+                <img class="fbl ibg" alt="photo" style="border-radius:4px" src="{{ photo.image_file|s3:"thumb" }}">
             {% else %}
-                <img class="ibg iw" alt="photo" style="border-radius:4px" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+                <img class="ibg iw" alt="photo" style="border-radius:4px" src="{{ STATIC_URL }}img/broken_pic.png">
             {% endif %}
         {% else %}    
             {% if photo.image_file %}
-                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" style="border-radius:4px" class="fbh ibg"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" style="border-radius:4px" class="fbh ibg">
             {% else %}
-                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38px;"></img>
+                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38px;">
             {% endif %}
         {% endif %}
     {% else %}
         {% if is_first %}
             {% if photo.image_file %}
-                <img class="ibg iw" alt="photo" style="border-radius:12px" src="{{ photo.image_file|s3 }}"></img>
+                <img class="ibg iw" alt="photo" style="border-radius:12px" src="{{ photo.image_file|s3 }}">
             {% else %}
-                <img class="ibg iw" alt="photo" style="border-radius:12px" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+                <img class="ibg iw" alt="photo" style="border-radius:12px" src="{{ STATIC_URL }}img/broken_pic.png">
             {% endif %}
         {% else %}
             {% if photo.image_file %}
-                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" class="ibb" style="border:1px solid blue;width:auto;border-radius:4px"></img>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" class="ibb" style="border:1px solid blue;width:auto;border-radius:4px">
             {% else %}
-                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="35px;"></img>
+                <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="35px;">
             {% endif %}
         {% endif %}
     {% endif %}</a>
@@ -146,9 +146,9 @@
         {% endif %}
         <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cs">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic">
         {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
         {% endif %}
     {{ comment.submitted_by.username }}</a>
         <span class="cxs">
@@ -177,9 +177,9 @@
     {% endif %}
     <a href="{% url 'profile' comment.submitted_by.username %}#section0" class="cm">
         {% if comment.submitted_by.userprofile.avatar %}
-            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
+            <img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic">
         {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
         {% endif %}
     {{ comment.submitted_by.username }}</a>
         <span class="cxs">

@@ -167,17 +167,17 @@ def av_url_formatting(av_url, style=None, categ=None):
 			url = av_url
 	if url:
 		if style == 'round':
-			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'.format(url)
+			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'.format(url)
 		else:
 			if categ == '6':
-				return '<button class="mbs" alt="no avatar" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>'.format(url)
+				return '<button class="mbs" alt="pic" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9">&nbsp;</button>'.format(url)
 			else:
-				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22"/>'.format(url)
+				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22">'.format(url)
 	else:
 		if style == 'round':
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'
+			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'
 		else:
 			if categ == '6':
-				return '<button class="mbs" alt="no avatar" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>'
+				return '<button class="mbs" alt="pic" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0">&nbsp;</button>'
 			else:
-				return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border:1px solid lightgrey;" width="22" height="22"/>'
+				return '<img src="/static/img/default-avatar-min.jpg" alt="pic" style="border:1px solid lightgrey" width="22" height="22">'

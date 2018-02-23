@@ -534,6 +534,7 @@ Buttons
     /*for all buttons*/
     .btn{
         border-radius:4px;
+        border:none;
         text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
         text-align: center;
         color: white;
@@ -634,7 +635,7 @@ button color golden
 /*button color teal*/
 .bct{
     background-color:#3cb7dd;
-    border:solid 1px #229ec3;
+    border-color:#229ec3;
 
 }
 
@@ -642,8 +643,10 @@ button color golden
 
 .bcc {
     background-color:#FFEFD5;
-    border:solid 1px orange;
+    border-color:orange;
 }
+
+/* World cricket colored buttons */
 
 .wxi {
     background-color:#4d0099;
@@ -685,29 +688,44 @@ button color golden
     border-color:#bda928;
 }
 
-.qal {
-    background-color:#00e600;
-    border-color:#008000;
+.aus {
+    background-color:#FFFF4D;
+    border-color:#FFFF1A;
+    color:#666600;
 }
 
-.uni {
-    background-color:#ff4500;
-    border-color:#b33000;
-}
+/* PSL team colored buttons */
 
-.kng {
-    background-color:#244ed8;
-    border-color:#1a3799;
+.msu {
+    background-color:#525045;
+    border-color:#38362E;
 }
 
 .zal {
-    background-color:#ddcc5e;
-    border-color:#bda928;
+    background-color:#FCEE0A;
+    border-color:#e3d802;
+    color:#7E7801;
+}
+
+.qal {
+    background-color:#8AE44F;
+    border-color:#6DDD22;
+    color:#2C580E;
+}
+
+.uni {
+    background-color:#EE3000;
+    border-color:#CC2900;
+}
+
+.kng {
+    background-color:#2857D0;
+    border-color:#2148AB;
 }
 
 .gld {
-    background-color:#9040a8;
-    border-color:#4f235c;
+    background-color:#54348A;
+    border-color:#432A6F;
 }
 /*background color cream*/                  .bgc{background-color:#FFFFE0;}
 /*background color lightgreen*/             .bglg{background-color:#EDFFEE;}
@@ -783,36 +801,32 @@ Divs
 
 .dby {
 background-color:#ffffe0;
-border:solid;border-width:1px;
-border-color:#ff9933;
-border-radius: 4px;
+border:1px solid #FFF0C6;
+border-radius: 6px;
 }
 
 /* backgound color light purple*/
 .dbp {
 
     background-color:#faebeb;
-    border:solid;border-width:1px;
-    border-color:#9971a5;
-    border-radius: 4px;
+    border:1px solid #EBD9E0;
+    border-radius: 6px;
 }
 
 /* backgound color light green*/
 .dbg {
 
     background-color:#e9fced;
-    border:solid;border-width:1px;
-    border-color:#1CB841;
-    border-radius: 4px;
+    border:1px solid #D5F5DC;
+    border-radius: 6px;
 }
 
 /* backgound color light teal*/
 .dbt {
 
     background-color:#e9f7fb;
-    border:solid;border-width:1px;
-    border-color:#3cb7dd;
-    border-radius: 4px;
+    border:1px solid #CFEDF6;
+    border-radius: 6px;
 }
 
 /*=================================================
@@ -844,12 +858,12 @@ MARGINS
 /*caption shadow*/  .csw{text-shadow: 0 0 0.3px rgba(0,0,0,0.3);margin-bottom:0.5em;}
 /*===============================================================================================================*/
 
-/*image border blue*/   .ibb{border:1px solid blue;width:auto;}
-/*image border teal*/   .ibt{border:1px solid teal;width:auto;}
-/*image border orange*/ .ibo{border:1px solid #ff8000;width:auto;}
-/*image border grey*/   .ibg{border:1px solid lightgrey;width:auto;}
-/*image border green*/  .ibgn{border:1px solid green;width:auto;}
-/*image border purple*/ .ibp{border:1px solid #765989;width:auto;}
+/*image border blue*/   .ibb{border:1px solid blue;width:100%;max-width: 400px}
+/*image border teal*/   .ibt{border:1px solid teal;width:100%;max-width: 400px}
+/*image border orange*/ .ibo{border:1px solid #ff8000;width:100%;max-width: 400px}
+/*image border grey*/   .ibg{border:1px solid lightgrey;width:100%;max-width: 400px}
+/*image border green*/  .ibgn{border:1px solid green;width:100%;max-width: 400px}
+/*image border purple*/ .ibp{border:1px solid #765989;width:100%;max-width: 400px}
 /*image width*/ .iw{width:100%;max-width:400px;margin-bottom:0.3em;}
 /*image width*/ .iw2{width:100%;max-width:400px;margin-top:-0.3em;}
 /*filter brightness 50%*/.fbh{filter:brightness(50%);-webkit-filter: brightness(0.5);}

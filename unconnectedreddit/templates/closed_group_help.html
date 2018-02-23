@@ -3,12 +3,12 @@
 <head><title>Create private group | Damadam.pk</title></head>
 <div class="margin">
 {% if user.userprofile.score > 499 %}
-Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai.<br>Tum ye qeemat dena chahte ho?<br><br>
-&nbsp;<a href="{% url 'closed_group_create' %}#section0"><button class="btn bcg bm cm">Haan</button></a><br>
-&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcgy bm cm mtl">Nahi</button></a>
+Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai.<br>Ap ye qeemat dena chahtey hain?<br><br>
+&nbsp;<a href="{% url 'closed_group_create' %}#section0"><button class="btn bcg bm cm" style="height:22px">Haan</button></a><br>
+&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcgy bm cm mtl" style="height:22px">Nahi</button></a>
 {% else %}
-Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai. Tumharey sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhao</a>:<br>
-<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mts">Wapis</button></a>
+Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai. Apke sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhain</a>:<br>
+<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mts" style="height:22px">Wapis</button></a>
 {% endif %}
 </div>
 <br><br>

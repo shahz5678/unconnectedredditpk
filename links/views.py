@@ -2059,6 +2059,10 @@ def cricket_location(request, *args, **kwargs):
 def cricket_comment(request,*args,**kwargs):
 	enqueued_match = get_current_cricket_match()
 	if request.method == 'POST':
+		if not request.mobile_verified:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(request.user.id), CSRF)
+			return render(request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF,'from_cric':True})
 		form = CricketCommentForm(request.POST,request=request)
 		if form.is_valid():
 			user = request.user
@@ -2101,9 +2105,9 @@ def cricket_comment(request,*args,**kwargs):
 			else:
 				try:
 					incr_cric_comm(link.id,enqueued_match['id']) #adding link to relevant list
+					incr_unfiltered_cric_comm(link.id,enqueued_match['id'])
 				except KeyError:
 					return redirect("home")
-				incr_unfiltered_cric_comm(link.id,enqueued_match['id'])
 				add_filtered_post(link.id)
 				extras = add_unfiltered_post(link.id)
 				if extras:
@@ -2127,18 +2131,24 @@ def cricket_comment(request,*args,**kwargs):
 				page_obj, list_of_dictionaries, replyforms, page_num, addendum \
 				= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
 			try:
+				team_name1, team_name2 = enqueued_match['team1'], enqueued_match['team2']
+			except KeyError:
+				team_name1, team_name2 = 'Team 1', 'Team 2'
+			try:
+				cric_summ, cc = assemble_cricket_summary(enqueued_match)
+			except KeyError:
+				cric_summ, cc = None, '100+'
+			try:
 				context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
-				'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
-				'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
-				'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
-				'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],'score':score,\
-				'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-				'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-			except:
+				'team1':CRICKET_TEAM_NAMES[team_name1],'checked':FEMALES,'object_list': list_of_dictionaries,\
+				'team2':CRICKET_TEAM_NAMES[team_name2],'css_class1':CRICKET_COLOR_CLASSES[team_name1],'nickname':nickname,\
+				'css_class2':CRICKET_COLOR_CLASSES[team_name2],'team1_id':CRICKET_TEAM_IDS[team_name1],\
+				'team2_id':CRICKET_TEAM_IDS[team_name2],'score':score,'cc':cc,'cric_summ':cric_summ}
+			except KeyError:
 				context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
-				'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
+				'team1':team_name1,'team2':team_name2,'checked':FEMALES,'nickname':nickname,'replyforms':replyforms,\
 				'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
+				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'cc':cc,'cric_summ':cric_summ}
 			return render(request,"cricket_comment.html",context)
 	else:
 		form = CricketCommentForm()
@@ -2162,19 +2172,44 @@ def cricket_comment(request,*args,**kwargs):
 			except:
 				return render(request,'no_cricket.html',{})
 		try:
+			team_name1, team_name2 = enqueued_match['team1'], enqueued_match['team2']
+		except KeyError:
+			team_name1, team_name2 = 'Team 1', 'Team 2'
+		try:
+			cric_summ, cc = assemble_cricket_summary(enqueued_match)
+		except KeyError:
+			cric_summ, cc = None, '100+'
+		try:
 			context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
-			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,'score':score,\
-			'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
-			'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
-			'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
-			'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-			'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-		except:
+			'team1':CRICKET_TEAM_NAMES[team_name1],'checked':FEMALES,'score':score,'nickname':nickname,\
+			'team2':CRICKET_TEAM_NAMES[team_name2],'object_list': list_of_dictionaries,'cric_summ':cric_summ,\
+			'css_class1':CRICKET_COLOR_CLASSES[team_name1],'css_class2':CRICKET_COLOR_CLASSES[team_name2],\
+			'team1_id':CRICKET_TEAM_IDS[team_name1],'team2_id':CRICKET_TEAM_IDS[team_name2],'cc':cc}
+		except KeyError:
 			context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
-			'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
+			'team1':team_name1,'team2':team_name2,'checked':FEMALES,'nickname':nickname,'replyforms':replyforms,\
 			'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
+			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'cric_summ':cric_summ}
 		return render(request,"cricket_comment.html",context)
+
+
+def assemble_cricket_summary(enqueued_match):
+	"""
+	Helper function for summarizing match described in cricket_comment()
+	"""
+	if enqueued_match['ended'] == '1':
+		return enqueued_match['status'], enqueued_match['cc']
+	else:
+		if enqueued_match['score1'] != 'None' and enqueued_match['score2'] != 'None':
+			return enqueued_match['team2']+' '+enqueued_match['score2']+' vs '+enqueued_match['team1']+' '+enqueued_match['score1'], \
+			enqueued_match['cc']
+		elif enqueued_match['score1'] != 'None':
+			return enqueued_match['team1']+' '+enqueued_match['score1']+' vs '+enqueued_match['team2'], enqueued_match['cc']
+		elif enqueued_match['score2'] != 'None':
+			return enqueued_match['team2']+' '+enqueued_match['score2']+' vs '+enqueued_match['team1'], enqueued_match['cc']
+		else:
+			return enqueued_match['status'], enqueued_match['cc']
+
 
 def get_cric_object_list_and_forms(request, enqueued_match, notif=None):
 	try:

@@ -98,7 +98,7 @@ FORTY_FIVE_SECS = 45
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
 
-SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
+SHORT_MESSAGES_ALWD = 4 # with an expiry of 4 mins, this means a max of 4 per min is allowed
 
 
 
@@ -1960,7 +1960,7 @@ def log_short_message(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	short_message = "sm:"+str(user_id)
 	my_server.incr(short_message)
-	my_server.expire(short_message,THREE_MINS)
+	my_server.expire(short_message,FOUR_MINS)
 
 def many_short_messages(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1968,7 +1968,7 @@ def many_short_messages(user_id):
 	if not my_server.exists(short_message):
 		return False
 	elif int(my_server.get(short_message)) > SHORT_MESSAGES_ALWD:
-		my_server.expire(short_message,TEN_MINS) #now ban the person for 10 mins
+		my_server.expire(short_message,TEN_MINS) #now ban short messages for 10 mins
 		return True
 	else:
 		return False

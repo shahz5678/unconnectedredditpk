@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>{{ object.username }}'s profile | Damadam.pk</title></head>
 {{ block.super }}
 <h2>{{ object.username }}'s Profile</h2>
 	{% if object.userprofile.bio %}

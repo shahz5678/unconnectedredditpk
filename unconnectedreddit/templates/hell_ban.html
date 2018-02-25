@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Ban user(s) | Damadam.pk</title></head>
 <div class="margin clb">
 
 {% if offline %}
@@ -18,7 +19,7 @@
 
 {% else %}
 
-	<span class="cxl">Kiya in users ko ghost ban kr diya jaye?</span><br><br>
+	<span class="cxl">Kya in users ko ghost ban kr diya jaye?</span><br><br>
 	<form method="POST" action="{% url 'hell_ban' %}">
 		{% csrf_token %}
 		<input type="hidden" name="ghost_ban" value="1">

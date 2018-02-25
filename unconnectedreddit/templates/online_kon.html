@@ -2,6 +2,7 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Online users | Damadam.pk</title></head>
     <div class="margin">
     <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high photo score</b></a>&nbsp;<span class="cs">|</span>
     <a href="{% url 'top' %}#section0" class="cg cxs" ><b>high chat score</b></a>&nbsp;<span class="cs" >|</span>
@@ -16,13 +17,13 @@
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' slug=obj.username %}#section0">
                 {% if obj.userprofile__avatar %}
-                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
+                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% endif %}
                 <b class="cb">{{ obj.username }}</b>
                 {% if obj.username in legit %}
-                    <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
+                    <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
                 {% endif %}
                 </a>
                 {% if obj.userprofile__score %}
@@ -47,13 +48,13 @@
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">
                         {% if obj.userprofile__avatar %}
-                            <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
+                            <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% else %}
-                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% endif %}
                         {{ obj.username }}
                             {% if obj.username in legit %}
-                                <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
+                                <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
                             {% endif %}
                         </a>
                         {% if obj.userprofile__score %}

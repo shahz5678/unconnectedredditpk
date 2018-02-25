@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Report photo | Damadam.pk</title></head>
 <div class="margin clb">
 <img src="{{ purl }}" style="border: 1px solid #A9A9A9;"></img>
-<h2>Photo ka masla apne alfaz mein biyan kro:</h2>
+<h2>Photo ka masla apne alfaz mein biyan karein:</h2>
 {% if form.description.errors %}<span class="cr">{{ form.description.errors.0 }}</span>{% else %}<span class="cgy">(tip: 250 characters se ziyada nahi likh sakte)</span>{% endif %}
 <br>
 		<form method="post" action="{% url 'curate_photo' %}">

@@ -1,6 +1,6 @@
 {% extends "base_min.html" %}
 {% block content %}
-
+<head><title>Confirm username and password | Damadam.pk</title></head>
 <div class="margin clb mtl">
 <form method="POST" action="{% url 'create_nick' %}#section0">
 	{% csrf_token %}

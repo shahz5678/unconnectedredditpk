@@ -18,7 +18,7 @@
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
 {% block content %}
-
+<head><title>Home | Damadam.pk</title></head>
 <style>
 
 
@@ -67,45 +67,27 @@ body {
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-	{% if forloop.counter == 6 %}
+
+	{% if forloop.counter == 3 %}
 		{% if enqueued_match %}
-		<div  class="card" style="background-color:#FFFF33;margin-top:-1em;padding-top:1em; position: relative; margin-bottom:35px; padding-bottom:10px;">
-			{% if enqueued_match.ended == '1' %}
-				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
-			{% elif enqueued_match.ended == '0' %}
-				{% if enqueued_match.score1 != 'None' and enqueued_match.score2 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
-				{% elif enqueued_match.score1 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
-				{% elif enqueued_match.score2 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
-				{% else %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
-				{% endif %}
-				
-			{% endif %}
-				<form method="POST" action="{% url 'cricket_comment_page' %}">
-					{% csrf_token %}
-					{% if enqueued_match.cc|add:"0" > 1 %}
-						<button type="submit" class="btn bcg bl mts">{{ enqueued_match.cc }} tabsre</button><span class="ct"> match pe</span>
-					{% else %}
-						<button type="submit" class="btn bcg bl mts">tabsra kro</button><span class="ct"> match pe</span>
-					{% endif %}
-				</form>
-		
-				</div>
+			{% load get_cricket_summary %}
+			<div class="card" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
+				{% cricket_summary enqueued_match %}
+			</div>
 		{% endif %}
 	{% endif %}
-	
-	{% if forloop.counter == 3 %}
-		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png'); position: relative; margin-bottom:14px; padding-bottom:10px;">
+
+
+	{% if forloop.counter == 6 %}
+		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
 		<div class="mls">
-		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
-		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
+		<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
+		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs" style="height:25px">Start</button></a>
 		</div>
 		</div>
 	{% endif %}
-	{% if forloop.counter == 13 %}
+
+	{% if forloop.counter == 10 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
@@ -129,13 +111,14 @@ body {
 		{{ link.au|safe }}
 		{{ link.n }} {{ link.p|safe }}
 		    
-		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp" style="height:22px">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		{{ link.ct|safe }}
 		</div>
 	{% elif link.c == '6' %}
-		<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
+	<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
+	
 	<div class="mbs">
-		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
+		<a href="{% url 'profile' link.n %}#secton0" class="mrl" style="vertical-align:middle">
 		{{ link.au|safe }}
 		</a>
 
@@ -145,10 +128,9 @@ body {
 			{% else %}
 				<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 			{% endif %}
-			<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
+			<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
 			<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
 		{% endif %}
-
 
 		<a name="section{{ forloop.counter }}"></a>
 
@@ -156,13 +138,10 @@ body {
 		{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
 		</div>
 
-
 		<div style="display:inline-block">
 		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
-		</div><br>	    
-	
+		</div><br>
 	</div>
-
 
 			<b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
 			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
@@ -171,18 +150,18 @@ body {
 		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
 		    <a href="{% url 'see_photo_pk' link.pi %}">
 		    {% if link.v|add:"0" < -2 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 			    {% endif %}
 		    {% endif %}
 		    </a>
@@ -191,19 +170,19 @@ body {
 
 		{% if link.aw == '1' and link.h|add:"0" > 5 %}
 	    	{% if link.v|add:"0" < -2 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright" alt="{{ link.de }}"></img>
+			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright" style="border-radius:12px" alt="{{ link.de }}"></img>
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 			    {% endif %}
 			{% else %}
 			    {% if link.i %}
 			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}" alt="{{ link.de }}"></img></a>
+			    <img class="pht" style="border-color:#D3D3D3;border-radius:12px" src="{{ link.i|s3 }}" alt="{{ link.de }}"></a>
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 			    {% endif %}
 		    {% endif %}    
 	    	<br>
@@ -223,13 +202,13 @@ body {
 		{% endif %}
 
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
-
 		
 	</div>
 	
 	
 	{% else %}
-	<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
+		<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
+
 			{{ link.ch|safe }}
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				{{ link.au|safe }}
@@ -263,7 +242,7 @@ body {
 			{% if link.cc|add:"0" > 6 %}
 				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
-				&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>
+				&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>
 				</form>
 			{% endif %}
 

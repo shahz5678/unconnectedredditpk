@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% load emoticons_tags %}
-
+<head><title>Write on home | Damadam.pk</title></head>
 <div class="margin">
 
 	<form method="post" action="" enctype="multipart/form-data">
@@ -10,19 +10,19 @@
 	  <span class="cr">{{ form.description.errors.0 }}</span>
 	  {% else %}
 		  {% if user.userprofile.score < 10 %}
-		  <span class="cl ct"><b>Apna taaruf karao, ya koi pegham likho:</b></span>
+		  <span class="cl ct"><b>Apna taaruf karain, ya koi pegham likhein:</b></span>
 		  {% else %}
-		  <span class="cl ct"><b>Koi pegham likho:</b></span>
+		  <span class="cl ct"><b>Apna pegham likhein:</b></span>
 		  {% endif %}
 	  {% endif %}
 	  <br>{{ form.description }}<br>
-	  	<button class="btn bm bct mtl mbs" name="btn" value="1" type="submit">OK</button>
+	  	<button class="btn bm bct mtl mbs" style="height:25px" name="btn" value="1" type="submit">OK</button>
 	</form>
-	<span class="cgy">tip: yahan koi bhi mazedar baat likh saktey ho jis ko parh ke log apko jawab dein. Maslan shairi, lateefay, news, gupshup, etc.</span><br>
+	<span class="cgy">tip: yahan koi bhi mazedar baat likh saktey hein. Maslan shairi, lateefay, news, gupshup, etc.</span><br>
 	<br>
 	<hr size=1>
-	<span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-	<span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cs">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
+	<span class="cs cgy"><b>Faces banane ke liye unke sath likhe '.' aur harf likhein:</b></span><br>
+	{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
 
 	{% emoticons_index as emoticons_list %}
 

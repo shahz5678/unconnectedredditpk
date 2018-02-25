@@ -218,6 +218,8 @@ def add_to_ban(user_id):
 		UserProfile.objects.filter(user_id=user_id).update(score=random.randint(10,71))
 
 def valid_uuid(uuid):
+	if not uuid:
+		return False
 	regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
 	match = regex.match(uuid)
 	return bool(match)
@@ -253,11 +255,11 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	reply_time = convert_to_epoch(reply.submitted_on)
 	try:
 		url = request.user.userprofile.avatar.url
-	except:
+	except ValueError:
 		url = None
 	try:
 		owner_url = parent.submitter.userprofile.avatar.url
-	except:
+	except ValueError:
 		owner_url = None
 	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
@@ -373,9 +375,8 @@ def search_username(request,*args,**kwargs):
 			if form.is_valid():
 				nickname = form.cleaned_data.get("nickname")
 				found_flag,exact_matches,similar = find_nickname(nickname,request.user.id)
-				return render(request,'username_search.html',\
-					{'form':form,'exact_matches':exact_matches, 'similar':similar, 'found_flag':found_flag, \
-					'orig_search':nickname,'search_history':search_history,'page':page_obj})
+				return render(request,'username_search.html',{'form':form,'exact_matches':exact_matches, 'similar':similar, \
+					'found_flag':found_flag, 'orig_search':nickname,'search_history':search_history,'page':page_obj})
 			else:
 				return render(request,'username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})	
 		else:
@@ -2058,6 +2059,10 @@ def cricket_location(request, *args, **kwargs):
 def cricket_comment(request,*args,**kwargs):
 	enqueued_match = get_current_cricket_match()
 	if request.method == 'POST':
+		if not request.mobile_verified:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(request.user.id), CSRF)
+			return render(request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF,'from_cric':True})
 		form = CricketCommentForm(request.POST,request=request)
 		if form.is_valid():
 			user = request.user
@@ -2087,7 +2092,7 @@ def cricket_comment(request,*args,**kwargs):
 				cagtegory=category)
 			try:
 				av_url = user.userprofile.avatar.url
-			except:
+			except ValueError:
 				av_url = None
 			add_home_link(link_pk=link.id, categ=category, nick=user.username, av_url=av_url, desc=description, \
 				scr=user.userprofile.score, cc=0, writer_pk=user_id, device=device,\
@@ -2098,8 +2103,11 @@ def cricket_comment(request,*args,**kwargs):
 				if extras:
 					queue_for_deletion.delay(extras)
 			else:
-				incr_cric_comm(link.id,enqueued_match['id']) #adding link to relevant list
-				incr_unfiltered_cric_comm(link.id,enqueued_match['id'])
+				try:
+					incr_cric_comm(link.id,enqueued_match['id']) #adding link to relevant list
+					incr_unfiltered_cric_comm(link.id,enqueued_match['id'])
+				except KeyError:
+					return redirect("home")
 				add_filtered_post(link.id)
 				extras = add_unfiltered_post(link.id)
 				if extras:
@@ -2123,18 +2131,24 @@ def cricket_comment(request,*args,**kwargs):
 				page_obj, list_of_dictionaries, replyforms, page_num, addendum \
 				= get_cric_object_list_and_forms(request=request, enqueued_match=enqueued_match)
 			try:
+				team_name1, team_name2 = enqueued_match['team1'], enqueued_match['team2']
+			except KeyError:
+				team_name1, team_name2 = 'Team 1', 'Team 2'
+			try:
+				cric_summ, cc = assemble_cricket_summary(enqueued_match)
+			except KeyError:
+				cric_summ, cc = None, '100+'
+			try:
 				context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
-				'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,\
-				'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
-				'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
-				'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],'score':score,\
-				'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-				'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-			except:
+				'team1':CRICKET_TEAM_NAMES[team_name1],'checked':FEMALES,'object_list': list_of_dictionaries,\
+				'team2':CRICKET_TEAM_NAMES[team_name2],'css_class1':CRICKET_COLOR_CLASSES[team_name1],'nickname':nickname,\
+				'css_class2':CRICKET_COLOR_CLASSES[team_name2],'team1_id':CRICKET_TEAM_IDS[team_name1],\
+				'team2_id':CRICKET_TEAM_IDS[team_name2],'score':score,'cc':cc,'cric_summ':cric_summ}
+			except KeyError:
 				context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
-				'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
+				'team1':team_name1,'team2':team_name2,'checked':FEMALES,'nickname':nickname,'replyforms':replyforms,\
 				'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
+				'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'cc':cc,'cric_summ':cric_summ}
 			return render(request,"cricket_comment.html",context)
 	else:
 		form = CricketCommentForm()
@@ -2158,19 +2172,44 @@ def cricket_comment(request,*args,**kwargs):
 			except:
 				return render(request,'no_cricket.html',{})
 		try:
+			team_name1, team_name2 = enqueued_match['team1'], enqueued_match['team2']
+		except KeyError:
+			team_name1, team_name2 = 'Team 1', 'Team 2'
+		try:
+			cric_summ, cc = assemble_cricket_summary(enqueued_match)
+		except KeyError:
+			cric_summ, cc = None, '100+'
+		try:
 			context={'form':form,'replyforms':replyforms,'page':page_obj,'status':enqueued_match['status'],\
-			'team1':CRICKET_TEAM_NAMES[enqueued_match['team1']],'checked':FEMALES,'score':score,\
-			'team2':CRICKET_TEAM_NAMES[enqueued_match['team2']],'object_list': list_of_dictionaries,\
-			'css_class1':CRICKET_COLOR_CLASSES[enqueued_match['team1']],'nickname':nickname,\
-			'css_class2':CRICKET_COLOR_CLASSES[enqueued_match['team2']],\
-			'team1_id':CRICKET_TEAM_IDS[enqueued_match['team1']],\
-			'team2_id':CRICKET_TEAM_IDS[enqueued_match['team2']]}
-		except:
+			'team1':CRICKET_TEAM_NAMES[team_name1],'checked':FEMALES,'score':score,'nickname':nickname,\
+			'team2':CRICKET_TEAM_NAMES[team_name2],'object_list': list_of_dictionaries,'cric_summ':cric_summ,\
+			'css_class1':CRICKET_COLOR_CLASSES[team_name1],'css_class2':CRICKET_COLOR_CLASSES[team_name2],\
+			'team1_id':CRICKET_TEAM_IDS[team_name1],'team2_id':CRICKET_TEAM_IDS[team_name2],'cc':cc}
+		except KeyError:
 			context={'form':form,'page':page_obj,'status':enqueued_match['status'],'object_list': list_of_dictionaries,\
-			'team1':enqueued_match['team1'],'team2':enqueued_match['team2'],'checked':FEMALES,'nickname':nickname,\
+			'team1':team_name1,'team2':team_name2,'checked':FEMALES,'nickname':nickname,'replyforms':replyforms,\
 			'css_class1':CRICKET_COLOR_CLASSES['misc'],'css_class2':CRICKET_COLOR_CLASSES['misc'],'score':score,\
-			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'replyforms':replyforms}
+			'team1_id':CRICKET_TEAM_IDS['misc'],'team2_id':CRICKET_TEAM_IDS['misc'],'cric_summ':cric_summ,'cc':cc}
 		return render(request,"cricket_comment.html",context)
+
+
+def assemble_cricket_summary(enqueued_match):
+	"""
+	Helper function for summarizing match described in cricket_comment()
+	"""
+	if enqueued_match['ended'] == '1':
+		return enqueued_match['status'], enqueued_match['cc']
+	else:
+		if enqueued_match['score1'] != 'None' and enqueued_match['score2'] != 'None':
+			return enqueued_match['team2']+' '+enqueued_match['score2']+' vs '+enqueued_match['team1']+' '+enqueued_match['score1'], \
+			enqueued_match['cc']
+		elif enqueued_match['score1'] != 'None':
+			return enqueued_match['team1']+' '+enqueued_match['score1']+' vs '+enqueued_match['team2'], enqueued_match['cc']
+		elif enqueued_match['score2'] != 'None':
+			return enqueued_match['team2']+' '+enqueued_match['score2']+' vs '+enqueued_match['team1'], enqueued_match['cc']
+		else:
+			return enqueued_match['status'], enqueued_match['cc']
+
 
 def get_cric_object_list_and_forms(request, enqueued_match, notif=None):
 	try:
@@ -2364,7 +2403,7 @@ class ClosedGroupCreateView(CreateView):
 			reply_time = convert_to_epoch(reply.submitted_on)
 			try:
 				url = user.userprofile.avatar.url
-			except:
+			except ValueError:
 				url = None
 			create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
 				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
@@ -2403,20 +2442,19 @@ class OpenGroupCreateView(CreateView):
 			reply_time = convert_to_epoch(reply.submitted_on)
 			try:
 				url = user.userprofile.avatar.url
-			except:
+			except ValueError:
 				url = None
 			f_id = f.id
 			create_object(object_id=f_id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
 				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
 				lt_res_wid=user_id)
 			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
-			# public_group_vote_tasks.delay(group_id=f_id,priority=2)
 			rank_public_groups.delay(group_id=f_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
 			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
 			try:
 				av_url = f.owner.userprofile.avatar.url
-			except:
+			except ValueError:
 				av_url = None
 			add_home_link(link_pk=link.id, categ='2', nick=f.owner.username, av_url=av_url, desc=f.topic, \
 				scr=f.owner.userprofile.score, cc=1, writer_pk=user_id, device='1', meh_url=unique,\
@@ -3649,7 +3687,7 @@ class CommentView(CreateView):
 			comment_time = convert_to_epoch(photocomment.submitted_on)
 			try:
 				url = user.userprofile.avatar.url
-			except:
+			except ValueError:
 				url = None
 			citizen = self.request.mobile_verified
 			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user.id,\
@@ -4074,7 +4112,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url
-				except:
+				except ValueError:
 					url = None
 				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
@@ -4617,7 +4655,7 @@ def upload_public_photo(request,*args,**kwargs):
 				save_recent_photo(user_id, photo_id) #saving 5 recent ones
 				try:
 					owner_url = user.userprofile.avatar.url
-				except:
+				except ValueError:
 					owner_url = None
 				name = user.username
 				add_photo_entry(photo_id=photo_id,owner_id=user_id,image_url=photo.image_file.url,upload_time=epochtime,\
@@ -5144,7 +5182,7 @@ class ChangePrivateGroupTopicView(CreateView):
 		if user.is_authenticated():
 			# banned, ban_type, time_remaining, warned = private_group_posting_allowed(self.request.user.id)
 			# banned = False
-			unique = self.request.session["unique_id"]
+			unique = self.request.session.get("unique_id",None)
 			if unique:# and not banned:	
 				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
@@ -5261,11 +5299,11 @@ class PublicGroupView(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super(PublicGroupView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
+			unique = self.request.session.get("public_uuid",None)
 			try:
-				unique = self.request.session["public_uuid"]	
-				context["unique"] = unique
 				group = Group.objects.get(unique=unique)
-			except:
+				context["unique"] = unique
+			except Group.DoesNotExist:
 				context["switching"] = True
 				context["group_banned"] = False
 				return context
@@ -5366,15 +5404,12 @@ class PublicGroupView(CreateView):
 			reply_time = convert_to_epoch(reply.submitted_on)
 			try:
 				url=self.request.user.userprofile.avatar.url
-			except:
+			except ValueError:
 				url=None
 			try:
 				image_url = reply.image.url
-			except:
+			except ValueError:
 				image_url = None
-			# if random.random() < 0.5:
-			# 	#calling this only 50% of the times, as a server optimization of sorts (also incr priority from 1 to 2 to compensate)
-			# 	public_group_vote_tasks.delay(group_id=which_group_id,priority=2)
 			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
@@ -5606,11 +5641,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 			reply_time = convert_to_epoch(reply.submitted_on)
 			try:
 				url=self.request.user.userprofile.avatar.url
-			except:
+			except ValueError:
 				url=None
 			try:
 				image_url = reply.image.url
-			except:
+			except ValueError:
 				image_url = None
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
 				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
@@ -5799,11 +5834,11 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				reply_time = convert_to_epoch(groupreply.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url
-				except:
+				except ValueError:
 					url = None
 				try:
 					image_url = groupreply.image.url
-				except:
+				except ValueError:
 					image_url = None
 				# grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 				if grp["private"] == '1':
@@ -5833,6 +5868,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("unseen_activity", username)
 				else:
 					return redirect("unseen_activity", username)
 			else:
@@ -5852,6 +5889,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("unseen_activity", username)
 				else:
 					notification = "np:"+str(user_id)+":3:"+str(pk)
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -5917,7 +5956,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url
-				except:
+				except ValueError:
 					url = None
 				citizen = request.mobile_verified
 				add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
@@ -6428,7 +6467,7 @@ class LinkCreateView(CreateView):
 			f.save()
 			try:
 				av_url = user.userprofile.avatar.url
-			except:
+			except ValueError:
 				av_url = None
 			if is_urdu(text=f.description):
 				category = '17'
@@ -6762,7 +6801,7 @@ def welcome_reply(request,*args,**kwargs):
 				parent.save()
 				try:
 					url = request.user.userprofile.avatar.url
-				except:
+				except ValueError:
 					url = None
 				time = convert_to_epoch(reply.submitted_on)
 				amnt = update_comment_in_home_link(description,username,url,time,user.id,parent.id,(True if username in FEMALES else False))
@@ -7003,7 +7042,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		salat_object_id = salat_object.id
 		try:
 			owner_url = request.user.userprofile.avatar.url
-		except:
+		except ValueError:
 			owner_url = None
 		create_object(object_id=salat_object_id,object_type='4',object_owner_name=request.user.username,\
 			object_owner_avurl=owner_url,object_desc=salat_timings['namaz'], object_owner_id=request.user.id)
@@ -7910,10 +7949,6 @@ class AdImageView(CreateView):
 		f = form.save(commit=False)
 		if f.image:
 			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-			# try:
-			# 	on_fbs = self.request.META.get('X-IORG-FBS')
-			# except:
-			# 	on_fbs = False
 			if on_fbs:
 				if f.image.size > 200000:
 					context = {'pk':'pk'}
@@ -8079,11 +8114,7 @@ def ad_finalize(request,*args, **kwargs):
 					"image_url":image,"address":address,
 					"only_ladies":gender_based, "location":locations,
 					"app_code":"1","user_id":user_id,"ad_url":ad_url}
-			# print data
 			response = call_aasan_api(data,'create')
-			# print response
-			# print response.json()
-			# print response.text
 			return HttpResponse('Ad sent to aasanads')
 		else:
 			return redirect("home")

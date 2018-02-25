@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Report {% if target_id %}{{ target_username }}{% else %}user{% endif %} | Damadam.pk</title></head>
 <div class="margin clb"> 
 
 {% if target_id and allowed %}
-	<b class="cl"><span class="ct">{{target_username }}</span> ko report krne ki wajah batao:</b><br>
+	<b class="cl"><span class="ct">{{target_username }}</span> ko report karne ki wajah batain:</b><br>
 	<span class="cgy cs">(report ki qeemat <b>{{ pts }} points</b>)</span><br>
 	&nbsp;<a href="{% url 'rep' num=1 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">gali di hai</button></a><br>
 	&nbsp;<a href="{% url 'rep' num=2 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bcr mtl" style="width:15em;">dhamki di hai</button></a><br>
@@ -17,10 +18,10 @@
 	&nbsp;<a href="{% url 'rep' num=9 pk=target_id nick=target_username uuid=mehfil_uuid priv=mehfil_type scr=target_score %}"><button class="btn nw bco mtl" style="width:15em;">kuch aur masla hai</button></a><br>
 
 {% elif target_id and not allowed %}
-	<b><span class="ct">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kr sakte</b>
+	<b><span class="ct">{{ target_username }}</span> ne ye mehfil chore di hai. Ab usko report nahi kar sakte</b>
 	<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ mehfil_uuid }}" class="btn bm bcg mtl">wapis</button></form>
 {% else %}
-	<b>Damadam ki yad dasht chali gai! Tum kon ho?!</b>
+	<b>Damadam ki yad dasht chali gai!</b>
 {% endif %}
 	<br><br>
 

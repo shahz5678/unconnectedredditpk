@@ -2,6 +2,7 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Photo score breakdown | Damadam.pk</title></head>
 <div class="margin">
 {% if origin == '1' %}
 	{% if authenticated %}
@@ -25,21 +26,21 @@
 	<a href="{% url 'photo_detail' key %}">
 {% endif %}
 {% if photo.vote_score < -2 and not defender %}
-    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38">
 {% elif photo.vote_score < -1 and not defender %}
     {% if photo.image_file %}
-        <img src="{{ photo.image_file|s3:'thumb' }}" alt="no pic" style="filter:brightness(50%);border:1px solid blue;width:auto;"></img>
+        <img src="{{ photo.image_file|s3:'thumb' }}" alt="photo" style="border-radius:4px;filter:brightness(50%);border:1px solid blue;width:auto">
     {% else %}
-        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="38">
     {% endif %}
 {% else %}
 	{% if photo.image_file %}
-    	<img src="{{ photo.image_file|s3:'thumb' }}" alt="no pic" style="border:1px solid blue;width:auto;"></img>
+    	<img src="{{ photo.image_file|s3:'thumb' }}" alt="photo" style="border:1px solid blue;width:auto;border-radius:4px">
     {% else %}
-    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="photo" style="border-radius:4px" width="35">
     {% endif %}
 {% endif %}</a>
-<span class="cgy cs">{% emoticons %}{{ photo.caption|truncatechars:30 }}{% endemoticons %}</span>
+<span class="cgy cs sp">{% emoticons %}{{ photo.caption|truncatechars:30 }}{% endemoticons %}</span>
 <br><br>
 {% if content %}
 {% for voter,vote in votes %}
@@ -91,7 +92,7 @@
 {% else %}
 	<a href="{% url 'photo_detail' key %}">
 {% endif %}
-<button class="btn bco bs mtl">wapis</button></a></span>
+<button class="btn bco bs mtl" style="height:22px">wapis</button></a></span>
 </div>
 <br><br>
 {% endblock %}

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
+<head><title>Top scoring users | Damadam.pk</title></head>
 {% load cache %}
 {% cache 600 top_frg %}
     <div class="margin clb">
-    <b>Top chatters:</b><br><br>
+    <b>Top chat scorers:</b><br><br>
     {% for userprofile in object_list %}
     <span class="cg cs">{{ forloop.counter }}.</span>
     <a href="{% url 'profile' slug=userprofile.user.username %}#section0">

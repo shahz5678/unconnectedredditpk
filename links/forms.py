@@ -146,11 +146,12 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request', None)
 		super(CricketCommentForm, self).__init__(*args, **kwargs)
+		self.fields['description'].widget.attrs['style'] = 'width:95%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
 		description = description.strip()
-		if len(description) < 10:
+		if len(description) < 2:
 			raise forms.ValidationError('tip: itna choti baat nahi likh sakte')
 		elif len(description) > 500:
 			raise forms.ValidationError('tip: itna barri baat nahi likh sakte')
@@ -176,6 +177,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
+		self.fields['description'].widget.attrs['style'] = 'width:95%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
@@ -219,6 +221,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
 		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
 		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
+		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -240,6 +243,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		return text
 
+
 class OutsiderGroupForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
@@ -258,6 +262,7 @@ class PrivateGroupReplyForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
+		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -295,6 +300,7 @@ class CommentForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
+		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_text(self):
 		text = self.cleaned_data.get("text")
@@ -332,6 +338,7 @@ class PublicreplyForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(PublicreplyForm, self).__init__(*args,**kwargs)
+		self.fields['description'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_description(self):
 		description = self.cleaned_data.get("description")
@@ -687,6 +694,7 @@ class UploadPhotoForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
+		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 		# self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields["image_file"].widget.attrs['class'] = 'p'

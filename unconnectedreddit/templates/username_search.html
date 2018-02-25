@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Search | Damadam.pk</title></head>
 <div class="margin clb">
 {% if found_flag != None %}
 {% if found_flag %}
@@ -8,7 +9,7 @@
 	{% for match in exact_matches %}
 		<b class="cl ct">{{ match.0 }}:</b><br>
 		<form method="POST" action="{% url 'go_to_username' match.0 %}" class="mbs">{% csrf_token %}
-		<button class="btn bco bm mbs" name="dec" value="1" type="submit">photos</button>&nbsp;&nbsp;<button class="btn bct bm mts mbs" name="dec" value="2" type="submit">history</button>&nbsp;&nbsp;<button class="btn bcg bm mts mbs" name="dec" value="3" type="submit">profile</button><br></form>
+		<button class="btn bco bm mbs" name="dec" value="1" style="height:20px" type="submit">photos</button>&nbsp;&nbsp;<button class="btn bct bm mts mbs" name="dec" value="2" style="height:20px" type="submit">history</button>&nbsp;&nbsp;<button class="btn bcg bm mts mbs" name="dec" value="3" style="height:20px" type="submit">profile</button><br></form>
 		{% if match.1 != None %}
 		<form method="POST" action="{% url 'go_to_user_photo' match.0 1 %}">{% csrf_token %}
 		{{ match.1|safe }}
@@ -20,7 +21,7 @@
 	<b class="cl cgy">Is jaise aur nicknames ye hain:</b><br><br>
 	{% for nick in similar %}
 		<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
-		<span class="cl cgy mls">{{ nick.0 }}</span>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
+		<span class="cl cgy mls">{{ nick.0 }}</span>:<br><button style="height:20px" class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" style="height:20px" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" style="height:20px" type="submit">profile</button><br>
 		</form>
 		{% if nick.1 != None %}
 		<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}
@@ -35,7 +36,7 @@
 	<b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b><br><span class="cgy sp">Is se milte julte nicknames ye hain:</span><br><br>
 	{% for nick in similar %}
 	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
-	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" type="submit">profile</button><br>
+	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button style="height:20px" class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" style="height:20px" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" style="height:20px" type="submit">profile</button><br>
 	</form>
 	{% if nick.1 != None %}
 	<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}
@@ -60,7 +61,7 @@
 <form method="POST" action="{% url 'search_username' %}" class="mtl">
 {% csrf_token %}
 {{ form.nickname }}<br><br>
-<button type="submit" class="btn bm bcg mbl">OK</button>
+<button type="submit" style="height:25px" class="btn bm bcg mbl">OK</button>
 </form>
 <hr size=1 COLOR="#179b36">
 {% if search_history %}
@@ -69,10 +70,10 @@
 	{% for nick in search_history %}
 	<form method="POST" action="{% url 'remove_searched_username' nick.0 %}" style="display:inline;">{% csrf_token %}
 	<input type="hidden" name="uid" value="{{ user.id }}">
-	<button class="btn mls" type="submit" style="color:red;background-color:#F8F8F8;border-color:#B8B8B8;">X</button>
+	<button class="btn mls" type="submit" style="color:red;background-color:#F8F8F8;border:#B8B8B8;">X</button>
 	</form>
 	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs" style="display:inline;">{% csrf_token %}
-	<span class="cl ct mls">{{ nick.0 }}</span>:<br><button class="btn bm cs mts mbs mls" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bm cs mts mbs mls" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" style="color:#179b36;background-color:#F8F8F8;border-color:#B8B8B8;" name="dec" value="3" type="submit">profile</button><br>
+	<span class="cl ct mls">{{ nick.0 }}</span>:<br><button class="btn bm cs mts mbs mls" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:20px" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bm cs mts mbs mls" style="color:#229ec3;background-color:#F8F8F8;border:1px solid #B8B8B8;height:20px" name="dec" value="2" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" style="color:#179b36;background-color:#F8F8F8;border:1px solid #B8B8B8;height:20px" name="dec" value="3" type="submit">profile</button><br>
 	</form>
 		{% if nick.1 != None %}
 		<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}

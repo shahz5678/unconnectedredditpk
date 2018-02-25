@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin clb">
-<b class="cxl">Mobile number verify kiye beghair home pe nahi likh saktey</b><br>
-<div class="mt">
-<span class="cl">Verify karwaney ke liye 'OK' dabain:</span><br>
-</div>
 
+<head><title>Unable to write without mobile verification | Damadam.pk</title></head>
+
+<div class="margin clb">
+<b class="cxl">Mobile number verify kiye beghair {% if from_cric %}cricket commentary nahi kar saktey{% else %}home pe nahi likh saktey{% endif %}</b><br>
+
+<div class="mt cl">Verify karwaney ke liye 'OK' dabain:</div>
 	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
 	  <input type="hidden" name="country_code" value="PK">
 	  <input type="hidden" name="app_id" value="1758220174446684">
@@ -14,9 +15,9 @@
 	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
-	  <input type="submit" class="mtl mbl ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
-	</form><br>
-<b class="cgy cs">Verify karney mein hamari partner company FACEBOOK shamil hai</b>
+	  <input type="submit" class="ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
+	</form>
+<span class="cgy cs sp">Verify karney mein hamari partner company FACEBOOK shamil hai</span>
 </div>
 <br><br>
 {% endblock %}

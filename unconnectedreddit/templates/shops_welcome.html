@@ -1,0 +1,19 @@
+{% extends "base_min.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Mobile buy & selling | Damadam.pk</title></head>
+<div style="background-color:#00c853;overflow: auto;">
+<div class="mbl bw mll mtl mrl mbl" style="max-width:90%;border: 2px dashed #ffffff;border-radius:4px;padding:5px 5px 5px 5px;background-color:#00c853;">
+<br>
+<b class="cxl" style="color:white;">Yahan pe <span style="color:#ffeb3b;">Mobiles ki buying and selling</span> ki shops mojood hain...</b><br>
+<div class="mtl mbs">
+<b class="cxl" style="color:white;">Ghar bethay apne liye <span style="color:#ffeb3b;">sasti tareen</span> price ka sauda karien!</b><br>
+</div>
+<form method="POST" action="{% url 'ecomm' %}">
+{% csrf_token %}
+<input type="submit" class="mtl mbl mls bl" style="background:#ffd600;border:solid 1px #e6bf00;color:white;font-weight:bold;width:4em;font-size:110%;text-shadow:1.5px 1.5px #b39500;" value="OK">
+</form>
+<br>
+</div>
+</div>
+{% endblock %}

@@ -1,27 +1,27 @@
 {% extends "empty.html" %}
 {% block content %}
-
+<head><title>Enter your mobile number | Damadam.pk</title></head>
 <body bgcolor="#FFFFE0">
 <div class="margin" style="font-family:sans-serif;">
 {% if err == '0' %}
-<span style="font-size:90%;color:#732673;"><b>Ab khud se aik khufiya code banao</b><br>maslan <i>0813</i> ya <i>199</i> ya <i>123456</i>:</span><br>
+<span style="font-size:90%;color:#732673;"><b>Ab khud se aik khufiya code banain</b><br>maslan <i>0813</i> ya <i>199</i> ya <i>123456</i>:</span><br>
 {% elif err == '1' %}
-<span style="font-size:90%;color:red;"><b>Khufiya code mein sirf number likho</b> (maslan <i>12345</i> ya <i>007</i>):</span><br>
+<span style="font-size:90%;color:red;"><b>Khufiya code mein sirf number likhein</b> (maslan <i>12345</i> ya <i>007</i>):</span><br>
 {% elif err == '2' %}
-<b style="font-size:90%;color:red;">Ye khufiya code pehlay istimaal ho chuka hai, neya banao!</b><br>
+<b style="font-size:90%;color:red;">Ye khufiya code pehlay istimaal ho chuka hai, neya banain!</b><br>
 {% elif err == '3' %}
-<b style="font-size:90%;color:red;">Aagey jana mana hai...</b><br>
+<b style="font-size:90%;color:red;">Agey jana mana hai...</b><br>
 {% else %}
 {% endif %}
 <form action="{% url 'user_phonenumber' unique decision err id %}" method="POST" style="margin-top:0.2em;">
 {% csrf_token %}
-<!-- <input type="submit" class="hidden" id="submit-form"> -->
+
 {{ form.what_number }}<br>
-<!-- <a href="http://www.google.com" type="submit">OK</a> -->
+
 <input style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;color:white;border-radius:4px;margin-top:0.4em;margin-bottom:0.3em;width:2.5em;" type="submit" name="number" value="OK"><br>
 </form>
 <hr size=1 COLOR="#ff9933">
-<span style="font-size:85%;color:grey;">Jis ke pas ye khufiya code ho ga, wohi tumhari tasvir dekh sakey ga!</span>
+<span style="font-size:85%;color:grey;">Jis ke pas ye khufiya code ho ga, wohi apki photo dekh sakey ga!</span>
 
 </div>
 </body>

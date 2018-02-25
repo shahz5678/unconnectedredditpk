@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Prayer tutorial | Damadam.pk</title></head>
 <div class="margin clb"> 
 
-	<b class="ct">Damadam pr apni <span class="cg">namazoon</span> ka hisab rakho!</b><br>
-	<span class="cg">1)</span> Jb bhi namaz parho, Damadam pe uska record save kr lo<br>
-	<span class="cg">2)</span> Tum apni tamam namazoon ka hisab hamesha dekh sko ge!<br>
+	<b class="ct">Damadam pe apni <span class="cg">namazoon</span> ka hisab rakhein!</b><br>
+	<span class="cg">1)</span> Jb bhi namaz parhein, Damadam pe uska record save kar lein<br>
+	<span class="cg">2)</span> Ap apni tamam namazoon ka hisab hamesha dekh sakein ge<br>
 	<form action="{% url 'salat_tutorial' %}" method="POST">
 		{% csrf_token %}
 		<button class="btn nw bcg bl mtl mbl" name="choice" type="submit" value="samajh lia">samajh lia</button><br>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>{% if total %}{{ total }}{% else %}0{% endif %} reported photos | Damadam.pk</title></head>
 <div class="margin clb">
 <b class="cxl"><span class="co">{{ total }}</span> photos ko report kiya gya:</b>
 <p><hr size=1 COLOR="#D0D0D0"></p>
@@ -13,7 +14,7 @@
 <span class="cr cxl"><b>{{ complaint.nc }}</b> complaint(s):</span><br>
 <div class="mls">{{ complaint.tx|safe }}</div>
 <div class="co mtl">
-<b class="cxl">Tumhara faisla:</b>
+<b class="cxl">Apka faisla:</b>
 <form method="post" action="{% url 'cull_photo' %}" class="mtl">
 	{% csrf_token %}
 	<input type="hidden" name="scr" value="1">

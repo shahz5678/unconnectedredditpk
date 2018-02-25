@@ -1174,7 +1174,7 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	av_url = av_url_formatting(av_url=av_url,categ=categ)
+	av_url = av_url_formatting(av_url=av_url,style='round',categ=categ)
 	scr = scr_formatting(scr)
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
@@ -1189,69 +1189,33 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail}#,'p':pinkstar,'rb':reply_button }
-	elif categ == '3':
-		# this is a link about KARACHI KINGS
+	elif categ in ('3','4','5','7','8','9','10','11','12','13','14','15','16','18','19','20'):
+		# Relates to cricket:
+		# '3' Karachi Kings
+		# '4' Peshawar Zalmi
+		# '5' Lahre Qalandards
+		# '7' Quetta Gladiators
+		# '8' Islamabad United
+		# '10' New Zealand
+		# '11' South Africa
+		# '12' Pakistan
+		# '13' West Indies
+		# '14' India
+		# '15' Sri Lanka
+		# '16' England
+		# '18' World Eleven
+		# '19' Multan Sultans
+		# '20' Australia
+		# '9' Other cricket team
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '4':
-		# this is a link about PESHAWAR ZALMI
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '5':
-		# this is a link about LAHORE QALANDARS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }	
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}
 	elif categ == '6':
 		# this is a photo-containing link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time(),'ch':categ_head,'ct':categ_tail,\
 		'p':pinkstar }
-	elif categ == '7':
-		# this is a link about QUETTA GLADIATORS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '8':
-		# this is a link about ISLAMABAD UNITED
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '9':
-		# this is a link about misc
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '10':
-		# this is a link about New Zealand Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '11':
-		# this is a link about South African Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '12':
-		# this is a link about Pakistani Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '13':
-		# this is a link about West Indian Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '14':
-		# this is a link about Indian Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '15':
-		# this is a link about Sri Lankan Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '16':
-		# this is a link about English Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '17':
 		# this is a link in Urdu
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '18':
-		# this is a link for World-XI Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash

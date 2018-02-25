@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Unable to vote on photo | Damadam.pk</title></head>
 <div class="margin clb">
 {% if time_remaining == '-1' %}
-	Tumhe ab photo pr vote krne ki ijazat nahi!<br><br>
-	<span class="cgy cs">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
+	Apko photos pe vote krne ki ijazat nahi!<br><br>
+	<span class="cgy cs">Kuch bhi karte waqt insaf aur pakeezgi ka khyal rakha karein</span><br><br>
 {% else %}
-	Tumhe photo pr vote krne ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
-	<span class="cgy cs">Kuch bhi krte waqt insaf aur pakeezgi ka khyal rakha kro. Is se tumhari shaksiyat mien nikhar aye ga</span><br><br>
+	Apko photos vote krne ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
+	<span class="cgy cs">Kuch bhi karte waqt insaf aur pakeezgi ka khyal rakhein</span><br><br>
 {% endif %}
 	{% if origin == '1' %}
 	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>

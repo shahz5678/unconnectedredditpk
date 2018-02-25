@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Fan tutorial | Damadam.pk</title></head>
 <div class="margin clb">
 <div class="mbl">
-<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Ye button daba kar aap fan ban jatey ho </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><br>
+<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Ye button daba ke ap fan ban jatey ho </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><br>
 </div>
-<span class="cl">Jin ke aap fan ho, unki fotos aap ko sab se pehle nazar aati hain<br>
-OK dabao takey aap <b>{{ name }}</b> ke fan ban jao!</span>
+<span class="cl">Jin ke ap fan ho, unki fotos ap ko sab se pehle nazar aati hain<br>
+OK dabain takey ap <b>{{ name }}</b> ke fan ban jaein!</span>
 <br>
 <form action="{% url 'fan' %}" method="POST">
  	{% csrf_token %}

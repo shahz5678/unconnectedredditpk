@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Friend details | Damadam.pk</title></head>
 <div class="margin">
-<span style="color:purple;"><b>Apney dost ka naam aur number daal ke OK dabao:</b></span>
+<span style="color:purple;"><b>Apney dost ka naam aur mobile number daal ke OK dabain:</b></span>
 
 <form action="{% url 'outside_message_create' %}" method="POST">
 {% csrf_token %}

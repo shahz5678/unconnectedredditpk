@@ -1,10 +1,78 @@
+<style>
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
+}
+
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
+}
+
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+.ordernow{
+font-size:20px;
+color: ;
+}
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px; 
+ width: 95%; 
+ max-width:400px; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
+
+</style>
 {% extends "base_min.html" %}
 {% block content %}
-<head><title>Cash on delivery tutorial | Damadam.pk</title></head>
-	<div class="margin clb mtl">
-
-	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
-		<div class="cxl cg" align="center">* Free Delivery, Cash On Delivery Ki Ihteyati Tadabeer *</div><br>
+<div style="text-align:center">
+  <div class="margin clb" style="display:inline-block">
+    <span itemscope itemtype="http://schema.org/Product">
+    <div id="background-box" class="mbl background-box" style="text-align:center;background-color:#ffffff;background-color:#80acaa; border-radius:6px;padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+		<div class="cxl" style="text-align:center;">* Free Delivery, Cash On Delivery Ki Ihteyati Tadabeer *</div><br>
+		<div class="cl" style="text-align:left;">
 		* Hamarey tamam order bazaria Pakistan Post bhejay jate hein<br>
 		* Phone 4-7 din tuk ghar pohench jata hai<br>
 		* Ager ghar ka pata nahi tuo qareebi daak khaney ka pata day dein<br>
@@ -12,6 +80,7 @@
 		* Delivery ka kharcha phone ki qeemat mein shamil hai<br> 
 		* Order ki qimat say ziada paisey dak wale ko nahi denay<br>
 		 <br>
+		</div>
 		 <div class="cl cr"> Free Delivery Mehdood Mudat Key Liay Hai</div>	  
 	</div>
 	<br>
@@ -41,10 +110,14 @@
 <a href="{% url 'y3' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
 {% elif origin == 'qx2' %}
 <a href="{% url 'qx2' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
+{% elif origin == 'x36' %}
+<a href="{% url 'x36' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
 {% elif origin == 'j5p' %}
 <a href="{% url 'j5p' %}"><button class="btn bco mts bl cm"><b>wapis</b></button></a>
 
 {% endif %}
+</div>
+</div>
 </div>
 <br><br>
 {% endblock %}

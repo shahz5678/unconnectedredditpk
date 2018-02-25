@@ -11,7 +11,7 @@ from redis4 import save_ad_desc, return_referrer_logs,get_order_id, save_order_d
  place_order, get_temp_order_data, check_orders_processing,save_query_data,show_new_queries,delete_order,delete_query#, get_city_shop_listing#, get_city_shop_listing
 from score import CITIES, ON_FBS_PHOTO_THRESHOLD, OFF_FBS_PHOTO_THRESHOLD, LEAST_CLICKS, MOST_CLICKS, MEDIUM_CLICKS, LEAST_DURATION, MOST_DURATION
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
-save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms,enqueue_orderer_sms,enqueue_query_sms
+save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms,enqueue_orderer_sms,enqueue_query_sms, send_orderer_pin
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
 from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
@@ -21,8 +21,7 @@ unlock_unapproved_ad, who_locked_ad, get_user_verified_number, save_basic_ad_dat
 process_ad_expiry, toggle_SMS_setting, get_SMS_setting, save_ad_expiry_or_sms_feedback, set_ecomm_photos_secret_key, get_and_delete_ecomm_photos_secret_key, \
 reset_temporarily_saved_ad, temporarily_save_ad, get_temporarily_saved_ad_data, get_item_name, check_status_of_temporarily_saved_ad, add_mobile_customer
 from django.db.models import F
-
-from links.ads_forms import BuyerForm, InfoForm
+from links.ads_forms import BuyerForm, InfoForm, PinForm
 from django.middleware import csrf
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
@@ -48,16 +47,19 @@ mp = Mixpanel(MIXPANEL_TOKEN)
 MERCH = { 
 '1': {'price':'4200' ,'discounted_price':'4200', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
 '2': {'price':'4500' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
-'3': {'price':'6120' ,'discounted_price':'6120', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'3': {'price':'7800' ,'discounted_price':'7800', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
 '4': {'price':'6570' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
 '5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
 '6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
 '7': {'price':'7000','discounted_price':'6500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir 4G LT550'}, \
-'8': {'price':'7850','discounted_price':'7850', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
+'8': {'price':'9100','discounted_price':'7850', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
 '9': {'price':'8840','discounted_price':'8840', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Huawei Y3 3G 2017'}, \
 '10': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Energy X2'}, \
-'11': {'price':'12550','discounted_price':'12550', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung Grand Prime Plus'}, \
+'11': {'price':'14300','discounted_price':'14300', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung Grand Prime Plus'}, \
 '12': {'price':'18900','discounted_price':'18900', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung J5 Prime'}, \
+'13': {'price':'5500','discounted_price':'5500', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'QMobile Noir X36'}, \
+'14': {'price':'11300','discounted_price':'11300', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Huawei Ascend G700'}, \
+'15': {'price':'11800','discounted_price':'11800', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }
 
 LOCATION = { 
@@ -961,6 +963,12 @@ def x33_details(request,*args,**kwargs):
 	score_diff = 5000-int(user_score)
 	return render(request,"qmobile_x33.html",{'user_score':user_score,'score_diff':score_diff})
 
+def x36_details(request,*args,**kwargs):
+	user_score = 0
+	user_score = request.user.userprofile.score
+	score_diff = 5000-int(user_score)
+	return render(request,"ms_x36.html",{'user_score':user_score,'score_diff':score_diff})
+
 def x29_details(request,*args,**kwargs):
 	user_score = 0
 	user_score = request.user.userprofile.score
@@ -1057,6 +1065,7 @@ def close_query(request,*args,**kwargs):
 @csrf_protect
 def buyer_loc(request,*args,**kwargs):
 	user_id = request.user.id
+
 	if request.method == 'POST':
 		mobile_verified = request.mobile_verified
 		request.session['mobile_verified']=mobile_verified
@@ -1134,6 +1143,7 @@ def mobile_shop(request,*args,**kwargs):
 		#request.session['mobile_verified']=mobile_verified
 		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
 		request.session['merch_id'] = merch_id
+
 		request.session.modified = True
 		#loc = request.POST.get('loc',None)
 		#if loc == None or merch_id == None:
@@ -1157,17 +1167,17 @@ def mobile_shop(request,*args,**kwargs):
 def buyer_details(request,origin,*args,**kwargs):
 	# if request.method == 'POST':
 	# 	print ("i am in post")
-	if origin == 'main':
+	if origin == 'x36':
 		merch_id = request.session['merch_id']
 		form = BuyerForm()
-		mp.track(request.user.id, 'M_S_5 On_Buyer_Detail')
+		#mp.track(request.user.id, 'M_S_5 On_Buyer_Detail')
 		return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
 	else:
 		form = BuyerForm(request.POST)
 		merch_id = request.session['merch_id']
 		if form.is_valid() and origin =='buy_det':
 			#form = BuyerForm(request.POST)
-			mp.track(request.user.id, 'M_S_5.1 Correct_Buyer_Detail')
+			#mp.track(request.user.id, 'M_S_5.1 Correct_Buyer_Detail')
 			username = form.cleaned_data.get("username",None)
 			name = username.strip().title()
 			i=0
@@ -1192,17 +1202,23 @@ def buyer_details(request,origin,*args,**kwargs):
 			price = MERCH[merch_id]['price']
 			model = MERCH[merch_id]['name']
 			verified = request.mobile_verified
-			order_data = {'firstname':firstname,'lastname':lastname,'address':address,'user_id':user_id,\
+			#generating pincode using username and mobilenumber
+			pin = ord(target_username[0])
+			if pin < 10:
+				pin =pin*10
+			elif pin > 99:
+				pin=pin/10
+			pin=pin*100
+			pin=pin+int(phonenumber[4:6])
+			
+			order_data = {'firstname':firstname,'lastname':lastname,'address':address,'user_id':user_id,'pin':pin,\
 			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model,'verified':verified, 'time':time.time(),'username':target_username} 
-		#if request.mobile_verified:
-		# number = get_user_verified_number(user_id)
-		# request.session['buyer_phonenumber']=number[0]
-		# request.session.modified = True
-		# order_data['phonenumber']=number[0]
+			#print order_data
 			saved = save_order_data(order_data)
-		
 			if saved:
-				mp.track(request.user.id, 'M_S_6 On confirm order')
+				orderer_phonenumber='+92'+order_data["phonenumber"][1:]
+				send_orderer_pin.delay(orderer_phonenumber,pin, order_data, None)
+				#mp.track(request.user.id, 'M_S_6 On confirm order')
 				return redirect("confirm_order")
 			else:
 				return render(request,"404.html",{})
@@ -1219,7 +1235,7 @@ def buyer_details(request,origin,*args,**kwargs):
 	 	#		return render(request,"404.html",{})	
 		else:
 			#form = BuyerForm()
-			mp.track(request.user.id, 'M_S_5.05 Incorrect_Buyer_Info')
+			#mp.track(request.user.id, 'M_S_5.05 Incorrect_Buyer_Info')
 			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
 
 
@@ -1237,14 +1253,14 @@ def intermediate(request,origin,*args,**kwargs):
 		merch_id = request.session['merch_id']
 		request.session.modified = True
 	model = MERCH[merch_id]['name']
-	mp.track(request.user.id, 'M_S_2 On_intermediate')
+	#mp.track(request.user.id, 'M_S_2 On_intermediate')
 	return render(request,'ms_intermediate.html',{'merch_id':merch_id,'model':model,'origin':origin})
 
 
 def faq(request,*args,**kwargs):
 	merch_id = request.session['merch_id']
 	model = MERCH[merch_id]['name']
-	mp.track(request.user.id, 'M_S_3 On_FAQ')
+	#mp.track(request.user.id, 'M_S_3 On_FAQ')
 	return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})
 
 def queryrequest(request,*args,**kwargs):
@@ -1308,37 +1324,56 @@ def confirm_order(request):
 			mp.track(request.user.id, 'M_S_8 ordering second')
 			return redirect("in_process")
 		else:
-			merch_id = request.session['merch_id']
+			form = PinForm(request.POST,user_id=user_id)
+			#merch_id = request.session['merch_id']	
+			if form.is_valid():
+			#merch_id = request.session['merch_id']
 			#score_cost = 5000
-			saved = place_order(user_id)
+				saved = place_order(user_id)
 
-			if saved:
-				user_score = request.user.userprofile.score
-				#UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
-				enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)
-				enqueue_buyer_sms.delay('+923335196812', saved["order_id"], saved, None)
-				enqueue_buyer_sms.delay('+923334404403', saved["order_id"], saved, None)				
-				orderer_phonenumber='+92'+saved["phonenumber"][1:]
-				enqueue_orderer_sms.delay(orderer_phonenumber,saved["order_id"], saved, None)
-				mp.track(request.user.id, 'M_S_7 order placed')				
-				return redirect("order_successful")
+				if saved:
+					user_score = request.user.userprofile.score
+					#UserProfile.objects.filter(user_id=user_id).update(score=F('score')-int(score_cost))
+					enqueue_buyer_sms.delay('+923455885441', saved["order_id"], saved, None)
+					#enqueue_buyer_sms.delay('+923335196812', saved["order_id"], saved, None)
+					#enqueue_buyer_sms.delay('+923334404403', saved["order_id"], saved, None)				
+					orderer_phonenumber='+92'+saved["phonenumber"][1:]
+					enqueue_orderer_sms.delay(orderer_phonenumber,saved["order_id"], saved, None)
+					mp.track(request.user.id, 'M_S_7 order placed')				
+					return redirect("order_successful")
+				else:
+					return render(request,"404.html",{})
 			else:
-				return render(request,"404.html",{})
+				user_id = request.session['mobile_buyer_id']
+				order_data = get_temp_order_data(user_id)
+				model = order_data['model']
+				price = order_data['price']
+				phonenumber = order_data['phonenumber']
+				user_score = request.user.userprofile.score			
+				merch_id = order_data['merch_id']
+				score_charge = 5000
+				remaining_score = user_score - 5000
+				buy_possible=0
+				return render(request,'confirm_order.html',{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
+			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
+
 	else:
 		user_id = request.session['mobile_buyer_id']
 		order_data = get_temp_order_data(user_id)
 		if order_data:
 			model = order_data['model']
 			price = order_data['price']
+			phonenumber = order_data['phonenumber']
 			user_score = request.user.userprofile.score			
 			merch_id = order_data['merch_id']
 			score_charge = 5000
 			remaining_score = user_score - 5000
 			buy_possible=0
+			form = PinForm()
 			#mobile_verified = request.session['mobile_verified']
 			#if int(score_charge) <= int(user_score):
 			#	buy_possible = 1
-			return render(request,"confirm_order.html",{'model':model,'price':price,\
+			return render(request,"confirm_order.html",{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 			# 'buy_possible':buy_possible,\
 			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
 		else:

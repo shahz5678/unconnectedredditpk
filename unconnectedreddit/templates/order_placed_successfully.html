@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Order received | Damadam.pk</title></head>	
-<div class="margin clb">
-<b class="cxl clb">Ap ka order hamarey pass aagya hai</b><br> 
-<b class="cxl clb">Hamari partner dukan ka numainda aap say jald rabta keray ga</b><br>
-<br>
-<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
-<hr size=1 COLOR="#bfbfbf">
+<div style="text-align:center">
+  <div class="margin clb" style="display:inline-block">
+    <span itemscope itemtype="http://schema.org/Product">
+    <div id="background-box" class="mbl background-box" style="text-align:center;background-color:#ffffff;background-color:#80acaa; border-radius:6px;padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+		<div class="cl" style="text-align:center;">
+			<b class="cl">Ap ka order hamarey pass aagya hai</b><br> 
+			<b class="cm" style="text-align:center;">Hamari partner dukan ka numainda aap<br> say jald rabta keray ga</b><br>
+			<br>
+			<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl" style="background-color:#05f6cb;border:none;"><b>wapis</b></button></a>
 
+		</div>
+	</div>
 </div>
-<br><br>
+</div>
 {% endblock %}

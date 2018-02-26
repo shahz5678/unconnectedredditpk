@@ -79,9 +79,9 @@ body {
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
 		<div class="box-with-button-right">
-		<input type="hidden" name="public_group_reply" value="111">
-		<input type="hidden" name="private_group_reply" value="111">
-		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="public_group_reply" value="|">
+		<input type="hidden" name="private_group_reply" value="|">
+		<input type="hidden" name="photo_comment" value="|">
 		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" name="btn{{ forloop.counter }}" type="submit">jawab do</button>
@@ -103,9 +103,9 @@ body {
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
 		<div class="box-with-button-right">
-		<input type="hidden" name="public_group_reply" value="111">
-		<input type="hidden" name="private_group_reply" value="111">
-		<input type="hidden" name="photo_comment" value="111">
+		<input type="hidden" name="public_group_reply" value="|">
+		<input type="hidden" name="private_group_reply" value="|">
+		<input type="hidden" name="photo_comment" value="|">
 		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 		{{ form.home_comment }}
 		<br><button class="btn bct bms mts" type="submit">jawab do</button>
@@ -146,9 +146,9 @@ body {
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<div class="box-with-button-right">
-				<input type="hidden" name="public_group_reply" value="111">
-				<input type="hidden" name="photo_comment" value="111">
-				<input type="hidden" name="home_comment" value="111">
+				<input type="hidden" name="public_group_reply" value="|">
+				<input type="hidden" name="photo_comment" value="|">
+				<input type="hidden" name="home_comment" value="|">
 				{{ form.private_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
 				<button class="btn bcgy bms mts" type="submit" >jawab do</button>
 				</div>
@@ -158,9 +158,9 @@ body {
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<div class="box-with-button-right">
-				<input type="hidden" name="private_group_reply" value="111">
-				<input type="hidden" name="photo_comment" value="111">
-				<input type="hidden" name="home_comment" value="111">
+				<input type="hidden" name="private_group_reply" value="|">
+				<input type="hidden" name="photo_comment" value="|">
+				<input type="hidden" name="home_comment" value="|">
 				{{ form.public_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
 				<br><button class="btn bcgy bms mts" type="submit">jawab do</button>
 				</div>
@@ -196,9 +196,9 @@ body {
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<div class="box-with-button-right">
-				<input type="hidden" name="public_group_reply" value="111">
-				<input type="hidden" name="photo_comment" value="111">
-				<input type="hidden" name="home_comment" value="111">
+				<input type="hidden" name="public_group_reply" value="|">
+				<input type="hidden" name="photo_comment" value="|">
+				<input type="hidden" name="home_comment" value="|">
 				{{ form.private_group_reply }}
 				<br><button class="btn bcg bms mts" type="submit" >jawab do</button>
 				</div>
@@ -230,9 +230,9 @@ body {
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<div class="box-with-button-right">
-				<input type="hidden" name="private_group_reply" value="111">
-				<input type="hidden" name="photo_comment" value="111">
-				<input type="hidden" name="home_comment" value="111">
+				<input type="hidden" name="private_group_reply" value="|">
+				<input type="hidden" name="photo_comment" value="|">
+				<input type="hidden" name="home_comment" value="|">
 				{{ form.public_group_reply }}
 				<br><button class="btn bcp bms mts" type="submit">jawab do</button>
 				</div>
@@ -321,9 +321,9 @@ body {
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
 		<div class="box-with-button-right">
-		<input type="hidden" name="private_group_reply" value="111">
-		<input type="hidden" name="public_group_reply" value="111">
-		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="private_group_reply" value="|">
+		<input type="hidden" name="public_group_reply" value="|">
+		<input type="hidden" name="home_comment" value="|">
 		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
 		<br><button class="btn bcgy bms mts" type="submit">tabsra kro</button>
@@ -356,9 +356,9 @@ body {
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
 		<div class="box-with-button-right">
-		<input type="hidden" name="private_group_reply" value="111">
-		<input type="hidden" name="public_group_reply" value="111">
-		<input type="hidden" name="home_comment" value="111">
+		<input type="hidden" name="private_group_reply" value="|">
+		<input type="hidden" name="public_group_reply" value="|">
+		<input type="hidden" name="home_comment" value="|">
 		<input type="hidden" name="popk" value="{{ notif.ooi }}">
 		{{ form.photo_comment }}
 		<br><button class="btn bco bms mts" type="submit">tabsra kro</button>
@@ -387,10 +387,10 @@ body {
 				<input type="hidden" name="fan_list" value="{{ notif.r }}">
 				<input type="hidden" name="photo_url" value="{{ notif.p }}">
 				<input type="hidden" name="fan_num" value="{{ notif.l }}">
-				<input type="hidden" name="public_group_reply" value="111">
-				<input type="hidden" name="private_group_reply" value="111">
-				<input type="hidden" name="home_comment" value="111">
-				<input type="hidden" name="photo_comment" value="111">
+				<input type="hidden" name="public_group_reply" value="|">
+				<input type="hidden" name="private_group_reply" value="|">
+				<input type="hidden" name="home_comment" value="|">
+				<input type="hidden" name="photo_comment" value="|">
 				<input type="submit" style="border:none;background:none;margin-left:-0.5em;margin-right:-0.5em;color:#1947D1;font-weight:bold;" value="{{ notif.l }} fans">
 			</form>
 			ke matke mein pohonch gayee! Baqi <b>{{ notif.v|sub:notif.l }} fans</b> reh gaye {% emoticons %}.i5.i6.i7.i8{% endemoticons %}

@@ -4,28 +4,8 @@
 {% load emoticons_tags %}
 {% load get_mobile_verification_bar %}
 {% block content %}
-
-<style type="text/css">
-    
-    .lsp{
-      line-height:1.55;
-    }
-
-    .sp{
-      letter-spacing: 1px;
-    }   
-
-    .st-dot{
-      display:inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;  
-    }
-
-</style>
-
+<head><title>{% if switching %}Public group{% else %}{{ group.topic }}{% endif %} | Damadam.pk</title></head>
 <div class="margin">
-
 
 {% if group_banned %}
     
@@ -91,7 +71,9 @@
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
     <br>
-    <form action="{% url 'public_group_reply' %}" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
+    <div id="pub_grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+    <div id="pub_grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+    <form action="{% url 'public_group_reply' %}" id="pub_grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
         <div class="mbl">
@@ -101,11 +83,11 @@
         {% endif %}
         {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
         <br>
-        <button class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
+        <button id="pub_grp_subform" name="uid" value="{{ unique }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
     </form>
     <form action="{% url 'first_time_public_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="btn bms bco mts" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
+        <button class="btn bms bco mts" name="uid" value="{{ unique }}" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
     </form>
         <div class="mts sp">
         <a href="{% url 'invite' %}#section0" class="cs cb"><b>invite</b></a>

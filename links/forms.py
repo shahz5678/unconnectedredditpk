@@ -17,14 +17,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import re, time
 from user_sessions.models import Session
 import unicodedata
-from fuzzywuzzy import fuzz
 
 ########################################### Utilities #######################################
 
 def repetition_found(section,section_id,user_id, target_text):
 	msgs_list = retrieve_previous_msgs(section=section, section_id=section_id,user_id=user_id)
 	if msgs_list:
-		if target_text in msgs_list[1:]:
+		if target_text in [x.decode('utf-8') for x in msgs_list[1:]]:
 			return True
 		else:
 			return False

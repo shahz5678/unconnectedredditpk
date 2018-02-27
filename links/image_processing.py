@@ -53,17 +53,18 @@ def reorient_image(im):
     except (KeyError, AttributeError, TypeError, IndexError):
         return im
 
-def make_thumbnail(filee,quality):
+def make_thumbnail(filee,quality,caption=None,already_resized=None):
     img = filee
-    # img = restyle_image(img) # only use this if you're not utilizing img.thumbnail()
     if img.mode != 'RGB':
         img = img.convert("RGB")
     img = enhance_image(img)
     #############
-    img.thumbnail((300, 300),Image.ANTIALIAS)
+    if not already_resized:
+        # JS users' images are resized in JS to 400x400. Non-JS users get to 300x300 below
+        img.thumbnail((300, 300),Image.ANTIALIAS)
     # fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue
     # shadowcolor = (0,0,0)
-    # text = u'مسجد' #urdu se angrezi
+    # text = caption
     # draw_text(img,text,fillcolor,shadowcolor)
     #############
     thumbnailString = StringIO.StringIO()
@@ -72,8 +73,6 @@ def make_thumbnail(filee,quality):
     else:
         img.save(thumbnailString, 'JPEG', optimize=True,quality=40)
     newFile = InMemoryUploadedFile(thumbnailString, None, 'temp.jpg', 'image/jpeg', thumbnailString.len, None)
-    # print newFile
-    # print newFile.file
     return newFile
 
 # used in PhotoReplyView (unreleased), PicsChatUploadView, PublicGroupView, PrivateGroupView, AdImageView

@@ -5478,17 +5478,13 @@ def first_time_unseen_refresh(request, *args, **kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def first_time_public_refresh(request):
-	if request.method == "POST":
-		unique = request.POST.get('uid',None)
-		if first_time_refresher(request.user.id):
-			add_refresher(request.user.id)
-			context = {'unique': unique}
-			return render(request, 'public_mehfil_refresh.html', context)
-		else:
-			return redirect("public_group", unique)
+def first_time_public_refresh(request, unique=None, *args, **kwargs):
+	if first_time_refresher(request.user.id):
+		add_refresher(request.user.id)
+		context = {'unique': unique}
+		return render(request, 'public_mehfil_refresh.html', context)
 	else:
-		return redirect("public_group")
+		return redirect("public_group", unique)
 
 
 @ratelimit(rate='3/s')

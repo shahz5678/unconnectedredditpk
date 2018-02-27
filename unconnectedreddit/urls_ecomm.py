@@ -73,7 +73,7 @@ urlpatterns = patterns('',
 	# url(r'^mobile_shop/qx2/$', qx2_details,name='qx2'),
 	# url(r'^mobile_shop/gprimep/$', gprimep_details,name='gprimep'),
 	# url(r'^mobile_shop/j5p/$', j5p_details,name='j5p'),
-	url(r'^mobile_shop/x36/$', x36_details,name='x36'),
+	url(r'^x36/$', x36_details,name='x36'),
 	#url(r'^mobile/i6metal/$', i6metal_details,name='i6metal'),
 
 

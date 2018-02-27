@@ -29,7 +29,7 @@ best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_i
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
-number_verification_help, photo_comment, public_reply_view, post_public_reply,public_group_request_denied#, public_photo_upload_denied
+number_verification_help, photo_comment, public_reply_view, post_public_reply, public_group_request_denied#, public_photo_upload_denied
 from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.number_verification import verify_user_number
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
@@ -141,8 +141,8 @@ urlpatterns = patterns('',
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
 	url(r'^top_photo/help/$', auth(top_photo_help), name='top_photo_help'),
-	url(r'^comment/$', CommentView.as_view(), name='comment'),
-	url(r'^comment/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
+	url(r'^comment/(?P<pk>\d+)/$', CommentView.as_view(), name='comment'),
+	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
 	url(r'^comment_chat_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
 	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
 	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),

@@ -85,7 +85,7 @@
         <br>
         <button id="pub_grp_subform" name="uid" value="{{ unique }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
     </form>
-    <form action="{% url 'first_time_public_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
+    <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         <button class="btn bms bco mts" name="uid" value="{{ unique }}" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
     </form>
@@ -228,4 +228,7 @@
     {% endif %}
     </div>
     <br><br>
+    
+<!-- <script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.js"></script> -->
+<!-- <script type="text/javascript" src="{{ STATIC_URL }}js/file_processing.js"></script> -->
 {% endblock %}

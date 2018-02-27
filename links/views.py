@@ -47,7 +47,7 @@ VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, Ad
 AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
 HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, \
 AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm#, GroupReportForm
-from django.core.urlresolvers import reverse_lazy#, reverse
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from PIL import Image, ImageFile
@@ -1701,8 +1701,6 @@ class AppointCaptainView(FormView):
 				except:
 					return redirect("owner_group_online_kon")
 			else:
-				self.request.session["public_uuid"] = None
-				self.request.session.modified = True
 				return redirect("public_group", slug=unique)
 			return redirect("owner_group_online_kon")
 
@@ -5275,16 +5273,16 @@ class ChangeGroupTopicView(CreateView):
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
 
-# def public_group_request_denied(request):
-# 	which_msg = request.session.pop("public_group_request_denied",None)
-# 	if which_msg == '1':
-# 		return render(request,'big_photo_fbs.html',{'pk':'pk'})
-# 	elif which_msg == '2':
-# 		return render(request,'big_photo_regular.html',{'origin':'pub_grp'})
-# 	elif which_msg == '3':
-# 		return render(request, 'big_photo.html', {'photo':'pub_grp'})
-# 	else:
-# 		return redirect("missing_page")
+def public_group_request_denied(request):
+	which_msg = request.session.pop("public_group_request_denied",None)
+	if which_msg == '1':
+		return render(request,'big_photo_fbs.html',{'pk':'pk'})
+	elif which_msg == '2':
+		return render(request,'big_photo_regular.html',{'origin':'pub_grp'})
+	elif which_msg == '3':
+		return render(request, 'big_photo.html', {'photo':'pub_grp'})
+	else:
+		return redirect("missing_page")
 
 
 class PublicGroupView(CreateView):
@@ -5311,6 +5309,8 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 				return context
 			if 'awami' in self.request.path and group.private == '0': 
+				context["form"] = self.request.session.pop("public_group_form") if "public_group_form" in self.request.session else \
+				PublicGroupReplyForm()
 				context["score"] = self.request.user.userprofile.score
 				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
@@ -5349,59 +5349,85 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 		return context
 
-	# def form_invalid(self, form):
-	#     """
-	#     If the form is invalid, re-render the context data with the
-	#     data-filled form and errors.
-	#     """
-	#     # is_ajax = self.request.is_ajax()
-	#     self.request.session["public_group_form"] = form
-	#     self.request.session.modified = True
-	#     if self.request.is_ajax():
-	#     	return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
-	#     else:
-	#     	return self.render_to_response(self.get_context_data(form=form))
-	    	
+	def form_invalid(self, form):
+	    """
+	    If the form is invalid, re-render the context data with the
+	    data-filled form and errors.
+	    """
+	    self.request.session["public_group_form"] = form
+	    self.request.session.modified = True
+	    if self.request.is_ajax():
+	    	return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+	    else:
+	    	return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
-		user_id = self.request.user.id
-		try:
-			pk = self.request.session["public_uuid"]
-			which_group = Group.objects.get(unique=pk)#
-		except:
-			return redirect("profile", self.request.user.username )
+		"""
+	    If the form is valid, redirect to the supplied URL.
+	    """
+		is_ajax = self.request.is_ajax()
 		if self.request.user_banned:
-			return render(self.request,'500.html',{})
-		elif GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
-			return redirect("group_page")
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('missing_page')}),content_type='application/json',)
+			else:
+				return redirect("missing_page")
+		user_id = self.request.user.id
+		pk = self.request.POST.get('uid',None)
+		try:
+			which_group = Group.objects.get(unique=pk)
+		except Group.DoesNotExist:
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
+		if GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
 		else:
 			if self.request.user.userprofile.score < -25:#
 				HellBanList.objects.create(condemned=self.request.user)
 				self.request.user.userprofile.score = random.randint(10,71)
 				self.request.user.userprofile.save()
-				return redirect("group_page")
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+				else:
+					return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			set_input_rate_and_history.delay(section='pub_grp',section_id=which_group.id,text=f.text,user_id=user_id,time_now=time.time())
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+			self.request.session["public_uuid"] = pk
+			self.request.session.modified = True
 			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:
 					if f.image.size > 200000:
-						context = {'pk':'pk'}
-						return render(self.request,'big_photo_fbs.html',context)
-					else:
-						pass
+						self.request.session["public_group_request_denied"] = '1'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
 				else:
 					if f.image.size > 10000000:
-						context = {'pk':'pk'}
-						return render(self.request,'big_photo_regular.html',context)
+						self.request.session["public_group_request_denied"] = '2'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
+				image_file = clean_image_file(f.image, already_reoriented=self.request.POST.get('reoriented',None),\
+					already_resized=self.request.POST.get('resized',None))
+				if image_file is False:
+					self.request.session["public_group_request_denied"] = '3'
+					self.request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
 					else:
-						pass
-				image_file = clean_image_file(f.image)
-				if image_file:
-					f.image = image_file
+						return redirect('public_group_request_denied')
 				else:
-					f.image = None
+					f.image = image_file
 			else: 
 				f.image = None
 			if self.request.is_feature_phone:
@@ -5430,35 +5456,31 @@ class PublicGroupView(CreateView):
 				image_url = None
 			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
-			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
-				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
-				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
-				image_url=image_url,priority='public_mehfil',from_unseen=False, reply_id=reply.id)
-			# self.request.session["public_uuid"] = None
-			self.request.session.pop("public_uuid",None)
-			return redirect("public_group", slug=pk)
+			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
+				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
+				reply_text=f.text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='public_mehfil',\
+				from_unseen=False, reply_id=reply.id)
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+			else:
+				return redirect("public_group")
 
 
 @ratelimit(rate='3/s')
 def public_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		# if request.user.is_authenticated():
-		# 	deduction = 2 * -2
-		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
-		# 	request.user.userprofile.save()
-		# 	context = {'unique': slug}
-		# 	return render(request, 'penalty_public.html', context)
-		# else:
-		# 	context = {'unique': slug}
-		# 	return render(request, 'penalty_public.html', context)
-		return redirect("missing_page")
+	if not slug:
+		slug = request.session.get("public_uuid",None)
 	else:
-		if valid_uuid(slug):
-			request.session["public_uuid"] = slug
-			return redirect("public_group_reply")
+		request.session["public_uuid"] = slug
+		request.session.modified = True
+	if valid_uuid(slug):
+		if was_limited:
+			return redirect("missing_page")
 		else:
-			return redirect("score_help")
+			return redirect("public_group_reply")
+	else:
+		return redirect("group_page")
 
 
 @ratelimit(rate='3/s')
@@ -5505,13 +5527,17 @@ def first_time_unseen_refresh(request, *args, **kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def first_time_public_refresh(request, unique=None, *args, **kwargs):
-	if first_time_refresher(request.user.id):
-		add_refresher(request.user.id)
-		context = {'unique': unique}
-		return render(request, 'public_mehfil_refresh.html', context)
+def first_time_public_refresh(request):
+	if request.method == "POST":
+		unique = request.POST.get('uid',None)
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			context = {'unique': unique}
+			return render(request, 'public_mehfil_refresh.html', context)
+		else:
+			return redirect("public_group", unique)
 	else:
-		return redirect("public_group", unique)
+		return redirect("public_group")
 
 
 @ratelimit(rate='3/s')
@@ -5649,10 +5675,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					else:
 						pass
 				image_file = clean_image_file(f.image)
-				if image_file:
-					f.image = image_file
+				if image_file is False:
+					return render(self.request, 'big_photo.html', {'photo':'prv_grp'})
 				else:
-					f.image = None
+					f.image = image_file
 			else: 
 				f.image = None
 			if self.request.is_feature_phone:
@@ -6026,6 +6052,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("best_photo")
 				else:
 					return redirect("unseen_activity", username)
 			else:
@@ -6044,6 +6072,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						else:
 							return redirect("home")
 					elif origin == '2':
+						return redirect("best_photo")
+					else:
 						return redirect("best_photo")
 				else:
 					notification = "np:"+str(request.user.id)+":0:"+str(pk)

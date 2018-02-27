@@ -290,7 +290,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 						log_short_message(user_id,section,section_id)
 				elif text_len > 500:
 					raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-				elif not self.is_mob_verified:
+				if not self.is_mob_verified:
 					raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
 				text = clear_zalgo_text(text)
 				uni_str = uniform_string(text)

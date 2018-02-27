@@ -6,7 +6,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import StringIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-
+def enhance_image(image):
+    enhancer = ImageEnhance.Brightness(image)
+    enhancer = enhancer.enhance(1.06)
+    enhancer2 = ImageEnhance.Contrast(enhancer)
+    enhancer2 = enhancer2.enhance(1.02)
+    enhancer3 = ImageEnhance.Color(enhancer2)
+    return enhancer3.enhance(1.10)
 
 def compute_avg_hash(image):
     small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
@@ -43,12 +49,7 @@ def make_thumbnail(filee,quality):
     # img = restyle_image(img) # only use this if you're not utilizing img.thumbnail()
     if img.mode != 'RGB':
         img = img.convert("RGB")
-    enhancer = ImageEnhance.Brightness(img)
-    enhancer = enhancer.enhance(1.10)
-    enhancer2 = ImageEnhance.Contrast(enhancer)
-    enhancer2 = enhancer2.enhance(1.04)
-    enhancer3 = ImageEnhance.Color(enhancer2)
-    img = enhancer3.enhance(1.15)
+    img = enhance_image(img)
     #############
     img.thumbnail((300, 300),Image.ANTIALIAS)
     # fillcolor = (255,255,255)#(255,0,0)red#(0,100,0)green#(0,0,0)black#(0,0,255)blue

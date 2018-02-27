@@ -5377,7 +5377,7 @@ class PublicGroupView(CreateView):
 				self.request.user.userprofile.save()
 				return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=f.text,user_id=user_id,time_now=time.time())
+			set_input_rate_and_history.delay(section='pub_grp',section_id=which_group.id,text=f.text,user_id=user_id,time_now=time.time())
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)

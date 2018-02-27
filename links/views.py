@@ -5275,27 +5275,17 @@ class ChangeGroupTopicView(CreateView):
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
 
+# def public_group_request_denied(request):
+# 	which_msg = request.session.pop("public_group_request_denied",None)
+# 	if which_msg == '1':
+# 		return render(request,'big_photo_fbs.html',{'pk':'pk'})
+# 	elif which_msg == '2':
+# 		return render(request,'big_photo_regular.html',{'origin':'pub_grp'})
+# 	elif which_msg == '3':
+# 		return render(request, 'big_photo.html', {'photo':'pub_grp'})
+# 	else:
+# 		return redirect("missing_page")
 
-
-@ratelimit(rate='3/s')
-def public_group(request, slug=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 2 * -2
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': slug}
-			return render(request, 'penalty_public.html', context)
-		else:
-			context = {'unique': slug}
-			return render(request, 'penalty_public.html', context)
-	else:
-		if valid_uuid(slug):
-			request.session["public_uuid"] = slug
-			return redirect("public_group_reply")
-		else:
-			return redirect("score_help")
 
 class PublicGroupView(CreateView):
 	model = Reply
@@ -5358,6 +5348,20 @@ class PublicGroupView(CreateView):
 				context["switching"] = True
 				context["group_banned"] = False
 		return context
+
+	# def form_invalid(self, form):
+	#     """
+	#     If the form is invalid, re-render the context data with the
+	#     data-filled form and errors.
+	#     """
+	#     # is_ajax = self.request.is_ajax()
+	#     self.request.session["public_group_form"] = form
+	#     self.request.session.modified = True
+	#     if self.request.is_ajax():
+	#     	return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+	#     else:
+	#     	return self.render_to_response(self.get_context_data(form=form))
+	    	
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
 		user_id = self.request.user.id
@@ -5434,6 +5438,27 @@ class PublicGroupView(CreateView):
 			self.request.session.pop("public_uuid",None)
 			return redirect("public_group", slug=pk)
 
+
+@ratelimit(rate='3/s')
+def public_group(request, slug=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		# if request.user.is_authenticated():
+		# 	deduction = 2 * -2
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': slug}
+		# 	return render(request, 'penalty_public.html', context)
+		# else:
+		# 	context = {'unique': slug}
+		# 	return render(request, 'penalty_public.html', context)
+		return redirect("missing_page")
+	else:
+		if valid_uuid(slug):
+			request.session["public_uuid"] = slug
+			return redirect("public_group_reply")
+		else:
+			return redirect("score_help")
 
 
 @ratelimit(rate='3/s')

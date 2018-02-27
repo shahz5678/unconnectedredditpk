@@ -208,12 +208,6 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return description
 
-# 1) redo prev retort system for each input type
-# 2) rewire it with all relevant forms
-# 3) ensure '|' is the default for all unseenactivityform attributes (instead of '111') everywhere in the code
-# 4) rewrite clean methods for unseenactivityform fields
-# 5) test cases where a person is rate limited at home - this shouldn't affect them in mehfil or photos (and vice versa)
-
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
 		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
@@ -635,7 +629,8 @@ class UnseenActivityForm(forms.Form):
 		self.user_id = kwargs.pop('user_id',None)
 		self.link_id = kwargs.pop('link_id',None)
 		self.photo_id = kwargs.pop('photo_id',None)
-		self.grp_id = kwargs.pop('grp_id',None)
+		self.pub_grp_id = kwargs.pop('pub_grp_id',None)
+		self.prv_grp_id = kwargs.pop('prv_grp_id',None)
 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
 		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
 		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
@@ -652,7 +647,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_home_comment(self):
 		comment, user_id, link_id, section = self.cleaned_data.get("home_comment"), self.user_id, self.link_id, 'home_rep'
-		if repetition_found(section=section,section_id=link_id,user_id=user_id, target_text=comment):
+		if link_id and repetition_found(section=section,section_id=link_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		home_reply_empty = comment == '|'
 		if home_reply_empty:
@@ -684,7 +679,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_photo_comment(self):
 		comment, user_id, photo_id, section = self.cleaned_data.get("photo_comment"), self.user_id, self.photo_id, 'pht_comm'
-		if repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
+		if photo_id and repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		photo_comment_empty = comment == '|'
 		if photo_comment_empty:
@@ -715,8 +710,8 @@ class UnseenActivityForm(forms.Form):
 				return comment
 
 	def clean_public_group_reply(self):
-		group_reply, user_id, section_id, section = self.cleaned_data.get("public_group_reply"), self.user_id, self.grp_id, 'pub_grp'
-		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
+		group_reply, user_id, section_id, section = self.cleaned_data.get("public_group_reply"), self.user_id, self.pub_grp_id, 'pub_grp'
+		if section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		group_reply_empty = group_reply == '|'
 		if group_reply_empty:
@@ -747,8 +742,8 @@ class UnseenActivityForm(forms.Form):
 				return group_reply
 
 	def clean_private_group_reply(self):
-		group_reply, user_id, section_id, section = self.cleaned_data.get("private_group_reply"), self.user_id, self.grp_id, 'prv_grp'
-		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
+		group_reply, user_id, section_id, section = self.cleaned_data.get("private_group_reply"), self.user_id, self.prv_grp_id, 'prv_grp'
+		if section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		group_reply_empty = group_reply == '|'
 		if group_reply_empty:

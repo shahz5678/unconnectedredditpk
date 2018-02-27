@@ -101,8 +101,8 @@ def make_thumbnail(filee,quality,caption=None,already_resized=None):
 def clean_image_file(image,quality=None,already_reoriented=None, already_resized=None):
     if image:
         image = Image.open(image)
-        # if float(image.height)/image.width > 7.0:
-        #     return False
+        if float(image.height)/image.width > 7.0:
+            return False
         if not already_reoriented:
             image = reorient_image(image)
         return make_thumbnail(filee=image,quality=quality,already_resized=already_resized)

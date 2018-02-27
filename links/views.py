@@ -5832,7 +5832,10 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	else:
 		if request.method == 'POST':
 			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user_id=user_id,grp_id=pk,photo_id='',link_id='')
+			if grp["private"] == '1':
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='')
+			else:
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='')
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
 				description = desc1 if desc2 == '|' else desc2
@@ -5955,7 +5958,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				request.session.modified = True
 				return redirect("ban_underway")
 			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user_id=user_id,grp_id='',link_id='',photo_id=pk)
+			form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk)
 			if form.is_valid():
 				photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
 				description = form.cleaned_data.get("photo_comment")
@@ -6064,7 +6067,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				request.session.modified = True
 				return redirect("ban_underway")
 			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user_id=own_id,grp_id='',link_id=pk,photo_id='')
+			form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='')
 			if form.is_valid():
 				text = form.cleaned_data.get("home_comment")
 				target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\

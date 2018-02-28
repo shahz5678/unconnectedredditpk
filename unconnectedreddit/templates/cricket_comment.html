@@ -61,14 +61,16 @@ Latest commentary:
  	{% if forloop.counter == 3 or forloop.counter == 7 %}
 	 	
 		<!-- Responsive Ad -->
+		<div style="text-align:center">
 		<ins class="adsbygoogle"
-		    style="display:block;text-align:center"
+		    style="display:block"
 		    data-ad-client="ca-pub-2568547635306983"
 		    data-ad-slot="3079816846"
 		    data-ad-format="auto"></ins>
 		<script>
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
+		</div>
  	{% endif %}
 
  	{% with replyforms|get_item:comment.l as replyform %}

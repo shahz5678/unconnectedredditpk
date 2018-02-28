@@ -3563,22 +3563,22 @@ class CommentView(CreateView):
 			context["photo_id"] = pk
 		elif origin == '3':
 			context["origin"] = '3'
+			star_user_id = self.request.session.get("user_ident",None)
 			try:
-				star_user_id = self.request.session["user_ident"]
 				username = User.objects.get(id=star_user_id).username
 				context["username"] = username
-			except:
+			except User.DoesNotExist:
 				context["origin"] = '1'
 		elif origin == '5':
 			context["origin"] = '5'
 			context["photo_id"] = pk
 		elif origin == '6':
 			context["origin"] = '6'
-			link_ident = self.request.session["user_ident"]
+			link_ident = self.request.session.get("user_ident",None) #mislabled - actually contains link_id
 			if link_ident:
 				#if originating from a specific link
-				context["link_ident"] = self.request.session["user_ident"]
-				self.request.session['target_id'] = self.request.session["user_ident"] #mislabled - actually contains link_id
+				context["link_ident"] = link_ident
+				self.request.session['target_id'] = link_ident
 			else:
 				#if originating from a notification
 				self.request.session['target_id'] = None

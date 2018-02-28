@@ -3379,7 +3379,7 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 		if pk and user_id and from_photos:
 			request.session["photo_id"] = pk
 			request.session["star_user_id"] = user_id
-			return redirect("comment", from_photos)
+			return redirect("comment", pk=pk,origin=from_photos)
 		else:
 			return redirect("best_photo")
 
@@ -3516,9 +3516,9 @@ def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 		else:
 			request.session["user_ident"] = None
 		if origin:
-			return redirect("comment", origin)
+			return redirect("comment", pk=pk,origin=origin)
 		else:
-			return redirect("comment")
+			return redirect("comment", pk=pk)
 	
 class CommentView(CreateView):
 	model = PhotoComment
@@ -3528,7 +3528,7 @@ class CommentView(CreateView):
 	def get_form_kwargs( self ):
 		kwargs = super(CommentView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
-		kwargs['photo_id'] = Photo.objects.filter(id=self.request.session.get("photo_id",None)).values_list('id',flat=True)[0]
+		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -3537,63 +3537,60 @@ class CommentView(CreateView):
 			context["feature_phone"] = True
 		else:
 			context["feature_phone"] = False
+		pk = self.kwargs.get('pk',None)
 		try:
-			pk = self.request.session["photo_id"]
 			photo = Photo.objects.select_related('owner').get(id=pk)
-			context["photo"] = photo
-			comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
-			context["count"] = comms.count()
-			comments = comms.order_by('-id')[:25]
-			context["comments"] = comments
-			context["thumbs"] = retrieve_single_thumbs(photo.owner.username)
-			context["verified"] = FEMALES
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			context["authorized"] = True
-		except:
+		except Photo.DoesNotExist:
 			context["authorized"] = False
 			context["photo"] = None
 			context["count"] = None
 			return context
-		try:
-			origin=self.kwargs["origin"]
-			if origin == '1':
+		context["photo"] = photo
+		comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
+		context["count"] = comms.count()
+		comments = comms.order_by('-id')[:25]
+		context["comments"] = comments
+		context["thumbs"] = retrieve_single_thumbs(photo.owner.username)
+		context["verified"] = FEMALES
+		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+		context["authorized"] = True
+		origin=self.kwargs.get("origin",None)
+		if origin == '1':
+			context["origin"] = '1'
+			context["photo_id"] = pk
+		elif origin == '2':
+			context["origin"] = '2'
+			context["photo_id"] = pk
+		elif origin == '3':
+			context["origin"] = '3'
+			try:
+				star_user_id = self.request.session["user_ident"]
+				username = User.objects.get(id=star_user_id).username
+				context["username"] = username
+			except:
 				context["origin"] = '1'
-				context["photo_id"] = pk
-			elif origin == '2':
-				context["origin"] = '2'
-				context["photo_id"] = pk
-			elif origin == '3':
-				context["origin"] = '3'
-				try:
-					star_user_id = self.request.session["user_ident"]
-					username = User.objects.get(id=star_user_id).username
-					context["username"] = username
-				except:
-					context["origin"] = '1'
-			elif origin == '5':
-				context["origin"] = '5'
-				context["photo_id"] = pk
-			elif origin == '6':
-				context["origin"] = '6'
-				link_ident = self.request.session["user_ident"]
-				if link_ident:
-					#if originating from a specific link
-					context["link_ident"] = self.request.session["user_ident"]
-					self.request.session['target_id'] = self.request.session["user_ident"] #mislabled - actually contains link_id
-				else:
-					#if originating from a notification
-					self.request.session['target_id'] = None
-				self.request.session.modified = True
+		elif origin == '5':
+			context["origin"] = '5'
+			context["photo_id"] = pk
+		elif origin == '6':
+			context["origin"] = '6'
+			link_ident = self.request.session["user_ident"]
+			if link_ident:
+				#if originating from a specific link
+				context["link_ident"] = self.request.session["user_ident"]
+				self.request.session['target_id'] = self.request.session["user_ident"] #mislabled - actually contains link_id
 			else:
-				context["origin"] = '1'
-		except:
+				#if originating from a notification
+				self.request.session['target_id'] = None
+			self.request.session.modified = True
+		else:
 			context["origin"] = '1'
 		try:
 			is_first = self.request.session["first_time"]
 			self.request.session["first_time"] = False
 			self.request.session.modified = True
 			context["is_first"] = is_first
-		except:
+		except KeyError:
 			context["is_first"] = False
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
@@ -3618,7 +3615,7 @@ class CommentView(CreateView):
 					try:
 						#finding latest time user herself commented
 						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
-					except:
+					except ValueError:
 						context["comment_time"] = None #i.e. it's the first every comment
 				else:
 					context["unseen"] = False
@@ -3649,25 +3646,24 @@ class CommentView(CreateView):
 			origin = self.request.POST.get("origin")
 			star_user_id = None
 			link_id = None
+			pk = self.kwargs.get('pk',None)
 			try:
-				pk = self.request.session["photo_id"]
-				self.request.session["photo_id"] = None
-				self.request.session.modified = True
+				# pk = self.request.session["photo_id"]
+				# self.request.session["photo_id"] = None
+				# self.request.session.modified = True
 				which_photo = Photo.objects.get(id=pk)
 				if which_photo.owner_id != int(photo_owner_id):
 					self.request.session["where_from"] = 'best_photos'
 					return redirect("ban_underway")
-			except:
-				user.userprofile.score = user.userprofile.score - 3
-				user.userprofile.save()
-				return redirect("profile", slug=user.username)
+			except Photo.DoesNotExist:
+				return redirect("best_photos")
 			set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=text,user_id=user.id,time_now=time.time())
 			if origin == '3' or origin == '4':
 				try:
 					star_user_id = self.request.session["user_ident"]
 					self.request.session["user_ident"] = None
 					self.request.session.modified = True
-				except:
+				except KeyError:
 					star_user_id = None
 			elif origin == '6':
 				link_id = self.request.session["user_ident"]

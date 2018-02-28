@@ -40,8 +40,9 @@ body {
 	  	<button class="btn bl mtl mbs {{ css_class2 }}" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
 	</form>
 
-	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	
 	<!-- Top Banner Ad -->
+	<div style="text-align:center">
 	<ins class="adsbygoogle"
 	    style="display:inline-block;width:320px;height:100px"
 	    data-ad-client="ca-pub-2568547635306983"
@@ -49,6 +50,7 @@ body {
 	<script>
 	(adsbygoogle = window.adsbygoogle || []).push({});
 	</script>
+	</div>
 	 
 <div class="cgy cs sp mts mbs">
 Latest commentary:
@@ -57,10 +59,10 @@ Latest commentary:
  {% for comment in object_list %}
  	
  	{% if forloop.counter == 3 or forloop.counter == 7 %}
-	 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	 	
 		<!-- Responsive Ad -->
 		<ins class="adsbygoogle"
-		    style="display:block"
+		    style="display:block;text-align:center"
 		    data-ad-client="ca-pub-2568547635306983"
 		    data-ad-slot="3079816846"
 		    data-ad-format="auto"></ins>
@@ -123,15 +125,18 @@ Latest commentary:
 
 </div>
 
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 <!-- Bottom Box Ad -->
+<div style="text-align:center">
 <ins class="adsbygoogle"
-    style="display:inline-block;width:300px;height:250px"
+    style="display:inline-block;width:300px;height:250px;margin:auto"
     data-ad-client="ca-pub-2568547635306983"
     data-ad-slot="8440627181"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+</div>
 
 <br><br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

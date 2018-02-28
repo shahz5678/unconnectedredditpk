@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Vote or profile | Damadam.pk</title></head>
 <div class="margin">
-
 {% if self == 2 %}
 <b style="color:grey;">- </b>{{ subject.username }} ki <a href="{% url 'profile' slug=subject %}#section0"><b>profile</b></a> dekho<br>
 <b style="color:grey;">- </b>{{ subject.username }} ki <a href="{% url 'user_activity' slug=subject %}#section0"><b>history</b></a> dekho<br><br>

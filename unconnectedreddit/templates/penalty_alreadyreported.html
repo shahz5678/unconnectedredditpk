@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin clb">
-<b class="cl">{{ nickname }} hr private mehfil mein <b class="cg">{{ time_remaining }}</b> ke liye pehle hi blocked hai!</b><br>
-<span class="cgy">Is pr abhi apne points zaya na kro</span><br>
+<b class="cl">{{ nickname }} har private mehfil mein <b class="cg">{{ time_remaining }}</b> ke liye pehle hi blocked hai!</b><br>
+<span class="cgy">Is pr abhi apne points zaya na karein</span><br>
 {% if private == '1' %}
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcg mtl">wapis</button></form>
 {% else %}

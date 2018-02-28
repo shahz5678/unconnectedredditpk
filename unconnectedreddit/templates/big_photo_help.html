@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
+
+<head><title>Trending photo help | Damadam.pk</title></head>
+
 <div class="margin">
 <img style="border:1px solid blue;" src="{{ photo.image_file|s3:"thumb" }}"></img><br><br>
 <span style="color:#ff8000;">Ye photo "Home" pr bari nzr a rahi he kiyunke isko lagane waley ki tamam purani photos ko logon ne zabrdast vote aur tabsroon ke zariye pasand kiya</span><br><br>

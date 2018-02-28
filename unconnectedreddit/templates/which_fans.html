@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
+<head><title>Photo reached {{ fan_num }} followers | Damadam.pk</title></head>
 <div class="margin clb">
 Ye photo <img src="{{ photo_url|s3:'thumb' }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:
 <br><br>

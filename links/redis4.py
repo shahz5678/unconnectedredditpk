@@ -2,6 +2,7 @@
 # coding=utf-8
 import redis, time, random
 from location import REDLOC4
+from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
 
 '''
 ##########Redis Namespace##########
@@ -15,15 +16,39 @@ my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
 
+rlfh:<user_id> - rate limited from home (e.g. because of abusive reasons)
+rlfpg:<user_id> - rate limited from public group (e.g. because of spammy behavior)
+rlfpvg:<user_id> - rate limited from private group (e.g. because of spammy behavior)
+rlfpc:<user_id> - rate limited from photo comments (e.g. because of spammy behavior)
+rlfhr:<user_id> - rate limited from home replies (e.g. because of spammy behavior)
+
+hir:<user_id> - home input rate (list holding times of posting on home for a specific user)
+pgir:<user_id> - public group input rate (list holding times of posting in public group for a specific user)
+pvgir:<user_id> - private group input rate (list holding times of posting in public group for a specific user)
+pcir:<user_id> - photo comment input rate (list holding times of posting on photo comments for a specific user)
+hrir:<user_id> - home reply input rate (list holding times of posting in home replies)
+
+hit:<user_id> - home input text (list holding previous text of home posting for a specific user)
+pgit:<user_id> - public group input text (list holding text of public group posting for a specific user in a specific group)
+pvgit:<user_id> - private group input rate (list holding times of posting in private group for a specific user)
+pcit:<user_id> - photo comment input text (list holding text of photo comments for a specific user and a specific photo)
+hrit:<user_id> - home reply input text (list holding text of home replies for a specific user under a specific home sentence)
+
+sm:<user_id>:<section>:<obj_id> - counter to count short messages sent on home objects
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
-TEN_MINS = 10*60
-FIVE_MINS = 5*60
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
+TWENTY_MINS = 20*60
+TEN_MINS = 10*60
+SEVEN_MINS = 7*60
+FIVE_MINS = 5*60
+FOUR_MINS = 4*60
+ONE_MIN = 60
 
 
 
@@ -440,3 +465,159 @@ placed_orders now placedorders
 
 ####################
 '''
+
+############ Rate limiting flooding and spamming ############
+
+def is_limited(user_id, section, with_reason = False):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if section == 'home':
+		key = "rlfh:"+str(user_id)
+	elif section == 'pub_grp':
+		key = "rlfpg:"+str(user_id)
+	elif section == 'prv_grp':
+		key = "rlfpvg:"+str(user_id)
+	elif section == 'pht_comm':
+		key = "rlfpc:"+str(user_id)
+	elif section == 'home_rep':
+		key = "rlfhr:"+str(user_id)
+	else:
+		return False
+	if with_reason:
+		ttl = my_server.ttl(key)
+		if ttl > 0:
+			reason = my_server.get(key)
+			return ttl, reason
+		else:
+			return 0, None
+	else:
+		return my_server.ttl(key)
+
+def rate_limit_user(user_id,section,level,ban_reason,my_server=None):
+	"""
+	Setting blocking rate limits on abusive users on a section of the website
+
+	Level relates to severity of block limit
+	1 - lowest (7 mins)
+	2 - low (30 mins)
+	3 - medium (2 hours)
+	4 - med-high (8 hours)
+	5 - high (24 hours)
+	6 - severe (3 days)
+	7 - hardcore (7 days)
+	8 - jackpot (30 days)
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	if section == 'home':
+		rate_limit_key = "rlfh:"+str(user_id)
+	elif section == 'pub_grp':
+		rate_limit_key = "rlfpg:"+str(user_id)
+	elif section == 'prv_grp':
+		rate_limit_key = "rlfpvg:"+str(user_id)
+	elif section == 'pht_comm':
+		rate_limit_key = "rlfpc:"+str(user_id)
+	elif section == 'home_rep':
+		rate_limit_key = "rlfhr:"+str(user_id)
+	try:
+		my_server.setex(rate_limit_key,ban_reason,RATELIMIT_TTL[level])
+		return True
+	except KeyError:
+		my_server.setex(rate_limit_key,ban_reason,TWENTY_MINS)
+		return False
+
+
+def log_input_rate(section,user_id,time_now):
+	"""
+	Keeps check of writing rates to rate limit abusive users
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if section == 'home':
+		key = "hir:"+str(user_id)
+	elif section == 'pub_grp':
+		key = "pgir:"+str(user_id)	
+	elif section == 'prv_grp':
+		key = "pvgir:"+str(user_id)
+	elif section == 'pht_comm':
+		key = "pcir:"+str(user_id)
+	elif section == 'home_rep':
+		key = "hrir:"+str(user_id)	
+	pipeline1 = my_server.pipeline()
+	pipeline1.lpush(key,time_now)
+	pipeline1.expire(key,ONE_MIN)
+	pipeline1.execute()
+	####################################
+	all_str_values = my_server.lrange(key,0,-1)
+	total_inputs = len(all_str_values)
+	if total_inputs > 4:
+		all_values = map(float, all_str_values)
+		sum_of_differences = 0
+		for s, t in zip(all_values, all_values[1:]):
+			sum_of_differences += t - s
+		avg_time_taken_between_sentences = abs(sum_of_differences)/(total_inputs-1)
+		if avg_time_taken_between_sentences < SUPER_FLOODING_THRESHOLD:
+			rate_limit_user(user_id=user_id,section=section,level='3',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
+			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+		my_server.ltrim(key,0,3)
+
+def log_input_text(section, section_id,text,user_id):
+	"""
+	Logs previous 4 sentences of each section
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if section == 'home':
+		key = "hit:"+str(user_id)+":"+str(section_id)
+	elif section == 'pub_grp':
+		key = "pgit:"+str(user_id)+":"+str(section_id)	
+	elif section == 'prv_grp':
+		key = "pvgit:"+str(user_id)+":"+str(section_id)	
+	elif section == 'pht_comm':
+		key = "pcit:"+str(user_id)+":"+str(section_id)
+	elif section == 'home_rep':
+		key = "hrit:"+str(user_id)+":"+str(section_id)
+	my_server.lpush(key,text)
+	my_server.ltrim(key,0,3) # keeping previous 4 sentences
+	my_server.expire(key,TEN_MINS)
+
+def retrieve_previous_msgs(section, section_id,user_id):
+	"""
+	retrieve previous messages stored for a certain section_id
+	"""	
+	my_server = redis.Redis(connection_pool=POOL)
+	if section == 'home':
+		key = "hit:"+str(user_id)+":"+str(section_id)
+	elif section == 'pub_grp':
+		key = "pgit:"+str(user_id)+":"+str(section_id)	
+	elif section == 'prv_grp':
+		key = "pvgit:"+str(user_id)+":"+str(section_id)	
+	elif section == 'pht_comm':
+		key = "pcit:"+str(user_id)+":"+str(section_id)
+	elif section == 'home_rep':
+		key = "hrit:"+str(user_id)+":"+str(section_id)
+	return my_server.lrange(key,0,-1)
+
+############################ Ratelimiting short messages ###############################
+
+def log_short_message(user_id,section,obj_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	short_message = "sm:"+str(user_id)+":"+section+":"+str(obj_id)
+	my_server.incr(short_message)
+	my_server.expire(short_message,FOUR_MINS)
+
+def many_short_messages(user_id,section,obj_id):
+	"""
+	Confirms if trail of short messages have already been left by the user on the given object
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	short_message = "sm:"+str(user_id)+":"+section+":"+str(obj_id)
+	short_messages_so_far = my_server.get(short_message)
+	if short_messages_so_far:
+		if int(short_messages_so_far) > SHORT_MESSAGES_ALWD:
+			my_server.expire(short_message,SEVEN_MINS) #renew block short messages for 7 mins
+			return True
+		else:
+			False
+	else:
+		return False

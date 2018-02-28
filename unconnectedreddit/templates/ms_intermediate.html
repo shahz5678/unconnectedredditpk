@@ -21,6 +21,8 @@ body {
 
 {% extends "base_min.html" %}
 {% block content %}
+
+<head><title>{{ model }} (checkout) | Damadam.pk</title></head>
 <div class="margin clb card">
 	<br> 
 	<div class="cl clb mbs" align="left" style="border: 1px dashed #ccc;border-radius:4px;display: inline-block;padding:5px 5px 5px 5px;background-color:#E8E8E8;">
@@ -28,7 +30,7 @@ body {
 		<!-- process city in ecomm.py -->
 		<form method="POST" action="{% url 'buyer_details' 'main' %}" class="mtl">
 		{% csrf_token %}
-		Aap <b>{{model}}</b> khareedna chahte hein? <br>
+		Ap <b>{{model}}</b> khareedna chahte hein? <br>
 		<div style="text-align:center"><button type="submit" class="btn mtl mbs bl bcb cs"><b>Order kerien</b></button></div>
 		</form>
 		<form method="POST" action="{% url 'faq' %}" class="mtl">

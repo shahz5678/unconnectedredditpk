@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Kick and ban user(s) | Damadam.pk</title></head>
 <div class="margin clb">
 
 {% if offline %}
@@ -15,7 +16,7 @@
 		<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ original_target_id }}"><button class="btn bcgy bl bts mts mbs" type="submit">Nahi</button></form><br>
 {% else %}
 
-	<span class="cxl">Kiya in users ko kick and ban kar diya jaye?</span><br><br>
+	<span class="cxl">Kya in users ko kick and ban kar diya jaye?</span><br><br>
 	<form method="POST" action="{% url 'kick_ban_user' %}">
 		{% csrf_token %}
 		<input type="hidden" name="kick_ban" value="1">

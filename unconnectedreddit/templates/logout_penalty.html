@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-
+<head><title>Logout penalty | Damadam.pk</title></head>
 <div class="margin">
 {% if user.userprofile.score > 299 %}
-Agar tum <a href="{% url 'verify_help' %}">verified lady<span style="font-size:150%;color:deeppink;"><b>*</b></span></a> nahi ho, aur bahir niklna chahtey ho toh tumhara score <b style="color:green;">{{ user.userprofile.score }}</b> se cut kar sirf <b style="color:red;">10 points</b> reh jaye ga! <a href="{% url 'logout_help' %}" style="font-size:80%;">(kiyun?)</a><br><br>
-&bullet;&nbsp;<a href="{% url 'logout_reconfirm' %}">Manzoor Hai</a><br>
-&bullet;&nbsp;<a href="{% url 'home' %}">Rehney Doh</a>
+Agar ap <a href="{% url 'verify_help' %}">verified lady<span style="font-size:150%;color:deeppink;"><b>*</b></span></a> nahi hein, aur bahir niklna chahtey ho toh apka score <b style="color:green;">{{ user.userprofile.score }}</b> se cut ke sirf <b style="color:red;">10 points</b> reh jaye ga! <a href="{% url 'logout_help' %}" style="font-size:80%;">(kiyun?)</a><br><br>
+&bullet;&nbsp;<a href="{% url 'logout_reconfirm' %}">Manzoor hai</a><br>
+&bullet;&nbsp;<a href="{% url 'home' %}">Rehney dou</a>
 {% else %}
-Bahir nikalne (log out) ke liye tumhe <b style="color:green;">300 points</b> chahiyein. Tumharey paas sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur apna <a href="{% url 'score_help' %}">score barhao</a>:<br><br>
- <a href="{% url 'home' %}"><b><</b>&nbsp;Wapis jao</a>
+Bahir nikalne (log out) ke liye apko <b style="color:green;">300 points</b> chahiyein. Ap ke pas sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jain aur apna <a href="{% url 'score_help' %}">score barhain</a>:<br><br>
+ <a href="{% url 'home' %}"><b><</b>&nbsp;Wapis jain</a>
 {% endif %}
 </div>
 

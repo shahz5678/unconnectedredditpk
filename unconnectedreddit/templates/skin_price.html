@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Skin doctor service | Damadam.pk</title></head>
 {% load cache %}
 {% cache 1000 skin_pricing %}
 <div class="margin clb">
@@ -10,6 +11,15 @@
 <hr size=1 COLOR="#00c853">
 <div class="mbs">
 &nbsp;<b class="co">Degree:</b>&nbsp;<b>America</b> (Skin), <b>Pakistan</b> (M.B., B.S.)<br>
+</div>
+<hr size=1 COLOR="#00c853">
+<div class="mbs">
+&nbsp;<b class="co">Dr. ka Pegham:</b>
+<audio controls autobuffer>
+  <source src="{{ STATIC_URL }}SkinDoc.ogg" type="audio/ogg">
+  <source src="{{ STATIC_URL }}SkinDoc.mp3" type="audio/mpeg">
+<span class="cr">Ye <b>browser</b> awaz nahi play karta</span>
+</audio> 
 </div>
 <hr size=1 COLOR="#00c853">
 <div class="mbs">

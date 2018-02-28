@@ -2,14 +2,14 @@
 {% load s3 %}
 {% block content %}
 
-
+<head><title>Group visitors | Damadam.pk</title></head>
 <div class="margin clb">
 {% if unauthorized %}
 <b class="cxl">Ye is terah nahi chalta!</b><br>
-<span class="cgy cs">Mehfil ke andr <b>online kon</b> ko press kro</span><br>
+<span class="cgy cs">Mehfil mein <b>online kon</b> press krein</span><br>
 <a href="{% url 'group_page' %}"><button class="btn bcp bm mtl mbl">wapis</button></a>
 {% else %}
-Yahan ye log pichle 10 min mein nazr aye:<br>
+Yahan ye users previous 10 mins mein nazr aye:<br>
 	{% if group.private == '1' %}
 	<form class="POST" method="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="unique" class="btn bcg bm cs mtl">wapis</button></form><br>
 	{% elif group.private == '0' %}
@@ -27,7 +27,7 @@ Yahan ye log pichle 10 min mein nazr aye:<br>
 	{{ visitor.username }}
 	</a>
 	{% if visitor.username in legit %}
-		<span class="pkstr"><b>*</b></span>
+		<span class="pinkstar"><b>*</b></span>
 	{% endif %}
 	{% if captain %}
 		<span class="cgy cs"><b>(afsar)</b></span>

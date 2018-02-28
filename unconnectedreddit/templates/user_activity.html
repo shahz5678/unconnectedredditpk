@@ -6,6 +6,7 @@
 {% load emoticons_tags %}
 {% load get_block_button %}
 {% block content %}
+<head><title>{{ username }}'s home history | Damadam.pk</title></head>
 {{ block.super }}
 
 <div class="clb" style="margin-left:-1.3em;line-height:1.8;">
@@ -19,16 +20,16 @@
 
 {% for link in object_list %}
 	{% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img><br>
+    	<img src="{{ link.image_file.url }}"><br>
 	{% endif %}
 	<a href="{% url 'profile' slug=link.submitter %}#section0">
     {% if link.submitter.userprofile.avatar %}
 		
-		<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
+		<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" style="border-radius:50%" alt="pic">
 		
 	{% else %}
 		
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
 		
 	{% endif %}
 	<bdi>{{ username }}</bdi></a>
@@ -48,9 +49,9 @@
 		<form action="{% url 'publicreply_view' %}" method="POST">
 		{% csrf_token %}
 		{% if link.reply_count > 0 %}
-		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button>
+		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}" style="height:22px"><b>{{ link.reply_count }}</b>&nbsp;jawab</button>
 		{% else %}
-		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}">isko jawab do</button>
+		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}" style="height:22px">jawab dein</button>
 		{% endif %}
 		</form>
 

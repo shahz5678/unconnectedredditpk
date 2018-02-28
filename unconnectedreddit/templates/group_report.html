@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Report user in public group | Damadam.pk</title></head>
 <div class="margin clb">
 {% if captain %}
 	<b class="cxl">Kya ap is baat ko mita dena chahtey hain?</b>
@@ -11,9 +12,9 @@
 	<button type="submit" name="repdec" class="btn bcr bm mts" value="0">Nahi</button>
 	</form>
 {% else %}
-	<b class="cxl cp">Ap is baat ko report nahi kr sakte</b>
+	<b class="cxl cp">Ap is baat ko report nahi kar sakte</b>
 	<div class="mts cl">
-	Ye sirf is mehfil ke afsar kar sakte hain!
+	Ye sirf is mehfil ke officer kar sakte hain!
 	</div>
 	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm mtl mbs">wapis</button></a>
 {% endif %}

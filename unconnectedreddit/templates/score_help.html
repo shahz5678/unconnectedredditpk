@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Score help | Damadam.pk</title></head>
 {% load cache %}
 {% cache 3600 scores_help_fragment %}
 
 <span class="score">
-<div style="margin-left:20px;color:#404040;">
+<div class="clb" style="margin-left:20px">
 <h3>Score kaise barhta hai:</h3>
 1) Home pe likhne se score <b style="color:green;">+1</b> barhta hai<br>
 2) Home pe jawab dene se score <b style="color:green;">+2</b> barhta hai<br>
@@ -25,4 +26,5 @@
 </span>
 
 {% endcache %}
+<br><br>
 {% endblock %}

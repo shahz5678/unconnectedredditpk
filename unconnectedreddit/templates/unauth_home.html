@@ -1,6 +1,6 @@
 {% extends "base_signup.html" %}
 {% block content %}
-
+<head><title>New user registration | Damadam.pk</title></head>
 <div style="margin-top:5%;">
 <h1 class="bw mbs" style="color:#43A047;text-align:center;text-shadow:1px 1px #8d6e63;">Damadam.pk <a href="{% url 'unauth_home_new_ur' %}" class="cb" style="font-size:0.5em;text-shadow:0px 0px;">(اردو)</a></h1>
 		<div class="cxl mbs" style="text-align:center;color:#FF6F00;text-shadow:0.5px 0.5px #BF360C;margin-left:auto;margin-right:auto;max-width:90%;">Naye dost, unki fotos aur chat!</div>
@@ -18,7 +18,7 @@
 
 
 	<div class="mtl mbl">
-	<b class="cxl" style="color:white;text-shadow:1px 1px #009940;padding-left:3px;padding-right:3px;">Apna koi mazay ka naam likho:</b>
+	<b class="cxl" style="color:white;text-shadow:1px 1px #009940;padding-left:3px;padding-right:3px;">Apna aik mazey ka nickname likhein:</b>
 	</div>
 		<form method="POST" action="{% url 'create_nick_new' %}">
 		{% csrf_token %}
@@ -28,6 +28,6 @@
 </div>
 </div>
 <br>
-	<a href="{% url 'login' %}#section0"><button class="mtl" style="margin:auto; display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
+	<a href="{% url 'login' %}#section0"><button class="mtl ma" style="display:block;color:white;background-color:#bdbdbd;border:solid 1px #9e9e9e;font-size:120%;font-weight:bold;text-shadow:1px 1px #808080;">&nbsp;&nbsp;Old Account&nbsp;&nbsp;</button></a><br>
 </div>
 {% endblock %}

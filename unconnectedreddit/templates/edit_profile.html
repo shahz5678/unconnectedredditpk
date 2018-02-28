@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Edit profile | Damadam.pk</title></head>
 <div class="margin clb">
-<h2 class="cg">Tumhari profile:</h2>
+<h2 class="cg">Apki profile:</h2>
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {% if form.mobilenumber.errors %}<span class="cr">{{ form.mobilenumber.errors.0 }}</span><br>{% endif %}
   <b>Mobile number:</b><br>{{ form.mobilenumber }}<br>
-  <span class="cs cgy">Tumhara mobile number kisi ko nahi dikhaya jaye ga</span>
+  <span class="cs cgy sp">Apka mobile number kisi ko nahi diya jaye ga</span>
   <hr size=1 COLOR="#b3e6b3"><br>
   {% if form.bio.errors %}<span class="cr">{{ form.bio.errors.0 }}</span><br>{% endif %}
-  <b>Apni ek khas baat likho:</b><br>{{ form.bio }}
+  <b>Apni ek khas baat likhein </b><span class="cgy cs sp">(ya phir apka favorite joke)</span>:<br>{{ form.bio }}
   <hr size=1 COLOR="#b3e6b3"><br>
   {% if form.avatar.errors %}<span class="cr">{{ form.avatar.errors.0 }}</span><br>{% endif %}
-  <b>Tumhari photo:</b><br>{{ form.avatar }}
+  <b>Apki profile photo:</b><br>{{ form.avatar }}
   <hr size=1 COLOR="#b3e6b3"><br>
   {% if form.age.errors %}<span class="cr">{{ form.age.errors.0 }}</span><br>{% endif %}
-  <b>Age likho:</b><br>{{ form.age }}
+  <b>Age likhein:</b><br>{{ form.age }}
   <hr size=1 COLOR="#b3e6b3"><br>
   {% if form.gender.errors %}<span class="cr">{{ form.gender.errors.0 }}</span><br>{% endif %}
   <b>Boy or girl:</b><br>
@@ -65,7 +66,7 @@
   <hr size=1 COLOR="#b3e6b3">
   <button class="btn bm bcg mbs mts" type="submit">Save</button>
 </form>
-<span class="cs cgy">photo nahi lagti jab tuk photo ke sath <b>age</b> aur <b>mobile number</b> na diya toh!</span>
+<span class="cs cgy sp">Profile photo nahi lagti jab tuk photo ke sath <b>age</b> aur <b>mobile number</b> na diya toh!</span>
 </div>
 <br><br>
 {% endblock %}

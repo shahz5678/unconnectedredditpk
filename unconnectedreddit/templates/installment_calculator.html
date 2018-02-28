@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load human_time %}
 {% block content %}
+<head><title>Mobile phone instalment calculator | Damadam.pk</title></head>
 <div class="margin clb mtl">
 <form method="POST" action="{% url 'calculator' %}">
 {% csrf_token %}

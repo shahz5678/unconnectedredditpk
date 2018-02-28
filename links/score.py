@@ -24,19 +24,20 @@ PUBLICREPLY = 2 #score for leaving publicreply on a home 'link'
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 6 #aggregated 'visible_score' over previous 5 photos, above which your photo appears on home
 ###############################################################################################################
-CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
+CRICKET_SUPPORT_STARTING_POINT = 10 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
 'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
 'South Africa':'South Africa','New Zealand':'New Zealand', 'Pakistan':'Pakistan',\
 'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka','England':'England',\
-'World-XI':'World-XI'}
+'World-XI':'World-XI','Multan Sultans':'Sultans','Australia':'Australia'}
 CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
 'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10',\
-'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18'}
-CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
+'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18',\
+'Multan Sultans':'19','Australia':'20'}
+CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Multan Sultans':'msu',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
 'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind',\
-'Sri Lanka':'slk','England':'eng','World-XI':'wxi'}
+'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 SEARCH_FEATURE_THRESHOLD = 100
@@ -66,6 +67,19 @@ NUMBER_VERIFICATION_BONUS = 500
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
 ###############################################################################################################
 PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
-'mismatch':'Rabta munqata ho gaya, phir se karien'}
+'mismatch':'Rabta munqata ho gaya, phir se karien','generic':'Internet ka rabta munqata ho gaya, phir se karien'}
 PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki private chat mein bulaya'
 EXTRA_PADDING = 20 #used to adjust image sizes in cases where CSS uses box-sizing:border-box property
+PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye chat mita diye janey ki waja se save nahi ho saki',\
+'err3':'Ye chat hide honay ki waja se save nahi ho saki','err4':'Ye chat apkey save karney se pehlay delete ho geyi',\
+'err5':'Ap is chat ko save kar sakein ge ','err1':'Ye chat save nahi ho sakti','msg1':'Chat save kar di geyi',\
+'err6':'Ye chat save karney ke liye apni pichli saved chat mein se kuch delete karein',\
+'err7':'Ye chat pehlay bhi save ki ja chuki hai, dubara nahi ho sakti',\
+'err8':'Kharabi ho geyi, phir se koshish karein','err9':'Ap ko ye chat save karney ki ijazat nahi'}
+###############################################################################################################
+# helps in setting TTL on rate limits set on abusive users. Each key defines 'level' of offense, values are ttl
+BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
+RATELIMIT_TTL = {'1':60*7,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
+SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
+FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
+SHORT_MESSAGES_ALWD = 4

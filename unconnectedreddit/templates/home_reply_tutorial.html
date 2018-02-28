@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block content %}
 {% load emoticons_tags %}
+{% block content %}
+<head><title>Home reply tutorial | Damadam.pk</title></head>
 <div class="margin clb">
 {% if target == own_self %}
-<b class="cxl">Apne apni hi post pe jawab de diya&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
+<b class="cxl">Ap ne apni hi post pe jawab de diya&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
 <div class="mt mbl">
-<span class="cgy cl">Ye jawab private nahi hai, issey har koi dekh sakta hai</span><br>
+<span class="cgy cl">Ye jawab private nahi hai, isko har koi dekh sakta hai</span><br>
 </div>
 {% else %}
 <b class="cxl">Apka jawab <span class="ct">{{ target }}</span> ki post pe chala gaya!&nbsp;{% emoticons %}.c1{% endemoticons %}</b>

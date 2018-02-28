@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Shop listing | Damadam.pk</title></head>
+<div class="margin clb">
+{% for listing in listings %}
+	Name:<b>{{ listing.shop_name }}</b><br>
+	Address:{{ listing.shop_address }}<br>
+	Shop Photos:{{ listing.shop_pics }}<br>
+	<hr size=1 COLOR="#A9A9A9">
+{% endfor %}
+</div>
+<br><br>
+{% endblock %}

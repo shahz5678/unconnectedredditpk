@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>Instructions | Damadam.pk</title></head>
+<div class="margin clb">
+<div class="signup" style="background-color:white">
+<div style="background-color:white;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
+
+
+		{% if personal_group_invite_privacy %}
+
+			<div class="cxl mbs">Khufiya dawat bhej di geyi!</div>
+			<hr size=1 COLOR="#ffeb3b">
+			<div class="lsp cl mbs">
+				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apki taraf se bheji geyi chat ki dawat mein <a href="{% url 'profile' oun %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'profile' oun %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
+			</div>
+			
+				{% if org == 'home' %}
+					<a href="{% url 'home_loc_pk' poid %}">
+				{% elif org == '' %}
+				{% endif %}
+				<button class="btn bcb bm mrl mtl mbs" style="border:none;height:30px;">OK</button>
+				</a>
+
+		{% endif %}
+
+
+</div>
+</div>
+</div>
+<br><br>
+{% endblock %}

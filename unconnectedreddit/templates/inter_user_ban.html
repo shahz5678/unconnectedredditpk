@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Block target user | Damadam.pk</title></head>
 <div class="margin clb">
 
 
 {% if to_ban %}
-	<span class="cxl">Kiya <span class="ct">{{ target_username|truncatechars:15 }}</span> ko apki posts and fotos pe likhne se block karna hai?</span><br>
+	<span class="cxl">Kya <span class="ct">{{ target_username|truncatechars:15 }}</span> ko apki posts and fotos pe likhne se block karna hai?</span><br>
 	<div class="mbl">
-	<span class="cgy cl">Block karney se aap bhi <span class="ct">{{ target_username|truncatechars:15 }}</span> ki posts aur fotos pe nahi likh sako ge</span>
+	<span class="cgy cl">Block karney se ap bhi <span class="ct">{{ target_username|truncatechars:15 }}</span> ki posts aur fotos pe nahi likh sako ge</span>
 	</div>
 		<form action="{% url 'enter_inter_user_ban' %}" method="POST">
 		{% csrf_token %}
@@ -20,7 +21,7 @@
 
 	<span class="cxl"><span class="ct">{{ target_username|truncatechars:15 }}</span> ko kitney time ke liye apki posts and fotos se block karna hai?</span><br>
 	<div class="mbl">
-	<span class="cgy cl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfilun mein apse phir bhi bat kar sakey ga. Aap dono aik dusrey ko jhappi chupair bhi mar sako ge&nbsp;<a href="{% url 'user_ban_help' %}"><button class="btn cs bcgy mls bs mts">kiyun?</button></a></span>
+	<span class="cgy cl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfilun mein ap se phir bhi bat kar sakey ga. Ap dono aik dusrey ko jhappi chupair bhi mar sako ge&nbsp;<a href="{% url 'user_ban_help' %}"><button class="btn cs bcgy mls bs mts">kiyun?</button></a></span>
 	</div>
 
 		<form action="{% url 'enter_inter_user_ban' %}" method="POST">
@@ -41,9 +42,9 @@
 		</form>
 
 {% elif not_verified %}
-	<b class="cxl">Apke mobile number ki tasdiq ke beghair ye nahi kiya ja sakta</b><br>
+	<b class="cxl">Apke mobile number ko verify kiye beghair ye nahi ho sakta</b><br>
 	<div class="mt">
-	<span class="cl">Tasdiq karwaney ke liye 'OK' dabain:</span><br>
+	<span class="cl">Verify karwaney ke liye 'OK' dabain:</span><br>
 	</div>
 
 	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
@@ -54,7 +55,7 @@
 	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
-	  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
+	  <input type="submit" class="mtl mbl ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
 	</form>
 
 {% elif already_banned %}
@@ -82,7 +83,7 @@
 	
 	<span class="cxl"><span class="ct">{{ target_username|truncatechars:15 }}</span> ko apki posts and fotos pe likhne se block kardiya gaya hai</span>
 	<div class="mt mbl">
-	<span class="cgy cl">Ap apni profile mein <b>blocked users</b> ka button daba kar is block ko time se pehle khatam bhi kar saktey ho</span><br>
+	<span class="cgy cl">Ap apni profile mein <b>blocked users</b> ka button daba kar is block ko time se pehle khatam bhi kar saktey hein</span><br>
 	</div>
 	<a href="{% url 'profile' own_username %}#section0"><button class="btn bcg bm">OK</button></a>
 

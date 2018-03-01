@@ -5581,7 +5581,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 	def get_form_kwargs( self ):
 		kwargs = super(PrivateGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
-		kwargs['group_id'] = Group.objects.filter(unique=self.request.session.get("unique_id",None)).values_list('id',flat=True)[0]
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5687,9 +5686,9 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				device = '5'
 			else:
 				device = '3'
-			unique = self.request.POST.get("unique")
-			which_group = Group.objects.get(unique=unique)
-			which_group_id = which_group.id
+			pk = self.request.POST.get('gp',None)
+			which_group = Group.objects.get(pk=pk)
+			which_group_id, unique = pk, which_group.unique
 			set_input_rate_and_history.delay(section='prv_grp',section_id=which_group_id,text=text,user_id=user_id,time_now=time.time())
 			reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
 				device=device)
@@ -5707,11 +5706,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				image_url = None
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
 				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
-				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
+				reply_text=text,priv=which_group.private,slug=unique,image_url=image_url,priority='priv_mehfil',\
 				from_unseen=False, reply_id=reply.id)
 			self.request.session['unique_id'] = unique
 			self.request.session.modified = True
-			return redirect("private_group_reply")#, reply.which_group.unique)
+			return redirect("private_group_reply")
 				
 	
 @ratelimit(rate='3/s')

@@ -83,7 +83,8 @@
         {% endif %}
         {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
         <br>
-        <button id="pub_grp_subform" name="uid" value="{{ unique }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
+        <input type="hidden" name="uid" value="{{ unique }}">
+        <button id="pub_grp_subform" name="gp" value="{{ group.id }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
     </form>
     <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
@@ -229,6 +230,4 @@
     </div>
     <br><br>
     
-<!-- <script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.js"></script> -->
-<!-- <script type="text/javascript" src="{{ STATIC_URL }}js/file_processing.js"></script> -->
 {% endblock %}

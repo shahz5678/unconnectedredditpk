@@ -5,7 +5,7 @@ import time
 def human_time(value):
 	try:
 		diff = time.time() - float(value)
-	except:
+	except (ValueError,TypeError):
 		return ''
 	m, s = divmod(diff, 60)
 	h, m = divmod(m, 60)
@@ -13,28 +13,30 @@ def human_time(value):
 	mo, d = divmod(d, 30)
 	if mo:
 		if int(mo) == 1:
-			return "%s month ago" % int(mo)
+			return "1 month ago"
 		else:
 			return "%s months ago" % int(mo)
 	elif d:
 		if int(d) == 1:
-			return "%s day ago" % int(d)
+			return "1 day ago"
 		else:
 			return "%s days ago" % int(d)
 	elif h:
 		if int(h) == 1:
-			return "%s hour ago" % int(h)
+			return "1 hour ago"
 		else:
 			return "%s hours ago" % int(h)
 	elif m:
 		if int(m) == 1:
-			return "%s min ago" % int(m)
+			return "1 min ago"
 		else:
 			return "%s mins ago" % int(m)
 	elif s:
 		if int(s) == 0:
 			return "abhi"
 		elif int(s) == 1:
-			return "%s sec ago" % int(s)
+			return "1 sec ago"
 		else:
 			return "%s secs ago" % int(s)
+	else:
+		return ''

@@ -47,7 +47,7 @@ TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 SEVEN_MINS = 7*60
 FIVE_MINS = 5*60
-FOUR_MINS = 4*60
+THREE_MINS = 3*60
 ONE_MIN = 60
 
 
@@ -604,7 +604,7 @@ def log_short_message(user_id,section,obj_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	short_message = "sm:"+str(user_id)+":"+section+":"+str(obj_id)
 	my_server.incr(short_message)
-	my_server.expire(short_message,FOUR_MINS)
+	my_server.expire(short_message,THREE_MINS)
 
 def many_short_messages(user_id,section,obj_id):
 	"""

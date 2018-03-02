@@ -61,7 +61,7 @@ MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
-NUMBER_VERIFICATION_THRESHOLD = 10
+NUMBER_VERIFICATION_THRESHOLD = 0
 NUMBER_VERIFICATION_BONUS = 500
 ###############################################################################################################
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'

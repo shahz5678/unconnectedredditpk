@@ -23,9 +23,10 @@ body {
 </style>
 
 <div class="margin clb">
-	<div class="cxl mbs mrs" style="font-weight:bold;color:#FF1547;display:inline">{% if cric_summ %}{{ cric_summ }}{% else %}{{ status }}{% endif %}</div>
+	<h1 class="cxl mbs mrs" style="font-weight:bold;color:#FF1547;display:inline">{% if cric_summ %}{{ cric_summ }}{% else %}{{ status }}{% endif %}</h1>
+
 	<form action="{% url 'first_time_cricket_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px" type="submit">&nbsp;</button></form>
-	
+
 	  {% if form.description.errors %}
 	  <div class="cb mtl">{{ form.description.errors.0 }}</div>
 	  {% else %}
@@ -38,12 +39,40 @@ body {
 	  	<button class="btn bl mtl mrl {{ css_class1 }}" style="height:25px" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button>
 	  	<button class="btn bl mtl mbs {{ css_class2 }}" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
 	</form>
+
+	
+	<!-- Top Banner Ad -->
+	<div style="text-align:center">
+	<ins class="adsbygoogle"
+	    style="display:inline-block;width:320px;height:100px"
+	    data-ad-client="ca-pub-2568547635306983"
+	    data-ad-slot="4696344368"></ins>
+	<script>
+	(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+	</div>
 	 
 <div class="cgy cs sp mts mbs">
 Latest commentary:
 </div>
 
  {% for comment in object_list %}
+ 	
+ 	{% if forloop.counter == 3 or forloop.counter == 7 %}
+	 	
+		<!-- Responsive Ad -->
+		<div style="text-align:center">
+		<ins class="adsbygoogle"
+		    style="display:block"
+		    data-ad-client="ca-pub-2568547635306983"
+		    data-ad-slot="3079816846"
+		    data-ad-format="auto"></ins>
+		<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+		</div>
+ 	{% endif %}
+
  	{% with replyforms|get_item:comment.l as replyform %}
  			<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
 			{{ comment.ch|safe }}
@@ -97,5 +126,19 @@ Latest commentary:
 	</div>
 
 </div>
+
+
+<!-- Bottom Box Ad -->
+<div style="text-align:center">
+<ins class="adsbygoogle"
+    style="display:inline-block;width:300px;height:250px;margin:auto"
+    data-ad-client="ca-pub-2568547635306983"
+    data-ad-slot="8440627181"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>
+
 <br><br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

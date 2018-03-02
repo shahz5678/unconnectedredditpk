@@ -5286,10 +5286,10 @@ class PublicGroupView(CreateView):
 	form_class = PublicGroupReplyForm
 	template_name = "public_group_reply.html"
 
-	def get_form_kwargs( self ):
+
+	def get_form_kwargs(self):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
-		kwargs['group_id'] = Group.objects.filter(unique=self.request.session.get("public_uuid",None)).values_list('id',flat=True)[0]
 		kwargs['is_mob_verified'] = self.request.mobile_verified
 		return kwargs
 
@@ -5346,21 +5346,21 @@ class PublicGroupView(CreateView):
 		return context
 
 	def form_invalid(self, form):
-	    """
-	    If the form is invalid, re-render the context data with the
-	    data-filled form and errors.
-	    """
-	    self.request.session["public_group_form"] = form
-	    self.request.session.modified = True
-	    if self.request.is_ajax():
-	    	return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
-	    else:
-	    	return self.render_to_response(self.get_context_data(form=form))
+		"""
+		If the form is invalid, re-render the context data with the
+		data-filled form and errors.
+		"""
+		self.request.session["public_group_form"] = form
+		self.request.session.modified = True
+		if self.request.is_ajax():
+			return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+		else:
+			return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
 		"""
-	    If the form is valid, redirect to the supplied URL.
-	    """
+		If the form is valid, redirect to the supplied URL.
+		"""
 		is_ajax = self.request.is_ajax()
 		if self.request.user_banned:
 			if is_ajax:
@@ -5368,9 +5368,9 @@ class PublicGroupView(CreateView):
 			else:
 				return redirect("missing_page")
 		user_id = self.request.user.id
-		pk = self.request.POST.get('uid',None)
+		pk = self.request.POST.get('gp',None)
 		try:
-			which_group = Group.objects.get(unique=pk)
+			which_group = Group.objects.get(id=pk)
 		except Group.DoesNotExist:
 			if is_ajax:
 				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
@@ -5393,7 +5393,7 @@ class PublicGroupView(CreateView):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			set_input_rate_and_history.delay(section='pub_grp',section_id=which_group.id,text=f.text,user_id=user_id,time_now=time.time())
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-			self.request.session["public_uuid"] = pk
+			self.request.session["public_uuid"] = which_group.unique
 			self.request.session.modified = True
 			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
@@ -5581,7 +5581,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 	def get_form_kwargs( self ):
 		kwargs = super(PrivateGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
-		kwargs['group_id'] = Group.objects.filter(unique=self.request.session.get("unique_id",None)).values_list('id',flat=True)[0]
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5687,9 +5686,9 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				device = '5'
 			else:
 				device = '3'
-			unique = self.request.POST.get("unique")
-			which_group = Group.objects.get(unique=unique)
-			which_group_id = which_group.id
+			pk = self.request.POST.get('gp',None)
+			which_group = Group.objects.get(pk=pk)
+			which_group_id, unique = pk, which_group.unique
 			set_input_rate_and_history.delay(section='prv_grp',section_id=which_group_id,text=text,user_id=user_id,time_now=time.time())
 			reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
 				device=device)
@@ -5707,11 +5706,11 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				image_url = None
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
 				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
-				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
+				reply_text=text,priv=which_group.private,slug=unique,image_url=image_url,priority='priv_mehfil',\
 				from_unseen=False, reply_id=reply.id)
 			self.request.session['unique_id'] = unique
 			self.request.session.modified = True
-			return redirect("private_group_reply")#, reply.which_group.unique)
+			return redirect("private_group_reply")
 				
 	
 @ratelimit(rate='3/s')

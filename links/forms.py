@@ -180,6 +180,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 	def clean_description(self):
 		user_id, description, section_id, section = self.user_id, self.cleaned_data.get("description"), '1', 'home'
+		description = description.strip()
 		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -187,11 +188,10 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap yahan likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				description = description.strip()
 				desc_len = len(description)
 				if desc_len < 2:
 					raise forms.ValidationError('tip: itna choti baat nahi likh sakte')
-				elif desc_len < 9:
+				elif desc_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -222,6 +222,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def clean_description(self):
 		description, user_id, section_id, section = self.cleaned_data.get("description"), self.user_id, '1', 'home'
+		description = description.strip()
 		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -229,11 +230,10 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap home pe likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				description = description.strip()
 				len_ = len(description)
 				if len_ < 2:
 					raise forms.ValidationError('itni choti baat nahi likh sakte')
-				elif len_ < 9:
+				elif len_ < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -251,9 +251,10 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				return description
 
 class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
-	image = forms.ImageField(required=False)
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
+		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
+	gp = forms.IntegerField()
 
 	class Meta:
 		model = Reply
@@ -262,7 +263,6 @@ class PublicGroupReplyForm(forms.ModelForm):
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
-		self.group_id = kwargs.pop('group_id',None)
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
@@ -270,8 +270,12 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
 		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
-	def clean_text(self):
-		text, user_id, section_id, section = self.cleaned_data.get("text"), self.user_id, self.group_id, 'pub_grp'
+	def clean(self):
+		data = self.cleaned_data
+		text, user_id, section_id, section, image = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', data.get('image')
+		if not text:
+			raise forms.ValidationError('tip: likhna zaruri hai')
+		text = text.strip()
 		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -279,11 +283,12 @@ class PublicGroupReplyForm(forms.ModelForm):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				text = text.strip()
 				text_len = len(text)
-				if text_len < 2:
+				if text_len < 1:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif text_len < 2:
 					raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-				elif text_len < 9:
+				elif text_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -299,8 +304,9 @@ class PublicGroupReplyForm(forms.ModelForm):
 						raise forms.ValidationError('tip: ziyada spaces daal di hain')
 					else:
 						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return text
-
+				data["text"] = text
+				return data
+		
 class OutsiderGroupForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
 	class Meta:
@@ -309,8 +315,11 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
+		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
+	gp = forms.IntegerField()
+	
 	class Meta:
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
@@ -318,12 +327,15 @@ class PrivateGroupReplyForm(forms.ModelForm):
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
-		self.group_id = kwargs.pop('group_id',None)
 		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
 		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
-	def clean_text(self):
-		text, user_id, section_id, section = self.cleaned_data.get("text"), self.user_id, self.group_id, 'prv_grp'
+	def clean(self):
+		data = self.cleaned_data
+		text, user_id, section_id, section, image = data.get("text"), self.user_id, data.get("gp"), 'prv_grp', data.get("image")
+		if not text:
+			raise forms.ValidationError('tip: likhna zaruri hai')
+		text = text.strip()
 		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -331,11 +343,12 @@ class PrivateGroupReplyForm(forms.ModelForm):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				text = text.strip()
 				text_len = len(text)
-				if text_len < 2:
+				if text_len < 1:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif text_len < 2:
 					raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-				elif text_len < 9:
+				elif text_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -349,7 +362,8 @@ class PrivateGroupReplyForm(forms.ModelForm):
 						raise forms.ValidationError('tip: ziyada spaces daal di hain')
 					else:
 						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return text
+				data["text"] = text
+				return data
 
 
 class WelcomeMessageForm(forms.ModelForm):
@@ -375,6 +389,7 @@ class CommentForm(forms.ModelForm):
 
 	def clean_text(self):
 		text, user_id, photo_id, section = self.cleaned_data.get("text"), self.user_id, self.photo_id, 'pht_comm'
+		text = text.strip()
 		if repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=text):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -382,11 +397,10 @@ class CommentForm(forms.ModelForm):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap photos pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				text = text.strip()
 				text_len = len(text)
 				if text_len < 2:
 					raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
-				elif text_len < 9:
+				elif text_len < 6:
 					if many_short_messages(user_id,section,photo_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -427,6 +441,7 @@ class PublicreplyForm(forms.ModelForm):
 
 	def clean_description(self):
 		description, user_id, section_id, section = self.cleaned_data.get("description"), self.user_id, self.link_id, 'home_rep'
+		description = description.strip()
 		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
 			raise forms.ValidationError('tip: milte julte jawab nah likho, kuch new likho')
 		else:
@@ -434,11 +449,10 @@ class PublicreplyForm(forms.ModelForm):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				description = description.strip()
 				desc_len = len(description)
 				if desc_len < 2:
 					raise forms.ValidationError('tip: itna chota jawab nahi likh sakte')
-				elif desc_len < 9:
+				elif desc_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -588,6 +602,7 @@ class PhotoCommentForm(forms.Form):
 
 	def clean_photo_comment(self):
 		comment, user_id, photo_id, section = self.cleaned_data.get("photo_comment"), self.user_id, self.photo_id, 'pht_comm'
+		comment = comment.strip()
 		if repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -595,11 +610,10 @@ class PhotoCommentForm(forms.Form):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap photos pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				comment = comment.strip()
 				comm_len = len(comment)
 				if comm_len < 2:
 					raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				elif comm_len < 9:
+				elif comm_len < 6:
 					if many_short_messages(user_id,section,photo_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -646,6 +660,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_home_comment(self):
 		comment, user_id, link_id, section = self.cleaned_data.get("home_comment"), self.user_id, self.link_id, 'home_rep'
+		comment = comment.strip()
 		if link_id and repetition_found(section=section,section_id=link_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		home_reply_empty = comment == '|'
@@ -656,11 +671,10 @@ class UnseenActivityForm(forms.Form):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				comment = comment.strip()
 				len_comm = len(comment)
 				if len_comm < 2:
 					raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				elif len_comm < 9:
+				elif len_comm < 6:
 					if many_short_messages(user_id,section,link_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -678,6 +692,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_photo_comment(self):
 		comment, user_id, photo_id, section = self.cleaned_data.get("photo_comment"), self.user_id, self.photo_id, 'pht_comm'
+		comment = comment.strip()
 		if photo_id and repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		photo_comment_empty = comment == '|'
@@ -688,11 +703,10 @@ class UnseenActivityForm(forms.Form):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap photo pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				comment = comment.strip()
 				comm_len = len(comment)
 				if comm_len < 2:
 					raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				elif comm_len < 9:
+				elif comm_len < 6:
 					if many_short_messages(user_id,section,photo_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -710,6 +724,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_public_group_reply(self):
 		group_reply, user_id, section_id, section = self.cleaned_data.get("public_group_reply"), self.user_id, self.pub_grp_id, 'pub_grp'
+		group_reply = group_reply.strip()
 		if section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		group_reply_empty = group_reply == '|'
@@ -720,11 +735,10 @@ class UnseenActivityForm(forms.Form):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				group_reply = group_reply.strip()
 				gr_len = len(group_reply)
 				if gr_len < 2:
 					raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				elif gr_len < 9:
+				elif gr_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
@@ -742,6 +756,7 @@ class UnseenActivityForm(forms.Form):
 
 	def clean_private_group_reply(self):
 		group_reply, user_id, section_id, section = self.cleaned_data.get("private_group_reply"), self.user_id, self.prv_grp_id, 'prv_grp'
+		group_reply = group_reply.strip()
 		if section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		group_reply_empty = group_reply == '|'
@@ -752,11 +767,10 @@ class UnseenActivityForm(forms.Form):
 			if rate_limited > 0:
 				raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
-				group_reply = group_reply.strip()
 				gr_len = len(group_reply)
 				if gr_len < 2:
 					raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				elif gr_len < 9:
+				elif gr_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% load s3 %}
+{% load humanize %}
+{% load show_error %}
 {% load emoticons_tags %}
 {% load get_mobile_verification_bar %}
 {% block content %}
-<head><title>{% if switching %}Private group{% else %}{{ group.topic }}{% endif %} | Damadam.pk</title></head>
+<head><title>{% if switching %}Private group{% else %}{{ group.topic }} (private group){% endif %} | Damadam.pk</title></head>
 <div class="margin clb">
 
 {% if switching %}
@@ -44,11 +45,11 @@
         {% if not on_fbs %}
         <div class="mt mbl cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>
         {% endif %}
-        {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
+        {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
         <br>
         {{ form.text }}
             <br>
-    <button class="mts mbl btn bm bcg mrl" type="submit" id="id_submit" style="height:23px">OK</button>
+    <button class="mts mbl btn bm bcg mrl" type="submit" name="gp" value="{{ group.id }}" style="height:23px">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}

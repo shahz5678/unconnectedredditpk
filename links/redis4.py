@@ -2,7 +2,7 @@
 # coding=utf-8
 import redis, time, random
 from location import REDLOC4
-from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
+from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
 
 '''
 ##########Redis Namespace##########
@@ -550,7 +550,7 @@ def log_input_rate(section,user_id,time_now):
 	####################################
 	all_str_values = my_server.lrange(key,0,-1)
 	total_inputs = len(all_str_values)
-	if total_inputs > 4:
+	if total_inputs > 7:
 		all_values = map(float, all_str_values)
 		sum_of_differences = 0
 		for s, t in zip(all_values, all_values[1:]):
@@ -559,8 +559,11 @@ def log_input_rate(section,user_id,time_now):
 		if avg_time_taken_between_sentences < SUPER_FLOODING_THRESHOLD:
 			rate_limit_user(user_id=user_id,section=section,level='3',ban_reason=BAN_REASON['flooding'],my_server=my_server)
 		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
+			rate_limit_user(user_id=user_id,section=section,level='2',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+		elif avg_time_taken_between_sentences < LAZY_FLOODING_THRESHOLD:
 			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-		my_server.ltrim(key,0,3)
+		else:
+			my_server.ltrim(key,0,6)
 
 def log_input_text(section, section_id,text,user_id):
 	"""

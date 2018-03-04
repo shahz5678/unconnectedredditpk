@@ -38,10 +38,12 @@
 	</a>&nbsp;(<a href="{% url 'score_help' %}#section0">?</a>)<br>
 	<hr size=1 COLOR="#b3e6b3">
 	
+	<div style="overflow:hidden">
 	<b class="profile">About:</b>
 		{% if object.userprofile.bio %}
 		{% load emoticons_tags %}{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
 		{% endif %}
+	</div>
 	<hr size=1 COLOR="#b3e6b3">
 	
 	<b class="profile">Age:</b>

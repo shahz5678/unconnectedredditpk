@@ -14,7 +14,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, clean_image_file
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import re, time
+import re, time, random
 from user_sessions.models import Session
 import unicodedata
 
@@ -31,7 +31,7 @@ def repetition_found(section,section_id,user_id, target_text):
 		return False
 
 
-def uniform_string(text,n=7):
+def uniform_string(text,n=8):
 	text = text.lower()
 	for i, c in enumerate(text):
 		if text[i:i+n] == c * n:
@@ -198,7 +198,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 						log_short_message(user_id,section,section_id)
 				elif desc_len > 500:
 					raise forms.ValidationError('tip: itna barri baat nahi likh sakte')
-				description = clear_zalgo_text(description)
+				# description = clear_zalgo_text(description)
 				uni_str = uniform_string(description)
 				if uni_str:
 					if uni_str.isspace():
@@ -240,7 +240,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 						log_short_message(user_id,section,section_id)
 				elif len_ > 500:
 					raise forms.ValidationError('itni barri baat nahi likh sakte')
-				description = clear_zalgo_text(description)
+				# description = clear_zalgo_text(description)
 				uni_str = uniform_string(description)
 				if uni_str:
 					if uni_str.isspace():
@@ -251,7 +251,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				return description
 
 class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
 		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	gp = forms.IntegerField()
@@ -274,38 +274,48 @@ class PublicGroupReplyForm(forms.ModelForm):
 		data = self.cleaned_data
 		text, user_id, section_id, section, image = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', data.get('image')
 		if not text:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		text = text.strip()
-		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		else:
-			rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+			if image:
+				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
+						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
+					return data
 			else:
-				text_len = len(text)
-				if text_len < 1:
-					raise forms.ValidationError('tip: likhna zaruri hai')
-				elif text_len < 2:
-					raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-				elif text_len < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,section_id)
-				elif text_len > 500:
-					raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-				if not self.is_mob_verified:
-					raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
-				text = clear_zalgo_text(text)
-				uni_str = uniform_string(text)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				data["text"] = text
-				return data
+				raise forms.ValidationError('tip: likhna zaruri hai')
+		else:
+			text = text.strip() # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
+			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
+				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+			else:
+				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					text_len = len(text)
+					if text_len < 1:
+						raise forms.ValidationError('tip: likhna zaruri hai')
+					elif text_len < 2:
+						raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
+					elif text_len < 6:
+						if many_short_messages(user_id,section,section_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,section_id)
+					elif text_len > 500:
+						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+					if not self.is_mob_verified:
+						raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
+					# text = clear_zalgo_text(text)
+					uni_str = uniform_string(text)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					data["text"] = text
+					return data
 		
 class OutsiderGroupForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -315,7 +325,7 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
 		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	gp = forms.IntegerField()
@@ -334,36 +344,46 @@ class PrivateGroupReplyForm(forms.ModelForm):
 		data = self.cleaned_data
 		text, user_id, section_id, section, image = data.get("text"), self.user_id, data.get("gp"), 'prv_grp', data.get("image")
 		if not text:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		text = text.strip()
-		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		else:
-			rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+			if image:
+				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
+						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
+					return data
 			else:
-				text_len = len(text)
-				if text_len < 1:
-					raise forms.ValidationError('tip: likhna zaruri hai')
-				elif text_len < 2:
-					raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-				elif text_len < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,section_id)
-				elif text_len > 500:
-					raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-				text = clear_zalgo_text(text)
-				uni_str = uniform_string(text)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				data["text"] = text
-				return data
+				raise forms.ValidationError('tip: likhna zaruri hai')
+		else:
+			text = text.strip()
+			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
+				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+			else:
+				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					text_len = len(text)
+					if text_len < 1:
+						raise forms.ValidationError('tip: likhna zaruri hai')
+					elif text_len < 2:
+						raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
+					elif text_len < 6:
+						if many_short_messages(user_id,section,section_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,section_id)
+					elif text_len > 500:
+						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+					# text = clear_zalgo_text(text)
+					uni_str = uniform_string(text)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					data["text"] = text
+					return data
 
 
 class WelcomeMessageForm(forms.ModelForm):
@@ -407,7 +427,7 @@ class CommentForm(forms.ModelForm):
 						log_short_message(user_id,section,photo_id)
 				elif text_len > 250:
 					raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
-				text = clear_zalgo_text(text)
+				# text = clear_zalgo_text(text)
 				uni_str = uniform_string(text)
 				if uni_str:
 					if uni_str.isspace():
@@ -459,7 +479,7 @@ class PublicreplyForm(forms.ModelForm):
 						log_short_message(user_id,section,section_id)
 				elif desc_len > 250:
 					raise forms.ValidationError('tip: inta bara jawab nahi likh sakte')
-				description = clear_zalgo_text(description)
+				# description = clear_zalgo_text(description)
 				uni_str = uniform_string(description)
 				if uni_str:
 					if uni_str.isspace():
@@ -494,7 +514,7 @@ class SearchNicknameForm(forms.Form):
 		nickname = nickname.strip()
 		if len(nickname) > 70:
 			raise forms.ValidationError('tip: inta bara nickname nahi likh sakte')
-		nickname = clear_zalgo_text(nickname)
+		# nickname = clear_zalgo_text(nickname)
 		return nickname
 
 class CaptionDecForm(forms.Form):
@@ -620,7 +640,7 @@ class PhotoCommentForm(forms.Form):
 						log_short_message(user_id,section,photo_id)
 				elif comm_len > 250:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				comment = clear_zalgo_text(comment)
+				# comment = clear_zalgo_text(comment)
 				uni_str = uniform_string(comment)
 				if uni_str:
 					if uni_str.isspace():
@@ -681,7 +701,7 @@ class UnseenActivityForm(forms.Form):
 						log_short_message(user_id,section,link_id)
 				elif len_comm > 250:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				comment = clear_zalgo_text(comment)
+				# comment = clear_zalgo_text(comment)
 				uni_str = uniform_string(comment)
 				if uni_str:
 					if uni_str.isspace():
@@ -713,7 +733,7 @@ class UnseenActivityForm(forms.Form):
 						log_short_message(user_id,section,photo_id)
 				elif comm_len > 250:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				comment = clear_zalgo_text(comment)
+				# comment = clear_zalgo_text(comment)
 				uni_str = uniform_string(comment)
 				if uni_str:
 					if uni_str.isspace():
@@ -745,7 +765,7 @@ class UnseenActivityForm(forms.Form):
 						log_short_message(user_id,section,section_id)
 				elif gr_len > 500:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				group_reply = clear_zalgo_text(group_reply)
+				# group_reply = clear_zalgo_text(group_reply)
 				uni_str = uniform_string(group_reply)
 				if uni_str:
 					if uni_str.isspace():
@@ -777,7 +797,7 @@ class UnseenActivityForm(forms.Form):
 						log_short_message(user_id,section,section_id)
 				elif gr_len > 500:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				group_reply = clear_zalgo_text(group_reply)
+				# group_reply = clear_zalgo_text(group_reply)
 				uni_str = uniform_string(group_reply)
 				if uni_str:
 					if uni_str.isspace():
@@ -831,7 +851,7 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 	def clean_topic(self):
 		topic = self.cleaned_data.get("topic")
 		topic = topic.strip()
-		topic = clear_zalgo_text(topic)
+		# topic = clear_zalgo_text(topic)
 		if not topic:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
 		elif topic < 1:
@@ -847,7 +867,7 @@ class ChangeGroupTopicForm(forms.ModelForm):
 	def clean_topic(self):
 		topic = self.cleaned_data.get("topic")
 		topic = topic.strip()
-		topic = clear_zalgo_text(topic)
+		# topic = clear_zalgo_text(topic)
 		if not topic:
 			raise forms.ValidationError('Topic rakhna zaruri hai')
 		elif topic < 1:
@@ -930,7 +950,7 @@ class PhotoReportForm(forms.Form):
 			raise forms.ValidationError('(tip: itni choti report nahi likh sakte)')
 		elif len(description) > 250:
 			raise forms.ValidationError('(tip: inti barri report nahi likh sakte)')
-		description = clear_zalgo_text(description)
+		# description = clear_zalgo_text(description)
 		return description
 
 class HomeLinkListForm(forms.Form):

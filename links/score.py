@@ -82,5 +82,5 @@ BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
 RATELIMIT_TTL = {'1':60*7,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
 SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
 FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
-LAZY_FLOODING_THRESHOLD = 7.5 # 7.5 seconds on avg between multiple sentences
+LAZY_FLOODING_THRESHOLD = 7 # 7 seconds on avg between multiple sentences
 SHORT_MESSAGES_ALWD = 4

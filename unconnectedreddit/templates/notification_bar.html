@@ -11,6 +11,7 @@
 				</div>
 				
 			{% else %}
+				<div class="mbl" style="overflow:hidden">
 				{% if parent.ooa != 'None' %}
 					<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 				{% else %} 
@@ -20,7 +21,7 @@
 				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
 				<button name="lid" class="btn nw bs cs bct mls" type="submit" style="height:22px" value="{{ parent_pk }}">post</button></form>
-				<p style="margin-top:.5em;"></p>
+				</div>
 			
 				<span class="ct cs sp">
 				is pe <b>new</b> jawab aya:
@@ -28,6 +29,7 @@
 				<p style="margin-top:.3em;"></p>
 			{% endif %}	
 			
+			<div class="mbl" style="overflow:hidden">
 			<a href="{% url 'profile' parent.lrsn %}">
 			{% if parent.lrau != 'None' %}
 			<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
@@ -40,7 +42,7 @@
 			    {% endif %}</a>
 			:<bdi class="clb lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
-				<p style="margin-top:.5em;"></p>
+			</div>
 				{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
 				{% csrf_token %}
@@ -63,8 +65,11 @@
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
 	<div class="card box dbg mbl">
-		<b class="cg cm lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button style="height:22px" type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mbl mls">mehfil</button></form>
-		<br><span class="cg cs sp" >mein <b>new</b> pegham aya:</span><br><br>
+		<div class="mbl" style="overflow:hidden">
+		<b class="cg cm lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button style="height:22px" type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mls">mehfil</button></form>
+		</div>
+		<span class="cg cs sp" >mein <b>new</b> pegham aya:</span><br><br>
+		<div class="mbl" style="overflow:hidden">
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}" style="border-radius:12px" alt="photo"><br>
 		{% endif %}
@@ -79,7 +84,7 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		<span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<p style="margin-top:.5em;"></p>
+		</div>
 		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
@@ -100,11 +105,15 @@
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
 	<div class="card box dbp mbl">
-		<b class="cp lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl" style="height:22px">mehfil</button></a>
-		<br><span class="cp cs sp">mein <b>new</b> pegham aya:</span><br><br>
+		<div style="overflow:hidden">
+			<b class="cp lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl" style="height:22px">mehfil</button></a>
+		</div>
+		<span class="cp cs sp">mein <b>new</b> pegham aya:</span><br><br>
 		{% if parent.rp != 'None' %}
 		<img src="{{ parent.rp }}" style="border-radius:12px" alt="photo"><br>
 		{% endif %}
+		
+		<div style="overflow:hidden">
 		<a href="{% url 'profile' parent.lrsn %}">
 		{% if parent.lrau != 'None' %}
 		<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
@@ -116,6 +125,7 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
 		<span style="color:#404040;" class="lsp">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		</div>
 		<p style="margin-top:.5em;"></p>
 		{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
@@ -158,7 +168,7 @@
 	{% elif type_of_object == '0' %}
 		<div class="card box dby mbl">
 		
-		<div class="mbl">
+		<div class="mbl" style="overflow:hidden">
 		<a href="{% url 'comment_pk' parent_pk 6 %}">
 		{% if parent.v|add:"0" < -2 %}
 			<img src="{{ static_url }}img/broken_pic_small.png" alt="pic" style="border-radius:4px" width="38" height="38">
@@ -174,6 +184,7 @@
 		<span class="cgy lsp">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span></a>
 		</div>
 		<span class="co cs sp">Photo pe <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
+		<div class="mbl" style="overflow:hidden">
 		<a href="{% url 'profile' parent.lrsn %}">
 		{% if parent.lrau != 'None' %}
 		<img src="{{ parent.lrau|s3:'thumb' }}" alt="pic" style="border-radius:50%" width="22" height="22">
@@ -185,7 +196,8 @@
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}</a>
 		:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
-		<p style="margin-top:.5em;"></p>
+		</div>
+		
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
@@ -232,7 +244,8 @@
 			<img src="{{ parent.p|s3 }}" alt="photo" style="border-radius:12px" class="pht">
 		{% endif %}
 		</a>&nbsp;&nbsp;
-		<br><span class="cl cgy mrl">{{ parent.od }}</span>
+		
+		<div class="mbl" style="overflow:hidden"><span class="cl cgy mrl">{{ parent.od }}</span>
 		<form method="POST" action="{% url 'fan' %}" style="display:inline">
 		{% csrf_token %}
 			<input type="hidden" name="oid" value="{{ parent.oi }}">
@@ -242,7 +255,7 @@
 			<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ static_url }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
 		{% endif %}
 		</form>
-		<br>
+		</div>
 		<p style="margin-top:.5em;"></p>
 		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">

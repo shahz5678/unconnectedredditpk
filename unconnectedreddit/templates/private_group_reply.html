@@ -15,7 +15,8 @@
     <br><br><br>
 {% else %}
     {% mobile_verification_bar user.id csrf mobile_verified score %}
-    <form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
+    <div style="overflow:hidden" class="mbs">
+    <form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline">
     {% csrf_token %}
     <input type="hidden" name="guuid" value="{{ group.unique }}">
     <input type="hidden" name="insg" value="1">
@@ -23,7 +24,8 @@
     <button type="submit" name="prv" class="btn bcr bxs" value="1"><b>X</b></button>
     </form>
     <b class="clb cl bw mrs">{% emoticons %}{{ group.topic }}{% endemoticons %}</b><a href="{% url 'change_private_topic' %}"><button class="btn bm bcg cs mts mbs" style="height:20px">change</button></a>
-    <br>
+    </div>
+    
     <span class="cs">
     <b class="clb">members:</b>
     {% if not members %}
@@ -42,11 +44,10 @@
         {% csrf_token %}
         <input type="hidden" name="unique" value="{{ unique }}">
        <span class="cm cg"><b>Photo:</b><br></span>{{ form.image }}<br>
-        {% if not on_fbs %}
-        <div class="mt mbl cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>
+        {% if on_fbs %}
+        <div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>
         {% endif %}
-        {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}
-        <br>
+        <div class="mtl">{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}</div>
         {{ form.text }}
             <br>
     <button class="mts mbl btn bm bcg mrl" type="submit" name="gp" value="{{ group.id }}" style="height:23px">OK</button>
@@ -151,6 +152,7 @@
                     ne&nbsp;mehfil&nbsp;ko&nbsp;join&nbsp;nahi&nbsp;kia
                 </span>
             {% elif reply.category = '4' %}
+                <div style="overflow:hidden">
                 {% if time < 41 %}
                     <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
@@ -159,6 +161,7 @@
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
                 <span class="lsp cg cs"><a href="{% url 'profile' slug=writer.username %}#section0">{{ writer }}{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{% emoticons %}<bdi>{{ reply.text }}</bdi>{% endemoticons %}</b>&nbsp;rakh&nbsp;diya</span>
+                </div>
             {% else %}
             <div class="lsp" style="overflow:hidden">
                 {% if reply.image %}
@@ -203,22 +206,23 @@
             {% endif %}:&nbsp;
             <bdi class="bw">{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
             
-        {% endif %}
-            
             <span class="sp cgy cxs">,<bdi>{{ reply.submitted_on|naturaltime }}</bdi>
-        {% if reply.device == '1' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="pic"></img>
-        {% elif reply.device == '2' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="pic"></img>
-        {% elif reply.device == '4' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="pic"></img>
-        {% elif reply.device == '5' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="pic"></img>
-        {% elif reply.device == '3' %}
-        &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="pic"></img>
-        {% else %}
+            {% if reply.device == '1' %}
+            &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="pic">
+            {% elif reply.device == '2' %}
+            &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="pic">
+            {% elif reply.device == '4' %}
+            &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="pic">
+            {% elif reply.device == '5' %}
+            &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="pic">
+            {% elif reply.device == '3' %}
+            &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="pic">
+            {% else %}
+            {% endif %}
+            </span>
+            </div>
         {% endif %}
-            </span></div>
+        
         <hr size=1 COLOR="#d6f5d6">
 
     {% endfor %}

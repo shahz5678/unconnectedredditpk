@@ -61,7 +61,7 @@ MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
-NUMBER_VERIFICATION_THRESHOLD = 10
+NUMBER_VERIFICATION_THRESHOLD = 0
 NUMBER_VERIFICATION_BONUS = 500
 ###############################################################################################################
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
@@ -76,3 +76,11 @@ PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye chat mita diye janey ki waja se save nahi
 'err6':'Ye chat save karney ke liye apni pichli saved chat mein se kuch delete karein',\
 'err7':'Ye chat pehlay bhi save ki ja chuki hai, dubara nahi ho sakti',\
 'err8':'Kharabi ho geyi, phir se koshish karein','err9':'Ap ko ye chat save karney ki ijazat nahi'}
+###############################################################################################################
+# helps in setting TTL on rate limits set on abusive users. Each key defines 'level' of offense, values are ttl
+BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
+RATELIMIT_TTL = {'1':60*7,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
+SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
+FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
+LAZY_FLOODING_THRESHOLD = 7.5 # 7.5 seconds on avg between multiple sentences
+SHORT_MESSAGES_ALWD = 4

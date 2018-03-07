@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from image_processing import clean_image_file_with_hash
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms#, send_personal_group_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
@@ -21,18 +20,17 @@ from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
 public_group_ranking_clean_up
-# from redis5 import trim_personal_group, set_personal_group_image_storage
-from redis4 import expire_online_users, get_recent_online, set_online_users
+# from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance
+from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
 remove_notification_of_banned_user, remove_from_photo_owner_activity
 from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
-update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply, get_photo_link_mapping, \
-all_best_photos
+add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
+update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -122,6 +120,9 @@ def punish_gibberish_writers(dict_of_targets):
 # def queue_personal_group_invitational_sms(mobile_number, sms_text):
 # 	send_personal_group_sms(mobile_number, sms_text)
 
+# @celery_app1.task(name='tasks.update_personal_group_last_touch')
+# def update_personal_group_last_touch(group_id, time):
+# 	mark_personal_group_attendance(group_id, time)
 
 def retrieve_object_type(origin):
 	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
@@ -432,7 +433,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	if not updated:
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
-	set_prev_group_replies(sender_id,reply_text)
+	# set_prev_group_replies(sender_id,reply_text)
 	set_latest_group_reply(group_id,reply_id)
 	# set_prev_retort(sender_id,reply_text)
 
@@ -505,18 +506,13 @@ def rank_all_photos1():
 			del_cricket_match(enqueued_match['id'])
 
 
-# @celery_app1.task(name='tasks.reset_best_photos_cache')
-# def reset_best_photos_cache(photo_id):
-# 	obj_list = all_best_photos()
-# 	obj_list_keys = map(itemgetter(0), obj_list)
-# 	try:
-# 		index = obj_list_keys.index(photo_id)
-# 		page_num = get_page(index,PHOTOS_PER_PAGE)
-# 		cache.delete('best_photos'+str(page_num))
-# 		cache.delete('best_photos_page_obj'+str(page_num))
-# 	except:
-# 		pass
-		
+@celery_app1.task(name='tasks.set_input_rate_and_history')
+def set_input_rate_and_history(section,section_id,text,user_id,time_now):
+	"""
+	Keeps check of writing rates to rate limit abusive users
+	"""
+	log_input_text(section, section_id,text,user_id)
+	log_input_rate(section,user_id,time_now)
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
@@ -685,7 +681,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	set_prev_replies(user_id,text)
+	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -751,7 +747,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	set_prev_replies(user_id,text)
+	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -825,7 +821,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	video.second_latest_comment = video.latest_comment
 	video.latest_comment_id = videocomment_id
 	video.comment_count = count
-	set_prev_retort(user_id,text)
+	# set_prev_retort(user_id,text)
 	if user_id != video.owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
 		video.owner.userprofile.media_score = video.owner.userprofile.media_score + 2 #giving media score to the video poster
@@ -847,7 +843,7 @@ def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
-	set_prev_replies(user_id,description)
+	# set_prev_replies(user_id,description)
 	if is_someone_elses_post:
 		# ensuring self commenting doesn't add anything to a post's rating
 		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)

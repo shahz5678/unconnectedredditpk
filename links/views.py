@@ -47,7 +47,7 @@ VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, Ad
 AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
 HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, \
 AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm#, GroupReportForm
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from PIL import Image, ImageFile
@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -82,19 +82,19 @@ from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_a
 from .redis1 import insert_hash, remove_key, document_publicreply_abuse, publicreply_allowed, document_comment_abuse, comment_allowed, \
 document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
 check_group_invite, remove_group_invite, get_active_invites, add_user_group, get_user_groups, remove_user_group, all_unfiltered_posts, \
-all_filtered_posts, all_filtered_urdu_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, all_videos, add_video, \
+all_filtered_posts, all_filtered_urdu_posts, add_unfiltered_post, add_filtered_post, add_photo, all_photos, all_best_photos, all_videos, \
 video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, save_recent_video, save_recent_photo, get_recent_photos, \
 get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, bulk_check_group_membership, first_time_refresher, add_refresher, \
 in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
-add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, first_time_inbox_visitor, add_inbox, \
+add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, bulk_check_group_invite, first_time_inbox_visitor, \
 first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
-add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, set_prev_retort, set_prev_retorts, \
-get_prev_retort, remove_all_group_members, voted_for_single_photo, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, \
+add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, add_video,add_inbox,set_latest_group_reply,\
+remove_all_group_members, voted_for_single_photo, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, remove_group_for_all_members, \
-get_link_writer, get_photo_owner, set_inactives, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
+get_link_writer, get_photo_owner, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, remove_latest_group_reply, \
-get_latest_group_replies, set_latest_group_reply
+get_latest_group_replies#, set_prev_retorts
 from .website_feedback_form import AdvertiseWithUsForm
 
 from mixpanel import Mixpanel
@@ -935,15 +935,16 @@ def report_comment(request, *args, **kwargs):
 def reportreply_pk(request, pk=None, num=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 5 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_reportreply.html', context)
-		except:
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_reportreply.html', context)
+		# try:
+		# 	deduction = 5 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_reportreply.html', context)
+		# except:
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_reportreply.html', context)
+		return redirect("missing_page")
 	else:
 		if pk.isdigit() and num.isdigit():
 			request.session["report_pk"] = pk
@@ -1200,13 +1201,15 @@ def process_salat(request, offered=None, *args, **kwargs):
 ############################################################################################################################################################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='22/38s')
+@ratelimit(rate='3/s')
+# @ratelimit(field='user_id',ip=False,rate='22/38s')
 def home_reply(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'penalty':300}
-		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
-		return render(request, 'penalty_homejawab.html', context)
+		# context = {'penalty':300}
+		# UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
+		# return render(request, 'penalty_homejawab.html', context)
+		return redirect("missing_page")
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -1234,9 +1237,11 @@ def home_reply(request,pk=None,*args,**kwargs):
 				# config_manager.get_obj().track('wrote_homereply', user_id)
 				##############################################################################################
 				##############################################################################################
-				form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
+				form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk)
 				if form.is_valid():
-					target = process_publicreply(request=request,link_id=pk,text=form.cleaned_data.get("description"),link_writer_id=link_writer_id)
+					text=form.cleaned_data.get("description")
+					set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time.time())
+					target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)
 					request.session['target_id'] = pk
 					if target == ":":
 						return redirect("ban_underway")
@@ -1696,8 +1701,6 @@ class AppointCaptainView(FormView):
 				except:
 					return redirect("owner_group_online_kon")
 			else:
-				self.request.session["public_uuid"] = None
-				self.request.session.modified = True
 				return redirect("public_group", slug=unique)
 			return redirect("owner_group_online_kon")
 
@@ -2016,9 +2019,11 @@ def cricket_reply(request, pk=None,*args,**kwargs):
 		return render(request,"500.html",{})
 	elif request.method == 'POST':
 		user_id = request.user.id
-		form = PublicreplyMiniForm(data=request.POST,user_id=user_id)
+		form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk)
 		if form.is_valid():
-			target = process_publicreply(request=request,link_id=pk,text=form.cleaned_data.get("description"),link_writer_id=link_writer_id)
+			text=form.cleaned_data.get("description")
+			set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time.time())
+			target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)
 			request.session['target_id'] = pk
 			if target == ":":
 				return redirect("ban_underway")
@@ -2059,16 +2064,16 @@ def cricket_location(request, *args, **kwargs):
 def cricket_comment(request,*args,**kwargs):
 	enqueued_match = get_current_cricket_match()
 	if request.method == 'POST':
+		user = request.user
+		user_id = user.id
 		if not request.mobile_verified:
 			CSRF = csrf.get_token(request)
-			temporarily_save_user_csrf(str(request.user.id), CSRF)
+			temporarily_save_user_csrf(str(user_id), CSRF)
 			return render(request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF,'from_cric':True})
-		form = CricketCommentForm(request.POST,request=request)
+		form = CricketCommentForm(request.POST,user_id=user_id)
 		if form.is_valid():
-			user = request.user
-			user_id = user.id
 			description = form.cleaned_data.get("description")
-			set_prev_retorts(user_id,description)
+			set_input_rate_and_history.delay(section='home',section_id='1',text=description,user_id=user_id,time_now=time.time())
 			if user.userprofile.score < -25:
 				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
 					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
@@ -2396,7 +2401,7 @@ class ClosedGroupCreateView(CreateView):
 			f.unique = unique
 			f.rules = ''
 			f.category = '1'
-			set_prev_retort(user_id,f.topic)
+			# set_prev_retort(user_id,f.topic)
 			f.save()
 			creation_text = 'mein ne new mehfil shuru kar di'
 			reply = Reply.objects.create(text=creation_text,which_group=f,writer_id=user_id)
@@ -2435,7 +2440,7 @@ class OpenGroupCreateView(CreateView):
 			f.private = 0
 			unique = uuid.uuid4()
 			f.unique = unique
-			set_prev_retort(user_id,f.topic)
+			# set_prev_retort(user_id,f.topic)
 			f.save()
 			creation_text = 'mein ne new mehfil shuru kar di'
 			reply = Reply.objects.create(text=creation_text,which_group=f,writer=user)
@@ -3291,15 +3296,16 @@ class PhotoScoreView(FormView):
 def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_photocomment.html', context)
-		except:
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_photocomment.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_photocomment.html', context)
+		# except:
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_photocomment.html', context)
+		return redirect("missing_page")
 	else:
 		if pk.isdigit():
 			request.session["photo_id"] = pk
@@ -3359,20 +3365,21 @@ class PhotoReplyView(FormView):
 def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-		except:
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		# except:
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		return redirect("missing_page")
 	else:
 		if pk and user_id and from_photos:
 			request.session["photo_id"] = pk
 			request.session["star_user_id"] = user_id
-			return redirect("comment", from_photos)
+			return redirect("comment", pk=pk,origin=from_photos)
 		else:
 			return redirect("best_photo")
 
@@ -3380,15 +3387,16 @@ def comment_profile_pk(request, pk=None, user_id=None, from_photos=None, *args, 
 def videocomment_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_videocommentpk.html', context)
-		except:
-			context = {'pk': '10'}
-			return render(request, 'penalty_videocommentpk.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_videocommentpk.html', context)
+		# except:
+		# 	context = {'pk': '10'}
+		# 	return render(request, 'penalty_videocommentpk.html', context)
+		return redirect("missing_page")
 	else:
 		if pk.isdigit():
 			request.session["video_pk"] = pk
@@ -3439,15 +3447,6 @@ class VideoCommentView(CreateView):
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
 				return redirect("profile", slug=user.username)
-			# score = fuzz.ratio(text, get_prev_retort(user.id))
-			# if score > 86:
-			# 	try:
-			# 		return redirect("videocomment_pk", pk=pk)
-			# 	except:
-			# 		user.userprofile.score = user.userprofile.score - 3
-			# 		user.userprofile.save()
-			# 		return redirect("profile", slug=user.username)
-			# else:
 			if self.request.user_banned:
 				return redirect("see_video")
 			else:
@@ -3479,15 +3478,16 @@ class VideoCommentView(CreateView):
 def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-		except:
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		# except:
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		return redirect("missing_page")
 	else:
 		try:
 			request.session["first_time"] = True
@@ -3499,15 +3499,16 @@ def comment_chat_pk(request, pk=None, ident=None,*args, **kwargs):
 def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_commentpk.html', context)
-		except:
-			context = {'pk': '10'}
-			return render(request, 'penalty_commentpk.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		# except:
+		# 	context = {'pk': '10'}
+		# 	return render(request, 'penalty_commentpk.html', context)
+		return redirect("missing_page")
 	else:
 		request.session["photo_id"] = pk
 		if ident:
@@ -3515,9 +3516,9 @@ def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 		else:
 			request.session["user_ident"] = None
 		if origin:
-			return redirect("comment", origin)
+			return redirect("comment", pk=pk,origin=origin)
 		else:
-			return redirect("comment")
+			return redirect("comment", pk=pk)
 	
 class CommentView(CreateView):
 	model = PhotoComment
@@ -3527,6 +3528,7 @@ class CommentView(CreateView):
 	def get_form_kwargs( self ):
 		kwargs = super(CommentView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
+		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -3535,63 +3537,60 @@ class CommentView(CreateView):
 			context["feature_phone"] = True
 		else:
 			context["feature_phone"] = False
+		pk = self.kwargs.get('pk',None)
 		try:
-			pk = self.request.session["photo_id"]
 			photo = Photo.objects.select_related('owner').get(id=pk)
-			context["photo"] = photo
-			comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
-			context["count"] = comms.count()
-			comments = comms.order_by('-id')[:25]
-			context["comments"] = comments
-			context["thumbs"] = retrieve_single_thumbs(photo.owner.username)
-			context["verified"] = FEMALES
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			context["authorized"] = True
-		except:
+		except Photo.DoesNotExist:
 			context["authorized"] = False
 			context["photo"] = None
 			context["count"] = None
 			return context
-		try:
-			origin=self.kwargs["origin"]
-			if origin == '1':
+		context["photo"] = photo
+		comms = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk)
+		context["count"] = comms.count()
+		comments = comms.order_by('-id')[:25]
+		context["comments"] = comments
+		context["thumbs"] = retrieve_single_thumbs(photo.owner.username)
+		context["verified"] = FEMALES
+		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+		context["authorized"] = True
+		origin=self.kwargs.get("origin",None)
+		if origin == '1':
+			context["origin"] = '1'
+			context["photo_id"] = pk
+		elif origin == '2':
+			context["origin"] = '2'
+			context["photo_id"] = pk
+		elif origin == '3':
+			context["origin"] = '3'
+			star_user_id = self.request.session.get("user_ident",None)
+			try:
+				username = User.objects.get(id=star_user_id).username
+				context["username"] = username
+			except User.DoesNotExist:
 				context["origin"] = '1'
-				context["photo_id"] = pk
-			elif origin == '2':
-				context["origin"] = '2'
-				context["photo_id"] = pk
-			elif origin == '3':
-				context["origin"] = '3'
-				try:
-					star_user_id = self.request.session["user_ident"]
-					username = User.objects.get(id=star_user_id).username
-					context["username"] = username
-				except:
-					context["origin"] = '1'
-			elif origin == '5':
-				context["origin"] = '5'
-				context["photo_id"] = pk
-			elif origin == '6':
-				context["origin"] = '6'
-				link_ident = self.request.session["user_ident"]
-				if link_ident:
-					#if originating from a specific link
-					context["link_ident"] = self.request.session["user_ident"]
-					self.request.session['target_id'] = self.request.session["user_ident"] #mislabled - actually contains link_id
-				else:
-					#if originating from a notification
-					self.request.session['target_id'] = None
-				self.request.session.modified = True
+		elif origin == '5':
+			context["origin"] = '5'
+			context["photo_id"] = pk
+		elif origin == '6':
+			context["origin"] = '6'
+			link_ident = self.request.session.get("user_ident",None) #mislabled - actually contains link_id
+			if link_ident:
+				#if originating from a specific link
+				context["link_ident"] = link_ident
+				self.request.session['target_id'] = link_ident
 			else:
-				context["origin"] = '1'
-		except:
+				#if originating from a notification
+				self.request.session['target_id'] = None
+			self.request.session.modified = True
+		else:
 			context["origin"] = '1'
 		try:
 			is_first = self.request.session["first_time"]
 			self.request.session["first_time"] = False
 			self.request.session.modified = True
 			context["is_first"] = is_first
-		except:
+		except KeyError:
 			context["is_first"] = False
 		if self.request.user.is_authenticated():
 			context["authenticated"] = True
@@ -3616,7 +3615,7 @@ class CommentView(CreateView):
 					try:
 						#finding latest time user herself commented
 						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by == self.request.user)
-					except:
+					except ValueError:
 						context["comment_time"] = None #i.e. it's the first every comment
 				else:
 					context["unseen"] = False
@@ -3647,24 +3646,24 @@ class CommentView(CreateView):
 			origin = self.request.POST.get("origin")
 			star_user_id = None
 			link_id = None
+			pk = self.kwargs.get('pk',None)
 			try:
-				pk = self.request.session["photo_id"]
-				self.request.session["photo_id"] = None
-				self.request.session.modified = True
+				# pk = self.request.session["photo_id"]
+				# self.request.session["photo_id"] = None
+				# self.request.session.modified = True
 				which_photo = Photo.objects.get(id=pk)
 				if which_photo.owner_id != int(photo_owner_id):
 					self.request.session["where_from"] = 'best_photos'
 					return redirect("ban_underway")
-			except:
-				user.userprofile.score = user.userprofile.score - 3
-				user.userprofile.save()
-				return redirect("profile", slug=user.username)
+			except Photo.DoesNotExist:
+				return redirect("best_photos")
+			set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=text,user_id=user.id,time_now=time.time())
 			if origin == '3' or origin == '4':
 				try:
 					star_user_id = self.request.session["user_ident"]
 					self.request.session["user_ident"] = None
 					self.request.session.modified = True
-				except:
+				except KeyError:
 					star_user_id = None
 			elif origin == '6':
 				link_id = self.request.session["user_ident"]
@@ -3721,15 +3720,16 @@ class CommentView(CreateView):
 def see_special_photo_pk(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_special.html', context)
-		except:
-			context = {'pk': '10'}
-			return render(request, 'penalty_special.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_special.html', context)
+		# except:
+		# 	context = {'pk': '10'}
+		# 	return render(request, 'penalty_special.html', context)
+		return redirect("missing_page")
 	else:
 		if pk.isdigit():
 			request.session["target_special_photo_id"] = pk
@@ -3741,15 +3741,16 @@ def see_special_photo_pk(request,pk=None,*args,**kwargs):
 def special_photo(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 3 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'pk': 'pk'}
-			return render(request, 'penalty_special.html', context)
-		except:
-			context = {'pk': '10'}
-			return render(request, 'penalty_special.html', context)
+		# try:
+		# 	deduction = 3 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'pk': 'pk'}
+		# 	return render(request, 'penalty_special.html', context)
+		# except:
+		# 	context = {'pk': '10'}
+		# 	return render(request, 'penalty_special.html', context)
+		return redirect("missing_page")
 	else:
 		if request.user.is_authenticated() and request.user.userprofile.score > 29:
 			try:
@@ -4059,10 +4060,13 @@ class VideoView(ListView):
 #########################Views for fresh photos#########################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='22/38s')
+@ratelimit(rate='3/s')
+# @ratelimit(field='user_id',ip=False,rate='22/38s')
 def photo_comment(request,pk=None,*args,**kwargs):
 	if request.method == 'POST':
 		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			return redirect("missing_page")
 		user_id = request.user.id
 		photo_owner_id = request.POST.get("popk",None)
 		origin = request.POST.get("origin",None)
@@ -4078,12 +4082,12 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				request.session["where_from"] = 'home'
 			request.session.modified = True
 			return redirect("ban_underway")
-		elif was_limited:
-			context = {'penalty':300}
-			UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
-			return render(request, 'penalty_photo_comment.html', context)
+		# elif was_limited:
+		# 	context = {'penalty':300}
+		# 	UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
+		# 	return render(request, 'penalty_photo_comment.html', context)
 		else:
-			form = PhotoCommentForm(data=request.POST,user_id=user_id)
+			form = PhotoCommentForm(data=request.POST,user_id=user_id,photo_id=pk)
 			origin = request.POST.get("origin",None)
 			lang = request.POST.get("lang",None)
 			sort_by = request.POST.get("sort_by",None)
@@ -4095,6 +4099,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					request.session["where_from"] = 'best_photos'
 					return redirect("ban_underway")
 				description = form.cleaned_data.get("photo_comment")
+				set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -4108,7 +4113,6 @@ def photo_comment(request,pk=None,*args,**kwargs):
 				exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
 				photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
 				update_cc_in_home_photo(pk)
-				# reset_best_photos_cache.delay(pk)
 				comment_time = convert_to_epoch(photocomment.submitted_on)
 				try:
 					url = request.user.userprofile.avatar.url
@@ -5265,32 +5269,25 @@ class ChangeGroupTopicView(CreateView):
 			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
 			return redirect("public_group", slug=unique)
 
-@ratelimit(rate='3/s')
-def public_group(request, slug=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 2 * -2
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': slug}
-			return render(request, 'penalty_public.html', context)
-		else:
-			context = {'unique': slug}
-			return render(request, 'penalty_public.html', context)
+def public_group_request_denied(request):
+	which_msg = request.session.pop("public_group_request_denied",None)
+	if which_msg == '1':
+		return render(request,'big_photo_fbs.html',{'pk':'pk'})
+	elif which_msg == '2':
+		return render(request,'big_photo_regular.html',{'origin':'pub_grp'})
+	elif which_msg == '3':
+		return render(request, 'big_photo.html', {'photo':'pub_grp'})
 	else:
-		if valid_uuid(slug):
-			request.session["public_uuid"] = slug
-			return redirect("public_group_reply")
-		else:
-			return redirect("score_help")
+		return redirect("missing_page")
+
 
 class PublicGroupView(CreateView):
 	model = Reply
 	form_class = PublicGroupReplyForm
 	template_name = "public_group_reply.html"
 
-	def get_form_kwargs( self ):
+
+	def get_form_kwargs(self):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
 		kwargs['is_mob_verified'] = self.request.mobile_verified
@@ -5308,6 +5305,8 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 				return context
 			if 'awami' in self.request.path and group.private == '0': 
+				context["form"] = self.request.session.pop("public_group_form") if "public_group_form" in self.request.session else \
+				PublicGroupReplyForm()
 				context["score"] = self.request.user.userprofile.score
 				context["csrf"] = csrf.get_token(self.request)
 				group_id = group.id
@@ -5346,44 +5345,85 @@ class PublicGroupView(CreateView):
 				context["group_banned"] = False
 		return context
 
+	def form_invalid(self, form):
+		"""
+		If the form is invalid, re-render the context data with the
+		data-filled form and errors.
+		"""
+		self.request.session["public_group_form"] = form
+		self.request.session.modified = True
+		if self.request.is_ajax():
+			return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+		else:
+			return self.render_to_response(self.get_context_data(form=form))
+
 	def form_valid(self, form): #this processes the public form before it gets saved to the database
-		user_id = self.request.user.id
-		try:
-			pk = self.request.session["public_uuid"]
-			which_group = Group.objects.get(unique=pk)#
-		except:
-			return redirect("profile", self.request.user.username )
+		"""
+		If the form is valid, redirect to the supplied URL.
+		"""
+		is_ajax = self.request.is_ajax()
 		if self.request.user_banned:
-			return render(self.request,'500.html',{})
-		elif GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
-			return redirect("group_page")
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('missing_page')}),content_type='application/json',)
+			else:
+				return redirect("missing_page")
+		user_id = self.request.user.id
+		pk = self.request.POST.get('gp',None)
+		try:
+			which_group = Group.objects.get(id=pk)
+		except Group.DoesNotExist:
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
+		if GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
 		else:
 			if self.request.user.userprofile.score < -25:#
 				HellBanList.objects.create(condemned=self.request.user)
 				self.request.user.userprofile.score = random.randint(10,71)
 				self.request.user.userprofile.save()
-				return redirect("group_page")
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+				else:
+					return redirect("group_page")
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			set_input_rate_and_history.delay(section='pub_grp',section_id=which_group.id,text=f.text,user_id=user_id,time_now=time.time())
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+			self.request.session["public_uuid"] = which_group.unique
+			self.request.session.modified = True
 			if f.image and which_group.pics_ki_ijazat == '1':
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:
 					if f.image.size > 200000:
-						context = {'pk':'pk'}
-						return render(self.request,'big_photo_fbs.html',context)
-					else:
-						pass
+						self.request.session["public_group_request_denied"] = '1'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
 				else:
 					if f.image.size > 10000000:
-						context = {'pk':'pk'}
-						return render(self.request,'big_photo_regular.html',context)
+						self.request.session["public_group_request_denied"] = '2'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
+				image_file = clean_image_file(f.image, already_reoriented=self.request.POST.get('reoriented',None),\
+					already_resized=self.request.POST.get('resized',None))
+				if image_file is False:
+					self.request.session["public_group_request_denied"] = '3'
+					self.request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
 					else:
-						pass
-				image_file = clean_image_file(f.image)
-				if image_file:
-					f.image = image_file
+						return redirect('public_group_request_denied')
 				else:
-					f.image = None
+					f.image = image_file
 			else: 
 				f.image = None
 			if self.request.is_feature_phone:
@@ -5412,26 +5452,45 @@ class PublicGroupView(CreateView):
 				image_url = None
 			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
 			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
-			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,\
-				group_owner_id=which_group.owner.id,topic=which_group.topic,reply_time=reply_time,poster_url=url,\
-				poster_username=self.request.user.username,reply_text=f.text,priv=which_group.private,slug=which_group.unique,\
-				image_url=image_url,priority='public_mehfil',from_unseen=False, reply_id=reply.id)
-			# self.request.session["public_uuid"] = None
-			self.request.session.pop("public_uuid",None)
-			return redirect("public_group", slug=pk)
+			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
+				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
+				reply_text=f.text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='public_mehfil',\
+				from_unseen=False, reply_id=reply.id)
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+			else:
+				return redirect("public_group")
+
+
+@ratelimit(rate='3/s')
+def public_group(request, slug=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if not slug:
+		slug = request.session.get("public_uuid",None)
+	else:
+		request.session["public_uuid"] = slug
+		request.session.modified = True
+	if valid_uuid(slug):
+		if was_limited:
+			return redirect("missing_page")
+		else:
+			return redirect("public_group_reply")
+	else:
+		return redirect("group_page")
 
 
 @ratelimit(rate='3/s')
 def first_time_cricket_refresh(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			return render(request, 'cricket_refresh_penalty.html', {})
-		else:
-			return render(request, 'cricket_refresh_penalty.html', {})
+		# if request.user.is_authenticated():
+		# 	deduction = 1 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	return render(request, 'cricket_refresh_penalty.html', {})
+		# else:
+		# 	return render(request, 'cricket_refresh_penalty.html', {})
+		return redirect("missing_page")
 	else:
 		if first_time_refresher(request.user.id):
 			add_refresher(request.user.id)
@@ -5443,15 +5502,16 @@ def first_time_cricket_refresh(request, *args, **kwargs):
 def first_time_unseen_refresh(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': request.user.username}
-			return render(request, 'unseen_activity_refresh_penalty.html', context)
-		else:
-			context = {'unique': 'none'}
-			return render(request, 'unseen_activity_refresh_penalty.html', context)
+		# if request.user.is_authenticated():
+		# 	deduction = 1 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': request.user.username}
+		# 	return render(request, 'unseen_activity_refresh_penalty.html', context)
+		# else:
+		# 	context = {'unique': 'none'}
+		# 	return render(request, 'unseen_activity_refresh_penalty.html', context)
+		return redirect("missing_page")
 	else:
 		if first_time_refresher(request.user.id):
 			add_refresher(request.user.id)
@@ -5460,40 +5520,36 @@ def first_time_unseen_refresh(request, *args, **kwargs):
 		else:
 			return redirect("unseen_activity", request.user.username)
 
-@ratelimit(rate='3/s')
-def first_time_public_refresh(request, unique=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': unique}
-			return render(request, 'public_mehfil_refresh_penalty.html', context)
-		else:
-			context = {'unique': 'none'}
-			return render(request, 'public_mehfil_refresh_penalty.html', context)
-	else:
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def first_time_public_refresh(request):
+	if request.method == "POST":
+		unique = request.POST.get('uid',None)
 		if first_time_refresher(request.user.id):
 			add_refresher(request.user.id)
 			context = {'unique': unique}
 			return render(request, 'public_mehfil_refresh.html', context)
 		else:
 			return redirect("public_group", unique)
+	else:
+		return redirect("public_group")
+
 
 @ratelimit(rate='3/s')
 def first_time_refresh(request, unique=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': unique}
-			return render(request, 'mehfil_refresh_penalty.html', context)
-		else:
-			context = {'unique': 'none'}
-			return render(request, 'mehfil_refresh_penalty.html', context)
+		# if request.user.is_authenticated():
+		# 	deduction = 1 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': unique}
+		# 	return render(request, 'mehfil_refresh_penalty.html', context)
+		# else:
+		# 	context = {'unique': 'none'}
+		# 	return render(request, 'mehfil_refresh_penalty.html', context)
+		return redirect("missing_page")
 	else:
 		if first_time_refresher(request.user.id):
 			add_refresher(request.user.id)
@@ -5614,10 +5670,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 					else:
 						pass
 				image_file = clean_image_file(f.image)
-				if image_file:
-					f.image = image_file
+				if image_file is False:
+					return render(self.request, 'big_photo.html', {'photo':'prv_grp'})
 				else:
-					f.image = None
+					f.image = image_file
 			else: 
 				f.image = None
 			if self.request.is_feature_phone:
@@ -5630,9 +5686,10 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				device = '5'
 			else:
 				device = '3'
-			unique = self.request.POST.get("unique")
-			which_group = Group.objects.get(unique=unique)
-			which_group_id = which_group.id
+			pk = self.request.POST.get('gp',None)
+			which_group = Group.objects.get(pk=pk)
+			which_group_id, unique = pk, which_group.unique
+			set_input_rate_and_history.delay(section='prv_grp',section_id=which_group_id,text=text,user_id=user_id,time_now=time.time())
 			reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
 				device=device)
 			add_group_member(which_group_id, self.request.user.username)
@@ -5649,25 +5706,27 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				image_url = None
 			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
 				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
-				reply_text=text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='priv_mehfil',\
+				reply_text=text,priv=which_group.private,slug=unique,image_url=image_url,priority='priv_mehfil',\
 				from_unseen=False, reply_id=reply.id)
 			self.request.session['unique_id'] = unique
 			self.request.session.modified = True
-			return redirect("private_group_reply")#, reply.which_group.unique)
+			return redirect("private_group_reply")
+				
 	
 @ratelimit(rate='3/s')
 def welcome_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		if request.user.is_authenticated():
-			deduction = 1 * -10
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': pk}
-			return render(request, 'penalty_welcome.html', context)
-		else:
-			context = {'unique': pk}
-			return render(request, 'penalty_welcome.html', context)
+		# if request.user.is_authenticated():
+		# 	deduction = 1 * -10
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': pk}
+		# 	return render(request, 'penalty_welcome.html', context)
+		# else:
+		# 	context = {'unique': pk}
+		# 	return render(request, 'penalty_welcome.html', context)
+		return redirect("missing_page")
 	else:
 		if pk.isdigit():
 			request.session["welcome_pk"] = pk
@@ -5805,8 +5864,9 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	user_id = request.user.id
 	grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 	if was_limited:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
-		return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
+		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-500)
+		# return render(request, 'penalty_unseengroupreply.html', {'penalty':500,'uname':username})
+		return redirect("missing_page")
 	elif not check_group_member(pk, username):
 		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
 	elif not request.mobile_verified and not grp["private"] == '1':
@@ -5816,10 +5876,13 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	else:
 		if request.method == 'POST':
 			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user=request.user)
+			if grp["private"] == '1':
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='')
+			else:
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='')
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
-				description = desc1 if desc2 == '111' else desc2
+				description = desc1 if desc2 == '|' else desc2
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -5840,14 +5903,14 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					image_url = groupreply.image.url
 				except ValueError:
 					image_url = None
-				# grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
 				if grp["private"] == '1':
+					set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 					priority='priv_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 				else:
+					set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 					priority='public_mehfil'
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-					# public_group_vote_tasks.delay(group_id=pk,priority=2)
 					rank_public_groups.delay(group_id=pk,writer_id=user_id)
 					public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
 				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
@@ -5908,12 +5971,16 @@ def unseen_group(request, pk=None, *args, **kwargs):
 @csrf_protect
 @ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
+	"""
+	Processes comment under photo from unseen activity
+	"""
 	was_limited = getattr(request, 'limits', False)
 	username = request.user.username
 	user_id = request.user.id
 	if was_limited:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-100)
-		return render(request, 'penalty_unseen_comment.html', {'penalty':100,'uname':username})
+		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-100)
+		# return render(request, 'penalty_unseen_comment.html', {'penalty':100,'uname':username})
+		return redirect("missing_page")
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -5935,10 +6002,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				request.session.modified = True
 				return redirect("ban_underway")
 			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user=request.user)
+			form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk)
 			if form.is_valid():
 				photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
 				description = form.cleaned_data.get("photo_comment")
+				set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -5979,6 +6047,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							return redirect("home")
 					elif origin == '2':
 						return redirect("best_photo")
+					else:
+						return redirect("best_photo")
 				else:
 					return redirect("unseen_activity", username)
 			else:
@@ -5997,6 +6067,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						else:
 							return redirect("home")
 					elif origin == '2':
+						return redirect("best_photo")
+					else:
 						return redirect("best_photo")
 				else:
 					notification = "np:"+str(request.user.id)+":0:"+str(pk)
@@ -6019,8 +6091,9 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 	own_id = request.user.id
 	own_uname = request.user.username
 	if was_limited:
-		UserProfile.objects.filter(user_id=own_id).update(score=F('score')-100)
-		return render(request, 'penalty_publicreply.html', {'penalty':100,'uname':own_uname})
+		# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-100)
+		# return render(request, 'penalty_publicreply.html', {'penalty':100,'uname':own_uname})
+		return redirect("missing_page")
 	elif request.user_banned:
 		return render(request,"500.html",{})
 	else:
@@ -6042,10 +6115,12 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 				request.session.modified = True
 				return redirect("ban_underway")
 			lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user=request.user)
+			form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='')
 			if form.is_valid():
-				target = process_publicreply(request=request,link_id=pk,text=form.cleaned_data.get("home_comment"),origin=origin if origin else 'from_unseen',\
+				text = form.cleaned_data.get("home_comment")
+				target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
 					link_writer_id=link_writer_id)
+				set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time.time())
 				if target == ":":
 					return redirect("ban_underway")
 				elif origin:
@@ -6119,13 +6194,15 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
-@ratelimit(rate='22/38s')
+# @ratelimit(rate='22/38s')
+@ratelimit(rate='3/s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'penalty':300}
-		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
-		return render(request, 'penalty_matka.html', context)
+		# context = {'penalty':300}
+		# UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
+		# return render(request, 'penalty_matka.html', context)
+		return redirect("missing_page")
 	else:
 		if first_time_inbox_visitor(request.user.id):
 			add_inbox(request.user.id)
@@ -6164,8 +6241,6 @@ def top_photo_help(request,*args,**kwargs):
 @csrf_protect
 def unseen_fans(request,pk=None,*args, **kwargs):
 	if request.method == 'POST':
-		# form = UnseenActivityForm(request.POST)
-		# if form.is_valid():
 		photo_url = request.POST.get("photo_url")
 		fan_num = request.POST.get("fan_num")
 		fan_list = request.POST.get("fan_list")
@@ -6238,13 +6313,15 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='22/38s')
+@ratelimit(rate='3/s')
+# @ratelimit(field='user_id',ip=False,rate='22/38s')
 def post_public_reply(request,*args,**kwargs):
 	was_limited, context = getattr(request, 'limits', False), {}
 	if was_limited:
-		context = {'penalty':300}
-		UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
-		return render(request, 'penalty_homejawab.html', context)
+		# context = {'penalty':300}
+		# UserProfile.objects.filter(user=request.user).update(score=F('score')-300) #punish the spammer
+		# return render(request, 'penalty_homejawab.html', context)
+		return redirect("missing_page")
 	elif request.user_banned:
 		return render(request,'500.html',{})
 	elif request.method == "POST":
@@ -6264,9 +6341,10 @@ def post_public_reply(request,*args,**kwargs):
 			# config_manager.get_obj().track('wrote_publicreply', user_id)
 			##############################################################################################
 			##############################################################################################
-			form = PublicreplyForm(request.POST,user_id=user_id)
+			form = PublicreplyForm(request.POST,user_id=user_id, link_id=link_id)
 			if form.is_valid():
 				text = form.cleaned_data["description"]
+				set_input_rate_and_history.delay(section='home_rep',section_id=link_id,text=text,user_id=user_id,time_now=time.time())
 				target = process_publicreply(request=request,link_id=link_id,text=text, link_writer_id=link_writer_id)
 				if target == ":":
 					return redirect("ban_underway")
@@ -6382,15 +6460,16 @@ class UserSettingsEditView(UpdateView):
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		try:
-			deduction = 2 * -1
-			request.user.userprofile.score = request.user.userprofile.score + deduction
-			request.user.userprofile.save()
-			context = {'unique': 'ID'}
-			return render(request, 'penalty_linkcreate.html', context)
-		except:
-			context = {'unique': 'ID'}
-			return render(request, 'penalty_linkcreate.html', context)
+		# try:
+		# 	deduction = 2 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': 'ID'}
+		# 	return render(request, 'penalty_linkcreate.html', context)
+		# except:
+		# 	context = {'unique': 'ID'}
+		# 	return render(request, 'penalty_linkcreate.html', context)
+		return redirect("missing_page")
 	else:
 		request.session["link_create_token"] = uuid.uuid4()
 		return redirect("link_create")
@@ -6426,10 +6505,7 @@ class LinkCreateView(CreateView):
 	# 	return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		try:
-			token = self.request.session["link_create_token"]
-		except:
-			return redirect("profile", slug=self.request.user.username)
+		token = self.request.session.get("link_create_token",None)
 		self.request.session["link_create_token"] = None
 		self.request.session.modified = True
 		user = self.request.user
@@ -6440,6 +6516,7 @@ class LinkCreateView(CreateView):
 			return render(self.request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF})
 		if valid_uuid(str(token)):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
 			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
 			if user.userprofile.score < -25:
 				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
@@ -6463,7 +6540,6 @@ class LinkCreateView(CreateView):
 				f.device = '5'
 			else:
 				f.device = '3'
-			set_prev_retorts(user_id,f.description)
 			f.save()
 			try:
 				av_url = user.userprofile.avatar.url
@@ -6898,12 +6974,13 @@ def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=
 def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		deduction = 3 * -1
-		request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
-		request.user.userprofile.score = request.user.userprofile.score + deduction
-		request.user.userprofile.save()
-		context = {'unique': pk}
-		return render(request, 'penalty_videovote.html', context)
+		# deduction = 3 * -1
+		# request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
+		# request.user.userprofile.score = request.user.userprofile.score + deduction
+		# request.user.userprofile.save()
+		# context = {'unique': pk}
+		# return render(request, 'penalty_videovote.html', context)
+		return redirect("missing_page")
 	else:
 		video = Video.objects.get(id=pk)
 		ident = video.owner.id
@@ -7060,8 +7137,9 @@ def fan(request,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	user_id = request.user.id
 	if was_limited:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-		return redirect("best_photo")
+		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
+		# return redirect("best_photo")
+		return redirect("missing_page")
 	if request.method == "POST":
 		origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
 		if int(user_id) == int(star_id):
@@ -7740,8 +7818,9 @@ def bykea(request,*args,**kwargs):
 def make_ad(request,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'unique': 'pk'}
-		return render(request, 'make_ad_error.html', context)
+		# context = {'unique': 'pk'}
+		# return render(request, 'make_ad_error.html', context)
+		return redirect("missing_page")
 	else:
 		request.session["ad_description_token"] = uuid.uuid4()
 		return redirect("ad_description")
@@ -8085,8 +8164,9 @@ class AdAddressView(FormView):
 def ad_finalize(request,*args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		context = {'unique': 'pk'}
-		return render(request, 'make_ad_error.html', context)
+		# context = {'unique': 'pk'}
+		# return render(request, 'make_ad_error.html', context)
+		return redirect("missing_page")
 	else:
 		if valid_uuid(str(request.session["ad_finalize"])):
 			description = request.session["ad_description"]

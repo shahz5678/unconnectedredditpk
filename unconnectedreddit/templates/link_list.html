@@ -67,7 +67,7 @@ body {
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-
+	
 	{% if forloop.counter == 3 %}
 		{% if enqueued_match %}
 			{% load get_cricket_summary %}
@@ -143,8 +143,8 @@ body {
 		</div><br>
 	</div>
 
-			<b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
+			<div style="overflow:hidden"><b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
+			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}</div>
 
 
 		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
@@ -208,8 +208,9 @@ body {
 	
 	{% else %}
 		<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
-
-			{{ link.ch|safe }}
+		{{ link.ch|safe }}
+		<div style="overflow:hidden">
+		
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				{{ link.au|safe }}
 				<bdi class="cl">{{ link.n }}</bdi>
@@ -225,7 +226,7 @@ body {
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
 
-			<br>
+		</div>
 
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
 				<div class="mls mts">

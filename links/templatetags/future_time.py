@@ -9,16 +9,36 @@ def future_time(value):
 		d, h = divmod(h, 24)
 		mo, d = divmod(d, 30)
 		if mo:
-			return "%s month(s) baad" % int(mo)
+			mo = int(mo)
+			if mo == 1:
+				return "1 month baad"
+			else:
+				return "%s months baad" % mo
 		elif d:
-			return "%s days baad" % int(d)
+			d = int(d)
+			if d == 1:
+				return "1 day baad"
+			else:
+				return "%s days baad" % d
 		elif h:
-			return "%s hours baad" % int(h)
+			h = int(h)
+			if h == 1:
+				return "1 hour baad"
+			else:
+				return "%s hours baad" % h
 		elif m:
-			return "%s mins baad" % int(m)
+			m = int(m)
+			if m == 1:
+				return "1 min baad"
+			else:
+				return "%s mins baad" % m
 		elif s:
-			return "%s secs baad" % int(s)
+			s = int(s)
+			if s == 1:
+				return "1 sec baad"
+			else:
+				return "%s secs baad" % s
 		else:
 			return "kuch waqt baad"
-	except:
+	except (NameError,TypeError):
 		return "kuch waqt baad"

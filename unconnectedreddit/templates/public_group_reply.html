@@ -1,31 +1,12 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% load humanize %}
+{% load show_error %}
 {% load emoticons_tags %}
 {% load get_mobile_verification_bar %}
 {% block content %}
-
-<style type="text/css">
-    
-    .lsp{
-      line-height:1.55;
-    }
-
-    .sp{
-      letter-spacing: 1px;
-    }   
-
-    .st-dot{
-      display:inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;  
-    }
-
-</style>
-
+<head><title>{% if switching %}Public group{% else %}{{ group.topic }} (public group){% endif %} | Damadam.pk</title></head>
 <div class="margin">
-
 
 {% if group_banned %}
     
@@ -39,6 +20,7 @@
 {% else %}
     {% mobile_verification_bar user.id csrf mobile_verified score %}
 
+        <div style="overflow:hidden">
         <form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
             {% csrf_token %}
             <input type="hidden" name="guuid" value="{{ group.unique }}">
@@ -74,7 +56,7 @@
             {% endif %}
 
         </span>
-    <br>
+        </div>
         
         {% if user == group.owner %}
         <div class="mts"><a href="{% url 'change_topic' %}" class="sp cxs">change topic</a><br></div>
@@ -82,7 +64,7 @@
         
         <div class="lsp mts">
         {% if group.rules %}
-        <span class="clb cs">Rules:&nbsp;<span class="cp"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span><br>
+        <div style="overflow:hidden"><span class="clb cs">Rules:&nbsp;<span class="cp"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span></div>
         {% endif %}
         {% if user == group.owner %}
         <a href="{% url 'change_rules' %}" class="sp cxs">change rules</a>
@@ -91,7 +73,9 @@
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
     <br>
-    <form action="{% url 'public_group_reply' %}" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
+    <div id="pub_grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+    <div id="pub_grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+    <form action="{% url 'public_group_reply' %}" id="pub_grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if group.pics_ki_ijazat == '1' %}
         <div class="mbl">
@@ -99,13 +83,14 @@
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>
         {% endif %}
-        {% if form.text.errors %}<span class="cr">{{ form.text.errors.0 }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
+        {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
         <br>
-        <button class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
+        <input type="hidden" name="uid" value="{{ unique }}">
+        <button id="pub_grp_subform" name="gp" value="{{ group.id }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
     </form>
-    <form action="{% url 'first_time_public_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
+    <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="btn bms bco mts" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
+        <button class="btn bms bco mts" name="uid" value="{{ unique }}" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
     </form>
         <div class="mts sp">
         <a href="{% url 'invite' %}#section0" class="cs cb"><b>invite</b></a>
@@ -153,6 +138,7 @@
                 {% endif %}
             <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
         {% elif reply.category == '4' %}
+            <div style="overflow:hidden">
                 {% if time < 41 %}
                     <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
@@ -161,7 +147,9 @@
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne topic change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diya</span>
+            </div>
         {% elif reply.category == '5' %}
+            <div style="overflow:hidden">
                 {% if time < 41 %}
                     <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
                 {% elif time < 91 %}
@@ -170,19 +158,20 @@
                     <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
                 {% endif %}
             <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne rules change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diye</span>
+            </div>
         {% else %}
             {% if reply.image %}
             <img class="pht" src="{{ reply.image.url|s3 }}" style="border-radius:12px;" alt="foto"><br>
             {% endif %}
+            <div style="overflow:hidden">
 
-                {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-                {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
-                {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
-                {% endif %}
-
+            {% if time < 41 %}
+                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+            {% elif time < 91 %}
+                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+            {% else %}
+                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+            {% endif %}
 
             <a href="{% url 'profile' slug=writer.username %}#section0">
             {% if writer.userprofile.avatar %}
@@ -236,7 +225,8 @@
                 </form>
             {% endif %}
             </span>
-            <br>
+            </div>
+           
         {% endif %}
         <hr size=1 COLOR="#f2d9f2">
         
@@ -246,4 +236,5 @@
     {% endif %}
     </div>
     <br><br>
+
 {% endblock %}

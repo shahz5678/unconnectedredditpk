@@ -6,13 +6,15 @@
 {% for comment in comments reversed %}
 	<tr><td>
 	{% if forloop.counter != 1 %}<hr size=1 COLOR="#e0e0e0">{% endif %}
+	<div style="overflow:hidden">
 		<a href="{% url 'profile' comment.writer_uname %}" class="cb">
 		{% if comment.writer_av_url != 'None' %}
 		<img style="border: 1px solid #A9A9A9;border-radius:50%" src="{{ comment.writer_av_url|s3:"thumb" }}" alt="no pic"/>
 		{% else %}
 		<img style="border: 1px solid #DCDCDC;border-radius:50%" src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic">
 		{% endif %}
-		{{ comment.writer_uname }}</a>:&nbsp;<span class="cdo"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ comment.epoch_time|human_time }}</span> &nbsp;&nbsp;{% block_button comment.commenter_id comment.writer_uname self_user_id comment.photo_id 'home:comment' static_url %}{% if score > 25 and comment.commenter_id|slugify != self_user_id|slugify %}&nbsp;<a href="{% url 'mehfilcomment_pk' pk=comment.commenter_id num=comment.photo_id origin='3' %}"><button class="mls btn bco bs cxs"><b>mehfil</b></button></a>{% endif %}<br>
+		{{ comment.writer_uname }}</a>:&nbsp;<span class="cdo"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cgy cs">, {{ comment.epoch_time|human_time }}</span> &nbsp;&nbsp;{% block_button comment.commenter_id comment.writer_uname self_user_id comment.photo_id 'home:comment' static_url %}{% if score > 25 and comment.commenter_id|slugify != self_user_id|slugify %}&nbsp;<a href="{% url 'mehfilcomment_pk' pk=comment.commenter_id num=comment.photo_id origin='3' %}"><button class="mls btn bco bs cxs"><b>mehfil</b></button></a>{% endif %}
+	</div>
 	</td></tr>
 {% endfor %}
 </table>

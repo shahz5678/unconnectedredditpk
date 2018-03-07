@@ -43,14 +43,10 @@ hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash',
 hash_name = "ph:"+str(photo_id)
 hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
-prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
 photo_report = "phr:"+str(photo_id) #photo report hash - contains all complaints, appended toegether
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 photo_payables = "pp:"+str(photo_id) #photo payables sorted set - contains all point amounts owed to all reporter ids
-prev_replies = "prp5:"+str(user_id) #prp5 is a set containing 5 previous replies
-prev_retort = "pr:"+str(user_id)
-prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
 prev_times = "pt6:"+str(user_id) # set 6 previous times
 photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
@@ -97,9 +93,6 @@ FORTY_FIVE_SECS = 45
 
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
-
-SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
-
 
 
 
@@ -1256,58 +1249,11 @@ def get_latest_group_replies(group_id_list):
 	return pipeline1.execute()
 
 def set_latest_group_reply(group_id, reply_id):
+	"""
+	Used to populate group list
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.setex("lgr:"+str(group_id),reply_id,TWO_WEEKS)
-
-def set_prev_group_replies(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
-	my_server.lpush(prev_group_replies,text)
-	my_server.ltrim(prev_group_replies, 0, 4)
-	my_server.expire(prev_group_replies,ONE_HOUR)
-
-def set_prev_replies(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_replies = "prp5:"+str(user_id) # set 5 previous replies
-	my_server.lpush(prev_replies,text)
-	my_server.ltrim(prev_replies, 0, 4)
-	my_server.expire(prev_replies,ONE_HOUR)
-
-def set_prev_retorts(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
-	my_server.lpush(prev_retorts,text)
-	my_server.ltrim(prev_retorts, 0, 4)
-	my_server.expire(prev_retorts,ONE_HOUR)
-
-def set_prev_retort(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retort = "pr:"+str(user_id)
-	my_server.set(prev_retort,text)
-	my_server.expire(prev_retort,ONE_HOUR)
-
-def get_prev_group_replies(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_group_replies = "pgrp5:"+str(user_id)
-	return my_server.lrange(prev_group_replies,0,-1)
-
-def get_prev_replies(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_replies = "prp5:"+str(user_id)
-	return my_server.lrange(prev_replies,0,-1)
-
-def get_prev_retorts(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retorts = "pr5:"+str(user_id)
-	return my_server.lrange(prev_retorts,0,-1)
-
-def get_prev_retort(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retort = "pr:"+str(user_id)
-	try:
-		return my_server.get(prev_retort).decode('utf-8')
-	except:
-		return "no string"
 	
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1954,24 +1900,6 @@ def delete_avg_hash(hash_list, categ=None):
 		else:
 			my_server.zrem("perceptual_hash_set", *hash_list)
 
-##############################short messages##############################
-
-def log_short_message(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	short_message = "sm:"+str(user_id)
-	my_server.incr(short_message)
-	my_server.expire(short_message,THREE_MINS)
-
-def many_short_messages(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	short_message = "sm:"+str(user_id)
-	if not my_server.exists(short_message):
-		return False
-	elif int(my_server.get(short_message)) > SHORT_MESSAGES_ALWD:
-		my_server.expire(short_message,TEN_MINS) #now ban the person for 10 mins
-		return True
-	else:
-		return False
 
 ############################saving ad feedback############################
 

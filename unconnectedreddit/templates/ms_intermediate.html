@@ -30,16 +30,10 @@ hr.style-offer {
     
 }
 
-.ordernow{
-font-size:20px;
-color: ;
-}
-
 .background-box {
  line-height:25px;
  letter-spacing:0.05px; 
- width: 95%; 
- max-width:400px; 
+ max-width:98%; 
  background-color:#F8F8F8; 
  padding:5px;
  box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
@@ -70,53 +64,52 @@ body {
 <div style="text-align:center">
   <div class="margin clb" style="display:inline-block">
 		<span itemscope itemtype="http://schema.org/Product">
-		<div id="background-box" class="mbl background-box" style="text-align:center;background-color:white;border-color:#efb99c;color:#615a56; border-radius:6px;padding:10px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
+		<div  class="mbl background-box" style="text-align:center;background-color:white;border-color:#efb99c;color:#615a56; border-radius:6px;padding:10px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
 			<b class="cxl">Aik option ka intekhab kerien</b><br>
-			<!-- process city in ecomm.py -->
-				<div style="text-align:center; font-size:15px; margin:10px; margin-bottom:2px; background-color:#80acaa; border-radius:6px; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, .2)"><span style="color:white">
+				<div style="text-align:center;padding:5px;font-size:15px; margin:10px; margin-bottom:2px; background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, .2)"><span style="color:white">
 					<form method="POST" action="{% url 'buyer_details' 'x36' %}" class="cm mtl">
 					{% csrf_token %}
 							Aap <b>{{model}}</b> khareedna chahte hein? <br>
-							<div style="text-align:center"><button type="submit" class="btn mtl mbs bxl cl" style="background-color:05f6cb;border-color:#1fbea1;"><b>Order Kerien</b></button>
+							<div style="text-align:center"><input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Order Kerien">
 							</div>
 					</form>
 				</div>
-			<div style="text-align:center; font-size:15px; margin:10px; margin-bottom:2px; background-color:#80acaa; border-radius:6px; padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, .2)"><span style="color:white">
+			<div style="padding:5px; text-align:center; font-size:15px; margin:10px; margin-bottom:2px; background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, .2)"><span style="color:white">
 				<form method="POST" action="{% url 'faq' %}" class="mtl">
 				{% csrf_token %}
 				Phone khareedne key barey mein koi sawalat hein? <br>
-				<div style="text-align:center"><button type="submit" class="btn mtl mbs bxl cl" style="background-color:05f6cb;border-color:#1fbea1;"><b>Poochay Gayay Sawalat</b></button>
+				<div style="text-align:center"><input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Mashoor Sawalat">
 				</div>
 				</form>
 			</div>		
 			{% if origin == 'main' %}
-			<a href="{% url 'mobile_shop' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'mobile_shop' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;  "><b>wapis</b></button></a>
 			{% elif origin == 'x29' %}
-			<a href="{% url 'x29' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'x29' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;  "><b>wapis</b></button></a>
 			{% elif origin == 'lt550' %}
-			<a href="{% url 'lt550' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'lt550' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'insmart' %}
-			<a href="{% url 'insmart' %}"><button class="btn bco mts bl cm" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'insmart' %}"><button class="btn bco mts bl cm" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'i8i' %}
-			<a href="{% url 'i8i' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'i8i' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'i6' %}
-			<a href="{% url 'i6metal' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'i6metal' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 's6' %}
-			<a href="{% url 's6' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 's6' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'j1' %}
-			<a href="{% url 'j1' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'j1' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'faq' %}
-			<a href="{% url 'faq' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'faq' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'gprimep' %}
-			<a href="{% url 'gprimep' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'gprimep' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'y3' %}
-			<a href="{% url 'y3' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'y3' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'qx2' %}
-			<a href="{% url 'qx2' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'qx2' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'x36' %}
-			<a href="{% url 'x36' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'x36' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 			{% elif origin == 'j5p' %}
-			<a href="{% url 'j5p' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+			<a href="{% url 'j5p' %}"><button class="btn bco bl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 
 			{% endif %}
 		</div>

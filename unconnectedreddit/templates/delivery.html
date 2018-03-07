@@ -30,16 +30,12 @@ hr.style-offer {
     
 }
 
-.ordernow{
-font-size:20px;
-color: ;
-}
+
 
 .background-box {
  line-height:25px;
  letter-spacing:0.05px; 
- width: 95%; 
- max-width:400px; 
+ max-width:98%; 
  background-color:#F8F8F8; 
  padding:5px;
  box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
@@ -65,59 +61,63 @@ body {
  }
 
 </style>
+<title>
+Cash on delivery tutorial | Damadam.pk 
+</title>
 {% extends "base_min.html" %}
 {% block content %}
 <div style="text-align:center">
   <div class="margin clb" style="display:inline-block">
     <span itemscope itemtype="http://schema.org/Product">
-    <div id="background-box" class="mbl background-box" style="text-align:center;background-color:#ffffff;background-color:#80acaa; border-radius:6px;padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
-		<div class="cxl" style="text-align:center;">* Free Delivery, Cash On Delivery Ki Ihteyati Tadabeer *</div><br>
+    <div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+		<div class="cxl" style="text-align:center;">* Free Cash On Delivery ki ihteyati tadabeer*
+		</div><br>
 		<div class="cl" style="text-align:left;">
-		* Hamarey tamam order bazaria Pakistan Post bhejay jate hein<br>
-		* Phone 4-7 din tuk ghar pohench jata hai<br>
-		* Ager ghar ka pata nahi tuo qareebi daak khaney ka pata day dein<br>
-		* Order key paisey pehle say aleheda ker key rakh lain<br>
-		* Delivery ka kharcha phone ki qeemat mein shamil hai<br> 
-		* Order ki qimat say ziada paisey dak wale ko nahi denay<br>
+			<hr width"100%" class="style-offer">
+			* Tamam order bazaria Pakistan Post bhejay jate hein<br><hr width"100%" class="style-offer">
+			* Phone 4-7 din tuk ghar pohench jata hai<br><hr width"100%" class="style-offer">
+			* Ghar ka address nahi tuo qareebi daak khaney ka naam dein<br><hr width"100%" class="style-offer">
+			* Order key paise pehle say aleheda ker ke rakh lain<br><hr width"100%" class="style-offer">
+			* Delivery ka kharcha phone ki qeemat mein shamil hai<br> <hr width"100%" class="style-offer">
+			* Order ki qimat say ziada paise dak wale ko nahi denay<br><hr width"100%" class="style-offer">
 		 <br>
 		</div>
-		 <div class="cl cr"> Free Delivery Mehdood Mudat Key Liay Hai</div>	  
+		 <div class="cl cr"> Free Delivery Mehdood Mudat Ke Liay Hai
+		 </div>	  
 	</div>
 	<br>
-{% if origin == 'main' %}
-<a href="{% url 'mobile_shop' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'x29' %}
-<a href="{% url 'x29' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'x33' %}
-<a href="{% url 'x33' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'i8i' %}
-<a href="{% url 'i8i' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'i6' %}
-<a href="{% url 'i6metal' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'lt550' %}
-<a href="{% url 'lt550' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'insmart' %}
-<a href="{% url 'insmart' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 's6' %}
-<a href="{% url 's6' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'j1' %}
-<a href="{% url 'j1' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'faq' %}
-<a href="{% url 'faq' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'gprimep' %}
-<a href="{% url 'gprimep' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'y3' %}
-<a href="{% url 'y3' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'qx2' %}
-<a href="{% url 'qx2' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'x36' %}
-<a href="{% url 'x36' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-{% elif origin == 'j5p' %}
-<a href="{% url 'j5p' %}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+	{% if origin == 'main' %}
+	<a href="{% url 'mobile_shop' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'x29' %}
+	<a href="{% url 'x29' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'x33' %}
+	<a href="{% url 'x33' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'i8i' %}
+	<a href="{% url 'i8i' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'i6' %}
+	<a href="{% url 'i6metal' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'lt550' %}
+	<a href="{% url 'lt550' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'insmart' %}
+	<a href="{% url 'insmart' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 's6' %}
+	<a href="{% url 's6' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'j1' %}
+	<a href="{% url 'j1' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'faq' %}
+	<a href="{% url 'faq' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'gprimep' %}
+	<a href="{% url 'gprimep' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'y3' %}
+	<a href="{% url 'y3' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'qx2' %}
+	<a href="{% url 'qx2' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'x36' %}
+	<a href="{% url 'x36' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
+	{% elif origin == 'j5p' %}
+	<a href="{% url 'j5p' %}"><button class="btn bxl mtl mbl" style="background-color:#80acaa;"><b>wapis</b></button></a>
 
-{% endif %}
+	{% endif %}
+	</div>
 </div>
-</div>
-</div>
-<br><br>
 {% endblock %}

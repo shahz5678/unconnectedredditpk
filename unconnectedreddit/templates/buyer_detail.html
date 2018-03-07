@@ -30,15 +30,10 @@ hr.style-offer {
     
 }
 
-.ordernow{
-font-size:20px;
-color: ;
-}
 
 .background-box {
  line-height:25px;
  letter-spacing:0.05px; 
- width: 95%; 
  max-width:98%; 
  background-color:#F8F8F8; 
  padding:5px;
@@ -65,20 +60,21 @@ body {
  }
 
 </style>
-
+<title>
+Buyer Contact Details | Damadam.pk 
+</title>
 {% extends "base_min.html" %}
 {% block content %}
-	
-	<div class="margin clb" >
-		<div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
-			<p class="cs cbl">Step 1: Naam aur Address bataien / Enter Name and Delivery Address</p>
+<div style="text-align:center">
+  <div class="margin" style="display:inline-block">	
+		<div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+			<p class="cs">Step 1: Naam, Address aur Phone bataien / Enter Name,Address & Phonenumber</p>
 			<p class="cs clg">Step 2: Pin daal ker order ki tasdeeq kerien / Add pin and Confirm order</p>
 		</div>
 			
-		<div id="background-box" class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;padding:5px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+		<div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
 			
-			<br>{% if device == '1' %}<img style="width:124px;" src="{{ STATIC_URL }}img/m_qmobile.png"><br>
-			<br>{% else %}<img style="max-width:300px;" src="{{ STATIC_URL }}img/m_qmobile.png"><br>{% endif %}
+			<br><br><img style="width:100%;" src="{{ STATIC_URL }}img/m_qmobile.png"><br>
 			<h2 class="bw" style="color:#615a56">Apni malumat likhien:</h2>
 			<div style="text-align:left;display:inline-block">
 				
@@ -93,7 +89,7 @@ body {
 				{% if form.address.errors %}<span class="cr mtl">{{ form.address.errors.0 }}</span><br>{% endif %}
 				{{ form.address }}<br>
 				<br>
-				<b>3. Apna number likhien jo abhi on hai aur aap ke pass hai (misaal: 03451234567):</b><br><b class='cs cgy'>Ap ko abhi iss number per 4 hinsoon ka PIN CODE bheja jaiey ga</b><br>
+				<b>3. Apna number likhien jo abhi on hai aur aap ke pass hai<br>(misaal: 03451234567):</b><br><b class='cs cgy'>Ap ko abhi iss number per 4 hinsoon ka PIN CODE bheja jaiey ga</b><br>
 				{% if form.phonenumber.errors %}<span class="cr mtl">{{ form.phonenumber.errors.0 }}</span><br>{% endif %}
 				{{ form.phonenumber }}
 			</div><br>
@@ -103,5 +99,5 @@ body {
 			
 		</div>
 	</div>
-
+</div>
 {% endblock %}

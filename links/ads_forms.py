@@ -4,7 +4,7 @@ import re
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.models import User
 from user_sessions.models import Session
-from .models import UserProfile
+
 class CareemAdForm(forms.Form):
 	City = (
 		('Karachi','Karachi'),
@@ -81,17 +81,17 @@ class BuyerForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(BuyerForm, self).__init__(*args, **kwargs)
 		self.fields['username'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:100%;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 		self.fields['address'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:100%;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
 		self.fields['address'].widget.attrs['class'] = 'cxl'
 		#self.fields['address'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['address'].widget.attrs['autocomplete'] = 'off'
 		self.fields['phonenumber'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:100%;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
 		self.fields['phonenumber'].widget.attrs['class'] = 'cxl'
 		self.fields['phonenumber'].widget.attrs['autocomplete'] = 'off'
 
@@ -132,30 +132,30 @@ class PinForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(PinForm, self).__init__(*args, **kwargs)		
-		
-		#self.user_id=kwargs.pop('user_id')
 		self.fields['pinnumber'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:65px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		'background-color:#fffce6;width:65px;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
 		self.fields['pinnumber'].widget.attrs['class'] = 'cxl'
 		self.fields['pinnumber'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['pinnumber'].widget.attrs['autocomplete'] = 'off'
 			
 	def clean_pinnumber(self):
 		pinnumber = self.cleaned_data.get('pinnumber')
-		#print self.request.user.id
-		#user_id = requestrequest.user.id
-		#order_data=get_temp_order_data(user_id)
-		#user_pin = order_data['pin']
-		pin_length = len(pinnumber)
-		print self.user_id
 		order_data = get_temp_order_data(self.user_id)
-		pincheck = order_data['pin']
-		if pin_length < 4:
-			raise forms.ValidationError('Poora pin code likhien')
-		if pinnumber != pincheck:
-			raise forms.ValidationError('(tip: Apka pin code ghalat hai)')
+		try: 
+			pincheck = order_data['pin']
+		except:
+			pincheck = None
+		if pincheck:
+			if len(pinnumber) < 4:
+				raise forms.ValidationError('Poora pin code likhien')
+			if pinnumber != pincheck:
+				raise forms.ValidationError('(tip: Apka pin code ghalat hai)')
+			return pinnumber
+		else:
+			raise forms.ValidationError('(tip: dobora shuru say phone khareedne ki koshish kerien)')
+			return None
 
-		return pinnumber
+		
 
 
 

@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load get_block_button %}
 {% load emoticons_tags %}
+{% load show_error %}
 {% load s3 %}
 {% block content %}
 <head><title>{{ count }} comments on photo titled {{ photo.caption }} | Damadam.pk</title></head>
@@ -93,7 +94,7 @@
     <span class="cgy cs">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span>
     {% else %}
     <span class="cgy cs">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span>
-    {% endif %}<br>
+    {% endif %}
     {% if banned %}
 
         <br><hr size=1 class="co">
@@ -104,15 +105,11 @@
         <br>
 
     {% else %}
-    <br>
-    <form action="{% url 'comment' photo.id %}" method="POST">
+    <form class="mtl" action="{% url 'comment' photo.id %}" method="POST">
     {% csrf_token %}
-    <input type="hidden" id="id_link" name="origin" class="hidden_id" value="{{ origin }}">
-    {% if form.text.errors %}
-    <span class="cr">{{ form.text.errors.0 }}</span>
-    {% else %}
-    <b class="co">Tabsra likhein:</b><br>
-    {% endif %}
+    <input type="hidden" name="sk" value="{{ sk }}">
+    <input type="hidden" name="origin" value="{{ origin }}">
+    {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<b class="co">Tabsra likhein:</b>{% endif %}
     {{ form.text }}
         {% if warned %}
         <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likhein jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>

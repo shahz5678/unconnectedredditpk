@@ -12,9 +12,11 @@ city_shops = "city_shops"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
 sorted_set = "online_users"
-my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
+
+pusk:<user_id>:<secret_key> # photo_upload_secret_key
+tisk:<user_id>:<obj_type>:<obj_id> # text input secret_key
 
 rlfh:<user_id> - rate limited from home (e.g. because of abusive reasons)
 rlfpg:<user_id> - rate limited from public group (e.g. because of spammy behavior)
@@ -163,6 +165,29 @@ def get_and_delete_photo_upload_key(user_id):
 	secret_key = my_server.get("pusk:"+user_id)
 	if secret_key:
 		my_server.delete("pusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
+
+
+def set_text_input_key(user_id, obj_id, obj_type, secret_key):
+	"""
+	Used to prevent double form submission
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
+	my_server.setex(sec_key,secret_key,TWENTY_MINS)
+
+
+def get_and_delete_text_input_key(user_id, obj_id, obj_type):
+	"""
+	Checks if secret key exists and returns an appropriate response
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
+	secret_key = my_server.get(sec_key)
+	if secret_key:
+		my_server.delete(sec_key)
 		return secret_key
 	else:
 		return '1'
@@ -634,13 +659,13 @@ def log_input_rate(section,user_id,time_now,text=None):
 			sum_of_differences += t - s
 		avg_time_taken_between_sentences = abs(sum_of_differences)/(total_inputs-1)
 		if avg_time_taken_between_sentences < SUPER_FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='3',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+			rate_limit_user(user_id=user_id,section=section,level='2',ban_reason=BAN_REASON['flooding'],my_server=my_server)
 			log_rate_limited_conversation(key+":logger",'super')
 		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='2',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
 			log_rate_limited_conversation(key+":logger",'normal')
 		elif avg_time_taken_between_sentences < LAZY_FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+			rate_limit_user(user_id=user_id,section=section,level='0',ban_reason=BAN_REASON['flooding'],my_server=my_server)
 			log_rate_limited_conversation(key+":logger",'lazy')
 		else:
 			my_server.ltrim(key,0,6)

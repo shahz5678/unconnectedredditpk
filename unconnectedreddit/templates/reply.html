@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load get_block_button %}
 {% load emoticons_tags %}
+{% load show_error %}
 {% load s3 %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
@@ -44,11 +45,8 @@
         <br>
         <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
             {% csrf_token %}
-            {% if form.description.errors %}
-            <span class="cr">{{ form.description.errors.0 }}</span>
-            {% else %}
-            <span class="cs ct sp"><b>Jawab likhein:</b></span>
-            {% endif %}
+            {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<b class="ct">Jawab likhein:</b>{% endif %}
+            <input type="hidden" name="sk" value="{{ sk }}">
             <input type="hidden" name="user_id" value="{{ user.id }}">
             <input type="hidden" name="link_id" value="{{ parent.id }}">
             <input type="hidden" name="lwpk" value="{{ parent.submitter_id }}">

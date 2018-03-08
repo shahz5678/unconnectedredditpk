@@ -43,10 +43,11 @@
 			:<bdi class="clb lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
 			</div>
-				{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
+				{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
 				{% csrf_token %}
 				<div class="box-with-button-right">
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<input type="hidden" name="origin" value="{{ origin }}">
 				<input type="hidden" name="lang" value="{{ lang }}">
 				<input type="hidden" name="sort_by" value="{{ sort_by }}">
@@ -85,10 +86,11 @@
 			    {% endif %}
 		<span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
-		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
@@ -127,10 +129,11 @@
 		<span style="color:#404040;" class="lsp">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
 		<p style="margin-top:.5em;"></p>
-		{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
@@ -198,10 +201,11 @@
 		:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
 		</div>
 		
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
@@ -257,10 +261,11 @@
 		</form>
 		</div>
 		<p style="margin-top:.5em;"></p>
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">

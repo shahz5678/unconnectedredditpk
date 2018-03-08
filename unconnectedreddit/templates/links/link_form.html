@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block content %}
+{% load show_error %}
 {% load emoticons_tags %}
+{% block content %}
 <head><title>Write on home | Damadam.pk</title></head>
 <div class="margin">
 
 	<form method="post" action="" enctype="multipart/form-data">
 	  {% csrf_token %}
-	  {% if form.description.errors %}
-	  <span class="cr">{{ form.description.errors.0 }}</span>
-	  {% else %}
-		  {% if user.userprofile.score < 10 %}
-		  <span class="cl ct"><b>Apna taaruf karain, ya koi pegham likhein:</b></span>
+	  <input type="hidden" name="sk" value="{{ sk }}">
+	  {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}
+	  	{% if user.userprofile.score < 10 %}
+		  <span class="cl ct">Home ke liye apna taaruf likhein:</span>
 		  {% else %}
-		  <span class="cl ct"><b>Apna pegham likhein:</b></span>
+		  <span class="cl ct">Home ke liye pegham likhein:</span>
 		  {% endif %}
 	  {% endif %}
 	  <br>{{ form.description }}<br>

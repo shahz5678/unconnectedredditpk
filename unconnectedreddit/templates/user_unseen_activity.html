@@ -5,6 +5,7 @@
 {% load human_time %}
 {% load get_item %}
 {% load emoticons_tags %}
+{% load show_error %}
 {% load css %}
 {% block content %}
 <head><title>{{ user.username }}'s inbox | Damadam.pk</title></head>
@@ -59,9 +60,10 @@ body {
 			{% endif %}
 			{{ notif.lrsn }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
 		</div><br>
-	{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
+	{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
+		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		<input type="hidden" name="public_group_reply" value="|">
 		<input type="hidden" name="private_group_reply" value="|">
@@ -87,9 +89,10 @@ body {
 			{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		</div>
 	<br>
-		{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
 		{% csrf_token %}
+		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		<input type="hidden" name="public_group_reply" value="|">
 		<input type="hidden" name="private_group_reply" value="|">
@@ -135,10 +138,11 @@ body {
 
 		{% if notif.g == '1' %}
 		<br>
-		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
-			
+		
+			{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
 				<input type="hidden" name="public_group_reply" value="|">
 				<input type="hidden" name="photo_comment" value="|">
@@ -148,9 +152,12 @@ body {
 				</div>
 			</form>
 		{% else %}
-		<br>{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
+		<br>
+		
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
 				<input type="hidden" name="private_group_reply" value="|">
 				<input type="hidden" name="photo_comment" value="|">
@@ -191,10 +198,11 @@ body {
 			{{ notif.lrsn }}</a><span class="clb bw">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 		</div>
 		<br>
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		
-		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
 				<input type="hidden" name="public_group_reply" value="|">
 				<input type="hidden" name="photo_comment" value="|">
@@ -231,9 +239,12 @@ body {
 		</div>
 
 		
-		<br>{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
+		<br>
+		
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
 				<input type="hidden" name="private_group_reply" value="|">
 				<input type="hidden" name="photo_comment" value="|">
@@ -325,9 +336,10 @@ body {
 			</div><br>
 			{% endif %}
 		{% endif %}
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
+		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		<input type="hidden" name="private_group_reply" value="|">
 		<input type="hidden" name="public_group_reply" value="|">
@@ -361,9 +373,10 @@ body {
 		{{ notif.lrsn }}</a><span class="clb">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span><br>
 		</div>
 	{% endif %}
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
 		{% csrf_token %}
+		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		<input type="hidden" name="private_group_reply" value="|">
 		<input type="hidden" name="public_group_reply" value="|">

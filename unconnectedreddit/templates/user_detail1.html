@@ -171,11 +171,11 @@ body {
       {% endif %}
      
 
-      <b class="cb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b><br>
+      <div style="font-weight:bold;overflow:hidden" class="cb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></div>
 
       {% if time_remaining == '-2' %}
       <img class="iw ibg mt" src="{{ photo.image_file|s3 }}" style="border-radius:12px" alt="{{ photo.caption }}">
-      {% else %}  
+      {% else %}
       <img class="iw ibg mt" src="{{ photo.image_file|s3:'thumb' }}" style="border-radius:12px" alt="{{ photo.caption }}">
       {% endif %}
       

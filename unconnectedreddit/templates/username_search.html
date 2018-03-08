@@ -1,6 +1,6 @@
+<head><title>Search users | Damadam.pk</title></head>
 {% extends "base.html" %}
 {% block content %}
-<head><title>Search | Damadam.pk</title></head>
 <div class="margin clb">
 {% if found_flag != None %}
 {% if found_flag %}
@@ -33,7 +33,8 @@
 
 {% else %}
 
-	<b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b><br><span class="cgy sp">Is se milte julte nicknames ye hain:</span><br><br>
+	<div style="overflow:hidden"><b class="cxl"><span class="ct">{{ orig_search }}</span> nahi mila!</b></div>
+	<span class="cgy sp">Is se milte julte nicknames ye hain:</span><br><br>
 	{% for nick in similar %}
 	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mbs">{% csrf_token %}
 	<b class="cl ct mls">{{ nick.0 }}</b>:<br><button style="height:20px" class="btn bco bm cs mts mbs mls" name="dec" value="1" type="submit">photos</button>&nbsp;<button class="btn bct bm cs mts mbs mls" name="dec" value="2" style="height:20px" type="submit">history</button>&nbsp;<button class="btn bcg bm cs mts mbs mls" name="dec" value="3" style="height:20px" type="submit">profile</button><br>

@@ -15,7 +15,7 @@
 <b>Apki mehfilein:</b><br><br>
 <a href="{% url 'group_type' %}#section0" class="cs"><b>new mehfil</b></a><span class="cs">&nbsp;|</span>
 <a href="{% url 'group_ranking' %}#section0" class="cs"><b>popular mehfilein</b></a>
-<br><br>
+<br>
 {% for reply in object_list %}
 
 
@@ -131,6 +131,7 @@
 	{% else %}
 
 	{% if reply.0.which_group__private == '1' and reply.0.writer__username == user.username %}
+		<div class="mbl mtl" style="overflow:hidden">
 		<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
 	    {% csrf_token %}
 	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
@@ -146,9 +147,10 @@
 			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
-		
-		<p><hr size=1 COLOR="#2DB92D"></p>
+		</div>
+		<hr size=1 COLOR="#2DB92D">
 	{% elif reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}
+		<div class="mbl mtl" style="overflow:hidden">
 		<form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline;">
 	    {% csrf_token %}
 	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
@@ -167,11 +169,11 @@
 			<label class="cg cl bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value='.'></label>
 		</form>
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
-		
-		<p><hr size=1 COLOR="#2DB92D"></p>
+		</div>
+		<hr size=1 COLOR="#2DB92D">
 
 	{% elif reply.0.which_group__private == '0' and reply.0.writer__username == user.username %}
-
+		<div class="mbl mtl" style="overflow:hidden">
 		<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
 	    {% csrf_token %}
 	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
@@ -185,11 +187,11 @@
 		<a href="{% url 'public_group' slug=reply.0.which_group__unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
-		
-		<p><hr size=1 COLOR="#ac39ac"></p>
+		</div>
+		<hr size=1 COLOR="#ac39ac">
 	
 	{% elif reply.0.which_group__private == '0' and reply.0.writer__username != user.username %}
-
+		<div class="mbl mtl" style="overflow:hidden">
 		<form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
 	    {% csrf_token %}
 	    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
@@ -205,8 +207,8 @@
 		<a href="{% url 'public_group' slug=reply.0.which_group__unique %}"><span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span></a>&nbsp;
 
 		<span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span><br>
-		
-		<p><hr size=1 COLOR="#ac39ac"></p>
+		</div>
+		<hr size=1 COLOR="#ac39ac">
 
 	{% else %}
 

@@ -16,19 +16,24 @@
 	
 {% elif from_public_photos %}
 	
-	<span class="cl">Bar bar button dabaney se photo nahi charhti. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
+	<span class="cl">Sirf aik dafa OK daba kar intezar karein {% emoticons %}:){% endemoticons %}</span><br>
 	<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl">wapis</button></a>
-
-{% elif from_photo_comment %}
-	
-	<span class="cl">Bar bar button dabaney se tabsra nahi hoga. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
-	<a href="{% url 'see_photo_pk' pk %}#section0"><button class="btn bco bm mtl">wapis</button></a>
 
 {% elif from_publicreply %}
 	
-	<span class="cl">Bar bar button dabaney se jawab nahi chalta. Sirf aik dafa daba kar intezar karein {% emoticons %};){% endemoticons %}</span><br>
+	<span class="cl">Sirf aik dafa OK daba kar intezar karein {% emoticons %}:){% endemoticons %}</span><br>
 	<a href="{% url 'home' %}#section0"><button class="btn bct bm mtl">wapis</button></a>
+
+{% elif from_photo_comment %}
 	
+	<span class="cl">Sirf aik dafa OK daba kar intezar karein {% emoticons %}:){% endemoticons %}</span><br>
+	<a href="{% url 'see_photo_pk' pk %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+
+{% elif photo_from_best_photos %}
+	
+	<span class="cl">Sirf aik dafa send karein {% emoticons %}:){% endemoticons %}</span><br>
+	<a href="{% url 'best_photo_loc_pk' photo_id %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+
 {% endif %}
 
 </div>

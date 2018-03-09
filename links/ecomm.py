@@ -1199,19 +1199,19 @@ def x36_details(request,*args,**kwargs):
 	score_diff = 5000-user_score
 	user_id=request.user.id
 	order_in_process = check_orders_processing(user_id)
-	mp.track(request.user.id, 'M_S_1 came to shop')
+	mp.track(request.user.id, '6_M_S_1 came to shop')
 	return render(request,"ms_x36.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
 
 def delivery(request,origin,*args,**kwargs):
 	context = {}
 	context["origin"] = origin
-	mp.track(request.user.id, 'M_S_D delivery info')
+	mp.track(request.user.id, '6_M_S_D delivery info')
 	return render(request,"delivery.html",context)
 
 def warranty(request,origin,*args,**kwargs):
 	context = {}
 	context["origin"] = origin
-	mp.track(request.user.id, 'M_S_W warranty info')
+	mp.track(request.user.id, '6_M_S_W warranty info')
 	return render(request,"warranty.html",context)
 
 
@@ -1246,22 +1246,22 @@ def intermediate(request,origin,*args,**kwargs):
 		merch_id = request.session['merch_id']
 		request.session.modified = True
 	if merch_id is None:
-		mp.track(request.user.id, 'M_S_E Error')
+		mp.track(request.user.id, '6_M_S_E Error')
 		return render(request,"404.html",{})
 	else:	
 		model = MERCH[merch_id]['name']
-		mp.track(request.user.id, 'M_S_2 On_intermediate')
+		mp.track(request.user.id, '6_M_S_2 On_intermediate')
 		return render(request,'ms_intermediate.html',{'merch_id':merch_id,'model':model,'origin':origin})
 
 
 def faq(request,*args,**kwargs):
 	merch_id = request.session.get('merch_id',None)
 	if merch_id == None:
-		mp.track(request.user.id, 'M_S_E Error')
+		mp.track(request.user.id, '6_M_S_E Error')
 		return render(request,"404.html",{})
 	else:
 		model = MERCH[merch_id]['name']
-		mp.track(request.user.id, 'M_S_3 On_FAQ')
+		mp.track(request.user.id, '6_M_S_3 On_FAQ')
 		return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})
 
 @csrf_protect
@@ -1269,14 +1269,14 @@ def buyer_details(request,origin,*args,**kwargs):
 	if origin == 'x36':
 		merch_id = request.session['merch_id']
 		form = BuyerForm()
-		mp.track(request.user.id, 'M_S_4 On_Buyer_Detail')
+		mp.track(request.user.id, '6_M_S_4 On_Buyer_Detail')
 		return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
 	else:
 		form = BuyerForm(request.POST)
 		merch_id = request.session['merch_id']
 		if form.is_valid() and origin =='buy_det':
 			#form = BuyerForm(request.POST)
-			mp.track(request.user.id, 'M_S_4.1 Correct_Buyer_Detail')
+			mp.track(request.user.id, '6_M_S_4.1 Correct_Buyer_Detail')
 			username = form.cleaned_data.get("username",None)
 			name = username.strip().title()
 			i=0
@@ -1310,10 +1310,10 @@ def buyer_details(request,origin,*args,**kwargs):
 				send_orderer_pin.delay(orderer_phonenumber,pin, order_data['model'], None)
 				return redirect("confirm_order")
 			else:
-				mp.track(request.user.id, 'M_S_E Error')
+				mp.track(request.user.id, '6_M_S_E Error')
 				return render(request,"404.html",{})
 		else:
-			mp.track(request.user.id, 'M_S_4 On_Buyer_Detail')
+			mp.track(request.user.id, '6_M_S_4.2 Incorrect_Buyer_Detail')
 			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
 
 def generate_pin(request,phonenumber,target_username):
@@ -1337,12 +1337,12 @@ def confirm_order(request):
 		if user_id == None:
 			user_id = request.user.id
 		if user_id == None:
-			mp.track(request.user.id, 'M_S_E Error')
+			mp.track(request.user.id, '6_M_S_E Error')
 			return render(request,"404.html",{})
 		else:
 			check = check_orders_processing(user_id)
 			if check:
-				mp.track(request.user.id, 'M_S_7 ordering second')
+				mp.track(request.user.id, '6_M_S_7 ordering second')
 				return redirect("in_process")
 			else:
 				form = PinForm(request.POST,user_id=user_id)
@@ -1359,10 +1359,10 @@ def confirm_order(request):
 						enqueue_buyer_sms.delay('+923334404403', saved["order_id"], saved, None)				
 						orderer_phonenumber='+92'+saved["phonenumber"][1:]
 						enqueue_orderer_sms.delay(orderer_phonenumber,saved["order_id"], saved, None)
-						mp.track(request.user.id, 'M_S_6 order placed')				
+						mp.track(request.user.id, '6_M_S_6 order placed')				
 						return redirect("order_successful")
 					else:
-						mp.track(request.user.id, 'M_S_E Error')
+						mp.track(request.user.id, '6_M_S_E Error')
 						return render(request,"404.html",{})
 				else:
 					user_id = request.session['mobile_buyer_id']
@@ -1375,7 +1375,7 @@ def confirm_order(request):
 					score_charge = 5000
 					remaining_score = user_score - 5000
 					buy_possible=0
-					mp.track(request.user.id, 'M_S_5 ENTER_PIN')
+					mp.track(request.user.id, '6_M_S_5 ENTER_PIN')
 					return render(request,'confirm_order.html',{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 				'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
 	else:
@@ -1394,17 +1394,17 @@ def confirm_order(request):
 			#mobile_verified = request.session['mobile_verified']
 			#if int(score_charge) <= int(user_score):
 			#	buy_possible = 1
-			mp.track(request.user.id, 'M_S_5 ENTER_PIN')
+			mp.track(request.user.id, '6_M_S_5 ENTER_PIN')
 			return render(request,"confirm_order.html",{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 			# 'buy_possible':buy_possible,\
 			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
 		else:
-			mp.track(request.user.id, 'M_S_E Error')
+			mp.track(request.user.id, '6_M_S_E Error')
 			return render(request,"404.html",{})
 
 	
 def order_successful(request):
-	mp.track(request.user.id, 'M_S_6.1 order placed shown')	
+	mp.track(request.user.id, '6_M_S_6.1 order placed shown')	
 	return render(request,"order_placed_successfully.html",{})
 
 def in_process(request):

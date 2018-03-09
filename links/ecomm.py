@@ -928,139 +928,101 @@ def initiate_seller_verification_process(request):
 
 #################################################################
 
-def x32_details(request,*args,**kwargs):
-	return render(request,"x32_details.html",{})
+# def x32_details(request,*args,**kwargs):
+# 	return render(request,"x32_details.html",{})
 
-def x2lite_details(request,*args,**kwargs):
-	return render(request,"x2lite_details.html",{})
+# def x2lite_details(request,*args,**kwargs):
+# 	return render(request,"x2lite_details.html",{})
 
-def i6metal_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_i6_metal.html",{'user_score':user_score,'score_diff':score_diff})
-
-
-def x33_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_x33.html",{'user_score':user_score,'score_diff':score_diff})
-
-def x36_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	user_id=request.user.id
-	order_in_process = check_orders_processing(user_id)
-	return render(request,"ms_x36.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
-
-def x29_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_x29.html",{'user_score':user_score,'score_diff':score_diff})
-
-def i8i_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_i8i.html",{'user_score':user_score,'score_diff':score_diff})
-
-def s6_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_s6.html",{'user_score':user_score,'score_diff':score_diff})
-
-def j1_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"samsung_j1.html",{'user_score':user_score,'score_diff':score_diff})
-
-def lt550_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"qmobile_lt550.html",{'user_score':user_score,'score_diff':score_diff})
-
-def insmart_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"ms_insmart.html",{'user_score':user_score,'score_diff':score_diff})
-
-def y3_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"ms_y3.html",{'user_score':user_score,'score_diff':score_diff})
-
-def qx2_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"ms_qx2.html",{'user_score':user_score,'score_diff':score_diff})
-
-def gprimep_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"ms_gprimep.html",{'user_score':user_score,'score_diff':score_diff})
-
-def j5p_details(request,*args,**kwargs):
-	user_score = request.user.userprofile.score
-	score_diff = 5000-user_score
-	return render(request,"ms_j5p.html",{'user_score':user_score,'score_diff':score_diff})
+# def i6metal_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_i6_metal.html",{'user_score':user_score,'score_diff':score_diff})
 
 
-
-def delivery(request,origin,*args,**kwargs):
-	context = {}
-	context["origin"] = origin
-	return render(request,"delivery.html",context)
-
-def warranty(request,origin,*args,**kwargs):
-	context = {}
-	context["origin"] = origin
-	return render(request,"warranty.html",context)
+# def x33_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_x33.html",{'user_score':user_score,'score_diff':score_diff})
 
 
-@csrf_protect
-def close_order(request,*args,**kwargs):
-	if request.method == 'POST':
-		orderid = request.POST.get('order_id',None)
-		userid = request.POST.get('user_id',None)
-		delete_order(orderid,userid)
-		return redirect("new_orders")
-	else:
-		return render(request,"404.html",{})
+# def x29_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_x29.html",{'user_score':user_score,'score_diff':score_diff})
 
-@csrf_protect
-def close_query(request,*args,**kwargs):
-	if request.method == 'POST':
-		userid = request.POST.get('user_id',None)
-		delete_query(userid)
-		return redirect("new_queries")
-	else:
-		return render(request,"404.html",{})
+# def i8i_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_i8i.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def s6_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_s6.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def j1_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"samsung_j1.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def lt550_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"qmobile_lt550.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def insmart_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"ms_insmart.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def y3_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"ms_y3.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def qx2_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"ms_qx2.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def gprimep_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"ms_gprimep.html",{'user_score':user_score,'score_diff':score_diff})
+
+# def j5p_details(request,*args,**kwargs):
+# 	user_score = request.user.userprofile.score
+# 	score_diff = 5000-user_score
+# 	return render(request,"ms_j5p.html",{'user_score':user_score,'score_diff':score_diff})
 
 
-@csrf_protect
-def buyer_loc(request,*args,**kwargs):
-	user_id = request.user.id
+# @csrf_protect
+# def buyer_loc(request,*args,**kwargs):
+# 	user_id = request.user.id
 
-	if request.method == 'POST':
-		mobile_verified = request.mobile_verified
-		request.session['mobile_verified']=mobile_verified
-		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
-		request.session["which_phone"] = merch_id
-		request.session.modified = True
-		#mp.track(request.user.id, 'M_S_2 On_location')
-		return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':mobile_verified})
-	else:
-		try:
-			merch_id = request.session["which_phone"]
-		except:
-			merch_id = None
-		if merch_id:
-			#mp.track(request.user.id, 'M_S_2 On_location')
-			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':request.mobile_verified})
-		else:
-			user_score = 0
-			user_score = request.user.userprofile.score
-			score_diff = 5000-user_score
-			#mp.track(request.user.id, 'M_S_1.1 came to shop')
-			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
+# 	if request.method == 'POST':
+# 		mobile_verified = request.mobile_verified
+# 		request.session['mobile_verified']=mobile_verified
+# 		merch_id = request.POST.get("merch_id") #1 is x32, 2 is x2lite
+# 		request.session["which_phone"] = merch_id
+# 		request.session.modified = True
+# 		#mp.track(request.user.id, 'M_S_2 On_location')
+# 		return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':mobile_verified})
+# 	else:
+# 		try:
+# 			merch_id = request.session["which_phone"]
+# 		except:
+# 			merch_id = None
+# 		if merch_id:
+# 			#mp.track(request.user.id, 'M_S_2 On_location')
+# 			return render(request,"buyer_loc.html",{'merch_id':merch_id,'mobile_verified':request.mobile_verified})
+# 		else:
+# 			user_score = 0
+# 			user_score = request.user.userprofile.score
+# 			score_diff = 5000-user_score
+# 			#mp.track(request.user.id, 'M_S_1.1 came to shop')
+# 			return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff})
 
 
 def mobile_shop_consultancy(request):
@@ -1105,52 +1067,216 @@ def mobile_shop_consultancy(request):
 		return render(request,'mobile_consultancy.html',{})
 
 
+# @csrf_protect
+# def mobile_shop(request,*args,**kwargs):
+# 	"""
+# 	"""
+# 	if request.method == 'POST':
+# 		user_id = request.user.id
+# 		#request.session.pop('mobile_verified',None)
+# 		#mobile_verified = request.mobile_verified
+# 		#request.session['mobile_verified']=mobile_verified
+# 		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
+# 		request.session['merch_id'] = merch_id
+
+# 		request.session.modified = True
+# 		#loc = request.POST.get('loc',None)
+# 		#if loc == None or merch_id == None:
+# 		return redirect("buyer_details")#,{'merch_id':merch_id,"mobile_verified":mobile_verified})
+# 	else:
+# 		user_id=request.user.id
+# 		order_in_process = check_orders_processing(user_id)
+# 		user_score = 0
+# 		user_score = request.user.userprofile.score
+# 		score_diff = 5000-user_score
+# 		#mp.track(request.user.id, 'M_S_1 came to shop')
+# 		if user_score < 5000:
+# 			mp.track(request.user.id,'M_S_S Score not enough')
+# 		else:
+# 			mp.track(request.user.id,'M_S_S Score enough')
+# 		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
+
+
+
+
+# @csrf_protect
+# def buyer_info(request,origin,*args,**kwargs):
+# 	if origin == 'main':
+# 		merch_id = request.session['merch_id']
+# 		form = InfoForm()
+# 		mp.track(request.user.id, 'M_S_4 On_Query_Detail')
+# 		return render(request,'buyer_info.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
+# 	else:
+# 		form = InfoForm(request.POST)
+# 		merch_id = request.session['merch_id']	
+# 		if form.is_valid() and origin =='buy_det':
+# 			username = form.cleaned_data.get("username",None)
+# 			name = username.strip().title()
+# 			i=0
+# 			firstname, lastname = '',''
+# 			for word in name.split():
+# 				if i==0:
+# 					firstname=word
+# 					i+=1
+# 				else:
+# 					lastname+=word
+# 					lastname+=' '
+# 					i+=1
+# 			address = form.cleaned_data.get("address",None)
+# 			phonenumber = form.cleaned_data.get("phonenumber",None)
+# 			ON_AZURE = os.environ.get('ON_AZURE',None)
+# 			user_id = request.user.id
+# 			target_user_id = user_id
+# 			target_username = User.objects.filter(id=target_user_id).values_list('username',flat=True)[0]
+# 			request.session['mobile_buyer_id'] = user_id
+# 			request.session.modified = True	
+# 			#merch_id = request.POST.get('merch_id',None)
+# 			price = MERCH[merch_id]['price']
+# 			model = MERCH[merch_id]['name']
+# 			verified = request.mobile_verified
+# 			order_data = {'firstname':firstname,'lastname':lastname,'address':address,'user_id':user_id,\
+# 			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model,'verified':verified,'time':time.time(),'username':target_username} 
+# 			saved = save_query_data(order_data)
+# 			if saved:
+# 				orderer_phonenumber='+92'+order_data["phonenumber"][1:]
+# 				enqueue_query_sms.delay(orderer_phonenumber,order_data["user_id"], order_data, None)
+# 				mp.track(request.user.id, 'M_S_4.1 Correct_Query_Detail')
+# 				return redirect("queryrequest")
+# 			else:
+# 				return render(request,"404.html",{})
+# 		else:
+# 			mp.track(request.user.id, 'M_S_4.05 Incorrect_Query_Info')
+# 			return render(request,'buyer_info.html',{'form':form,'device':get_device(request)})
+
+
+# def buy_possbile(user_id):
+# 	order_data = get_temp_order_data(user_id)
+# 	if order_data:
+# 		model = order_data['model']
+# 		price = order_data['price']
+# 		user_score = request.user.userprofile.score			
+# 		merch_id = order_data['merch_id']
+# 		score_cost = MERCH[merch_id]['points_cost']
+# 		if score_cost > user_score:
+# 			buy_possible = 0
+# 		else:
+# 			buy_possible = 1 
+
+
+
+#def populate_photo_ads(request):
+	# populate_ad_list(which_list="photos")
+	# return render(request,'404.html',{'from_ecomm':True})
+
+
+def show_city(request):
+	form = EcommCityForm()
+	return render(request,'enter_city.html',{'form':form})
+
+def print_referrer_logs(request):
+	logs = return_referrer_logs('referrer')
+	readable_logs = []
+	for log in logs:
+		readable_logs.append(ast.literal_eval(log))
+	import csv
+	filename = 'referrer.csv'
+	with open(filename,'wb') as f:
+		wtr = csv.writer(f)
+		for log in readable_logs:
+			user_id = log["user_id"] if "user_id" in log else None
+			origin = log["origin"]
+			referrer = log["referrer"]
+			time = log["time_stamp"] if "time_stamp" in log else 0
+			to_write = [user_id, origin, referrer, time]
+			wtr.writerows([to_write])
+	return render(request, "404.html", {'from_ecomm':True})
+
+
+####################################### x36 funnel ###############################
+
+def x36_details(request,*args,**kwargs):
+	user_score = request.user.userprofile.score
+	score_diff = 5000-user_score
+	user_id=request.user.id
+	order_in_process = check_orders_processing(user_id)
+	mp.track(request.user.id, 'M_S_1 came to shop')
+	return render(request,"ms_x36.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
+
+def delivery(request,origin,*args,**kwargs):
+	context = {}
+	context["origin"] = origin
+	mp.track(request.user.id, 'M_S_D delivery info')
+	return render(request,"delivery.html",context)
+
+def warranty(request,origin,*args,**kwargs):
+	context = {}
+	context["origin"] = origin
+	mp.track(request.user.id, 'M_S_W warranty info')
+	return render(request,"warranty.html",context)
+
+
 @csrf_protect
-def mobile_shop(request,*args,**kwargs):
-	"""
-	"""
+def close_order(request,*args,**kwargs):
 	if request.method == 'POST':
-		user_id = request.user.id
-		#request.session.pop('mobile_verified',None)
-		#mobile_verified = request.mobile_verified
-		#request.session['mobile_verified']=mobile_verified
-		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
-		request.session['merch_id'] = merch_id
-
-		request.session.modified = True
-		#loc = request.POST.get('loc',None)
-		#if loc == None or merch_id == None:
-		return redirect("buyer_details")#,{'merch_id':merch_id,"mobile_verified":mobile_verified})
+		orderid = request.POST.get('order_id',None)
+		userid = request.POST.get('user_id',None)
+		delete_order(orderid,userid)
+		return redirect("new_orders")
 	else:
-		user_id=request.user.id
-		order_in_process = check_orders_processing(user_id)
-		user_score = 0
-		user_score = request.user.userprofile.score
-		score_diff = 5000-user_score
-		mp.track(request.user.id, 'M_S_1 came to shop')
-		if user_score < 5000:
-			mp.track(request.user.id,'M_S_S Score not enough')
-		else:
-			mp.track(request.user.id,'M_S_S Score enough')
-		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
+		return render(request,"404.html",{})
+
+@csrf_protect
+def close_query(request,*args,**kwargs):
+	if request.method == 'POST':
+		userid = request.POST.get('user_id',None)
+		delete_query(userid)
+		return redirect("new_queries")
+	else:
+		return render(request,"404.html",{})
+
+@csrf_protect
+def intermediate(request,origin,*args,**kwargs):
+	context = {}
+	context["origin"] = origin
+	merch_id = request.POST.get('merch_id',None)
+	if merch_id == None:
+		merch_id = request.session.get('merch_id',None)
+	else:
+		request.session['merch_id'] = request.POST.get('merch_id',None)
+		merch_id = request.session['merch_id']
+		request.session.modified = True
+	if merch_id is None:
+		mp.track(request.user.id, 'M_S_E Error')
+		return render(request,"404.html",{})
+	else:	
+		model = MERCH[merch_id]['name']
+		mp.track(request.user.id, 'M_S_2 On_intermediate')
+		return render(request,'ms_intermediate.html',{'merch_id':merch_id,'model':model,'origin':origin})
 
 
+def faq(request,*args,**kwargs):
+	merch_id = request.session.get('merch_id',None)
+	if merch_id == None:
+		mp.track(request.user.id, 'M_S_E Error')
+		return render(request,"404.html",{})
+	else:
+		model = MERCH[merch_id]['name']
+		mp.track(request.user.id, 'M_S_3 On_FAQ')
+		return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})
 
 @csrf_protect
 def buyer_details(request,origin,*args,**kwargs):
-	# if request.method == 'POST':
-	# 	print ("i am in post")
 	if origin == 'x36':
 		merch_id = request.session['merch_id']
 		form = BuyerForm()
-		#mp.track(request.user.id, 'M_S_5 On_Buyer_Detail')
+		mp.track(request.user.id, 'M_S_4 On_Buyer_Detail')
 		return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
 	else:
 		form = BuyerForm(request.POST)
 		merch_id = request.session['merch_id']
 		if form.is_valid() and origin =='buy_det':
 			#form = BuyerForm(request.POST)
-			#mp.track(request.user.id, 'M_S_5.1 Correct_Buyer_Detail')
+			mp.track(request.user.id, 'M_S_4.1 Correct_Buyer_Detail')
 			username = form.cleaned_data.get("username",None)
 			name = username.strip().title()
 			i=0
@@ -1182,11 +1308,12 @@ def buyer_details(request,origin,*args,**kwargs):
 			if saved:
 				orderer_phonenumber='+92'+order_data["phonenumber"][1:]
 				send_orderer_pin.delay(orderer_phonenumber,pin, order_data['model'], None)
-				mp.track(request.user.id, 'M_S_6 On confirm order')
 				return redirect("confirm_order")
 			else:
+				mp.track(request.user.id, 'M_S_E Error')
 				return render(request,"404.html",{})
 		else:
+			mp.track(request.user.id, 'M_S_4 On_Buyer_Detail')
 			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
 
 def generate_pin(request,phonenumber,target_username):
@@ -1203,88 +1330,6 @@ def generate_pin(request,phonenumber,target_username):
 	pin=pin+int(phonenumber[4:6])
 	return pin
 
-
-@csrf_protect
-def intermediate(request,origin,*args,**kwargs):
-	context = {}
-	context["origin"] = origin
-	merch_id = request.POST.get('merch_id',None)
-	if merch_id == None:
-		merch_id = request.session.get('merch_id',None)
-	else:
-		request.session['merch_id'] = request.POST.get('merch_id',None)
-		merch_id = request.session['merch_id']
-		request.session.modified = True
-	if merch_id is None:
-		return render(request,"404.html",{})
-	else:	
-		model = MERCH[merch_id]['name']
-		mp.track(request.user.id, 'M_S_2 On_intermediate')
-		return render(request,'ms_intermediate.html',{'merch_id':merch_id,'model':model,'origin':origin})
-
-
-def faq(request,*args,**kwargs):
-	merch_id = request.session.get('merch_id',None)
-	if merch_id == None:
-		return render(request,"404.html",{})
-	else:
-		model = MERCH[merch_id]['name']
-		mp.track(request.user.id, 'M_S_3 On_FAQ')
-		return render(request,"ms_faq.html",{'merch_id':merch_id,'model':model})
-
-def queryrequest(request,*args,**kwargs):
-	return render(request,"ms_queryrequest.html")
-
-@csrf_protect
-def buyer_info(request,origin,*args,**kwargs):
-	if origin == 'main':
-		merch_id = request.session['merch_id']
-		form = InfoForm()
-		mp.track(request.user.id, 'M_S_4 On_Query_Detail')
-		return render(request,'buyer_info.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
-	else:
-		form = InfoForm(request.POST)
-		merch_id = request.session['merch_id']	
-		if form.is_valid() and origin =='buy_det':
-			username = form.cleaned_data.get("username",None)
-			name = username.strip().title()
-			i=0
-			firstname, lastname = '',''
-			for word in name.split():
-				if i==0:
-					firstname=word
-					i+=1
-				else:
-					lastname+=word
-					lastname+=' '
-					i+=1
-			address = form.cleaned_data.get("address",None)
-			phonenumber = form.cleaned_data.get("phonenumber",None)
-			ON_AZURE = os.environ.get('ON_AZURE',None)
-			user_id = request.user.id
-			target_user_id = user_id
-			target_username = User.objects.filter(id=target_user_id).values_list('username',flat=True)[0]
-			request.session['mobile_buyer_id'] = user_id
-			request.session.modified = True	
-			#merch_id = request.POST.get('merch_id',None)
-			price = MERCH[merch_id]['price']
-			model = MERCH[merch_id]['name']
-			verified = request.mobile_verified
-			order_data = {'firstname':firstname,'lastname':lastname,'address':address,'user_id':user_id,\
-			'phonenumber':phonenumber, 'merch_id':merch_id, 'price':price, 'model':model,'verified':verified,'time':time.time(),'username':target_username} 
-			saved = save_query_data(order_data)
-			if saved:
-				orderer_phonenumber='+92'+order_data["phonenumber"][1:]
-				enqueue_query_sms.delay(orderer_phonenumber,order_data["user_id"], order_data, None)
-				mp.track(request.user.id, 'M_S_4.1 Correct_Query_Detail')
-				return redirect("queryrequest")
-			else:
-				return render(request,"404.html",{})
-		else:
-			mp.track(request.user.id, 'M_S_4.05 Incorrect_Query_Info')
-			return render(request,'buyer_info.html',{'form':form,'device':get_device(request)})
-
-
 @csrf_protect
 def confirm_order(request):
 	if request.method == 'POST':
@@ -1292,11 +1337,12 @@ def confirm_order(request):
 		if user_id == None:
 			user_id = request.user.id
 		if user_id == None:
+			mp.track(request.user.id, 'M_S_E Error')
 			return render(request,"404.html",{})
 		else:
 			check = check_orders_processing(user_id)
 			if check:
-				mp.track(request.user.id, 'M_S_8 ordering second')
+				mp.track(request.user.id, 'M_S_7 ordering second')
 				return redirect("in_process")
 			else:
 				form = PinForm(request.POST,user_id=user_id)
@@ -1313,9 +1359,10 @@ def confirm_order(request):
 						enqueue_buyer_sms.delay('+923334404403', saved["order_id"], saved, None)				
 						orderer_phonenumber='+92'+saved["phonenumber"][1:]
 						enqueue_orderer_sms.delay(orderer_phonenumber,saved["order_id"], saved, None)
-						mp.track(request.user.id, 'M_S_7 order placed')				
+						mp.track(request.user.id, 'M_S_6 order placed')				
 						return redirect("order_successful")
 					else:
+						mp.track(request.user.id, 'M_S_E Error')
 						return render(request,"404.html",{})
 				else:
 					user_id = request.session['mobile_buyer_id']
@@ -1328,6 +1375,7 @@ def confirm_order(request):
 					score_charge = 5000
 					remaining_score = user_score - 5000
 					buy_possible=0
+					mp.track(request.user.id, 'M_S_5 ENTER_PIN')
 					return render(request,'confirm_order.html',{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 				'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
 	else:
@@ -1346,27 +1394,17 @@ def confirm_order(request):
 			#mobile_verified = request.session['mobile_verified']
 			#if int(score_charge) <= int(user_score):
 			#	buy_possible = 1
+			mp.track(request.user.id, 'M_S_5 ENTER_PIN')
 			return render(request,"confirm_order.html",{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 			# 'buy_possible':buy_possible,\
 			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
 		else:
+			mp.track(request.user.id, 'M_S_E Error')
 			return render(request,"404.html",{})
 
-# def buy_possbile(user_id):
-# 	order_data = get_temp_order_data(user_id)
-# 	if order_data:
-# 		model = order_data['model']
-# 		price = order_data['price']
-# 		user_score = request.user.userprofile.score			
-# 		merch_id = order_data['merch_id']
-# 		score_cost = MERCH[merch_id]['points_cost']
-# 		if score_cost > user_score:
-# 			buy_possible = 0
-# 		else:
-# 			buy_possible = 1 
 	
 def order_successful(request):
-	mp.track(request.user.id, 'M_S_9.1 order placed shown')	
+	mp.track(request.user.id, 'M_S_6.1 order placed shown')	
 	return render(request,"order_placed_successfully.html",{})
 
 def in_process(request):
@@ -1382,31 +1420,9 @@ def get_new_queries(request):
 	orders = sorted(orders, key=lambda k: k['time'],reverse = True)
 	return render(request,'ms_new_queries.html', {'orders':orders})
 
+def queryrequest(request,*args,**kwargs):
+	return render(request,"ms_queryrequest.html")
+
 def buyer_verify():
 	return render(request,"buyer_verification.html",{})
 
-def show_city(request):
-	form = EcommCityForm()
-	return render(request,'enter_city.html',{'form':form})
-
-def print_referrer_logs(request):
-	logs = return_referrer_logs('referrer')
-	readable_logs = []
-	for log in logs:
-		readable_logs.append(ast.literal_eval(log))
-	import csv
-	filename = 'referrer.csv'
-	with open(filename,'wb') as f:
-		wtr = csv.writer(f)
-		for log in readable_logs:
-			user_id = log["user_id"] if "user_id" in log else None
-			origin = log["origin"]
-			referrer = log["referrer"]
-			time = log["time_stamp"] if "time_stamp" in log else 0
-			to_write = [user_id, origin, referrer, time]
-			wtr.writerows([to_write])
-	return render(request, "404.html", {'from_ecomm':True})
-
-#def populate_photo_ads(request):
-	# populate_ad_list(which_list="photos")
-	# return render(request,'404.html',{'from_ecomm':True})

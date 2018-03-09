@@ -1,74 +1,139 @@
-{% extends "base_min.html" %}
-{% block content %}
-
-<head><title>E-commerce FAQs | Damadam.pk</title></head>
 <style>
-table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
 }
 
-td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
 }
 
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px;
+ max-width:98%; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+body {
+
+    background: #E8F5E9;
+    /*
+        Fallback for Mini and other browsers
+        that don’t support CSS gradients
+    */
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
 
 </style>
+<title>E-commerce FAQs | Damadam.pk</title>
 
+{% extends "base_min.html" %}
+{% block content %}
+<div style="text-align:center">
+    <div class="margin clb" style="display:inline-block">
     <body>
-    <div class="margin clb">
-    <br><img style="width:124px;" src="{{ STATIC_URL }}img/question_guy.png"><br><br>
+            <div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">    
+                <br><img style="width:124px;" src="{{ STATIC_URL }}img/question_guy.png"><br><br>
 
-    <h2>Poochey gaiey sawalat!</h2>
+            <h2>Sub say ziada poochey gaiey sawalat aur un ke jawab ye hein!</h2>
 
+            </div>
 
-<div class="clb"><b>
-        - Phone meray pas kaise aiey ga?
-        </b></div>
-<div class="cgy" style="line-height:1.5;">   Dak ke zariye <a href="{% url 'delivery' 'faq'%}">(delivery ki tafseel)</a> 
- </div><br>
+            <div  class="mbl background-box clb" style="text-align:left;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
+                <b>
+                - Phone meray pas kaise aiey ga?
+                </b>
+                <div class="cgy lsp">   Daak ke zariye <a href="{% url 'delivery' 'faq'%}"> (delivery ki tafseel)</a> 
+                </div>
+            </div>
 
+            <div  class="mbl background-box clb" style="text-align:left;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
+          
+                <div class="clb" ><b>
+                - Phone China ka tuo nahi? <br>- Phone second hand tuo nahi?
+                </b></div>
+                <div class="cgy lsp" > <b>Nahi.</b> Hamarey partner tamam phone brand ki company say khareedtay hein<a href="{% url 'warranty' 'faq'%}"> (warranty ki tafseel)</a></div>
+            </div>
 
-<div class="clb"><b>
-        - Payment kaise kerni hai?
-        </b></div>
-<div class="cgy" style="line-height:1.5;">   Dak walay ko paise day kr phone le lein.</div>
- <br>
+            <div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+                <form method="POST" action="{% url 'buyer_details' 'x36' %}" class="mtl">
+                {% csrf_token %}
+                <span class="cl" style="align:center;">
+                    <div >Sawal ka jawab mil gya tuo <b class="clb">{{model}}</b> khareedien phir? <br>
+                        <input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Order Kerien">
+                    </div>
+                </form>
+            </div>
 
-<div class="clb" style="line-height:1.5;"><b>
-        - Phone China ka tuo nahi? <br>- Phone second hand tuo nahi?
-        </b></div>
-<div class="cgy" style="line-height:1.5;"> <b>Nahi.</b> Hamarey partner tamam phone brand ki company say khareedtay hein<a href="{% url 'warranty' 'faq'%}"> (warranty ki tafseel)</a></div>
- <br>
+            <div class="mbl background-box clb" style="text-align:left;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
+                
+                <div class="clb"><b>
+                        - Payment kaise kerni hai?</b>
+                </div>
+                <div class="cgy lsp" >   Daak walay ko paise day kr phone le lein.
+                </div>
+            </div>
 
-<div class="clb"><b>
-        - Phone itna sasta kiyun hai
-        </b></div>
-<div class="cgy" style="line-height:1.5;">   Ye qeematien mehdood mudat key liay hein. Hum abhi gahak paker rahe hein.</div>
-<br>
+            <div  class="mbl background-box clb" style="text-align:left;background-color:#ffffff; border-radius:6px; ;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">  
+                <div class="clb"><b>
+                        - Phone itna sasta kiyun hai
+                        </b></div>
+                <div class="cgy lsp" >   Ye qeematien mehdood mudat key liay hein. Hum abhi gahak paker rahe hein.</div>
+            </div>
+            
+            <div  class="mbl background-box clb" style="text-align:left;background-color:#ffffff; border-radius:6px; ;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">        
+                 <div class="clb"><b>
+                        - Phone mein ager koi masla ho?</b>
+                </div>
+                <div class="cgy mbl lsp" >Aap aik saal tuk phone ki warranty dikha ker masla theek kerwa sakte hein <a href="{% url 'warranty' 'faq'%}">(warranty ki tafseel)</a>
+                </div>
+            </div>
 
- <div class="clb"><b>
-        - Phone mein ager koi masla ho?
-        </b></div>
-<div class="cgy mbl" style="line-height:1.5;">Aap aik saal tuk phone ki warranty dikha ker masla theek kerwa sakte hein <a href="{% url 'warranty' 'faq'%}">(warranty ki tafseel)</a></div>
-
-
-    <hr size=1COLOR="#A9A9A9">
-    <div class="mtl mbl">
-    <div class="cl mrs" style="color:#1CB841;display:inline;">Inn ke illawa koi aur sawal hai?</div><a href="{% url 'buyer_info' 'main' %}"><button class="btn bcg mt bm cs">Haan</button></a>
-    </div>
-
-    <form method="POST" action="{% url 'buyer_details' 'main' %}" class="mtl">
-    {% csrf_token %}
-    <span class="cl" style="color:#1CB841;align:center;"><div >Sawal ka jawab mil gya tuo <b class="clb">{{model}}</b> khareedien phir? <button class="btn mt mbs bl bcb cs">Order Kerien</button></a></span>
-    <br></div></form>
-<br>
-    </div>
-
-</body>
-</html>
+            <div class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px; ;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+                <form method="POST" action="{% url 'buyer_details' 'x36' %}" class="mtl">
+                {% csrf_token %}
+                <span class="cl" style="align:center;">
+                    <div >Sawal ka jawab mil gya tuo <b class="clb">{{model}}</b> khareedien phir? <br>
+                        <input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Order Kerien">
+                    </div>
+                </form>
+            </div>
     </body>
+    </div>
+</div>    
 {% endblock %}

@@ -267,6 +267,14 @@ def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):
 	cleansed_data = "Assalam-o-Alikum! Apka "+str(order_data['model'])+" ka order hamarey pas agya hai. Mobile shop ka numainda apko jald call keray ga. Shukriya :-)"
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
+@celery_app1.task(name='tasks.send_orderer_pin')
+def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
+	cleansed_data = "Aap ka pin code hai '"+str(pin)+"'. Iss pin ko mobile shop ki confirm order ki screen per dalien aur apna "+str(order_data)+" ghar mangaien."
+	cleansed_data2 = "Pin code: '"+str(pin)+"' Mob# "+str(mobile_number)+"' Phone model: "+str(order_data)
+	mobile_number2 = '+923491058364'
+	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
+	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
+
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
 	cleansed_data = "Assalam-o-Alikum! Apko 03105430851 se Damadam Mobile Shop ka numainda rabta kare ga. Ap khud bhi is number per rabta kr sakte hein. Shukriya :-)"

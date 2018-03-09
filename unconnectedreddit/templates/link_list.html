@@ -4,6 +4,7 @@
 {% load emoticons_tags %}
 {% load get_item %}
 {% load voted %}
+{% load show_error %}
 {% load photo_voted %}
 {% load human_time %}
 {% load s3 %}
@@ -51,7 +52,7 @@ body {
 
 	{% mobile_verification_bar ident csrf mobile_verified score %}
 
-	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True %}	
+	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}	
 {% endif %}
 
 <p style="margin-top:.5em;">
@@ -67,7 +68,8 @@ body {
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
-	
+
+
 	{% if forloop.counter == 3 %}
 		{% if enqueued_match %}
 			{% load get_cricket_summary %}
@@ -201,7 +203,7 @@ body {
 			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
 		{% endif %}
 
-		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
+		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l sk %}
 		
 	</div>
 	
@@ -257,7 +259,7 @@ body {
 			{% endif %}
 
 			<div class="mtl">
-				{% home_publicreply_bar link_pk=link.l link_writer_pk=link.w lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home'%}
+				{% home_publicreply_bar link_pk=link.l link_writer_pk=link.w lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home' sk=sk %}
 			</div>
 		
 

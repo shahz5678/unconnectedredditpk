@@ -85,6 +85,7 @@
         {% endif %}
         {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
         <br>
+        <input id="pub_grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="uid" value="{{ unique }}">
         <button id="pub_grp_subform" name="gp" value="{{ group.id }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
     </form>

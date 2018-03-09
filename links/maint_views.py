@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, Reply,UserFan, ChatPic
 from redis1 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
 from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes
-from redis4 import save_deprecated_photo_ids_and_filenames
+from redis4 import save_deprecated_photo_ids_and_filenames, report_rate_limited_conversation
 from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
@@ -386,3 +386,9 @@ def isolate_non_national_phone_numbers(request):
 		user = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
 		processed_bogus_pairs.append((user,number))
 	return render(request,"show_bogus_mobile_user_ids.html",{'bogus_pairs':processed_bogus_pairs,'total':len(processed_bogus_pairs)})
+
+############################################### Logger ###############################################
+
+def rate_limit_logging_report(request):
+	report_rate_limited_conversation()
+	return redirect("missing_page")

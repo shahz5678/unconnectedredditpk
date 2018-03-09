@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% load voted %}
+{% load show_error %}
 {% load get_votes %}
 {% load get_item %}
 {% load get_voting %}
@@ -27,14 +28,10 @@ body {
 
 	<form action="{% url 'first_time_cricket_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<button class="btn bms bco mrs" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px" type="submit">&nbsp;</button></form>
 
-	  {% if form.description.errors %}
-	  <div class="cb mtl">{{ form.description.errors.0 }}</div>
-	  {% else %}
-	  <div class="cgy sp mtl">Match pe commentary karein:</div>
-	  {% endif %}
-
+	  {% if form.errors %}<div class="cb mtl">{{ form.errors|show_error }}</div>{% else %}<div class="cgy sp mtl">Match pe commentary karein:</div>{% endif %}
 	<form method="post" class="mt" action="{% url 'cricket_comment' %}">
 	  {% csrf_token %}
+	  <input type="hidden" name="sk" value="{{ sk }}">
 	  {{ form.description }}<br>
 	  	<button class="btn bl mtl mrl {{ css_class1 }}" style="height:25px" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button>
 	  	<button class="btn bl mtl mbs {{ css_class2 }}" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
@@ -109,7 +106,7 @@ Latest commentary:
 			{% endif %}
 
 			<div class="mtl">
-				{% home_publicreply_bar link_pk=comment.l link_writer_pk=comment.w lang='None' sort_by='None' user_id=user.id replyform=replyform origin='cricket'%}
+				{% home_publicreply_bar link_pk=comment.l link_writer_pk=comment.w lang='None' sort_by='None' user_id=user.id replyform=replyform origin='cricket' sk=sk %}
 			</div>
  		
 			</div>

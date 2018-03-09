@@ -43,6 +43,7 @@
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" name="unique" value="{{ unique }}">
+        <input id="prv_grp_sk" type="hidden" name="sk" value="{{ sk }}">
        <span class="cm cg"><b>Photo:</b><br></span>{{ form.image }}<br>
         {% if on_fbs %}
         <div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>

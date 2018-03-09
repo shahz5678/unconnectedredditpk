@@ -81,8 +81,30 @@ body {
 			</script>
 		</div>
 	{% endif %}
-
+	
 	{% if forloop.counter == 3 %}
+		<div class="card" style="background-color:#FFFFDC; margin-bottom:14px; padding:7px;text-align:center">
+			<div style="display:inline-block;border:2px dashed #Fd0304;border-radius:10px;padding:5px;">
+				<div class="cxl" style="padding:5px;color:#2288B0;text-align:center">
+					<div style="font-weight:bold;color:#3A8685">QMobile ke latest sastey tareen smartphone ka suna hai?</div>
+				</div>
+				<div style="display: flex;flex-wrap:wrap;justify-content:center;align-items:center">
+					<div class="mrl mbs" style="text-align:center;max-width:100px">
+						<img src="{{ STATIC_URL }}img/x36.png" style="width:100%;max-width:80px;"><br>
+					</div>
+					<div style="text-align:left;">
+						<div class="cxl mbs" style="color:#3A8685">- 1 GB RAM</div>
+						<div class="cxl mbs" style="color:#3A8685">- 5MP Camera</div>
+						<div class="cxl mbs" style="color:#3A8685">- 8GB Storage</div>
+						<div class="cxl" style="color:#3A8685">- Quad Core</div>
+					</div>
+				</div>
+				<div style="padding:5px;text-align:center"><a href="{% url 'x36' %}" class="clw"><button style="height:30px;font-weight:bold;border:none;background-color:#Fd0304;" class="btn bcb bl cl mt">Konsa?</button></a></div>
+			</div>
+		</div>
+	{% endif %}
+
+	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
 			{% load get_cricket_summary %}
 			<div class="card" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
@@ -92,7 +114,7 @@ body {
 	{% endif %}
 
 
-	{% if forloop.counter == 6 %}
+	{% if forloop.counter == 9 %}
 		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>

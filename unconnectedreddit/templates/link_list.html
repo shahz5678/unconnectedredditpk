@@ -69,6 +69,18 @@ body {
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
 
+	{% if forloop.counter == 1 %}
+		<div style="text-align:center">
+			<ins class="adsbygoogle"
+			     style="display:block"
+			     data-ad-client="ca-pub-2568547635306983"
+			     data-ad-slot="4400307806"
+			     data-ad-format="auto"></ins>
+			<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>
+	{% endif %}
 
 	{% if forloop.counter == 3 %}
 		{% if enqueued_match %}
@@ -286,4 +298,5 @@ body {
 
 </div>
 <br><br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

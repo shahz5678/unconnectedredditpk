@@ -4571,17 +4571,66 @@ class UploadVideoView(FormView):
 
 ##################################################################
 
+def public_photo_upload_denied(request):
+	"""
+	Helper view for upload_public_photo
+	"""
+	which_msg = request.session.pop("public_photo_upload_denied",None)
+	if which_msg == '1':
+		return render(request,"dont_click_again_and_again.html",{'from_public_photos':True,'from_ecomm':False})
+	elif which_msg == '2':
+		return render(request,"score_photo.html",{})
+	elif which_msg in ('3','4'):
+		to_go = request.session.pop("public_photo_upload_denied_time_togo",None)
+		return render(request, 'forbidden_photo.html', {'time_remaining': to_go})
+	elif which_msg == '5':
+		to_go = request.session.pop("public_photo_upload_denied_time_togo",None)
+		return render(request, 'error_photo.html', {'time':to_go})
+	elif which_msg == '6':
+		return render(request,'big_photo_fbs.html',{'pk':'pk'})
+	elif which_msg == '7':
+		return render(request,'big_photo_regular.html',{'pk':'pk'})
+	elif which_msg == '8':
+		pk = request.session.pop("public_photo_upload_denied_photo_pk",None)
+		if pk:
+			try:
+				photo = Photo.objects.get(id=int(pk))
+				return render(request, 'duplicate_photo.html', {'photo': photo, 'females': FEMALES})
+			except Photo.DoesNotExist:
+				return render(request, 'big_photo.html', {'photo':'photo'})
+		else:
+			return redirect("missing_page")
+	elif which_msg == '9':
+		return render(request, 'big_photo.html', {'photo':'photo'})
+	else:
+		return redirect("missing_page")
+
+
 @csrf_protect
 def upload_public_photo(request,*args,**kwargs):
 	if request.method == 'POST':
 		user = request.user
+		is_ajax = request.is_ajax()
 		secret_key_from_form, secret_key_from_session = request.POST.get('sk','0'), get_and_delete_photo_upload_key(request.user.id)
-		if user.userprofile.score < 3:#
-			return render(request, 'score_photo.html', {'score': '3'})
+		if str(secret_key_from_form) != str(secret_key_from_session):
+			request.session["public_photo_upload_denied"] = '1'
+			request.session.modified = True
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+			else:
+				return redirect('public_photo_upload_denied')
+		elif user.userprofile.score < 3:#
+			request.session["public_photo_upload_denied"] = '2'
+			request.session.modified = True
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+			else:
+				return redirect('public_photo_upload_denied')
 		elif request.user_banned:
-			return render(request,'500.html',{})
-		elif str(secret_key_from_form) != str(secret_key_from_session):
-			return render(request,"dont_click_again_and_again.html",{'from_public_photos':True,'from_ecomm':False})
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('missing_page')}),content_type='application/json',)
+			else:
+				return redirect("missing_page")
 		else:
 			banned, time_remaining = check_photo_upload_ban(user.id)
 			if banned:
@@ -4589,7 +4638,13 @@ def upload_public_photo(request,*args,**kwargs):
 					to_go = time_remaining
 				else:
 					to_go = timezone.now()+timedelta(seconds=time_remaining)
-				return render(request, 'forbidden_photo.html', {'time_remaining': to_go})
+				request.session["public_photo_upload_denied_time_togo"] = to_go
+				request.session["public_photo_upload_denied"] = '3'
+				request.session.modified = True
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+				else:
+					return redirect('public_photo_upload_denied')
 			else:
 				number_of_photos = 0
 				photos = []
@@ -4602,54 +4657,76 @@ def upload_public_photo(request,*args,**kwargs):
 					number_of_photos += 1
 				forbidden, time_remaining = check_photo_abuse(number_of_photos, photos)
 				if forbidden:
-					return render(request, 'forbidden_photo.html', {'time_remaining': time_remaining})
+					request.session["public_photo_upload_denied_time_togo"] = time_remaining
+					request.session["public_photo_upload_denied"] = '4'
+					request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+					else:
+						return redirect('public_photo_upload_denied')			
 			time_now = timezone.now()
 			try:
 				difference = time_now - photos[0][1]
 				seconds = difference.total_seconds()
-				if seconds < 60:
-					context = {'time': round((60 - seconds),0)}
-					return render(request, 'error_photo.html', context)
-			except:
+				if seconds < 120:
+					request.session["public_photo_upload_denied_time_togo"] = int(120-seconds)
+					request.session["public_photo_upload_denied"] = '5'
+					request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+					else:
+						return redirect('public_photo_upload_denied')
+			except (TypeError, IndexError, AttributeError):
 				pass
 			form = UploadPhotoForm(request.POST,request.FILES)
 			if form.is_valid():
 				image_file = request.FILES['image_file']
 			else:
-				image_file = None
-				context = {}
-				context["score"] = request.user.userprofile.score
-				context["threshold"] = UPLOAD_PHOTO_REQ
-				context["form"] = form
-				secret_key = uuid.uuid4()
-				context["sk"] = secret_key
-				set_photo_upload_key(request.user.id, secret_key)
-				return render(request,"upload_public_photo.html",context)
+				request.session["public_photo_upload_form"] = form
+				request.session.modified = True
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('upload_public_photo')}),content_type='application/json',)
+				else:
+					return redirect("upload_public_photo")
 			if image_file:
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				if on_fbs:
 					if image_file.size > 200000:
-						return render(request,'big_photo_fbs.html',{'pk':'pk'})
-					else:
-						pass
+						request.session["public_photo_upload_denied"] = '6'
+						request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+						else:
+							return redirect('public_photo_upload_denied')
 				else:
 					if image_file.size > 10000000:
-						return render(request,'big_photo_regular.html',{'pk':'pk'})
-					else:
-						pass
-				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file)#, caption=request.POST.get('caption',None))
+						request.session["public_photo_upload_denied"] = '7'
+						request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+						else:
+							return redirect('public_photo_upload_denied')
+				reoriented = request.POST.get('reoriented',None)
+				resized = request.POST.get('resized',None)
+				image_file_new, avghash, pk = clean_image_file_with_hash(image=image_file, already_resized=resized, already_reoriented=reoriented)#, caption=request.POST.get('caption',None))
 				if isinstance(pk,float):
-					try:
-						photo = Photo.objects.get(id=int(pk))
-						return render(request, 'duplicate_photo.html', {'photo': photo, 'females': FEMALES})
-					except:
-						image_file = None
-				else:
-					if image_file_new:
-						image_file = image_file_new
+					request.session["public_photo_upload_denied"] = '8'
+					request.session["public_photo_upload_denied_photo_pk"] = pk
+					request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 					else:
-						image_file = None
-			if image_file:
+						return redirect('public_photo_upload_denied')
+				else:
+					image_file = image_file_new if image_file_new else None
+			if not image_file:
+				request.session["public_photo_upload_denied"] = '9'
+				request.session.modified = True
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+				else:
+					return redirect('public_photo_upload_denied')
+			else:
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -4662,8 +4739,8 @@ def upload_public_photo(request,*args,**kwargs):
 					device = '3'
 				invisible_score = set_rank()
 				caption = request.POST.get('caption',None)
-				photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, \
-					device=device, avg_hash=avghash, invisible_score=invisible_score)
+				photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, device=device, avg_hash=avghash, \
+					invisible_score=invisible_score)
 				photo_id = photo.id
 				user_id = user.id
 				time = photo.upload_time
@@ -4694,9 +4771,10 @@ def upload_public_photo(request,*args,**kwargs):
 				# log_pic_uploader_status(user_id, request.mobile_verified)
 				############################################
 				############################################
-				return redirect("photo")
-			else:
-				return render(request, 'big_photo.html', {'photo':'photo'})
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':True,'message':reverse('photo')}),content_type='application/json',)
+				else:
+					return redirect("photo")
 	else:
 		context = {}
 		banned, time_remaining = check_photo_upload_ban(request.user.id)
@@ -4715,7 +4793,8 @@ def upload_public_photo(request,*args,**kwargs):
 				context["forbidden"] = forbidden
 				context["time_remaining"] = time_remaining
 			else:
-				context["form"] = UploadPhotoForm()
+				bound_form = request.session.pop("public_photo_upload_form",None)
+				context["form"] = bound_form if bound_form else UploadPhotoForm()
 				secret_key = uuid.uuid4()
 				context["sk"] = secret_key
 				set_photo_upload_key(request.user.id, secret_key)

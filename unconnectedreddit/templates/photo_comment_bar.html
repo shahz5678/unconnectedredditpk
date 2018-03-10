@@ -1,11 +1,12 @@
 <form method="post" action="{% url 'photo_comment' pk=photo_id %}">
 {% csrf_token %}
+<input type="hidden" name="sk" value="{{ sk }}">
 <input type="hidden" name="lang" value="{{ lang }}">
 <input type="hidden" name="origin" value="{{ origin }}">
 <input type="hidden" name="sort_by" value="{{ sort_by }}">
 <input type="hidden" name="user_id" value="{{ user_id }}">
 <input type="hidden" name="popk" value="{{ photo_owner_id }}">
-{% if comment_form.photo_comment.errors %}<span class="cr">{{ comment_form.photo_comment.errors.0 }}</span><br>{% endif %}
+{% if comment_form.errors %}<span class="cr" style="width:91%; margin-left:3%">{{ comment_form.errors|show_error }}</span><br>{% endif %}
 <div class="box-with-button-right" style="position: absolute; width:93%; margin-left:3%; margin-right:3% ;border-radius:20px;background-color:transparent;box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);" >
 {{ comment_form.photo_comment }}
 <button class="btn bco bms mts" type="submit" style="border-top-right-radius:20px; border-bottom-right-radius:20px;">tabsra kro</button>

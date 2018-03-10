@@ -79,8 +79,25 @@ PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye chat mita diye janey ki waja se save nahi
 ###############################################################################################################
 # helps in setting TTL on rate limits set on abusive users. Each key defines 'level' of offense, values are ttl
 BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
-RATELIMIT_TTL = {'1':60*7,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
+RATELIMIT_TTL = {'0':60*2,'1':60*7,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
 SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
 FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
-LAZY_FLOODING_THRESHOLD = 7.5 # 7.5 seconds on avg between multiple sentences
+LAZY_FLOODING_THRESHOLD = 6 # 6 seconds on avg between multiple sentences
 SHORT_MESSAGES_ALWD = 4
+MERCH = { 
+'1': {'price':'4200' ,'discounted_price':'4200', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
+'2': {'price':'4500' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
+'3': {'price':'7800' ,'discounted_price':'7800', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'4': {'price':'6570' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
+'5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
+'6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
+'7': {'price':'7000','discounted_price':'6500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir 4G LT550'}, \
+'8': {'price':'9100','discounted_price':'7850', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
+'9': {'price':'8840','discounted_price':'8840', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Huawei Y3 3G 2017'}, \
+'10': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Energy X2'}, \
+'11': {'price':'14300','discounted_price':'14300', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung Grand Prime Plus'}, \
+'12': {'price':'18900','discounted_price':'18900', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung J5 Prime'}, \
+'13': {'price':'5500','discounted_price':'5500', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'QMobile Noir X36'}, \
+'14': {'price':'11300','discounted_price':'11300', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Huawei Ascend G700'}, \
+'15': {'price':'11800','discounted_price':'11800', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
+}#PHONE MODELS

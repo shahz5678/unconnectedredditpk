@@ -12,9 +12,11 @@ city_shops = "city_shops"
 latest_user_ip = "lip:"+str(user_id)
 logged_users = "logged_users"
 sorted_set = "online_users"
-my_server.set("pusk:"+user_id,secret_key) # photo_upload_secret_key
 user_ban = "ub:"+str(user_id)
 user_times = "user_times:"+str(user_id)
+
+pusk:<user_id>:<secret_key> # photo_upload_secret_key
+tisk:<user_id>:<obj_type>:<obj_id> # text input secret_key
 
 rlfh:<user_id> - rate limited from home (e.g. because of abusive reasons)
 rlfpg:<user_id> - rate limited from public group (e.g. because of spammy behavior)
@@ -163,6 +165,29 @@ def get_and_delete_photo_upload_key(user_id):
 	secret_key = my_server.get("pusk:"+user_id)
 	if secret_key:
 		my_server.delete("pusk:"+user_id)
+		return secret_key
+	else:
+		return '1'
+
+
+def set_text_input_key(user_id, obj_id, obj_type, secret_key):
+	"""
+	Used to prevent double form submission
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
+	my_server.setex(sec_key,secret_key,TWENTY_MINS)
+
+
+def get_and_delete_text_input_key(user_id, obj_id, obj_type):
+	"""
+	Checks if secret key exists and returns an appropriate response
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
+	secret_key = my_server.get(sec_key)
+	if secret_key:
+		my_server.delete(sec_key)
 		return secret_key
 	else:
 		return '1'
@@ -527,8 +552,81 @@ def rate_limit_user(user_id,section,level,ban_reason,my_server=None):
 		my_server.setex(rate_limit_key,ban_reason,TWENTY_MINS)
 		return False
 
+# 1) revert log_input_rate in tasks.py
+# 2) revert function definition of log_input_rate in redis4
+# 3) remove pipeline1.execute(key+":logger",text) from log_input_rate
+# 4) remove log_rate_limited_conversation() from log_input_rate
+# 5) remove function for log_rate_limited_conversation() in redis4
+# 6) remove function called report_rate_limited_conversation() in redis4
+# 7) remove logger url (and view import) from urls_maint.py
+# 8) remove reporting view (called rate_limit_logging_report) from end of maint_views
+# 9) remove the import for report_rate_limited_conversation() from maint_views
+# 10) remove get_section_string() from redis4
 
-def log_input_rate(section,user_id,time_now):
+def report_rate_limited_conversation():
+	"""
+	Extracts all rate limited conversations
+	"""
+	import csv,ast
+	my_server = redis.Redis(connection_pool=POOL)
+	super_ = my_server.lrange("rate_limited_convos:super",0,-1)
+	normal_ = my_server.lrange("rate_limited_convos:normal",0,-1)
+	lazy_ = my_server.lrange("rate_limited_convos:lazy",0,-1)
+	result = [(super_,'super_'),(normal_,'normal_'),(lazy_,'lazy_')]
+	for logs,log_type in result:
+		filename = 'ratelimited_convos_'+log_type+str(int(time.time()))+'.csv'
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = ["Type","Section","#","Conversation"]
+			wtr.writerow(columns) # writing the columns
+			num = 0
+			for payload in logs:
+				num += 1
+				payload = ast.literal_eval(payload)
+				which_section = payload[0]
+				for string in payload[1]:
+					type_=log_type
+					sec=which_section
+					conv_num=num
+					conversation=string
+					to_write = [type_,sec,conv_num,conversation]	
+					wtr.writerows([to_write])
+
+
+def get_section_string(key):
+	try:
+		string = key[:2]
+	except TypeError:
+		string = 'undef'
+	if string == 'hi':
+		return 'home_post'
+	elif string == 'pg':
+		return 'public_group'
+	elif string == 'pv':
+		return 'private_group'
+	elif string == 'pc':
+		return 'photo_comment'
+	elif string == 'hr':
+		return 'home_reply'
+	else:
+		return 'undefined'	
+
+def log_rate_limited_conversation(convo_key, severity):
+	"""
+	logger for rate limited conversation strings
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	which_section = get_section_string(convo_key)
+	if severity == 'super':
+		my_server.lpush("rate_limited_convos:super",[which_section,my_server.lrange(convo_key,0,-1)])
+	elif severity == 'normal':
+		my_server.lpush("rate_limited_convos:normal",[which_section,my_server.lrange(convo_key,0,-1)])
+	else:
+		my_server.lpush("rate_limited_convos:lazy",[which_section,my_server.lrange(convo_key,0,-1)])
+
+
+# def log_input_rate(section,user_id,time_now):
+def log_input_rate(section,user_id,time_now,text=None):
 	"""
 	Keeps check of writing rates to rate limit abusive users
 	"""
@@ -546,6 +644,10 @@ def log_input_rate(section,user_id,time_now):
 	pipeline1 = my_server.pipeline()
 	pipeline1.lpush(key,time_now)
 	pipeline1.expire(key,ONE_MIN)
+	#### remove ####
+	pipeline1.lpush(key+":logger",text)
+	pipeline1.expire(key+":logger",ONE_MIN)
+	#### remove ####
 	pipeline1.execute()
 	####################################
 	all_str_values = my_server.lrange(key,0,-1)
@@ -557,13 +659,18 @@ def log_input_rate(section,user_id,time_now):
 			sum_of_differences += t - s
 		avg_time_taken_between_sentences = abs(sum_of_differences)/(total_inputs-1)
 		if avg_time_taken_between_sentences < SUPER_FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='3',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
 			rate_limit_user(user_id=user_id,section=section,level='2',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-		elif avg_time_taken_between_sentences < LAZY_FLOODING_THRESHOLD:
+			log_rate_limited_conversation(key+":logger",'super')
+		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
 			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+			log_rate_limited_conversation(key+":logger",'normal')
+		elif avg_time_taken_between_sentences < LAZY_FLOODING_THRESHOLD:
+			rate_limit_user(user_id=user_id,section=section,level='0',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+			log_rate_limited_conversation(key+":logger",'lazy')
 		else:
 			my_server.ltrim(key,0,6)
+			#### remove ####
+			my_server.ltrim(key+":logger",0,6)
 
 def log_input_text(section, section_id,text,user_id):
 	"""

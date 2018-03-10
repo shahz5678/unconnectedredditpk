@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load s3 %}
 {% load human_time %}
+{% load show_error %}
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% load get_fan_button %}
@@ -91,7 +92,7 @@ body {
 	
 	{% mobile_verification_bar user.id csrf mobile_verified score %}
 
-	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False %}
+	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 
 	{% if score >= threshold and not banned %}
@@ -185,12 +186,11 @@ body {
 			</a></span>
 			</div>
 
-
 			{% if photo.comments %}
 				{% photo_comments_section photo.comments STATIC_URL ident '2' score %}
 			{% endif %}
 
-			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' %}</div>
+			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' sk %}</div>
 </div>
 	{% endif %}
 	{% empty %}

@@ -122,8 +122,8 @@ def clean_image_file(image,quality=None,already_reoriented=None, already_resized
 def clean_image_file_with_hash(image,quality=None,categ=None, caption=None, already_resized=None, already_reoriented=None):
     if image:
         image = Image.open(image)
-         # if float(image.height)/image.width > 7.0:
-         #    return None, 'too_high', 'too_high'
+        if categ != 'ecomm' and float(image.height)/image.width > 7.0:
+            return None, 'too_high', 'too_high'
         if not already_reoriented:
             image = reorient_image(image) #so that it appears the right side up
         avghash = compute_avg_hash(image) #to ensure a duplicate image hasn't been posted before

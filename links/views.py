@@ -4758,7 +4758,7 @@ def upload_public_photo(request,*args,**kwargs):
 				name = user.username
 				add_photo_entry(photo_id=photo_id,owner_id=user_id,image_url=photo.image_file.url,upload_time=epochtime,\
 					invisible_score=invisible_score,caption=caption,photo_owner_username=name,owner_av_url=owner_url,\
-					device=device)
+					device=device,from_fbs=on_fbs)
 				create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=user_id,\
 					object_owner_name=name,object_desc=caption,photourl=photo.image_file.url,vote_score=0,res_count=0)
 				# create_notification(viewer_id=user_id, object_id=photo_id, object_type='0',seen=True,updated_at=epochtime,\

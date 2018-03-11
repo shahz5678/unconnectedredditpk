@@ -176,8 +176,8 @@ button.shr_wapp:focus{
 			{% endif %}
 			</a></span>
 
-			{% if is_mob and user.username == 'chewinggum' %}
-			<a rel="nofollow" target="_blank" href="whatsapp://send?text={% url 'photo_detail' photo.i %}" data-link="whatsapp://send?text={% url 'photo_detail' photo.i %}" data-action="share/whatsapp/share">
+			{% if not is_mob and user.username == 'mhb11' %}
+			<a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-action="share/whatsapp/share">
 			<button class="btn qal bl shr_wapp mts mbs" style="height:34px"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
 			</a>
 			{% endif %}

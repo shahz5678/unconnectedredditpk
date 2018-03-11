@@ -169,7 +169,7 @@ body {
 			{% endif %}<br>
 			</span>
 			</div>
-			{% if photo.fbs == '1' %}<div class="cgy cxs sp">low quality (freebasics se charhai)</div>{% endif %}
+			{% if photo.fbs == '1' %}<div class="cgy cxs sp">uploaded via freebasics</div>{% endif %}
 			{% if can_vote and photo.i not in voted and photo.o != username %}
 				{% vote_buttons vote_type='photo_vote' pid=photo.i origin=2 oun=photo.o static_url=STATIC_URL %}
 			{% endif %}

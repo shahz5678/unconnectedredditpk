@@ -3,7 +3,9 @@
 {% block content %}
 <head><title>Unable to upload photo | Damadam.pk</title></head>
 <div class="margin">
-New photo <b style="color:#ff8000;">{{ time }}</b> seconds baad lagey gi<hr size=1 COLOR="#ff9933">
+New photo <b style="color:#ff8000;">{{ time }}</b> seconds baad lagey gi
+<div class="mtl mbl"><a href="{% url 'upload_public_photo' %}"><button class="btn bm bco">wapis</button></a></div>
+<hr size=1 COLOR="#ff9933">
 <h2>Photos lagane ke rules:</h2>
 1) Baar baar aik hi photo nahi lagain<br>
 2) Barhana (nude) photos nahi lagain<br>

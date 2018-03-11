@@ -776,11 +776,12 @@ def retrieve_photo_posts(photo_id_list):
 
 def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None,\
 	upload_time=None,invisible_score=None,caption=None,photo_owner_username=None,\
-	device=None):
+	device=None,from_fbs=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)
 	mapping = {'i':photo_id,'oi':owner_id,'oa':owner_av_url,'u':image_url,'t':upload_time,\
-	'in':invisible_score,'ca':caption,'o':photo_owner_username,'d':device,'vi':'0','vo':'0'}
+	'in':invisible_score,'ca':caption,'o':photo_owner_username,'d':device,'vi':'0','vo':'0',\
+	'fbs':'1' if from_fbs else '0'}
 	my_server.hmset(hash_name, mapping)
 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 

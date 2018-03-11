@@ -1,4 +1,6 @@
 {% load google_analytics %}
+{% load s3 %}
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -37,20 +39,16 @@
         <meta name="author" content="hb">
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 
+        <title>{{ photo.caption }} (photo uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title>
+		<meta property="og:title" content="Photo by {{ photo.owner }}">
+		<meta property="og:description" content="Damadam has the best funny photos, memes, Urdu poetry and gup shup with Pakistani girls and guys like you. Join now!">
+		<meta property="og:url" content="//damadam.pk/photo_detail/{{ photo.id }}">
+		<meta property="og:image" content="{{ photo.image_file|s3 }}">
+
         {% google_analytics %}
 
 </head>
 <body>
-
-{% load s3 %}
-<head>
-<title>{{ photo.caption }} (photo uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title>
-<meta property="og:title" content="Photo by {{ photo.owner }}">
-<meta property="og:description" content="Damadam has the best funny photos, memes, Urdu poetry and gup shup with Pakistani girls and guys like you. Join now!">
-<meta property="og:url" content="//damadam.pk/photo_detail/{{ photo.id }}">
-<meta property="og:image" content="{{ photo.image_file|s3 }}">
-</head>
-
 {% load count %}
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}

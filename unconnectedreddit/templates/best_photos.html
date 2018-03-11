@@ -185,6 +185,13 @@ body {
 			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.vi }}&nbsp;points</span></button>
 			{% endif %}
 			</a></span>
+
+			{% if is_mob %}
+			<a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-action="share/whatsapp/share">
+			<button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+			</a>
+			{% endif %}
+
 			</div>
 
 			{% if photo.comments %}

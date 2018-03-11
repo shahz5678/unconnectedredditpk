@@ -79,18 +79,17 @@
 {% if not absent %}
 	
 	{% if defender and from_cull_queue %}
-		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
+		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbs mtl"><b>wapis</b></button></a>
 
-		<h1 class="cl cb mbs"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b></h1>
+		<h1 class="cl cb mt mbs"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b></h1>
 
-		<br>
 		{% if photo.image_file %}
-		<img class="pht" src="{{ photo.image_file|s3 }}"></img>
+		<img class="pht" src="{{ photo.image_file|s3 }}" style="border-radius:12px"></img>
 		{% else %}
-		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px"></img>
 		{% endif %}
 		<br>
-		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22" style="border-radius:50%">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
 		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
@@ -133,7 +132,7 @@
 	{% endif %}
 
 		<br>
-		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner.username }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner.username }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
 
 
 	{% if can_vote and not own_photo and not voted %}

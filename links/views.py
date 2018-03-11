@@ -4478,6 +4478,8 @@ def best_photos_list(request,*args,**kwargs):
 			##########################################################################################################
 			context["lang"] = None
 			context["sort_by"] = None
+			if request.is_feature_phone or request.is_phone or request.is_mobile:
+				context["is_mob"] = True
 			if "comment_form" in request.session:
 				context["comment_form"] = request.session["comment_form"]
 				request.session.pop("comment_form", None)

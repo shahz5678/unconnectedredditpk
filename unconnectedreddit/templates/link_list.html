@@ -225,6 +225,13 @@ body {
 	    
 		{% endif %}
 
+		{% if is_mob %}
+	      <a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ link.pi }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ link.pi }}" data-action="share/whatsapp/share">
+	      <button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+	      </a>
+	      {% else %}
+	      <a href="{% url 'photo_share' link.pi 4 link.n %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px">share photo</button></a>
+	      {% endif %}
 
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
 			{% vote_buttons vote_type='photo_vote' lid=link.l pid=link.pi lang=lang sort_by=sort_by origin=3 static_url=STATIC_URL %}

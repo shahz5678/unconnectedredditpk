@@ -1,7 +1,5 @@
 
 {% load google_analytics %}
-<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"> -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -32,22 +30,24 @@
     <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
     <!-- ****** faviconit.com favicons ****** -->
         
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.32.1.css">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.32.2.css">
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Damadam has the best funny photos, memes, Urdu poetry and gup shup with Pakistani girls and guys like you. Join the fun now!">
-        <meta property="og:title" content="Damadam">
-        <meta property="og:description" content="Join for the best Pakistani memes, poetry and gup shup with girls and guys like you">
-        <meta property="og:image" content="{{ STATIC_URL }}img/favicon-192.png">
+        <meta name="description" content="Damadam is the place for gup shup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta property="og:site_name" content="Damadam.pk">
+        <meta property="og:title" content="Damadam.pk">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://damadam.pk/">
+        <meta property="og:image" content="https://s3.eu-central-1.amazonaws.com/damadam/photos/18e1bc11-a32b-44af-9ebb-ede48e68b079.jpg">
+        <meta property="og:image:width" content="234">
+        <meta property="og:image:height" content="300">
+        <meta property="og:description" content="Damadam is the place for gup shup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta property="fb:app_id" content="1758220174446684" />
         <meta name="author" content="hb">
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 
-
-        <meta name="_mg-domain-verification" content="442c9efaa44c99b08cf07a5c080e6cb5" />
-
         {% google_analytics %}
-
 
 <!-- start Mixpanel -->
 <!-- <script type="text/javascript">(function(e,a){if(!a.__SV){var b=window;try{var c,l,i,j=b.location,g=j.hash;c=function(a,b){return(l=a.match(RegExp(b+"=([^&]*)")))?l[1]:null};g&&c(g,"state")&&(i=JSON.parse(decodeURIComponent(c(g,"state"))),"mpeditor"===i.action&&(b.sessionStorage.setItem("_mpcehash",g),history.replaceState(i.desiredHash||"",e.title,j.pathname+j.search)))}catch(m){}var k,h;window.mixpanel=a;a._i=[];a.init=function(b,c,f){function e(b,a){var c=a.split(".");2==c.length&&(b=b[c[0]],a=c[1]);b[a]=function(){b.push([a].concat(Array.prototype.slice.call(arguments,
@@ -78,11 +78,8 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <div class="mbl"></div>
 {% block content %}
 {% endblock %}
-
-
-
-        {% block pagination %}
-        {% endblock %}
+{% block pagination %}
+{% endblock %}
 <ul class="navbar">
 {% if user.is_authenticated %}
 <li><a href="/">Home</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>

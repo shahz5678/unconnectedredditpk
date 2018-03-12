@@ -1,38 +1,95 @@
-{% extends "base_ecomm.html" %}
+{% load google_analytics %}
+{% load s3 %}
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+		<!-- has to be the first tag in head -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <!-- ****** faviconit.com favicons ****** -->
+    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
+    <link rel="icon" sizes="16x16 32x32 64x64" href="{{ STATIC_URL }}img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="196x196" href="{{ STATIC_URL }}img/favicon-192.png">
+    <link rel="icon" type="image/png" sizes="160x160" href="{{ STATIC_URL }}img/favicon-160.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ STATIC_URL }}img/favicon-96.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ STATIC_URL }}img/favicon-64.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ STATIC_URL }}img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ STATIC_URL }}img/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="{{ STATIC_URL }}img/favicon-57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}img/favicon-114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}img/favicon-72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ STATIC_URL }}img/favicon-144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="{{ STATIC_URL }}img/favicon-60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ STATIC_URL }}img/favicon-120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ STATIC_URL }}img/favicon-76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ STATIC_URL }}img/favicon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_URL }}img/favicon-180.png">
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+    <meta name="msapplication-TileImage" content="{{ STATIC_URL }}img/favicon-144.png">
+    <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
+    <!-- ****** faviconit.com favicons ****** -->
+        
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.32.2.css">
+       <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta name="author" content="hb">
+        <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
+
+        <title>{{ photo.caption }} (photo uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title>
+        <meta property="og:site_name" content="Damadam.pk">
+		<meta property="og:title" content="Photo by {{ photo.owner }}">
+		<meta property="og:type" content="website">
+		<meta property="og:description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+		<meta property="og:url" content="https://damadam.pk/photo_detail/{{ photo.id }}/">
+		<meta property="og:image" content="https:{{ photo.image_file|s3 }}">
+		<meta property="og:image:width" content="{{ photo.image_file.width }}">
+		<meta property="og:image:height" content="{{ photo.image_file.height }}">
+		<meta property="fb:app_id" content="1758220174446684" />
+        {% google_analytics %}
+
+</head>
+<body>
+{% load count %}
+{% load search_unlocked %}
+{% check_notif_count as notif_count %}
+{% khoji_unlocked as ku %}
+<div class="header cxl">Damadam pe gup shup aur fotos</div>
+<ul class="navbar">
+
+{% if user.is_authenticated %}
+    <!-- bunched HTML removes spaces between <li> elements -->
+    <li><a href="/">Home</a></li><li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li>{% if user.userprofile.score and user.userprofile.score > 40 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a></li>{% if ku %}<li><a href="{% url 'search_username' %}">Khoji</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% elif user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Tumhara Matka{% if notif_count > 0 %}<span style="color:blue ;">({{ notif_count }}){% endif %}</a></span>{% else %}{% endif %}<li><a href="{% url 'online_kon' %}#section0">Online</a></li>{% if user.userprofile.score and user.userprofile.score < 10 %}<li><a href="{% url 'help' %}#section0"><b>Damadam Help</b></a></li>{% elif user.userprofile.score and user.userprofile.score < 15 %}<li><a href="{% url 'help' %}#section0">Damadam Help</a></li>{% elif user.userprofile.score and user.userprofile.score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% else %}{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if user.userprofile.score > 0 %}<span style="color:green;font-size:90%;"> ({{ user.userprofile.score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li><li><a href="{% url 'ur_home' 'urdu' %}" style="margin-top:-6px;margin-bottom:-5px">اردو ﮨﻮم</a></li>
+
+{% else %}
+    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account Bnao</b></a></li><li><a href="{% url 'login' %}#section0">Purana Account Chlao</a></li>
+{% endif %}
+</ul>
+
 {% load emoticons_tags %}
 {% load humanize %}
 {% load get_voting %}
-{% load s3 %}
-{% block content %}
-<head><title>Photo titled {{ photo.caption }} (uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title></head>
-<div class="margin">
+
+<div class="margin mts">
+<a name="section0"></a>
+
 {% if not absent %}
 	
 	{% if defender and from_cull_queue %}
-		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
+		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbs mtl"><b>wapis</b></button></a>
 
-		<b class="cb"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
+		<h1 class="cl cb mt mbs"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b></h1>
 
-		{% if photo.device == '1' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif photo.device == '2' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif photo.device == '4' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif photo.device == '5' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif photo.device == '3' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
-		{% else %}
-		{% endif %}
-		<br>
 		{% if photo.image_file %}
-		<img class="pht" src="{{ photo.image_file|s3 }}"></img>
+		<img class="pht" src="{{ photo.image_file|s3 }}" style="border-radius:12px"></img>
 		{% else %}
-		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px"></img>
 		{% endif %}
 		<br>
-		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22" style="border-radius:50%">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
 		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
@@ -56,71 +113,83 @@
 		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 	{% else %}
 
-	<a href="{% url 'comment_pk' photo.id '5' %}" class="cl cb"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b>
-	<button class="btn nw bl mbs mts" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
-	{% if photo.comment_count > 1 %}
-	<b>{{ photo.comment_count }}</b> tabsrey
-	{% elif photo.comment_count == 1 %}
-	<b>1</b> tabsra
-	{% else %}
-	tabsra kro
-	{% endif %}</button></a>
+	<h1 class="cl cb mbs"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b></h1>
 
-		{% if photo.device == '1' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic"></img>
-		{% elif photo.device == '2' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic"></img>
-		{% elif photo.device == '4' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic"></img>
-		{% elif photo.device == '5' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic"></img>
-		{% elif photo.device == '3' %}
-		&nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic"></img>
+	{% if photo.vote_score < -2 %}
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px"></img>
+	{% elif photo.vote_score < -1 %}
+		{% if photo.image_file %}
+		<img class="pht bright" src="{{ photo.image_file|s3 }}" style="border-radius:12px"></img>
 		{% else %}
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px"></img>
 		{% endif %}
-	<br>
-
-			{% if photo.vote_score < -2 %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-			{% elif photo.vote_score < -1 %}
-				{% if photo.image_file %}
-				<img class="pht bright" src="{{ photo.image_file|s3 }}"></img>
-				{% else %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-				{% endif %}
-			{% else %}
-				{% if photo.image_file %}
-				<img class="pht" src="{{ photo.image_file|s3 }}"></img>
-				{% else %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
-				{% endif %}
-			{% endif %}
+	{% else %}
+		{% if photo.image_file %}
+		<img class="pht" src="{{ photo.image_file|s3 }}" style="border-radius:12px"></img>
+		{% else %}
+		<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px"></img>
+		{% endif %}
+	{% endif %}
 
 		<br>
-			<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22"></img>{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>{% endif %}&nbsp;<span class="cs cgy">{{ photo.owner.username }}</span></a><span class="cs cgy">&nbsp;ne charhai, {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner.username }}</span></a><span class="cs cgy sp">&nbsp;uploaded this, {{ photo.upload_time|naturaltime }}</span><br>
 
 
-				{% if can_vote and not own_photo and not voted %}
-					<div class="mts">
-					{% vote_buttons vote_type='photo_vote' pid=photo_id origin=5 oun=photo.owner.username oid=photo.owner_id static_url=STATIC_URL %}
-					</div>
-				{% endif %}
+	{% if can_vote and not own_photo and not voted %}
+		<div class="mts">
+		{% vote_buttons vote_type='photo_vote' pid=photo_id origin=5 oun=photo.owner.username oid=photo.owner_id static_url=STATIC_URL %}
+		</div>
+	{% endif %}
+
+	<a href="{% url 'comment_pk' photo.id '5' %}">
+	    <button class="btn nw mts mbs mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px;padding-left:10px;padding-right:10px">
+	    {% if photo.comment_count > 1 %}
+		<b>{{ photo.comment_count }}</b> tabsrey
+		{% elif photo.comment_count == 1 %}
+		<b>1</b> tabsra
+		{% else %}
+		tabsra karo
+		{% endif %}</button>
+	  </a>
 
 
-					<a href="{% url 'photo_izzat' photo_id 5 %}">
-					{% if photo.visible_score > 1 %}
-					<button class="btn nw bl mtl mbs" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
-					{% elif photo.visible_score == 1 %}
-					<button class="btn nw bl mtl mbs" style="color:#00C853;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;point</b></button><br>
-					{% else %}
-					<button class="btn nw bl mtl mbs" style="color:#F44336;background-color:#F8F8F8;border-color:#B8B8B8;"><b>{{ photo.visible_score }}&nbsp;&nbsp;points</b></button><br>
-					{% endif %}
-					</a>
+	  <a href="{% url 'photo_izzat' photo_id 5 %}">
+      {% if photo.visible_score > 1 %}
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
+      {% elif photo.visible_score == 1 %}
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">1&nbsp;point</span></button>
+      {% else %}
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
+      {% endif %}
+      </a>
 
-				<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bcp mts" style="width:12em;">photo share kro</button></a>
+      {% if is_mob %}
+      <a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-action="share/whatsapp/share">
+      <button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+      </a>
+      {% else %}
+	<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px">share photo</button></a>
+	{% endif %}
+
 	{% endif %}
 {% else %}
 <h2 class="clb">Photo mojood nahi</h2>
 {% endif %}
 </div><br><br>
-{% endblock %}
+
+<ul class="navbar">
+{% if user.is_authenticated %}
+<li><a href="/">Home</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+{% else %}
+<li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
+{% endif %}
+</ul>
+
+<div style="text-align:center" class="mtl sp cxs cgy">
+|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
+</div>
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+
+
+</body>
+</html>

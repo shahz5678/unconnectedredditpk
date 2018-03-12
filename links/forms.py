@@ -294,7 +294,9 @@ class PublicGroupReplyForm(forms.ModelForm):
 		data.get('image'), data.get('sk')
 		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'pub_grp')
 		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
-		if not text:
+		if secret_key_from_form != secret_key_from_session:
+			raise forms.ValidationError('tip: sirf aik dafa button dabain')
+		elif not text:
 			if image:
 				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
 				if rate_limited > 0:
@@ -305,8 +307,6 @@ class PublicGroupReplyForm(forms.ModelForm):
 					return data
 			else:
 				raise forms.ValidationError('tip: likhna zaruri hai')
-		elif secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		else:
 			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
 				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
@@ -335,7 +335,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 						if uni_str.isspace():
 							raise forms.ValidationError('tip: ziyada spaces daal di hain')
 						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likhein' % uni_str)
 					data["text"] = text
 					return data
 		
@@ -981,10 +981,10 @@ class UploadPhotoForm(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
 		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-		# self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
+		self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
-		self.fields["image_file"].widget.attrs['class'] = 'p'
-		# self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
+		# self.fields["image_file"].widget.attrs['class'] = 'p'
+		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):

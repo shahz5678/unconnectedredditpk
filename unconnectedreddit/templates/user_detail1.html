@@ -186,7 +186,7 @@ body {
       {% endif %}
 
       <a href="{% url 'comment_pk' photo.id 3 star_id %}">
-        <button class="btn nw bl mts mbs mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
+        <button class="btn nw mts mbs mrl sp" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px;padding-left:10px;padding-right:10px;">
         {% if photo.comment_count == 0 %}
         tabsra karo
         {% elif photo.comment_count == 1 %}
@@ -199,15 +199,22 @@ body {
 
       <a href="{% url 'photo_izzat' photo.id 3 slug %}">
       {% if photo.visible_score > 1 %}
-      <button class="btn nw bl mts mrl mbs" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> points</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
       {% elif photo.visible_score == 1 %}
-      <button class="btn nw bl mts mrl mbs" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> point</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">1&nbsp;point</span></button>
       {% else %}
-      <button class="btn nw bl mts mrl mbs" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> points</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
       {% endif %}
       </a>
 
-      <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">share photo</button></a>
+      {% if is_mob %}
+      <a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-action="share/whatsapp/share">
+      <button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+      </a>
+      {% else %}
+      <a href="{% url 'photo_share' photo.id 3 photo.owner.username %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px">share photo</button></a>
+      {% endif %}
+
 </div>                  
 {% empty %}
   {% if own_profile %}

@@ -169,21 +169,29 @@ body {
 			{% endif %}<br>
 			</span>
 			</div>
-			{% if photo.fbs == '1' %}<div class="cgy cxs sp">low quality (freebasics se charhai)</div>{% endif %}
+			{% if photo.fbs == '1' %}<div class="cgy cxs sp">uploaded via freebasics</div>{% endif %}
 			{% if can_vote and photo.i not in voted and photo.o != username %}
 				{% vote_buttons vote_type='photo_vote' pid=photo.i origin=2 oun=photo.o static_url=STATIC_URL %}
 			{% endif %}
 
 
-			<span itemprop="contentRating"><a href="{% url 'photo_izzat' photo.i 2 %}">
+			<span itemprop="contentRating">
+			<a href="{% url 'photo_izzat' photo.i 2 %}">
 			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">{{ photo.vi }}&nbsp;points</span></button>
 			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn nw bl mts mbs mrl" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;point</button>
+			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">1&nbsp;point</span></button>
 			{% else %}
-			<button class="btn nw bl mts mbs mrl" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px"><b>{{ photo.vi }}</b>&nbsp;points</button>
+			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.vi }}&nbsp;points</span></button>
 			{% endif %}
 			</a></span>
+
+			{% if is_mob %}
+			<a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-action="share/whatsapp/share">
+			<button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+			</a>
+			{% endif %}
+
 			</div>
 
 			{% if photo.comments %}

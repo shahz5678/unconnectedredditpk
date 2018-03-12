@@ -998,6 +998,8 @@ class PhotoDetailView(DetailView):
 		context["defender"] = False
 		context["from_cull_queue"] = False
 		context["latest_photocomments"] = None
+		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
+			context["is_mob"] = True
 		if self.request.user.is_authenticated():
 			if 'origin' in self.kwargs:
 				if self.kwargs['origin'] == '6':
@@ -1380,6 +1382,8 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
+		if request.is_feature_phone or request.is_phone or request.is_mobile:
+			context["is_mob"] = True
 		context["mobile_verified"] = request.mobile_verified
 		context["ident"] = user.id #own user id
 		context["username"] = user.username #own username
@@ -1885,6 +1889,8 @@ class UserProfilePhotosView(ListView):
 			context["time_remaining"] = time_remaining
 		else:
 			context["time_remaining"] = '-2'
+			if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
+				context["is_mob"] = True
 		###########
 		context["subject"] = subject
 		context["star_id"] = star_id
@@ -4288,6 +4294,8 @@ def photo_list(request,*args, **kwargs):
 			##########################################################################################################
 			context["lang"] = None
 			context["sort_by"] = None
+			if request.is_feature_phone or request.is_phone or request.is_mobile:
+				context["is_mob"] = True
 			if "comment_form" in request.session:
 				context["comment_form"] = request.session["comment_form"]
 				request.session.pop("comment_form", None)
@@ -4476,6 +4484,8 @@ def best_photos_list(request,*args,**kwargs):
 			##########################################################################################################
 			context["lang"] = None
 			context["sort_by"] = None
+			if request.is_feature_phone or request.is_phone or request.is_mobile:
+				context["is_mob"] = True
 			if "comment_form" in request.session:
 				context["comment_form"] = request.session["comment_form"]
 				request.session.pop("comment_form", None)

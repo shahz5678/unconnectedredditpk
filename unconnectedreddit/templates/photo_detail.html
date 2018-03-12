@@ -31,11 +31,11 @@
     <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
     <!-- ****** faviconit.com favicons ****** -->
         
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.32.1.css">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v1.33.css">
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Damadam is the place for gup shup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta name="description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
         <meta name="author" content="hb">
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 
@@ -43,7 +43,7 @@
         <meta property="og:site_name" content="Damadam.pk">
 		<meta property="og:title" content="Photo by {{ photo.owner }}">
 		<meta property="og:type" content="website">
-		<meta property="og:description" content="Damadam is the place for gup shup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+		<meta property="og:description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
 		<meta property="og:url" content="https://damadam.pk/photo_detail/{{ photo.id }}/">
 		<meta property="og:image" content="https:{{ photo.image_file|s3 }}">
 		<meta property="og:image:width" content="{{ photo.image_file.width }}">
@@ -142,7 +142,7 @@
 	{% endif %}
 
 	<a href="{% url 'comment_pk' photo.id '5' %}">
-	    <button class="btn nw bl mts mbs mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
+	    <button class="btn nw mts mbs mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px;padding-left:10px;padding-right:10px">
 	    {% if photo.comment_count > 1 %}
 		<b>{{ photo.comment_count }}</b> tabsrey
 		{% elif photo.comment_count == 1 %}
@@ -155,15 +155,21 @@
 
 	  <a href="{% url 'photo_izzat' photo_id 5 %}">
       {% if photo.visible_score > 1 %}
-      <button class="btn nw bl mts mrl mbs" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> points</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
       {% elif photo.visible_score == 1 %}
-      <button class="btn nw bl mts mrl mbs" style="color:#00C853;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> point</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">1&nbsp;point</span></button>
       {% else %}
-      <button class="btn nw bl mts mrl mbs" style="color:#F44336;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px"><b>{{ photo.visible_score }}</b> points</button>
+      <button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.visible_score }}&nbsp;points</span></button>
       {% endif %}
       </a>
 
-	<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">share photo</button></a>
+      {% if is_mob %}
+      <a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-action="share/whatsapp/share">
+      <button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+      </a>
+      {% else %}
+	<a href="{% url 'photo_share' photo.id 5 %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px">share photo</button></a>
+	{% endif %}
 
 	{% endif %}
 {% else %}

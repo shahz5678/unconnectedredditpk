@@ -40,13 +40,14 @@
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 
         <title>{{ photo.caption }} (photo uploaded by {{ photo.owner }} on {{ photo.upload_time }}) | Damadam.pk</title>
+        <meta property="og:site_name" content="Damadam.pk">
 		<meta property="og:title" content="Photo by {{ photo.owner }}">
 		<meta property="og:description" content="Damadam has the best funny photos, memes, Urdu poetry and gup shup with Pakistani girls and guys like you. Join now!">
-		<meta property="og:url" content="//damadam.pk/photo_detail/{{ photo.id }}">
-		<meta property="og:image" content="{{ photo.image_file|s3 }}">
+		<meta property="og:url" content="https://damadam.pk/photo_detail/{{ photo.id }}">
+		<meta property="og:image" content="https:{{ photo.image_file|s3 }}">
 		<meta property="og:image:width" content="{{ photo.image_file.width }}">
 		<meta property="og:image:height" content="{{ photo.image_file.height }}">
-
+		<meta property="fb:app_id" content="1758220174446684" />
         {% google_analytics %}
 
 </head>

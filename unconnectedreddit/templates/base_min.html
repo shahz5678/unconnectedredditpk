@@ -1,7 +1,5 @@
 
 {% load google_analytics %}
-<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"> -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -37,10 +35,16 @@
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Damadam has the best funny photos, memes, urdu poetry and gup shup with Pakistani girls and guys like you. Join the fun now!">
-        <meta property="og:title" content="Damadam">
-        <meta property="og:description" content="Join for the best Pakistani memes, poetry and gup shup with girls and guys like you">
-        <meta property="og:image" content="{{ STATIC_URL }}img/favicon-192.png">
+        <meta name="description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+         <meta property="og:site_name" content="Damadam.pk">
+        <meta property="og:title" content="Damadam.pk">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://damadam.pk/">
+        <meta property="og:image" content="https://s3.eu-central-1.amazonaws.com/damadam/photos/18e1bc11-a32b-44af-9ebb-ede48e68b079.jpg">
+        <meta property="og:image:width" content="234">
+        <meta property="og:image:height" content="300">
+        <meta property="og:description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta property="fb:app_id" content="1758220174446684" />
         <meta name="author" content="hb">
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 
@@ -61,14 +65,11 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script>
 <a name="section0"></a>
 {% block content %}
 {% endblock %}
-
-
-
-        {% block pagination %}
-        {% endblock %}
+{% block pagination %}
+{% endblock %}
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Photos</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'reauth' %}#section0">Password Badlo</a></li><li><a href="{% url 'logout_penalty' %}#section0">Bahir Niklo</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
+<li><a href="/">Home</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 {% else %}
 <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% endif %}

@@ -1885,6 +1885,8 @@ class UserProfilePhotosView(ListView):
 			context["time_remaining"] = time_remaining
 		else:
 			context["time_remaining"] = '-2'
+			if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
+				context["is_mob"] = True
 		###########
 		context["subject"] = subject
 		context["star_id"] = star_id

@@ -1194,6 +1194,36 @@ def print_referrer_logs(request):
 
 ####################################### x36 funnel ###############################
 
+
+
+@csrf_protect
+def mobile_shop(request,*args,**kwargs):
+	if request.method == 'POST':
+		user_id = request.user.id
+		#request.session.pop('mobile_verified',None)
+		#mobile_verified = request.mobile_verified
+		#request.session['mobile_verified']=mobile_verified
+		merch_id = request.POST.get('merch_id',None) #1 is x32, 2 is x2lite
+		request.session['merch_id'] = merch_id
+
+		request.session.modified = True
+		#loc = request.POST.get('loc',None)
+		#if loc == None or merch_id == None:
+		return redirect("buyer_details")#,{'merch_id':merch_id,"mobile_verified":mobile_verified})
+	else:
+		user_id=request.user.id
+		order_in_process = check_orders_processing(user_id)
+		user_score = 0
+		user_score = request.user.userprofile.score
+		score_diff = 5000-user_score
+		#mp.track(request.user.id, 'M_S_1 came to shop')
+		if user_score < 5000:
+			mp.track(request.user.id,'M_S_S Score not enough')
+		else:
+			mp.track(request.user.id,'M_S_S Score enough')
+		return render(request,"ecomm_choices.html",{'user_score':user_score,'score_diff':score_diff,'order_in_process':order_in_process})
+
+
 def x36_details(request,*args,**kwargs):
 	user_score = request.user.userprofile.score
 	score_diff = 5000-user_score
@@ -1266,14 +1296,18 @@ def faq(request,*args,**kwargs):
 
 @csrf_protect
 def buyer_details(request,origin,*args,**kwargs):
-	if origin == 'x36':
-		merch_id = request.session['merch_id']
+	merch_id = request.session.get('merch_id',None)
+	if merch_id == None:
+		return redirect("x36")
+	price = MERCH[merch_id]['price']
+	model = MERCH[merch_id]['name']
+	if origin == 'main' or origin == 'x36':		
 		form = BuyerForm()
-		mp.track(request.user.id, '6_M_S_4 On_Buyer_Detail')
-		return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request)})
-	else:
-		form = BuyerForm(request.POST)
 		merch_id = request.session['merch_id']
+		mp.track(request.user.id, '6_M_S_4 On_Buyer_Detail')
+		return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request),'price':price,'model':model})
+	else:
+		form = BuyerForm(request.POST,user_id=request.user.id)
 		if form.is_valid() and origin =='buy_det':
 			#form = BuyerForm(request.POST)
 			mp.track(request.user.id, '6_M_S_4.1 Correct_Buyer_Detail')
@@ -1314,7 +1348,10 @@ def buyer_details(request,origin,*args,**kwargs):
 				return render(request,"404.html",{})
 		else:
 			mp.track(request.user.id, '6_M_S_4.2 Incorrect_Buyer_Detail')
-			return render(request,'buyer_detail.html',{'form':form,'device':get_device(request)})
+			##########
+			# log_buyer_form_err(user_id, form["error"],time.time())
+			##########
+			return render(request,'buyer_detail.html',{'form':form,'merch_id':merch_id,'device':get_device(request),'price':price,'model':model})
 
 def generate_pin(request,phonenumber,target_username):
 	#generating pin based on username and phonenumber combo

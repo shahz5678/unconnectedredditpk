@@ -17,7 +17,6 @@
 <a href="{% url 'group_ranking' %}#section0" class="cs"><b>popular mehfilein</b></a>
 <br>
 {% for reply in object_list %}
-{% if user.username == 'mhb11' %}{{ reply }}{% endif %}
 
 	{% if reply.0.category == '1' %}
 

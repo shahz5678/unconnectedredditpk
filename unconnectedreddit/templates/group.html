@@ -18,7 +18,6 @@
 <br>
 {% for reply in object_list %}
 
-
 	{% if reply.0.category == '1' %}
 
 		{% if reply.0.which_group__private == '1' and reply.0.writer__username != user.username %}

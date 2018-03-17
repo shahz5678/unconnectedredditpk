@@ -19,6 +19,7 @@
     <br><br><br>
 {% else %}
         {% if mobile_verified %}
+            <div style="text-align:center">
             <ins class="adsbygoogle"
                 style="display:inline-block;width:320px;height:100px"
                 data-ad-client="ca-pub-2568547635306983"
@@ -26,6 +27,7 @@
             <script>
             (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
+            </div>
         {% else %}
             {% mobile_verification_bar user.id csrf mobile_verified score %}
         {% endif %}
@@ -113,6 +115,7 @@
         </div>
 
         {% if not mobile_verified %}
+            <div style="text-align:center">
             <ins class="adsbygoogle"
                 style="display:inline-block;width:320px;height:100px"
                 data-ad-client="ca-pub-2568547635306983"
@@ -120,6 +123,7 @@
             <script>
             (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
+            </div>
         {% endif %}
 
     <div class="sp mtl mbl">

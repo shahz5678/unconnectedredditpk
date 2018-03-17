@@ -13,12 +13,22 @@
     <div class="cxl cp mbs">Ap <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho!</div><div class="cp cl">Ab kisi <a href="{% url 'group_ranking' %}">aur mehfil</a> mein jain</div>
 
 {% elif switching %}
-    <span class="clb"><b>Ye mehfil ap se dar kr bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
+    <span class="clb"><b>Ye mehfil ap se dar ke bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
     Hum pakarne ki koshish kar rehay hain</span><br><br>
     <a href="{% url 'group_page' %}#section0"><button class="btn bm bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    {% mobile_verification_bar user.id csrf mobile_verified score %}
+        {% if mobile_verified %}
+            <ins class="adsbygoogle"
+                style="display:inline-block;width:320px;height:100px"
+                data-ad-client="ca-pub-2568547635306983"
+                data-ad-slot="9029992964"></ins>
+            <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        {% else %}
+            {% mobile_verification_bar user.id csrf mobile_verified score %}
+        {% endif %}
 
         <div style="overflow:hidden">
         <form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
@@ -72,7 +82,6 @@
         </div>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#ac39ac">
-    <br>
     <div id="pub_grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
     <div id="pub_grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
     <form action="{% url 'public_group_reply' %}" id="pub_grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
@@ -84,7 +93,7 @@
         </div>
         {% endif %}
         {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
-        <br>
+        
         <input id="pub_grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="uid" value="{{ unique }}">
         <button id="pub_grp_subform" name="gp" value="{{ group.id }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
@@ -96,12 +105,23 @@
         <div class="mts sp">
         <a href="{% url 'invite' %}#section0" class="cs cb"><b>invite</b></a>
         {% if user == group.owner %}<span class="cs ms">|</span>
-        <a href="{% url 'owner_group_online_kon' %}" class="cs cb"><b>afsar banao</b></a>
+        <a href="{% url 'owner_group_online_kon' %}" class="cs cb"><b>afsar</b></a>
         {% else %}
         <span class="cxs">|</span>
-        <a href="{% url 'group_online_kon' %}" class="cs cb"><b>online kon</b></a>
+        <a href="{% url 'group_online_kon' %}" class="cs cb"><b>online</b></a>
         {% endif %}
         </div>
+
+        {% if not mobile_verified %}
+            <ins class="adsbygoogle"
+                style="display:inline-block;width:320px;height:100px"
+                data-ad-client="ca-pub-2568547635306983"
+                data-ad-slot="9029992964"></ins>
+            <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        {% endif %}
+
     <div class="sp mtl mbl">
         {% if replies|length < 25 %}
             <span class="cp cs">{{ replies|length }} baatien:</span>
@@ -237,5 +257,6 @@
     {% endif %}
     </div>
     <br><br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.1.js"></script>
 {% endblock %}

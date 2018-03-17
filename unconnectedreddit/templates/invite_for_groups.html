@@ -8,7 +8,7 @@
 		{% if group.private == '1' %}
 		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</button></form>mein invite karein:<br>
 		{% else %}
-		<a href="{% url 'public_group' unique %}">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</a> mein invite karo:<br>
+		<div style="overflow:hidden"><a href="{% url 'public_group' unique %}">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</a> mein invite karein:</div>
 		{% endif %}
 	<br>
 	<span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>

@@ -71,14 +71,29 @@ Buyer Contact Details | Damadam.pk
 			<p class="cs">Step 1: Naam, Address aur Phone bataien / Enter Name,Address & Phonenumber</p>
 			<p class="cs clg">Step 2: Pin daal ker order ki tasdeeq kerien / Add pin and Confirm order</p>
 		</div>
-			
+		
+		<div  class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
+			<b class="cxl">Aap key order ki tafseel</b><br>
+			<div style="text-align:left;display:inline-block">
+				<div id="image" style="text-align:center; margin-top:10px;">
+	        		{% if merch_id == '13' %}
+	        		<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/x36.png" alt="QMobile x36">
+	      			{% elif merch_id == '11' %}
+	      			<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/sggpp.png" alt="Samsung Grand Prime +">
+	      			{% endif %}	
+	      		</div>
+				<div>
+					<b>Mobile Phone: </b> {{ model }}<span style="color:grey;font-size:11px;"> One Year Warranty</span><br>
+					<b >Qeemat: </b> {{ price }} <span style="color:grey;font-size:11px;">Ye Pasiay aap daak waley ko deien gay</span><br>
+					<b>Delivery:</b> Free <span style="color:grey;font-size:11px;">(4-7 din mein order aap ko wasool ho ga)</span><br>
+				</div>
+			</div>
+		</div>
+	
 		<div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
-			
-			<br><br><img style="width:100%;" src="{{ STATIC_URL }}img/m_qmobile.png"><br>
 			<h2 class="bw" style="color:#615a56">Apni malumat likhien:</h2>
 			<div style="text-align:left;display:inline-block">
-				
-
+					
 				<form method="post" action="{% url 'buyer_details' 'buy_det'%}" class="mtl" style="color:#615a56;">
 				{% csrf_token %}
 				<b>1. Apna poora naam likhien:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>

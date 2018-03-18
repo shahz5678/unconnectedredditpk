@@ -367,6 +367,21 @@ def del_careem_data():
 
 ##################################################Mobile_Shop
 
+
+def log_buyer_form_err(error_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	error_id = get_error_id()
+	key_name = "error_data:"+str(error_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,error_data)
+	#pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+def get_error_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("ms_error_id")
+
 def save_order_data(order_data):
 	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "order_data:"+str(order_data['user_id'])

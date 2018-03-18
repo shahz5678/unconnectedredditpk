@@ -1,6 +1,6 @@
 from django import forms
-from redis4 import get_temp_order_data
-import re
+from redis4 import get_temp_order_data, log_buyer_form_err
+import re, time
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.models import User
 from user_sessions.models import Session
@@ -79,6 +79,7 @@ class BuyerForm(forms.Form):
 		fields = ('username','address','phonenumber')
 
 	def __init__(self, *args, **kwargs):
+		self.user_id = kwargs.pop('user_id',None)
 		super(BuyerForm, self).__init__(*args, **kwargs)
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
@@ -98,25 +99,37 @@ class BuyerForm(forms.Form):
 	def clean_username(self):
 		username = self.cleaned_data.get('username')
 		if len(username) < 5:
+			error= {'user_id':self.user_id, 'err_msg':'username_too_small','data_entered':username,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: apna poora naam likhien)')
 		elif len(username) > 250:
+			error= {'user_id':self.user_id, 'err_msg':'username_too_big','data_entered':username,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota kerien)')
 		return username
 
 	def clean_address(self):
 		address = self.cleaned_data.get('address')
 		if len(address) < 10:
+			error= {'user_id':self.user_id, 'err_msg':'address_too_small','data_entered':address,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: apna poora address bataien jiss per daak bheji ja sakey)')
 		elif len(address) > 250:
+			error= {'user_id':self.user_id, 'err_msg':'address_too_big','data_entered':address,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karien)')
 		return address
 
 	def clean_phonenumber(self):
 		phonenumber = self.cleaned_data.get('phonenumber')
 		if phonenumber == '03451234567':
+			error= {'user_id':self.user_id, 'err_msg':'entered_sample_phonenumber','data_entered':phonenumber,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: Apna asli phonenumber dalien)')
 		mobile_length = len(phonenumber)
 		if mobile_length < 11:
+			error= {'user_id':self.user_id, 'err_msg':'phonenumber_too_small','data_entered':phonenumber,'time':time.time()}
+			log_buyer_form_err(error)
 			raise forms.ValidationError('Poora mobile number likhien')
 		phonenumber = ''.join(re.split('[, \-_!?:]+',phonenumber)) #removes any excess characters from the mobile number
 		return phonenumber[-11:]

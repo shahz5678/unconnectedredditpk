@@ -1,3 +1,4 @@
+<head><title>Home | Damadam.pk</title></head>
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
@@ -19,52 +20,19 @@
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
 {% block content %}
-<head><title>Home | Damadam.pk</title></head>
-<style>
-
-
-body {
-
-	background: #E8F5E9;
-
-   background: repeating-linear-gradient(
-  to right,
- #FAFAFA,
-  #FAFAFA 50px,
-  #E8F5E9 50px,
-  #E8F5E9 100px
-);
- }
-
-
-</style>
-
+<style>body{background: #F2F2F2}</style>
 <div class="margin">
-
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	{% newbie_rules 'home' STATIC_URL newbie_lang %}
 {% else %}
-	<!-- -->
 
-	<!-- -->
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 
 	{% mobile_verification_bar ident csrf mobile_verified score %}
 
 	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}	
 {% endif %}
-
-<p style="margin-top:.5em;">
-{% if is_paginated %}
-<span start="{{ page_obj.start_index }}">
-{% else %}
-<span>
-{% endif %}
-</span>
-</p>
-
-<!-- ################################################################################################# -->
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
@@ -104,7 +72,7 @@ body {
 				</div>
 			</div>
 		</div>
-		</div>
+		
 	{% endif %}
 
 	{% if forloop.counter == 6 %}
@@ -119,12 +87,12 @@ body {
 
 	{% if forloop.counter == 9 %}
 		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
-		<div class="mls">
-		<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
-		<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
-		<a href="{% url 'classified_listing' %}" itemprop="url"><button class="btn bcg bl cl mtl mbs" style="height:25px" itemprop="name">Start</button></a>
-		</div>
-		</div>
+			<div class="mls">
+				<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
+				<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
+				<a href="{% url 'classified_listing' %}" itemprop="url"><button class="btn bcg bl cl mtl mbs" style="height:25px" itemprop="name">Start</button></a>
+				</div>
+			</div>
 		</div>
 	{% endif %}
 
@@ -145,8 +113,9 @@ body {
 		{% endif %}
 	{% endif %}
 
-	{% if link.c == '2' %}
-		<div class="card" style="margin-bottom:16px; padding:0px;">
+{% if link.c == '2' %}
+	
+	<div class="card" style="margin-bottom:16px; padding:0px;">
 		{{ link.ch|safe }}
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{{ link.au|safe }}
@@ -154,81 +123,83 @@ body {
 		    
 		</a><span class="clb" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp" style="height:22px" itemprop="name">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" itemprop="url"><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		{{ link.ct|safe }}
-		</div>
-	{% elif link.c == '6' %}
+	</div>
+	
+{% elif link.c == '6' %}
+	
 	<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
-<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
-	<div class="mbs">
-		<a href="{% url 'profile' link.n %}#secton0" class="mrl" style="vertical-align:middle">
-		<span itemprop="author">{{ link.au|safe }}</span>
-		</a>
+	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
+	
+		
+	<a href="{% url 'profile' link.n %}#secton0" class="mrl" style="vertical-align:middle">
+	<span itemprop="author">{{ link.au|safe }}</span>
+	</a>
 
-		{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
-			{% if link.aw == '1' and link.h|add:"0" > 7 %}
-			
-				<span itemprop="discussionUrl"><a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}"></span>
-			{% else %}
-				<span itemprop="discussionUrl"><a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}"></span>
-			{% endif %}
-			<span itemprop="discussionUrl"><button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
-			<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a></span></span>
+	{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
+		<span itemprop="discussionUrl">
+		{% if link.aw == '1' and link.h|add:"0" > 7 %}
+		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+		{% else %}
+		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
 		{% endif %}
+		<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
+		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
+		</span>
+	{% endif %}
 
-		<a name="section{{ forloop.counter }}"></a>
+	<a name="section{{ forloop.counter }}"></a>
 
-		<div style="display:inline-block">
-		{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
-		</div>
-
-		<div style="display:inline-block">
-		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
-		</div><br>
+	<div style="display:inline-block">
+	{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
 	</div>
 
-			<div style="overflow:hidden"><b class="cl cb"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></b>
-			<span class="cs cgy mrs"><bdi>, <span itemprop="datePublished">{{ link.t|human_time }}</span></bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}</div>
+	<div style="display:inline-block">
+	{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
+	</div>
+	
+
+		<div style="overflow:hidden"><b class="cl cb"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></b>
+		<span class="cs cgy mrs"><bdi>, <span itemprop="datePublished">{{ link.t|human_time }}</span></bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}</div>
 
 
-		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
-		    <a href="{% url 'see_photo_pk' link.pi %}">
-		    {% if link.v|add:"0" < -2 %}
-		    	<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-		    {% elif link.v|add:"0" < -1 %}
-			    {% if link.i %}
-			    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
-			    {% else %}
-			    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-			    {% endif %}
+	    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
+	    <a href="{% url 'see_photo_pk' link.pi %}">
+	    {% if link.v|add:"0" < -2 %}
+	    	<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+	    {% elif link.v|add:"0" < -1 %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
 		    {% else %}
-			    {% if link.i %}
-			    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
-			    {% else %}
-			    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-			    {% endif %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% endif %}
-		    </a>
+	    {% else %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% endif %}
-		    
+	    {% endif %}
+	    </a>
+	    {% endif %}
+	    
 
 		{% if link.aw == '1' and link.h|add:"0" > 5 %}
-	    	{% if link.v|add:"0" < -2 %}
-		    	<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-		    {% elif link.v|add:"0" < -1 %}
-			    {% if link.i %}
-			    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" class="pht bright" style="border-radius:12px" alt="{{ link.de }}"></img>
-			    {% else %}
-			    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-			    {% endif %}
-			{% else %}
-			    {% if link.i %}
-			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img itemprop="image" class="pht" style="border-color:#D3D3D3;border-radius:12px" src="{{ link.i|s3 }}" alt="{{ link.de }}"></a>
-			    {% else %}
-			    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
-			    {% endif %}
-		    {% endif %}    
-	    	<br>
-	    
+		{% if link.v|add:"0" < -2 %}
+			<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		{% elif link.v|add:"0" < -1 %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" class="pht bright" style="border-radius:12px" alt="{{ link.de }}">
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		    {% endif %}
+		{% else %}
+		    {% if link.i %}
+		    <a href="{% url 'see_photo_pk' link.pi %}#section0">
+		    <img itemprop="image" class="pht" style="border-color:#D3D3D3;border-radius:12px" src="{{ link.i|s3 }}" alt="{{ link.de }}"></a>
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		    {% endif %}
+		{% endif %}    
 		{% endif %}
 
 
@@ -236,8 +207,9 @@ body {
 			{% vote_buttons vote_type='photo_vote' lid=link.l pid=link.pi lang=lang sort_by=sort_by origin=3 static_url=STATIC_URL %}
 		{% endif %}
 
+		<div class="mt">
 		{{ link.vt|safe }}
-
+		</div>
 		
 		{% if link.pi %}
 			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
@@ -246,29 +218,30 @@ body {
 		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l sk %}
 		
 	</div>
-</div>	
+	</div>	
 	
-	{% else %}
+{% else %}
+	
+	<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px">
 	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
-		<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
 		{{ link.ch|safe }}
-		<div style="overflow:hidden">
+			<div style="overflow:hidden">
 			<a href="{% url 'profile' slug=link.n %}#section0">
 				<span itemprop="image">{{ link.au|safe }}</span>
 				<bdi class="cl"><span itemprop="author">{{ link.n }}</span></bdi>
 				</a>
 			{% if score > 25 %}				
-				<span itemprop="contentRating">{{ link.sc|safe }}</span>
+				{{ link.sc|safe }}
 			{% endif %}
 
 			{{ link.p|safe }}:
 	    	<span class="cl clb bw"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></span>
 				<a name="section{{ forloop.counter  }}"></a>
-			<span class="cs cgy mrs"><bdi>,<span itemprop="datePublished">{{ link.t|human_time }}</span></bdi>
+			<span class="cs cgy mrs"><bdi>,<span itemprop="datePublished">{{ link.t|human_time }}</span></bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
 
-		</div>
+			</div>
 
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
 				<div class="mls mts">
@@ -277,9 +250,9 @@ body {
 			{% endif %}
 
 			{% if link.vt %}
-			<div class="mls mts">
-			{{ link.vt|safe }}
-			</div>
+				<div class="mls mts">
+				{{ link.vt|safe }}
+				</div>
 			{% endif %}
 			
 			{% if link.cc|add:"0" > 6 %}
@@ -306,17 +279,21 @@ body {
 			
 			{{ link.ct|safe }}
 	</div>		
-			
-	{% endif %}
+	</div>
+{% endif %}
+
 {% endwith %}
+
 {% empty %}
 	<span class="clb">Ao gup lagain!</span>
 	<p><hr size=1 COLOR="#BDBDBD"></p>
+
 {% endfor %}
 
-
-<br><div style="text-align: center;">
-<div itemscope itemtype="http://schema.org/SiteNavigationElement">
+</div>
+<br>
+	<div class="mbs" style="text-align: center;">
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement">
 		{% if page.has_previous %}
 	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
 	    {% endif %}
@@ -325,9 +302,7 @@ body {
 	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg" itemprop="url"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
-</div>
-
-</div>
-<br><br>
+	</div>
+<br>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

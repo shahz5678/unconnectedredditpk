@@ -99,7 +99,7 @@ body {
 						<div class="cxl" style="color:#3A8685">- Quad Core</div>
 					</div>
 				</div>
-				<div class="pagination" role="navigation" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
+				<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
 				<div style="padding:5px;text-align:center"><a href="{% url 'x36' %}" class="clw" itemprop="url"><button style="height:30px;font-weight:bold;border:none;background-color:#Fd0304;" class="btn bcb bl cl mt" itemprop="name">Konsa?</button></a></div>
 				</div>
 			</div>
@@ -121,7 +121,7 @@ body {
 		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
 		<div class="mls">
 		<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
-		<div class="pagination" role="navigation" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
+		<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
 		<a href="{% url 'classified_listing' %}" itemprop="url"><button class="btn bcg bl cl mtl mbs" style="height:25px" itemprop="name">Start</button></a>
 		</div>
 		</div>
@@ -152,7 +152,7 @@ body {
 		{{ link.au|safe }}
 		{{ link.n }} {{ link.p|safe }}
 		    
-		</a><span class="clb" class="pagination" role="navigation" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp" style="height:22px" itemprop="name">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" itemprop="url"><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="clb" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp" style="height:22px" itemprop="name">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" itemprop="url"><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		{{ link.ct|safe }}
 		</div>
 	{% elif link.c == '6' %}

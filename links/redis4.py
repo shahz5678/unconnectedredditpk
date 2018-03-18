@@ -155,16 +155,22 @@ def return_all_metrics_data():
 
 #######################Photo Secret Key######################
 
-def set_photo_upload_key(user_id, secret_key):
+def set_photo_upload_key(user_id, secret_key, group_id=None):
+	"""
+	Used to prevent double form submission when uploading photos (public photos or personal group photos)
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.setex("pusk:"+str(user_id),secret_key,ONE_HOUR)
+	sec_key = "pusk:"+str(user_id)+":"+group_id if group_id else "pusk:"+str(user_id)
+	my_server.setex(sec_key,secret_key,TWENTY_MINS)
 
-def get_and_delete_photo_upload_key(user_id):
+
+def get_and_delete_photo_upload_key(user_id, group_id=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
-	secret_key = my_server.get("pusk:"+user_id)
+	sec_key = "pusk:"+user_id+":"+group_id if group_id else "pusk:"+user_id
+	secret_key = my_server.get(sec_key)
 	if secret_key:
-		my_server.delete("pusk:"+user_id)
+		my_server.delete(sec_key)
 		return secret_key
 	else:
 		return '1'
@@ -366,6 +372,21 @@ def del_careem_data():
 
 
 ##################################################Mobile_Shop
+
+
+def log_buyer_form_err(error_data):
+	my_server = redis.Redis(connection_pool=POOL)
+	error_id = get_error_id()
+	key_name = "error_data:"+str(error_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(key_name,error_data)
+	#pipeline1.expire(key_name,TWELVE_HOURS)
+	pipeline1.execute()
+	return True
+
+def get_error_id():
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("ms_error_id")
 
 def save_order_data(order_data):
 	my_server = redis.Redis(connection_pool=POOL)

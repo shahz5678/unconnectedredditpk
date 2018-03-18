@@ -14,7 +14,19 @@
     <a href="{% url 'group_page' %}#section0"><button class="btn bs bcg mbs"><b>wapis</b></button></a>
     <br><br><br>
 {% else %}
-    {% mobile_verification_bar user.id csrf mobile_verified score %}
+    {% if mobile_verified %}
+        <div style="text-align:center">
+        <ins class="adsbygoogle"
+            style="display:inline-block;width:320px;height:100px"
+            data-ad-client="ca-pub-2568547635306983"
+            data-ad-slot="4784035315"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        </div>
+    {% else %}
+        {% mobile_verification_bar user.id csrf mobile_verified score %}
+    {% endif %}
     <div style="overflow:hidden" class="mbs">
     <form method="POST" class="mrs" action="{% url 'leave_private_group' %}" style="display:inline">
     {% csrf_token %}
@@ -40,6 +52,7 @@
     <a href="{% url 'invite_private_group' %}#section0"><button class="btn bm bcg cs mts" style="height:20px">invite</button></a>
     <a name="sectionJ"></a> 
     <hr size=1 COLOR="#2DB92D">
+
     <form action="{% url 'private_group_reply' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" name="unique" value="{{ unique }}">
@@ -50,14 +63,25 @@
         {% endif %}
         <div class="mtl">{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cg"><b>Likho:</b></span>{% endif %}</div>
         {{ form.text }}
-            <br>
     <button class="mts mbl btn bm bcg mrl" type="submit" name="gp" value="{{ group.id }}" style="height:23px">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         <button class="btn bms bco" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" type="submit">&nbsp;</button>
     </form>
-    
+
+    {% if not mobile_verified %}
+        <div style="text-align:center">
+        <ins class="adsbygoogle"
+            style="display:inline-block;width:320px;height:100px"
+            data-ad-client="ca-pub-2568547635306983"
+            data-ad-slot="4784035315"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        </div>
+    {% endif %}
+
     <a name="sectionJ"></a> 
     <div class="sp cg cs">
     {% if replies|length < 25 %}
@@ -232,4 +256,5 @@
 {% endif %}
 </div>
 <br><br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

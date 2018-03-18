@@ -283,18 +283,16 @@
 		{% endif %}
 	{% else %}
 		{% if is_home %}
-			<table>
-			<tr><td>
+			<div class="mbs sp lsp">
 			{% if random < 3 %}
-				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span>
 			{% else %}
 				{% if username == newest_user.username %}
-				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span>
 				{% else %}
-				<span class="ct cs sp"><b> {{ newest_user.username|truncatechars:30 }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bct cm" style="width:8.7em;"><b>mithai bhejein</b></button></a></span><hr size=1 COLOR="#3cb7dd">
+				<span class="ct cs sp"><b> {{ newest_user.username|truncatechars:30 }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bct cm" style="padding:1px 8px 1px 8px"><b>mithai bhejein</b></button></a></span>
 				{% endif %}
 			{% endif %}
-			</td></tr>
-			</table>
+			</div>
 		{% endif %}
 	{% endif %}

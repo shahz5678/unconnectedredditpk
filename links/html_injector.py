@@ -49,66 +49,87 @@ def category_formatting(categ):
 	if categ == '1':
 		#tyical home link
 		div_head = '<span></span>'
+		div_tail = ''
 	elif categ == '2':
 		#public mehfil creation announcement on home
 		div_head = '<div style="background-color:#F5E8ED;padding-top:1em;padding-bottom:1em" >'
+		div_tail = '</div>'
 	elif categ == '3':
 		#Karachi Kings
 		div_head = '<div class="mbs cs" style="background-color:#2857D0;color:#BFCDF3;padding:0.3em;border-radius:4px;letter-spacing: 1px">Karachi Kings fan</div>'
+		div_tail = ''
 	elif categ == '4':
 		#Peshawar Zalmi
 		div_head = '<div class="mbs cs" style="background-color:#FCEE0A;color:#979002;padding:0.3em;border-radius:4px;letter-spacing: 1px">Peshawar Zalmi fan</div>'
+		div_tail = ''
 	elif categ == '5':
 		#Lahore Qalandars
 		div_head = '<div class="mbs cs" style="background-color:#8AE44F;color:#366E11;padding:0.3em;border-radius:4px;letter-spacing: 1px">Lahore Qalandars fan</div>'
+		div_tail = ''
 	elif categ == '6':
 		#Photo sharing
 		div_head = '<span></span>'
+		div_tail = ''
 	elif categ == '7':
 		#Quetta Glads
 		div_head = '<div class="mbs cs" style="background-color:#54348A;color:#C6B5E3;padding:0.3em;border-radius:4px;letter-spacing: 1px">Quetta Gladiators fan</div>'
+		div_tail = ''
 	elif categ == '8':
 		#Islamabad United
 		div_head = '<div class="mbs cs" style="background-color:#EE3000;color:#FFD6CC;padding:0.3em;border-radius:4px;letter-spacing: 1px">Islamabad United fan</div>'
+		div_tail = ''
 	elif categ == '9':
 		#misc
 		div_head = '<div class="mbs cs" style="background-color:#40BEFC;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Cricket commentator</div>'
+		div_tail = ''
 	elif categ == '10':
 		#New Zealand
 		div_head = '<div class="mbs cs" style="background-color:#404040;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">New Zealand fan</div>'
+		div_tail = ''
 	elif categ == '11':
 		# South Africa
 		div_head = '<div class="mbs cs" style="background-color:#006663;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">South African fan</div>'
+		div_tail = ''
 	elif categ == '12':
 		# Pakistan
 		div_head = '<div class="mbs cs" style="background-color:#00C354;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Pakistan fan</div>'
+		div_tail = ''
 	elif categ == '13':
 		# West Indies
 		div_head = '<div class="mbs cs" style="background-color:#AE2D39;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">West Indies fan</div>'
+		div_tail = ''
 	elif categ == '14':
 		# India
 		div_head = '<div class="mbs cs" style="background-color:#1F92D6;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Indian fan</div>'
+		div_tail = ''
 	elif categ == '15':
 		# Sri Lanka
 		div_head = '<div class="mbs cs" style="background-color:#003366;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Sri Lankan fan</div>'
+		div_tail = ''
 	elif categ == '16':
 		# England
 		div_head = '<div class="mbs cs" style="background-color:#1C16C1;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">England fan</div>'
+		div_tail = ''
 	elif categ == '17':
 		# urdu home link
 		div_head = '<span></span>'
+		div_tail = ''
 	elif categ == '18':
 		# World-XI
 		div_head = '<div class="mbs cs" style="background-color:#5A00B2;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">World XI fan</div>'
+		div_tail = ''
 	elif categ == '19':
 		#Multan Sultans
 		div_head = '<div class="mbs cs" style="background-color:#525045;color:#D1CFC7;padding:0.3em;border-radius:4px;letter-spacing: 1px">Multan Sultans fan</div>'
+		div_tail = ''
 	elif categ == '20':
 		#Australia
 		div_head = '<div class="mbs cs" style="background-color:#FFFF4D;color:#808000;padding:0.3em;border-radius:4px;letter-spacing: 1px">Australian supporter</div>'
+		div_tail = ''
 	else:
 		div_head = '<span></span>'
-	return div_head, '</div>'
+		div_tail = ''
+	return div_head, div_tail
 
 
 def device_formatting(device):
@@ -175,7 +196,7 @@ def av_url_formatting(av_url, style=None, categ=None):
 				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22">'.format(url)
 	else:
 		if style == 'round':
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'
+			return '<img src="/static/img/default-avatar-min.jpg" alt="pic" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'
 		else:
 			if categ == '6':
 				return '<button class="mbs" alt="pic" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0">&nbsp;</button>'

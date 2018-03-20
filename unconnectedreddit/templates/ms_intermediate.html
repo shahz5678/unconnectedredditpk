@@ -67,7 +67,7 @@ body {
 		<div  class="mbl background-box" style="text-align:center;background-color:white;border-color:#efb99c;color:#615a56; border-radius:6px;padding:10px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;">
 			<b class="cxl">Aik option ka intekhab kerien</b><br>
 				<div style="text-align:center;padding:5px;font-size:15px; margin:10px; margin-bottom:2px; background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, .2)"><span style="color:white">
-					<form method="POST" action="{% url 'buyer_details' 'x36' %}" class="cm mtl">
+					<form method="POST" action="{% url 'buyer_details' 'main' %}" class="cm mtl">
 					{% csrf_token %}
 							Aap <b>{{model}}</b> khareedna chahte hein? <br>
 							<div style="text-align:center"><input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Order Kerien">

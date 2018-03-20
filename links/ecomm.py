@@ -1298,10 +1298,10 @@ def faq(request,*args,**kwargs):
 def buyer_details(request,origin,*args,**kwargs):
 	merch_id = request.session.get('merch_id',None)
 	if merch_id == None:
-		return redirect("x36")
+		return redirect("mobile_shop")
 	price = MERCH[merch_id]['price']
 	model = MERCH[merch_id]['name']
-	if origin == 'main' or origin == 'x36':		
+	if origin == 'main':		
 		form = BuyerForm()
 		merch_id = request.session['merch_id']
 		mp.track(request.user.id, '6_M_S_4 On_Buyer_Detail')
@@ -1434,7 +1434,7 @@ def confirm_order(request):
 			mp.track(request.user.id, '6_M_S_5 ENTER_PIN')
 			return render(request,"confirm_order.html",{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
 			# 'buy_possible':buy_possible,\
-			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
+			'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score,'merch_id':merch_id})
 		else:
 			mp.track(request.user.id, '6_M_S_E Error')
 			return render(request,"404.html",{})

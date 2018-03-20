@@ -76,7 +76,11 @@ body {
 		<b class="cxl">Aap key order ki tafseel</b><br>
 		<div style="text-align:left;display:inline-block">
 			<div id="image" style="text-align:center; margin-top:10px;">
-	        	<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/x36.png" alt="QMobile x36">
+				{% if merch_id == '13' %}
+        		<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/x36.png" alt="QMobile x36">
+      			{% elif merch_id == '11' %}
+      			<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/sggpp.png" alt="Samsung Grand Prime +">
+      			{% endif %}
 	      	</div>
 			<div>
 				<b>Mobile Phone: </b> {{ model }}<span style="color:grey;font-size:11px;"> One Year Warranty</span><br>

@@ -723,6 +723,7 @@ class UnseenActivityForm(forms.Form):
 	public_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
 	private_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
 	sk = forms.CharField(required=False)
+	origin = forms.CharField(required=False)
 
 	class Meta:
 		fields = ("home_comment", "photo_comment", "public_group_reply", "private_group_reply")
@@ -747,147 +748,132 @@ class UnseenActivityForm(forms.Form):
 		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
 
-	def clean_sk(self):
-		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,'1','home')
+
+	def clean(self):
+		data, user_id = self.cleaned_data, self.user_id
+		origin, secret_key_from_form = data.get("origin"), data.get("sk")
+		if origin == '0':
+			org = 'fresh_photos'
+		elif origin == '1':
+			org = 'home'
+		elif origin == '2':
+			org = 'best_photos'
+		else:
+			org = 'home'
+		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 		if secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		return secret_key_from_form
-
-	def clean_home_comment(self):
-		comment, user_id, link_id, section = self.cleaned_data.get("home_comment"), self.user_id, self.link_id, 'home_rep'
-		comment = comment.strip() if comment else None
-		if not comment:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		elif link_id and repetition_found(section=section,section_id=link_id,user_id=user_id, target_text=comment):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		home_reply_empty = comment == '|'
-		if home_reply_empty:
-			return comment
 		else:
-			rate_limited, reason = is_limited(user_id,section='home_rep',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+			link_id, photo_id, pub_grp_id, prv_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id
+			if link_id:
+				section, payload, obj_id = 'home_rep', data.get("home_comment"), link_id
+				payload = payload.strip() if payload else None
+				if not payload:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					len_payload = len(payload)
+					if len_payload < 6:
+						if many_short_messages(user_id,section,obj_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,obj_id)
+					elif len_payload > 250:
+						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+					uni_str = uniform_string(payload)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					return data
+			elif photo_id:
+				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
+				payload = payload.strip() if payload else None
+				if not payload:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap photo pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					len_payload = len(payload)
+					if len_payload < 6:
+						if many_short_messages(user_id,section,obj_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,obj_id)
+					elif len_payload > 250:
+						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+					uni_str = uniform_string(payload)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					return data
+			elif pub_grp_id:
+				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
+				payload = payload.strip() if payload else None
+				if not payload:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+					raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					len_payload = len(payload)
+					if len_payload < 6:
+						if many_short_messages(user_id,section,obj_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,obj_id)
+					elif len_payload > 500:
+						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+					uni_str = uniform_string(payload)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					return data
+			elif prv_grp_id:
+				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
+				payload = payload.strip() if payload else None
+				if not payload:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					len_payload = len(payload)
+					if len_payload < 6:
+						if many_short_messages(user_id,section,obj_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,obj_id)
+					elif len_payload > 500:
+						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+					uni_str = uniform_string(payload)
+					if uni_str:
+						if uni_str.isspace():
+							raise forms.ValidationError('tip: ziyada spaces daal di hain')
+						else:
+							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					return data
 			else:
-				len_comm = len(comment)
-				# if len_comm < 2:
-				# 	raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				if len_comm < 6:
-					if many_short_messages(user_id,section,link_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,link_id)
-				elif len_comm > 250:
-					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				# comment = clear_zalgo_text(comment)
-				uni_str = uniform_string(comment)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return comment
+				pass
+			return data
 
-	def clean_photo_comment(self):
-		comment, user_id, photo_id, section = self.cleaned_data.get("photo_comment"), self.user_id, self.photo_id, 'pht_comm'
-		comment = comment.strip() if comment else None
-		if not comment:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		elif photo_id and repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		photo_comment_empty = comment == '|'
-		if photo_comment_empty:
-			return comment
-		else:
-			rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap photo pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-			else:
-				comm_len = len(comment)
-				# if comm_len < 2:
-				# 	raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				if comm_len < 6:
-					if many_short_messages(user_id,section,photo_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,photo_id)
-				elif comm_len > 250:
-					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				# comment = clear_zalgo_text(comment)
-				uni_str = uniform_string(comment)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return comment
 
-	def clean_public_group_reply(self):
-		group_reply, user_id, section_id, section = self.cleaned_data.get("public_group_reply"), self.user_id, self.pub_grp_id, 'pub_grp'
-		group_reply = group_reply.strip() if group_reply else None
-		if not group_reply:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		elif section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		group_reply_empty = group_reply == '|'
-		if group_reply_empty:
-			return group_reply
-		else:
-			rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-			else:
-				gr_len = len(group_reply)
-				# if gr_len < 2:
-				# 	raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				if gr_len < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,section_id)
-				elif gr_len > 500:
-					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				# group_reply = clear_zalgo_text(group_reply)
-				uni_str = uniform_string(group_reply)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return group_reply
-
-	def clean_private_group_reply(self):
-		group_reply, user_id, section_id, section = self.cleaned_data.get("private_group_reply"), self.user_id, self.prv_grp_id, 'prv_grp'
-		group_reply = group_reply.strip() if group_reply else None
-		if not group_reply:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		elif section_id and repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=group_reply):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		group_reply_empty = group_reply == '|'
-		if group_reply_empty:
-			return group_reply
-		else:
-			rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-			else:
-				gr_len = len(group_reply)
-				# if gr_len < 2:
-				# 	raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
-				if gr_len < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,section_id)
-				elif gr_len > 500:
-					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-				# group_reply = clear_zalgo_text(group_reply)
-				uni_str = uniform_string(group_reply)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return group_reply
 
 class PhotoTimeForm(forms.Form):
 	class Meta:

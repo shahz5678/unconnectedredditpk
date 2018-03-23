@@ -31,12 +31,12 @@ def repetition_found(section,section_id,user_id, target_text):
 		return False
 
 
-# def uniform_string(text,n=8):
-# 	text = text.lower()
-# 	for i, c in enumerate(text):
-# 		if text[i:i+n] == c * n:
-# 			return text[i:i+n]
-# 	return False
+def uniform_string(text,n=8):
+	text = text.lower()
+	for i, c in enumerate(text):
+		if text[i:i+n] == c * n:
+			return text[i:i+n]
+	return False
 
 def getip(request):
 	ip = request.META.get('X-IORG-FBS-UIP',

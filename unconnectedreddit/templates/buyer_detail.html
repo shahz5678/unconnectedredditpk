@@ -90,11 +90,13 @@ Buyer Contact Details | Damadam.pk
 			</div>
 		</div>
 	
-		<div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
-			<h2 class="bw" style="color:#615a56">Apni malumat likhien:</h2>
-			<div style="text-align:left;display:inline-block">
 					
 			<form method="post" action="{% url 'buyer_details' 'buy_det'%}" class="mtl" style="color:#615a56;">
+
+		<div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset">
+			<h2 class="bw" style="color:#615a56">Apni malumat likhien:</h2>
+			<div style="text-align:left;display:inline-block">
+
 			{% csrf_token %}
 			<b>1. Apna poora naam likhien:</b><br><b class='cs cgy'>misaal: 'Shakeel Abbas'</b>
 			<br>{% if form.username.errors %}<span class="cr">{{ form.username.errors.0 }}</span><br>{% endif %}
@@ -107,10 +109,11 @@ Buyer Contact Details | Damadam.pk
 			<b>3. Apna number likhien jo abhi on hai aur aap ke pass hai<br>(misaal: 03451234567):</b><br><b class='cs cgy'>Ap ko abhi iss number per 4 hinsoon ka PIN CODE bheja jaiey ga</b><br>
 			{% if form.phonenumber.errors %}<span class="cr mtl">{{ form.phonenumber.errors.0 }}</span><br>{% endif %}
 			{{ form.phonenumber }}
+			</div><br>
 			<input class="btn mtl mbs bxl cl" style="background-color:05f6cb;border-color:#1fbea1;" type="submit" value="Aagay Chalien">
 			</form><br>
 
-			</div><br>
+			
 			
 			
 			<a style="text-align:center" href="{% url 'intermediate' 'main'%}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>

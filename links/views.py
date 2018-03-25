@@ -122,7 +122,9 @@ def set_rank():
 	return invisible_score
 
 def get_page_obj(page_num,obj_list,items_per_page):
-	# pass list of objects and number of objects to show per page, it does the rest
+	"""
+	Pass list of objects and number of objects to show per page, it does the rest
+	"""
 	paginator = Paginator(obj_list, items_per_page)
 	try:
 		return paginator.page(page_num)
@@ -6812,7 +6814,7 @@ def kick_pk(request, *args, **kwargs):
 			else:
 				try:
 					group = Group.objects.get(unique=slug)
-				except:
+				except Group.DoesNotExist:
 					return redirect("group_page")
 				if group.private == '0':
 					if group.owner != request.user:
@@ -6821,6 +6823,11 @@ def kick_pk(request, *args, **kwargs):
 						return redirect("public_group", slug=slug)
 					else:
 						group_id = group.id
+						culprit_username = User.objects.filter(id=writer_id).values_list('username',flat=True)[0]
+						is_member = check_group_member(group_id, culprit_username)
+						recently_online_ids = get_attendance(group_id)
+						if not is_member and writer_id not in recently_online_ids:
+							return redirect("public_group", slug=slug)	
 						if GroupBanList.objects.filter(which_user_id=writer_id, which_group_id=group_id).exists():# already kicked and banned
 							return redirect("public_group", slug=slug)
 						else:
@@ -6829,12 +6836,11 @@ def kick_pk(request, *args, **kwargs):
 								GroupCaptain.objects.get(which_user_id=writer_id, which_group_id=group_id).delete()
 							except:
 								pass
-							UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-50) #punish the hacker
-							culprit_username = User.objects.filter(id=writer_id).values_list('username',flat=True)[0]
-							if check_group_member(group_id, culprit_username):
+							if is_member:
 								remove_group_member(group_id, culprit_username)
 								remove_group_notification(writer_id,group_id)
 								remove_user_group(writer_id, group_id)
+								UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-50) #punish the kickee
 							elif check_group_invite(writer_id, group_id):
 								remove_group_invite(writer_id, group_id)
 							reply = Reply.objects.create(text=culprit_username, which_group_id=group_id, writer=request.user, category='2')
@@ -8436,6 +8442,30 @@ def show_advertisers(request,*args,**kwargs):
 			list_of_advertisers.append(ast.literal_eval(elem))
 		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
 			'num':len(list_of_advertisers)})
+
+# Report run on 15/3/2018
+#             relation             | total_size 
+# ---------------------------------+------------
+#  public.links_reply              | 14 GB
+#  public.links_publicreply        | 8396 MB
+#  public.links_photocomment       | 7377 MB
+#  public.user_sessions_session    | 6689 MB
+#  public.links_link               | 3769 MB
+#  public.links_photo              | 1882 MB
+#  public.links_photo_which_stream | 429 MB
+#  public.links_photostream        | 408 MB
+#  public.auth_user                | 294 MB
+#  public.links_userprofile        | 239 MB
+#  public.links_userfan            | 214 MB
+#  public.links_salatinvite        | 152 MB
+#  public.links_hotuser            | 43 MB
+#  public.links_group              | 42 MB
+#  public.links_totalfanandphotos  | 38 MB
+#  public.links_salat              | 28 MB
+#  public.links_tutorialflag       | 13 MB
+#  public.links_cooldown           | 10112 kB
+#  public.links_latestsalat        | 6208 kB
+#  public.links_groupcaptain       | 6072 kB
 
 
 # Report run on 18/3/2017

@@ -2386,25 +2386,29 @@ class DirectMessageCreateView(FormView):
 
 	def form_valid(self, form):
 		if self.request.method == 'POST':
-			self.request.user.userprofile.score = self.request.user.userprofile.score - 500
 			pk = self.kwargs["pk"]
 			user = User.objects.get(id=pk)
-			invitee = user.username
-			topic = invitee+" se gupshup"
-			unique = uuid.uuid4()
-			try:
-				group = Group.objects.create(topic=topic, rules='', owner=self.request.user, private ='1', unique=unique)
-				self.request.user.userprofile.save()
-				reply_list=[]
-				seen_list=[]
-				reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=self.request.user)
-				add_group_member(group.id, self.request.user.username)
-				add_group_invite(pk, group.id,reply.id)
-				add_user_group(self.request.user.id, group.id)
-				self.request.session["unique_id"] = unique
-				return redirect("private_group_reply")#, slug=unique)
-			except:
-				return redirect("profile", slug=invitee)
+			user_score = self.request.user.userprofile.score
+			if user_score > 500:
+				self.request.user.userprofile.score = self.request.user.userprofile.score - 500
+				invitee = user.username
+				topic = invitee+" se gupshup"
+				unique = uuid.uuid4()
+				try:
+					group = Group.objects.create(topic=topic, rules='', owner=self.request.user, private ='1', unique=unique)
+					self.request.user.userprofile.save()
+					reply_list=[]
+					seen_list=[]
+					reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=self.request.user)
+					add_group_member(group.id, self.request.user.username)
+					add_group_invite(pk, group.id,reply.id)
+					add_user_group(self.request.user.id, group.id)
+					self.request.session["unique_id"] = unique
+					return redirect("private_group_reply")#, slug=unique)
+				except:
+					return redirect("profile", slug=invitee)
+			else:
+				return redirect("profile",slug=user.username)
 
 class ClosedGroupCreateView(CreateView):
 	model = Group

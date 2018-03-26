@@ -21,6 +21,8 @@ class ResetForgettersPasswordForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_password(self):
 		password = self.cleaned_data["password"]
@@ -64,11 +66,15 @@ class SignInForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		# self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		# self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
 
 	def clean(self):
 		username = self.cleaned_data.get('username')
@@ -170,6 +176,8 @@ class CreatePasswordForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_username(self):
 		return self.cleaned_data.get("username")
@@ -282,6 +290,8 @@ class CreateNickNewForm(forms.Form):
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_username(self):
 		"""

@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.middleware import csrf
 from tasks import registration_task
 from redis1 import account_creation_disallowed
-from redis3 import insert_nick
+from redis3 import insert_nick, temporarily_save_user_csrf
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
@@ -48,12 +48,18 @@ def create_dummy_user(request):
 
 ######################################################################################
 
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def logout_then_login(request):
 	if request.method == "POST":
-		logout(request)
-		return redirect("login")
+		if request.mobile_verified:
+			logout(request)
+			return redirect("login")
+		else:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(request.user.id), CSRF)
+			return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
 	else:
 		return redirect("home")
 

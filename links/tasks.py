@@ -514,8 +514,8 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 	Keeps check of writing rates to rate limit abusive users
 	"""
 	log_input_text(section, section_id,text,user_id)
-	log_input_rate(section,user_id,time_now,text)
-	# log_input_rate(section,user_id,time_now)
+	# log_input_rate(section,user_id,time_now,text)
+	log_input_rate(section,user_id,time_now)
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():

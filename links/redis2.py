@@ -69,6 +69,12 @@ def retrieve_object_data(obj_id,obj_type):
 	obj_name = "o:"+obj_type+":"+str(obj_id)
 	return my_server.hgetall(obj_name)
 
+
+def log_single_notif_error(notif_name, notification, sorted_set, my_server):
+	list_ = notif_name+":"+str(notification)+":"+sorted_set+":"+str(time.time())
+	my_server.lpush("single_notif_error",list_)
+
+
 # populates the single notification on the screen
 def retrieve_latest_notification(viewer_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -76,7 +82,11 @@ def retrieve_latest_notification(viewer_id):
 	notif = my_server.zrange(sorted_set,-1,-1)
 	if notif:
 		notification = my_server.hgetall(notif[0])
-		parent_object = my_server.hgetall(notification['c'])
+		try:
+			parent_object = my_server.hgetall(notification['c'])
+		except KeyError:
+			log_single_notif_error(notif[0],notification, sorted_set, my_server)
+			return None, None, None
 		combined = dict(notification,**parent_object)
 		return notif[0],notification['c'],combined
 	else:

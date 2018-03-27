@@ -207,12 +207,12 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 				elif desc_len > 500:
 					raise forms.ValidationError('tip: itna barri baat nahi likh sakte')
 				# description = clear_zalgo_text(description)
-				uni_str = uniform_string(description)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				# uni_str = uniform_string(description)
+				# if uni_str:
+				# 	if uni_str.isspace():
+				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				# 	else:
+				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 
@@ -258,12 +258,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				elif len_ > 500:
 					raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 				# description = clear_zalgo_text(description)
-				uni_str = uniform_string(description)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
+				# uni_str = uniform_string(description)
+				# if uni_str:
+				# 	if uni_str.isspace():
+				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				# 	else:
+				# 		raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
 				log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
 				return data
 
@@ -330,12 +330,12 @@ class PublicGroupReplyForm(forms.ModelForm):
 					if not self.is_mob_verified:
 						raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
 					# text = clear_zalgo_text(text)
-					uni_str = uniform_string(text)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likhein' % uni_str)
+					# uni_str = uniform_string(text)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likhein' % uni_str)
 					data["text"] = text
 					return data
 		
@@ -403,12 +403,12 @@ class PrivateGroupReplyForm(forms.ModelForm):
 					elif text_len > 500:
 						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 					# text = clear_zalgo_text(text)
-					uni_str = uniform_string(text)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					# uni_str = uniform_string(text)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					data["text"] = text
 					return data
 
@@ -464,12 +464,12 @@ class CommentForm(forms.ModelForm):
 				elif text_len > 250:
 					raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
 				# text = clear_zalgo_text(text)
-				uni_str = uniform_string(text)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				# uni_str = uniform_string(text)
+				# if uni_str:
+				# 	if uni_str.isspace():
+				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				# 	else:
+				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 class VideoCommentForm(forms.ModelForm):
@@ -524,12 +524,12 @@ class PublicreplyForm(forms.ModelForm):
 				elif desc_len > 250:
 					raise forms.ValidationError('tip: inta bara jawab nahi likh sakte')
 				# description = clear_zalgo_text(description)
-				uni_str = uniform_string(description)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				# uni_str = uniform_string(description)
+				# if uni_str:
+				# 	if uni_str.isspace():
+				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				# 	else:
+				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return description
 
 
@@ -708,12 +708,12 @@ class PhotoCommentForm(forms.Form):
 				elif comm_len > 250:
 					raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
 				# comment = clear_zalgo_text(comment)
-				uni_str = uniform_string(comment)
-				if uni_str:
-					if uni_str.isspace():
-						raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					else:
-						raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				# uni_str = uniform_string(comment)
+				# if uni_str:
+				# 	if uni_str.isspace():
+				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				# 	else:
+				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 
@@ -784,12 +784,12 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					uni_str = uniform_string(payload)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					# uni_str = uniform_string(payload)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif photo_id:
 				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
@@ -810,12 +810,12 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					uni_str = uniform_string(payload)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					# uni_str = uniform_string(payload)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif pub_grp_id:
 				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
@@ -836,12 +836,12 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 500:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					uni_str = uniform_string(payload)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					# uni_str = uniform_string(payload)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif prv_grp_id:
 				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
@@ -862,12 +862,12 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 500:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					uni_str = uniform_string(payload)
-					if uni_str:
-						if uni_str.isspace():
-							raise forms.ValidationError('tip: ziyada spaces daal di hain')
-						else:
-							raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+					# uni_str = uniform_string(payload)
+					# if uni_str:
+					# 	if uni_str.isspace():
+					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
+					# 	else:
+					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			else:
 				pass

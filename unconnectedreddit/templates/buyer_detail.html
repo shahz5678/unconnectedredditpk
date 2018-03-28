@@ -80,6 +80,8 @@ Buyer Contact Details | Damadam.pk
 	        		<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/x36.png" alt="QMobile x36">
 	      			{% elif merch_id == '11' %}
 	      			<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/sggpp.png" alt="Samsung Grand Prime +">
+	      			{% elif merch_id == '8' %}
+	      			<img  itemprop="image" style="width:100%;max-width:100px;" src="{{ STATIC_URL }}img/insmart.png" alt="Infinix Smart">
 	      			{% endif %}	
 	      		</div>
 				<div>
@@ -111,14 +113,11 @@ Buyer Contact Details | Damadam.pk
 			{{ form.phonenumber }}
 			</div><br>
 			<input class="btn mtl mbs bxl cl" style="background-color:05f6cb;border-color:#1fbea1;" type="submit" value="Aagay Chalien">
-			</form><br>
-
-			
-			
-			
-			<a style="text-align:center" href="{% url 'intermediate' 'main'%}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
-			
+			</form><br>	
 		</div>
+
+		<a style="text-align:center" href="{% url 'intermediate' 'main'%}"><button class="btn bl mtl mbl" style="background-color:#80acaa;border:none;"><b>wapis</b></button></a>
+
 	</div>
 </div>
 {% endblock %}

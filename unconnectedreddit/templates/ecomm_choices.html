@@ -50,7 +50,7 @@
 
 
   <title>
-  Samsung and Qmobile Smartphones for sale in Pakistan (Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad) | Damadam.pk 
+  Samsung, Nokia, Infinix and Qmobile Smartphones for sale in Pakistan (Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Peshawar) | Damadam.pk 
   </title>
 
 
@@ -253,6 +253,91 @@ body {
 
   
   <!-- ################################# ITEM 2 ############################################ -->
+
+
+       <div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.15), 0 0 40px rgba(0, 0, 0, .15) inset">
+          <span itemprop="itemListElement" itemscope itemtype="http://schema.org/Product">
+          <h1 class="cl" style="font-weight:normal"> 
+            <b itemprop="brand">Nokia </b> 
+            <b itemprop="name">2 </b>
+            <br>
+          <span style="color:grey; text-decoration: line-through; font-size:13px;">Price: Rs.12500</span>
+          <span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+            <meta itemprop="priceCurrency" content="PKR" style="color:#df7d5b"/> Rs.
+            <span itemprop="price" style="color:#df7d5b">11000</span>
+          </span>
+          <span style="color:grey;font-size:11px;"> (Free Delivery)</span>
+          </h1>
+          </span>
+
+          <div class="cs" style="margin-top:-10px;">  
+            One Year Nokia<a href="{% url 'warranty' 'main'%}" > Warranty</a> <br>
+            Payment:<a href="{% url 'delivery' 'main'%}" > Cash On Delivery</a> <br>
+          </div>
+          <div style="text-align:center; margin-top:10px;">
+            <img  itemprop="image" style="  -webkit-filter:drop-shadow(5px 5px 5px #222);filter:drop-shadow(5px 5px 5px #222);max-width:212px;padding:5px;" src="{{ STATIC_URL }}img/nokia2offer.png" alt="Nokia 2">
+          </div><br>
+
+          <div class="clb"> 
+            <div style="text-align:center;">  
+              <div class="productdescription" style="background-color:#F9F6F2;border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:grey;" >
+                <span class="cs">Sasta Rate Kahan Hai?</span>
+                <hr width"100%" class="style-offer">
+                <span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <b >Damadam Price: 
+                <meta itemprop="priceCurrency" content="PKR" style="color:#df7d5b"/> Rs.
+                <span itemprop="price" style="color:#df7d5b">11000</span>
+                </b>
+                <hr width"100%" class="style-offer">
+                WhatMobile.pk: Rs. 12470  <a href="https://www.whatmobile.com.pk/Nokia_2" target="_blank">(dekhien)</a>
+                <hr width"100%" class="style-offer">
+              <span>Dukandar: Rs. 12000-12500</span>
+            </span>                  
+              </div>
+            </div>
+          </div>
+          <br>
+
+          <span class="cm"> Nokia 2 Specs:</span>
+          <div class="clb"> 
+            <div style="text-align:center;">  
+              <div class="productdescription" style="background-color:#80acaa;border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white;" >
+                  <!-- alternate color #aed6d4 -->
+                <div style="font-size:13px; text-align:left;display:inline-block">
+                  <span itemprop="description" >
+                  <b> Memory:</b> <span class="mls">8GB ROM, 1 GB RAM</span>
+                  <hr class="style-offer">
+                  <b> Camera:</b> <span class="mls">8 MP (rear) + 5 MP (front)</span>
+                  <hr class="style-offer">
+                  <b> Processor:</b> <span class="mls">1.3 GHz Quad Core</span>
+                  <hr class="style-offer">
+                  <b> Andriod:</b> <span class="mls">Android 8.1 Oreo Upgradable</span>
+                  <hr class="style-offer">
+                  <b> Screen:</b> <span class="mls">5.0 inches</span>          
+                  <hr class="style-offer">
+                  <b> Battery:</b> <span class="mls">4100 mAh</span>
+                  <hr class="style-offer">
+                  <b> Internet:</b> <span class="mls">4G, 3G, Wifi</span>
+                  <hr class="style-offer">
+                  <b> Memory Card:</b> <span class="mls">128 GB Supported</span>
+                  <hr class="style-offer">
+                  <b> Warranty:</b> <span class="mls">1 Year Nokia Warranty</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div><br>
+          <form method="POST" action="{% url 'intermediate' 'main' %}">
+            {% csrf_token %}
+            <input name="merch_id" value="15" type="hidden">
+            <input class="btn mtl mbs bxl cl" style="background-color:#05f6cb;border-color:#1fbea1;" type="submit" value="Buy Phone">
+            <br><br>
+          </form>
+        </div> 
+
+
+  <!-- ################################# ITEM 3 ############################################ --> 
+
         
        <div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.15), 0 0 40px rgba(0, 0, 0, .15) inset">
           <span itemprop="itemListElement" itemscope itemtype="http://schema.org/Product">
@@ -334,7 +419,6 @@ body {
           </form>
         </div> 
 
-   
 
 
   <!-- ################################# END ITEMS ############################################ -->

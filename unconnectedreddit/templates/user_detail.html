@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <head><title>{{ object.username }}'s profile | Damadam.pk</title></head>
 {{ block.super }}
@@ -23,6 +23,7 @@
 	{% else %}
 		<span class="cgy" style="font:85%;">isse kaho ek photo toh laga le...</span>
 	{% endif %}
+	<br><b class="profile">Joined {{ user.date_joined|naturaltime }}</b>
 	<hr size=1 COLOR="#b3e6b3">
 	<b class="profile">Chat score:</b>
 	<a class="info">

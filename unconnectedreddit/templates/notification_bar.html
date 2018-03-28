@@ -4,7 +4,7 @@
 	{% if notification %}
 		{% if type_of_object == '2' %}
 			
-			<div class="card box dbt mbl">
+			<div class="bizcard box dbt mbl" style="padding:5px">
 			{% if first_time_user %}
 				<div class="ct cs mbs">
 				Apko <b>welcome</b> kiya:
@@ -65,7 +65,7 @@
 			
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
-	<div class="card box dbg mbl">
+	<div class="bizcard box dbg mbl" style="padding:5px">
 		<div class="mbl" style="overflow:hidden">
 		<b class="cg cm lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button style="height:22px" type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mls">mehfil</button></form>
 		</div>
@@ -92,6 +92,7 @@
 			<div class="box-with-button-right">
 			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
+			<input type="hidden" name="loc" value="123">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
 			<input type="hidden" name="public_group_reply" value="|">
@@ -106,7 +107,7 @@
 			
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
-	<div class="card box dbp mbl">
+	<div class="bizcard box dbp mbl" style="padding:5px">
 		<div style="overflow:hidden">
 			<b class="cp lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl" style="height:22px">mehfil</button></a>
 		</div>
@@ -149,7 +150,7 @@
 	
 	
 	{% elif type_of_object == '4' %}
-		<div class="card box dbg mbl">
+		<div class="bizcard box dbg mbl" style="padding:5px">
 		<a href="{% url 'profile' parent.oon %}#section0">
 		{% if parent.ooa != 'None' %}
 		<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
@@ -169,7 +170,7 @@
 		</div>
 	
 	{% elif type_of_object == '0' %}
-		<div class="card box dby mbl">
+		<div class="bizcard box dby mbl" style="padding:5px">
 		
 		<div class="mbl" style="overflow:hidden">
 		<a href="{% url 'comment_pk' parent_pk 6 %}">
@@ -222,7 +223,7 @@
 		</div>
 		
 	{% elif type_of_object == '1' %}
-		<div class="card box dby mbl">
+		<div class="bizcard box dby mbl" style="padding:5px">
 		<span class="co cm">
 		<a href="{% url 'profile' parent.oon %}">
 		{% if parent.ooa != 'None' %}

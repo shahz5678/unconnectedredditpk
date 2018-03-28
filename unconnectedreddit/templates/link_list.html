@@ -20,7 +20,13 @@
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
 {% block content %}
-<style>body{background: #F2F2F2}</style>
+<style>
+body{background: #E9EBEE}
+.bizcard{
+	border-radius: 6px;
+	box-shadow: 0 1px 3px 0 rgba(0,0,0,0.13);	
+	}
+</style>
 <div class="margin">
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
@@ -51,7 +57,7 @@
 	{% endif %}
 	
 	{% if forloop.counter == 3 %}
-		<div style="background-color:white; box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.2) inset; margin-bottom:14px; padding:7px;text-align:center;border-radius:6px;">
+		<div class="bizcard" style="background-color:white; margin-bottom:14px; padding:7px;text-align:center">
 			<div style="display:inline-block;padding:5px;">
 				<div class="cxl" style="padding:5px;color:#2288B0;text-align:center">
 					<div style="font-weight:bold;color:#3A8685">Discounted Samsung and Qmobile Smartphones Available Now!</div>
@@ -78,7 +84,7 @@
 	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
 			{% load get_cricket_summary %}
-			<div class="card" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
+			<div class="bizcard" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
 				{% cricket_summary enqueued_match %}
 			</div>
 		{% endif %}
@@ -86,7 +92,7 @@
 
 
 	{% if forloop.counter == 9 %}
-		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px; padding-bottom:10px;">
+		<div class="bizcard" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px;padding:3px; padding-bottom:10px;">
 			<div class="mls">
 				<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
 				<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
@@ -115,7 +121,7 @@
 
 {% if link.c == '2' %}
 	
-	<div class="card" style="margin-bottom:16px; padding:0px;">
+	<div class="bizcard mtl" style="margin-bottom:16px">
 		{{ link.ch|safe }}
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{{ link.au|safe }}
@@ -127,7 +133,7 @@
 	
 {% elif link.c == '6' %}
 	
-	<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
+	<div class="bizcard" style="background-color:white;margin-bottom:35px;padding:3px;padding-bottom:10px;">
 	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
 	
 		
@@ -229,7 +235,7 @@
 	
 {% else %}
 	
-	<div class="card" style="margin-bottom:35px; margin-top:10px; padding-bottom:10px">
+	<div class="bizcard" style="background-color:white;margin-bottom:35px; margin-top:10px; padding:3px;padding-bottom:10px">
 	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
 		{{ link.ch|safe }}
 			<div style="overflow:hidden">

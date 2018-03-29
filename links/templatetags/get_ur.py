@@ -26,5 +26,9 @@ def get_ur(string):
 		return 'نک نیم خالی نہ چھوڑو'
 	elif 'chota harf bara'  in string:
 		return 'نک نیم میں یا بڑا حرف چھوٹا لکھ دیا ے، یا چھوٹا حرف بڑا'
+	elif 'Nickname mein harf likhna' in string:
+		return 'نک نیم میں حرف لکهنا ضروری ے'
+	elif 'Password mein harf likhna' in string:
+		return 'پاس ورڈ میں حرف لکهنا ضروری ے'
 	else:
 		return FORM_SUBMISSION_ERRORS[string]

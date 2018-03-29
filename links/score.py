@@ -92,12 +92,12 @@ MERCH = {
 '5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
 '6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
 '7': {'price':'7000','discounted_price':'6500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir 4G LT550'}, \
-'8': {'price':'9100','discounted_price':'7850', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
+'8': {'price':'8500','discounted_price':'8500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
 '9': {'price':'8840','discounted_price':'8840', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Huawei Y3 3G 2017'}, \
 '10': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Energy X2'}, \
 '11': {'price':'13800','discounted_price':'13800', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung Galaxy Grand Prime Plus'}, \
 '12': {'price':'18900','discounted_price':'18900', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung J5 Prime'}, \
 '13': {'price':'5500','discounted_price':'5500', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'QMobile Noir X36'}, \
 '14': {'price':'11300','discounted_price':'11300', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Huawei Ascend G700'}, \
-'15': {'price':'11800','discounted_price':'11800', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
+'15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#PHONE MODELS

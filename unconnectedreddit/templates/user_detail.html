@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <head><title>{{ object.username }}'s profile | Damadam.pk</title></head>
 {{ block.super }}
@@ -17,12 +17,13 @@
 	<b class="profile">Profile photo:</b>
 	{% if object.userprofile.avatar %}
 	{% load s3 %}
-		<br><img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="photo">
+		<br><img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="photo"><br>
 	{% elif object.username == user.username %}
-		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" style="border-radius:12px" alt="photo">
+		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" style="border-radius:12px" alt="photo"><br>
 	{% else %}
-		<span class="cgy" style="font:85%;">isse kaho ek photo toh laga le...</span>
+		<span class="cgy" style="font:85%;">isse kaho ek photo toh laga le...</span><hr size=1 COLOR="#b3e6b3">
 	{% endif %}
+	<b class="profile">Joined {{ object.date_joined|naturaltime }}</b>
 	<hr size=1 COLOR="#b3e6b3">
 	<b class="profile">Chat score:</b>
 	<a class="info">

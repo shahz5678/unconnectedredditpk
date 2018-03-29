@@ -1414,7 +1414,7 @@ def confirm_order(request):
 					buy_possible=0
 					mp.track(request.user.id, '6_M_S_5 ENTER_PIN')
 					return render(request,'confirm_order.html',{'form':form,'model':model,'price':price,'phonenumber':phonenumber,\
-				'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score })
+				'score_cost':score_charge,'user_score':user_score, 'remaining_score':remaining_score, 'merch_id':merch_id })
 	else:
 		user_id = request.session['mobile_buyer_id']
 		order_data = get_temp_order_data(user_id)

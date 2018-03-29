@@ -7,6 +7,14 @@ from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erron
 from abuse import BANNED_WORDS
 import re
 
+def validate_nickname_chars(value):
+	reg = re.compile('^[\w\s.@+-]+$')
+	if not reg.match(value):
+		raise ValidationError('Nickname mein sirf english harf, number ya @ _ . + - likhein')
+	for name in BANNED_WORDS:
+		if name in value.lower():
+			raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
+
 
 class ResetForgettersPasswordForm(forms.Form):
 	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likhein:"})
@@ -27,6 +35,8 @@ class ResetForgettersPasswordForm(forms.Form):
 	def clean_password(self):
 		password = self.cleaned_data["password"]
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.user.username
 		lower_nick = nickname.lower()
@@ -52,6 +62,53 @@ class ResetForgettersPasswordForm(forms.Form):
 		if commit:
 			user.save()
 		return user
+
+
+class ForgettersNicknameForm(forms.Form):
+	username = forms.CharField(max_length=30,error_messages={'invalid': "Nickname mein sirf english harf, number ya @ _ . + - likhein",\
+		'required':"Is safed patti mein nickname likh ke OK dabain:"})#,validators=[validate_whitespaces_in_nickname])
+	class Meta:
+		fields = ('username',)
+
+	def __init__(self, *args, **kwargs):
+		super(ForgettersNicknameForm, self).__init__(*args, **kwargs)
+		self.fields['username'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
+
+	def clean_username(self):
+		"""
+		Validate that the username exists
+		"""
+		username = self.cleaned_data['username']
+		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
+		validate_nickname_chars(username)
+		exists = check_nick_status(nickname=username)
+		if exists is True:
+			try:
+				user_id = User.objects.only('id').get(username=username).id
+			except User.DoesNotExist:
+				raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+			return username, user_id
+		elif exists is False:
+			raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+		elif exists is '1':
+			raise forms.ValidationError('"%s" mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % username)
+		elif exists is '0':
+			pass
+		elif exists is None:
+			#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it
+			try:
+				user_id = User.objects.only('id').get(username=username).id
+			except User.DoesNotExist:
+				raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+			return username, user_id
 
 ############################################################################################################
 
@@ -80,11 +137,15 @@ class SignInForm(forms.Form):
 		username = self.cleaned_data.get('username')
 		password = self.cleaned_data.get('password')
 		if not username:
-			raise forms.ValidationError('nickname khali nah chorein')
+			raise forms.ValidationError('Nickname khali nah chorein')
 		if not password:
-			raise forms.ValidationError('password khali nah chorein')
+			raise forms.ValidationError('Password khali nah chorein')
 		username = username.strip()
 		password = password.strip()
+		if not username:
+			raise forms.ValidationError('Nickname mein harf likhna zaruri hain')
+		if not password:
+			raise forms.ValidationError('Password mein harf likhna zaruri hain')
 		exists = nick_already_exists(nickname=username)
 		result = check_nick_status(nickname=username)
 		if result is None:
@@ -185,6 +246,8 @@ class CreatePasswordForm(forms.Form):
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
@@ -217,13 +280,13 @@ def process_choices(alternatives):
 				return alt_choices
 	return alt_choices
 
-def validate_nickname_chars(value):
-	reg = re.compile('^[\w\s.@+-]+$')
-	if not reg.match(value):
-		raise ValidationError('Nickname mein sirf english harf, number ya @ _ . + - likhein')
-	for name in BANNED_WORDS:
-		if name in value.lower():
-			raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
+# def validate_nickname_chars(value):
+# 	reg = re.compile('^[\w\s.@+-]+$')
+# 	if not reg.match(value):
+# 		raise ValidationError('Nickname mein sirf english harf, number ya @ _ . + - likhein')
+# 	for name in BANNED_WORDS:
+# 		if name in value.lower():
+# 			raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
 
 # for nicks with spaces
 def form_variants(username):
@@ -301,6 +364,8 @@ class CreateNickNewForm(forms.Form):
 		"""
 		username = self.cleaned_data['username']
 		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
 		exists = nick_already_exists(nickname=username)
 		altered = {}

@@ -35,6 +35,8 @@ class ResetForgettersPasswordForm(forms.Form):
 	def clean_password(self):
 		password = self.cleaned_data["password"]
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.user.username
 		lower_nick = nickname.lower()
@@ -84,6 +86,8 @@ class ForgettersNicknameForm(forms.Form):
 		"""
 		username = self.cleaned_data['username']
 		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
 		exists = check_nick_status(nickname=username)
 		if exists is True:
@@ -133,11 +137,15 @@ class SignInForm(forms.Form):
 		username = self.cleaned_data.get('username')
 		password = self.cleaned_data.get('password')
 		if not username:
-			raise forms.ValidationError('nickname khali nah chorein')
+			raise forms.ValidationError('Nickname khali nah chorein')
 		if not password:
-			raise forms.ValidationError('password khali nah chorein')
+			raise forms.ValidationError('Password khali nah chorein')
 		username = username.strip()
 		password = password.strip()
+		if not username:
+			raise forms.ValidationError('Nickname mein harf likhna zaruri hain')
+		if not password:
+			raise forms.ValidationError('Password mein harf likhna zaruri hain')
 		exists = nick_already_exists(nickname=username)
 		result = check_nick_status(nickname=username)
 		if result is None:
@@ -238,6 +246,8 @@ class CreatePasswordForm(forms.Form):
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
@@ -354,6 +364,8 @@ class CreateNickNewForm(forms.Form):
 		"""
 		username = self.cleaned_data['username']
 		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
 		exists = nick_already_exists(nickname=username)
 		altered = {}

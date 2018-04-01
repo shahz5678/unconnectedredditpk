@@ -359,6 +359,8 @@ class CreateNickNewForm(forms.Form):
 		if not username:
 			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
+		if username[:1] == '.':
+			raise ValidationError('Nickname ke shuru mein . nah dalein')
 		if username[-1:] == '.':
 			raise ValidationError('Nickname ke akhir mein . nah dalein')
 		exists = nick_already_exists(nickname=username)

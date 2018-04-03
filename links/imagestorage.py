@@ -1,12 +1,29 @@
 import PIL
 from PIL import Image
+# from boto.s3.connection import S3Connection
+# from boto.s3.key import Key
 import uuid, StringIO, string, os, mimetypes
 from storages.backends.s3boto import S3BotoStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from unconnectedreddit.env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_LOCATION
+from unconnectedreddit.env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_LOCATION#, AWS_STORAGE_BUCKET
+from score import THUMB_HEIGHT
 
 
 os.environ['S3_USE_SIGV4'] = 'True'
+
+
+
+def upload_image_to_s3(image):
+	"""
+	Used by group_views for personal group photos
+	"""
+	image_name_with_path = os.path.join('personal_groups/', "%s.jpg" % uuid.uuid4())
+	s3_object = S3Storage()
+	return s3_object._save(name=image_name_with_path, content=image)
+
+
+##########################################################
+##########################################################
 
 
 def upload_to_picschat(instance, filename):
@@ -89,8 +106,8 @@ def get_thumb(filename, content, folder_name):
 	image = Image.open(image)
 	if folder_name == 'avatars':
 		size = 22, 22
-	elif folder_name == 'photos':
-		height = 38
+	elif folder_name == 'photos' or folder_name == 'personal_groups':
+		height = THUMB_HEIGHT
 		image = content.file		
 		image = Image.open(image)
 		wpercent = (height/float(image.size[1]))
@@ -98,7 +115,7 @@ def get_thumb(filename, content, folder_name):
 		size = (bsize,height)
 	small_image = image.resize(size, Image.ANTIALIAS)
 	thumbnail = StringIO.StringIO()
-	small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
+	small_image.save(thumbnail,'JPEG',quality=50, optimize=True)
 	img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 	content.file = img
 	return thumb_name, content
@@ -148,6 +165,11 @@ class S3Storage(S3BotoStorage):
 				thumb_key = self.bucket.new_key(thumb_name)
 		elif 'avatars' in encoded_name:
 			thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatars')
+			thumb_key = self.bucket.get_key(thumb_name)
+			if not thumb_key:
+				thumb_key = self.bucket.new_key(thumb_name)
+		elif 'personal_groups' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'personal_groups')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)

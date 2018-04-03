@@ -32,7 +32,7 @@ add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_m
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
 delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
-# from links.azurevids.azurevids import uploadvid
+from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
@@ -970,20 +970,20 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 # 			reason = report_reason
 # 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 
-# @celery_app1.task(name='tasks.video_upload_tasks')
-# def video_upload_tasks(video_name, video_id, user_id):
-# 	lst = uploadvid(video_name)
-# 	low_res_thumb = "//"+lst[0].partition('://')[2]
-# 	small_thumb = "//"+lst[1].partition('://')[2]
-# 	low_res_video = "//"+lst[2].partition('://')[2]
-# 	high_res_video = "//"+lst[3].partition('://')[2]
-# 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
-# 	if video:
-# 		add_video(video_id)
-# 		save_recent_video(user_id, video_id)
-# 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
-# 	else:
-# 		pass
+@celery_app1.task(name='tasks.video_upload_tasks')
+def video_upload_tasks(video_name, video_id, user_id):
+	lst = uploadvid(video_name)
+	low_res_thumb = "//"+lst[0].partition('://')[2]
+	small_thumb = "//"+lst[1].partition('://')[2]
+	low_res_video = "//"+lst[2].partition('://')[2]
+	high_res_video = "//"+lst[3].partition('://')[2]
+	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
+	if video:
+		add_video(video_id)
+		save_recent_video(user_id, video_id)
+		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
+	else:
+		pass
 
 @celery_app1.task(name='tasks.fan_recount')
 def fan_recount(owner_id,fan_increment,fan_decrement):

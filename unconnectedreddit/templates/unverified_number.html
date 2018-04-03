@@ -1,34 +1,44 @@
 {% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
+<head><title>Could not verify | Damadam.pk</title></head>
 <div class="margin clb">
-<span class="cxl">Ye number verify nahi ho saka</span><br>
 	
 	{% if reason == 'expired' %}
+	<span class="cxl">Ye number verify nahi ho saka</span><br>
 	<div class="mts mbs">
 	<span class="cgy cl">Verify ke steps <b>jaldi jaldi</b> karney chahiyen, in mein deir nahi honi chahiye<br>Phir try karien...</span><br>
 	</div>
 	{% elif reason == 'generic' %}
+	<span class="cxl">Ye number verify nahi ho saka</span><br>
 	<div class="mts mbs">
 	<span class="cgy cl">Verify ke steps mein nah hi browser ka <b>back button</b> use karein, aur nah hi SMS code dalney mein deir karien...</span><br>
 	</div>
 	{% elif reason == 'invalid' %}
+	<span class="cxl">Ye number verify nahi ho saka</span><br>
 	<div class="mts mbs">
 	<span class="cgy cl">Verify ke liye apko tamam steps pooray karney hon ge, warna verify nahi hoga<br>Phir try karien...</span><br>
 	</div>
 	{% elif reason == 'used' %}
+	<span class="cxl">Number verification mein problem aya</span><br>
 	<div class="mts mbs">
-	<span class="cgy cl">Verify karwatey waqt browser ka <b>back button</b> nahi use karien<br>Phir try karien...</span><br>
+	<span class="cgy cl">Verify karwatey waqt browser ka <b>back</b> ya <b>refresh</b> button nahi use karien...</span><br>
 	</div>
 	{% endif %}
 
 {% if referrer == 'home' %}
-<a href="{% url 'home' %}#section0">
+<a href="{% url 'home' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
+{% elif referrer == 'personal_group' %}
+<form method="POST" class="mtl" action="{% url 'enter_personal_group' %}">
+	{% csrf_token %}
+	<input type="hidden" name="tid" value="{{ tid }}">
+	<button type="submit" class="btn bcb bs mtl cl" style="border:none;height:30px;">OK</button>
+</form>
 {% elif referrer == 'login' %}
-<a href="{% url 'login' %}#section0">
+<a href="{% url 'login' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
 {% else %}
-<a href="{% url 'classified_listing' %}#section0">
+<a href="{% url 'classified_listing' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
 {% endif %}
-<button class="btn bcg bm mtl">OK</button></a>
+
 </div>
 <br><br>
 {% endblock %}

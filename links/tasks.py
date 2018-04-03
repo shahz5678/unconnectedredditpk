@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms#, send_personal_group_sms
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
 # from page_controls import PHOTOS_PER_PAGE
@@ -20,7 +20,7 @@ from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
 public_group_ranking_clean_up
-# from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance
+from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance#, update_personal_group_seen_times
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
@@ -32,7 +32,7 @@ add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_m
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
 delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
-from links.azurevids.azurevids import uploadvid
+# from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
@@ -106,23 +106,31 @@ def punish_gibberish_writers(dict_of_targets):
 		queue_punishment_amount(user_id,score_penalty)
 
 
-# @celery_app1.task(name='tasks.add_image_to_personal_group_storage')
-# def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
-# 	set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
+@celery_app1.task(name='tasks.add_image_to_personal_group_storage')
+def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
+	set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
 
 
-# @celery_app1.task(name='tasks.personal_group_trimming_task')
-# def personal_group_trimming_task(group_id, object_count):
-# 	trim_personal_group(group_id,object_count)
+@celery_app1.task(name='tasks.personal_group_trimming_task')
+def personal_group_trimming_task(group_id, object_count):
+	trim_personal_group(group_id,object_count)
 
 
-# @celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
-# def queue_personal_group_invitational_sms(mobile_number, sms_text):
-# 	send_personal_group_sms(mobile_number, sms_text)
+@celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
+def queue_personal_group_invitational_sms(mobile_number, sms_text):
+	send_personal_group_sms(mobile_number, sms_text)
 
-# @celery_app1.task(name='tasks.update_personal_group_last_touch')
-# def update_personal_group_last_touch(group_id, time):
-# 	mark_personal_group_attendance(group_id, time)
+@celery_app1.task(name='tasks.update_personal_group_last_touch')
+def update_personal_group_last_touch(own_id, target_id, group_id, time):
+	mark_personal_group_attendance(own_id, target_id, group_id, time)
+
+# @celery_app1.task(name='tasks.update_personal_group_seen')
+# def update_personal_group_seen(own_id, target_id, group_id, time):
+# 	update_personal_group_seen_times(own_id, target_id, group_id, time)
+
+# @celery_app1.task(name='tasks.refresh_user_group_list')
+# def refresh_user_group_list(own_last_seen_time, their_last_seen_time, own_id, their_id, their_nick_status, their_nick, group_id):
+# 	update_user_group_list(own_last_seen_time, their_last_seen_time, own_id, their_id, their_nick_status, their_nick, group_id)
 
 def retrieve_object_type(origin):
 	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
@@ -962,20 +970,20 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 # 			reason = report_reason
 # 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 
-@celery_app1.task(name='tasks.video_upload_tasks')
-def video_upload_tasks(video_name, video_id, user_id):
-	lst = uploadvid(video_name)
-	low_res_thumb = "//"+lst[0].partition('://')[2]
-	small_thumb = "//"+lst[1].partition('://')[2]
-	low_res_video = "//"+lst[2].partition('://')[2]
-	high_res_video = "//"+lst[3].partition('://')[2]
-	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
-	if video:
-		add_video(video_id)
-		save_recent_video(user_id, video_id)
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
-	else:
-		pass
+# @celery_app1.task(name='tasks.video_upload_tasks')
+# def video_upload_tasks(video_name, video_id, user_id):
+# 	lst = uploadvid(video_name)
+# 	low_res_thumb = "//"+lst[0].partition('://')[2]
+# 	small_thumb = "//"+lst[1].partition('://')[2]
+# 	low_res_video = "//"+lst[2].partition('://')[2]
+# 	high_res_video = "//"+lst[3].partition('://')[2]
+# 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
+# 	if video:
+# 		add_video(video_id)
+# 		save_recent_video(user_id, video_id)
+# 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
+# 	else:
+# 		pass
 
 @celery_app1.task(name='tasks.fan_recount')
 def fan_recount(owner_id,fan_increment,fan_decrement):

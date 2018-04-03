@@ -1,0 +1,429 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_personal_group_big_photo %}
+{% load get_personal_group_top_navbar %}
+{% load get_personal_group_notif_chat %}
+{% load get_personal_group_small_photo %}
+{% load get_personal_group_exit_fields %}
+{% load get_personal_group_input_fields %}
+{% load get_personal_group_bottom_navbar %}
+{% load get_personal_group_hidden_pht_big %}
+{% load get_personal_group_own_action_chat %}
+{% load get_personal_group_hidden_pht_small %}
+{% load get_personal_group_own_chat_buttons %}
+{% load get_personal_group_their_action_chat %}
+{% load get_personal_group_their_chat_buttons %}
+{% load get_personal_group_deleted_post_message %}
+{% block content %}
+<head><title>{{ t_nick }}'s private messages | Damadam.pk</title></head>
+<div class="nos margin clb" style="max-width:600px;width:92%;">
+
+    <div id="pg_rep_size_err" style="text-align:center;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+    <div id="pg_rep_mime_err" style="text-align:center;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+  
+    <form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" class="mtl" style="display:none" enctype="multipart/form-data">
+      {% csrf_token %}
+        
+        <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}">
+        <input id="rep_tid" type="hidden" name="tid" value="{{ tid }}">
+
+        <div class="mbs mts" style="width:75%;display:inline-block;">
+            {{ personal_group_rep_form.rep_reply }}
+        </div>
+
+        <div class="mbs mts" style="width:22%;display:inline-block;float:right;text-align:center;">
+            {{ personal_group_rep_form.rep_image }}
+            <label for="browse_rep_image_btn" class="pg_label" style="cursor: pointer;"><img class="mt" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /></label>
+            <br><span class="cxs sp bw mts" id="rep_filename"></span>
+        </div>
+
+        <button id="rep_subform" class="btn bm bcb mbs mrl pg_ok_res" style="border:none;height:25px;line-height:25px;" type="submit">OK</button>
+    </form>
+  
+
+
+    {% if is_suspended %}
+      
+      {% personal_group_exit_fields group_id=group_id t_nick=t_nick target_id=tid own_id=own_id %}
+
+    {% else %}
+      
+      {% personal_group_input_fields sk=sk no_permit=no_permit no_sms=no_sms no_save_chat=no_save_chat t_nick=t_nick form_errors=form_errors personal_group_form=personal_group_form tid=tid static_url=STATIC_URL chat_not_empty=not_empty their_last_seen_time=their_last_seen_time|human_time last_seen_time_diff=last_seen_time_diff %}
+
+    {% endif %}
+
+      {% personal_group_top_navbar tid STATIC_URL chat_not_empty=not_empty %}
+
+    {% for blob in content %}
+
+        {% if own_id|slugify == blob.id %}
+
+          {% if blob.which_blob == 'action' %}
+
+            {% personal_group_own_action_chat action=blob.action username=blob.username av_url=blob.av_url|s3:'thumb' static_url=STATIC_URL border_class='sbb' own_nick=own_nick trunick=blob.username|truncap %}
+             
+          {% elif blob.which_blob == 'notif' %}
+
+            {% personal_group_notif_chat own_id=own_id writer_id=blob.id notif=blob.notif username=blob.username av_url=blob.av_url|s3:'thumb' t_username=blob.t_username t_av_url=blob.t_av_url|s3:'thumb' static_url=STATIC_URL their_nick=their_nick trunick=blob.t_username|truncap time=blob.time|human_time blob_id=blob.blob_id status=blob.status tid=tid %}
+
+          {% else %}
+            
+            <div class="bizcard csb" style="padding:3px;margin-top:1.3em;text-align:right;">
+                  
+                  <div class="mbs tr_cnr">
+                      <a href="{% url 'profile' blob.username %}">
+                      {% if own_nick %}
+                        <span style="color:#01579B;">{{ blob.username }}</span>&nbsp;<span class="cs cg">({{ blob.score }})</span>
+                        <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb">
+                      {% else %}
+                        <div class="av_btn sbb" style="width:22px;height:22px;color:#01579B;line-height:23px;">{{ blob.username|truncap }}</div>
+                      {% endif %}
+                      </a>
+                  </div>
+                  {% if blob.which_blob == 'res' %}
+                      
+
+                    <div class="mls mbs mrs">
+                       
+                        {% if blob.status == 'del' %}
+                           
+                            {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+                            
+                            <div class="mt mbs">
+                            {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username score=blob.score av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_score=blob.t_score target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="plus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
+                            <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
+
+                           </div>
+
+                        {% else %}
+
+                            {% if blob.res_type == 'text' %}
+                              <div class="mbs">
+                                <span class="lsp cl"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                              </div>
+                            {% else %}
+                                
+                                {% if blob.hidden == 'no' %}
+                                  <div class="mbs">
+                                    {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|emoticons css_shadow='sh-r' max_width=blob.img_width static_url=STATIC_URL %}
+                                  </div>
+                                {% elif blob.hidden == 'yes' %}
+                                  <div class="mbs">
+                                    {% personal_group_hidden_pht_big max_width=blob.img_width hw_ratio=blob.img_hw_ratio css_shadow='sh-r' right_align='ral' %}
+                                  </div>
+                                {% endif %}
+                                
+                            {% endif %}
+
+                             <div class="mbl">
+                               
+                              {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username score=blob.score av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_score=blob.t_score target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="minus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
+                              <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
+
+                             </div>
+
+                            <!-- personal_group_response_reference_left -->
+
+                            <div class="mrl mll mbl bizcard ca" style="padding:3px;text-align:left">
+        
+                              <div class="mbs cs tl_cnr">
+                                  <a href="{% url 'profile' blob.t_username %}">
+                                  {% if their_nick %}
+                                    <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
+                                    <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ blob.t_score }})</span>
+                                  {% else %}
+                                    <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ blob.t_username|truncap }}</div></a>
+                                  {% endif %}
+                                  </a>
+                              </div>
+                              
+                              <div class="cs mls mbs mrs">
+                                {% if blob.t_status == 'del' %}
+                                    <div class="mbs">{% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}</div>
+                                {% elif blob.t_type == 'text' %}
+                                    <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                                {% elif blob.t_type == 'img' %}
+                                    
+                                      {% if blob.t_hidden == 'yes' %}
+                                      <div class="mbl mtl">
+                                        {% personal_group_hidden_pht_small max_width=blob.t_img_s_width thumb_height=thumb_height css_shadow='sh-l' right_align='' %}
+                                      </div>
+
+                                      {% else %}
+                                        <div class="mbl mtl">
+                                          {% personal_group_small_photo img_url=blob.t_content|s3:'thumb' img_caption=blob.t_img_s_caption|emoticons css_shadow='sh-l' static_url=STATIC_URL %}
+                                        </div>
+                                      {% endif %}
+                                    
+                                {% endif %}
+
+                                <span class="sp cxs cgy">{{ blob.t_writing_time|human_time }}</span>
+                                
+                              </div>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                  {% else %}
+
+                      <div class="mls mbs mrs">
+                      {% for tup in blob.iterator reversed %}
+                          
+                          {% if forloop.counter != 1 %}
+                          <hr size=1 COLOR="#D4F2FE"> 
+                          {% endif %}
+                         
+                         {% if tup.0 == 'del' %}
+                            
+                            {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+                            <div class="mt">
+                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username score=blob.score av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="plus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+                             <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+                            </div>
+
+                         {% else %}
+                             
+                             {% if tup.2 == 'text' %}
+  
+                                <div class="mbs">
+                                  <span class="lsp cl"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                                </div>
+  
+                             {% elif tup.2 == 'img' %}
+                             
+                                {% if tup.7 == 'no' %}
+
+                                 <div class="mbs">
+                                   {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|emoticons css_shadow='sh-r' max_width=tup.8 static_url=STATIC_URL %}  
+                                 </div>
+
+                                {% elif tup.7 == 'yes' %}
+
+                                  <div class="mbs">
+                                    {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-r' right_align='ral' %}
+                                  </div>
+
+                                {% endif %}
+                                
+                             {% endif %}
+                             
+                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username score=blob.score av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+
+                             <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+                             
+
+                         {% endif %}
+
+                      {% endfor %}
+                      </div>
+
+                  {% endif %}
+
+          </div>
+          {% endif %}
+
+
+
+        {% else %}
+
+            
+
+          {% if blob.which_blob == 'action' %}
+
+            {% personal_group_their_action_chat action=blob.action username=blob.username av_url=blob.av_url|s3:'thumb' static_url=STATIC_URL border_class='ab' their_nick=their_nick trunick=blob.username|truncap %}
+
+          {% elif blob.which_blob == 'notif' %}
+            
+             {% personal_group_notif_chat own_id=own_id writer_id=blob.id notif=blob.notif username=blob.username av_url=blob.av_url|s3:'thumb' t_username=blob.t_username t_av_url=blob.t_av_url|s3:'thumb' static_url=STATIC_URL their_nick=their_nick trunick=blob.username|truncap time=blob.time|human_time blob_id=blob.blob_id status=blob.status tid=tid %}
+
+          {% else %}
+            <div class="bizcard ca" style="padding:3px;margin-top:1.3em">
+                
+                <div class="mbs tl_cnr">
+                    <a href="{% url 'profile' blob.username %}">
+                      {% if their_nick %}
+                      <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb ab">
+                      <span style="color:#306654">{{ blob.username }}</span>&nbsp;<span class="cs cg">({{ blob.score }})</span>
+                      {% else %}
+                      <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654">{{ blob.username|truncap }}</div>
+                      {% endif %}
+                      </a>
+                </div>
+                
+                {% if blob.which_blob == 'res' %}
+
+                  <div class="mls mbs mrs">
+                     
+                      {% if blob.status == 'del' %}
+                            <div class="mbs">
+                            {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}
+                            </div>
+                            <div class="mbs">
+                             <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
+                           </div>
+                      {% else %}
+                          
+                          {% if blob.res_type == 'text' %}
+                            <div class="mbs">
+                              {% if last_seen_time < blob.res_time %}<div class="new-dot mrs"></div>{% endif %}<span class="lsp cl"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                            </div>
+                          {% elif blob.res_type == 'img' %}
+                              
+                              {% if blob.hidden == 'no' %}
+                                <div class="mbs">
+                                {% if last_seen_time < blob.res_time %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
+                                {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|emoticons css_shadow='sh-l' max_width=blob.img_width static_url=STATIC_URL %}
+                                </div>
+                              {% elif blob.hidden == 'yes' %}
+                              <div class="mbs">
+                                {% personal_group_hidden_pht_big max_width=blob.img_width hw_ratio=blob.img_hw_ratio css_shadow='sh-l' right_align='' %}
+                              </div>
+
+                              {% endif %}
+                              
+                          {% endif %}
+
+                           <div class="mbl">
+                             
+                             <div class="sp cxs cgy mrl" style="display:inline">{{ blob.res_time|human_time }}</div>
+
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type score=blob.score index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_scr=blob.t_score t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content %}
+
+                           </div>
+
+                          <!-- personal_group_response_reference_right -->
+
+                             <div class="mrl mll mbl bizcard csb" style="padding:3px;text-align:right">
+                              
+                              <div class="mbs cs tr_cnr">
+                                  <a href="{% url 'profile' blob.t_username %}">
+                                  {% if own_nick %}
+                                  <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ blob.t_score }})</span>
+                                  <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%;">
+                                  {% else %}
+                                  <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%;">{{ blob.t_username|truncap }}</div>
+                                  {% endif %}
+                                  </a>
+                              </div>
+                              
+                                <div class="cs mls mbs mrs">
+                                  {% if blob.t_status == 'del' %}
+                                    <div class="mbs">
+                                      {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+                                    </div>
+                                  {% elif blob.t_type == 'text' %}
+                                      <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                                  {% elif blob.t_type == 'img' %}
+                                      
+                                     {% if blob.t_hidden == 'no' %}
+                                       
+                                       <div class="mbl mtl">
+                                        {% personal_group_small_photo img_url=blob.t_content|s3:'thumb' img_caption=blob.t_img_s_caption|emoticons css_shadow='sh-r' static_url=STATIC_URL %}
+                                      </div>
+
+                                     {% elif blob.t_hidden == 'yes' %}
+
+                                      <div class="mbl mtl">
+                                        {% personal_group_hidden_pht_small max_width=blob.t_img_s_width thumb_height=thumb_height css_shadow='sh-r' right_align='ral' %}
+                                      </div>
+
+                                    {% endif %}
+
+                                  {% endif %}
+
+                                    <span class="sp cxs cgy">{{ blob.t_writing_time|human_time }}</span>
+
+                                </div>
+                            </div> 
+
+                      {% endif %}
+
+                  </div>
+
+                {% else %}
+
+
+                    <div class="mls mbs mrs">
+                    
+                    {% for tup in blob.iterator reversed %}
+
+                        {% if forloop.counter != 1 %}
+                        <hr size=1 COLOR="#A0FFDF">
+                        {% endif %} 
+
+                       {% if tup.0 == 'del' %}
+                            {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}
+                            <div class="mt">
+                             <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+                           </div>
+                       {% else %}
+
+                           {% if tup.2 == 'text' %}
+                              <div class="mbs">
+                                {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                              </div>
+                           {% elif tup.2 == 'img' %}
+                         
+                              {% if tup.7 == 'no' %}
+                               
+                                <div class="mbs">
+                                  {% if last_seen_time < tup.4 %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
+                                  {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL %}<br>
+                                </div>
+
+                              {% elif tup.7 == 'yes' %}
+                               
+                                <div class="mbs">
+                                  {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-l' right_align='' %}
+                                </div>
+                               
+                              {% endif %}
+                    
+                            {% endif %}
+
+                           
+                             <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 score=blob.score index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
+
+                        {% endif %}                         
+
+                    {% endfor %}
+
+                    </div>
+
+                {% endif %}
+                
+            </div>
+          {% endif %}
+
+
+        {% endif %}
+    
+      {% empty %}
+
+      <div class="lsp mtl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
+      <div class="cxl mts">Chat ke liye uper safed box mein likhein aur <b>OK</b> dabain</div>
+      <hr size=1 COLOR="#F1F1DA"> 
+      <div class="sp cgy cs">Agr chat ki setting change karni hai tou neechay buttons istimal karien</div>
+      </div>
+
+    {% endfor %}
+
+    {% if autodel == '1' %}
+      <div class="lsp mtl" style="text-align:center;">
+        <span class="sp cxs" style="color:#148BDA">... baqi chat delete kar di geyi</span>
+      </div>
+    {% endif %}
+
+    {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
+
+</div>
+<br><br>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.2.js"></script>
+{% endblock %}

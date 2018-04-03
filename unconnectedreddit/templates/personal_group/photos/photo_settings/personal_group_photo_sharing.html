@@ -1,0 +1,237 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load get_personal_group_hidden_pht_from_settings %}
+{% block content %}
+<head><title>Shared photo settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+{% if new_phrec_value == '1' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Ap ne {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko fotos bhejney ki ijazat de di</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif new_phrec_value == '0' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Ab {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} apko fotos nahi bhej sakta</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif new_phdel_value == '1' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Apki tamam fotos mita di gien</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif new_phdel_value == '0' %}
+
+	
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Apki miti hui tamam fotos bahal kar di gien</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+
+{% endif %}
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+		<div class="lsp mbs mtl">
+			{% if phrec == '1' %}
+				<span class="cl"><b>Disallow</b>: Kya <b>{% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}</b> ko apko fotos bhejney se rok diya jaye?</span>
+			{% else %}
+				<span class="cl"><b>Allow</b>: Is waqt <b>{% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}</b> apko fotos nahi bhej sakta. Isko fotos bhejney dein?</span>
+			{% endif %}
+		</div>
+
+
+		<form action="{% url 'personal_group_photo_settings' %}" method="POST" class="mts mbl" style="text-align:center">
+	        {% csrf_token %}
+	        <input type="hidden" name="phts" value="1">
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="pht_dec" value="1">Haan</button>
+	        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="pht_dec" value="Cancel">
+	    </form>
+
+
+	<hr size=1 COLOR="#e6e6e6">
+
+		<div class="lsp mbs mtl">
+			<span class="cl"><b>Delete</b>: Kya apki tamam fotos mita di jain?</span>
+		</div>
+
+		<form action="{% url 'personal_group_photo_settings' %}" method="POST" class="mts mbl" style="text-align:center">
+	        {% csrf_token %}
+	        <input type="hidden" name="phts" value="2">
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="pht_dec" value="1">Haan</button>
+	        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="pht_dec" value="Cancel">
+	    </form>
+
+
+	<hr size=1 COLOR="#e6e6e6">
+
+		<div class="lsp mbs mtl">
+			<span class="cl"><b>Restore</b>: Kya apki miti hui tamam fotos bahal kar di jain?</span>
+		</div>
+
+		<form action="{% url 'personal_group_photo_settings' %}" method="POST" class="mts mbl" style="text-align:center">
+	        {% csrf_token %}
+	        <input type="hidden" name="phts" value="3">
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="pht_dec" value="1">Haan</button>
+	        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="pht_dec" value="Cancel">
+	    </form>
+
+	<hr size=1 COLOR="#e6e6e6">
+
+	<div style="text-align:center" class="mtl">
+		{% for photo in photos %}
+			{% if photo.owner_id == user.id|slugify %}
+				{% if photo.status == 'undel' %}
+					{% if photo.hidden == 'no' %}
+						<div class="sh cvs ext-cvs ctr csb" style="max-width:{{ photo.img_width }}px">
+							<img src="{{ photo.img_url|s3 }}" alt="photo" class="pgpic">
+							{% if photo.img_quality == 'None' %}
+								<div class="sp mts cxs" style="color:#4C5EA3">low quality (freebasics se charhai)</div>
+							{% endif %}
+							
+							<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
+								{% csrf_token %}
+								<input type="hidden" name="actpht" value="1">
+								<input type="hidden" name="tid" value="{{ tid }}">
+								<input type="hidden" name="phturl" value="{{ photo.img_url }}">
+								<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="minus"></div></button>
+							</form>
+						</div><br>
+					{% else %}
+						<div class="sh mbl cvs ctr csb" style="max-width:{{ photo.img_b_width }}px">
+							
+							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}
+
+							{% if photo.img_quality == 'None' %}
+								<div class="sp mts cxs" style="color:#4C5EA3">low quality (freebasics se charhai)</div>
+							{% endif %}
+							 	<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
+									{% csrf_token %}
+									<input type="hidden" name="actpht" value="1">
+									<input type="hidden" name="tid" value="{{ tid }}">
+									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
+									<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="minus"></div></button>
+								</form>
+						</div><br>
+					{% endif %}				
+				{% else %}
+					<div class="sh mbl cvs ctr csb" style="max-width:{{ photo.img_b_width }}px">
+						<b class="tsh" style="color:#68D0FD;">foto mita di geyi</b>
+						<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
+							{% csrf_token %}
+							<input type="hidden" name="actpht" value="2">
+							<input type="hidden" name="tid" value="{{ tid }}">
+							<input type="hidden" name="phturl" value="{{ photo.img_url }}">
+							<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="plus"></div></button>
+						</form>
+					</div><br>
+				{% endif %}
+
+			{% else %}
+				<!-- them -->
+				{% if photo.status == 'undel' %}
+					{% if photo.hidden == 'no' %}
+						<div class="sh cvs ext-cvs ctr ca" style="max-width:{{ photo.img_width }}px">
+							<img src="{{ photo.img_url|s3 }}" alt="photo" class="pgpic">
+							{% if photo.img_quality == 'None' %}
+								<div class="sp mts cxs" style="color:#069E9C">low quality (freebasics se charhai)</div>
+							{% endif %}
+
+								<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
+									{% csrf_token %}
+									<input type="hidden" name="actpht" value="3">
+									<input type="hidden" name="tid" value="{{ tid }}">
+									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
+									<button type="submit" class="re re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="bminus"></div></button>
+								</form>
+
+						</div><br>
+					{% else %}
+
+						<div class="sh mbl cvs ctr ca" style="max-width:{{ photo.img_b_width }}px">
+						
+							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}
+
+							{% if photo.img_quality == 'None' %}
+								<div class="sp mts cxs" style="color:#069E9C">low quality (freebasics se charhai)</div>
+							{% endif %}
+							 	<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
+									{% csrf_token %}
+									<input type="hidden" name="actpht" value="4">
+									<input type="hidden" name="tid" value="{{ tid }}">
+									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
+									<button type="submit" class="re re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="bplus"></div></button>
+								</form>
+						</div><br>
+
+					{% endif %}	
+				{% else %}
+					<div class="sh cvs ctr ca" style="max-width:{{ photo.img_b_width }}px">
+						<b class="tsh" style="color:#00E699;">foto mita di geyi</b>
+					</div><br>
+				{% endif %}
+
+			
+			{% endif %}
+			
+
+		{% empty %}
+
+		{% endfor %}
+		{% if num_phts > 24 %}<span class="lsp sp cs cgy" style="color:#148BDA">... sirf pichli 25 fotos nazar ati hain</span>{% endif %}
+	</div>
+
+</div>
+<br><br>
+
+{% endblock %}

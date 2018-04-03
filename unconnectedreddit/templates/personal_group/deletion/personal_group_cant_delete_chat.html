@@ -1,0 +1,62 @@
+{% extends "base_pg.html" %}
+{% load future_time %}
+{% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
+
+<div class="margin cgy" style="max-width:420px;width:92%;">
+
+	<div class="card" style="background-color:#FFFAF0;padding:10px;text-align:center">
+
+	{% if all_chat %}
+
+		{% if un %}
+		<span class="cxl">Ap apni chat bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% else %}
+		<span class="cxl">Ap apni chat mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% endif %}
+
+	{% elif all_photos %}
+
+		{% if un %}
+		<span class="cxl">Ap apni fotos bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% else %}
+		<span class="cxl">Ap apni fotos mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% endif %}
+
+	{% elif one_photo %}
+
+		{% if act == 'del' %}
+		<span class="cxl">Ap ye foto bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% elif act == 'undel' %}
+		<span class="cxl">Ap ye foto mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% elif act == 'hide' %}
+		<span class="cxl">Ap ye foto hide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% elif act == 'unhide' %}
+		<span class="cxl">Ap ye foto unhide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% else %}
+		<span class="cxl">Ap ye kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% endif %}
+
+	{% elif one_post %}
+
+		{% if un %}
+		<span class="cxl">Ap ye post bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% else %}
+		<span class="cxl">Ap ye post mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		{% endif %}
+
+	{% endif %}
+	<hr size=1 COLOR="#E6E6E6">
+	<form method="POST" class="mt" action="{% url 'enter_personal_group' %}">
+		{% csrf_token %}
+		<input type="hidden" name="tid" value="{{ tid }}">
+		<button class="btn bcb cl bs mtl mbl" style="border:none;height:30px;">OK</button>
+	</form>
+
+	</div>
+
+</div>
+
+<br><br>
+
+{% endblock %}

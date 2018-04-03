@@ -1,0 +1,100 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>All settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+	<form method="POST" action="{% url 'enter_personal_group' %}" style="text-align:center">
+	{% csrf_token %}
+	<input type="hidden" name="tid" value="{{ tid }}">
+	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="anon_dec">wapis</button>
+	</form>
+
+		<table style="border-collapse: separate;border-spacing: 10px;">
+		<tr>
+		{% if own_anon %}
+		<td>
+			<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/un_anon.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain apna nickname aur profile foto is chat mein dikhaney le liye</div></td>
+		{% else %}
+		<td>
+			<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/anon.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain apna nickname aur profile foto is chat se ghayeb karney ke liye</div></td>
+		{% endif %}
+		</tr>
+		<tr>
+		<td>
+			<form method="POST" action="{% url 'personal_group_photo_settings' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/photo.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain is chat mein foto options dekhne ke liye</div></td>
+		</tr>
+		<tr>
+		<td>
+			<form method="POST" action="{% url 'delete_all_posts_from_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/delundel.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain apni sari chat mitaney ya bahal karney ke liye</div></td>
+		</tr>
+		<tr>
+		<td>
+			<form method="POST" action="{% url 'show_all_saved_posts_in_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sv.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain apni saved chat dekhney ke liye</div></td>
+		</tr>
+		<tr>
+		<td>
+			<form method="POST" action="{% url 'personal_group_sms_settings' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sms.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain is chat mein SMS options dekhne ke liye</div></td>
+		</tr>
+		<tr>
+		<td>
+			<form method="POST" action="{% url 'personal_group_exit_settings' %}">
+			{% csrf_token %}
+			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/exit.svg" width="60" height="60"></button>
+			</form>
+		</td>
+		<td><div class="lsp">Ye dabain is chat se hamesha ke liye bahir janey ke liye</div></td>
+		</tr>
+		</table>
+
+	<form method="POST" action="{% url 'enter_personal_group' %}" style="text-align:center">
+	{% csrf_token %}
+	<input type="hidden" name="tid" value="{{ tid }}">
+	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="anon_dec">wapis</button>
+	</form>
+
+</div>
+<br><br>
+
+{% endblock %}

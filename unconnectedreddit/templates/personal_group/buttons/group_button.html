@@ -1,0 +1,20 @@
+{% if not own_id %}
+
+<div class="mls" style="display:inline">
+	<form method="POST" action="{% url 'render_personal_group_invite' %}" style="display:inline;">
+	{% csrf_token %}
+	<input type="hidden" name="ot" value="{{ ot }}">
+	<input type="hidden" name="tid" value="{{ tid }}">
+	<input type="hidden" name="org" value="{{ org }}">
+	<input type="hidden" name="tun" value="{{ tun }}">
+	<input type="hidden" name="poid" value="{{ poid }}">
+		<button style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;">
+		<div id="line"></div>
+		<div id="line"></div>
+		<div id="line" style="width: 8px;"></div>
+		</button>
+	</form>
+
+</div>
+
+{% endif %}

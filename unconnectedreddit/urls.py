@@ -13,7 +13,7 @@ from urls_retention import urlpatterns as urlpatterns_ret
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
-# from urls_groups import urlpatterns as urlpatterns_groups
+from urls_groups import urlpatterns as urlpatterns_groups
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
@@ -47,7 +47,6 @@ InviteUsersToPrivateGroupView, AdDescriptionView, TopPhotoView,PhotoShareView, P
 SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, MehfilCommentView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView
-
 
 admin.autodiscover()
 
@@ -336,4 +335,4 @@ urlpatterns += urlpatterns_unauth
 urlpatterns += urlpatterns_ret
 urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
-# urlpatterns += urlpatterns_groups
+urlpatterns += urlpatterns_groups

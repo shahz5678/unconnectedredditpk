@@ -1,0 +1,137 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load future_time %}
+{% load truncap %}
+{% block content %}
+<head><title>Exit private messaging | Damadam.pk</title></head>
+<div class="nos margin clb" style="max-width:420px;width:92%;">
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+
+	<hr size=1 COLOR="#ffeb3b">
+
+		{% if were_sorry %}
+
+			<div class="mbl mtl">
+				<b class="lsp cl">Hamey afsos hai ap ye private chat chorney pe majboor huay</b>
+				<div class="mts">
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh chat hamesha ke liye khatam ho jaye gi</span>
+				</div>
+			</div>
+
+			<hr size=1 COLOR="#E6E6E6">
+
+			<span class="lsp cl">Ab ap Damadam mein kahan jana chahtey hain?</span>
+			<div class="mtl" style="text-align:center">
+			<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
+			<a href="{% url 'best_photo' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
+			<a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
+			<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts" style="border:none;height:30px;">Matka</button></a>
+			</div>
+
+		{% elif time_to_suspend %}
+
+
+			<div class="mbl mtl">
+				<b  class="lsp cl">Ap ye private chat chore sakein ge {{ time_to_suspend|future_time }}</b>
+				<div class="mts">
+				<span class="sp cs cgy">Abhi apko ye private chat dubara join kiye huay ziyada time nahi guzra</span>
+				</div>
+			</div>
+
+			<form method="POST" class="mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button class="btn bcgy cl bl mbl" style="border:none;height:30px;">wapis</button>
+			</form>
+
+
+		{% elif you_already_exited %}
+
+			<div class="mbl mtl">
+				<b class="lsp cl">Ap is private chat ko chore chukey hain</b>
+				<div class="mts">
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh chat hamesha ke liye khatam ho jaye gi</span>
+				</div>
+			</div>
+
+			<hr size=1 COLOR="#E6E6E6">
+
+			<span class="lsp cl">Ab ap Damadam mein kahan jana chahtey hain?</span>
+			<div class="mtl" style="text-align:center">
+			<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
+			<a href="{% url 'best_photo' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
+			<a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
+			<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts" style="border:none;height:30px;">Matka</button></a>
+			</div>
+
+		{% elif they_already_exited %}
+
+			<div class="mbl mtl">
+				<b class="lsp cl">Is private chat ko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ke chorney ki wajah se pehley hi suspend kiya ja chuka hai</b>
+				<div class="mts">
+				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tou yeh chat hamesha ke liye khatam ho jaye gi</span>
+				</div>
+			</div>
+
+			<form method="POST" class="mt mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button class="btn bcgy cl bl mtl mbl" style="border:none;height:30px;">wapis</button>
+			</form>
+
+		{% elif reentry_too_soon %}
+
+			<div class="mbs mtl">
+				<b class="lsp cl">Ap is private chat mein wapis a sakein ge {{ time_remaining|future_time }}</b>
+				<div class="mts">
+				<span class="sp cs cgy"><b>7 days</b> tak wapis na aney pe private chat hamesha ke liye khatam kar di jati hai</span>
+				</div>
+			</div>
+
+			<form method="POST" class="mtl mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button class="btn bcgy cl bl mbl" style="border:none;height:30px;">wapis</button>
+			</form>
+
+		{% elif reentry_denied %}
+
+			<div class="mbl mtl">
+				<b class="lsp cl">Ap is private chat mein ye nahi kar saktey</b>
+			</div>
+
+			<form method="POST" class="mt mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button class="btn bcgy cl bl mtl mbl" style="border:none;height:30px;">wapis</button>
+			</form>
+
+		{% else %}
+
+			<div class="mbs mtl">
+			<span class="lsp cl cr"><b>Exit</b>: Kya ap is private chat ko hamesha ke liye chorna chahtey hain?</span>
+				<div class="mts">
+				<span class="lsp cl"><b>Warning:</b> Ap ke jatey hi yahan se apki sari chat aur fotos mita di jaien gi. Apki aur {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ki sari saved chat bhi khatam ho jaye gi. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se private chat karni hui tou apko <b>1 day</b> wait karna ho ga. Agar ap is private chat mein <b>7 days</b> tak wapis na aye tou ye hamesha ke liye khatam ho jaye gi</span>
+				</div>
+			</div>
+
+			<form action="{% url 'personal_group_exit_settings' %}" method="POST" class="mts mbl" style="text-align:center;">
+	        {% csrf_token %}
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcr bm mrs mbs cl pg_ex" style="border:none;height:30px;" name="edec" value="1">Exit</button>
+	        <button class="btn bcb bm mts mls cl pg_ok" style="border:none;height:30px;" name="edec" value="Cancel">Cancel</button>
+	    	</form>
+
+    	{% endif %}
+
+</div>
+<br><br>
+
+{% endblock %}

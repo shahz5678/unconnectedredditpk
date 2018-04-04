@@ -1,9 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin clb">
-<span class="cxl">Ap pehle mobile ki tasdiq karwa chukey ho</span><br><span class="cgy">Bar bar tasdiq na karwao</span><br>
 
-<a href="{% url 'home' %}"><button class="btn bcg mtl bm">wapis</button></a>
+<head><title>Already verified | Damadam.pk</title></head>
+
+<div class="margin clb">
+<span class="cxl">Apka mobile pehle hi verify ho chuka</span><br>
+
+{% if from_personal_group %}
+
+<form method="POST" class="mtl" action="{% url 'enter_personal_group' %}">
+	{% csrf_token %}
+	<input type="hidden" name="tid" value="{{ tid }}">
+	<button type="submit" class="btn bcb bs cl" style="border:none;height:30px;">OK</button>
+</form>
+
+{% else %}
+
+<a href="{% url 'home' %}"><button class="btn bcg mtl bm" style="height:25px">wapis</button></a>
+
+{% endif %}
 
 </div>
 <br><br>

@@ -1,0 +1,52 @@
+    <div class="fr" id="pg_size_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+    <div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+
+    <div class="bizcard" style="border-radius:8px" id="personal_group_top">
+        {% if no_permit %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko foto send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_sms %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko SMS ke zariye online bulaney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
+        <div class="mtl fr" style="background-color: #F0F3F4;">
+            <div style="padding:5px;" class="sp cs cgy">
+                {% if last_seen_time_diff < 60 %}
+                <div class="bg-st-dot mrs" style="background-color:#00FF00;border:2px solid #00F200;">
+                {% elif last_seen_time_diff < 120 %}
+                <div class="bg-st-dot mrs" style="background-color:#9BE29B;border:2px solid #91DF91;">
+                {% else %}
+                <div class="bg-st-dot mrs" style="background-color:#C8C8C8;border:2px solid #C4C4C4;">
+                {% endif %}
+            </div>&nbsp;<b>{{ t_nick|truncatechars:'7' }}</b> was seen {{ their_last_seen_time }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" class="mts" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+        <input type="hidden" id="sk" name="sk" value="{{ sk }}">
+        <input type="hidden" id="tid" name="tid" value="{{ tid }}">
+
+
+        <div class="mbs" style="width:75%;display:inline-block;">
+            <span class="sp cgy cs">Chat</span><br>
+            <div class="mt">{{ personal_group_form.reply }}</div>
+        </div>
+
+        <div class="mbs" style="width:22%;display:inline-block;float:right;text-align:center;">
+            <span class="sp cgy cs">Foto</span><br>
+            {{ personal_group_form.image }}
+            <label for="browse_image_btn" class="pg_label" style="cursor: pointer;"><img class="mt" alt="Select photo" src="{{ static_url }}img/cam1.svg" width="60" height="60"></label>
+            <br><div class="mts cxs bw cb sp" id="filename"></div>
+        </div>
+
+        <input type="submit" style="display: none;" id="subform">
+
+    </form>
+
+
+    <div class="fx fxjsfs fxaicn">      
+        <label class="btn bm pg_ok" style="height:30px;line-height: 30px;cursor: pointer;display: table-cell;" for="subform" tabindex="0">OK</label>
+        
+        <form class="mrl" method="POST" action="{% url 'enter_personal_group' %}" style="display: table-cell">
+        {% csrf_token %}
+            <button class="rf rf-bg" style="margin-left:2em;background-image: url('{{ static_url }}img/refresh.svg');visibility: {{ visib }}" type="submit" name="tid" value="{{ tid }}">&nbsp;</button>
+        </form>
+    </div>

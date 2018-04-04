@@ -1,0 +1,117 @@
+{% if notif == '1' %}
+
+  <div class="mtl mbl bizcard" style="padding:3px;text-align:center;background-color:#FFFAF0;color:#696662;">
+
+  {% if i_am_sender %}
+  
+  	<div class="lsp mts mbs mrs mls cl">
+      <span class="cm sp">Foto nahi geyi!</span>
+      <hr size=1 COLOR="#F1F1DA">
+  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi geyi ke ap usko fotos bhej sakein
+  	</div>
+
+  	<div class="mbs mrs" style="text-align:right">
+    	<span class="sp cxs cgy">{{ time }}</span>
+   	</div>
+  	
+  
+  {% else %}
+
+  	{% if status == 'open' %}
+
+	  	<div class="lsp mts mbs mrs mls cl">
+	  		{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko foto bhejna chahta hai 
+	  	</div>
+
+	  	<div class="mbs mrs" style="text-align:right">
+	    	<span class="sp cxs cgy">{{ time }}</span>
+	   	</div>
+	  	
+	  	<hr size=1 COLOR="#F1F1DA"> 
+	  	
+	  	<div class="lsp mrs mls mts cl">
+	  		Isko foto bhejney ki ijazat dein?
+	  	</div>
+
+	  	<form method="POST" action="{% url 'set_personal_group_photo_sharing_perm_from_chat' %}" class="mts mbs">
+	  		{% csrf_token %}
+	  		<input type="hidden" name="tid" value="{{ their_id }}">
+	  		<input type="hidden" name="bid" value="{{ blob_id }}">
+		  	<button type="submit" class="btn bcb bm mrs mbs mts pg_ok" name="dec" style="border:none;height:30px;" value="1">Haan</button>
+		  	<button type="submit" class="btn bcgy bm mls mts pg_cl" name="dec" style="border:none;height:30px;" value="0">Nahi</button>
+	  	</form>
+
+  	{% else %}
+
+  		<div class="lsp mts mbs mrs mls cl">
+  			Sab se neechay <img src="{{ static_url }}img/photo.svg" width="25" height="25" alt="foto" style="vertical-align:text-bottom"> dabain agr ap ne faisla change karna ho
+  		</div>
+  		
+  		<div class="mbs mrs" style="text-align:right">
+	    	<span class="sp cxs cgy">{{ time }}</span>
+	   	</div>
+  	
+  	{% endif %}
+
+  {% endif %}
+
+  </div>
+
+{% elif notif == '2' %}
+
+<div class="mtl mbl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
+
+  {% if i_am_sender %}
+
+  	<div class="lsp mts mbs mrs mls cl">
+      <span class="cm sp">SMS nahi geyi!</span>
+      <hr size=1 COLOR="#F1F1DA">
+  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi geyi ke ap usko SMS ke zariye online bula sakein
+  	</div>
+
+  	<div class="mbs mrs" style="text-align:right">
+    	<span class="sp cxs cgy">{{ time }}</span>
+   	</div>
+  	
+  {% else %}
+
+
+  	{% if status == 'open' %}
+
+	  	<div class="lsp mts mbs mrs mls cl">
+	  		Jab ap online nahi hon aur {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} chat karna chah raha ho tou kya woh SMS ke zariye apko online bula le?
+	  	</div>
+	  	<div class="sp mt cgy cs mbs">Apka number {% if their_nick %}<b>{{ sent_by_username|truncatechars:10 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} ko nahi miley ga, SMS Damadam se aega</div>
+
+	  	<div class="mbs mrs" style="text-align:right">
+	    	<span class="sp cxs cgy">{{ time }}</span>
+	   	</div>
+	  	
+	  	<hr size=1 COLOR="#F1F1DA"> 
+
+	  	<form method="POST" action="{% url 'personal_group_receive_sms_from_chat' %}" class="mts mbs">
+	  		{% csrf_token %}
+	  		<input type="hidden" name="bid" value="{{ blob_id }}">
+        <input type="hidden" name="tid" value="{{ tid }}">
+		  	<button type="submit" class="btn bcb bm mrs mbs mts" name="sdec" style="border:none;height:30px;" value="1">Haan</button>
+		  	<button type="submit" class="btn bcgy bm mls mts" name="sdec" style="border:none;height:30px;" value="0">Nahi</button>
+	  	</form>
+
+  	{% else %}
+
+  		<div class="lsp mts mbs mrs mls cl">
+  			Sab se neechay <img src="{{ static_url }}img/sms.svg" width="27" height="27" alt="sms" style="vertical-align:text-bottom"> dabain agr ap ne faisla change karna ho
+  		</div>
+  		
+  		<div class="mbs mrs" style="text-align:right">
+	    	<span class="sp cxs cgy">{{ time }}</span>
+	   	</div>
+  	
+  	{% endif %}
+
+
+  {% endif %}
+
+</div>
+
+{% endif %}

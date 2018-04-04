@@ -1,0 +1,439 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load future_time %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_personal_group_big_photo %}
+{% load get_personal_group_small_photo %}
+{% load get_personal_group_hidden_pht_big %}
+{% load get_personal_group_hidden_pht_small %}
+{% load get_personal_group_deleted_post_message %}
+{% block content %}
+<head><title>Saving posts in private messaging | Damadam.pk</title></head>    
+    <div class="nos margin clb" style="max-width:600px;width:92%;">
+      {% if new_save_perm %}
+        <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+          <span class="cxl">{% if new_perm == '1' %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apki chat save karney ki ijazat de di geyi{% else %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se apki chat save karney ki ijazat wapis le li geyi{% endif %}</span>
+          <hr size=1 COLOR="#E6E6E6">
+          <div class="mt cl cgy">
+            Chat mein janey ke liye OK dabain:<br>
+            <form method="POST" action="{% url 'enter_personal_group' %}">
+              {% csrf_token %}
+              <input type="hidden" name="tid" value="{{ tid }}">
+              <button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+            </form>
+          </div>
+        </div> 
+      {% elif saved %}
+        <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+          <span class="cxl"><b>{% if save_status%}Saved:&nbsp;{% else %}Not Saved:&nbsp;{% endif %}</b>{{ msg }}{% if not save_status and ttl %}{{ ttl|future_time }}{% endif %}</span>
+          {% if save_status %}
+            <br><span class="sp cs mts mbl cgy">Ap dubara chat save kar sakein ge <b>{{ ttl|future_time }}</b></span>
+          {% endif %}
+          <hr size=1 COLOR="#E6E6E6">
+          <div class="mt cl cgy">
+            Chat mein janey ke liye OK dabain:<br>
+            <form method="POST" action="{% url 'enter_personal_group' %}">
+              {% csrf_token %}
+              <input type="hidden" name="tid" value="{{ tid }}">
+              <button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+            </form>
+          </div>
+        </div>  
+      {% elif deleted %}
+        <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+          <span class="cxl">Saved chat delete kar di geyi</span>
+          <hr size=1 COLOR="#E6E6E6">
+          <div class="mt cl cgy">
+            Chat mein janey ke liye OK dabain:<br>
+            <form method="POST" action="{% url 'enter_personal_group' %}">
+              {% csrf_token %}
+              <input type="hidden" name="tid" value="{{ tid }}">
+              <button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+            </form>
+          </div>
+        </div>  
+      {% elif deleted %}
+        <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+          <span class="cxl">Tamam saved chat delete kar di geyi</span>
+          <hr size=1 COLOR="#E6E6E6">
+          <div class="mt cl cgy">
+            Chat mein janey ke liye OK dabain:<br>
+            <form method="POST" action="{% url 'enter_personal_group' %}">
+              {% csrf_token %}
+              <input type="hidden" name="tid" value="{{ tid }}">
+              <button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+       <div style="text-align:center">
+        {% if their_anon %}
+          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+        {% else %}
+          <span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+        {% endif %}
+       </div>
+       <hr size=1 COLOR="#ffeb3b">
+
+
+      <div class="lsp mbs mtl">
+          {% if curr_perm == '1' %}
+            <span class="cl"><b>Disallow saving</b>: Kya {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apki chat save karney se rok diya jaye?</span>
+            <div class="mt">
+            <span class="sp cgy cs">Jo chat {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} pehley save kar chuka hai, woh save hi rehay gi</span>
+            </div>
+          {% else %}
+            <span class="cl"><b>Allow saving</b>: Is waqt {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} apki chat nahi save kar sakta. Kya usko save karney ki ijazat deni hai?</span>
+            <div class="mt">
+            <span class="sp cgy cs">Ap bhi {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ki chat ijazat ke beghair save nahi kar saktey</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <form action="{% url 'personal_group_grant_chat_saving_perm' %}" method="POST" class="mts mbl" style="text-align:center">
+            {% csrf_token %}
+            <input type="hidden" name="tid" value="{{ tid }}">
+            <input type="hidden" name="cp" value="{{ curr_perm }}">
+            <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+            <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="dec" value="Cancel">
+        </form>
+
+        <hr size=1 COLOR="#e6e6e6">
+
+      {% if all_saved_posts %}
+
+        <div class="lsp mbs mtl">
+          <span class="cl"><b>Delete</b>: Kya apki sari saved chat hamesha ke liye delete kar di jai?</span>
+        </div>
+
+        <form action="{% url 'personal_group_delete_saved_post' %}" method="POST" class="mts mbl" style="text-align:center">
+            {% csrf_token %}
+            <input type="hidden" name="tid" value="{{ tid }}">
+            <input type="hidden" name="dall" value="1">
+            <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+            <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="dec" value="Cancel">
+        </form>
+
+      {% else %}
+
+        <div class="lsp mbl mtl" style="text-align:center">
+          <b class="cl">Is waqt koi chat saved nahi ...</b><br>
+          <div class="sp cs cgy">Chat save karney ke liye uskey neechay <b><img src="{{ STATIC_URL }}img/sv_trans.svg" style="vertical-align:middle;width:12px;height:12px;"></b> button dabain</div>
+            <form method="POST" action="{% url 'enter_personal_group' %}" class="mts mbl" style="text-align:center">
+            {% csrf_token %}
+            <input type="hidden" name="tid" value="{{ tid }}">
+            <button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl">wapis</button>
+            </form>
+        </div>
+
+      {% endif %}
+
+      <hr size=1 COLOR="#e6e6e6">
+    </div>
+
+       {% for post in all_saved_posts %}
+       <div class="nos margin clb" style="max-width:600px;width:92%;">
+        <div class="sp cgy cs mbs h7" style="text-align:center"> saved {{ post.save_time|human_time }} </div>
+        {% if own_id|slugify == post.id %}
+         <div class="card mbl {{ bgclass }}" style="margin-top:1em;text-align:right;">
+          <div class="mbs tr_cnr">
+          <a href="{% url 'profile' post.username %}">
+          {% if own_anon %}
+            <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ post.username|truncap }}</div>
+          {% else %}
+              <span style="color:#01579B;">{{ post.username }}</span>&nbsp;<span class="cs cg">({{ post.score }})</span>
+              <img src="{{ post.av_url|s3:'thumb' }}" alt="{{ post.username|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
+          {% endif %}
+          </a>
+          </div>
+
+         {% if post.which_blob == 'nor' %}
+         <div class="mls mbs mrs">
+           {% if post.status == 'del' %}                
+            {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+            <div class="mt">
+             <span class="sp cxs cgy">{{ post.time|human_time }}</span>
+            </div>
+
+           {% else %}
+             
+             {% if post.type == 'text' %}
+
+                <div class="mbs">
+                  <span class="lsp cl"><bdi>{% emoticons %}{{ post.text }}{% endemoticons %}</bdi></span>
+                </div>
+
+             {% elif post.type == 'img' %}
+             
+                {% if post.hidden == 'no' %}
+
+                 <div class="mbs">
+                   {% personal_group_big_photo img_url=post.img|s3 img_caption=post.img_caption|emoticons css_shadow='sh-r' max_width=post.img_width static_url=STATIC_URL %}  
+                 </div>
+
+                {% elif post.hidden == 'yes' %}
+
+                  <div class="mbs">
+                    {% personal_group_hidden_pht_big max_width=post.img_width hw_ratio=post.img_hw_ratio css_shadow='sh-r' right_align='ral' %}
+                  </div>
+
+                {% endif %}
+                
+             {% endif %}
+             <form action="{% url 'personal_group_delete_saved_post' %}" class="mrl" method="POST" style="display:inline">
+               {% csrf_token %}
+               <input type="hidden" name="tid" value="{{ tid }}">
+               <button type="submit" class="sv sv-bg" style="padding:0;width:22px;height:19px;vertical-align: middle" name="bid" value="{{ post.save_blob_id }}"><img src="{{ STATIC_URL }}img/x_b.svg" width="9" height="9"></button>
+             </form>
+             <div class="sp cxs cgy" style="display:inline">{{ post.time|human_time }}</div>
+
+          {% endif %}
+         </div>
+
+         {% elif post.which_blob == 'res' %}
+         
+         <div class="mls mbs mrs">
+                       
+              {% if post.status == 'del' %}
+                 
+                  {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+                  
+                  <div class="mt mbl">
+                  <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
+
+                 </div>
+
+              {% else %}
+
+                  {% if post.res_type == 'text' %}
+                    <div class="mbs">
+                      <span class="lsp cl"><bdi>{% emoticons %}{{ post.res_content }}{% endemoticons %}</bdi></span>
+                    </div>
+                  {% else %}
+                      
+                      {% if post.hidden == 'no' %}
+                        <div class="mbs">
+                          {% personal_group_big_photo img_url=post.res_content|s3 img_caption=post.img_caption|emoticons css_shadow='sh-r' max_width=post.img_width static_url=STATIC_URL %}
+                        </div>
+                      {% elif post.hidden == 'yes' %}
+                        <div class="mbs">
+                          {% personal_group_hidden_pht_big max_width=post.img_width hw_ratio=post.img_hw_ratio css_shadow='sh-r' right_align='ral' %}
+                        </div>
+                      {% endif %}
+                      
+                  {% endif %}
+
+                   <div class="mbl">
+                    <form action="{% url 'personal_group_delete_saved_post' %}" class="mrl" method="POST" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="tid" value="{{ tid }}">
+                    <button type="submit" class="sv sv-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="bid" value="{{ post.save_blob_id }}"><img src="{{ STATIC_URL }}img/x_b.svg" width="9" height="9"></button>
+                    </form>
+                    <div class="sp cxs cgy" style="display:inline">{{ post.res_time|human_time }}</div>
+                   </div>
+
+                  <!-- personal_group_response_reference_left -->
+
+                  <div class="mrl mll mbl card ca" style="text-align:left">
+
+                    <div class="mbs cs tl_cnr">
+                        <a href="{% url 'profile' post.t_username %}">
+                        {% if their_anon %}
+                          <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ post.t_username|truncap }}</div></a>
+                        {% else %}
+                          <img src="{{ post.t_av_url|s3:'thumb' }}" alt="{{ post.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
+                          <span style="color:#306654;">{{ post.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ post.t_score }})</span>
+                        {% endif %}
+                        </a>
+                    </div>
+                    
+                    <div class="cs mls mbs mrs">
+                      {% if post.t_status == 'del' %}
+                          <div class="mbs">{% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}</div>
+                      {% elif post.t_type == 'text' %}
+                          <div class="lsp mbs"><bdi>{% emoticons %}{{ post.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                      {% elif post.t_type == 'img' %}
+                          
+                            {% if post.t_hidden == 'yes' %}
+                            <div class="mbl mtl">
+                              {% personal_group_hidden_pht_small max_width=post.t_img_s_width thumb_height=thumb_height css_shadow='sh-l' right_align='' %}
+                            </div>
+
+                            {% else %}
+                              <div class="mbl mtl">
+                                {% personal_group_small_photo img_url=post.t_content|s3:'thumb' img_caption=post.t_img_s_caption|emoticons css_shadow='sh-l' static_url=STATIC_URL %}
+                              </div>
+                            {% endif %}
+                          
+                      {% endif %}
+
+                      <span class="sp cxs cgy">{{ post.t_writing_time|human_time }}</span>
+                      
+                    </div>
+
+                  </div>
+
+              {% endif %}
+
+          </div>
+
+         {% endif %}
+         </div>
+
+
+        {% else %}
+         <div class="card mbl {{ their_bgclass }}" style="margin-top:1em;text-align:left;">
+
+          <div class="mbs tl_cnr">
+            <a href="{% url 'profile' post.username %}">
+            {% if their_anon %}
+            <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ post.username|truncap }}</div>
+            {% else %}
+            <img src="{{ post.av_url|s3:'thumb' }}" alt="{{ post.username|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
+            <span style="color:#306654;">{{ post.username }}</span>&nbsp;<span class="cs cg">({{ post.score }})</span>
+            {% endif %}
+            </a>
+          </div>
+           {% if post.which_blob == 'nor' %}
+           <div class="mls mbs mrs">
+               {% if post.status == 'del' %}
+                  {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}
+                  <div class="mt">
+                   <span class="sp cxs cgy">{{ post.time|human_time }}</span>
+                 </div>
+               {% else %}
+
+                   {% if post.type == 'text' %}
+                      <div class="mbs">
+                        <span class="cl"><bdi>{% emoticons %}{{ post.text }}{% endemoticons %}</bdi></span>
+                      </div>
+                   {% elif post.type == 'img' %}
+                 
+                      {% if post.hidden == 'no' %}
+                       
+                        <div class="mbs">
+                          {% personal_group_big_photo img_url=post.img|s3 img_caption=post.img_caption|emoticons css_shadow='sh-l' max_width=post.img_width static_url=STATIC_URL %}<br>
+                        </div>
+
+                      {% elif post.hidden == 'yes' %}
+                       
+                        <div class="mbs">
+                          {% personal_group_hidden_pht_big max_width=post.img_width hw_ratio=post.img_hw_ratio css_shadow='sh-l' right_align='' %}
+                        </div>
+                       
+                      {% endif %}
+            
+                    {% endif %}
+
+                     <div class="sp cxs cgy mrl" style="display:inline">{{ post.time|human_time }}</div>
+                     <form action="{% url 'personal_group_delete_saved_post' %}" method="POST" style="display:inline">
+                       {% csrf_token %}
+                       <input type="hidden" name="tid" value="{{ tid }}">
+                       <button type="submit" class="sv-gr sv-bg-gr" style="padding:0;width:22px;height:19px;vertical-align: middle" name="bid" value="{{ post.save_blob_id }}"><img src="{{ STATIC_URL }}img/x_g.svg" width="9" height="9"></button>
+                     </form>
+                {% endif %}                         
+
+           {% elif post.which_blob == 'res' %}
+
+
+           <div class="mls mbs mrs">
+                     
+              {% if post.status == 'del' %}
+                    <div class="mbs">
+                    {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}
+                    </div>
+                    <div class="mbs">
+                     <span class="sp cxs cgy">{{ post.res_time|human_time }}</span>
+                   </div>
+              {% else %}
+                  
+                  {% if post.res_type == 'text' %}
+                    <div class="mbs">
+                      <span class="lsp cl"><bdi>{% emoticons %}{{ post.res_content }}{% endemoticons %}</bdi></span>
+                    </div>
+                  {% elif post.res_type == 'img' %}
+                      
+                      {% if post.hidden == 'no' %}
+                        <div class="mbs">
+                        {% personal_group_big_photo img_url=post.res_content|s3 img_caption=post.img_caption|emoticons css_shadow='sh-l' max_width=post.img_width static_url=STATIC_URL %}
+                        </div>
+                      {% elif post.hidden == 'yes' %}
+                      <div class="mbs">
+                        {% personal_group_hidden_pht_big max_width=post.img_width hw_ratio=post.img_hw_ratio css_shadow='sh-l' right_align='' %}
+                      </div>
+
+                      {% endif %}
+                      
+                  {% endif %}
+
+                   <div class="mbl">
+                     
+                     <div class="sp cxs cgy mrl" style="display:inline">{{ post.res_time|human_time }}</div>
+                     <form action="{% url 'personal_group_delete_saved_post' %}" method="POST" style="display:inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="tid" value="{{ tid }}">
+                      <button type="submit" class="sv-gr sv-bg-gr" style="padding:0;width:22px;height:19px;vertical-align: middle" name="bid" value="{{ post.save_blob_id }}"><img src="{{ STATIC_URL }}img/x_g.svg" width="9" height="9"></button>
+                     </form>
+
+                   </div>
+
+                  <!-- personal_group_response_reference_right -->
+
+                     <div class="mrl mll mbl card csb" style="text-align:right">
+                      
+                      <div class="mbs cs tr_cnr">
+                          <a href="{% url 'profile' post.t_username %}">
+                           {% if own_anon %}
+                            <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%">{{ post.t_username|truncap }}</div>
+                          {% else %}
+                            <span style="color:#01579B;">{{ post.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ post.t_score }})</span>
+                            <img src="{{ post.t_av_url|s3:'thumb' }}" alt="{{ post.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%">
+                          {% endif %}
+                          </a>
+                      </div>
+                      
+                        <div class="cs mls mbs mrs">
+                          {% if post.t_status == 'del' %}
+                            <div class="mbs">
+                              {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
+                            </div>
+                          {% elif post.t_type == 'text' %}
+                              <div class="lsp mbs"><bdi>{% emoticons %}{{ post.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                          {% elif post.t_type == 'img' %}
+                              
+                             {% if post.t_hidden == 'no' %}
+                               
+                               <div class="mbl mtl">
+                                {% personal_group_small_photo img_url=post.t_content|s3:'thumb' img_caption=post.t_img_s_caption|emoticons css_shadow='sh-r' static_url=STATIC_URL %}
+                              </div>
+
+                             {% elif post.t_hidden == 'yes' %}
+
+                              <div class="mbl mtl">
+                                {% personal_group_hidden_pht_small max_width=post.t_img_s_width thumb_height=thumb_height css_shadow='sh-r' right_align='ral' %}
+                              </div>
+
+                            {% endif %}
+
+                          {% endif %}
+
+                            <span class="sp cxs cgy">{{ post.t_writing_time|human_time }}</span>
+
+                        </div>
+                    </div> 
+
+              {% endif %}
+
+          </div>
+
+
+           {% endif %}
+         </div>
+        {% endif %}
+        </div>
+        </div>
+       {% endfor %}
+<br><br>
+{% endblock %}

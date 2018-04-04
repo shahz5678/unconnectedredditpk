@@ -1,0 +1,33 @@
+{% load human_time %}
+{% load future_time %}
+
+<div style="border:2px dashed red;border-radius:12px;color:red;padding:10px;text-align:center">
+    {% if suspended_by == 'self' %}    
+        <div class="lsp cxl">Ap ne <b>{{ t_nick }}</b> ki private chat chore di {{ time_of_suspension|human_time }}</div>
+        <hr size=1 COLOR="red">
+        <div id="sp" class="mt cl mbs">
+            {% if can_rejoin %}
+            Is private chat ko dubara join karney ke liye ye dabain:<br>
+            <form method="POST" action="{% url 'personal_group_reentry' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tid" value="{{ tid }}">
+                <button type="submit" class="btn bcb bl mtl cm" style="border:none;height:30px;">JOIN</button>
+            </form>
+            {% else %}
+            <div class="mt">Ap <b>{{ time_remaining|future_time }}</b> is private chat ko dubara join kar sakein ge</div>
+            <div class="cs mts">Agar ap is private chat mein <b>7 days</b> tak wapis na aye tou ye chat hamesha ke liye khatam ho jaye gi</div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="lsp cxl"><b>{{ t_nick }}</b> ne apki private chat chore di {{ time_of_suspension|human_time }}</div>
+        <hr size=1 COLOR="red">
+        <div id="sp" class="mt cl mbs">
+            {% if can_rejoin %}
+            Agar woh is private chat mein <b>7 days</b> tak wapis na aye tou ye hamesha ke liye khatam ho jaye gi
+             {% else %}
+            <div class="mt">Woh <b>{{ time_remaining|future_time }}</b> is private chat ko dubara join kar sakein ge</div>
+            <div class="cs mts">Agar woh <b>7 days</b> tak wapis na aye tou ye private chat hamesha ke liye khatam ho jaye gi</div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

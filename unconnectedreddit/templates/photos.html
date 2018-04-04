@@ -19,17 +19,13 @@
 <style>
 
 
-body {
+body{background: #E9EBEE}
 
-   background: #E8F5E9;
-   background: repeating-linear-gradient(
-  to right,
- #FAFAFA,
-  #FAFAFA 50px,
-  #E8F5E9 50px,
-  #E8F5E9 100px
-);
- }
+.bizcard{
+	border-radius: 6px;
+	box-shadow: 0 1px 3px 0 rgba(0,0,0,0.13);
+		
+	}
 
 .secondary-nav {
 	text-align: center;
@@ -38,12 +34,11 @@ body {
 
 .circular-button {
 
-	color:white; 
 	border-radius: 17px 17px 17px 17px; 
 	height:65px; 
 	width:65px;
 	border:none;
-	margin-left:25px
+	margin-left:25px;
 
 }
 	
@@ -59,7 +54,6 @@ body {
 
 .circular-button {
 
-	color:white; 
 	height:40px; 
 	width:41px; 
 	border-style:none; 
@@ -88,7 +82,7 @@ body {
 {% endif %}
 
 <div class="secondary-nav mbl mts">
-<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:grey; background-color:#e6e6e6;margin-left:0px;">Best<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Latest<br>fotos</button><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:grey; background-color:#e6e6e6;">Top<br>stars</button></a>
+<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:#808080; background-color:#CCCCCC;margin-left:0px;">Best<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Latest<br>fotos</button><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:#808080; background-color:#CCCCCC;">Top<br>stars</button></a>
 <hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
 </div>
 
@@ -100,7 +94,7 @@ body {
 		<div class="cm co mtl ">Fotos dostoon ko&nbsp;<a href="{% url 'auth_pics_display' %}#section0"><button class="btn nw bm bco cm">SMS kro</button></a>&nbsp;bilkul muft!
 		&nbsp;<a href="{% url 'pic_help' %}"><button class="btn bxs bcp cs mbs"><b>?</b></button></a></div>
 		{% endif %}
-<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;" >
+<div class="bizcard" style="background-color:white;position:relative; margin-bottom:35px; margin-top:10px; padding:3px;padding-bottom:10px;" >
 	<a name="section{{ forloop.counter }}"></a>
 	
 	<div itemscope itemtype="http://schema.org/CreativeWork">

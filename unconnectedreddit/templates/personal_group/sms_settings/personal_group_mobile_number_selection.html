@@ -1,0 +1,64 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>SMS settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+{% if single_statement %}
+
+	<span class="lsp cl"><b>Receive SMS:</b> Ap apney verified number <b>0{{ mobnums.0|slice:":3" }} {{ mobnums.0|slice:"3:" }}</b> pe SMS wasool karien ge</span>
+
+	{% if from_chat %}
+	<form method="POST" action="{% url 'personal_group_receive_sms_from_chat' %}" class="mtl">
+	{% else %}
+	<form method="POST" action="{% url 'personal_group_receive_sms' %}" class="mtl" style="text-align:center">
+	{% endif %}
+		{% csrf_token %}
+		<input type="hidden" name="mob" value="0">
+		<input type="hidden" name="tid" value="{{ tid }}">
+		<button type="submit" class="btn bcb bm mtl mrs mbs cl pg_ok" style="border:none;height:30px;" name="numdec" value="1">OK</button>
+		<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="numdec" value="Cancel">
+	</form>
+
+{% else %}
+
+	<div class="mtl">			  
+		<span class="lsp cl"><b>Receive SMS:</b> Ap kis number pe SMS wasool karna chahtey hain?<br>
+		<span class="sp cgy cs">(Apka number khufiya rahey ga)</span></span>
+
+		{% if from_chat %}
+		<form method="POST" action="{% url 'personal_group_receive_sms_from_chat' %}" class="cl radbut mtl ma" style="text-align:center;width: auto;text-align: left;display: table;">
+		{% else %}
+		<form method="POST" action="{% url 'personal_group_receive_sms' %}" class="cl radbut mtl ma" style="text-align:center;width: auto;text-align: left;display: table;">
+		{% endif %}
+			<input type="hidden" name="tid" value="{{ tid }}">
+			{% csrf_token %}
+			<div class="mts cm">
+				{% for num in mobnums %}
+				<input class="mbl" type="radio" name="mob" class="mbs" id="{{ num }}" value="{{ forloop.counter0 }}"><label for="{{ num }}">Jis number kay end mein <b>{{ num|slice:"-4:"}}</b> he</label><br>
+				{% endfor %}
+				{% if change_num %}
+				<input class="mbl" type="radio" name="mob" class="mbs" id="new" value="new"><label for="new">&nbsp;New number pe&nbsp;</label><br>
+				{% endif %}
+			</div>
+			<button type="submit" class="btn bcb bm mtl mrs mbs cl pg_ok" style="border:none;height:30px;" name="numdec" value="1">OK</button>
+			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="numdec" value="Cancel">
+		</form>
+	</div>
+
+{% endif %}
+
+</div>
+<br><br>
+
+{% endblock %}

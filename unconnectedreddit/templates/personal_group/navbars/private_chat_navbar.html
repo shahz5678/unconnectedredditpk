@@ -1,0 +1,12 @@
+{% if section == 'chats' %}
+<div class="fx fxjscn fxaicn">
+<button class="bizcard" style="border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:8px;border-bottom-left-radius:8px;padding:0;height:40px;width:65px;background-color:#FFFAFA"><img src="{{ static_url }}img/list.svg" width="22" height="22" style="vertical-align:middle"></button>
+<a href="{% url 'show_personal_group_invite_list' %}"><button style="border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:8px;border-bottom-right-radius:8px;padding:0;height:40px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/add_disabled.svg" width="22" height="22" style="vertical-align:middle"></button></a>
+</div>
+{% elif section == 'invites' %}
+<div class="fx fxjscn fxaicn">
+<a href="{% url 'personal_group_user_listing' %}"><button style="border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:8px;border-bottom-left-radius:8px;padding:0;height:40px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/list_disabled.svg" width="19" height="19" style="vertical-align:middle"></button></a>
+<button class="bizcard" style="border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:8px;border-bottom-right-radius:8px;padding:0;height:40px;width:65px;background-color:#FFFAFA"><img src="{{ static_url }}img/add.svg" width="26" height="26" style="vertical-align:middle"></button>
+</div>
+{% else %}
+{% endif %}

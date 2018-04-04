@@ -786,14 +786,18 @@ def someone_elses_number(national_number, user_id):
 
 
 
-def get_user_verified_number(user_id):
+def get_user_verified_number(user_id,country_code=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	numbers = my_server.lrange('um:'+user_id,0,-1)
 	if numbers:
 		mob_nums = []
-		for number in numbers:
-			mob_nums.append(ast.literal_eval(number)["national_number"])
+		if country_code:
+			for number in numbers:
+				mob_nums.append(ast.literal_eval(number)["number"])
+		else:
+			for number in numbers:
+				mob_nums.append(ast.literal_eval(number)["national_number"])
 		# sending back numbers appended in a list
 		return mob_nums
 	else:
@@ -1726,20 +1730,21 @@ def get_ranked_public_groups():
 
 ###################### First Time User Tutorials #########################
 
-# '0' 'personal group anonymous invite'
-# '1' 'personal group sms settings'
+'0' 'personal group anonymous invite'
+'1' 'personal group sms settings'
+'2' 'granting permission to save posts'
 
-# def tutorial_unseen(user_id, which_tut, renew_lease=False):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
-# 	if my_server.exists(key_name):
-# 		if renew_lease:
-# 			# increase TTL if renew_lease is passed
-# 			my_server.expire(key_name,TWO_WEEKS)
-# 		return False
-# 	else:
-# 		my_server.setex(key_name,1,ONE_MONTH)
-# 		return True
+def tutorial_unseen(user_id, which_tut, renew_lease=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+	if my_server.exists(key_name):
+		if renew_lease:
+			# increase TTL if renew_lease is passed
+			my_server.expire(key_name,TWO_WEEKS)
+		return False
+	else:
+		my_server.setex(key_name,1,ONE_MONTH)
+		return True
 
 ###################### Retrieving all mobile numbers ######################
 

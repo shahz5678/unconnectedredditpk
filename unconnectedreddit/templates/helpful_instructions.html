@@ -3,10 +3,10 @@
 {% load truncap %}
 {% block content %}
 <head><title>Instructions | Damadam.pk</title></head>
-<div class="margin clb">
-<div class="signup" style="background-color:white">
-<div style="background-color:white;overflow: auto; border-radius:6px;padding:10px 5px 10px 5px;">
-
+<style type="text/css">
+	body{background: #E9EBEE}
+</style>
+<div class="bizcard clb" style="border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:300px;width:95%;padding:10px">
 
 		{% if personal_group_invite_privacy %}
 
@@ -19,6 +19,8 @@
 			<div class="mtl" style="text-align:center">
 				{% if org == 'home' %}
 					<a href="{% url 'home_loc_pk' poid %}">
+				{% elif org == 'history' %}
+					<a href="{% url 'user_activity' tun %}">
 				{% elif org == '' %}
 				{% endif %}
 				<button class="btn bcb bm mbs" style="border:none;height:30px;">OK</button>
@@ -32,8 +34,6 @@
 		{% endif %}
 
 
-</div>
-</div>
 </div>
 <br><br>
 {% endblock %}

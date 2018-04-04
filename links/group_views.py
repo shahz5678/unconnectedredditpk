@@ -1778,7 +1778,7 @@ def post_js_reply_to_personal_group(request):
 						else:
 							return redirect("enter_personal_group")
 			else:
-				return redirect("missing_page")
+				return render(request,"500.html",{})
 		else:
 			return redirect("missing_page")
 	else:

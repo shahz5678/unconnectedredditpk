@@ -29,6 +29,9 @@
         
         <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="rep_tid" type="hidden" name="tid" value="{{ tid }}">
+        <input id="rep_tt" type="hidden" name="tt" value="">
+        <input id="rep_idx" type="hidden" name="idx" value="">
+        <input id="rep_bid" type="hidden" name="bid" value="">
 
         <div class="mbs mts" style="width:75%;display:inline-block;">
             {{ personal_group_rep_form.rep_reply }}
@@ -425,5 +428,5 @@
 
 </div>
 <br><br>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.2.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.3.js"></script>
 {% endblock %}

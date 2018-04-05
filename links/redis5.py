@@ -69,6 +69,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 THREE_SECS = 3
 SIX_SECS = 6
 TWO_MINS = 120
+FIVE_MINS = 5*60
 EIGHT_MINS = 8*60
 TEN_MINS = 10*60
 THIRTY_MINS = 30*60
@@ -830,9 +831,9 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 					# decrementing saves remaining counter
 					pipeline1.hincrby(group_hash,'svrem'+own_id,amount=-1)
 					# ratelimiting:
-					pipeline1.setex(ratelimit,1,EIGHT_MINS)
+					pipeline1.setex(ratelimit,1,FIVE_MINS)
 					pipeline1.execute()
-					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], EIGHT_MINS
+					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], FIVE_MINS
 		else:
 			# normal chat blob
 			if not blob_contents.get("time"+index,None):
@@ -871,9 +872,9 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 					# decrementing saves remaining counter
 					pipeline1.hincrby(group_hash,'svrem'+own_id,amount=-1)
 					# ratelimiting:
-					pipeline1.setex(ratelimit,1,EIGHT_MINS)
+					pipeline1.setex(ratelimit,1,FIVE_MINS)
 					pipeline1.execute()
-					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], EIGHT_MINS
+					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], FIVE_MINS
 	else:
 		# can't save blob that doesn't exist any more
 		return False, PERSONAL_GROUP_SAVE_MSGS['err4'], None

@@ -67,7 +67,7 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 	"""
 	Determines whether to call personal_group trimming task
 	"""
-	if obj_count > obj_ceiling and random.random() < 0.33:
+	if obj_count > obj_ceiling and random.random() < 0.66:
 		personal_group_trimming_task.delay(group_id, obj_count)
 
 

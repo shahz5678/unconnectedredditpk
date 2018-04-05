@@ -166,9 +166,9 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
     form_data.append("sk",document.getElementById('pub_img_sk').value);
   } else if (type === 'pg_reply') {
     // uploading from private chat (direct response)
-    form_data.append("tt", document.getElementById('tt').value);
-    form_data.append("bid", document.getElementById('bid').value);
-    form_data.append("idx", document.getElementById('idx').value);
+    form_data.append("tt", document.getElementById('rep_tt').value);
+    form_data.append("bid", document.getElementById('rep_bid').value);
+    form_data.append("idx", document.getElementById('rep_idx').value);
     form_data.append("tid",document.getElementById('rep_tid').value);
     form_data.append("sk",document.getElementById('rep_sk').value);
   } else {
@@ -452,11 +452,14 @@ Blob = (function() {
 // Direct Response in Private Chat (JS functionality)
 var is_reply = false;
 var valid_rep_img = false;
-var form_template = document.querySelector('#form_template');//supported
+// var form_template = document.querySelector('#form_template');//supported
+var rep_btns = document.querySelectorAll('button.rep');
 if (form_template) {form_template.onsubmit = personal_group_reply_submit;};
 var browse_rep_image_btn = document.getElementById('browse_rep_image_btn');//supported
 if (browse_rep_image_btn) {browse_rep_image_btn.onchange = show_rep_image_name;}
-Array.from(document.querySelectorAll('button.rep')).forEach(btn => btn.onclick = toggle_rep);//supported
+// Array.from(rep_btns).forEach(btn => btn.onclick = toggle_rep);//supported
+for (var i=0, len=rep_btns.length; i < len; i++) rep_btns[i].onclick = toggle_rep;
+
 
 function show_rep_image_name(e) { 
   // if opera mini, do nothing
@@ -476,40 +479,109 @@ function show_rep_image_name(e) {
 }
 
 
-function create_input(name, payload) {
-  // populating input fields with correct values
-  var input = document.createElement('input');//supported
-  input.setAttribute('type','hidden');//supported
-  input.setAttribute('id',name);//supported
-  input.setAttribute('name',name);  //supported
-  input.setAttribute('value',payload);  //supported
-  return(input);
-}
+// function create_input(name, payload) {
+//   // populating input fields with correct values
+//   var input = document.createElement('input');//supported
+//   input.setAttribute('type','hidden');//supported
+//   input.setAttribute('id',name);//supported
+//   input.setAttribute('name',name);  //supported
+//   input.setAttribute('value',payload);  //supported
+//   return(input);
+// }
 
-function rem_input_fields() {
-  // remove unneeded input fields
-    child1 = document.getElementById('tt');
-    child2 = document.getElementById('bid');
-    child3 = document.getElementById('idx');
-    if (child1 != null) { form_template.removeChild(child1); }//supported
-    if (child2 != null) { form_template.removeChild(child2); }//supported
-    if (child3 != null) { form_template.removeChild(child3); }//supported
-}
+// function rem_input_fields() {
+//   // remove unneeded input fields
+//     child1 = document.getElementById('tt');
+//     child2 = document.getElementById('bid');
+//     child3 = document.getElementById('idx');
+//     if (child1 != null) { form_template.removeChild(child1); }//supported
+//     if (child2 != null) { form_template.removeChild(child2); }//supported
+//     if (child3 != null) { form_template.removeChild(child3); }//supported
+// }
 
-function append_input_fields(payload) {
+// function append_input_fields(payload) {
 
-  // getting value from "reply" button
-    payload = payload.split(':');
-    var tt = payload[5];
-    var bid = payload[0];
-    var idx = payload[3];
+//   // getting value from "reply" button
+//     payload = payload.split(':');
+//     var tt = payload[5];
+//     var bid = payload[0];
+//     var idx = payload[3];
   
-    // assigning populated input fields to form_template 
-    form_template.appendChild(create_input('tt', tt));//supported
-    form_template.appendChild(create_input('bid', bid));//supported
-    form_template.appendChild(create_input('idx', idx));//supported
+//     // assigning populated input fields to form_template 
+//     form_template.appendChild(create_input('tt', tt));//supported
+//     form_template.appendChild(create_input('bid', bid));//supported
+//     form_template.appendChild(create_input('idx', idx));//supported
+
+// }
+
+function populate_input_fields(tt, bid, idx) {
+  
+    var field1 = document.getElementById('rep_tt');
+    field1.value = tt;
+    // var e1 = document.createEvent("UIEvent");
+    // e1.initUIEvent("change", true, true, window, 1);
+    var e1 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field1.dispatchEvent(e1);
+
+    var field2 = document.getElementById('rep_bid');
+    field2.value = bid;
+    // var e2 = document.createEvent("UIEvent");
+    // e2.initUIEvent("change", true, true, window, 1);
+     var e2 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field2.dispatchEvent(e2);
+
+    var field3 = document.getElementById('rep_idx');
+    field3.value = idx;
+    // var e3 = document.createEvent("UIEvent");
+    // e3.initUIEvent("change", true, true, window, 1);
+     var e3 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field3.dispatchEvent(e3);
 
 }
+
+function empty_input_fields() {
+
+    var field1 = document.getElementById('rep_tt');
+    field1.value='';
+    var event1 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field1.dispatchEvent(event1);
+
+    var field2 = document.getElementById('rep_bid');
+    field2.value='';
+    var event2 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field2.dispatchEvent(event2);
+
+    var field3 = document.getElementById('rep_idx');
+    field3.value='';
+    var event3 = new UIEvent('change', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+    field3.dispatchEvent(event3);
+
+}
+
 
 function personal_group_reply_submit(e) {
   if (detect_android_ver() < 4.1) return;
@@ -530,14 +602,18 @@ function personal_group_reply_submit(e) {
 }
 
 function toggle_rep(e) {
-
   // error-handling cases
   if (!form_template || Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || detect_android_ver() < 4.1) return;
-  
   // prevent form submission
   e.preventDefault();
+  // var payload = e.target.parentNode.querySelector('#payload').value;
+  var payload = this.parentNode.querySelector('#payload').value.split(':');
+  var tt = payload[5];
+  var bid = payload[0];
+  var idx = payload[3];
   // first check if reply form was already added under reply button
   var to_remove = this.parentNode.nextElementSibling;//supported
+  // var to_remove = e.target.parentNode.nextElementSibling;//supported
 
   if (to_remove == null) {
 
@@ -545,13 +621,15 @@ function toggle_rep(e) {
       form_template.style.display = 'inline';
 
       // remove unneeded input fields
-      rem_input_fields();
+      // rem_input_fields();
+      empty_input_fields();
 
-    // moving ghost form into position
-    e.target.parentNode.insertAdjacentElement('afterend', form_template);//supported
+      // moving ghost form into position
+      e.target.parentNode.insertAdjacentElement('afterend', form_template);//supported
 
-    // creating and appending desired input fields in form_template
-    append_input_fields(e.target.parentNode.querySelector('#payload').value);//supported
+      // creating and appending desired input fields in form_template
+      populate_input_fields(tt, bid, idx);
+      // append_input_fields(payload);//supported
 
   }
 
@@ -562,19 +640,22 @@ function toggle_rep(e) {
         form_template.style.display = 'none';
         
         // remove unneeded input fields
-        rem_input_fields();
+        // rem_input_fields();
+        empty_input_fields();
       }
       else {
         form_template.style.display = 'inline';
 
         // remove unneeded input fields
-      rem_input_fields();
+        // rem_input_fields();
+        empty_input_fields();
 
-    // moving ghost form into position
-    e.target.parentNode.insertAdjacentElement('afterend', form_template);
+        // moving ghost form into position
+        e.target.parentNode.insertAdjacentElement('afterend', form_template);
 
-    // creating and appending desired input fields in form_template
-      append_input_fields(e.target.parentNode.querySelector('#payload').value);
+        // creating and appending desired input fields in form_template
+        populate_input_fields(tt, bid, idx);
+        // append_input_fields(payload);
       }
 
       
@@ -585,13 +666,15 @@ function toggle_rep(e) {
       form_template.style.display = 'inline';
 
       // remove unneeded input fields
-      rem_input_fields();
+      // rem_input_fields();
+      empty_input_fields();
 
-    // moving ghost form into position
-    e.target.parentNode.insertAdjacentElement('afterend', form_template);
+      // moving ghost form into position
+      e.target.parentNode.insertAdjacentElement('afterend', form_template);
 
-    // creating and appending desired input fields in form_template
-    append_input_fields(e.target.parentNode.querySelector('#payload').value);
+      // creating and appending desired input fields in form_template
+      populate_input_fields(tt, bid, idx);
+      // append_input_fields(payload);
 
   }
 

@@ -12,8 +12,8 @@ DAILY_ECOMM_METRICS_HISTORY_LIMIT = 60
 ########################
 MOBILE_NUM_CHG_COOLOFF = 7776000 #3 months
 ########################
-PERSONAL_GROUP_OBJECT_CEILING = 40#size after which the personal group could be trimmed
-PERSONAL_GROUP_OBJECT_FLOOR = 33#size to which the group is trimmed down
+PERSONAL_GROUP_OBJECT_CEILING = 27#size after which the personal group could be trimmed
+PERSONAL_GROUP_OBJECT_FLOOR = 21#size to which the group is trimmed down
 PERSONAL_GROUP_BLOB_SIZE_LIMIT = 10
 PERSONAL_GROUP_PHT_XFER_IVTS = 5
 PERSONAL_GROUP_SMS_IVTS = 5

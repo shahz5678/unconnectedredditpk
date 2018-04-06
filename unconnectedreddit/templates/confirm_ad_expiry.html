@@ -1,19 +1,13 @@
 {% extends "base_ecomm.html" %}
 {% block content %}
-
-<head>
-<title>
-	Expire classified | Damadam.pk
-</title>
-</head>
-
+<head><title>Expire classified | Damadam.pk</title></head>
 <div class="margin clb">
-<span class="cl">Kiya is ishtihar ko khatam kar diya jaye?</span><br>
+<span class="cl">Kya is ishtihar ko khatam kar diya jaye?</span><br>
 <form method="POST" action="{% url 'expire_my_ad' %}" class="mtl">
 {% csrf_token %}
 <input type="hidden" name="ad_score" value="{{ ad_id }}">
-<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1">Haan</button><br>
-<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0">Nahi</button>
+<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1" style="height:25px">Haan</button><br>
+<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0" style="height:25px">Nahi</button>
 </form>
 </div>
 <br><br>

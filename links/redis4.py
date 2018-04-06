@@ -1,6 +1,7 @@
 
 # coding=utf-8
 import redis, time, random
+from django.contrib.auth.models import User
 from location import REDLOC4
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
 
@@ -43,6 +44,7 @@ sm:<user_id>:<section>:<obj_id> - counter to count short messages sent on home o
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
+TWO_DAYS = 60*60*24*2
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
 TWENTY_MINS = 20*60
@@ -197,6 +199,63 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return secret_key
 	else:
 		return '1'
+
+
+################################################ User nicknames fetcher ##############################################
+
+def retrieve_bulk_unames(user_ids, decode=False, my_server=False):
+	"""
+	Returns usernames in bulk, in id-username dictionary format
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.hget('uname:'+user_id,'uname')
+	usernames_wip = pipeline1.execute()
+	counter = 0
+	usernames, uncollected_uname_ids = {}, []
+	for username in usernames_wip:
+		id_ = int(user_ids[counter])
+		if username:
+			if decode:
+				usernames[id_] = username.decode('utf-8')
+			else:
+				usernames[id_] = username
+		else:
+			usernames[id_] = ''
+			uncollected_uname_ids.append(id_)
+		counter += 1
+	if uncollected_uname_ids:
+		residual_unames = dict(User.objects.filter(id__in=uncollected_uname_ids).values_list('id','username'))
+		pipeline2 = my_server.pipeline()
+		for key in residual_unames:
+			usernames[key], hash_name = residual_unames[key], 'uname:'+str(key)
+			pipeline2.hset(hash_name,'uname',residual_unames[key])
+			pipeline2.expire(hash_name,TWO_DAYS)
+		pipeline2.execute()
+	return usernames
+
+
+def retrieve_uname(user_id,decode=False,my_server=False):
+	"""
+	Returns user's nickname
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	hash_name = 'uname:'+str(user_id)
+	username = my_server.hget(hash_name,'uname')
+	if username:
+		if decode:
+			return username.decode('utf-8')
+		else:
+			return username
+	else:
+		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
+		my_server.hset(hash_name,'uname',username)
+		my_server.expire(hash_name,TWO_DAYS)
+		return username
+
 
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):

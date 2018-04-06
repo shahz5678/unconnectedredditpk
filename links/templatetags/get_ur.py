@@ -30,5 +30,9 @@ def get_ur(string):
 		return 'نک نیم میں حرف لکهنا ضروری ے'
 	elif 'Password mein harf likhna' in string:
 		return 'پاس ورڈ میں حرف لکهنا ضروری ے'
+	elif 'akhir mein . nah' in string:
+		return 'نک نیم کے آخر میں نقطہ نہ ڈالیں'
+	elif 'shuru mein . nah' in string:
+		return 'نک نیم کے شروع میں نقطہ نہ ڈالیں'
 	else:
 		return FORM_SUBMISSION_ERRORS[string]

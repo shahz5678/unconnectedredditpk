@@ -1,7 +1,6 @@
 {% extends "base_ecomm.html" %}
 {% block content %}
 
-
 <head>
 <title>
 	User SMS and notification settings | Damadam.pk
@@ -10,15 +9,15 @@
 
 <div class="margin clb">
 {% if current_setting == '1' %}
-	<span class="cl">Kiya khareedarun ke mobile numbers waley SMS <b class="cr">off</b> kar dein?</span><br>
+	<span class="cl">Kya khareedarun ke mobile numbers waley SMS <b class="cr">off</b> kar dein?</span><br>
 {% elif current_setting == '0' %}
-	<span class="cl">Kiya khareedarun ke mobile numbers waley SMS <b class="cg">on</b> kar dein?</span><br>
+	<span class="cl">Kya khareedarun ke mobile numbers waley SMS <b class="cg">on</b> kar dein?</span><br>
 {% endif %}
 	<form method="POST" action="{% url 'change_my_sms_settings' %}" class="mtl">
 	{% csrf_token %}
 	<input type="hidden" name="ad_score" value="{{ ad_id }}">
-	<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1">Haan</button><br>
-	<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0">Nahi</button>
+	<button type="submit" class="btn bcg bm mts mbs" name="dec" value="1" style="height:25px">Haan</button><br>
+	<button type="submit" class="btn bcr bm mts mbs" name="dec" value="0" style="height:25px">Nahi</button>
 	</form>
 
 </div>

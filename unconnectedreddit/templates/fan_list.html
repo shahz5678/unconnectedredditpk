@@ -6,11 +6,11 @@
 <head><title>User fans | Damadam.pk</title></head>
     <div class="margin">
         {% if not fans %}
-        <b class="clb">
+        <b class="clb cl">
         {% emoticons %}Abhi tak koi fan nahi hai ;({% endemoticons %}</b>
-        <br><br>
+        <br>
             <a href="{% url 'profile' star.username %}#section0">
-            <button class="btn bcg mtl mbl bm">wapis</button>
+            <button class="btn bcg mtl mbl sp bm" style="height:25px">wapis</button>
             </a>
         {% else %}
         {% if user == star %}

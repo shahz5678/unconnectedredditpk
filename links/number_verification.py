@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from score import NUMBER_VERIFICATION_BONUS
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
@@ -6,6 +7,11 @@ from account_kit_config_manager import account_kit_handshake
 from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, get_user_verified_number#, get_buyer_snapshot
+from redis5 import get_personal_group_target_id_and_csrf, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff, can_change_number, \
+retrieve_uname
+from group_views import enter_personal_group
+from models import UserProfile
+	
 
 def get_requirements(request, csrf, careem=False, csrf_omitted=False):
 	status = request.GET.get('status', None)
@@ -141,6 +147,44 @@ def verify_basic_item_seller_number(request,*args,**kwargs):
 	else:
 		return render(request,"unverified_number.html",{'referrer':'classified_listing','from_ecomm':True})
 
+####################################################################################
+
+
+def verify_personal_group_user(request):
+	"""
+	Processes mobile verification of personal group user
+	"""
+	user_id = request.user.id
+	tid, csrf = get_personal_group_target_id_and_csrf(user_id)
+	if csrf:
+		AK_ID, MN_data, err = get_requirements(request=request,csrf=csrf)
+		if AK_ID and MN_data:
+			if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+				return render(request,"wrong_number.html",{'referrer':'personal_group','tid':tid,'from_ecomm':False})
+			elif not can_change_number(user_id):
+				return render(request,"already_verified.html",{'from_personal_group':True,'tid':target_id})
+			else:
+				save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+				set_personal_group_mobile_num_cooloff(user_id)
+				own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, tid)
+				if their_anon_status is None:
+					return redirect("home")
+				else:
+					return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",{'tid':tid,\
+						'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=tid).values_list('avatar',flat=True)[0],\
+						'their_anon':their_anon_status,'name':retrieve_uname(tid,decode=True)})
+		elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
+			return render(request,"unverified_number.html",{'referrer':'personal_group','tid':tid,'reason':AK_ID,'from_ecomm':False})
+		elif err['status'] == "NOT_AUTHENTICATED":
+			return render(request,"dont_worry_just_authenticate.html",{'csrf':csrf,'tid':tid,'type':'personal_group_chatter','from_ecomm':False})
+		elif err['status'] == "PARTIALLY_AUTHENTICATED":
+			return render(request,"try_again.html",{'type':'personal_group_chatter','from_ecomm':False,'tid':tid})
+		else:
+			return render(request,"unverified_number.html",{'referrer':'personal_group','tid':tid,'from_ecomm':False})
+	else:
+		return render(request,"try_again.html",{'type':'personal_group_chatter','from_ecomm':False,'tid':tid})
+
+	
 
 ####################################################################################
 def verify_buyer_number(request):

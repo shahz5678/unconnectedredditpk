@@ -1,0 +1,155 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>SMS settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+{% if fresh_visit %}
+	
+	<div class="lsp card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Yahan se ap aik dusrey ko <b>SMS</b> ke zariye online bula saktey hain</span><br>
+		<hr size=1 COLOR="#ffeb3b">
+		<span class="cgy cl">Apka mobile number khufiya rehay ga aur SMS Damadam send karey ga (bilkul muft)</span>
+	</div>
+
+{% elif new_smsrec == '1' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">SMS ki ijazat de di geyi</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif new_smsrec == '0' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko ap ne SMS ke zariye online bulwaney se rok diya</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif sms_sent %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko SMS bhej di geyi</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif mobunver_rec == '1' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<div class="mbs cxl">Pehlay apna mobile number verify karwain</div>
+		<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/" style="display:inline;">
+		  <input type="hidden" name="country_code" value="PK">
+		  <input type="hidden" name="app_id" value="1758220174446684">
+		  <input type="hidden" name="locale" value="ur_PK">
+		  <input type="hidden" name="debug" value=false>
+		  <input type="hidden" name="redirect" value="https://damadam.pk/vpg/">
+		  <input type="hidden" name="state" value="{{ csrf }}">
+		  <input type="hidden" name="fbAppEventsEnabled" value=true>
+		  <button type="submit" class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="mver" value="1">OK</button>
+		</form>
+		<form method="POST" class="mts" action="{% url 'enter_personal_group' %}" style="display:inline;">
+			{% csrf_token %}
+			<input type="hidden" name="tid" value="{{ tid }}">
+			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" value="Cancel">
+		</form>
+	</div>
+
+{% endif %}
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+		<div class="lsp mbs mtl">
+			
+				<span class="cl"><b>Send SMS</b>: Kya <b>{% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}</b> ko SMS kar ke is chat mein bulaya jai?</span>
+				<div class="mt">
+				<span class="sp cgy cs">SMS Damadam ki janib se jaega, bilkul muft. Apka number {% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}ko nahi miley ga</span>
+				</div>
+			
+		</div>
+
+		<form action="{% url 'personal_group_send_sms' %}" method="POST" class="mts mbl" style="text-align:center">
+	        {% csrf_token %}
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="sdec" value="1">Haan</button>
+	        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="sdec" value="Cancel">
+	    </form>
+
+
+	<hr size=1 COLOR="#e6e6e6">
+
+
+		<div class="lsp mbs mtl">
+			{% if smsrec %}
+				<span class="cl"><b>Stop SMS</b>: Kya <b>{% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}</b> ko apko SMS ke zariye online bulwaney se rok diya jaye?</span>
+			{% else %}
+				<span class="cl"><b>Receive SMS</b>: Is waqt <b>{% if their_anon %}{{ name|truncap }}{% else %}{{ name|truncatechars:15 }}{% endif %}</b> apko SMS ke zariye nahi bula sakta. Ye setting change karni hai?</span>
+				<div class="mt">
+				<span class="sp cgy cs">Apka number {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko kabhi nahi miley ga, SMS Damadam se aega</span>
+				</div>
+			{% endif %}
+		</div>
+
+
+		<form action="{% url 'personal_group_receive_sms' %}" method="POST" class="mts mbl" style="text-align:center">
+	        {% csrf_token %}
+	        <input type="hidden" name="tid" value="{{ tid }}">
+	        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="sdec" value="1">Haan</button>
+	        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="sdec" value="Cancel">
+	    </form>
+
+
+	{% if smsrec and is_verified %}
+
+		<hr size=1 COLOR="#e6e6e6">
+
+		<div class="cl mbl"><b>SMS detail</b>: Apko milney waley SMS mein ye likha hoga:</div>
+
+		<blockquote class="lsp mbl mts cxl cgy card" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ sms_text }}</blockquote>
+
+		<div class="lsp mtl cl">Agr ye alfaz tabdeel karney hain tou 'change' dabain:</div>
+
+		<form method="POST" class="mts" action="{% url 'personal_group_sms_text_form' %}" style="text-align:center">
+			{% csrf_token %}
+			<input type="hidden" name="tid" value="{{ tid }}">
+			<button type="submit" class="btn bcb bm mbs mrs cl pg_ok" name="sdec" style="border:none;height:30px;" value="1">Change</button>
+			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="sdec" value="Cancel">
+		</form>
+
+	{% endif %}
+
+
+</div>
+<br><br>
+
+{% endblock %}

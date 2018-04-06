@@ -1,0 +1,87 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_personal_group_small_photo %}
+{% block content %}
+<head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam.pk</title></head>
+<div class="nos margin clb" style="max-width:600px;width:92%;margin-top:2em">
+
+    <div class="bizcard mbl ca" style="padding:3px">
+        
+        <div class="mbs tl_cnr">
+          <a href="{% url 'profile' tun %}">
+          {% if their_nick %}
+            <img src="{{ tau|s3:'thumb' }}" alt="{{ tun|slice:":1" }}" width="22" height="22" class="av_btn ab" style="">
+            <span style="color:#306654;">{{ tun }}</span>&nbsp;<span class="cs cg">({{ sc }})</span>
+          {% else %}
+            <div class="av_btn ab" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ tun|truncap }}</div>
+          {% endif %}
+          </a>
+        </div>
+
+        <div class="mls mbs mrs">
+         {% if tt == 'text' %}
+           <span class="lsp"><bdi>{% emoticons %}{{ ct|truncatechars:100 }}{% endemoticons %}</bdi></span>
+         {% elif tt == 'img' %}
+           <div class="cs">{% personal_group_small_photo img_url=ct|s3:'thumb' img_caption=s_caption|emoticons css_shadow="sh-l" static_url=STATIC_URL %}</div>
+         {% endif %}
+
+          <div class="mts">
+          <span class="sp cxs cgy">{{ time|human_time }}</span>
+          </div>
+        </div>
+
+    </div>
+
+    <div id="pg_size_err" style="display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span><hr size=1 COLOR="#E0E0E0"></div>
+    <div id="pg_mime_err" style="display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span><hr size=1 COLOR="#E0E0E0"></div>
+
+    <form action="{% url 'post_to_personal_group' %}" method="POST" class="mtl" style="display:inline" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+        <input type="hidden" name="tun" value="{{ tun }}">
+        <input type="hidden" name="sk" value="{{ sk }}">
+        <input type="hidden" name="tau" value="{{ tau }}">
+        <input type="hidden" name="tn" value="{{ their_nick }}">
+        <input type="hidden" name="dr" value="1">
+        <input type="hidden" name="tt" value="{{ tt }}">
+        <input type="hidden" name="t" value="{{ time }}">
+        <input type="hidden" name="sc" value="{{ sc }}">
+        <input type="hidden" name="scp" value="{{ s_caption }}">
+        <input type="hidden" name="bid" value="{{ bid }}">
+        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="ct" value="{{ ct }}">
+        <input type="hidden" name="cp" value="{{ caption }}">
+
+        <div id="personal_group_top">
+        {% if personal_group_form.non_field_errors %}<span class="cr lsp">{{ personal_group_form.non_field_errors.0 }}<hr size=1 COLOR="#E0E0E0"></span>{% elif tt == 'text' %}<span class="cgy lsp">Is baat ka jawab de kar OK dabaein</span><hr size=1 COLOR="#e6e6e6">{% elif tt == 'img' %}<span class="cgy lsp">Is foto pe jawab de kar OK dabaein</span><hr size=1 COLOR="#e6e6e6">{% endif %}
+        </div>
+
+        <div class="mbs mts" style="width:75%;display:inline-block;">
+            {{ personal_group_form.reply }}
+        </div>
+
+        <div class="mbs mts" style="width:22%;display:inline-block;float:right;text-align:center;">
+            {{ personal_group_form.image }}
+            <label for="browse_image_btn" style="cursor: pointer;" class="pg_label"><img class="mt" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /></label>
+            <br><span class="cxs sp mts cb bw" id="filename"></span>
+        </div>
+
+        <button class="btn bm bcb mbs mrl pg_ok" style="border:none;height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
+
+    </form>
+
+    <form action="{% url 'enter_personal_group' %}" method="POST" style="display:inline">
+    {% csrf_token %}
+    <input type="hidden" name="tid" value="{{ tid }}">
+    <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" type="submit">Cancel</button>
+    </form>
+
+</div>
+
+  <br><br>
+
+<script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.4.js"></script>
+{% endblock %}

@@ -280,14 +280,6 @@ def process_choices(alternatives):
 				return alt_choices
 	return alt_choices
 
-# def validate_nickname_chars(value):
-# 	reg = re.compile('^[\w\s.@+-]+$')
-# 	if not reg.match(value):
-# 		raise ValidationError('Nickname mein sirf english harf, number ya @ _ . + - likhein')
-# 	for name in BANNED_WORDS:
-# 		if name in value.lower():
-# 			raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
-
 # for nicks with spaces
 def form_variants(username):
 	if username[-1].isdigit():
@@ -367,6 +359,10 @@ class CreateNickNewForm(forms.Form):
 		if not username:
 			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
+		if username[:1] == '.':
+			raise ValidationError('Nickname ke shuru mein . nah dalein')
+		if username[-1:] == '.':
+			raise ValidationError('Nickname ke akhir mein . nah dalein')
 		exists = nick_already_exists(nickname=username)
 		altered = {}
 		if exists is None:

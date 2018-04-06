@@ -60,6 +60,14 @@ S1: Html styling
     margin-top: 10px;
     }
 
+    .bizcard{
+    /* Simpler, more optimized "card" effect */
+    border-radius: 6px;
+    -webkit-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);
+    -moz-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);
+    box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);
+    }
+
     /*border colors*/
 
     .signup  {
@@ -968,11 +976,64 @@ MARGINS
 
 /* CSS FOR PRIVATE CHAT */
 
+/* generates a flexbox with various alignments */
+
+.fx {
+    display:-webkit-box;
+    display:-ms-flexbox;
+    display:flex;
+}
+
+.fxjscn {
+    -webkit-box-pack:center;
+        -ms-flex-pack:center;
+            justify-content:center;
+}
+
+.fxjssb {
+    -webkit-box-pack:justify;
+        -ms-flex-pack:justify;
+            justify-content:space-between;
+}
+
+.fxjsfs {
+-webkit-box-pack:start;
+    -ms-flex-pack:start;
+        justify-content:flex-start;
+}
+
+.fxaicn {
+    -webkit-box-align:center;
+        -ms-flex-align:center;
+            align-items:center;
+}
+
+.fxaibl {
+     -webkit-box-align:baseline;
+        -ms-flex-align:baseline;
+            align-items:baseline;
+}
+
+.fxaife {
+    -webkit-box-align:end;
+        -ms-flex-align:end;
+            align-items:flex-end;
+}
+
 /* ensures buttons don't get highlighted after being pressed */
 
 ::-moz-focus-inner, :active, :focus {
     outline:none;
     -moz-outline-style: none;
+}
+
+/* online dot in mehfils */
+
+.st-dot{
+  display:inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;  
 }
 
 /* increasing line height for better readability */
@@ -985,4 +1046,961 @@ MARGINS
 
 .sp{
   letter-spacing: 1px;
+}
+
+/* circular styling of avatar image in private chat */
+
+.av_btn{
+  text-align:center;
+  display: inline-block;
+  border-radius:50%; 
+  padding: 5px;
+  background-color:white;
+  font-weight: bold;
+}
+
+/* placing of rounded avatar images at the corners of speech bubbles*/
+
+.tr_cnr{
+  margin-top:-16px;
+  margin-right:-16px;
+}
+
+.tl_cnr{
+  margin-left:-16px;
+  margin-top:-16px;
+}
+
+/* shadows behind photos posted in private chat */
+
+.sh-l{
+  -webkit-box-shadow: -1px 1px 3px rgba(0,0,0,0.15); 
+  -moz-box-shadow: -1px 1px 3px rgba(0,0,0,0.15);
+  box-shadow: -1px 1px 3px rgba(0,0,0,0.15);
+}
+
+.sh-r{
+  -webkit-box-shadow: 1px 1px 3px rgba(0,0,0,0.15); 
+  -moz-box-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+}
+
+/* disallowing text selection */
+
+.nos {
+      -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome and Opera */
+    }
+
+/* styling of big phot in private chat */
+
+.bx{
+  -webkit-box-sizing : border-box;
+  -moz-box-sizing : border-box;
+  box-sizing : border-box;
+}
+
+.pol{
+  background-color:#fff;
+  padding:5px;
+  display:inline-block;
+  border-radius: 6px;
+}
+
+.pgpic{
+  width:100%;
+  border-radius:12px;
+}
+
+.ow{
+  overflow-wrap: break-word;
+}
+
+.imc{
+  display: table-caption;
+  caption-side: bottom;
+}
+
+/* online dot in private chat */
+
+.new-dot{
+  display:inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #F50057;
+  margin-left: -10px;
+}
+
+/* big hidden photo */
+
+.cvs{
+  padding-top:10px;
+  padding-bottom:10px;
+  border-radius:6px;
+}
+
+.hid-shd{
+  margin-left:10px;
+  margin-right:10px;
+}
+
+.hid-bg{
+  background-color:#F0F3F5;
+  background: linear-gradient(45deg, #F0F3F4 0%,#F0F3F4 50%,#E2E7E9 51%,#E2E7E9 100%);
+  background: -moz-linear-gradient(45deg, #F0F3F4 0%, #F0F3F4 50%, #E2E7E9 51%, #E2E7E9 100%);
+  background: -webkit-linear-gradient(45deg, #F0F3F4 0%,#F0F3F4 50%,#E2E7E9 51%,#E2E7E9 100%);
+}
+
+.hid-txt{
+  padding-left:6px;
+  padding-right:6px;
+  color:#8B9FA7;
+}
+
+.tsh{
+  text-shadow: -1px -1px 1px white, 2px 2px 1px white;
+}
+
+.ral{
+  margin:0 0 0 auto;
+}
+
+/* preloader animation for JS-facilitated AJAX requests */
+
+.outer_ldr {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes ldr {
+  to {transform: rotate(360deg);}
+}
+ 
+.ldr:before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-top: 10px;
+  margin-left: -15px;
+  border-radius: 50%;
+  border: 1px solid #0AF;
+  border-top-color: #FF0;
+  animation: ldr .6s linear infinite;
+}
+
+.cap {
+  position: relative;
+  z-index: 10;
+}
+
+.ovl {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0.88;
+  z-index: 100;
+  background-color: #FFFFFF;
+}
+
+/*
+.ldr {
+  width: 50px;
+  height: 50px;
+  position: relative;
+  z-index: 10;
+}
+
+.ldr hr {
+  border: 0;
+  margin: 0;
+  width: 40%;
+  height: 40%;
+  position: absolute;
+  border-radius: 50%;
+  animation: indicator 2s ease infinite;
+}
+
+.ldr :first-child {
+  background: #9DBFFB;
+  animation-delay: -1.5s;
+}
+
+.ldr :nth-child(2) {
+  background: #FFF266;
+  animation-delay: -1s;
+}
+
+.ldr :nth-child(3) {
+  background: #66FFD4;
+  animation-delay: -0.5s;
+}
+
+.ldr :last-child {
+  background: #F18074;
+}
+
+@keyframes indicator {
+  0%,
+  100% {
+    transform: translate(0)
+  }
+  25% {
+    transform: translate(160%)
+  }
+  50% {
+    transform: translate(160%, 160%)
+  }
+  75% {
+    transform: translate(0, 160%)
+  }
+}
+
+@-webkit-keyframes indicator {
+  0%,
+  100% {
+    -webkit-transform: translate(0)
+  }
+  25% {
+    -webkit-transform: translate(160%)
+  }
+  50% {
+    -webkit-transform: translate(160%, 160%)
+  }
+  75% {
+    -webkit-transform: translate(0, 160%)
+  }
+}
+*/
+
+/* pressed states of various buttons and labels */
+
+button.pg_ok:focus{
+  background-color:#9DCDFE;
+}
+
+label.pg_ok:focus{
+    background-color:#9DCDFE;
+}
+
+label.pg_ok{
+    background-color:#59A5F5;
+}
+
+label.pg_label:hover{
+  opacity: 0.75;
+}
+
+label.pg_ok_res{
+        background-color:#00B39B;
+}
+label.pg_ok_res:focus{
+    background-color:#3AC0AD;
+}
+
+button.pg_ok_res:focus{
+    opacity:0.7;
+}
+
+button.pg_cl:focus{
+  background-color:#D1D1D0;
+}
+
+button.pg_ex:focus{
+  background-color:#F94D4C;
+}
+
+/* renders THEIR chat save button in personal group */
+
+  #t-arr-gr{ 
+    position: relative; 
+    height: 1px;
+    width: 6px;
+    background-color: #5EC8A4;
+    top:-4px;
+    right:2px;
+  }
+
+  #t-arr-gr:after{
+    content: "";
+    position: absolute;
+    width:1px;
+    height: 5px;
+    background-color: #5EC8A4;
+    top:1px;
+    right:5px;
+  }
+
+  #b-arr-gr{
+    position: relative; 
+    height: 1px;
+    width: 6px;
+    background-color: #5EC8A4;
+    top:4px;
+    left:2px;
+  }
+
+  #b-arr-gr:after{
+    content: "";
+    position: absolute;
+    width:1px;
+    height: 5px;
+    background-color: #5EC8A4;
+    top:-5px;
+    left:5px;
+  }
+
+/* renders fancy backgrounds behind THEIR emoji strips */
+
+.circles-gr{
+   background-color: #77FFD1;
+}
+
+@supports (background: radial-gradient(#FCD8DE 30%, transparent 16%)) {
+.circles-gr{
+  
+  background:
+      -moz-radial-gradient(#FCD8DE 30%, transparent 16%),
+      -moz-radial-gradient(#99FFDD 30%, transparent 16%),
+       #FFFF99;
+  background:
+      -webkit-radial-gradient(#FCD8DE 30%, transparent 16%),
+      -webkit-radial-gradient(#99FFDD 30%, transparent 16%),
+       #FFFF99;
+  -moz-background-size:350px 350px;
+  -webkit-background-size:350px 350px;
+  background-position: -120px -195px, 405px 270px;
+  background-size:350px 350px;
+
+}
+}
+
+.rad-gr{
+  background-color: #77FFD1;
+}
+
+@supports (background: repeating-radial-gradient(circle, #FFFF9E, #FFFF9E 10px,#A0FFDE 10px, #A0FFDE 20px)) {
+.rad-gr{
+  background: repeating-radial-gradient(circle, #FFFF9E, #FFFF9E 10px,#A0FFDE 10px, #A0FFDE 20px);
+}
+}
+
+.polka-gr{
+    background: #77FFD1;
+}
+
+@supports (background: radial-gradient(#F1C3CB 20%, transparent 0)) {
+.polka-gr{
+    background-color: #FFFF99;
+    background-image:radial-gradient(#77FFD1 20%, transparent 0), radial-gradient(#ffb3cc 20%, transparent 0);
+    background-size: 30px 30px;
+    background-position: 0 0, 15px 15px;
+}
+}
+
+.checkerboard-gr{
+  background: #77FFD1;
+}
+
+@supports (background: linear-gradient(45deg, #FFFF9E 25%, transparent 25%,transparent 75%, #FFFF9E 75%, #FFFF9E 100%)) {
+.checkerboard-gr{
+  background-color: #77FFD1;
+  background-image:
+    -moz-linear-gradient(45deg, #F2FFD7 25%, transparent 25%,transparent 75%, #F2FFD7 75%, #F2FFD7 100%),
+    -moz-linear-gradient(45deg, #F2FFD7 25%, transparent 25%,transparent 75%, #F2FFD7 75%, #F2FFD7 100%);
+  background-image:
+    -webkit-linear-gradient(45deg, #FFFF9E 25%, transparent 25%,transparent 75%, #FFFF9E 75%, #FFFF9E 100%),
+    -webkit-linear-gradient(45deg, #FFFF9E 25%, transparent 25%,transparent 75%, #FFFF9E 75%, #FFFF9E 100%);
+  -moz-background-size:29px 29px;
+  -webkit-background-size:29px 29px;
+  background-size:29px 29px;
+  background-position:0 0, 14px 14px;
+}
+}
+
+.graph-gr{
+  background-color: #77FFD1;
+}
+
+@supports (background: repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px)) {
+.graph-gr{
+  background-color: #FFFF99;
+  background-size: 20px 20px;
+  background-image:
+     -webkit-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -webkit-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     -moz-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -moz-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     -o-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -o-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+
+}
+}
+
+/* Renders a yellowish stroke around text written in THEIR emoji strip*/
+
+@supports (background: radial-gradient(#faeaed 30%, transparent 16%)){
+.yellowstroke{
+  text-shadow: 0.05em 0 #FFFF99, 0 0.05em #FFFF99, -0.05em 0 #FFFF99, 0 -0.05em #FFFF99, -0.05em -0.05em #FFFF99, -0.05em 0.05em #FFFF99, 0.05em -0.05em #FFFF99, 0.05em 0.05em #FFFF99;
+}
+}
+
+/* renders OWN chat save button in personal group */
+
+ #t-arr{ 
+    position: relative; 
+    height: 1px;
+    width: 6px;
+    background-color: #66c3e5;
+    top:-4px;
+    right:2px;
+  }
+
+  #t-arr:after{
+    content: "";
+    position: absolute;
+    width:1px;
+    height: 5px;
+    background-color: #66c3e5;
+    top:1px;
+    right:5px;
+  }
+
+  #b-arr{
+    position: relative; 
+    height: 1px;
+    width: 6px;
+    background-color: #66c3e5;
+    top:4px;
+    left:2px;
+  }
+
+  #b-arr:after{
+    content: "";
+    position: absolute;
+    width:1px;
+    height: 5px;
+    background-color: #66c3e5;
+    top:-5px;
+    left:5px;
+  }
+
+/* renders fancy backgrounds behind OWN emoji strips */
+
+.circles{
+   background-color: #BDEBFE;
+}
+
+@supports (background: radial-gradient(#FFD1D8 30%, transparent 16%)) {
+.circles{
+
+  background:
+      -moz-radial-gradient(#FFD1D8 30%, transparent 16%),
+      -moz-radial-gradient(#B4E8FE 30%, transparent 16%),
+       #E0F5FF;
+  background:
+      -webkit-radial-gradient(#FFD1D8 30%, transparent 16%),
+      -webkit-radial-gradient(#B4E8FE 30%, transparent 16%),
+       #E0F5FF;
+  -moz-background-size:350px 350px;
+  -webkit-background-size:350px 350px;
+  background-position: -120px -195px, 405px 270px;
+  background-size:350px 350px;
+
+}
+}
+
+.checkerboard{
+  background: #BDEBFE;
+}
+
+@supports (background: linear-gradient(45deg, #BCE4FE 25%, transparent 25%,transparent 75%, #BCE4FE 75%, #BCE4FE 100%)) {
+.checkerboard{
+  background-color: #E0F5FF;
+  background-image:
+    -moz-linear-gradient(45deg, #BCE4FE 25%, transparent 25%,transparent 75%, #BCE4FE 75%, #BCE4FE 100%),
+    -moz-linear-gradient(45deg, #BCE4FE 25%, transparent 25%,transparent 75%, #BCE4FE 75%, #BCE4FE 100%);
+  background-image:
+    -webkit-linear-gradient(45deg, #BCE4FE 25%, transparent 25%,transparent 75%, #BCE4FE 75%, #BCE4FE 100%),
+    -webkit-linear-gradient(45deg, #BCE4FE 25%, transparent 25%,transparent 75%, #BCE4FE 75%, #BCE4FE 100%);
+  -moz-background-size:29px 29px;
+  -webkit-background-size:29px 29px;
+  background-size:29px 29px;
+  background-position:0 0, 14px 14px;
+}
+}
+
+.graph{
+  background-color: #BDEBFE;
+}
+
+@supports (background: repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px)) {
+.graph{
+  background-size: 20px 20px;
+  background-image:
+     -webkit-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -webkit-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     -moz-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -moz-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     -o-repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     -o-repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-image:
+     repeating-linear-gradient(45deg, rgba(0, 191, 255, .5), rgba(0, 191, 255, .5) 1px, transparent 1px, transparent 15px),
+     repeating-linear-gradient(-45deg, rgba(255, 105, 180, .5), rgba(255, 105, 180, .5) 1px, transparent 1px, transparent 15px);
+  background-color: #E0F5FF;
+}
+}
+
+.rad{
+  background-color: #BDEBFE;
+}
+
+@supports (background: repeating-radial-gradient(circle,#BCE4FE,#BCE4FE 10px,#E0F5FF 10px, #E0F5FF 20px)) {
+.rad{
+  background: repeating-radial-gradient(circle,#BCE4FE,#BCE4FE 10px,#E0F5FF 10px, #E0F5FF 20px);
+}
+}
+
+.polka{
+  background-color: #BDEBFE;
+}
+
+
+@supports (background: radial-gradient(#ABDEFE 20%, transparent 0)) {
+.polka{
+    background-color: #E0F5FF;
+    background-image:radial-gradient(#ABDEFE 20%, transparent 0), radial-gradient(#FFD3CD 20%, transparent 0);
+    background-size: 30px 30px;
+    background-position: 0 0, 15px 15px;
+}
+}
+
+/* Renders a bluish stroke around text written in OWN emoji strip*/
+
+@supports (background: radial-gradient(#faeaed 30%, transparent 16%)){
+.bluestroke{
+  text-shadow: 0.05em 0 #E0F5FF, 0 0.05em #E0F5FF, -0.05em 0 #E0F5FF, 0 -0.05em #E0F5FF, -0.05em -0.05em #E0F5FF, -0.05em 0.05em #E0F5FF, 0.05em -0.05em #E0F5FF, 0.05em 0.05em #E0F5FF;
+}
+}
+
+/* General styling of emoji strips for both OWN and THEIR cases */
+
+.act{
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-radius: 10px;
+  align-items: center;
+}
+
+.anim {
+  flex: 1 1;
+  min-width: 64px;
+  text-align: center;
+
+}
+
+.olay{
+  display: inline-block;
+  width:50px;
+  height: 50px;
+  position: relative;
+}
+
+.olay > img,
+.anim > img {
+  width: 100%;
+  height: auto;
+  max-width: 50px;
+}
+
+.txt {
+  flex: 1 1 180px;
+  text-align: center;
+}
+
+
+/* Animations and graphics for emoji strips */
+
+@keyframes entrance { 
+    0% { transform: translateX(100%) skewX(-15deg); opacity: 0; } 
+    60% { transform: translateX(-30%) skewX(15deg); opacity: 1; } 
+    80% { transform: translateX(0%) skewX(-10deg); opacity: 1; } 
+    100% { transform: translateX(0%) skewX(0deg); opacity: 1; } 
+} 
+
+.tear {
+  width: 8px;
+  height: 8px;
+  border-radius: 0 50% 50% 50%;
+  border: 1px solid #00B0FF;
+  background-color:#80D8FF;
+  transform: rotate(45deg);
+}
+
+
+@keyframes cry { 
+    0% {opacity: 1;}
+    100% {transform: translateY(20px) rotate(45deg);} 
+} 
+
+@keyframes drift { 
+    10% {opacity: 1;}
+    20% {transform: translateY(2px);}
+    100% {transform: translateY(-50px);}
+}
+
+@keyframes tada { 
+  0% {transform: scale(1);} 
+  10%, 20% {transform: scale(0.9) rotate(-3deg);} 
+  30%, 50%, 70%, 90% {transform: scale(1.2) rotate(3deg);} 
+  40%, 60%, 80% {transform: scale(1.2) rotate(-3deg);} 
+  100% {transform: scale(1) rotate(0);} 
+} 
+
+@keyframes chuckle {
+  10%, 30%, 50%, 70%, 90% {transform: translateY(0);}
+  20% {transform: translateY(-10px);}
+  40% {transform: translateY(-10px);}
+  60% {transform: translateY(-8px);}
+  80% {transform: translateY(-6px);}
+}
+
+
+@keyframes heartbeat {
+  0% {transform: scale( 1);}
+  20% {transform: scale( .65);}
+  40% {transform: scale( 1);}
+  60% {transform: scale( .65);}
+  80% {transform: scale( 1);}
+  100% {transform: scale( 1);}
+}
+
+/* renders straight line. Usage: Personal group invite icon, direct response icon (inside personal group)*/
+
+#line {
+    width: 13px;
+    height: 1px;
+    background-color: white;
+    margin: 2px 0px;
+}
+
+#line-gr {
+  width: 13px;
+  height: 1px;
+  background-color: #5EC8A4;
+  margin: 2px 0px;
+  }
+
+/* Styling photos and +, - icons displayed in personal group and its photo settings */
+
+.ext-cvs{
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.cd {
+    padding: 10px;
+    overflow:hidden;
+    margin-bottom:17px;
+    border-radius: 6px;
+}
+
+.ctr{
+    margin:0 auto;
+}
+
+#minus{
+  width:12px;
+  height: 1px;
+  background-color:#B3B3B3;
+  margin:0 auto; 
+}
+
+#plus { 
+  position: relative; 
+  background: #B3B3B3; 
+  height: 1px; 
+  width: 11px; 
+  margin:0 auto; 
+} 
+
+#plus:after { 
+  content: "";
+  position: absolute; 
+  background: #B3B3B3;  
+  height: 11px; 
+  left: 5px; 
+  top: -5px; 
+  width: 1px; 
+}
+
+#minus-bl{
+  width:12px;
+  height: 1px;
+  background-color:#66c3e5;
+  margin:0 auto; 
+}
+
+#plus-bl { 
+  position: relative; 
+  background: #66c3e5; 
+  height: 1px; 
+  width: 11px; 
+  margin:0 auto; 
+} 
+
+#plus-bl:after { 
+  content: "";
+  position: absolute; 
+  background: #66c3e5;  
+  height: 11px; 
+  left: 5px; 
+  top: -5px; 
+  width: 1px; 
+}
+
+#bminus{
+  width:12px;
+  height: 1px;
+  background-color:#0094C7;
+  margin:0 auto; 
+}
+
+#bplus { 
+  position: relative; 
+  background-color: #0094C7; 
+  height: 1px; 
+  width: 11px; 
+  margin:0 auto; 
+} 
+
+#bplus:after { 
+  content: "";
+  position: absolute; 
+  background-color: #0094C7;  
+  height: 11px; 
+  left: 5px; 
+  top: -5px; 
+  width: 1px; 
+}
+
+#bminus-gr{
+  width:12px;
+  height: 1px;
+  background-color:#5EC8A4;
+  margin:0 auto; 
+  }
+
+#bplus-gr { 
+  position: relative; 
+  background-color: #5EC8A4; 
+  height: 1px; 
+  width: 11px; 
+  margin:0 auto; 
+  } 
+
+#bplus-gr:after { 
+  content: "";
+  position: absolute; 
+  background-color: #5EC8A4;  
+  height: 11px; 
+  left: 5px; 
+  top: -5px; 
+  width: 1px; 
+  }
+
+.sh{
+    -webkit-box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
+    -moz-box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 3px 4px 0 rgba(0,0,0,0.2);
+}
+
+button.del:hover{
+    background-color:#DEF5FE;
+    border-radius: 1px 8px 1px 8px;
+}
+
+.del{
+    border-style:none;
+}
+
+.re-bg{
+  background: transparent;
+}
+
+.re{
+  border-style:none;
+}
+
+button.re:hover{
+    background-color:#BDFFE9;
+    border-radius: 1px 8px 1px 8px;
+}
+
+/* Styling posts and icons in 'saved posts' settings of personal group */
+
+.sv-bg-gr{
+   background: transparent;
+  }
+
+.sv-gr{
+  border-style:none;
+  }
+
+button.sv-gr:hover{
+  background-color:#BDFFE9;
+  border-radius: 1px 8px 1px 8px;
+  }
+
+.sv-bg{
+    background: transparent;
+}
+
+.sv{
+border-style:none;
+}
+
+button.sv:hover{
+  background-color:#DEF5FE;
+  border-radius: 1px 8px 1px 8px;
+}
+
+.h7:after,
+.h7:before{
+    content:"\00a0\00a0\00a0\00a0\00a0";
+    text-decoration:line-through;
+    color:#DCDCDC;
+}
+
+/* styles buttons shown in general settings page in personal group */
+
+.st-bg{
+    width: 80px;
+    height: 80px;
+    background-repeat: no-repeat;
+    border:1px dotted lightgrey;
+    border-radius: 12px;
+    background-position: center;
+    background-color: transparent;
+    background-size:cover;
+}
+
+.st-bg:hover{
+    opacity:0.5;
+    transform: scale(0.88);
+}
+
+/* Styling accept/reject buttons in private chat invite list */
+
+.acc-bg{
+    border-radius: 2px 11px 2px 11px;
+}
+
+button.acc:hover{
+    opacity:0.5;
+    transform: scale(0.88);
+    
+}
+
+.acc{
+    border-style:none;
+}
+
+/* Styles highlighted text (selection in radio buttos) */
+
+.radbut input[type="radio"]:checked+label {
+  background-color: #FFFFC4;
+  padding-bottom: 1px;
+  padding-top: 1px;
+}
+
+/* renders online dot in private messaging */
+
+.bg-st-dot{
+  display:inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align:text-top;
+}
+
+/* renders the spinning refresh button (and its html5 animation) */
+
+.rf-bg{
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-color: transparent;
+    background-size:cover;
+    width: 26px;
+    height: 26px;
+    margin-top: 6px;
+}
+
+button.rf:focus{
+    -webkit-animation: rotation 0.5s 20 linear;
+    outline:none;
+    border:0;
+    -moz-outline-style: none;
+}
+
+@-webkit-keyframes rotation {
+    from {
+    -webkit-transform: rotate(0deg);
+    }
+    to {
+    -webkit-transform: rotate(359deg);
+    }
+}
+
+.rf{
+    border-style:none;
+}
+
+/* styles the online status bar at the top of personal group */
+
+.fr{
+    text-align:center;
+    border-radius:8px;
+}
+
+/* styles the buttons appearing in top and bottom navbars inside personal group */
+
+.cp-bg{
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-color: transparent;
+    background-size:cover;
+    width: 25px;
+    height: 25px;
+    margin-top: 6px;
+}
+
+button.cp:hover{
+    opacity:0.5;
+    transform: scale(0.88);
+}
+.cp{
+    border-style:none;
 }

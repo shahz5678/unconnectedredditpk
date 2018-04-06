@@ -1,0 +1,33 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% block content %}
+<head><title>Action on shared photo (private messaging) | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;text-align:center;">
+
+    <div class="mbl">
+    
+       <div class="mbs">
+        {% if action == 'del' %}<span class="cl cgy">Kya ye foto mita di jaye?</span>{% elif action == 'undel' %}<span class="cl cgy">Kya ye foto bahal kar di jaye?</span>{% elif action == 'hide' %}<span class="cl cgy">Kya ye foto hide kar di jaye?</span>{% elif action == 'unhide' %}<span class="cl cgy">Kya ye foto dikha di jaye?</span>{% endif %}
+        </div>
+
+        <form action="{% url 'delete_or_hide_photo_from_photo_settings' %}" method="POST" class="mtl mbl">
+            {% csrf_token %}
+            <input type="hidden" name="imgd" value="{{ imgd }}">
+            <input type="hidden" name="act" value="{{ action }}">
+            <input type="hidden" name="tid" value="{{ tid }}">
+            <button class="btn bcb bm mrl mbs pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+            <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" name="dec" value="0">Nahi</button>
+        </form>
+    
+        <hr size=1 COLOR="#e6e6e6">
+    
+    </div>
+
+    {% if action == 'del' or action == 'undel' %}<div class="sh cd csb" style="display:inline-block;">{% elif action == 'hide' or action == 'unhide' %}<div class="sh cd ca" style="display:inline-block;">{% endif %}
+        <img src="{{ img_url|s3 }}" alt="photo" style="border-radius:12px;width:100%;">
+    </div>
+
+</div>
+
+<br><br>
+{% endblock %}

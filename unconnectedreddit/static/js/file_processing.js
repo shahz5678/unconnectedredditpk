@@ -27,22 +27,39 @@ function personal_group_preloader(action) {
      case "create":    
       var overlay = document.createElement('div');
       overlay.id = "personal_group_overlay";
-      overlay.className = 'ovl';
+      overlay.className = 'ovl';//
       var parent = document.createElement('div');
       parent.id = "personal_group_preloader";
-      parent.className = "outer_ldr";
+      parent.className = "outer_ldr";//
       var loader = document.createElement('div');
-      loader.className = 'ldr ma';
-      loader.innerHTML = '<hr><hr><hr><hr>';
+      loader.className = 'ldr ma';//
       var caption = document.createElement('div');
       caption.id = "preloader_message";
-      caption.className = "cap sp cs cgy mbl";
+      caption.className = "cap sp cs cgy mbl";//
       caption.innerHTML = '- resizing foto -';
       document.body.appendChild(overlay);
       document.body.appendChild(parent);
       parent.insertAdjacentElement('afterbegin',loader);
       parent.insertAdjacentElement('afterbegin',caption);
       document.body.style.overflow = 'hidden';
+      // var overlay = document.createElement('div');
+      // overlay.id = "personal_group_overlay";
+      // overlay.className = 'ovl';//
+      // var parent = document.createElement('div');
+      // parent.id = "personal_group_preloader";
+      // parent.className = "outer_ldr";//
+      // var loader = document.createElement('div');
+      // loader.className = 'ldr ma';//
+      // loader.innerHTML = '<hr><hr><hr><hr>';//
+      // var caption = document.createElement('div');
+      // caption.id = "preloader_message";
+      // caption.className = "cap sp cs cgy mbl";//
+      // caption.innerHTML = '- resizing foto -';
+      // document.body.appendChild(overlay);
+      // document.body.appendChild(parent);
+      // parent.insertAdjacentElement('afterbegin',loader);
+      // parent.insertAdjacentElement('afterbegin',caption);
+      // document.body.style.overflow = 'hidden';
       break;
     case "update":
       var caption = document.getElementById("preloader_message");
@@ -68,8 +85,11 @@ function show_image_name(e) {
   // if opera mini, do nothing
   if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]"  || !e.target.files) return;//supported
 	
-  document.getElementById('filename').innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,30);
-	
+  document.getElementById('main_cam').style.display = 'none';
+  var filename = document.getElementById('filename');
+  filename.innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
+	filename.style.display = 'block';
+
   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
 		if (window.FileReader && window.Blob){
 			// Filereader is supported, Blob is polyfilled (to include BlobBuilder)
@@ -452,7 +472,7 @@ Blob = (function() {
 // Direct Response in Private Chat (JS functionality)
 var is_reply = false;
 var valid_rep_img = false;
-// var form_template = document.querySelector('#form_template');//supported
+var form_template = document.querySelector('#form_template');//supported
 var rep_btns = document.querySelectorAll('button.rep');
 if (form_template) {form_template.onsubmit = personal_group_reply_submit;};
 var browse_rep_image_btn = document.getElementById('browse_rep_image_btn');//supported
@@ -466,7 +486,13 @@ function show_rep_image_name(e) {
   if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.target.files) return;
   document.getElementById("pg_rep_size_err").style.display = 'none';
   document.getElementById("pg_rep_mime_err").style.display = 'none';
-  document.getElementById('rep_filename').innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,15);
+
+  document.getElementById('rep_cam').style.display = 'none';
+  var rep_filename = document.getElementById('rep_filename');
+  rep_filename.innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,15);
+  rep_filename.style.display = 'block';
+
+  // document.getElementById('rep_filename').innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,15);
   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
     if (window.FileReader && window.Blob){
       is_reply = true;

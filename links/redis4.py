@@ -4,6 +4,7 @@ import redis, time, random
 from django.contrib.auth.models import User
 from location import REDLOC4
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
+from models import UserProfile
 
 '''
 ##########Redis Namespace##########
@@ -256,6 +257,24 @@ def retrieve_uname(user_id,decode=False,my_server=False):
 		my_server.expire(hash_name,TWO_DAYS)
 		return username
 
+
+def retrieve_avurl(user_id,my_server=False):
+	"""
+	Returns user's nickname
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	hash_name = 'uname:'+str(user_id)
+	avurl = my_server.hget(hash_name,'avurl')
+	if not avurl:
+		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
+		my_server.hset(hash_name,'avurl',avurl)
+		my_server.expire(hash_name,TWO_DAYS)
+	return avurl
+
+
+def invalidate_avurl(user_id):
+	redis.Redis(connection_pool=POOL).hdel('uname:'+str(user_id),'avurl')
 
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):

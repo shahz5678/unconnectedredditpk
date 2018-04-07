@@ -1,13 +1,13 @@
 # coding=utf-8
 import ujson as json
 import redis, time, random
-from django.contrib.auth.models import User
 from location import REDLOC5
 from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
+from redis4 import retrieve_bulk_unames, retrieve_uname
 from models import UserProfile
 
 '''
@@ -69,6 +69,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 THREE_SECS = 3
 SIX_SECS = 6
 TWO_MINS = 120
+FIVE_MINS = 5*60
 EIGHT_MINS = 8*60
 TEN_MINS = 10*60
 THIRTY_MINS = 30*60
@@ -123,64 +124,6 @@ def small_photo_caption(caption, img_reso):
 			else:
 				return caption[:size]+' ..'
 
-
-################################################ User nicknames fetcher ##############################################
-
-def retrieve_bulk_unames(user_ids, decode=False, my_server=False):
-	"""
-	Returns usernames in bulk, in id-username dictionary format
-	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	for user_id in user_ids:
-		pipeline1.hget('uname:'+user_id,'uname')
-	usernames_wip = pipeline1.execute()
-	counter = 0
-	usernames, uncollected_uname_ids = {}, []
-	for username in usernames_wip:
-		id_ = int(user_ids[counter])
-		if username:
-			if decode:
-				usernames[id_] = username.decode('utf-8')
-			else:
-				usernames[id_] = username
-		else:
-			usernames[id_] = ''
-			uncollected_uname_ids.append(id_)
-		counter += 1
-	if uncollected_uname_ids:
-		residual_unames = dict(User.objects.filter(id__in=uncollected_uname_ids).values_list('id','username'))
-		pipeline2 = my_server.pipeline()
-		for key in residual_unames:
-			usernames[key], hash_name = residual_unames[key], 'uname:'+str(key)
-			pipeline2.hset(hash_name,'uname',residual_unames[key])
-			pipeline2.expire(hash_name,SEVEN_DAYS)
-		pipeline2.execute()
-	return usernames
-
-
-def retrieve_uname(user_id,decode=False,my_server=False):
-	"""
-	Returns user's nickname
-	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
-	hash_name = 'uname:'+str(user_id)
-	username = my_server.hget(hash_name,'uname')
-	if username:
-		if decode:
-			return username.decode('utf-8')
-		else:
-			return username
-	else:
-		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
-		my_server.hset(hash_name,'uname',username)
-		my_server.expire(hash_name,SEVEN_DAYS)
-		return username
-
-
-######################################## Retrieving/Caching Content from Personal Group ########################################
 
 
 def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, chat_data=True):
@@ -830,9 +773,9 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 					# decrementing saves remaining counter
 					pipeline1.hincrby(group_hash,'svrem'+own_id,amount=-1)
 					# ratelimiting:
-					pipeline1.setex(ratelimit,1,EIGHT_MINS)
+					pipeline1.setex(ratelimit,1,FIVE_MINS)
 					pipeline1.execute()
-					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], EIGHT_MINS
+					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], FIVE_MINS
 		else:
 			# normal chat blob
 			if not blob_contents.get("time"+index,None):
@@ -871,9 +814,9 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 					# decrementing saves remaining counter
 					pipeline1.hincrby(group_hash,'svrem'+own_id,amount=-1)
 					# ratelimiting:
-					pipeline1.setex(ratelimit,1,EIGHT_MINS)
+					pipeline1.setex(ratelimit,1,FIVE_MINS)
 					pipeline1.execute()
-					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], EIGHT_MINS
+					return True, PERSONAL_GROUP_SAVE_MSGS['msg1'], FIVE_MINS
 	else:
 		# can't save blob that doesn't exist any more
 		return False, PERSONAL_GROUP_SAVE_MSGS['err4'], None

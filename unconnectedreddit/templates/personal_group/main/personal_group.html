@@ -78,7 +78,7 @@
                   <div class="mbs tr_cnr">
                       <a href="{% url 'profile' blob.username %}">
                       {% if own_nick %}
-                        <span style="color:#01579B;">{{ blob.username }}</span>&nbsp;<span class="cs cg">({{ blob.score }})</span>
+                        <span style="color:#01579B;">{{ blob.username }}
                         <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb">
                       {% else %}
                         <div class="av_btn sbb" style="width:22px;height:22px;color:#01579B;line-height:23px;">{{ blob.username|truncap }}</div>
@@ -95,7 +95,7 @@
                             {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
                             
                             <div class="mt mbs">
-                            {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username score=blob.score av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_score=blob.t_score target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="plus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
+                            {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="plus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
                             <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
 
                            </div>
@@ -122,7 +122,7 @@
 
                              <div class="mbl">
                                
-                              {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username score=blob.score av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_score=blob.t_score target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="minus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
+                              {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="minus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
                               <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
 
                              </div>
@@ -135,7 +135,7 @@
                                   <a href="{% url 'profile' blob.t_username %}">
                                   {% if their_nick %}
                                     <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
-                                    <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ blob.t_score }})</span>
+                                    <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
                                   {% else %}
                                     <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ blob.t_username|truncap }}</div></a>
                                   {% endif %}
@@ -185,7 +185,7 @@
                             
                             {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
                             <div class="mt">
-                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username score=blob.score av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="plus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="plus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
                              <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
                             </div>
 
@@ -215,7 +215,7 @@
                                 
                              {% endif %}
                              
-                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username score=blob.score av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
 
                              <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
                              
@@ -251,7 +251,7 @@
                     <a href="{% url 'profile' blob.username %}">
                       {% if their_nick %}
                       <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb ab">
-                      <span style="color:#306654">{{ blob.username }}</span>&nbsp;<span class="cs cg">({{ blob.score }})</span>
+                      <span style="color:#306654">{{ blob.username }}</span>
                       {% else %}
                       <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654">{{ blob.username|truncap }}</div>
                       {% endif %}
@@ -295,7 +295,7 @@
                              
                              <div class="sp cxs cgy mrl" style="display:inline">{{ blob.res_time|human_time }}</div>
 
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type score=blob.score index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_scr=blob.t_score t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content %}
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content %}
 
                            </div>
 
@@ -306,7 +306,7 @@
                               <div class="mbs cs tr_cnr">
                                   <a href="{% url 'profile' blob.t_username %}">
                                   {% if own_nick %}
-                                  <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ blob.t_score }})</span>
+                                  <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
                                   <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%;">
                                   {% else %}
                                   <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%;">{{ blob.t_username|truncap }}</div>
@@ -391,7 +391,7 @@
 
                            
                              <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 score=blob.score index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
 
                         {% endif %}                         
 
@@ -427,5 +427,5 @@
 
 </div>
 <br><br>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.4.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.5.js"></script>
 {% endblock %}

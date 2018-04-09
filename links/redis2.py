@@ -314,8 +314,10 @@ def create_object(object_id=None, object_type=None, object_owner_avurl=None,obje
 			mapping = {'oi':object_id,'ot':object_type,'ooi':object_owner_id,'p':photourl,'v':vote_score,'l':slug,'t':is_thnks,\
 			'r':res_count,'oon':object_owner_name, 'od':object_desc}
 		elif object_type == '5':
-			#video object
-			mapping = {}
+			#new private chat
+			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
+			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug,\
+			'lrwi':lt_res_wid}
 		my_server.hmset(hash_name, mapping)
 		return True
 

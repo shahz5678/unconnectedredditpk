@@ -48,7 +48,8 @@ aurl:<user_id> is 'avatar_uploading_rate_limit', and is used to rate limit how f
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
-TWO_DAYS = 60*60*24*2
+
+ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
 TWENTY_MINS = 20*60
@@ -256,7 +257,7 @@ def retrieve_bulk_credentials(user_ids, decode_unames=False):
 			hash_name = 'uname:'+str(user_id)
 			credentials[user_id]['uname'] = uname['username']
 			pipeline2.hset(hash_name, 'uname', uname['username'])
-			pipeline2.expire(hash_name,TWO_DAYS)
+			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	if uncollected_avurls:
 		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('id','avatar')
@@ -268,7 +269,7 @@ def retrieve_bulk_credentials(user_ids, decode_unames=False):
 				avurl['avatar'] = 'empty'
 			credentials[user_id]['avurl'] = avurl['avatar']
 			pipeline3.hset(hash_name, 'avurl', avurl['avatar'])
-			pipeline3.expire(hash_name,TWO_DAYS)
+			pipeline3.expire(hash_name,ONE_DAY)
 		pipeline3.execute()
 	return credentials
 
@@ -301,7 +302,7 @@ def retrieve_bulk_avurls(user_ids):
 				avurl['avatar'] = 'empty'
 			avatars[user_id] = avurl['avatar']
 			pipeline2.hset(hash_name,'avurl',avurl['avatar'])
-			pipeline2.expire(hash_name,TWO_DAYS)
+			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	return avatars
 
@@ -334,7 +335,7 @@ def retrieve_bulk_unames(user_ids, decode=False):
 		for key in residual_unames:
 			usernames[key], hash_name = residual_unames[key], 'uname:'+str(key)
 			pipeline2.hset(hash_name,'uname',residual_unames[key])
-			pipeline2.expire(hash_name,TWO_DAYS)
+			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	return usernames
 
@@ -356,7 +357,7 @@ def retrieve_uname(user_id,decode=False):
 		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'uname',username)
-		pipeline1.expire(hash_name,TWO_DAYS)
+		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 		return username
 
@@ -379,7 +380,7 @@ def retrieve_credentials(user_id,decode_uname=False):
 			avurl = 'empty'
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'avurl',avurl)
-		pipeline1.expire(hash_name,TWO_DAYS)
+		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 		if decode_uname:
 			return username.decode('utf-8'),avurl
@@ -389,7 +390,7 @@ def retrieve_credentials(user_id,decode_uname=False):
 		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'uname',username)
-		pipeline1.expire(hash_name,TWO_DAYS)
+		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 		return username, avurl
 	else:
@@ -400,7 +401,7 @@ def retrieve_credentials(user_id,decode_uname=False):
 		mapping = {'uname':username,'avurl':avurl}
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset(hash_name,mapping)
-		pipeline1.expire(hash_name,TWO_DAYS)
+		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 		return username, avurl
 
@@ -417,7 +418,7 @@ def retrieve_avurl(user_id):
 			avurl = 'empty'
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'avurl',avurl)
-		pipeline1.expire(hash_name,TWO_DAYS)
+		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 	return avurl
 

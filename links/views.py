@@ -6595,13 +6595,6 @@ class UserProfileEditView(UpdateView):
 	def get_object(self, queryset=None):
 		return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
-	def form_valid(self, form):
-	    """
-	    If the form is valid, redirect to the supplied URL.
-	    """
-	    invalidate_avurl(self.request.user.id)
-	    return super(UpdateView, self).form_valid(form) #saves the link automatically
-
 	def get_success_url(self):
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 

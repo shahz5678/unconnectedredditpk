@@ -37,7 +37,7 @@
             {% if own_nick == 'False' %}
               <div class="av_btn sbb" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ usr|truncap }}</div>
             {% else %}
-              <span style="color:#01579B;">{{ usr }}</span>&nbsp;<span class="cs cg">({{ scr }})</span>
+              <span style="color:#01579B;">{{ usr }}</span>
               <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn sbb">
             {% endif %}
             </a>
@@ -64,7 +64,7 @@
                       <div class="av_btn ab" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ t_usr|truncap }}</div>
                     {% else %}
                       <img src="{{ aurl|s3:'thumb' }}" alt="{{ t_usr|slice:":1" }}" width="22" height="22" class="av_btn ab">
-                      <span style="color:#306654;">{{ t_usr|truncatechars:15 }}</span>&nbsp;<span class="cs cg">({{ t_scr }})</span>
+                      <span style="color:#306654;">{{ t_usr|truncatechars:15 }}</span>
                     {% endif %}
                     </a>
                 </div>

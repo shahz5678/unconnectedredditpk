@@ -314,7 +314,7 @@ def retrieve_bulk_unames(user_ids, decode=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	for user_id in user_ids:
-		pipeline1.hget('uname:'+user_id,'uname')
+		pipeline1.hget('uname:'+str(user_id),'uname')
 	usernames_wip = pipeline1.execute()
 	counter = 0
 	usernames, uncollected_uname_ids = {}, []

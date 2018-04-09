@@ -20,8 +20,10 @@ from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
 public_group_ranking_clean_up
-from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance#, update_personal_group_seen_times
-from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text
+from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
+invalidate_cached_user_data#, update_personal_group_seen_times
+from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
+retrieve_credentials, invalidate_avurl
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
@@ -68,6 +70,21 @@ MAX_FANS_TARGETED = 0.95 # 95%
 # 		# If page is out of range (e.g. 9999), deliver last page of results.
 # 		return paginator.page(paginator.num_pages)
 
+def get_credentials(user_id, uname=None, avurl=None):
+	if not uname and not avurl:
+		# both dont exist
+		uname, avurl = retrieve_credentials(user_id, decode_uname=True)
+	elif avurl:
+		# uname doesnt exist
+		uname = retrieve_uname(user_id,decode=True)
+	elif uname:
+		# avurl desn't exist
+		avurl = retrieve_avurl(user_id)
+	else:
+		# both exist, do nothing
+		pass
+	return uname, avurl
+
 
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
@@ -106,6 +123,13 @@ def punish_gibberish_writers(dict_of_targets):
 		queue_punishment_amount(user_id,score_penalty)
 
 
+@celery_app1.task(name='tasks.invalidate_avatar_url')
+def invalidate_avatar_url(user_id,set_rate_limit=False):
+	invalidate_avurl(user_id, set_rate_limit)
+	invalidate_cached_user_data(user_id)
+
+
+
 @celery_app1.task(name='tasks.add_image_to_personal_group_storage')
 def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
 	set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
@@ -120,9 +144,34 @@ def personal_group_trimming_task(group_id, object_count):
 def queue_personal_group_invitational_sms(mobile_number, sms_text):
 	send_personal_group_sms(mobile_number, sms_text)
 
-@celery_app1.task(name='tasks.update_personal_group_last_touch')
-def update_personal_group_last_touch(own_id, target_id, group_id, time):
+@celery_app1.task(name='tasks.cache_personal_group')
+def cache_personal_group(pg_data, group_id):
+	cache_personal_group_data(pg_data,group_id)
+
+@celery_app1.task(name='tasks.private_chat_tasks')
+def private_chat_tasks(own_id, target_id, group_id, time, text, txt_type=None, img_url=None, from_unseen=None, own_uname=None, own_avurl=None):
 	mark_personal_group_attendance(own_id, target_id, group_id, time)
+	own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
+	# if from_unseen:
+	# 	update_object(object_id=group_id,object_type='5',lt_res_time=reply_time,lt_res_avurl=,lt_res_text=reply_text,\
+	# 		lt_res_sub_name=,reply_photourl=img_url, lt_res_wid=sender_id)
+	# else:
+	# 	created = create_object(object_id=group_id,object_type='5',lt_res_time=time, lt_res_avurl=,lt_res_sub_name=,\
+	# 		lt_res_text=text,lt_res_wid=own_id)
+	# 	if not created:
+	# 		update_object(object_id=group_id,object_type='5',lt_res_time=reply_time,lt_res_avurl=,lt_res_text=text,\
+	# 			lt_res_sub_name=,reply_photourl=img_url, lt_res_wid=sender_id)
+	# all_group_member_ids = [target_id]
+	# if all_group_member_ids:
+	# 	bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='5',seen=False,
+	# 		updated_at=time,single_notif=True,unseen_activity=True,priority=)
+	# updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='5',seen=True,updated_at=time,\
+	# 	unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+	# if not updated:
+	# 	create_notification(viewer_id=sender_id,object_id=group_id,object_type='5',seen=True,updated_at=time,\
+	# 		unseen_activity=True)
+
+
 
 # @celery_app1.task(name='tasks.update_personal_group_seen')
 # def update_personal_group_seen(own_id, target_id, group_id, time):

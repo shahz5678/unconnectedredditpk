@@ -1,8 +1,8 @@
 # coding=utf-8
 from django import forms
 from django.forms import Textarea
-from .tasks import log_gibberish_writer
-from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key
+from tasks import log_gibberish_writer, invalidate_avatar_url
+from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -130,19 +130,27 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			if image.name in self.user.userprofile.avatar.url:
 				#print "no need to re-submit image"
 				return image
-		except:
+		except (AttributeError, ValueError):
 			pass
-		if image:
-			try:
-				if image.size > 1000000:
-					return 0
-			except:
-				pass
-			image = Image.open(image)
-			image = make_thumbnail(image,None)
-			return image
+		if image or image is False:	
+			user_id = self.user.id
+			ttl = get_aurl(user_id)
+			if ttl > 1:
+				raise forms.ValidationError('Ap profile photo change kar sakien ge %s secs baad' % ttl)
+			invalidate_avatar_url.delay(user_id, set_rate_limit=True)
+			if image:
+				try:
+					if image.size > 1000000:
+						return 0
+				except:
+					pass
+				image = Image.open(image)
+				image = make_thumbnail(image,None)
+				return image
+			else:
+				return 0
 		else:
-			return 0
+			return None
 
 	def clean_bio(self):
 		bio = self.cleaned_data.get("bio")
@@ -153,7 +161,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	def clean_age(self):
 		age = self.cleaned_data.get("age")
 		if len(age) > 2:
-			raise forms.ValidationError('tip: age sahi likho')
+			raise forms.ValidationError('Age sahi likhein')
 		return age
 
 class UserSettingsForm(forms.ModelForm):

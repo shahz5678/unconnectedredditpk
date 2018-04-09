@@ -1,10 +1,10 @@
 <form action="{% url 'personal_group_own_chat_buttons' %}" class="mrl" method="POST" style="display:inline-block">
    {% csrf_token %}
-   <input type="hidden" name="pl" value="{{ blob_id }}:{{ index }}:{{ username }}:{{ score }}:{{ tt }}:{{ posting_time }}:{{ av_url }}:{{ is_res }}:{{ tid }}:{{ own_anon }}:{{ their_anon }}:{{ img_width }}">
+   <input type="hidden" name="pl" value="{{ blob_id }}:{{ index }}:{{ username }}:{{ tt }}:{{ posting_time }}:{{ av_url }}:{{ is_res }}:{{ tid }}:{{ own_anon }}:{{ their_anon }}:{{ img_width }}">
    <input type="hidden" name="pl_ct" value="{{ ct }}">
    <input type="hidden" name="imc" value="{{ img_caption }}">
    {% if is_res == 'res' %}
-   <input type="hidden" name="rpl" value="{{ t_usr }}:{{ t_scr }}:{{ t_aurl }}:{{ t_tt }}:{{ t_pt }}:{{ t_st }}">
+   <input type="hidden" name="rpl" value="{{ t_usr }}:{{ t_aurl }}:{{ t_tt }}:{{ t_pt }}:{{ t_st }}">
    <input type="hidden" name="rpl_ct" value="{{ t_ct }}">
      {% if t_ic %}
      <input type="hidden" name="t_ic" value="{{ t_ic }}">

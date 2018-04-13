@@ -21,13 +21,14 @@ queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, s
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
 public_group_ranking_clean_up
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
-invalidate_cached_user_data#, update_personal_group_seen_times
+invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
-remove_notification_of_banned_user, remove_from_photo_owner_activity
+remove_notification_of_banned_user, remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, \
+update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif
 from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
@@ -149,37 +150,46 @@ def cache_personal_group(pg_data, group_id):
 	cache_personal_group_data(pg_data,group_id)
 
 @celery_app1.task(name='tasks.private_chat_tasks')
-def private_chat_tasks(own_id, target_id, group_id, time, text, txt_type=None, img_url=None, from_unseen=None, own_uname=None, own_avurl=None):
-	mark_personal_group_attendance(own_id, target_id, group_id, time)
-	own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
-	# if from_unseen:
-	# 	update_object(object_id=group_id,object_type='5',lt_res_time=reply_time,lt_res_avurl=,lt_res_text=reply_text,\
-	# 		lt_res_sub_name=,reply_photourl=img_url, lt_res_wid=sender_id)
-	# else:
-	# 	created = create_object(object_id=group_id,object_type='5',lt_res_time=time, lt_res_avurl=,lt_res_sub_name=,\
-	# 		lt_res_text=text,lt_res_wid=own_id)
-	# 	if not created:
-	# 		update_object(object_id=group_id,object_type='5',lt_res_time=reply_time,lt_res_avurl=,lt_res_text=text,\
-	# 			lt_res_sub_name=,reply_photourl=img_url, lt_res_wid=sender_id)
-	# all_group_member_ids = [target_id]
-	# if all_group_member_ids:
-	# 	bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='5',seen=False,
-	# 		updated_at=time,single_notif=True,unseen_activity=True,priority=)
-	# updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='5',seen=True,updated_at=time,\
-	# 	unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
-	# if not updated:
-	# 	create_notification(viewer_id=sender_id,object_id=group_id,object_type='5',seen=True,updated_at=time,\
-	# 		unseen_activity=True)
+def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
+	own_avurl='',deleted='',hidden='',successful=True):
+	if successful:
+		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
+		own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
+		pgh, index = "pgh:"+group_id+":"+blob_id if blob_id else '', idx if (idx and int(idx) > 0) else ''
+		updated = update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,\
+			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
+			hidden=hidden,update=True)
+		if not updated:
+			own_anon, target_anon, group_id = get_personal_group_anon_state(own_id,target_id)
+			their_uname, their_avurl = get_credentials(target_id)
+			update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,hidden=hidden,\
+			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
+			anon1=own_id if own_anon else '',anon2=target_id if target_anon else '',target_uname=their_uname,target_avurl=their_avurl, \
+			target_id=target_id)
+		update_private_chat_notifications(sender_id=own_id, receiver_id=target_id, group_id=group_id, sender_seen=True, receiver_seen=False,\
+			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
+
+@celery_app1.task(name='tasks.update_notif_object_anon')
+def update_notif_object_anon(value,which_user,which_group):
+	update_pg_obj_anon(value=value,object_id=which_group,user_id=which_user)
+
+@celery_app1.task(name='tasks.update_notif_object_del')
+def update_notif_object_del(group_id, action=None, blob_id=None,idx=None,bulk_deletion=False):
+	if bulk_deletion:
+		# bulk deletion was called in personal group, handle notif object accordingly
+		update_pg_obj_notif_after_bulk_deletion(group_id)
+	else:
+		update_pg_obj_del(action,blob_id,idx,group_id)
+
+@celery_app1.task(name='tasks.update_notif_object_hide')
+def update_notif_object_hide(action,blob_id,idx,group_id):
+	update_pg_obj_hide(action,blob_id,idx,group_id)
 
 
+@celery_app1.task(name='tasks.private_chat_seen')
+def private_chat_seen(own_id, group_id, curr_time):
+	skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
 
-# @celery_app1.task(name='tasks.update_personal_group_seen')
-# def update_personal_group_seen(own_id, target_id, group_id, time):
-# 	update_personal_group_seen_times(own_id, target_id, group_id, time)
-
-# @celery_app1.task(name='tasks.refresh_user_group_list')
-# def refresh_user_group_list(own_last_seen_time, their_last_seen_time, own_id, their_id, their_nick_status, their_nick, group_id):
-# 	update_user_group_list(own_last_seen_time, their_last_seen_time, own_id, their_id, their_nick_status, their_nick, group_id)
 
 def retrieve_object_type(origin):
 	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\

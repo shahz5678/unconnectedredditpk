@@ -9,7 +9,7 @@ set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo
 personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,\
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
-post_js_reply_to_personal_group, personal_group_user_listing#, deletion_test
+post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif#, deletion_test
 from links.number_verification import verify_personal_group_user
 
 admin.autodiscover()
@@ -53,7 +53,10 @@ urlpatterns = patterns('',
 	url(r'^accept_priv_chat_invite/$', auth(accept_personal_group_invite), name='accept_personal_group_invite'),
 	url(r'^acc_priv_chat_invite/$', auth(process_personal_group_invite), name='process_personal_group_invite'),
 	url(r'^priv_chat_invite_privacy/$', auth(change_personal_group_invite_privacy), name='change_personal_group_invite_privacy'),
-	url(r'^priv_chat_invite_list/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
 	############################## Personal Group Listing ###############################
+	url(r'^priv_chat_invite_list/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
 	url(r'^priv_chat_list/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
+	############################## Personal Group Notifications ###############################
+	url(r'^unpergrp/(?P<gid>\d+)/(?P<fid>\d+)/$', auth(unseen_per_grp), name='unseen_per_grp'),
+	url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
 )

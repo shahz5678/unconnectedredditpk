@@ -13,11 +13,18 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 	if notification:
 		context ={'ident':user_id,'lang':lang,'sort_by':sort_by,'checked':females,'static_url':static_url, 'random':random, 'newest_user':newest_user,\
 		'is_home':is_home, 'origin':origin,'form':notif_form}
-		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat = GetLatest(user)
-		if not is_link and not is_photo and not is_groupreply and not is_salat:
+		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat, is_personal_grp = GetLatest(user)
+		if not is_link and not is_photo and not is_groupreply and not is_salat and not is_personal_grp:
 			context["notification"] = 0
 		elif not freshest_reply:
 			context["notification"] = 0
+		elif is_personal_grp:
+			context["notification"] = 1
+			group_id = freshest_reply['oi']
+			context["type_of_object"] = '5'
+			context["banned"] = False
+			context["parent"] = freshest_reply
+			context["parent_pk"] = group_id
 		elif is_groupreply:
 			if object_type == '1':
 				# private mehfil

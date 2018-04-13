@@ -41,7 +41,7 @@
 		{% if their_anon %}
 			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="{{ name|slice:":1" }}" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#ffeb3b">

@@ -409,11 +409,13 @@
     
       {% empty %}
 
+      {% if not is_suspended %}
       <div class="lsp mtl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
       <div class="cxl mts">Chat ke liye uper safed box mein likhein aur <b>OK</b> dabain</div>
       <hr size=1 COLOR="#F1F1DA"> 
       <div class="sp cgy cs">Agr chat ki setting change karni hai tou neechay buttons istimal karien</div>
       </div>
+      {% endif %}
 
     {% endfor %}
 

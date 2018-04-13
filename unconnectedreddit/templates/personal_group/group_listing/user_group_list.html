@@ -59,9 +59,9 @@
 		<a href="{% url 'profile' data.friend_username %}">
 		{% if data.is_friend_anon == '0' %}
 			{% if data.lt_msg_wid != own_id and data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}
-			<img src="{{ data.friend_av_url|s3:'thumb' }}" alt="{{ data.friend_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="border:1px solid #00CC99;position:absolute;margin-left:-16px;margin-top:-16px">
+			<img src="{{ data.friend_av_url|s3:'thumb' }}" alt="{{ data.friend_username|slice:":1" }}" width="22" height="22" class="av_btn cb" style="border:1px solid #00CC99;position:absolute;margin-left:-16px;margin-top:-16px">
 			{% else %}
-			<img src="{{ data.friend_av_url|s3:'thumb' }}" alt="{{ data.friend_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="border:1px solid #D9D9D9;position:absolute;margin-left:-16px;margin-top:-16px">
+			<img src="{{ data.friend_av_url|s3:'thumb' }}" alt="{{ data.friend_username|slice:":1" }}" width="22" height="22" class="av_btn cb" style="border:1px solid #D9D9D9;position:absolute;margin-left:-16px;margin-top:-16px">
 			{% endif %}
 		{% else %}
 			{% if data.lt_msg_wid != own_id and data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}

@@ -7,6 +7,7 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
+from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
 from redis4 import retrieve_bulk_credentials, retrieve_credentials
 from models import UserProfile
 
@@ -221,17 +222,13 @@ def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, 
 		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, \
 		get_target_username(target_id, my_server)
 	else:
-		iterator = []
 		personal_group_list = my_server.lrange("pgl:"+group_id, 0, -1)
 		pipeline2 = my_server.pipeline()
 		for key in personal_group_list:
-			key = key.split(":")
-			blob_id, comment_count = str(key[0]),int(key[2])
-			iterator.append(comment_count)
-			pipeline2.hgetall("pgh:"+group_id+":"+blob_id)
+			pipeline2.hgetall("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
 		result = pipeline2.execute()
 		own_cred, their_cred = get_user_credentials(own_id, target_id, my_server)
-		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, iterator, own_cred, their_cred
+		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, own_cred, their_cred
 
 
 
@@ -396,6 +393,26 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 	return True, None
 
 
+def update_pg_obj_notif_after_bulk_deletion(group_id):
+	"""
+	Updates status of obj notif after mass deletion in group
+	
+	ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation'
+	"""
+	latest_notif_obj_pgh, latest_idx, latest_type, latest_deletion_status = get_latest_notif_obj_pgh(group_id,send_status=True)
+	if latest_type in ('img','img_res','text','text_res'):
+		my_server = redis.Redis(connection_pool=POOL)
+		hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
+		for key in hash_list:
+			pgh_list.append("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+		if latest_notif_obj_pgh in pgh_list:
+			blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
+			if blob_deletion_status != latest_deletion_status:
+				#sync them
+				blob_id = latest_notif_obj_pgh.split(":")[2]
+				update_pg_obj_del(blob_deletion_status,blob_id,latest_idx,group_id)
+
+
 def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, server=None):
 	"""
 	Deletes all photos of user from personal_group
@@ -407,8 +424,7 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 	if ttl > 0:
 		return False, ttl
 	status = 'undel' if undelete else 'del'
-	personal_group_photo_list = "pgpl:"+group_id
-	all_photos = server.lrange(personal_group_photo_list,0,-1)
+	all_photos = server.lrange("pgpl:"+group_id,0,-1)
 	if all_photos:
 		own_photos, own_photo_id_pool = [], []
 		for photo in all_photos:
@@ -985,13 +1001,13 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
 				img_id = str(my_server.incr("pgiid:"+group_id))
 				img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
-				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_, \
+				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_, 'idx':comment_count,\
 				'img_width'+comment_count:img_wid+EXTRA_PADDING,'img_height'+comment_count:img_height, 'img_caption'+comment_count:img_caption,\
 				'status'+comment_count:'undel','img_id'+comment_count:img_id,'img_s_caption'+comment_count:img_s_caption,\
 				'hidden'+comment_count:'no','img_hw_ratio'+comment_count:img_hw_ratio}
 				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
 			else:
-				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_,\
+				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_,'idx':comment_count,\
 				'status'+comment_count:'undel'}
 				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
 			list_content, bid, idx = prev_blob_id+":"+writer_id+":"+comment_count, prev_blob_id, comment_count
@@ -1012,10 +1028,10 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				'type'+comment_count:type_,'which_blob':'nor','img_id'+comment_count:img_id, 'blob_id':new_blob_id,\
 				'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no', 'id':writer_id, \
 				'img_caption'+comment_count:img_caption,'img_width'+comment_count:img_wid+EXTRA_PADDING,\
-				'img_height'+comment_count:img_height,'img_hw_ratio'+comment_count:img_hw_ratio}
+				'img_height'+comment_count:img_height,'img_hw_ratio'+comment_count:img_hw_ratio,'idx':comment_count}
 				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
 			else:
-				hash_content = {'id':writer_id,type_+comment_count:content,'time'+comment_count:t_now,\
+				hash_content = {'id':writer_id,type_+comment_count:content,'time'+comment_count:t_now,'idx':comment_count,\
 				'type'+comment_count:type_,'which_blob':'nor','status'+comment_count:'undel','blob_id':new_blob_id}
 				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
 			list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, comment_count
@@ -1482,6 +1498,8 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 def mark_personal_group_attendance(own_id, target_id, group_id, time_now):
 	"""
 	Mark attendance to facilitate deletion of unattended personal groups
+
+	This is only fired if a new input is entered in the personal group
 	"""
 	own_id = str(own_id)
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
@@ -1507,23 +1525,47 @@ def personal_group_hard_deletion():
 	"""
 	Permanently deleting all data of groups gone cold (unattended for a month)
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	thirty_days_ago = time.time() - PERSONAL_GROUP_HARD_DELETION_CUTOFF
+	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', thirty_days_ago)
+	pgp_keys = []
+	for group_id in group_ids:
+		pgp_keys.append("pgp:"+group_id)
+	user_id_pairs = my_server.mget(*pgp_keys)
+	count, groups_and_participants = 0, []
+	for group_id in group_ids:
+		try:
+			participants = user_ids_pairs[count].split(":")
+			groups_and_participants.append((group_id,participants[0],participants[1]))
+		except (AttributeError, IndexError):
+			pass
+		count += 1
 	for group_id in group_ids:
 		permanently_delete_entire_personal_group(group_id, my_server=my_server)
 	pipeline1 = my_server.pipeline()
 	pipeline1.zrem("personal_group_attendance",*group_ids)
 	pipeline1.zrem("exited_personal_groups",*group_ids)
 	pipeline1.execute()
-
+	bulk_delete_pergrp_notif(groups_and_participants)
 
 #call daily
 def exited_personal_group_hard_deletion(group_ids=None):
 	"""
 	Permanently deleting all data of groups that have been exited
 	"""
+	pgp_keys = []
+	for group_id in group_ids:
+		pgp_keys.append("pgp:"+group_id)
 	my_server = redis.Redis(connection_pool=POOL)
+	user_id_pairs = my_server.mget(*pgp_keys)
+	count, groups_and_participants = 0, []
+	for group_id in group_ids:
+		try:
+			participants = user_id_pairs[count].split(":")
+			groups_and_participants.append((group_id,participants[0],participants[1]))
+		except (AttributeError, IndexError):
+			pass
+		count += 1
 	if not group_ids:
 		seven_days_ago = time.time() - EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF
 		group_ids = my_server.zrangebyscore("exited_personal_groups",'-inf', seven_days_ago)
@@ -1533,7 +1575,7 @@ def exited_personal_group_hard_deletion(group_ids=None):
 	pipeline1.zrem("exited_personal_groups",*group_ids)
 	pipeline1.zrem("personal_group_attendance",*group_ids)
 	pipeline1.execute()
-
+	bulk_delete_pergrp_notif(groups_and_participants)
 
 ########################################### Personal Group Anonymization ###########################################
 
@@ -1567,8 +1609,7 @@ def get_personal_group_anon_state(own_id, target_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id, exists = personal_group_already_exists(own_id, target_id, my_server)
 	if exists:
-		hash_name = "pgah:"+group_id
-		own_anon_status, their_anon_status = my_server.hmget(hash_name,'anon'+str(own_id),'anon'+str(target_id))
+		own_anon_status, their_anon_status = my_server.hmget("pgah:"+group_id,'anon'+str(own_id),'anon'+target_id)
 		if own_anon_status == '1':
 			result1 = True
 		else:
@@ -1581,6 +1622,22 @@ def get_personal_group_anon_state(own_id, target_id):
 	else:
 		return None, None, None
 
+
+# def is_user_anon(user_id, group_id):
+# 	"""
+# 	Retrieves anon_state of a single user, for use in notifications 
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).hget('pgah:'+group_id,'anon'+user_id)
+
+
+# def get_obj_state(pgh, index=None):
+# 	"""
+# 	Retrieves the 'del' and 'hidden' status of a message
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	is_hidden, is_deleted = my_server.hmget(pgh,'hidden'+index,'status'+index) if index else my_server.hmget(pgh,'hidden','status')
+# 	is_hidden = 'no' if not is_hidden else is_hidden
+# 	return is_hidden, is_deleted
 
 ######################################## Personal Group Mobile Verification ########################################
 
@@ -1809,6 +1866,18 @@ def sanitize_personal_group_invites(own_id, own_username, target_id, target_user
 
 ######################################## Personal Group Creation & Existence ########################################
 
+def personal_group_exists(group_id,own_id,target_id):
+	"""
+	Checks for existence via the group_id route
+	"""
+	own_id = str(own_id)
+	key1, key2 = own_id+":"+target_id, target_id+":"+own_id
+	users = redis.Redis(connection_pool=POOL).get("pgp:"+group_id)
+	if users in (key1,key2):
+		return True
+	else:
+		return False
+
 
 def personal_group_already_exists(own_id, target_id, server=None):
 	"""
@@ -1818,7 +1887,7 @@ def personal_group_already_exists(own_id, target_id, server=None):
 		return None, False
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	group_id = server.get("pgrp:"+str(own_id)+":"+str(target_id))
+	group_id = server.get("pgrp:"+str(own_id)+":"+target_id)
 	if group_id:
 		return group_id, True
 	else:

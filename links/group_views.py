@@ -4,11 +4,12 @@ import uuid, random, time
 from django.middleware import csrf
 from django.http import HttpResponse
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
+from django.core.urlresolvers import reverse_lazy, reverse
 from redis3 import tutorial_unseen, get_user_verified_number
+from redis2 import update_notification, skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
@@ -22,15 +23,16 @@ delete_single_personal_group_saved_content, delete_all_personal_group_saved_cont
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
 get_single_user_credentials, get_user_credentials#, exited_personal_group_hard_deletion
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
-cache_personal_group
+cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
 PRIV_CHAT_NOTIF
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_personal_group_image
+from views import get_page_obj, get_object_list_and_forms
 from imagestorage import upload_image_to_s3
-from views import get_page_obj
+from forms import UnseenActivityForm
 
 ONE_DAY = 60*60*24
 
@@ -38,7 +40,7 @@ ONE_DAY = 60*60*24
 # def deletion_test(request):
 # 	"""
 # 	"""
-# 	exited_personal_group_hard_deletion(['1'])
+# 	exited_personal_group_hard_deletion(['1','2','3'])
 
 
 #######################################################################################################################
@@ -84,13 +86,12 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 		personal_group_trimming_task.delay(group_id, obj_count)
 
 
-def construct_personal_group_data(content_list_of_dictionaries, object_count, own_id, own_uname, their_uname, own_avurl, their_avurl):
+def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl):
 	"""
 	Preps raw personal group data for display
 
 	Helper function for enter_personal_group()
 	"""
-	count = 0
 	for dictionary in content_list_of_dictionaries:
 		is_own_blob = True if dictionary['id'] == str(own_id) else False 
 		which_blob = dictionary.get("which_blob",None) # identifies 'nor' (normal), 'res' (response), 'action', 'notif' (notification) blobs
@@ -117,7 +118,7 @@ def construct_personal_group_data(content_list_of_dictionaries, object_count, ow
 				dictionary["t_av_url"] = own_avurl
 		else:
 			normal_chat = []
-			for i in range(1,object_count[count]+1):
+			for i in range(1,int(dictionary["idx"])+1):
 				idx = str(i)
 				if dictionary['type'+idx] == 'text':
 					normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
@@ -126,7 +127,6 @@ def construct_personal_group_data(content_list_of_dictionaries, object_count, ow
 						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
 			dictionary["iterator"] = normal_chat
-		count += 1
 	return content_list_of_dictionaries
 
 
@@ -172,10 +172,10 @@ def enter_personal_group(request):
 		else:
 			# reconstruct data and cache it
 			prev_seen_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, content_list_of_dictionaries, \
-			object_count, own_cred, their_cred = retrieve_content_from_personal_group(group_id, own_id, target_id, own_refresh_time)
+			own_cred, their_cred = retrieve_content_from_personal_group(group_id, own_id, target_id, own_refresh_time)
 			own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
-			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, object_count, own_id, own_uname, their_uname,\
-				own_avurl, their_avurl)
+			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, \
+				their_avurl)
 			cache_personal_group.delay(json.dumps(content_list_of_dictionaries),group_id)
 			t_nick = their_uname
 		t_nick = t_nick[:1].upper() if their_anon_status == '1' else t_nick
@@ -189,6 +189,7 @@ def enter_personal_group(request):
 				last_seen_time_diff = time.time() - float(their_last_seen_time)
 			except TypeError:
 				last_seen_time_diff = None
+		private_chat_seen.delay(own_id, group_id, own_refresh_time) # to ensure outstanding notifications are 'seen'
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_sms = request.session.pop("personal_group_sms_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
@@ -235,8 +236,9 @@ def post_to_personal_group(request, *args, **kwargs):
 							if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 								#'1' signifies photo permission notification
 								add_content_to_personal_group(content='1', type_='notif', writer_id=own_id, group_id=group_id)
-								private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=PRIV_CHAT_NOTIF['1'],txt_type='notif')#add content sentence, username, avatar, group_id)
-								# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+								private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_NOTIF['1'],\
+									txt_type='notif',own_anon='',target_anon='',blob_id='', idx='', img_url='',own_uname='',own_avurl='',deleted='undel',\
+									hidden='no')
 						else:
 							reoriented = request.POST.get('reoriented',None)
 							resized = request.POST.get('resized',None)
@@ -277,8 +279,9 @@ def post_to_personal_group(request, *args, **kwargs):
 									obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=content, \
 										type_=type_, writer_id=own_id, group_id=group_id)
 									add_image_to_personal_group_storage.delay(uploaded_image_loc, img_id, img_wid, hw_ratio, quality, bid, idx, own_id, gid)
-								private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=reply, txt_type=type_,img_url=uploaded_image_loc)#add content sentence, username, avatar, group_id)
-								# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+								private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=reply,txt_type=type_,\
+									own_anon='',target_anon='',blob_id=bid, idx=idx, img_url=uploaded_image_loc,own_uname='',own_avurl='',deleted='undel',\
+									hidden='no',successful=True if bid else False)
 								personal_group_sanitization(obj_count, obj_ceiling, gid)
 					elif reply:
 						if is_direct_response:
@@ -293,14 +296,15 @@ def post_to_personal_group(request, *args, **kwargs):
 							else:
 								# add normally to existing blobs
 								type_='text'
-								obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=reply, type_='text', \
+								obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=reply, type_=type_, \
 									writer_id=own_id, group_id=group_id)
 						else:
 							type_='text'
-							obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=reply, type_='text', \
+							obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=reply, type_=type_, \
 								writer_id=own_id, group_id=group_id)
-						private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=reply,txt_type=type_)#add content sentence, username, avatar, group_id)
-						# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=reply,txt_type=type_,\
+							own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no',\
+							successful=True if bid else False)
 						personal_group_sanitization(obj_count, obj_ceiling, gid)
 					else:
 						pass
@@ -369,19 +373,17 @@ def delete_post_from_personal_group(request):
 		group_id, exists = personal_group_already_exists(own_id, target_id)
 		if exists:
 			if decision == '1':
-					action = 'undel' if undelete == '1' else 'del'
-					deleted, ttl = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, group_id=group_id, img_id=None, \
-						action=action)
-					if ttl and not deleted:
-						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
-							'one_post':True,'tid':target_id})
-					request.session["personal_group_tid_key"] = target_id
-					request.session["personal_group_gid_key:"+target_id] = group_id#checked
-					request.session.modified = True
-			else:
-				request.session["personal_group_tid_key"] = target_id
-				request.session["personal_group_gid_key:"+target_id] = group_id#checked
-				request.session.modified = True
+				action = 'undel' if undelete == '1' else 'del'
+				deleted, ttl = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, group_id=group_id, \
+					img_id=None, action=action)#img_id is used in 'hiding', not needed here
+				if deleted:
+					update_notif_object_del.delay(action=action,blob_id=target_blob_id,idx=target_index,group_id=group_id)
+				elif ttl and not deleted:
+					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
+						'one_post':True,'tid':target_id})
+			request.session["personal_group_tid_key"] = target_id
+			request.session["personal_group_gid_key:"+target_id] = group_id#checked
+			request.session.modified = True
 			return redirect("enter_personal_group")
 		else:
 			return redirect("personal_group_user_listing")
@@ -745,9 +747,11 @@ def hide_photo_from_personal_group_chat(request):
 				if not (blob_id and idx and img_id):
 					return redirect("enter_personal_group")
 				else:
-					action = request.POST.get('act',None)
+					action = request.POST.get('act',None)#values are either 'hide' or 'unhide' (i.e. 'hide' if request.POST.get('hval',None) == 'True' else 'unhide')
 					hidden, ttl = delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_id, action=action)
-					if ttl and not hidden:
+					if hidden:
+						update_notif_object_hide.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
+					elif ttl and not hidden:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 							'one_photo':True,'tid':target_id})
 					return redirect("enter_personal_group")
@@ -777,8 +781,9 @@ def post_chat_action_in_personal_group(request):
 			elif option in ('1','2','3','4','5'):
 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=option, type_='action', \
 					writer_id=own_id, group_id=group_id)
-				private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=PRIV_CHAT_EMOTEXT[option],txt_type='action')#add content sentence, username, avatar, group_id)
-				# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_EMOTEXT[option],\
+					txt_type='action',own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id=bid, idx=idx, \
+					img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no',successful=True if bid else False)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 			else:
 				pass
@@ -839,6 +844,96 @@ def get_user_perms_for_group(request):
 	return render(request,"404.html",{})
 
 
+def x_per_grp_notif(request, gid, fid, from_home):
+	"""
+	Used to skip personal group notification
+	"""
+	own_id = request.user.id
+	group_id, exists = personal_group_already_exists(own_id, fid)
+	if exists and group_id == str(gid):
+		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
+	if from_home == '1':
+		return redirect("home")
+	elif from_home == '2':
+		return redirect("best_photo")
+	else:
+		return redirect("photo")
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def unseen_per_grp(request, gid, fid):
+	"""
+	Processes reply given in personal group straight from a notification
+	"""
+	if request.method == "POST":
+		own_id = request.user.id
+		own_uname = get_target_username(str(own_id))
+		group_id, exists = personal_group_already_exists(own_id, fid)
+		if exists and group_id == str(gid):
+			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
+			form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
+			if form.is_valid():
+				text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
+				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
+					writer_id=own_id, group_id=group_id)
+				private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
+					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
+					successful=True if bid else False)
+				personal_group_sanitization(obj_count, obj_ceiling, gid)
+				if origin:
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+					else:
+						return redirect("unseen_activity", own_uname)
+				else:
+					return redirect("unseen_activity", own_uname)
+			else:
+				if origin:
+					request.session["notif_form"] = form
+					request.session.modified = True
+					if origin == '0':
+						return redirect("photo")
+					elif origin == '1':
+						if lang == 'urdu' and sort_by == 'best':
+							return redirect("ur_home_best", 'urdu')
+						elif sort_by == 'best':
+							return redirect("home_best")
+						elif lang == 'urdu':
+							return redirect("ur_home", 'urdu')
+						else:
+							return redirect("home")
+					elif origin == '2':
+						return redirect("best_photo")
+					else:
+						return redirect("unseen_activity", own_uname)
+				else:
+					notification = "np:"+str(own_id)+":5:"+group_id
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+					url = reverse_lazy("unseen_activity", args=[own_uname])+addendum
+					forms[group_id] = form
+					request.session["forms"] = forms
+					request.session["oblist"] = oblist
+					request.session["page_obj"] = page_obj
+					request.session.modified = True
+					return redirect(url)
+		else:
+			return redirect("unseen_activity", own_uname)
+	else:
+		return redirect("home")
+
+
 ###########################################################################################################
 ######################################### Personal Group Settings #########################################
 ###########################################################################################################
@@ -876,6 +971,9 @@ def personal_group_reentry(request):
 					# re-enter normally, i.e. unsuspend group
 					unsuspend_personal_group(own_id, tid, group_id)
 					reset_all_group_chat(group_id) #permanently resetting group chat
+					private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry',txt_type='reentry',\
+						own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
+						own_avurl='',deleted='undel',hidden='no')
 					request.session['personal_group_tid_key'] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
 					request.session.modified = True
@@ -923,6 +1021,9 @@ def personal_group_exit_settings(request):
 					elif successful == True:
 						purge_all_saved_chat_of_user(own_id, tid, group_id)
 						delete_all_user_chats_from_personal_group(own_id, group_id) #hides all user chat - not permanent deletion
+						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='exit',txt_type='exited',\
+							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
+							own_avurl='',deleted='undel',hidden='no')
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'were_sorry':True,\
 							'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status,'tid':tid})
@@ -986,7 +1087,12 @@ def delete_or_hide_photo_from_photo_settings(request):
 					pass
 				action = request.POST.get('act',None)
 				deleted, ttl = delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, action=action)
-				if not deleted:
+				if deleted:
+					if action in ('del','undel'):
+						update_notif_object_del.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
+					elif action in ('hide','unhide'):
+						update_notif_object_hide.delay(action,blob_id,idx,group_id)
+				elif not deleted and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 						'one_photo':True,'tid':target_id})
 				request.session["personal_group_tid_key"] = target_id
@@ -1025,7 +1131,9 @@ def delete_all_posts_from_personal_group(request):
 			elif decision == '1':
 				undelete = request.POST.get('un',None)
 				deleted, ttl = delete_all_user_chats_from_personal_group(own_id=own_id, group_id=group_id, undelete=undelete)
-				if not deleted:
+				if deleted:
+					update_notif_object_del.delay(group_id, bulk_deletion=True)
+				elif not deleted and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
 						'all_chat':True,'tid':tid})
 				request.session["personal_group_tid_key"] = tid
@@ -1045,7 +1153,7 @@ def delete_all_posts_from_personal_group(request):
 @csrf_protect
 def anonymize_user_in_personal_group(request):
 	"""
-	Used to anonymize/unanonymize ncknames in personal group
+	Used to anonymize/unanonymize nicknames in personal group
 	"""
 	if request.method == "POST":
 		own_id, tid = request.user.id, request.POST.get("tid",None)
@@ -1061,9 +1169,13 @@ def anonymize_user_in_personal_group(request):
 			elif decision == '1':
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				new_value = set_personal_group_anon_state(own_id, tid)
-				return render(request,"personal_group/anon_settings/personal_group_anonymize.html",{'their_anon':their_anon_status,\
-					'own_anon':False if new_value == '0' else True,'name':their_uname,'avatar':their_avurl,'new_anon_value':new_value,\
-					'own_name':get_target_username(str(own_id)) if new_value == '1' else None,'tid':tid})
+				if new_value:
+					update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
+					return render(request,"personal_group/anon_settings/personal_group_anonymize.html",{'their_anon':their_anon_status,\
+						'own_anon':False if new_value == '0' else True,'name':their_uname,'avatar':their_avurl,'new_anon_value':new_value,\
+						'own_name':get_target_username(str(own_id)) if new_value == '1' else None,'tid':tid})
+				else:
+					return redirect("personal_group_user_listing")
 			else:
 				request.session["personal_group_tid_key"] = tid
 				request.session["personal_group_gid_key:"+tid] = group_id
@@ -1102,9 +1214,11 @@ def personal_group_photo_settings(request):
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
 					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value is None and ttl is not None:
-						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
-							'all_photos':True,'tid':tid})
+					if new_phdel_value == '1':
+						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					elif new_phdel_value is None and ttl is not None:
+						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
+							'tid':tid})
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1115,9 +1229,11 @@ def personal_group_photo_settings(request):
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
 					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value is None and ttl is not None:
-						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
-							'all_photos':True,'tid':tid})
+					if new_phdel_value == '0':
+						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					elif new_phdel_value is None and ttl is not None:
+						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
+							'tid':tid})
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1206,7 +1322,9 @@ def personal_group_send_sms(request):
 					if send_invite_notif:
 						#'2' signifies sms permission notification
 						add_content_to_personal_group(content='2', type_='notif', writer_id=own_id, group_id=group_id)
-						private_chat_tasks.delay(own_id, tid,group_id,time.time(), text=PRIV_CHAT_NOTIF['2'],txt_type='notif')
+						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_NOTIF['2'],\
+							txt_type='notif',own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', \
+							img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no')
 					request.session["personal_group_sms_no_permit"] = True
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1589,10 +1707,11 @@ def accept_personal_group_invite(request):
 		target_username = username_dictionary[int_tid]
 		is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
 		sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-		group_id, already_existed = create_personal_group(own_id, target_id, own_anon='0', \
-			target_anon='1' if is_target_anon == True else '0')
+		own_anon, target_anon = '0','1' if is_target_anon == True else '0'
+		group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 		if not already_existed:
-			private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text='created', txt_type='creation')
+			private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+				own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 		request.session["personal_group_tid_key"] = target_id
 		request.session["personal_group_gid_key:"+target_id] = group_id
 		request.session.modified = True
@@ -1648,10 +1767,11 @@ def change_personal_group_invite_privacy(request):
 				avatars = retrieve_bulk_avurls([own_id, target_id])
 				own_av_url = avatars[own_id]
 				target_av_url = avatars[int(target_id)]
-				group_id, already_existed = create_personal_group(own_id, target_id, own_anon='1' if decision == '0' else '0', \
-					target_anon='1' if state == '3' else '0')
+				own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
+				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 				if not already_existed:
-					private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text='created', txt_type='creation')
+					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 				request.session["personal_group_tid_key"] = target_id
 				request.session["personal_group_gid_key:"+target_id] = group_id
 				request.session.modified = True
@@ -1698,10 +1818,12 @@ def process_personal_group_invite(request):
 				if request.user_banned:
 					return render(request,'500.html',{}) #errorbanning
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-				group_id, already_existed = create_personal_group(own_id, target_id, own_anon='0', \
-					target_anon='1' if state == '3' else '0')
+				own_anon, target_anon = '0', '1' if state == '3' else '0'
+				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 				if not already_existed:
-					private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text='created', txt_type='creation')
+					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
+						hidden='no')
 				request.session["personal_group_invite_accepted"] = True
 				request.session["personal_group_invite_accepted_is_anon"] = True if state == '3' else False
 				request.session["personal_group_invite_accepted_username"] = target_username
@@ -1753,8 +1875,9 @@ def post_js_reply_to_personal_group(request):
 								if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 									#'1' signifies photo permission notification
 									add_content_to_personal_group(content='1', type_='notif', writer_id=own_id, group_id=group_id)
-									private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=PRIV_CHAT_NOTIF['1'],txt_type='notif')#add content sentence, username, avatar, group_id)
-									# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+									private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_NOTIF['1'],\
+										txt_type='notif',own_anon='',target_anon='',blob_id='', idx='', img_url='',own_uname='',own_avurl='',deleted='undel',\
+										hidden='no')
 							else:
 								reoriented = request.POST.get('reoriented',None)
 								resized = request.POST.get('resized',None)
@@ -1775,17 +1898,19 @@ def post_js_reply_to_personal_group(request):
 									res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
 									obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=content, \
 										type_='img_res', writer_id=own_id, group_id=group_id, res_blob=res_blob)
-									private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=reply,txt_type='img_res', img_url=uploaded_image_loc)#add content sentence, username, avatar, group_id)
+									private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=reply,\
+										txt_type='img_res',own_anon='',target_anon='',blob_id=bid, idx=idx, img_url=uploaded_image_loc,own_uname='',\
+										own_avurl='',deleted='undel',hidden='no',successful=True if bid else False)
 									add_image_to_personal_group_storage.delay(uploaded_image_loc, img_id, img_wid, hw_ratio, quality, bid, idx, own_id, gid)
-									# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
 									personal_group_sanitization(obj_count, obj_ceiling, gid)
 						elif reply:
 							# add as a 'response' blob
 							res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
 							obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=reply, \
 								type_='text_res', writer_id=own_id, group_id=group_id, res_blob=res_blob)
-							private_chat_tasks.delay(own_id, target_id,group_id, time.time(), text=reply,txt_type='text_res')#add content sentence, username, avatar, group_id)
-							# update_personal_group_last_touch.delay(own_id, target_id,group_id, time.time())
+							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=reply,\
+								txt_type='text_res',own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname='',own_avurl='',\
+								deleted='undel',hidden='no',successful=True if bid else False)
 							personal_group_sanitization(obj_count, obj_ceiling, gid)
 						else:
 							pass

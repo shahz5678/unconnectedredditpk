@@ -2,8 +2,8 @@
 {% load future_time %}
 
 <div style="border:2px dashed red;border-radius:12px;color:red;padding:10px;text-align:center">
-    {% if suspended_by == 'self' %}    
-        <div class="lsp cxl">Ap ne <b>{{ t_nick }}</b> ki private chat chore di {{ time_of_suspension|human_time }}</div>
+    {% if suspended_by == 'self' %}
+        <div class="lsp cxl">Ap ne <b>{{ t_nick }}</b> ke sath private chat chore di {{ time_of_suspension|human_time }}</div>
         <hr size=1 COLOR="red">
         <div id="sp" class="mt cl mbs">
             {% if can_rejoin %}
@@ -19,7 +19,7 @@
             {% endif %}
         </div>
     {% else %}
-        <div class="lsp cxl"><b>{{ t_nick }}</b> ne apki private chat chore di {{ time_of_suspension|human_time }}</div>
+        <div class="lsp cxl"><b>{{ t_nick }}</b> ne apke sath private chat chore di {{ time_of_suspension|human_time }}</div>
         <hr size=1 COLOR="red">
         <div id="sp" class="mt cl mbs">
             {% if can_rejoin %}

@@ -1987,3 +1987,8 @@ def personal_group_help(request):
 	"""
 	"""
 	return render(request,"personal_group/help/personal_group_help.html",{})
+
+def private_chat_help_ad(request):
+	"""
+	"""
+	return render(request,"personal_group/help/private_chat_help_ad.html",{})	

@@ -2,11 +2,11 @@
 {% block content %}
 <head><title>Create public group | Damadam.pk</title></head>
 <div class="margin">
-<b class="cp cl">Apni mehfil ka aik mazedar topic likhein:</b><br>
+
 <form method="post" action="" method="POST">
 {% csrf_token %}
 
-	<span class="cr">{{ form.topic.errors }}</span>
+	{% if form.topic.errors %}<div class="cr mbs">{{ form.topic.errors.0 }}<br></div>{% else %}<b class="cp cl">Apni mehfil ka aik mazedar topic likhein:</b><br>{% endif %}
 	{{ form.topic }}<br>
 
 	<br><b class="cp cl">Mehfil ke rules likhein:</b><br>  

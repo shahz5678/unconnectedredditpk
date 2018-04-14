@@ -5,7 +5,7 @@ from links.group_views import render_personal_group_invite, change_personal_grou
 process_personal_group_invite, personal_group_sms_text, post_to_personal_group, personal_group_sms_settings, personal_group_own_chat_buttons, \
 delete_post_from_personal_group, post_chat_action_in_personal_group, delete_all_posts_from_personal_group, save_post_in_personal_group,\
 anonymize_user_in_personal_group, accept_personal_group_invite, send_personal_group_invite, personal_group_grant_chat_saving_perm, \
-set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo_settings, hide_photo_from_personal_group_chat, \
+set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo_settings, hide_photo_from_personal_group_chat, private_chat_help_ad,\
 personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,personal_group_help,\
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
@@ -61,4 +61,5 @@ urlpatterns = patterns('',
 	url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
 	############################## Personal Group Notifications ###############################
 	url(r'^private_chat_help/$', auth(personal_group_help), name='personal_group_help'),
+	url(r'^private_chat_ad/$', auth(private_chat_help_ad), name='private_chat_help_ad'),
 )

@@ -39,16 +39,16 @@
     {% if own_profile %}
 
       {% if time_remaining == '-2' %}
-        <span class="cgy sp cs">
+        <div class="cgy sp cs">
         {% if recent_fans > 1 %}
-        <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
+        <b>{{ recent_fans }} fans</b> pichle 1 day mein
         {% elif recent_fans == 1 %}
-        <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
+        <b>{{ recent_fans }} fan</b> pichle 1 day mein
         {% else %}
-        <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
+        <b>{{ recent_fans }} fans</b> pichle 1 day mein
         {% endif %}
-        </span>
-        <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mtl mbl" style="height:25px">Edit Profile</button></a>
+        </div>
+        <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mts mbl" style="height:25px">Edit Profile</button></a>
         <br>
         {% if subject.userprofile.avatar %}
         <b>Profile photo:</b><br>

@@ -21,7 +21,8 @@ queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, s
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
 public_group_ranking_clean_up
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
-invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state
+invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
+personal_group_hard_deletion, exited_personal_group_hard_deletion
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
@@ -189,6 +190,23 @@ def update_notif_object_hide(action,blob_id,idx,group_id):
 @celery_app1.task(name='tasks.private_chat_seen')
 def private_chat_seen(own_id, group_id, curr_time):
 	skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
+
+
+# execute every 3 days
+@celery_app1.task(name='tasks.delete_chat_from_idle_personal_group')
+def delete_chat_from_idle_personal_group():
+	personal_group_soft_deletion()
+
+# execute every 6 days
+@celery_app1.task(name='tasks.delete_idle_personal_group')
+def delete_idle_personal_group():
+	personal_group_hard_deletion()
+
+
+# execute daily
+@celery_app1.task(name='tasks.delete_exited_personal_group')
+def delete_exited_personal_group():
+	exited_personal_group_hard_deletion()
 
 
 def retrieve_object_type(origin):

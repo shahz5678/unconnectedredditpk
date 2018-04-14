@@ -2456,6 +2456,11 @@ class OpenGroupCreateView(CreateView):
 	form_class = OpenGroupCreateForm
 	template_name = "new_open_group.html"
 
+	def get_form_kwargs( self ):
+		kwargs = super(OpenGroupCreateView,self).get_form_kwargs()
+		kwargs['verified'] = self.request.mobile_verified
+		return kwargs
+
 	def form_valid(self, form):
 		if self.request.user.userprofile.score > (PUBLIC_GROUP_COST-1):
 			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet

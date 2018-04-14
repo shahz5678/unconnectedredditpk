@@ -901,9 +901,17 @@ class OpenGroupCreateForm(forms.ModelForm):
 		fields = ("topic", "rules", "pics_ki_ijazat")
 
 	def __init__(self, *args, **kwargs):
+		self.is_mob_verified = kwargs.pop('verified',None)
 		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
 		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
+
+	def clean_topic(self):
+		data, is_mob_verified = self.cleaned_data.get("topic"), self.is_mob_verified
+		if not is_mob_verified:
+			raise forms.ValidationError('Mobile number verify kiye beghair mehfil nahi ban sakti')
+		return data
+
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))

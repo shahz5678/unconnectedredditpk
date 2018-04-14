@@ -15,6 +15,7 @@ from models import UserProfile
 ##########Redis Namespace##########
 
 personal_group is a key used to produce group_ids for personal groups
+all_pgs is a sorted set that contains IDs of all groups created (alongwith creation times)
 
 'personal_group_attendance' is a sorted set of last access times of all personal groups. It helps in making deletion decisions
 'exited_personal_groups' is a sorted set of all exited personal groups (alongwith time of exit). It is used for deletion
@@ -1914,6 +1915,7 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("pgah:"+group_id,mapping)
 		pipeline1.mset({"pgp:"+group_id:own_id+":"+target_id,"pgrp:"+own_id+":"+target_id:group_id,"pgrp:"+target_id+":"+own_id:group_id})
+		pipeline1.zadd("all_pgs",group_id,time.time())
 		###### No need to touch these sets, they're done in mark_personal_group_attendance ######
 		# pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,time_now)
 		# pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,time_now)

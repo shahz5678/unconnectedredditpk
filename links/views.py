@@ -6032,7 +6032,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
-				description = desc1 if desc2 == '|' else desc2
+				description = desc1 if desc1 else desc2
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:

@@ -1978,3 +1978,12 @@ def personal_group_user_listing(request):
 	page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
 	return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,'num_pages':len(page_list),\
 		'current_page':page_num,'current_time':time.time(),'own_id':str(request.user.id),'items_in_curr_page':len(payload)})
+
+####################################################################################################################
+#################################################### Help Page #####################################################
+####################################################################################################################
+
+def personal_group_help(request):
+	"""
+	"""
+	return render(request,"personal_group/help/personal_group_help.html",{})

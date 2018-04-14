@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Private chat help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="clb" style="margin: 0 auto;max-width:600px;width:98%">
+<h1 class="cxl" style="text-align:center">Damadam Private Chat</h1>
+
+<div class="bizcard lsp" style="background-color:white;padding:10px">
+
+<div class="cl cgy">1) Damadam pe jald aik new kism ki private chat aney wali hai</div>
+
+<div class="mts cl cgy">2) Nickname ke agey baney huay <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+						<div id="line"></div>
+						<div id="line"></div>
+						<div id="line" style="width: 8px"></div>
+						</button> button ko daba kar ap kisi ko bhi private chat mein invite kar sakien ge (bilkul muft)</div>
+<div class="mts cl cgy">3) Is chat mein ap <img src="{{ STATIC_URL }}img/anon.svg" width="25" height="25" style="vertical-align:middle"> daba kar apna nickname hide kar sakien ge</div>
+<div class="mts cl cgy">4) Ap <img src="{{ STATIC_URL }}img/sms.svg" width="27" height="27" style="vertical-align:middle"> daba kar apney friends ko Damadam pe SMS ke zariye bula sakien ge. SMS muft mein Damadam ki janib se jaye ga aur mobile number zahir nahi kya jaye ga</div>
+</div>
+
+
+</div>
+<br>
+{% endblock %}

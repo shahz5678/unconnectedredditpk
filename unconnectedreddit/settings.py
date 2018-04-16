@@ -26,7 +26,7 @@ AWS_QUERYSTRING_AUTH = False
 
 
 if ON_AZURE == '1':
-	DEBUG=False
+	DEBUG=True#False
 	# STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True

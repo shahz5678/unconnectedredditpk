@@ -9,7 +9,6 @@ PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_G
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
 from redis4 import retrieve_bulk_credentials, retrieve_credentials
-from models import UserProfile
 
 '''
 ##########Redis Namespace##########

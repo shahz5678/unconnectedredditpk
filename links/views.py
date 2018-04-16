@@ -6410,6 +6410,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 	else:
 		return redirect("unseen_activity",request.user.username)
 
+
 def public_reply_view(request,*args,**kwargs):
 	context, user_id = {}, request.user.id
 	if request.method == "POST":

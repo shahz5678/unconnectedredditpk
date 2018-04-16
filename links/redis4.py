@@ -293,10 +293,10 @@ def retrieve_bulk_avurls(user_ids):
 			uncollected_avurls.append(user_id)
 		counter += 1
 	if uncollected_avurls:
-		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('id','avatar')
+		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('user_id','avatar')
 		pipeline2 = my_server.pipeline()
 		for avurl in collected_avurls:
-			user_id = avurl['id']
+			user_id = avurl['user_id']
 			hash_name = 'uname:'+str(user_id)
 			if not avurl['avatar']:
 				avurl['avatar'] = 'empty'

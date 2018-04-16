@@ -3,6 +3,7 @@
 {% load humanize %}
 {% load show_error %}
 {% load emoticons_tags %}
+{% load get_group_button %}
 {% load get_mobile_verification_bar %}
 {% block content %}
 <head><title>{% if switching %}Public group{% else %}{{ group.topic }} (public group){% endif %} | Damadam.pk</title></head>
@@ -239,7 +240,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="dec" value="rem">
                 <input type="hidden" name="slug" value="{{ unique }}">
-                <button type="submit" name="pk" class="btn bcp mts bm cxs" value="{{ writer.pk }}" style="border:none;height:15px;line-height:15px"><b>kick</b></button></a>
+                <button type="submit" name="pk" class="btn bcp mts bm cxs" value="{{ writer.pk }}" style="border:none;height:15px;line-height:15px"><b>kick</b></button>
                 </form>
             {% else %}
                 <form method="POST" action="{% url 'group_report_pk' %}" style="display:inline">
@@ -250,6 +251,7 @@
                 </form>
             {% endif %}
             </span>
+            {% group_button user.pk writer.pk group.unique 'group' 'public' writer.username %}
             </div>
            
         {% endif %}

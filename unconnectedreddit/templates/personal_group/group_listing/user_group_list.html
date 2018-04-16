@@ -33,7 +33,7 @@
 		<div class="mbl" style="text-align:center">
 			{% private_chat_navbar static_url=STATIC_URL section='chats' %}
 			{% if num_pages < 2 %}
-			<h1 class="cxl">All private chats</h1>
+			<h1 class="cxl">Your private chats</h1>
 			{% else %}
 			<div class="mtl fx fxjscn fxaicn">
 				<div>
@@ -42,7 +42,7 @@
 				</form>
 				</div>
 				<!--  -->
-				<div><h1 style="display:inline" class="mls mrs cxl">All private chats</h1></div>
+				<div><h1 style="display:inline" class="mls mrs cxl">Your private chats</h1></div>
 				<!--  -->
 				<div>
 				<form style="display:inline" method="GET" action="{% url 'personal_group_user_listing' %}">

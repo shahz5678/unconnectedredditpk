@@ -47,6 +47,7 @@ ONE_DAY = 60*60*24
 ########################################### Personal Group Helper Functions ###########################################
 #######################################################################################################################
 
+
 def get_uname_and_avurl(target_id, their_anon_status):
 	"""
 	Retrieves target_id's username and avatar_url
@@ -84,6 +85,56 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 	"""
 	if obj_count > obj_ceiling and random.random() < 0.66:
 		personal_group_trimming_task.delay(group_id, obj_count)
+
+
+def return_to_source(origin,parent_object_id,target_username):
+	"""
+	Redirect to a certain location
+	"""
+	if origin in ('home','home_reply'):
+		if parent_object_id:
+			return redirect("home_loc_pk",pk=parent_object_id)
+		else:
+			return redirect("home")
+	elif origin == 'history':
+		if target_username:
+			return redirect("user_activity",slug=target_username)
+		else:
+			return redirect("home")
+	elif origin == 'public':
+		if parent_object_id:
+			return redirect("public_group",slug=parent_object_id)
+		else:
+			return redirect("home")
+	elif origin == 'search':
+		return redirect("search_username")
+	elif origin == 'profile':
+		if parent_object_id:
+			return redirect("user_profile",slug=parent_object_id)
+		else:
+			return redirect("home")	
+	elif origin == 'profile_photos':
+		if parent_object_id:
+			return redirect("profile",slug=parent_object_id)
+		else:
+			return redirect("home")	
+	elif origin == 'best_photos':
+		if parent_object_id:
+			return redirect("best_photo_loc_pk", parent_object_id)
+		else:
+			return redirect("home")
+	elif origin == 'photo_comments':
+		if parent_object_id:
+			return redirect("comment", parent_object_id)
+		else:
+			return redirect("home")
+	elif origin == 'fresh_photos':
+		if parent_object_id:
+			return redirect("see_photo_pk", parent_object_id)
+		else:
+			return redirect("photo")
+	else:
+		return redirect("home")
 
 
 def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl):
@@ -1685,7 +1736,7 @@ def render_personal_group_invite(request):
 					target_username, parent_object_id, object_type, origin, target_id, target_av_url
 					request.session.modified = True
 					return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,'target_av_url':\
-						target_av_url})
+						target_av_url,'org':origin,'poid':parent_object_id})
 	return redirect("show_personal_group_invite_list")
 
 
@@ -1700,22 +1751,35 @@ def accept_personal_group_invite(request):
 	if request.method == "POST":
 		if request.user_banned:
 			return render(request,'500.html',{}) #errorbanning
-		own_id, target_id = request.user.id, request.session.get("personal_group_invitation_sent_by_id",None)
-		int_tid = int(target_id)
-		username_dictionary = retrieve_bulk_unames([own_id,target_id],decode=True)
-		own_username = username_dictionary[own_id]
-		target_username = username_dictionary[int_tid]
-		is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
-		sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-		own_anon, target_anon = '0','1' if is_target_anon == True else '0'
-		group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
-		if not already_existed:
-			private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
-				own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
-		request.session["personal_group_tid_key"] = target_id
-		request.session["personal_group_gid_key:"+target_id] = group_id
-		request.session.modified = True
-		return redirect("enter_personal_group")
+		decision = request.POST.get("dec",None)
+		if decision == '1':
+			own_id, target_id = request.user.id, request.session.get("personal_group_invitation_sent_by_id",None)
+			int_tid = int(target_id)
+			username_dictionary = retrieve_bulk_unames([own_id,target_id],decode=True)
+			own_username = username_dictionary[own_id]
+			target_username = username_dictionary[int_tid]
+			is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
+			sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
+			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+			if not already_existed:
+				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+					own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
+			request.session["personal_group_tid_key"] = target_id
+			request.session["personal_group_gid_key:"+target_id] = group_id
+			request.session.modified = True
+			return redirect("enter_personal_group")
+		else:
+			origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
+			if origin == 'publicreply':
+				if poid:
+					request.session["link_pk"] = poid
+					request.session.modified = True
+					return redirect("publicreply_view")
+				else:
+					return redirect("home")
+			else:
+				return return_to_source(origin,poid,target_username)
 	else:
 		return redirect("home")
 
@@ -1734,7 +1798,16 @@ def send_personal_group_invite(request):
 			'tun':request.session.get("personal_group_invite_target_username",None)}
 			return render(request,"personal_group/invites/personal_group_status.html",context)
 		else:
-			return redirect("home")
+			origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
+			if origin == 'publicreply':
+				if poid:
+					request.session["link_pk"] = poid
+					request.session.modified = True
+					return redirect("publicreply_view")
+				else:
+					return redirect("home")
+			else:
+				return return_to_source(origin,poid,target_username)
 	else:
 		return redirect("home")
 
@@ -1785,7 +1858,7 @@ def change_personal_group_invite_privacy(request):
 				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
 				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
 				if sent is False:
-					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id}
+					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				else:
 					if decision == '0':
@@ -1794,10 +1867,7 @@ def change_personal_group_invite_privacy(request):
 							context["personal_group_invite_privacy"] = True
 							context["oun"] = own_username
 							return render(request,"helpful_instructions.html",context)
-					if origin == 'home':
-						return redirect("home_loc_pk",parent_object_id)
-					else:
-						return redirect("home")
+					return redirect("show_personal_group_invite_list")
 	else:
 		return redirect("home")
 

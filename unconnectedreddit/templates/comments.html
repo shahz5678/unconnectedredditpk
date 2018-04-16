@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load get_block_button %}
+{% load get_group_button %}
 {% load emoticons_tags %}
 {% load show_error %}
 {% load s3 %}
@@ -241,6 +242,7 @@
         <button class="btn bco bs cxs">mehfil</button></a>
       
         {% endif %}
+        {% group_button user.id comment.submitted_by_id photo.pk 'photos' 'photo_comments' comment.submitted_by.username %}
         </div>
     {% endif %}
     </td></tr>

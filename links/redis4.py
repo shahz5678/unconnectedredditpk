@@ -260,10 +260,10 @@ def retrieve_bulk_credentials(user_ids, decode_unames=False):
 			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	if uncollected_avurls:
-		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('id','avatar')
+		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('user_id','avatar')
 		pipeline3 = my_server.pipeline()
 		for avurl in collected_avurls:
-			user_id = avurl['id']
+			user_id = avurl['user_id']
 			hash_name = 'uname:'+str(user_id)
 			if not avurl['avatar']:
 				avurl['avatar'] = 'empty'

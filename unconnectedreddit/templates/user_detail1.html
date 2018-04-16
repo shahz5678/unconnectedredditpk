@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load s3 %}
+{% load get_group_button %}
 {% load future_time %}
 {% load get_voting %}
 {% load get_curate_photo %}
@@ -23,11 +24,11 @@
 
 {% else %}
 
-  <div style="text-align:center">  
+  <div class="mbl" style="text-align:center">  
   {% if own_profile %}
-  <h1 class="cl">Your profile and photos:</h1>
+  {% group_button user.id user.id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">Your profile and photos:</h1>
   {% else %}
-  <h1 class="cl">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
+  {% group_button user.id star_id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
   {% endif %}
   </div>
 {% if page_obj.number == 1 %}

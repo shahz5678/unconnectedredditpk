@@ -1,15 +1,25 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load get_group_button %}
 {% block content %}
 <head><title>{{ object.username }}'s profile | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 {{ block.super }}
-<div class="margin clb">
+
+<div style="text-align:center" class="mbl">  
+  {% if object.username == user.username %}
+ {% group_button user.id user.id user.username 'profile' 'profile' user.username %}<h1 class="cl clb" style="display:inline">Your profile:</h1>
+  {% else %}
+ {% group_button user.id object.id object.username 'profile' 'profile' object.username %}<h1 class="cl clb" style="display:inline">{{ object.username }}'s{% if object.username in ratified %}<span class="pinkstar">*</span>{% endif %} profile:</h1>
+  {% endif %}
+ </div>
+
+<div class="clb bizcard" style="background-color:white;margin: 0 auto;max-width:600px;width:98%;padding:10px 7px">
+
 {% if object.username == user.username %}
-<h2 class="cg">Apki profile:</h2>
 <a href="{% url 'edit_profile' %}#section0"><button class="btn bcg bxl mts mbl" style="height:25px">Edit Profile</button></a><br>
 <a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl" style="height:25px">Home history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% else %}
-<h2 class="cg">{{ object.username }} ki profile:</h2>
 <a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl" style="height:25px">Private mehfil</button></a>
 <br><a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl" style="height:25px">Home history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
 {% endif %}
@@ -21,7 +31,7 @@
 	{% elif object.username == user.username %}
 		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" style="border-radius:12px" alt="photo"><br>
 	{% else %}
-		<span class="cgy" style="font:85%;">isse kaho ek photo toh laga le...</span><hr size=1 COLOR="#b3e6b3">
+		<span class="cgy" style="font:85%;">isse kahein ek photo toh laga le...</span><hr size=1 COLOR="#b3e6b3">
 	{% endif %}
 	<b class="profile">Joined {{ object.date_joined|naturaltime }}</b>
 	<hr size=1 COLOR="#b3e6b3">
@@ -80,6 +90,6 @@
 	{% else %}
 		Shakal pe mat ja
 	{% endif %}
-	<hr size=1 COLOR="#b3e6b3">
 </div>
+<br><br>
 {% endblock %}

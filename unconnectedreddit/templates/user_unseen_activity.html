@@ -21,16 +21,7 @@
   <h1 class="cl clb sp" style="margin:0">Matka:</h1>
  </div>
 </div>
-<div class="bizcard ca" style="color:#306654;padding:10px 7px;margin-bottom:15px;text-align:center;">
-<div class="fx fxjscn fxaicn">
-<img src="{{ STATIC_URL }}img/wassap_small.svg" width="50" height="50">
-<div class="cxl mrs mls">New private chat is coming soon!</div>
-<img src="{{ STATIC_URL }}img/lol_small.svg" width="50" height="50">
-</div>
-<hr size=1 COLOR="#b3ffe6">
-<div class="sp">Details dekhne ke liye OK dabain:</div>
-<a href="{% url 'personal_group_help' %}"><button class="btn bcb bm mtl mbs" style="height:25px">OK</button></a>
-</div>
+
 {% for notif in object_list %}
 <div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">
 <a name="section{{ forloop.counter }}"></a>

@@ -989,7 +989,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 		hash_content = {'id':writer_id,type_:content,'time':t_now,'blob_id':new_blob_id,'which_blob':type_,\
 		'status':'open' if type_=='notif' else 'permanent'}
 		list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, '-1'
-		group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+		group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':''}
 	elif content and is_normal_chat:
 		first_element = my_server.lindex(personal_group_list,0) #blob_id:writer_id:comment_count
 		if first_element is not None:
@@ -1014,11 +1014,11 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				'img_width'+comment_count:img_wid+EXTRA_PADDING,'img_height'+comment_count:img_height, 'img_caption'+comment_count:img_caption,\
 				'status'+comment_count:'undel','img_id'+comment_count:img_id,'img_s_caption'+comment_count:img_s_caption,\
 				'hidden'+comment_count:'no','img_hw_ratio'+comment_count:img_hw_ratio}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel'}
 			else:
 				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_,'idx':comment_count,\
 				'status'+comment_count:'undel'}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel'}
 			list_content, bid, idx = prev_blob_id+":"+writer_id+":"+comment_count, prev_blob_id, comment_count
 		else:
 			# create a new blob
@@ -1038,11 +1038,11 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no', 'id':writer_id, \
 				'img_caption'+comment_count:img_caption,'img_width'+comment_count:img_wid+EXTRA_PADDING,\
 				'img_height'+comment_count:img_height,'img_hw_ratio'+comment_count:img_hw_ratio,'idx':comment_count}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel'}
 			else:
 				hash_content = {'id':writer_id,type_+comment_count:content,'time'+comment_count:t_now,'idx':comment_count,\
 				'type'+comment_count:type_,'which_blob':'nor','status'+comment_count:'undel','blob_id':new_blob_id}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel'}
 			list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, comment_count
 	elif content and is_response:
 		# fish out required content
@@ -1087,7 +1087,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 						hash_content["t_img_s_caption"] = target_img_s_caption
 						hash_content["t_hidden"] = target_hidden
 						hash_content["t_img_s_width"] = small_image_width(float(target_image_width)-EXTRA_PADDING, float(target_image_height))
-					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel'}
 				elif type_ == 'text_res':
 					hash_content = {'id':writer_id,'res_content':content,'res_time':t_now,'res_type':'text','status':'undel',\
 					'blob_id':new_blob_id,'t_content':target_content,'t_writing_time':target_writing_time,'which_blob':'res',\
@@ -1098,7 +1098,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 						hash_content["t_img_s_caption"] = target_img_s_caption
 						hash_content["t_hidden"] = target_hidden
 						hash_content["t_img_s_width"] = small_image_width(float(target_image_width)-EXTRA_PADDING, float(target_image_height))
-					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel'}
 				list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, '-1'
 		else:
 			# target blob no longer exists
@@ -1177,7 +1177,7 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 			exit_time = time.time()
 			mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
 			'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
-			'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time}
+			'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':''}
 			pipeline1 = my_server.pipeline()
 			pipeline1.hmset("pgah:"+group_id,mapping)
 			pipeline1.zadd('exited_personal_groups',group_id,exit_time)
@@ -1205,7 +1205,7 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,unsuspend_time)
 		pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,unsuspend_time)
 		pipeline1.execute()
-		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time}
+		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':''}
 		my_server.hmset(group_hash,mapping)
 		return True
 	else:
@@ -1918,7 +1918,7 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		'xfivt'+target_id:PERSONAL_GROUP_PHT_XFER_IVTS,'smsrec'+own_id:own_rec_sms,'smsrec'+target_id:target_rec_sms,'numchg'+own_id:own_num_chg,\
 		'numchg'+target_id:target_num_chg,'smsivt'+own_id:PERSONAL_GROUP_SMS_IVTS,'smsivt'+target_id:PERSONAL_GROUP_SMS_IVTS,'last_seen'+own_id:time_now+0.1,\
 		'last_seen'+target_id:'-1','svrem'+own_id:own_saves_remaining,'svrem'+target_id:target_saves_remaining,'svprm'+own_id:own_svch_perm,\
-		'svprm'+target_id:target_svch_perm}
+		'svprm'+target_id:target_svch_perm,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':''}
 		group_id = str(my_server.incr("personal_group"))
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("pgah:"+group_id,mapping)

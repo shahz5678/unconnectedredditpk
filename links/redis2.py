@@ -114,6 +114,12 @@ def retrieve_unseen_activity(notifications):
 	while i < len(result):
 		if 'c' in result[i] and 'ot' in result[i+1]:
 			combined = dict(result[i],**result[i+1])
+			if "lrsn" in combined:
+				combined["lrsn"] = combined["lrsn"].decode('utf-8')
+			if "uname1" in combined:
+				combined["uname1"] = combined["uname1"].decode('utf-8')
+			if "uname2" in combined:
+				combined["uname2"] = combined["uname2"].decode('utf-8')
 			list_of_dictionaries.append(combined)
 		i += 2
 	return list_of_dictionaries

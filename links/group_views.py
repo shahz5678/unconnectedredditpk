@@ -930,7 +930,7 @@ def unseen_per_grp(request, gid, fid):
 					writer_id=own_id, group_id=group_id)
 				private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
 					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-					successful=True if bid else False)
+					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
 					if origin == '0':

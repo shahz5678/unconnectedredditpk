@@ -205,14 +205,13 @@ def get_user_credentials(own_id, their_id, my_server=None):
 		return json.loads(own_cred), json.loads(their_cred)
 		
 
-
 def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, chat_data=True):
 	"""
 	Returns essential personal group data required to render it
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
 	group_key, own_last_seen = "pgah:"+group_id, 'last_seen'+own_id
+	my_server = redis.Redis(connection_pool=POOL)
 	own_anon_status, their_anon_status, auto_del_called, is_suspended, prev_time, their_last_seen_time = \
 	my_server.hmget(group_key,'anon'+own_id,'anon'+target_id,'autodel','is_sus',own_last_seen,'last_seen'+target_id)
 	my_server.hset(group_key,own_last_seen,time_now) # putting these in pipeline doesn't speed up the commands (already profiled)
@@ -244,6 +243,16 @@ def cache_personal_group_data(json_obj, group_id):
 	Caches personal group's data as an optimization
 	"""
 	redis.Redis(connection_pool=POOL).setex('pgd:'+group_id,json_obj,ONE_DAY)
+
+
+######################################## Update Last Seen in Personal Group ########################################
+
+def update_personal_group_last_seen(own_id, group_id, time_now = None):
+	"""
+	Update user's last seen in group
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
 
 
 ######################################## Content Deletion/Hiding in Personal Group ########################################

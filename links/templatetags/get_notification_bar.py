@@ -19,6 +19,9 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 		elif not freshest_reply:
 			context["notification"] = 0
 		elif is_personal_grp:
+			freshest_reply["uname1"] = freshest_reply["uname1"].decode("utf-8")
+			freshest_reply["uname2"] = freshest_reply["uname2"].decode("utf-8")
+			freshest_reply["lrsn"] = freshest_reply["lrsn"].decode("utf-8")
 			context["notification"] = 1
 			group_id = freshest_reply['oi']
 			context["type_of_object"] = '5'

@@ -22,7 +22,7 @@ process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_us
 public_group_ranking_clean_up
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
-personal_group_hard_deletion, exited_personal_group_hard_deletion
+personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
@@ -152,7 +152,7 @@ def cache_personal_group(pg_data, group_id):
 
 @celery_app1.task(name='tasks.private_chat_tasks')
 def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
-	own_avurl='',deleted='',hidden='',successful=True):
+	own_avurl='',deleted='',hidden='',successful=True, from_unseen=False):
 	if successful:
 		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
 		own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
@@ -169,6 +169,8 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			target_id=target_id)
 		update_private_chat_notifications(sender_id=own_id, receiver_id=target_id, group_id=group_id, sender_seen=True, receiver_seen=False,\
 			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
+		if from_unseen:
+			update_personal_group_last_seen(own_id, group_id, posting_time)
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):

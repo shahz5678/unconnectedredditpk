@@ -6347,26 +6347,6 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
-def get_object_list_and_forms2(page_from_req,user_id, notif=None):
-	notifications = retrieve_unseen_notifications(user_id)
-	if notif:
-		try:
-			index = notifications.index(notif)
-		except:
-			index = 0
-		page_num, addendum = get_addendum(index,ITEMS_PER_PAGE)
-	else:
-		addendum = '?page=1#section0'
-		page_num = page_from_req
-	page_obj = get_page_obj(page_num, notifications, ITEMS_PER_PAGE)
-	if page_obj.object_list:
-		oblist = retrieve_unseen_activity(page_obj.object_list)
-	else:
-		oblist = []
-	forms = {}
-	for obj in oblist:
-		forms[obj['oi']] = UnseenActivityForm()
-	return page_obj, oblist, forms, page_num, addendum	
 
 # @ratelimit(rate='22/38s')
 @ratelimit(rate='3/s')
@@ -6390,22 +6370,12 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 					oblist = request.session["oblist"]
 					forms = request.session["forms"]
 				else:
-					if user_id == 1:
-						page_from_req = request.GET.get('page', '1')
-						target_user_id = User.objects.only('id').get(username=slug).id
-						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms2(page_from_req,target_user_id)
-					else:
-						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
+					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
 				del request.session["forms"]
 				del request.session["oblist"]
 				del request.session["page_obj"]
 			else:
-				if user_id == 1:
-					page_from_req = request.GET.get('page', '1')
-					target_user_id = User.objects.only('id').get(username=slug).id
-					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms2(page_from_req,target_user_id)
-				else:
-					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
+				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
 			secret_key = uuid.uuid4()
 			set_text_input_key(user_id, '1', 'home', secret_key)
 			if oblist:

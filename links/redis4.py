@@ -40,12 +40,16 @@ hrit:<user_id> - home reply input text (list holding text of home replies for a 
 
 sm:<user_id>:<section>:<obj_id> - counter to count short messages sent on home objects
 
+uname:<user_id> is a hash containing username and avatar_url data of a user
+aurl:<user_id> is 'avatar_uploading_rate_limit', and is used to rate limit how frequently a user can change their avatar
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
-TWO_DAYS = 60*60*24*2
+
+ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
 TWENTY_MINS = 20*60
@@ -202,17 +206,115 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return '1'
 
 
-################################################ User nicknames fetcher ##############################################
+###################### User credentials caching ######################
 
-def retrieve_bulk_unames(user_ids, decode=False, my_server=False):
+
+def retrieve_bulk_credentials(user_ids, decode_unames=False):
+	"""
+	Returns usernames and avatars if fed a list of user_ids
+
+	Also caches the data for up to TWO days
+	If avatar was never uploaded, 'empty' string is returned instead
+	Returned format is dictionary of dictionaries, where int(user_ids) serve as keys. This ensures O(1) lookup down the road
+	"""
+	if not user_ids:
+		return {}
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.hmget('uname:'+str(user_id),'uname','avurl')
+	credentials_wip = pipeline1.execute() #credentials_wip is a list of lists
+	counter = 0
+	credentials = {}#list of dictionaries
+	uncollected_unames, uncollected_avurls = [], []
+	for uname,avurl in credentials_wip:
+		current_uid = int(user_ids[counter])
+		uname = '' if not uname else uname
+		avurl = '' if not avurl else avurl
+		if decode_unames:
+			credentials[current_uid] = {'uname':uname.decode('utf-8'),'avurl':avurl}
+		else:
+			credentials[current_uid] = {'uname':uname,'avurl':avurl}
+		if uname and avurl:
+			pass
+		elif avurl:
+			# log that this user's uname has to be retrieved
+			uncollected_unames.append(current_uid)
+		elif uname:
+			# log that this user's avurl has to be retrieved
+			uncollected_avurls.append(current_uid)
+		else:
+			# log that this user's both credential have to be retrieved
+			uncollected_unames.append(current_uid)
+			uncollected_avurls.append(current_uid)
+		counter += 1
+	collected_unames, collected_avurls = [], []
+	if uncollected_unames:
+		collected_unames = User.objects.filter(id__in=uncollected_unames).values('id','username')
+		pipeline2 = my_server.pipeline()
+		for uname in collected_unames:
+			user_id = uname['id']
+			hash_name = 'uname:'+str(user_id)
+			credentials[user_id]['uname'] = uname['username']
+			pipeline2.hset(hash_name, 'uname', uname['username'])
+			pipeline2.expire(hash_name,ONE_DAY)
+		pipeline2.execute()
+	if uncollected_avurls:
+		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('user_id','avatar')
+		pipeline3 = my_server.pipeline()
+		for avurl in collected_avurls:
+			user_id = avurl['user_id']
+			hash_name = 'uname:'+str(user_id)
+			if not avurl['avatar']:
+				avurl['avatar'] = 'empty'
+			credentials[user_id]['avurl'] = avurl['avatar']
+			pipeline3.hset(hash_name, 'avurl', avurl['avatar'])
+			pipeline3.expire(hash_name,ONE_DAY)
+		pipeline3.execute()
+	return credentials
+
+
+def retrieve_bulk_avurls(user_ids):
+	"""
+	Retrieves avatar_urls in bulk for a given list of user_ids
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.hget('uname:'+str(user_id),'avurl')
+	avatars_wip = pipeline1.execute()
+	counter = 0
+	avatars, uncollected_avurls = {}, []
+	for avatar in avatars_wip:
+		user_id = int(user_ids[counter])
+		if avatar:
+			avatars[user_id] = avatar
+		else:
+			uncollected_avurls.append(user_id)
+		counter += 1
+	if uncollected_avurls:
+		collected_avurls = UserProfile.objects.filter(user_id__in=uncollected_avurls).values('user_id','avatar')
+		pipeline2 = my_server.pipeline()
+		for avurl in collected_avurls:
+			user_id = avurl['user_id']
+			hash_name = 'uname:'+str(user_id)
+			if not avurl['avatar']:
+				avurl['avatar'] = 'empty'
+			avatars[user_id] = avurl['avatar']
+			pipeline2.hset(hash_name,'avurl',avurl['avatar'])
+			pipeline2.expire(hash_name,ONE_DAY)
+		pipeline2.execute()
+	return avatars
+
+
+def retrieve_bulk_unames(user_ids, decode=False):
 	"""
 	Returns usernames in bulk, in id-username dictionary format
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
+	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	for user_id in user_ids:
-		pipeline1.hget('uname:'+user_id,'uname')
+		pipeline1.hget('uname:'+str(user_id),'uname')
 	usernames_wip = pipeline1.execute()
 	counter = 0
 	usernames, uncollected_uname_ids = {}, []
@@ -233,17 +335,17 @@ def retrieve_bulk_unames(user_ids, decode=False, my_server=False):
 		for key in residual_unames:
 			usernames[key], hash_name = residual_unames[key], 'uname:'+str(key)
 			pipeline2.hset(hash_name,'uname',residual_unames[key])
-			pipeline2.expire(hash_name,TWO_DAYS)
+			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	return usernames
 
 
-def retrieve_uname(user_id,decode=False,my_server=False):
+
+def retrieve_uname(user_id,decode=False):
 	"""
 	Returns user's nickname
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
+	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = 'uname:'+str(user_id)
 	username = my_server.hget(hash_name,'uname')
 	if username:
@@ -253,28 +355,93 @@ def retrieve_uname(user_id,decode=False,my_server=False):
 			return username
 	else:
 		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
-		my_server.hset(hash_name,'uname',username)
-		my_server.expire(hash_name,TWO_DAYS)
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset(hash_name,'uname',username)
+		pipeline1.expire(hash_name,ONE_DAY)
+		pipeline1.execute()
 		return username
 
 
-def retrieve_avurl(user_id,my_server=False):
+def retrieve_credentials(user_id,decode_uname=False):
 	"""
-	Returns user's nickname
+	Returns username and avatar_url for given user_id
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = 'uname:'+str(user_id)
+	username, avurl = my_server.hmget(hash_name,'uname','avurl')
+	if username and avurl:
+		if decode_uname:
+			return username.decode('utf-8'),avurl
+		else:
+			return username, avurl
+	elif username:
+		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
+		if not avurl:
+			avurl = 'empty'
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset(hash_name,'avurl',avurl)
+		pipeline1.expire(hash_name,ONE_DAY)
+		pipeline1.execute()
+		if decode_uname:
+			return username.decode('utf-8'),avurl
+		else:
+			return username, avurl
+	elif avurl:
+		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset(hash_name,'uname',username)
+		pipeline1.expire(hash_name,ONE_DAY)
+		pipeline1.execute()
+		return username, avurl
+	else:
+		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
+		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
+		if not avurl:
+			avurl = 'empty'
+		mapping = {'uname':username,'avurl':avurl}
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset(hash_name,mapping)
+		pipeline1.expire(hash_name,ONE_DAY)
+		pipeline1.execute()
+		return username, avurl
+
+def retrieve_avurl(user_id):
+	"""
+	Returns user's avatar_url
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = 'uname:'+str(user_id)
 	avurl = my_server.hget(hash_name,'avurl')
 	if not avurl:
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
-		my_server.hset(hash_name,'avurl',avurl)
-		my_server.expire(hash_name,TWO_DAYS)
+		if not avurl:
+			avurl = 'empty'
+		pipeline1 = my_server.pipeline()
+		pipeline1.hset(hash_name,'avurl',avurl)
+		pipeline1.expire(hash_name,ONE_DAY)
+		pipeline1.execute()
 	return avurl
 
 
-def invalidate_avurl(user_id):
-	redis.Redis(connection_pool=POOL).hdel('uname:'+str(user_id),'avurl')
+def invalidate_avurl(user_id,set_rate_limit=None):
+	"""
+	Invalidate cached avatar_url if user uploads new avatar
+
+	If set_rate_limit is True, a rate limit is imposed on uploading a new avatar
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	my_server.hdel('uname:'+user_id,'avurl')
+	if set_rate_limit:
+		my_server.setex('aurl:'+user_id,1,THREE_MINS)
+
+
+def get_aurl(user_id):
+	"""
+	Retrieves the status of avatar uploading rate limit
+	"""
+	return redis.Redis(connection_pool=POOL).ttl('aurl:'+str(user_id))
+
 
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):

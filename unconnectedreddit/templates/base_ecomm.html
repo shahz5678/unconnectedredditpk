@@ -92,12 +92,12 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 {% if user.is_authenticated %}
 <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}#section0">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagao</b></a></li><li><a href="{% url 'home' %}">Meray Ads</a></li><li><a href="{% url 'home' %}">Chat and Fotos</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a></li>
 {% else %}
-<li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagao</b></a></li><li><a href="{% url 'redirect_to_social_section' %}">Chat and Fotos</a></li>
+<li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a href="{% url 'redirect_to_social_section' %}">Chat and Fotos</a></li>
 {% endif %}
 </ul>
 
 <div style="text-align:center" class="mtl sp cxs cgy">
-|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
+|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
 
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">

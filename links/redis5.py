@@ -7,13 +7,14 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
-from redis4 import retrieve_bulk_unames, retrieve_uname
-from models import UserProfile
+from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
+from redis4 import retrieve_bulk_credentials, retrieve_credentials
 
 '''
 ##########Redis Namespace##########
 
 personal_group is a key used to produce group_ids for personal groups
+all_pgs is a sorted set that contains IDs of all groups created (alongwith creation times)
 
 'personal_group_attendance' is a sorted set of last access times of all personal groups. It helps in making deletion decisions
 'exited_personal_groups' is a sorted set of all exited personal groups (alongwith time of exit). It is used for deletion
@@ -21,6 +22,7 @@ personal_group is a key used to produce group_ids for personal groups
 pgp:<group_id> 'personal_group_participants' contains IDs of participating users
 pgah:<group_id> 'personal_group_attribute_hash' contains personal_group attributes
 pgd:<group_id> 'personal_group_data' contains JSON data dump of the personal group
+pgc:<user_id> 'personal_group_credentials' contains JSON data dump of user credentials (username and avatar url)
 pgld:<user_id>:<start_idx>:<end_idx> 'personal_group_list_data' contains JSON data dump of a user's chat list
 
 pgsl:<group_id>:<own_id> 'personal_group_save_list' is a list of saved blob hashes in a personal group
@@ -125,28 +127,108 @@ def small_photo_caption(caption, img_reso):
 				return caption[:size]+' ..'
 
 
+def invalidate_cached_user_data(user_id):
+	"""
+	Removes cached user credentials after user has changed their profile
+	"""
+	redis.Redis(connection_pool=POOL).delete('pgc:'+str(user_id))
+	
+
+def get_target_username(their_id, my_server=None):
+	"""
+	Retrieves 'their' username
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	their_cred_key = 'pgc:'+their_id
+	their_cred = my_server.get(their_cred_key)
+	if their_cred:
+		return json.loads(their_cred)[0]
+	else:
+		their_uname, their_avurl = retrieve_credentials(their_id,decode_uname=True)
+		my_server.setex(their_cred_key,json.dumps([their_uname, their_avurl]),THIRTY_MINS)
+		return their_uname
+
+
+def get_single_user_credentials(user_id, my_server=None,as_list=True):
+	"""
+	Retrieves credentials' local copy for a single user
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	cred_key = 'pgc:'+user_id
+	cred = my_server.get(cred_key)
+	if not cred:
+		uname, avurl = retrieve_credentials(user_id,decode_uname=True)
+		cred_list = [uname,avurl]
+		my_server.setex(cred_key,json.dumps(cred_list),THIRTY_MINS)
+		if as_list:
+			return cred_list
+		else:
+			return uname, avurl
+	if as_list:
+		return json.loads(cred)
+	else:
+		data = json.loads(cred)
+		return data[0], data[1]
+
+
+def get_user_credentials(own_id, their_id, my_server=None):
+	"""
+	Retrieves user credentials (username and avatar_url for both participating users)
+
+	Either gets locally cached copy, then fall-backs to cached copy from redis4, then fall-backs to postgresqsl DB (in that order)
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	own_cred_key, their_cred_key = 'pgc:'+own_id, 'pgc:'+their_id
+	own_cred, their_cred = my_server.mget(own_cred_key, their_cred_key)
+	if not own_cred and not their_cred:
+		raw_user_cred = retrieve_bulk_credentials([own_id,their_id],decode_unames=True)
+		int_oid, int_tid = int(own_id), int(their_id)
+		own_cred = [raw_user_cred[int_oid]['uname'],raw_user_cred[int_oid]['avurl']]
+		their_cred = [raw_user_cred[int_tid]['uname'],raw_user_cred[int_tid]['avurl']]
+		my_server.setex(own_cred_key,json.dumps(own_cred),THIRTY_MINS)
+		my_server.setex(their_cred_key,json.dumps(their_cred),THIRTY_MINS)
+		return own_cred, their_cred
+	elif not own_cred:
+		own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
+		own_cred = [own_uname, own_avurl]
+		my_server.setex(own_cred_key,json.dumps(own_cred),THIRTY_MINS)
+		return own_cred, json.loads(their_cred)
+	elif not their_cred:
+		their_uname, their_avurl = retrieve_credentials(their_id,decode_uname=True)
+		their_cred = [their_uname, their_avurl]
+		my_server.setex(their_cred_key,json.dumps(their_cred),THIRTY_MINS)
+		return json.loads(own_cred), their_cred
+	else:
+		return json.loads(own_cred), json.loads(their_cred)
+		
 
 def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, chat_data=True):
-	my_server = redis.Redis(connection_pool=POOL)
+	"""
+	Returns essential personal group data required to render it
+	"""
 	own_id, target_id = str(own_id), str(target_id)
-	group, own_last_seen = "pgah:"+group_id, 'last_seen'+own_id
+	group_key, own_last_seen = "pgah:"+group_id, 'last_seen'+own_id
+	my_server = redis.Redis(connection_pool=POOL)
 	own_anon_status, their_anon_status, auto_del_called, is_suspended, prev_time, their_last_seen_time = \
-	my_server.hmget(group,'anon'+own_id,'anon'+target_id,'autodel','is_sus',own_last_seen,'last_seen'+target_id)
-	my_server.hset(group,own_last_seen,time_now) # putting these in pipeline doesn't speed up the commands (already profiled)
+	my_server.hmget(group_key,'anon'+own_id,'anon'+target_id,'autodel','is_sus',own_last_seen,'last_seen'+target_id)
+	my_server.hset(group_key,own_last_seen,time_now) # putting these in pipeline doesn't speed up the commands (already profiled)
 	prev_time = time_now - THIRTY_MINS if prev_time is None else float(prev_time)
 	if chat_data is False:
-		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended
+		start_time = time.time()
+		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, \
+		get_target_username(target_id, my_server)
 	else:
-		iterator = []
 		personal_group_list = my_server.lrange("pgl:"+group_id, 0, -1)
 		pipeline2 = my_server.pipeline()
 		for key in personal_group_list:
-			key = key.split(":")
-			blob_id, comment_count = str(key[0]),int(key[2])
-			iterator.append(comment_count)
-			pipeline2.hgetall("pgh:"+group_id+":"+blob_id)
+			pipeline2.hgetall("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
 		result = pipeline2.execute()
-		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, iterator 
+		own_cred, their_cred = get_user_credentials(own_id, target_id, my_server)
+		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, own_cred, their_cred
+
 
 
 def get_cached_personal_group_data(group_id):
@@ -163,6 +245,15 @@ def cache_personal_group_data(json_obj, group_id):
 	redis.Redis(connection_pool=POOL).setex('pgd:'+group_id,json_obj,ONE_DAY)
 
 
+######################################## Update Last Seen in Personal Group ########################################
+
+def update_personal_group_last_seen(own_id, group_id, time_now = None):
+	"""
+	Update user's last seen in group
+	"""
+	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
+
+
 ######################################## Content Deletion/Hiding in Personal Group ########################################
 
 
@@ -170,8 +261,8 @@ def check_single_chat_current_status(blob_id, idx, own_id, group_id):
 	"""
 	Returns deletion status of a post
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	blob_hash = "pgh:"+group_id+":"+blob_id
+	my_server = redis.Redis(connection_pool=POOL)
 	blob_owner_id = my_server.hget(blob_hash,'id')
 	if blob_owner_id == str(own_id):
 		if idx == '-1': #'-1' is passed for response blobs
@@ -186,8 +277,8 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 	"""
 	Deleting a post (text or photo) from private chat
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -210,6 +301,20 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 				my_server.hset(image_hash,'status',value)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()
+			# if latest blob of the group was own blob and it was the same as the deleted blob, update it's status in pgah:group_id
+			group_key = "pgah:"+group_id
+			if my_server.hget(group_key,'lt_msg_wid') == own_id:
+				latest_blob = my_server.lindex("pgl:"+group_id,0)
+				if latest_blob:
+					latest_blob = latest_blob.split(":")#blob_id:writer_id:comment_count
+					if blob_id == latest_blob[0] and idx == latest_blob[2]:
+						if value == 'undel':
+							if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+								my_server.hset(group_key,'lt_msg_st','yes')
+							else:
+								my_server.hset(group_key,'lt_msg_st',value)
+						else:
+							my_server.hset(group_key,'lt_msg_st',value)
 			# ratelimiting:
 			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 			return True, None
@@ -244,6 +349,10 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 				pipeline1.hset(image_hash,'hidden',value)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()
+			# if hidden blob's img_id was the same as the latest blob's img_id, change the latest blob's status
+			group_key = "pgah:"+group_id
+			if my_server.hget(group_key,'lt_img_id') == img_id:
+				my_server.hset(group_key,'lt_msg_st',value)
 			# ratelimiting
 			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 			return True, None
@@ -260,8 +369,8 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 
 	Must cater to the case where blob containing the photo has already been trimmed
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -305,24 +414,54 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 		pipeline1.hset(image_hash,field,value)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+		# if affected image was the latest one, change its status
+		group_key = "pgah:"+group_id
+		if img_id == my_server.hget(group_key,'lt_img_id'):
+			if value == 'undel':
+				# check if the image is hidden
+				if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+					my_server.hset(group_key,'lt_msg_st','yes')
+				else:
+					my_server.hset(group_key,'lt_msg_st',value)
+			else:
+				my_server.hset(group_key,'lt_msg_st',value)
 		# ratelimiting:
 		my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 	return True, None
+
+
+def update_pg_obj_notif_after_bulk_deletion(group_id):
+	"""
+	Updates status of obj notif after mass deletion in group
+	
+	ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation'
+	"""
+	latest_notif_obj_pgh, latest_idx, latest_type, latest_deletion_status = get_latest_notif_obj_pgh(group_id,send_status=True)
+	if latest_type in ('img','img_res','text','text_res'):
+		my_server = redis.Redis(connection_pool=POOL)
+		hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
+		for key in hash_list:
+			pgh_list.append("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+		if latest_notif_obj_pgh in pgh_list:
+			blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
+			if blob_deletion_status != latest_deletion_status:
+				#sync them
+				blob_id = latest_notif_obj_pgh.split(":")[2]
+				update_pg_obj_del(blob_deletion_status,blob_id,latest_idx,group_id)
 
 
 def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, server=None):
 	"""
 	Deletes all photos of user from personal_group
 	"""
+	own_id = str(own_id)
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	own_id = str(own_id)
 	ttl = server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
 	status = 'undel' if undelete else 'del'
-	personal_group_photo_list = "pgpl:"+group_id
-	all_photos = server.lrange(personal_group_photo_list,0,-1)
+	all_photos = server.lrange("pgpl:"+group_id,0,-1)
 	if all_photos:
 		own_photos, own_photo_id_pool = [], []
 		for photo in all_photos:
@@ -353,6 +492,22 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 				pipeline1.hset(res_blob,'t_status',status)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()	
+		# if latest blob's lt_img_id is not None and its writer is self, change its status
+		group_key = "pgah:"+group_id
+		latest_img_id, latest_msg_writer_id = server.hmget(group_key,'lt_img_id','lt_msg_wid')
+		if latest_img_id and latest_msg_writer_id == own_id:
+			if status == 'undel':
+				# first check if latest image is hidden or not
+				first_element = server.lindex("pgl:"+group_id,0).split(":")
+				blob_hash = "pgh:"+group_id+":"+first_element[0]
+				idx = server.hget(blob_hash,'idx')
+				is_hidden = server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
+				if is_hidden == 'yes':
+					server.hset(group_key,'lt_msg_st','yes')
+				else:
+					server.hset(group_key,'lt_msg_st',status)
+			else:
+				server.hset(group_key,'lt_msg_st',status)
 		# ratelimiting
 		server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
 	return True, None
@@ -362,8 +517,8 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 	"""
 	Deletes all currently visible chat of user (excluding action blobs)
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -407,6 +562,22 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 			pipeline1.hset('pgih:'+group_id+":"+photo_id,'status',status)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+		# if latest blob is a chat/img blob, and its writer is own self, then change its status
+		group_key = "pgah:"+group_id
+		latest_msg_writer_id, latest_msg_type = my_server.hmget(group_key,'lt_msg_wid','lt_msg_tp')
+		if latest_msg_writer_id == own_id and latest_msg_type in ('text','text_res','img','img_res'):
+			if status == 'undel' and latest_msg_type in ('img','img_res'):
+				# is the image being undeleted hidden by other user?
+				first_element = my_server.lindex("pgl:"+group_id,0).split(":")
+				blob_hash = "pgh:"+group_id+":"+first_element[0]
+				idx = my_server.hget(blob_hash,'idx')
+				is_hidden = my_server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
+				if is_hidden == 'yes':
+					my_server.hset(group_key,'lt_msg_st','yes')
+				else:
+					my_server.hset(group_key,'lt_msg_st',status)
+			else:
+				my_server.hset(group_key,'lt_msg_st',status)
 		# ratelimiting:
 		my_server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
 	return True, None
@@ -416,8 +587,8 @@ def trim_personal_group(group_id, num_of_objs_in_group):
 	"""
 	Trims personal_group when it grows beyond a certain size
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	personal_group_list = "pgl:"+group_id
+	my_server = redis.Redis(connection_pool=POOL)
 	blobs_to_del = personal_group_deletion_inspection(personal_group_list, num_of_objs_in_group, my_server)
 	if blobs_to_del:
 		personal_group_permanent_deletion(group_id, personal_group_list, blobs_to_del, my_server)
@@ -571,7 +742,33 @@ def permanently_delete_entire_personal_group(group_id, my_server=None):
 ######################################## Managing Saved Content in Personal Group ########################################
 
 
-def retrieve_personal_group_saved_content(own_id, group_id):
+def prepare_saved_content(own_id, target_id, list_of_dict, my_server = None):
+	"""
+	Insert username and avatar_url in saved content to make it ready for rendering
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	own_cred, their_cred = get_user_credentials(own_id, target_id, my_server)
+	own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
+	for dictionary in list_of_dict:
+		is_own_content = True if dictionary["id"] == str(own_id) else False
+		is_res_blob = True if dictionary.get("res_time",None) else False
+		if is_own_content:
+			dictionary['username'] = own_uname 
+			dictionary['av_url'] = own_avurl
+			if is_res_blob:
+				dictionary['t_username'] = their_uname
+				dictionary['t_av_url'] = their_avurl
+		else:
+			dictionary['username'] = their_uname
+			dictionary['av_url'] = their_avurl
+			if is_res_blob:
+				dictionary['t_username'] = own_uname
+				dictionary['t_av_url'] = own_avurl
+	return list_of_dict
+
+
+def retrieve_personal_group_saved_content(own_id, target_id, group_id):
 	"""
 	Retrieve all saved content of a personal group for a specific user
 	"""
@@ -582,8 +779,8 @@ def retrieve_personal_group_saved_content(own_id, group_id):
 	pipeline1 = my_server.pipeline()
 	for blob_id in all_saved_blob_ids:
 		pipeline1.hgetall('pgsh:'+group_id+":"+own_id+":"+blob_id)
-	return pipeline1.execute()
-
+	return prepare_saved_content(own_id, target_id, pipeline1.execute(),my_server)
+	
 
 def delete_all_personal_group_saved_content(own_id, group_id, server=None):
 	"""
@@ -668,8 +865,7 @@ def own_save_permission_status(own_id, group_id):
 	"""
 	Return own save permission value
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.hget("pgah:"+group_id,'svprm'+str(own_id))
+	return redis.Redis(connection_pool=POOL).hget("pgah:"+group_id,'svprm'+str(own_id))
 
 
 def is_save_permission_granted_by_target(own_id,target_id):
@@ -795,18 +991,16 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 					return False, PERSONAL_GROUP_SAVE_MSGS['err7'], None
 				else:
 					if blob_contents['type'+index] == 'text':
-						filtered_blob_contents = {'id':blob_contents['id'],'username':blob_contents['username'],'av_url':blob_contents['av_url'],\
-						'score':blob_contents['score'],'save_time':time.time(),'blob_id':blob_contents['blob_id'],'save_blob_id':new_save_blob_id,\
-						'which_blob':blob_contents['which_blob'],'text':blob_contents['text'+index],'time':blob_contents['time'+index],\
-						'type':blob_contents['type'+index],'status':blob_contents['status'+index]}
+						filtered_blob_contents = {'id':blob_contents['id'],'save_time':time.time(),'blob_id':blob_contents['blob_id'],\
+						'save_blob_id':new_save_blob_id,'type':blob_contents['type'+index],'which_blob':blob_contents['which_blob'], \
+						'text':blob_contents['text'+index],'time':blob_contents['time'+index],'status':blob_contents['status'+index]}
 					elif blob_contents['type'+index] == 'img':
-						filtered_blob_contents = {'id':blob_contents['id'],'username':blob_contents['username'],'av_url':blob_contents['av_url'],\
-						'score':blob_contents['score'],'blob_id':blob_contents['blob_id'],'save_time':time.time(),'save_blob_id':new_save_blob_id,\
-						'which_blob':blob_contents['which_blob'],'time':blob_contents['time'+index],'type':blob_contents['type'+index],\
-						'img_width':blob_contents['img_width'+index],'img_height':blob_contents['img_height'+index],'img':blob_contents['img'+index],\
-						'img_caption':blob_contents['img_caption'+index],'status':blob_contents['status'+index],'img_id':blob_contents['img_id'+index],\
-						'img_s_caption':blob_contents['img_s_caption'+index],'hidden':blob_contents['hidden'+index],\
-						'img_hw_ratio':blob_contents['img_hw_ratio'+index]}
+						filtered_blob_contents = {'id':blob_contents['id'],'blob_id':blob_contents['blob_id'],'save_blob_id':new_save_blob_id,\
+						'img_hw_ratio':blob_contents['img_hw_ratio'+index],'which_blob':blob_contents['which_blob'],'time':blob_contents['time'+index],\
+						'type':blob_contents['type'+index],'img_width':blob_contents['img_width'+index],'img_height':blob_contents['img_height'+index],\
+						'img':blob_contents['img'+index],'img_caption':blob_contents['img_caption'+index],'status':blob_contents['status'+index],\
+						'img_id':blob_contents['img_id'+index],'img_s_caption':blob_contents['img_s_caption'+index],'hidden':blob_contents['hidden'+index],\
+						'save_time':time.time()}
 					pipeline1 = my_server.pipeline()
 					# push into user's save list and save contents in a hash
 					pipeline1.lpush('pgsl:'+group_id+':'+own_id,new_save_blob_id)
@@ -850,19 +1044,12 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 	if content and (type_=='action' or type_=='notif'):
 		# creating new blob
 		new_blob_id = str(my_server.incr("pgbid:"+group_id))
-		personal_group_hash, append = "pgh:"+group_id+":"+new_blob_id, False
-		comment_count = '0'#set '-1' for response blobs and '0' for action blobs
-		target_id, option, own_username = content[0], content[1], content[2]
-		avatars = UserProfile.objects.filter(user_id__in=(writer_id,target_id)).values_list('user_id','avatar')
-		if avatars[0][0] == int(writer_id):
-			own_av_url, target_av_url = avatars[0][1], avatars[1][1]
-		else:
-			own_av_url, target_av_url = avatars[1][1], avatars[0][1]
-		target_username, t_now = retrieve_uname(target_id,my_server=my_server), time.time()
-		hash_content = {'id':writer_id, 'username':own_username,'av_url':own_av_url,type_:option,'time':t_now,'t_av_url':target_av_url,\
-		't_username':target_username,'blob_id':new_blob_id,'which_blob':type_,'status':'open' if type_=='notif' else 'permanent'}
+		personal_group_hash, append = "pgh:"+group_id+":"+new_blob_id, False #'append' is used at the end
+		t_now, comment_count = time.time(),'0'#set '-1' for response blobs and '0' for action blobs
+		hash_content = {'id':writer_id,type_:content,'time':t_now,'blob_id':new_blob_id,'which_blob':type_,\
+		'status':'open' if type_=='notif' else 'permanent'}
 		list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, '-1'
-		group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+		group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'','lt_img_id':''}
 	elif content and is_normal_chat:
 		first_element = my_server.lindex(personal_group_list,0) #blob_id:writer_id:comment_count
 		if first_element is not None:
@@ -883,15 +1070,17 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
 				img_id = str(my_server.incr("pgiid:"+group_id))
 				img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
-				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_, \
+				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_, 'idx':comment_count,\
 				'img_width'+comment_count:img_wid+EXTRA_PADDING,'img_height'+comment_count:img_height, 'img_caption'+comment_count:img_caption,\
 				'status'+comment_count:'undel','img_id'+comment_count:img_id,'img_s_caption'+comment_count:img_s_caption,\
 				'hidden'+comment_count:'no','img_hw_ratio'+comment_count:img_hw_ratio}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel',\
+				'lt_img_id':img_id}
 			else:
-				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_,\
+				hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_,'idx':comment_count,\
 				'status'+comment_count:'undel'}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel',\
+				'lt_img_id':''}
 			list_content, bid, idx = prev_blob_id+":"+writer_id+":"+comment_count, prev_blob_id, comment_count
 		else:
 			# create a new blob
@@ -900,26 +1089,24 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 			################################
 			# creating blob content
 			comment_count, t_now = '1', time.time()
-			username = retrieve_uname(writer_id,my_server=my_server)
-			writer = UserProfile.objects.filter(user_id=writer_id).values('avatar','score')[0]
 			if type_ == 'img':
 				img_wid, img_height, img_caption = content["img_width"], content["img_height"], content["img_caption"]
 				content = content["img_url"]
 				img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
 				img_id = str(my_server.incr("pgiid:"+group_id))
 				img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
-				hash_content = {'id':writer_id, 'username':username, 'av_url':writer["avatar"], 'score':writer["score"],\
-				type_+comment_count:content,'time'+comment_count:t_now,'type'+comment_count:type_,\
-				'img_width'+comment_count:img_wid+EXTRA_PADDING,'img_height'+comment_count:img_height,\
-				'img_caption'+comment_count:img_caption,'status'+comment_count:'undel','blob_id':new_blob_id,\
-				'img_id'+comment_count:img_id, 'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no',\
-				'img_hw_ratio'+comment_count:img_hw_ratio,'which_blob':'nor'}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				hash_content = {'status'+comment_count:'undel',type_+comment_count:content,'time'+comment_count:t_now,\
+				'type'+comment_count:type_,'which_blob':'nor','img_id'+comment_count:img_id, 'blob_id':new_blob_id,\
+				'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no', 'id':writer_id, \
+				'img_caption'+comment_count:img_caption,'img_width'+comment_count:img_wid+EXTRA_PADDING,\
+				'img_height'+comment_count:img_height,'img_hw_ratio'+comment_count:img_hw_ratio,'idx':comment_count}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel',\
+				'lt_img_id':img_id}
 			else:
-				hash_content = {'id':writer_id, 'username':username,'av_url':writer["avatar"],'score':writer["score"]\
-				,type_+comment_count:content,'time'+comment_count:t_now,'type'+comment_count:type_,\
-				'status'+comment_count:'undel','blob_id':new_blob_id,'which_blob':'nor'}
-				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+				hash_content = {'id':writer_id,type_+comment_count:content,'time'+comment_count:t_now,'idx':comment_count,\
+				'type'+comment_count:type_,'which_blob':'nor','status'+comment_count:'undel','blob_id':new_blob_id}
+				group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel',\
+				'lt_img_id':''}
 			list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, comment_count
 	elif content and is_response:
 		# fish out required content
@@ -929,14 +1116,14 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 		if target_blob_exists:
 			if target_index == '-1':
 				# response to a response; there was no index
-				target_content, target_writing_time, target_writer_username, target_id, target_img_caption, target_status, target_img_id,\
-				target_image_width, target_image_height, target_img_s_caption, target_hidden = my_server.hmget(target_blob,"res_content","res_time",\
-					"username","id","img_caption","status",'img_id','img_width','img_height','img_s_caption','hidden')
+				target_content, target_writing_time, target_id, target_img_caption, target_status, target_img_id,target_image_width, \
+				target_image_height, target_img_s_caption, target_hidden = my_server.hmget(target_blob,"res_content","res_time","id",\
+					"img_caption","status",'img_id','img_width','img_height','img_s_caption','hidden')
 			else:
 				# response to normal chat; there was an index
-				target_content, target_writing_time, target_writer_username, target_id, target_img_caption, target_status, target_image_width, \
-				target_image_height, target_img_id, target_img_s_caption, target_hidden  = my_server.hmget(target_blob,target_content_type+target_index,\
-					'time'+target_index,"username","id","img_caption"+target_index,"status"+target_index,'img_width'+target_index,\
+				target_content, target_writing_time, target_id, target_img_caption, target_status, target_image_width, target_image_height, \
+				target_img_id, target_img_s_caption, target_hidden = my_server.hmget(target_blob,target_content_type+target_index,\
+					'time'+target_index,"id","img_caption"+target_index,"status"+target_index,'img_width'+target_index,\
 					'img_height'+target_index,'img_id'+target_index,'img_s_caption'+target_index, 'hidden'+target_index)
 			if target_content is None:
 				return 0, PERSONAL_GROUP_OBJECT_CEILING, None, None, None, '-1', None, None#'-1' img_id ensures image won't be saved separately
@@ -947,49 +1134,37 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 				################################
 				# creating blob content
 				comment_count, t_now = '-1', time.time() #set '-1' for response blobs and '0' for action blobs
-				userprofile = UserProfile.objects.filter(user_id__in=(writer_id,target_id)).values('user_id','avatar','score')
-				if userprofile[0]["user_id"] == int(writer_id):
-					own_av_url = userprofile[0]["avatar"]
-					own_score = userprofile[0]["score"]
-					t_score = userprofile[1]["score"]
-					target_av_url = userprofile[1]["avatar"]
-				else:
-					own_av_url = userprofile[1]["avatar"]
-					own_score = userprofile[1]["score"]
-					t_score = userprofile[0]["score"]
-					target_av_url = userprofile[0]["avatar"]
 				if type_ == 'img_res':
 					img_wid, img_height, img_caption = content["img_width"], content["img_height"], content["img_caption"]
 					content = content["img_url"]
 					img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
 					img_id = str(my_server.incr("pgiid:"+group_id))
 					img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
-					hash_content = {'id':writer_id, 'username':retrieve_uname(writer_id,my_server=my_server),'av_url':own_av_url,'score':own_score,\
-					'res_content':content,'res_time':t_now,'res_type':'img','img_width':img_wid+EXTRA_PADDING,'img_height':img_height,\
-					'img_caption':img_caption,'blob_id':new_blob_id,'t_content':target_content,'t_writing_time':target_writing_time,\
-					'img_s_caption':img_s_caption,'hidden':'no','t_username':target_writer_username,'t_av_url':target_av_url,\
-					't_type':target_content_type,'t_score':t_score,'status':'undel','t_status':target_status,'t_img_s_caption':'',\
-					'img_id':img_id,'img_hw_ratio':img_hw_ratio,'which_blob':'res'}
+					hash_content = {'id':writer_id,'res_content':content,'res_time':t_now,'res_type':'img','which_blob':'res',\
+					'img_width':img_wid+EXTRA_PADDING,'img_height':img_height,'img_caption':img_caption,'blob_id':new_blob_id,\
+					't_content':target_content,'t_writing_time':target_writing_time,'img_s_caption':img_s_caption,'hidden':'no',\
+					't_type':target_content_type,'status':'undel','t_status':target_status,'t_img_s_caption':'',\
+					'img_id':img_id,'img_hw_ratio':img_hw_ratio}
 					if target_content_type == 'img':
 						hash_content["t_img_id"] = target_img_id
 						hash_content["t_img_caption"] = target_img_caption
 						hash_content["t_img_s_caption"] = target_img_s_caption
 						hash_content["t_hidden"] = target_hidden
 						hash_content["t_img_s_width"] = small_image_width(float(target_image_width)-EXTRA_PADDING, float(target_image_height))
-					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel',\
+					'lt_img_id':img_id}
 				elif type_ == 'text_res':
-					hash_content = {'id':writer_id, 'username':retrieve_uname(writer_id,my_server=my_server),'av_url':own_av_url,\
-					'score':own_score,'res_content':content,'res_time':t_now,'res_type':'text','blob_id':new_blob_id,\
-					't_content':target_content,'t_writing_time':target_writing_time,'t_username':target_writer_username,'t_av_url':target_av_url,\
-					't_type':target_content_type,'t_score':t_score,'status':'undel','t_status':target_status,'t_img_s_caption':'',\
-					'which_blob':'res'}
+					hash_content = {'id':writer_id,'res_content':content,'res_time':t_now,'res_type':'text','status':'undel',\
+					'blob_id':new_blob_id,'t_content':target_content,'t_writing_time':target_writing_time,'which_blob':'res',\
+					't_type':target_content_type,'t_status':target_status,'t_img_s_caption':''}
 					if target_content_type == 'img':
 						hash_content["t_img_id"] = target_img_id
 						hash_content["t_img_caption"] = target_img_caption
 						hash_content["t_img_s_caption"] = target_img_s_caption
 						hash_content["t_hidden"] = target_hidden
 						hash_content["t_img_s_width"] = small_image_width(float(target_image_width)-EXTRA_PADDING, float(target_image_height))
-					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id}
+					group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':content,'lt_msg_img':'','lt_msg_st':'undel',\
+					'lt_msg_id':''}
 				list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, '-1'
 		else:
 			# target blob no longer exists
@@ -1039,8 +1214,8 @@ def get_suspension_details(own_id, target_id, group_id):
 	"""
 	Retreive details of suspended group
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	own_suspension, their_suspension, suspension_time = my_server.hmget("pgah:"+group_id,'susgrp'+str(own_id),'susgrp'+str(target_id),'sus_time')
+	own_suspension, their_suspension, suspension_time = redis.Redis(connection_pool=POOL).hmget("pgah:"+group_id,'susgrp'+str(own_id),\
+		'susgrp'+str(target_id),'sus_time')
 	suspended_by = 'self' if own_suspension else 'them'
 	try:
 		time_diff = time.time() - float(suspension_time)
@@ -1068,7 +1243,8 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 			exit_time = time.time()
 			mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
 			'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
-			'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time}
+			'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
+			'lt_msg_id':''}
 			pipeline1 = my_server.pipeline()
 			pipeline1.hmset("pgah:"+group_id,mapping)
 			pipeline1.zadd('exited_personal_groups',group_id,exit_time)
@@ -1096,7 +1272,8 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,unsuspend_time)
 		pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,unsuspend_time)
 		pipeline1.execute()
-		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time}
+		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
+		'lt_img_id':''}
 		my_server.hmset(group_hash,mapping)
 		return True
 	else:
@@ -1178,11 +1355,10 @@ def enable_personal_group_sms_rec(own_id, group_id, target_num_idx, sms_text):
 	"""
 	Enable user to receive SMS
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
 	hash_name = "pgah:"+group_id
 	mapping = {'smsrec'+own_id:'1','smsrectxt'+own_id:sms_text,'smsrecmobidx'+own_id:target_num_idx}
-	my_server.hmset(hash_name,mapping)
+	redis.Redis(connection_pool=POOL).hmset(hash_name,mapping)
 
 
 def disable_personal_group_sms_rec(own_id, group_id):
@@ -1259,9 +1435,8 @@ def personal_group_image_transfer_not_permitted(their_id, group_id):
 	"""
 	Checking whether a user can share a photo in a personal group
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	hash_name, their_id = "pgah:"+group_id, str(their_id)
-	no_perm = True if my_server.hget(hash_name,'phrec'+their_id) == '0' else False
+	no_perm = True if redis.Redis(connection_pool=POOL).hget(hash_name,'phrec'+their_id) == '0' else False
 	return no_perm
 
 
@@ -1377,18 +1552,19 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 			ids = pairs.split(":")
 			group_list.append((ids[0], ids[1]))
 			friend_list.append(ids[1])
-		friend_av_urls = dict(UserProfile.objects.filter(user_id__in=friend_list).values_list('user_id','avatar'))
-		friend_unames = retrieve_bulk_unames(friend_list,decode=True,my_server=my_server)
+		friend_credentials = retrieve_bulk_credentials(friend_list, decode_unames=True)#friend_credentials is a dict_of_dictionaries
 		pipeline1 = my_server.pipeline()
 		for group_id, friend_id in group_list:
-			pipeline1.hmget("pgah:"+group_id,'lt_msg_tp','lt_msg_t','lt_msg_wid','anon'+friend_id,'last_seen'+user_id,'last_seen'+friend_id)
+			pipeline1.hmget("pgah:"+group_id,'lt_msg_tp','lt_msg_t','lt_msg_wid','anon'+friend_id,'last_seen'+user_id,'last_seen'+friend_id,\
+				'lt_msg_tx','lt_msg_img','lt_msg_st','lt_img_id')
 		result1 = pipeline1.execute()
 		payload, counter = [], 0
 		for group_id, friend_id in group_list:
 			data = {'lt_msg_type':result1[counter][0],'lt_msg_time':result1[counter][1],'lt_msg_wid':result1[counter][2],\
 			'is_friend_anon':result1[counter][3],'own_last_seen':result1[counter][4],'friend_last_seen':result1[counter][5],\
-			'friend_username':friend_unames[int(friend_id)],'friend_av_url':friend_av_urls[int(friend_id)],'group_id':group_id,\
-			'friend_id':friend_id} # constructing retrieved data dictionary
+			'friend_username':friend_credentials[int(friend_id)]['uname'],'friend_av_url':friend_credentials[int(friend_id)]['avurl'],\
+			'group_id':group_id,'friend_id':friend_id,'lt_msg_tx':result1[counter][6],'lt_msg_img':result1[counter][7],\
+			'lt_msg_st':result1[counter][8],'lt_img_id':result1[counter][9]} # constructing retrieved data dictionary
 			payload.append(data)
 			counter += 1
 		num_of_grps = my_server.zcard("pgfgm:"+user_id) if payload else 0
@@ -1401,6 +1577,8 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 def mark_personal_group_attendance(own_id, target_id, group_id, time_now):
 	"""
 	Mark attendance to facilitate deletion of unattended personal groups
+
+	This is only fired if a new input is entered in the personal group
 	"""
 	own_id = str(own_id)
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
@@ -1426,23 +1604,47 @@ def personal_group_hard_deletion():
 	"""
 	Permanently deleting all data of groups gone cold (unattended for a month)
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	thirty_days_ago = time.time() - PERSONAL_GROUP_HARD_DELETION_CUTOFF
+	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', thirty_days_ago)
+	pgp_keys = []
+	for group_id in group_ids:
+		pgp_keys.append("pgp:"+group_id)
+	user_id_pairs = my_server.mget(*pgp_keys)
+	count, groups_and_participants = 0, []
+	for group_id in group_ids:
+		try:
+			participants = user_ids_pairs[count].split(":")
+			groups_and_participants.append((group_id,participants[0],participants[1]))
+		except (AttributeError, IndexError):
+			pass
+		count += 1
 	for group_id in group_ids:
 		permanently_delete_entire_personal_group(group_id, my_server=my_server)
 	pipeline1 = my_server.pipeline()
 	pipeline1.zrem("personal_group_attendance",*group_ids)
 	pipeline1.zrem("exited_personal_groups",*group_ids)
 	pipeline1.execute()
-
+	bulk_delete_pergrp_notif(groups_and_participants)
 
 #call daily
 def exited_personal_group_hard_deletion(group_ids=None):
 	"""
 	Permanently deleting all data of groups that have been exited
 	"""
+	pgp_keys = []
+	for group_id in group_ids:
+		pgp_keys.append("pgp:"+group_id)
 	my_server = redis.Redis(connection_pool=POOL)
+	user_id_pairs = my_server.mget(*pgp_keys)
+	count, groups_and_participants = 0, []
+	for group_id in group_ids:
+		try:
+			participants = user_id_pairs[count].split(":")
+			groups_and_participants.append((group_id,participants[0],participants[1]))
+		except (AttributeError, IndexError):
+			pass
+		count += 1
 	if not group_ids:
 		seven_days_ago = time.time() - EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF
 		group_ids = my_server.zrangebyscore("exited_personal_groups",'-inf', seven_days_ago)
@@ -1452,7 +1654,7 @@ def exited_personal_group_hard_deletion(group_ids=None):
 	pipeline1.zrem("exited_personal_groups",*group_ids)
 	pipeline1.zrem("personal_group_attendance",*group_ids)
 	pipeline1.execute()
-
+	bulk_delete_pergrp_notif(groups_and_participants)
 
 ########################################### Personal Group Anonymization ###########################################
 
@@ -1486,8 +1688,7 @@ def get_personal_group_anon_state(own_id, target_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id, exists = personal_group_already_exists(own_id, target_id, my_server)
 	if exists:
-		hash_name = "pgah:"+group_id
-		own_anon_status, their_anon_status = my_server.hmget(hash_name,'anon'+str(own_id),'anon'+str(target_id))
+		own_anon_status, their_anon_status = my_server.hmget("pgah:"+group_id,'anon'+str(own_id),'anon'+target_id)
 		if own_anon_status == '1':
 			result1 = True
 		else:
@@ -1501,19 +1702,38 @@ def get_personal_group_anon_state(own_id, target_id):
 		return None, None, None
 
 
+# def is_user_anon(user_id, group_id):
+# 	"""
+# 	Retrieves anon_state of a single user, for use in notifications 
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).hget('pgah:'+group_id,'anon'+user_id)
+
+
+# def get_obj_state(pgh, index=None):
+# 	"""
+# 	Retrieves the 'del' and 'hidden' status of a message
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	is_hidden, is_deleted = my_server.hmget(pgh,'hidden'+index,'status'+index) if index else my_server.hmget(pgh,'hidden','status')
+# 	is_hidden = 'no' if not is_hidden else is_hidden
+# 	return is_hidden, is_deleted
+
 ######################################## Personal Group Mobile Verification ########################################
 
 
 def get_personal_group_target_id_and_csrf(own_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.get("pgmvtid:"+str(own_id)), my_server.get("pgmvcsrf:"+str(own_id))
+	own_id = str(own_id)
+	tid_key, csrf_key = "pgmvtid:"+own_id, "pgmvcsrf:"+own_id
+	tid, csrf = redis.Redis(connection_pool=POOL).mget(tid_key, csrf_key)
+	return tid, csrf
 
 
 def set_personal_group_target_id_and_csrf(own_id, target_id, csrf):
 	my_server = redis.Redis(connection_pool=POOL)
+	own_id = str(own_id)
 	pipeline1 = my_server.pipeline()
-	pipeline1.setex("pgmvtid:"+str(own_id),target_id,ONE_DAY)
-	pipeline1.setex("pgmvcsrf:"+str(own_id),csrf,ONE_DAY)
+	pipeline1.setex("pgmvtid:"+own_id,target_id,ONE_DAY)
+	pipeline1.setex("pgmvcsrf:"+own_id,csrf,ONE_DAY)
 	pipeline1.execute()
 
 
@@ -1521,16 +1741,14 @@ def set_personal_group_mobile_num_cooloff(own_id):
 	"""
 	Setting mobile number verification cooloff of personal group user
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.setex("nchdis:"+str(own_id),1,MOBILE_NUM_CHG_COOLOFF)
+	redis.Redis(connection_pool=POOL).setex("nchdis:"+str(own_id),1,MOBILE_NUM_CHG_COOLOFF)
 
 
 def can_change_number(own_id):
 	"""
 	Check whether a number change is allowed for the personal group user or not
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return not my_server.exists("nchdis:"+str(own_id))
+	return not redis.Redis(connection_pool=POOL).exists("nchdis:"+str(own_id))
 
 
 ################################################ Invite Functionality ################################################
@@ -1727,6 +1945,18 @@ def sanitize_personal_group_invites(own_id, own_username, target_id, target_user
 
 ######################################## Personal Group Creation & Existence ########################################
 
+def personal_group_exists(group_id,own_id,target_id):
+	"""
+	Checks for existence via the group_id route
+	"""
+	own_id = str(own_id)
+	key1, key2 = own_id+":"+target_id, target_id+":"+own_id
+	users = redis.Redis(connection_pool=POOL).get("pgp:"+group_id)
+	if users in (key1,key2):
+		return True
+	else:
+		return False
+
 
 def personal_group_already_exists(own_id, target_id, server=None):
 	"""
@@ -1736,15 +1966,15 @@ def personal_group_already_exists(own_id, target_id, server=None):
 		return None, False
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	group_id = server.get("pgrp:"+str(own_id)+":"+str(target_id))
+	group_id = server.get("pgrp:"+str(own_id)+":"+target_id)
 	if group_id:
 		return group_id, True
 	else:
 		return None, False
 
 
-def create_personal_group(own_id, target_id, own_uname, own_anon='0', target_anon='0',own_rec_photo='0', target_rec_photo='0', own_del='0', \
-	target_del='0',autodel='0',own_rec_sms='0',target_rec_sms='0',own_num_chg='1',target_num_chg='1',target_svch_perm='0',own_svch_perm='0',\
+def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_rec_photo='0', target_rec_photo='0', own_del='0', target_del='0',\
+	autodel='0',own_rec_sms='0',target_rec_sms='0',own_num_chg='1',target_num_chg='1',target_svch_perm='0',own_svch_perm='0',\
 	own_saves_remaining=PERSONAL_GROUP_SAVED_CHAT_COUNTER,target_saves_remaining=PERSONAL_GROUP_SAVED_CHAT_COUNTER):
 	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
@@ -1758,13 +1988,12 @@ def create_personal_group(own_id, target_id, own_uname, own_anon='0', target_ano
 		'xfivt'+target_id:PERSONAL_GROUP_PHT_XFER_IVTS,'smsrec'+own_id:own_rec_sms,'smsrec'+target_id:target_rec_sms,'numchg'+own_id:own_num_chg,\
 		'numchg'+target_id:target_num_chg,'smsivt'+own_id:PERSONAL_GROUP_SMS_IVTS,'smsivt'+target_id:PERSONAL_GROUP_SMS_IVTS,'last_seen'+own_id:time_now+0.1,\
 		'last_seen'+target_id:'-1','svrem'+own_id:own_saves_remaining,'svrem'+target_id:target_saves_remaining,'svprm'+own_id:own_svch_perm,\
-		'svprm'+target_id:target_svch_perm}
+		'svprm'+target_id:target_svch_perm,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'','lt_img_id':''}
 		group_id = str(my_server.incr("personal_group"))
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset("pgah:"+group_id,mapping)
-		pipeline1.set("pgp:"+group_id,own_id+":"+target_id)
-		pipeline1.set("pgrp:"+own_id+":"+target_id,group_id)
-		pipeline1.set("pgrp:"+target_id+":"+own_id,group_id)
+		pipeline1.mset({"pgp:"+group_id:own_id+":"+target_id,"pgrp:"+own_id+":"+target_id:group_id,"pgrp:"+target_id+":"+own_id:group_id})
+		pipeline1.zadd("all_pgs",group_id,time.time())
 		###### No need to touch these sets, they're done in mark_personal_group_attendance ######
 		# pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,time_now)
 		# pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,time_now)

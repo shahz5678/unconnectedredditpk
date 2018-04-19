@@ -4,11 +4,10 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from unauth_forms import ResetForgettersPasswordForm
 from account_kit_config_manager import account_kit_handshake
-from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data #log_referrer, save_number_verification_error_data
+from redis4 import save_careem_data, get_temp_order_data, place_order, save_order_data, retrieve_uname #log_referrer, save_number_verification_error_data
 from tasks import save_consumer_credentials, set_user_binding_with_twilio_notify_service, increase_user_points
 from redis3 import save_basic_ad_data, someone_elses_number, get_temporarily_saved_ad_data, get_user_csrf, get_user_verified_number#, get_buyer_snapshot
-from redis5 import get_personal_group_target_id_and_csrf, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff, can_change_number, \
-retrieve_uname
+from redis5 import get_personal_group_target_id_and_csrf, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff, can_change_number
 from group_views import enter_personal_group
 from models import UserProfile
 	

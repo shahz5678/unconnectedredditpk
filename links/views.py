@@ -267,11 +267,9 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 		owner_url = None
 	amnt = update_comment_in_home_link(text,username,url,reply_time,user_id,link_id,(True if username in FEMALES else False))
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
-	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,\
-			link_submitter_id=parent.submitter_id,link_submitter_username=parent_username,\
-			link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
-			reply_poster_username=username,reply_desc=text,is_welc=False,priority='home_jawab',\
-			from_unseen=(True if origin == 'from_unseen' else False))
+	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
+		link_submitter_username=parent_username,link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
+		reply_poster_username=username,reply_desc=text,is_welc=False,priority='home_jawab',from_unseen=(True if origin == 'from_unseen' else False))
 	return parent_username
 
 
@@ -280,22 +278,24 @@ def GetLatest(user):
 	try:
 		if latest_notif['ot'] == '3':
 			# group chat - 'g' is privacy status
-			return latest_notif['g'], latest_notif, False, False, True, False
+			return latest_notif['g'], latest_notif, False, False, True, False, False
+		elif latest_notif['ot'] == '5':
+			return  '5', latest_notif, False, False, False, False, True
 		elif latest_notif['ot'] == '2':
 			#home publicreply
-			return '2', latest_notif, True, False, False, False
+			return '2', latest_notif, True, False, False, False, False
 		elif latest_notif['ot'] == '0':
 			#photo comment
 			if latest_notif.get('f'):
 				if latest_notif['nc'] == 'True':
 					# photo notif for fans
-					return '1', latest_notif, False, True, False, False
+					return '1', latest_notif, False, True, False, False, False
 				else:
 					# photo comment received by fan
-					return '0', latest_notif, False, True, False, False	
+					return '0', latest_notif, False, True, False, False, False	
 			else:
 				# photo comment received by non-fan
-				return '0', latest_notif, False, True, False, False
+				return '0', latest_notif, False, True, False, False, False
 		elif latest_notif['ot'] == '4':
 			# salat invites
 			time_now = datetime.utcnow()+timedelta(hours=5)
@@ -306,7 +306,7 @@ def GetLatest(user):
 			if not salat_timings['namaz']:
 				#time for namaz has gone
 				delete_salat_notification(notif_name, hash_name, user.id)
-				return None, None, False, False, False, False
+				return None, None, False, False, False, False, False
 			else:
 				starting_time = datetime.combine(time_now.today(), salat_timings['current_namaz_start_time'])
 				ending_time = datetime.combine(time_now.today(), salat_timings['current_namaz_end_time'])
@@ -317,14 +317,14 @@ def GetLatest(user):
 					latest_namaz = None
 				if (convert_to_epoch(starting_time) <= float(latest_notif['u']) < convert_to_epoch(ending_time)) and not \
 				AlreadyPrayed(latest_namaz,time_now):
-					return '4',latest_notif, False, False, False, True
+					return '4',latest_notif, False, False, False, True, False
 				else:
 					delete_salat_notification(notif_name, hash_name, user.id)			
-					return None, None, False, False, False, False
+					return None, None, False, False, False, False, False
 	except (KeyError,TypeError):
 		if latest_notif and notif_name:
 			sanitize_erroneous_notif.delay(notif_name, user.id)
-		return None, None, False, False, False, False
+		return None, None, False, False, False, False, False
 
 def retire_home_rules(request,*args,**kwargs):
 	retire_gibberish_punishment_amount(request.user.id)
@@ -2455,6 +2455,11 @@ class OpenGroupCreateView(CreateView):
 	model = Group
 	form_class = OpenGroupCreateForm
 	template_name = "new_open_group.html"
+
+	def get_form_kwargs( self ):
+		kwargs = super(OpenGroupCreateView,self).get_form_kwargs()
+		kwargs['verified'] = self.request.mobile_verified
+		return kwargs
 
 	def form_valid(self, form):
 		if self.request.user.userprofile.score > (PUBLIC_GROUP_COST-1):
@@ -6027,12 +6032,12 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		if request.method == 'POST':
 			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
 			if grp["private"] == '1':
-				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='')
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
 			else:
-				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='')
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
-				description = desc1 if desc2 == '|' else desc2
+				description = desc1 if desc1 else desc2
 				if request.is_feature_phone:
 					device = '1'
 				elif request.is_phone:
@@ -6151,7 +6156,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			request.session.modified = True
 			return redirect("ban_underway")
 		lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-		form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk)
+		form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk,per_grp_id='')
 		if form.is_valid():
 			photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
 			description = form.cleaned_data.get("photo_comment")
@@ -6263,7 +6268,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			request.session.modified = True
 			return redirect("ban_underway")
 		lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-		form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='')
+		form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='',per_grp_id='')
 		if form.is_valid():
 			text = form.cleaned_data.get("home_comment")
 			target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
@@ -6342,6 +6347,7 @@ def get_object_list_and_forms(request, notif=None):
 		forms[obj['oi']] = UnseenActivityForm()
 	return page_obj, oblist, forms, page_num, addendum
 
+
 # @ratelimit(rate='22/38s')
 @ratelimit(rate='3/s')
 def unseen_activity(request, slug=None, *args, **kwargs):
@@ -6375,10 +6381,12 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 			if oblist:
 				last_visit_time = float(prev_unseen_activity_visit(user_id))-SEEN[False]
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':request.user.username,\
-				'last_visit_time':last_visit_time,'sk':secret_key}
+				'last_visit_time':last_visit_time,'sk':secret_key,'user_id':user_id}
+				if request.is_feature_phone or request.is_phone or request.is_mobile:
+					context["is_mob"] = True
 				return render(request, 'user_unseen_activity.html', context)
 			else:
-				context = {'object_list': oblist, 'page':page_obj,'nickname':request.user.username,'sk':secret_key}
+				context = {'object_list': oblist, 'page':page_obj,'nickname':request.user.username,'sk':secret_key,'user_id':user_id}
 				return render(request, 'user_unseen_activity.html', context)
 
 def unseen_help(request,*args,**kwargs):
@@ -6402,6 +6410,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return render(request,'which_fans.html',context)
 	else:
 		return redirect("unseen_activity",request.user.username)
+
 
 def public_reply_view(request,*args,**kwargs):
 	context, user_id = {}, request.user.id
@@ -6594,13 +6603,6 @@ class UserProfileEditView(UpdateView):
 
 	def get_object(self, queryset=None):
 		return UserProfile.objects.get_or_create(user=self.request.user)[0]
-
-	def form_valid(self, form):
-	    """
-	    If the form is valid, redirect to the supplied URL.
-	    """
-	    invalidate_avurl(self.request.user.id)
-	    return super(UpdateView, self).form_valid(form) #saves the link automatically
 
 	def get_success_url(self):
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
@@ -7074,8 +7076,8 @@ def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	elif from_home == '5':
-		return redirect("see_special_photo")
+	# elif from_home == '5':
+	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
 
@@ -7093,8 +7095,8 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	elif from_home == '5':
-		return redirect("see_special_photo")
+	# elif from_home == '5':
+	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
 
@@ -7114,8 +7116,8 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, so
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	elif from_home == '5':
-		return redirect("see_special_photo")
+	# elif from_home == '5':
+	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
 
@@ -7133,8 +7135,8 @@ def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	elif from_home == '5':
-		return redirect("see_special_photo")
+	# elif from_home == '5':
+	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
 

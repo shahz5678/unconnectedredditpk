@@ -1,8 +1,8 @@
 # coding=utf-8
 from django import forms
 from django.forms import Textarea
-from .tasks import log_gibberish_writer
-from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key
+from tasks import log_gibberish_writer, invalidate_avatar_url
+from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl
 from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
 ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
 from django.contrib.auth.models import User
@@ -130,19 +130,27 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 			if image.name in self.user.userprofile.avatar.url:
 				#print "no need to re-submit image"
 				return image
-		except:
+		except (AttributeError, ValueError):
 			pass
-		if image:
-			try:
-				if image.size > 1000000:
-					return 0
-			except:
-				pass
-			image = Image.open(image)
-			image = make_thumbnail(image,None)
-			return image
+		if image or image is False:	
+			user_id = self.user.id
+			ttl = get_aurl(user_id)
+			if ttl > 1:
+				raise forms.ValidationError('Ap profile photo change kar sakien ge %s secs baad' % ttl)
+			invalidate_avatar_url.delay(user_id, set_rate_limit=True)
+			if image:
+				try:
+					if image.size > 1000000:
+						return 0
+				except:
+					pass
+				image = Image.open(image)
+				image = make_thumbnail(image,None)
+				return image
+			else:
+				return 0
 		else:
-			return 0
+			return None
 
 	def clean_bio(self):
 		bio = self.cleaned_data.get("bio")
@@ -153,7 +161,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	def clean_age(self):
 		age = self.cleaned_data.get("age")
 		if len(age) > 2:
-			raise forms.ValidationError('tip: age sahi likho')
+			raise forms.ValidationError('Age sahi likhein')
 		return age
 
 class UserSettingsForm(forms.ModelForm):
@@ -718,15 +726,16 @@ class PhotoCommentForm(forms.Form):
 
 
 class UnseenActivityForm(forms.Form):
-	home_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
-	photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan kuch likhein, phir "tabsra kro" button dabain'})
-	public_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
-	private_group_reply = forms.CharField(max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
+	home_comment = forms.CharField(required=False, max_length=250, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
+	photo_comment = forms.CharField(required=False, max_length=250, error_messages={'required': 'Pehlay yahan kuch likhein, phir "tabsra kro" button dabain'})
+	public_group_reply = forms.CharField(required=False, max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
+	private_group_reply = forms.CharField(required=False, max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
+	personal_group_reply = forms.CharField(required=False, max_length=500, error_messages={'required': 'Pehlay yahan jawab likhein, phir "jawab do" button dabain'})
 	sk = forms.CharField(required=False)
 	origin = forms.CharField(required=False)
 
 	class Meta:
-		fields = ("home_comment", "photo_comment", "public_group_reply", "private_group_reply")
+		fields = ("home_comment", "photo_comment", "public_group_reply", "private_group_reply", "personal_group_reply")
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
@@ -734,19 +743,27 @@ class UnseenActivityForm(forms.Form):
 		self.photo_id = kwargs.pop('photo_id',None)
 		self.pub_grp_id = kwargs.pop('pub_grp_id',None)
 		self.prv_grp_id = kwargs.pop('prv_grp_id',None)
+		self.per_grp_id = kwargs.pop('per_grp_id',None)
 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
 		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
-		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
-		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
-		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
 		self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
-		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
 		self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
+
+		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
+		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
 		self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
+
+		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
 		self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
-		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
 		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
+
+		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
+		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
+
+		self.fields['personal_group_reply'].widget.attrs['class'] = 'box-with-button-right'
+		self.fields['personal_group_reply'].widget.attrs['style'] = 'color:#306654;border: 1px solid #306654'
+		self.fields['personal_group_reply'].widget.attrs['autocomplete'] = 'off'
 
 
 	def clean(self):
@@ -764,7 +781,7 @@ class UnseenActivityForm(forms.Form):
 		if secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		else:
-			link_id, photo_id, pub_grp_id, prv_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id
+			link_id, photo_id, pub_grp_id, prv_grp_id, per_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id, self.per_grp_id
 			if link_id:
 				section, payload, obj_id = 'home_rep', data.get("home_comment"), link_id
 				payload = payload.strip() if payload else None
@@ -784,12 +801,6 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					# uni_str = uniform_string(payload)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif photo_id:
 				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
@@ -810,12 +821,6 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					# uni_str = uniform_string(payload)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif pub_grp_id:
 				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
@@ -836,12 +841,6 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 500:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					# uni_str = uniform_string(payload)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 			elif prv_grp_id:
 				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
@@ -862,13 +861,14 @@ class UnseenActivityForm(forms.Form):
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 500:
 						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					# uni_str = uniform_string(payload)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
+			elif per_grp_id:
+				payload = data.get("personal_group_reply")
+				payload = payload.strip() if payload else None
+				if not payload:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+				# No need to check for repetition, length or rate limit
+				return data
 			else:
 				pass
 			return data
@@ -901,9 +901,17 @@ class OpenGroupCreateForm(forms.ModelForm):
 		fields = ("topic", "rules", "pics_ki_ijazat")
 
 	def __init__(self, *args, **kwargs):
+		self.is_mob_verified = kwargs.pop('verified',None)
 		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
 		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
+
+	def clean_topic(self):
+		data, is_mob_verified = self.cleaned_data.get("topic"), self.is_mob_verified
+		if not is_mob_verified:
+			raise forms.ValidationError('Mobile number verify kiye beghair mehfil nahi ban sakti')
+		return data
+
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))

@@ -36,3 +36,6 @@ OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST = 30#number of group invites to show in 
 PERSONAL_GROUP_INVITES = 4
 PERSONAL_GROUP_INVITES_COOLOFF = 14400#4 hours
 USER_GROUP_LIST_CACHING_TIME = 10# cached for 10 seconds
+PRIV_CHAT_EMOTEXT = {'1':'ki dharkan tez ho geyi','2':'ko hansi ka dora par gaya','3':'ne kaha usko jaldi reply karo...',\
+'4':'buhut udas hai...','5':'ne poocha kya scene hai?'}# used when generating notifications only (not centrally connected)
+PRIV_CHAT_NOTIF = {'1':'ne photo send karney ki ijazat mangi','2':'ne ijazat mangi ke jab ap online na hon tou apko Damadam pe SMS ke zariye bulaya ja sakey'}

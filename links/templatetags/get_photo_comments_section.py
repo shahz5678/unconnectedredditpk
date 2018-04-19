@@ -22,4 +22,4 @@ def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, 
 			if counter > 5:
 				# this ensure only 6 comments can show up on the photo page (at max)
 				break
-		return {'comments':comments, 'static_url':static_url,'self_user_id':self_user_id,'score':score}
+		return {'comments':comments, 'static_url':static_url,'self_user_id':self_user_id,'score':score,'origin':origin}

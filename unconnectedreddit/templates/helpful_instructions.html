@@ -15,16 +15,37 @@
 			<div class="lsp cl mbs">
 				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apke invite mein <a href="{% url 'profile' oun %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'profile' oun %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
 			</div>
-			
+
 			<div class="mtl" style="text-align:center">
-				{% if org == 'home' %}
+				{% if org == 'publicreply' %}
+				<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
+				{% csrf_token %}
+					<input type="hidden" name="lid" value="{{ poid }}">
+					<button class="btn bcb bm" style="height:30px">OK</button>
+				</form>
+				{% else %}
+					{% if org == 'home' or org == 'home_reply' %}
 					<a href="{% url 'home_loc_pk' poid %}">
-				{% elif org == 'history' %}
-					<a href="{% url 'user_activity' tun %}">
-				{% elif org == '' %}
+					{% elif org == 'history' %}
+					<a href="{% url 'user_activity' user.username %}">
+					{% elif org == 'public' %}
+					<a href="{% url 'public_group' poid %}">
+					{% elif org == 'profile' %}
+					<a href="{% url 'user_profile' poid %}">
+					{% elif org == 'profile_photos' %}
+					<a href="{% url 'profile' poid %}">
+					{% elif org == 'best_photos' %}
+					<a href="{% url 'best_photo_loc_pk' poid %}">
+					{% elif org == 'fresh_photos' %}
+					<a href="{% url 'see_photo_pk' poid %}">
+					{% elif org == 'photo_comments' %}
+					<a href="{% url 'comment' poid %}">
+					{% else %}
+					<a href="{% url 'home' %}">
+					{% endif %}
+					<button class="btn bcb bm mtl mbs" style="height:30px">OK</button>
+					</a>
 				{% endif %}
-				<button class="btn bcb bm mbs" style="border:none;height:30px;">OK</button>
-				</a>
 
 				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' %}">
 				{% csrf_token %}

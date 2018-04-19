@@ -47,7 +47,7 @@
 	{% else %}
 		{% private_chat_navbar static_url=STATIC_URL section='invites' %}
 		{% if num_pages < 2 %}
-		<h1 class="cxl">Private chat invites</h1>
+		<h1 class="cxl">Chat invites</h1>
 		{% else %}
 		<div class="mtl fx fxjscn fxaicn">
 			<div>
@@ -56,7 +56,7 @@
 			</form>
 			</div>
 			<!--  -->
-			<div><h1 style="display:inline" class="mls mrs cxl">Private chat invites</h1></div>
+			<div><h1 style="display:inline" class="mls mrs cxl">Chat invites</h1></div>
 			<!--  -->
 			<div>
 			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' %}">
@@ -117,7 +117,7 @@
 		<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
 		<span class="cxl">Ye khali hai</span>
 		<hr size=1 COLOR="#f2f2f2">
-		<span class="cl cgy">Kisi bhi user ko private chat mein invite karney ke liye uskay nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+		<span class="cl cgy">Kisi bhi user ko friend bana ke private chat mein invite karney ke liye uskay nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
 						<div id="line"></div>
 						<div id="line"></div>
 						<div id="line" style="width: 8px"></div>

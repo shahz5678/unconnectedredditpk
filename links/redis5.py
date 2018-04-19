@@ -251,8 +251,7 @@ def update_personal_group_last_seen(own_id, group_id, time_now = None):
 	"""
 	Update user's last seen in group
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
+	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
 
 
 ######################################## Content Deletion/Hiding in Personal Group ########################################
@@ -262,8 +261,8 @@ def check_single_chat_current_status(blob_id, idx, own_id, group_id):
 	"""
 	Returns deletion status of a post
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	blob_hash = "pgh:"+group_id+":"+blob_id
+	my_server = redis.Redis(connection_pool=POOL)
 	blob_owner_id = my_server.hget(blob_hash,'id')
 	if blob_owner_id == str(own_id):
 		if idx == '-1': #'-1' is passed for response blobs
@@ -278,8 +277,8 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 	"""
 	Deleting a post (text or photo) from private chat
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -301,8 +300,21 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 			if image_hash_exists:
 				my_server.hset(image_hash,'status',value)
 			pipeline1.delete('pgd:'+group_id)
-			# pipeline1.hset('pgah:'+group_id,'lt_msg_st',value)
 			pipeline1.execute()
+			# if latest blob of the group was own blob and it was the same as the deleted blob, update it's status in pgah:group_id
+			group_key = "pgah:"+group_id
+			if my_server.hget(group_key,'lt_msg_wid') == own_id:
+				latest_blob = my_server.lindex("pgl:"+group_id,0)
+				if latest_blob:
+					latest_blob = latest_blob.split(":")#blob_id:writer_id:comment_count
+					if blob_id == latest_blob[0] and idx == latest_blob[2]:
+						if value == 'undel':
+							if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+								my_server.hset(group_key,'lt_msg_st','yes')
+							else:
+								my_server.hset(group_key,'lt_msg_st',value)
+						else:
+							my_server.hset(group_key,'lt_msg_st',value)
 			# ratelimiting:
 			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 			return True, None
@@ -336,8 +348,11 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 			if image_hash_exists:
 				pipeline1.hset(image_hash,'hidden',value)
 			pipeline1.delete('pgd:'+group_id)
-			# pipeline1.hset('pgah:'+group_id,'lt_msg_st',value)
 			pipeline1.execute()
+			# if hidden blob's img_id was the same as the latest blob's img_id, change the latest blob's status
+			group_key = "pgah:"+group_id
+			if my_server.hget(group_key,'lt_img_id') == img_id:
+				my_server.hset(group_key,'lt_msg_st',value)
 			# ratelimiting
 			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 			return True, None
@@ -354,8 +369,8 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 
 	Must cater to the case where blob containing the photo has already been trimmed
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -399,6 +414,17 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 		pipeline1.hset(image_hash,field,value)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+		# if affected image was the latest one, change its status
+		group_key = "pgah:"+group_id
+		if img_id == my_server.hget(group_key,'lt_img_id'):
+			if value == 'undel':
+				# check if the image is hidden
+				if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+					my_server.hset(group_key,'lt_msg_st','yes')
+				else:
+					my_server.hset(group_key,'lt_msg_st',value)
+			else:
+				my_server.hset(group_key,'lt_msg_st',value)
 		# ratelimiting:
 		my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
 	return True, None
@@ -428,9 +454,9 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 	"""
 	Deletes all photos of user from personal_group
 	"""
+	own_id = str(own_id)
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
-	own_id = str(own_id)
 	ttl = server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -466,6 +492,22 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 				pipeline1.hset(res_blob,'t_status',status)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()	
+		# if latest blob's lt_img_id is not None and its writer is self, change its status
+		group_key = "pgah:"+group_id
+		latest_img_id, latest_msg_writer_id = server.hmget(group_key,'lt_img_id','lt_msg_wid')
+		if latest_img_id and latest_msg_writer_id == own_id:
+			if status == 'undel':
+				# first check if latest image is hidden or not
+				first_element = server.lindex("pgl:"+group_id,0).split(":")
+				blob_hash = "pgh:"+group_id+":"+first_element[0]
+				idx = server.hget(blob_hash,'idx')
+				is_hidden = server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
+				if is_hidden == 'yes':
+					server.hset(group_key,'lt_msg_st','yes')
+				else:
+					server.hset(group_key,'lt_msg_st',status)
+			else:
+				server.hset(group_key,'lt_msg_st',status)
 		# ratelimiting
 		server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
 	return True, None
@@ -475,8 +517,8 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 	"""
 	Deletes all currently visible chat of user (excluding action blobs)
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
 		return False, ttl
@@ -520,6 +562,22 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 			pipeline1.hset('pgih:'+group_id+":"+photo_id,'status',status)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+		# if latest blob is a chat/img blob, and its writer is own self, then change its status
+		group_key = "pgah:"+group_id
+		latest_msg_writer_id, latest_msg_type = my_server.hmget(group_key,'lt_msg_wid','lt_msg_tp')
+		if latest_msg_writer_id == own_id and latest_msg_type in ('text','text_res','img','img_res'):
+			if status == 'undel' and latest_msg_type in ('img','img_res'):
+				# is the image being undeleted hidden by other user?
+				first_element = my_server.lindex("pgl:"+group_id,0).split(":")
+				blob_hash = "pgh:"+group_id+":"+first_element[0]
+				idx = my_server.hget(blob_hash,'idx')
+				is_hidden = my_server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
+				if is_hidden == 'yes':
+					my_server.hset(group_key,'lt_msg_st','yes')
+				else:
+					my_server.hset(group_key,'lt_msg_st',status)
+			else:
+				my_server.hset(group_key,'lt_msg_st',status)
 		# ratelimiting:
 		my_server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
 	return True, None
@@ -529,8 +587,8 @@ def trim_personal_group(group_id, num_of_objs_in_group):
 	"""
 	Trims personal_group when it grows beyond a certain size
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	personal_group_list = "pgl:"+group_id
+	my_server = redis.Redis(connection_pool=POOL)
 	blobs_to_del = personal_group_deletion_inspection(personal_group_list, num_of_objs_in_group, my_server)
 	if blobs_to_del:
 		personal_group_permanent_deletion(group_id, personal_group_list, blobs_to_del, my_server)
@@ -1497,14 +1555,16 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 		friend_credentials = retrieve_bulk_credentials(friend_list, decode_unames=True)#friend_credentials is a dict_of_dictionaries
 		pipeline1 = my_server.pipeline()
 		for group_id, friend_id in group_list:
-			pipeline1.hmget("pgah:"+group_id,'lt_msg_tp','lt_msg_t','lt_msg_wid','anon'+friend_id,'last_seen'+user_id,'last_seen'+friend_id)
+			pipeline1.hmget("pgah:"+group_id,'lt_msg_tp','lt_msg_t','lt_msg_wid','anon'+friend_id,'last_seen'+user_id,'last_seen'+friend_id,\
+				'lt_msg_tx','lt_msg_img','lt_msg_st','lt_img_id')
 		result1 = pipeline1.execute()
 		payload, counter = [], 0
 		for group_id, friend_id in group_list:
 			data = {'lt_msg_type':result1[counter][0],'lt_msg_time':result1[counter][1],'lt_msg_wid':result1[counter][2],\
 			'is_friend_anon':result1[counter][3],'own_last_seen':result1[counter][4],'friend_last_seen':result1[counter][5],\
 			'friend_username':friend_credentials[int(friend_id)]['uname'],'friend_av_url':friend_credentials[int(friend_id)]['avurl'],\
-			'group_id':group_id,'friend_id':friend_id} # constructing retrieved data dictionary
+			'group_id':group_id,'friend_id':friend_id,'lt_msg_tx':result1[counter][6],'lt_msg_img':result1[counter][7],\
+			'lt_msg_st':result1[counter][8],'lt_img_id':result1[counter][9]} # constructing retrieved data dictionary
 			payload.append(data)
 			counter += 1
 		num_of_grps = my_server.zcard("pgfgm:"+user_id) if payload else 0

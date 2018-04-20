@@ -17,7 +17,7 @@
 {% if page.object_list %}
 
 <div class="mbs fx fxjscn fxaibl">
-<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom" type="submit">&nbsp;</button></form>
+<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:20px;height:20px" type="submit">&nbsp;</button></form>
 <h1 class="mls cl clb sp" style="margin:0;display:inline-block">Matka:</h1>
 </div>
 

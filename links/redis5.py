@@ -7,8 +7,8 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
+from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
-from redis4 import retrieve_bulk_credentials, retrieve_credentials
 
 '''
 ##########Redis Namespace##########
@@ -245,14 +245,13 @@ def cache_personal_group_data(json_obj, group_id):
 	redis.Redis(connection_pool=POOL).setex('pgd:'+group_id,json_obj,ONE_DAY)
 
 
-######################################## Update Last Seen in Personal Group ########################################
+########################################### Update Last Seen in Personal Group ###########################################
 
 def update_personal_group_last_seen(own_id, group_id, time_now = None):
 	"""
 	Update user's last seen in group
 	"""
-	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
-
+	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time())
 
 ######################################## Content Deletion/Hiding in Personal Group ########################################
 
@@ -1275,6 +1274,7 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
 		'lt_img_id':''}
 		my_server.hmset(group_hash,mapping)
+		purge_exit_list(group_id, own_id)
 		return True
 	else:
 		return False
@@ -1607,54 +1607,58 @@ def personal_group_hard_deletion():
 	thirty_days_ago = time.time() - PERSONAL_GROUP_HARD_DELETION_CUTOFF
 	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', thirty_days_ago)
-	pgp_keys = []
-	for group_id in group_ids:
-		pgp_keys.append("pgp:"+group_id)
-	user_id_pairs = my_server.mget(*pgp_keys)
-	count, groups_and_participants = 0, []
-	for group_id in group_ids:
-		try:
-			participants = user_ids_pairs[count].split(":")
-			groups_and_participants.append((group_id,participants[0],participants[1]))
-		except (AttributeError, IndexError):
-			pass
-		count += 1
-	for group_id in group_ids:
-		permanently_delete_entire_personal_group(group_id, my_server=my_server)
-	pipeline1 = my_server.pipeline()
-	pipeline1.zrem("personal_group_attendance",*group_ids)
-	pipeline1.zrem("exited_personal_groups",*group_ids)
-	pipeline1.execute()
-	bulk_delete_pergrp_notif(groups_and_participants)
+	if group_ids:
+		pgp_keys = []
+		for group_id in group_ids:
+			pgp_keys.append("pgp:"+group_id)
+		user_id_pairs = my_server.mget(*pgp_keys)
+		count, groups_and_participants = 0, []
+		for group_id in group_ids:
+			try:
+				participants = user_ids_pairs[count].split(":")
+				groups_and_participants.append((group_id,participants[0],participants[1]))
+			except (AttributeError, IndexError):
+				pass
+			count += 1
+		for group_id in group_ids:
+			permanently_delete_entire_personal_group(group_id, my_server=my_server)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zrem("personal_group_attendance",*group_ids)
+		pipeline1.zrem("exited_personal_groups",*group_ids)
+		pipeline1.execute()
+		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_idle')
+		bulk_delete_pergrp_notif(groups_and_participants)
 
 #call daily
 def exited_personal_group_hard_deletion(group_ids=None):
 	"""
 	Permanently deleting all data of groups that have been exited
 	"""
-	pgp_keys = []
-	for group_id in group_ids:
-		pgp_keys.append("pgp:"+group_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	user_id_pairs = my_server.mget(*pgp_keys)
-	count, groups_and_participants = 0, []
-	for group_id in group_ids:
-		try:
-			participants = user_id_pairs[count].split(":")
-			groups_and_participants.append((group_id,participants[0],participants[1]))
-		except (AttributeError, IndexError):
-			pass
-		count += 1
 	if not group_ids:
 		seven_days_ago = time.time() - EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF
 		group_ids = my_server.zrangebyscore("exited_personal_groups",'-inf', seven_days_ago)
-	for group_id in group_ids:
-		permanently_delete_entire_personal_group(group_id, my_server=my_server)
-	pipeline1 = my_server.pipeline()
-	pipeline1.zrem("exited_personal_groups",*group_ids)
-	pipeline1.zrem("personal_group_attendance",*group_ids)
-	pipeline1.execute()
-	bulk_delete_pergrp_notif(groups_and_participants)
+	if group_ids:
+		pgp_keys = []
+		for group_id in group_ids:
+			pgp_keys.append("pgp:"+group_id)
+		user_id_pairs = my_server.mget(*pgp_keys)
+		count, groups_and_participants = 0, []
+		for group_id in group_ids:
+			try:
+				participants = user_id_pairs[count].split(":")
+				groups_and_participants.append((group_id,participants[0],participants[1]))
+			except (AttributeError, IndexError):
+				pass
+			count += 1
+		for group_id in group_ids:
+			permanently_delete_entire_personal_group(group_id, my_server=my_server)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zrem("exited_personal_groups",*group_ids)
+		pipeline1.zrem("personal_group_attendance",*group_ids)
+		pipeline1.execute()
+		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_exit')
+		bulk_delete_pergrp_notif(groups_and_participants)
 
 ########################################### Personal Group Anonymization ###########################################
 

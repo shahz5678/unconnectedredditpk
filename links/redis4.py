@@ -1,6 +1,7 @@
 
 # coding=utf-8
 import redis, time, random
+from datetime import datetime
 from django.contrib.auth.models import User
 from location import REDLOC4
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
@@ -11,7 +12,7 @@ from models import UserProfile
 
 city_shops = "city_shops"
 "historical_calcs"
-latest_user_ip = "lip:"+str(user_id)
+lip:<user_id> 'stores latest ip of a user for up to 5 mins'
 logged_users = "logged_users"
 sorted_set = "online_users"
 user_ban = "ub:"+str(user_id)
@@ -43,6 +44,27 @@ sm:<user_id>:<section>:<obj_id> - counter to count short messages sent on home o
 uname:<user_id> is a hash containing username and avatar_url data of a user
 aurl:<user_id> is 'avatar_uploading_rate_limit', and is used to rate limit how frequently a user can change their avatar
 
+------------ Personal Group Metrics ------------
+
+lig_pm:<group_id> contains user_id that performed latest interaction in private mehfil with id group_id
+lig_pg:<group_id> contains user_id that performed latest interaction in private chat with id group_id
+pm_ch contains list of private mehfil IDs alongwith number of chats occuring in those private mehfils
+pm_sw contains list of private mehfil IDs alongwith number of switchovers occuring in those private mehfils
+pg_ch contains list of private chat IDs alongwith number of chats occuring in those private chats
+pg_sw contains list of private chat IDs alongwith number of switchovers occuring in those private chats
+
+gs_pm:<group_id>:<user_id> contains a 'session key' that idenitifies whether a new session has started for a user visiting a particular private mehfil
+gs_pg:<group_id>:<user_id> contains a 'session key' that idenitifies whether a new session has started for a user visiting a particular private chat
+pm_sess contains <group_id>:<user_id> pairs alongwith number of 24 hour sessions for that pair
+pg_sess contains <group_id>:<user_id> pairs alongwith number of 24 hour sessions for that pair
+
+p2p_sms is a list of <sent_by_id>:<sent_to_id>:<sending_time> tuples, tracking SMSes in private chat
+rc:<sent_to_id> sets a key as a "red carpet" for sent_to_id (waits for them to return to Damadam as a result of an SMS sent by a friend)
+sms_eft tracks sms effectiveness. It contains <user_id>:<time_passed_since_sms> pairs for users who returned to Damadam after being sent an SMS
+
+exits contains <group_id>:<exit_by_id> pairs alongwith times of exiting a private chat. Useful for charting average life of a private chat.
+del_after_exit contains groups and exit times for groups that were deleted due to exiting
+del_after_idle contains groups and exit times for groups that were deleted due to idleness
 ###########
 '''
 
@@ -85,8 +107,7 @@ def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 # 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
 
 def return_referrer_logs(log_name):
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange(log_name,0,-1)
+	return redis.Redis(connection_pool=POOL).lrange(log_name,0,-1)
 
 
 # def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc, is_post_request,referrer):
@@ -482,46 +503,55 @@ def retrieve_retention_data(user_ids):
 
 #######################Whose Online#######################
 
-#expires online_users from tasks.py
-def expire_online_users():
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "online_users"
-	my_server.zremrangebyscore(sorted_set,'-inf','('+str(time.time()-TEN_MINS))
 
-#invoked from WhoseOnline.py middleware
+def expire_online_users():
+	"""
+	Expires online_users from tasks.py
+	"""
+	redis.Redis(connection_pool=POOL).zremrangebyscore("online_users",'-inf','('+str(time.time()-TEN_MINS))
+
+
+
 def set_online_users(user_id,user_ip):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "online_users"
-	latest_user_ip = "lip:"+user_id #latest ip of user with 'user_id'
-	pipeline1 = my_server.pipeline()
-	pipeline1.zadd(sorted_set,user_id+":"+user_ip,time.time())
-	pipeline1.setex(latest_user_ip,user_ip,FIVE_MINS)
+	"""
+	Invoked from WhoseOnline.py middleware
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.zadd("online_users",user_id+":"+user_ip,time.time())
+	pipeline1.setex("lip:"+user_id,user_ip,FIVE_MINS)
 	pipeline1.execute()
 	############ logging user retention ############
 	# if random.random() < 0.45:
 	# 	log_retention(my_server,user_id)
 
-# invoked by tasks.py to show whoever is online in OnlineKon
+
 def get_recent_online():
-	my_server = redis.Redis(connection_pool=POOL)
+	"""
+	Invoked by tasks.py to show whoever is online in OnlineKon
+	"""
 	sorted_set = "online_users"
 	ten_mins_ago = time.time() - TEN_MINS
-	online_users = my_server.zrangebyscore(sorted_set,ten_mins_ago,'+inf')
+	online_users = redis.Redis(connection_pool=POOL).zrangebyscore(sorted_set,ten_mins_ago,'+inf')
 	online_ids = []
 	for user in online_users:
 		online_ids.append(user.split(":",1)[0])
 	return online_ids
 
-# invoked in views.py to show possible clones of users
+
+######################################## Detect Clones of User ID ########################################
+
+
 def get_clones(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "online_users"
+	"""
+	Invoked in views.py to show possible clones of users
+	"""
 	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
+	my_server = redis.Redis(connection_pool=POOL)
 	user_ip = my_server.get(latest_user_ip)
 	if user_ip:
 		clones = []
 		five_mins_ago = time.time() - FIVE_MINS
-		online_users = my_server.zrangebyscore(sorted_set,five_mins_ago,'+inf')
+		online_users = my_server.zrangebyscore("online_users",five_mins_ago,'+inf')
 		for user in online_users:
 			if user_ip == user.split(":",1)[1]:
 				clones.append(user.split(":",1)[0])
@@ -535,20 +565,6 @@ def get_clones(user_id):
 # 	my_server.set(user_ban,1)
 # 	my_server.expire(user_ban,ONE_HOUR)
 
-#########################################################
-
-# def get_city_shop_listing(city):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	city_shops = "city_shops"
-# 	shop_ids = my_server.smembers(city_shops)
-# 	pipeline1 = my_server.pipeline()
-# 	for shop_id in shop_ids:
-# 		shop_detail = "sd:"+str(shop_id)
-# 		pipeline1.hgetall(shop_detail)
-# 	return pipeline1.execute()
-
-# def initialize_shop(information):
-# 	my_server = redis.Redis(connection_pool=POOL)
 
 #########################################################
 
@@ -698,20 +714,17 @@ def get_temp_order_data(user_id):
 		return {}
 
 def check_orders_processing(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	user = my_server.zscore('ordersinprocess',user_id)
+	user = redis.Redis(connection_pool=POOL).zscore('ordersinprocess',user_id)
 	if user == None:
 		return False
 	else:
 		return True
 
 def get_order_id():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.incr("order_id")
+	return redis.Redis(connection_pool=POOL).incr("order_id")
 
 def get_total_orders():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.get("order_id")
+	return redis.Redis(connection_pool=POOL).get("order_id")
 
 def show_new_orders():
 	total_orders = get_total_orders()
@@ -762,7 +775,6 @@ placed_orders now placedorders
 def is_limited(user_id, section, with_reason = False):
 	"""
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	if section == 'home':
 		key = "rlfh:"+str(user_id)
 	elif section == 'pub_grp':
@@ -775,6 +787,7 @@ def is_limited(user_id, section, with_reason = False):
 		key = "rlfhr:"+str(user_id)
 	else:
 		return False
+	my_server = redis.Redis(connection_pool=POOL)
 	if with_reason:
 		ttl = my_server.ttl(key)
 		if ttl > 0:
@@ -799,8 +812,6 @@ def rate_limit_user(user_id,section,level,ban_reason,my_server=None):
 	7 - hardcore (7 days)
 	8 - jackpot (30 days)
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
 	if section == 'home':
 		rate_limit_key = "rlfh:"+str(user_id)
 	elif section == 'pub_grp':
@@ -811,6 +822,8 @@ def rate_limit_user(user_id,section,level,ban_reason,my_server=None):
 		rate_limit_key = "rlfpc:"+str(user_id)
 	elif section == 'home_rep':
 		rate_limit_key = "rlfhr:"+str(user_id)
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
 	try:
 		my_server.setex(rate_limit_key,ban_reason,RATELIMIT_TTL[level])
 		return True
@@ -961,7 +974,6 @@ def retrieve_previous_msgs(section, section_id,user_id):
 	"""
 	retrieve previous messages stored for a certain section_id
 	"""	
-	my_server = redis.Redis(connection_pool=POOL)
 	if section == 'home':
 		key = "hit:"+str(user_id)+":"+str(section_id)
 	elif section == 'pub_grp':
@@ -972,13 +984,13 @@ def retrieve_previous_msgs(section, section_id,user_id):
 		key = "pcit:"+str(user_id)+":"+str(section_id)
 	elif section == 'home_rep':
 		key = "hrit:"+str(user_id)+":"+str(section_id)
-	return my_server.lrange(key,0,-1)
+	return redis.Redis(connection_pool=POOL).lrange(key,0,-1)
 
 ############################ Ratelimiting short messages ###############################
 
 def log_short_message(user_id,section,obj_id):
-	my_server = redis.Redis(connection_pool=POOL)
 	short_message = "sm:"+str(user_id)+":"+section+":"+str(obj_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	my_server.incr(short_message)
 	my_server.expire(short_message,THREE_MINS)
 
@@ -986,8 +998,8 @@ def many_short_messages(user_id,section,obj_id):
 	"""
 	Confirms if trail of short messages have already been left by the user on the given object
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	short_message = "sm:"+str(user_id)+":"+section+":"+str(obj_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	short_messages_so_far = my_server.get(short_message)
 	if short_messages_so_far:
 		if int(short_messages_so_far) > SHORT_MESSAGES_ALWD:
@@ -997,3 +1009,92 @@ def many_short_messages(user_id,section,obj_id):
 			False
 	else:
 		return False
+
+
+########################################### Gathering Metrics for Personal Groups ###########################################
+
+def increment_convo_counter(group_id, writer_id, group_type=None):
+	"""
+	Logs conversation quantity in personal groups and private mehfils
+	"""
+	if group_type:
+		last_interaction_in_group = "lig_"+group_type+":"+group_id
+		my_server = redis.Redis(connection_pool=POOL)
+		lwid = my_server.getset(last_interaction_in_group,writer_id)
+		if lwid:
+			interaction_type = 'ch' if lwid == str(writer_id) else 'both'
+		else:
+			interaction_type = 'ch'
+		if interaction_type == 'ch':
+			# this logs normal chat
+			my_server.zincrby(group_type+"_ch",group_id,amount=1)
+		elif interaction_type == 'both':
+			# this logs switchover, and normal chat
+			my_server.zincrby(group_type+"_sw",group_id,amount=1)
+			my_server.zincrby(group_type+"_ch",group_id,amount=1)
+		my_server.expire(last_interaction_in_group,ONE_DAY)
+
+
+def increment_session(group_id, user_id, group_type=None):
+	"""
+	Increments unique sessions per group per user
+	"""
+	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
+	if not my_server.get("gs_"+group_type+":"+group_id+":"+user_id):
+		# create new session key for the user for this group
+		now = datetime.now()
+		secs_till_midnight = ((24 - now.hour - 1) * 60 * 60) + ((60 - now.minute - 1) * 60) + (60 - now.second)
+		my_server.setex("gs_"+group_type+":"+group_id+":"+user_id,group_id,secs_till_midnight)
+		# increment session counter
+		my_server.zincrby(group_type+"_sess",group_id+":"+user_id,amount=1)
+
+
+def track_p2p_sms(sent_by_id, sent_to_id, sending_time):
+	"""
+	Log which user sent whom an SMS at what time (to entice them to come to Damadam)
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush("p2p_sms",str(sent_by_id)+":"+sent_to_id+":"+str(sending_time))#llen of list reveals number of SMSes sent
+	# create 'red carpet' for target user
+	my_server.setex("rc:"+sent_to_id,sending_time,ONE_DAY)
+
+
+def check_p2p_sms(user_id):
+	"""
+	Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
+	"""
+	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
+	sms_sent_at = my_server.get("rc:"+user_id)
+	if sms_sent_at:
+		my_server.delete("rc:"+user_id)
+		time_passed_since_sms = time.time() - float(sms_sent_at)
+		# log returned user and time taken since sending of SMS
+		my_server.lpush("sms_eft",user_id+":"+str(time_passed_since_sms))
+
+
+def log_personal_group_exit_or_delete(group_id, exit_by_id=None, action_type=None):
+	"""
+	Logging time of personal group exit or deletion
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if action_type == 'exit':
+		my_server.zadd("exits",group_id+":"+exit_by_id,time.time())
+	else:
+		# group_id is a list of group_ids
+		time_now = time.time()
+		groups = []
+		for gid in group_id:
+			groups.append(gid)
+			groups.append(time_now)
+		if groups:
+			if action_type == 'del_exit':
+				my_server.zadd("del_after_exit",*groups)
+			elif action_type == 'del_idle':
+				my_server.zadd("del_after_idle",*groups)
+
+
+def purge_exit_list(group_id, user_id):
+	"""
+	Purge a value from 'exits' (called when a user rejoins a group after exiting it)
+	"""
+	redis.Redis(connection_pool=POOL).zrem("exits",group_id+":"+str(user_id))

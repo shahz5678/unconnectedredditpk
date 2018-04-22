@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -5773,6 +5773,7 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				filter(which_group_id=group_id).order_by('-submitted_on')[:25]
 				time_now = timezone.now()
 				updated_at = convert_to_epoch(time_now)
+				log_private_mehfil_session.delay(group_id, user_id)
 				save_user_presence(user_id,group.id,updated_at)
 				pres_dict = get_latest_presence(group_id,set(reply.writer_id for reply in replies))
 				context["replies"] = [(reply,reply.writer,pres_dict[reply.writer_id]) for reply in replies]

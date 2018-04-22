@@ -40,8 +40,7 @@ ONE_DAY = 60*60*24
 # def deletion_test(request):
 # 	"""
 # 	"""
-# 	exited_personal_group_hard_deletion(['1','2','3'])
-
+# 	exited_personal_group_hard_deletion(['5','6'])
 
 #######################################################################################################################
 ########################################### Personal Group Helper Functions ###########################################
@@ -1361,7 +1360,8 @@ def personal_group_send_sms(request):
 							target_number = mobnums[int(mob_idx)]
 						except (ValueError,IndexError,TypeError):
 							target_number = mobnums[0]
-						queue_personal_group_invitational_sms.delay(mobile_number=target_number,sms_text=sms_text)
+						queue_personal_group_invitational_sms.delay(mobile_number=target_number,sms_text=sms_text,own_id=own_id,target_id=tid, \
+							sending_time=time.time())
 						lock_sms_sending(own_id,tid)
 						smsrec, sms_text, mob_idx = get_user_sms_setting(own_id, group_id, with_cred=True)
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)

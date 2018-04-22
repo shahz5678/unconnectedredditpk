@@ -68,14 +68,14 @@
             <br><span class="cxs sp mts cb bw" id="filename"></span>
         </div>
 
-        <button class="btn bm bcb mbs mrl pg_ok" style="border:none;height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
+        <button class="btn bm bcb mbs mrl pg_ok" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
 
     </form>
 
     <form action="{% url 'enter_personal_group' %}" method="POST" style="display:inline">
     {% csrf_token %}
     <input type="hidden" name="tid" value="{{ tid }}">
-    <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" type="submit">Cancel</button>
+    <button class="btn bcgy bm mts pg_cl" style="height:30px;" type="submit">Cancel</button>
     </form>
 
 </div>

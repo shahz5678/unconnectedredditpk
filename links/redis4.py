@@ -1016,6 +1016,10 @@ def many_short_messages(user_id,section,obj_id):
 def increment_convo_counter(group_id, writer_id, group_type=None):
 	"""
 	Logs conversation quantity in personal groups and private mehfils
+
+	Helps answer questions such as:
+	1) What are avg number of chats produced per type of chat?
+	2) What are avg number of switchovers produced per type of chat?
 	"""
 	if group_type:
 		last_interaction_in_group = "lig_"+group_type+":"+group_id
@@ -1038,6 +1042,12 @@ def increment_convo_counter(group_id, writer_id, group_type=None):
 def increment_session(group_id, user_id, group_type=None):
 	"""
 	Increments unique sessions per group per user
+
+	Helps answer questions such as:
+	1) What are avg number of sessions per type of chat
+	2) What are median number of sessions per type of chat
+	3) Calculate correlation between number of sessions and number of switchovers
+	4) Calculate coorelation between number of sessions and number of chats
 	"""
 	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
 	if not my_server.get("gs_"+group_type+":"+group_id+":"+user_id):
@@ -1052,6 +1062,9 @@ def increment_session(group_id, user_id, group_type=None):
 def track_p2p_sms(sent_by_id, sent_to_id, sending_time):
 	"""
 	Log which user sent whom an SMS at what time (to entice them to come to Damadam)
+	
+	Helps answer questions such as:
+	1) Number of SMSes generated per chat/per day/per user
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush("p2p_sms",str(sent_by_id)+":"+sent_to_id+":"+str(sending_time))#llen of list reveals number of SMSes sent
@@ -1062,6 +1075,10 @@ def track_p2p_sms(sent_by_id, sent_to_id, sending_time):
 def check_p2p_sms(user_id):
 	"""
 	Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
+	
+	Helps answer questions such as:
+	1) Number of people responding to SMSes
+	2) How soon does an average responder take to return to the chat from which SMS was sent?
 	"""
 	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
 	sms_sent_at = my_server.get("rc:"+user_id)
@@ -1075,6 +1092,10 @@ def check_p2p_sms(user_id):
 def log_personal_group_exit_or_delete(group_id, exit_by_id=None, action_type=None):
 	"""
 	Logging time of personal group exit or deletion
+
+	Helps answer questions such as:
+	1) How many private chats are create (net basis) week-over-week?
+	2) What is the average life-time of a private chat?
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if action_type == 'exit':

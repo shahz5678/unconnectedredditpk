@@ -425,6 +425,18 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.salat_info',
 		'schedule': timedelta(seconds=60), #execute every 60 seconds
 	},
+	'tasks.delete_chat_from_idle_personal_group': {
+		'task': 'tasks.delete_chat_from_idle_personal_group',
+		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days
+	},
+	'tasks.delete_idle_personal_group': {
+		'task': 'tasks.delete_idle_personal_group',
+		'schedule': timedelta(seconds=6*24*60*60), # execute every 6 days
+	},
+	'tasks.delete_exited_personal_group': {
+		'task': 'tasks.delete_exited_personal_group',
+		'schedule': timedelta(seconds=24*60*60), # execute daily
+	},
 }
 
 CELERY_TIMEZONE = 'UTC'

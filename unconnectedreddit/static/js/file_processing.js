@@ -529,9 +529,9 @@ function show_rep_image_name(e) {
 
 //   // getting value from "reply" button
 //     payload = payload.split(':');
-//     var tt = payload[5];
+//     var tt = payload[4];
 //     var bid = payload[0];
-//     var idx = payload[3];
+//     var idx = payload[2];
   
 //     // assigning populated input fields to form_template 
 //     form_template.appendChild(create_input('tt', tt));//supported
@@ -544,8 +544,6 @@ function populate_input_fields(tt, bid, idx) {
   
     var field1 = document.getElementById('rep_tt');
     field1.value = tt;
-    // var e1 = document.createEvent("UIEvent");
-    // e1.initUIEvent("change", true, true, window, 1);
     var e1 = new UIEvent('change', {
         'view': window,
         'bubbles': true,
@@ -555,8 +553,6 @@ function populate_input_fields(tt, bid, idx) {
 
     var field2 = document.getElementById('rep_bid');
     field2.value = bid;
-    // var e2 = document.createEvent("UIEvent");
-    // e2.initUIEvent("change", true, true, window, 1);
      var e2 = new UIEvent('change', {
         'view': window,
         'bubbles': true,
@@ -566,8 +562,6 @@ function populate_input_fields(tt, bid, idx) {
 
     var field3 = document.getElementById('rep_idx');
     field3.value = idx;
-    // var e3 = document.createEvent("UIEvent");
-    // e3.initUIEvent("change", true, true, window, 1);
      var e3 = new UIEvent('change', {
         'view': window,
         'bubbles': true,
@@ -634,9 +628,9 @@ function toggle_rep(e) {
   e.preventDefault();
   // var payload = e.target.parentNode.querySelector('#payload').value;
   var payload = this.parentNode.querySelector('#payload').value.split(':');
-  var tt = payload[5];
+  var tt = payload[4];
   var bid = payload[0];
-  var idx = payload[3];
+  var idx = payload[2];
   // first check if reply form was already added under reply button
   var to_remove = this.parentNode.nextElementSibling;//supported
   // var to_remove = e.target.parentNode.nextElementSibling;//supported

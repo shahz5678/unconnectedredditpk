@@ -14,7 +14,7 @@
           <a href="{% url 'profile' tun %}">
           {% if their_nick %}
             <img src="{{ tau|s3:'thumb' }}" alt="{{ tun|slice:":1" }}" width="22" height="22" class="av_btn ab" style="">
-            <span style="color:#306654;">{{ tun }}</span>&nbsp;<span class="cs cg">({{ sc }})</span>
+            <span style="color:#306654;">{{ tun }}</span>
           {% else %}
             <div class="av_btn ab" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ tun|truncap }}</div>
           {% endif %}
@@ -48,7 +48,6 @@
         <input type="hidden" name="dr" value="1">
         <input type="hidden" name="tt" value="{{ tt }}">
         <input type="hidden" name="t" value="{{ time }}">
-        <input type="hidden" name="sc" value="{{ sc }}">
         <input type="hidden" name="scp" value="{{ s_caption }}">
         <input type="hidden" name="bid" value="{{ bid }}">
         <input type="hidden" name="idx" value="{{ idx }}">
@@ -83,5 +82,5 @@
 
   <br><br>
 
-<script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.4.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.5.js"></script>
 {% endblock %}

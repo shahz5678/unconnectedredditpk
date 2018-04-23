@@ -3,16 +3,17 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Photo sharing | Damadam.pk</title></head>
-<div class="margin clb"> 
+<style>body{background: #E9EBEE}</style>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:98%;padding:10px 7px;background-color:white"> 
 {% if not no_id %}
-	Jis se photo share karni hai, kya woh <b class="co">freebasics</b> pe hai?<br><br>
+	<h1 class="cl">Jis se photo share karni hai, kya woh <b class="co">freebasics</b> pe hai?</h1>
 	
 	<div class="mbl">Agar <span class="cp">nahi</span>, toh ye link share karein:<br>
-	<blockquote class="lsp mbl mts cl cp card" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ regular_url }}</blockquote>
+	<blockquote class="lsp mbl mts cl cp bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ regular_url }}</blockquote>
 	</div>
 
 	<div class="mbl">Agar <span class="co">haan</span>, toh ye link share karein:<br>
-	<blockquote class="lsp mbl mts cl co card" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ freebasics_url }}</blockquote>
+	<blockquote class="lsp mbl mts cl co bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ freebasics_url }}</blockquote>
 	</div>
 
 	{% if loc == '1' %}
@@ -33,6 +34,8 @@
 	<a href="{% url 'home_loc' %}">
 	{% elif loc == '5' %}
     <a href="{% url 'photo_detail' ident %}">
+    {% elif loc == '6' %}
+    <a href="{% url 'unseen_activity' user.username %}">
 	{% else %}
 	<a href="{% url 'best_photo' %}#section0">
 	{% endif %}

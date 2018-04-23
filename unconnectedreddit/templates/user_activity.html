@@ -47,7 +47,7 @@
 	    {% endif %}
 		: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
 		</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}
-		{% if user.username == 'mhb11' or user.username == 'Blade' %}{% group_button ident link.submitter_id link.pk 'link' 'history' STATIC_URL username %}{% endif %}
+		{% group_button ident link.submitter_id link.pk 'link' 'history' username %}
 	</div>
 
 		<form action="{% url 'publicreply_view' %}" method="POST">

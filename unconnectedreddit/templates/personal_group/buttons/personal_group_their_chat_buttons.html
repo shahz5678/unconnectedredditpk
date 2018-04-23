@@ -1,6 +1,6 @@
 <form action="{% url 'personal_group_their_chat_buttons' %}" method="POST" style="display:inline">
    {% csrf_token %}
-   <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ score }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
+   <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
    <input type="hidden" name="pl_ct" value="{{ ct }}">
    <input type="hidden" name="cp" value="{{ img_caption }}">
    <input type="hidden" name="scp" value="{{ img_s_caption }}">
@@ -8,7 +8,7 @@
    <input type="hidden" name="iid" value="{{ img_id }}">
 
    {% if incl_tgt %}
-   <input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_scr }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}">
+   <input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}">
    <input type="hidden" name="t_pl_ct" value="{{ t_ct }}">
    <input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
    {% endif %}

@@ -35,11 +35,11 @@
           <a href="{% url 'profile' usr %}">
           {% if their_nick %}
             <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
-            <span style="color:#306654;">{{ usr }}</span>&nbsp;<span class="cs cg">({{ scr }})</span>
+            <span style="color:#306654;">{{ usr }}</span>
           {% elif their_anon %}
             <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ usr|truncap }}</div>
           {% elif own_nick %}
-              <span style="color:#01579B;">{{ usr }}</span>&nbsp;<span class="cs cg">({{ scr }})</span>
+              <span style="color:#01579B;">{{ usr }}</span>
               <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
           {% elif own_anon %}
             <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ usr|truncap }}</div>
@@ -66,13 +66,13 @@
                     <a href="{% url 'profile' t_usr %}">
                     
                     {% if own_tgt_nick %}
-                      <span style="color:#01579B;">{{ t_usr|truncatechars:15 }}</span>&nbsp;<span class="cs cg">({{ t_scr }})</span>
+                      <span style="color:#01579B;">{{ t_usr|truncatechars:15 }}</span>
                       <img src="{{ t_aurl|s3:'thumb' }}" alt="{{ t_usr|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
                     {% elif own_tgt_anon %}
                       <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ t_usr|truncap }}</div>
                     {% elif their_tgt_nick %}
                       <img src="{{ t_aurl|s3:'thumb' }}" alt="{{ t_usr|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
-                      <span style="color:#306654;">{{ t_usr|truncatechars:15 }}</span>&nbsp;<span class="cs cg">({{ t_scr }})</span>
+                      <span style="color:#306654;">{{ t_usr|truncatechars:15 }}</span>
                     {% elif their_tgt_anon %}
                       <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ t_usr|truncap }}</div>
                     {% endif %}

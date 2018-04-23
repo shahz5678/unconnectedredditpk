@@ -143,7 +143,7 @@
           {% if own_anon %}
             <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ post.username|truncap }}</div>
           {% else %}
-              <span style="color:#01579B;">{{ post.username }}</span>&nbsp;<span class="cs cg">({{ post.score }})</span>
+              <span style="color:#01579B;">{{ post.username }}</span>
               <img src="{{ post.av_url|s3:'thumb' }}" alt="{{ post.username|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
           {% endif %}
           </a>
@@ -244,7 +244,7 @@
                           <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ post.t_username|truncap }}</div></a>
                         {% else %}
                           <img src="{{ post.t_av_url|s3:'thumb' }}" alt="{{ post.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
-                          <span style="color:#306654;">{{ post.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ post.t_score }})</span>
+                          <span style="color:#306654;">{{ post.t_username|truncatechars:15 }}</span>
                         {% endif %}
                         </a>
                     </div>
@@ -292,7 +292,7 @@
             <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ post.username|truncap }}</div>
             {% else %}
             <img src="{{ post.av_url|s3:'thumb' }}" alt="{{ post.username|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
-            <span style="color:#306654;">{{ post.username }}</span>&nbsp;<span class="cs cg">({{ post.score }})</span>
+            <span style="color:#306654;">{{ post.username }}</span>
             {% endif %}
             </a>
           </div>
@@ -388,7 +388,7 @@
                            {% if own_anon %}
                             <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%">{{ post.t_username|truncap }}</div>
                           {% else %}
-                            <span style="color:#01579B;">{{ post.t_username|truncatechars:15 }}</span>&nbsp;<span class="cg cs">({{ post.t_score }})</span>
+                            <span style="color:#01579B;">{{ post.t_username|truncatechars:15 }}</span>
                             <img src="{{ post.t_av_url|s3:'thumb' }}" alt="{{ post.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%">
                           {% endif %}
                           </a>

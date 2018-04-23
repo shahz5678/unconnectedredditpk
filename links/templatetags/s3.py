@@ -13,7 +13,12 @@ def get_s3_object(filename,category='img'):
 			return None
 	else:
 		filename = str(filename)
-		if "photos/" in filename:
+		if filename == 'empty':
+			if category == 'thumb':
+				return static('img/default-avatar-min.jpg')
+			else:
+				return None
+		elif "photos/" in filename:
 			split_by = "photos/"
 		elif "personal_groups/" in filename:
 			split_by = "personal_groups/"
@@ -25,8 +30,12 @@ def get_s3_object(filename,category='img'):
 			split_by = "users/"
 		else:
 			split_by = "photos/"
+		######################################################
 		if category=='thumb':
-			return "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+filename.split(split_by)[1]
+			try:
+				return "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+filename.split(split_by)[1]
+			except IndexError:
+				return static('img/default-avatar-min.jpg')
 		else:
 			try:
 				return "//s3.eu-central-1.amazonaws.com/damadam/"+split_by+filename.split(split_by)[1]

@@ -25,7 +25,8 @@ class PersonalGroupPostForm(forms.Form):
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
-		self.fields['image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
+		# self.fields['image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
+		self.fields['image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0'
 
 
 	def clean(self):
@@ -92,9 +93,10 @@ class PersonalGroupReplyPostForm(forms.Form):
 		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
+		self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['accept'] = 'image/*'
-		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-
+		# self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
+		self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0'
 
 	def clean(self):
 		data = self.cleaned_data

@@ -32,9 +32,10 @@
         
         <div class="mbs" style="width:22%;display:inline-block;float:right;text-align:center;">
             <span class="sp cgy cs">Foto</span><br>
+            <label style="cursor: pointer">
+            <img id="main_cam" class="mt pg_label" alt="Select photo" src="{{ static_url }}img/cam1.svg" width="60" height="60"><span class="cxs bw cb sp" style="display:none;padding-top:10px;width:60px;height:60px;margin:0 auto" id="filename"></span>
             {{ personal_group_form.image }}
-            <label for="browse_image_btn" class="pg_label" style="cursor: pointer;"><img id="main_cam" class="mt" alt="Select photo" src="{{ static_url }}img/cam1.svg" width="60" height="60"><div class="cxs bw cb sp" style="display:none;padding-top:10px;width:60px;height:60px;margin:0 auto" id="filename"></div></label>
-            
+            </label>
         </div>
 
         <input type="submit" style="display: none;" id="subform">

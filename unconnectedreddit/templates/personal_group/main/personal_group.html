@@ -19,33 +19,50 @@
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
 <head><title>{{ t_nick }}'s private messages | Damadam.pk</title></head>
+
+<style type="text/css">
+
+body {
+  height: 100%;
+}
+
+.dr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+}
+
+@supports (background: radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -webkit-radial-gradient(#FCD8DE 30%, transparent 16%))
+  or (background: -moz-radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -o-radial-gradient(#FCD8DE 30%, transparent 16%)){
+
+.dr{
+  position: fixed;
+  top:0;
+  bottom:0;
+  left:0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+}
+
+}
+
+.dr:target {
+  display: block;
+}
+
+
+</style>
+
 <div class="nos margin clb" style="max-width:600px;width:92%;">
-
-    <div id="pg_rep_size_err" style="text-align:center;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-    <div id="pg_rep_mime_err" style="text-align:center;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
-  
-    <form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" class="mtl" style="display:none" enctype="multipart/form-data">
-      {% csrf_token %}
-        
-        <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}">
-        <input id="rep_tid" type="hidden" name="tid" value="{{ tid }}">
-        <input id="rep_tt" type="hidden" name="tt" value="">
-        <input id="rep_idx" type="hidden" name="idx" value="">
-        <input id="rep_bid" type="hidden" name="bid" value="">
-
-        <div class="mbs mts" style="width:75%;display:inline-block;">
-            {{ personal_group_rep_form.rep_reply }}
-        </div>
-
-        <div class="mbs mts" style="width:22%;display:inline-block;float:right;text-align:center;">
-            {{ personal_group_rep_form.rep_image }}
-            <label for="browse_rep_image_btn" class="pg_label" style="cursor: pointer;"><img id="rep_cam" class="mt" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /><span class="cxs sp bw mts" style="display:none;padding-top:10px;width:58px;height:58px;margin:0 auto" id="rep_filename"></span></label>
-        </div>
-
-        <button id="rep_subform" class="btn bm bcb mbs mrl pg_ok_res" style="border:none;height:25px;line-height:25px;" type="submit">OK</button>
-    </form>
-  
-
 
     {% if is_suspended %}
       
@@ -104,7 +121,7 @@
 
                             {% if blob.res_type == 'text' %}
                               <div class="mbs">
-                                <span class="lsp cl"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                                <span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
                               </div>
                             {% else %}
                                 
@@ -194,7 +211,7 @@
                              {% if tup.2 == 'text' %}
   
                                 <div class="mbs">
-                                  <span class="lsp cl"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                                  <span class="lsp cl bw"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
                                 </div>
   
                              {% elif tup.2 == 'img' %}
@@ -273,7 +290,7 @@
                           
                           {% if blob.res_type == 'text' %}
                             <div class="mbs">
-                              {% if last_seen_time < blob.res_time %}<div class="new-dot mrs"></div>{% endif %}<span class="lsp cl"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                              {% if last_seen_time < blob.res_time %}<div class="new-dot mrs"></div>{% endif %}<span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
                             </div>
                           {% elif blob.res_type == 'img' %}
                               
@@ -295,7 +312,7 @@
                              
                              <div class="sp cxs cgy mrl" style="display:inline">{{ blob.res_time|human_time }}</div>
 
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content %}
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content form=personal_group_rep_form sk=sk human_time=blob.res_time|human_time %}
 
                            </div>
 
@@ -368,7 +385,7 @@
 
                            {% if tup.2 == 'text' %}
                               <div class="mbs">
-                                {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl lsp"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                                {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl lsp bw"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
                               </div>
                            {% elif tup.2 == 'img' %}
                          
@@ -391,7 +408,7 @@
 
                            
                              <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
 
                         {% endif %}                         
 
@@ -429,5 +446,5 @@
 
 </div>
 <br><br>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.5.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.6.js"></script>
 {% endblock %}

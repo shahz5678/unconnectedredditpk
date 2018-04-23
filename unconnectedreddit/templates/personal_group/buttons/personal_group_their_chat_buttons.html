@@ -1,3 +1,36 @@
+<!-- direct response button -->
+  <a href="#rp{{ blob_id }}:{{ idx }}"><button class="re re-bg mrl" style="height:19px;width:22px;vertical-align:middle;padding:3px 5px;{{ incl_dresp }}">
+    <div id="line-gr"></div>
+    <div id="line-gr"></div>
+    <div id="line-gr" style="width: 8px;"></div>
+   </button></a>
+<!-- direct response modal -->
+<div id="rp{{ blob_id }}:{{ idx }}" class="dr">
+<div style="display:table;height:100%;max-width:450px;width:98%;margin:0 auto;">
+<form action="{% url 'post_js_reply_to_personal_group' %}" style="display:table-cell;vertical-align:middle" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="bizcard ca" style="padding:10px">
+    {% if img_id %}
+      <img src="{{ img_url }}" class="mrs" style="border-radius:6px;border:1px solid #5EC8A4">{% if img_s_caption %}<span class="cs mrs bw sp">{{ img_s_caption }}</span>{% endif %}<span class="cgy cxs sp">{{ hum_time }}</span>
+    {% else %}
+      <span class="lsp cl bw mrs"><bdi>{{ ct|truncatechars:40 }}</bdi></span><span class="cgy cxs sp">{{ hum_time }}</span>
+    {% endif %}
+    <hr size=1 COLOR="#A0FFDF">
+    <div id="modal_top" class="sp cs mbs cgy">Jawab:</div>
+    <div class="fx fxjscn fxaicn">  
+      <span class="mrs">{{ rep_form.rep_reply }}</span>
+      <label class="mls" style="word-break:break-all;cursor: pointer">
+        <img id="rep_cam" alt="Select photo" src="{{ static_url }}img/cam1.svg" class="pg_label" width="58" height="58"/><span class="cxs sp fxaicn fxjscn" style="display:none;width:58px;height:58px" id="rep_filename"></span>
+        {{ rep_form.rep_image }}
+      </label>
+    </div>
+     <button name="pl" id="rep_ok_btn" class="btn bm bcb mts mrl pg_ok_res sp" style="height:27px;line-height:27px;" type="submit" value="{{ sk }}:{{ tid }}:{{ tt }}:{{ idx }}:{{ blob_id }}">OK</button>
+     <a href="#close" title="Close"><span class="cgy sp mts" style="border-bottom:1px dotted #808080">Cancel</span></a>
+  </div>
+</form>
+</div>
+</div>
+<!--  -->
 <form action="{% url 'personal_group_their_chat_buttons' %}" method="POST" style="display:inline">
    {% csrf_token %}
    <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
@@ -12,12 +45,6 @@
    <input type="hidden" name="t_pl_ct" value="{{ t_ct }}">
    <input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
    {% endif %}
-
-   <button type="submit" class="rep re re-bg mrl" name="dec" value="1" style="height:19px;width:22px;vertical-align:middle;padding:3px 5px;{{ incl_dresp }}">
-    <div id="line-gr"></div>
-    <div id="line-gr"></div>
-    <div id="line-gr" style="width: 8px;"></div>
-   </button>
    
   <button type="submit" class="re re-bg mrl" style="width:22px;height:19px;vertical-align:middle;{{ incl_save }}" name="dec" value="2"><div id="t-arr-gr"></div><div id="b-arr-gr"></div></button>
 

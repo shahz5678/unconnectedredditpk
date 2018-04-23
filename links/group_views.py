@@ -548,26 +548,26 @@ def personal_group_their_chat_buttons(request):
 	"""
 	if request.method == "POST":
 		decision = request.POST.get('dec',None)
-		if decision == '1':
-			# direct_response
-			payload = request.POST.get('pl',None)
-			payload = payload.split(":")
-			try:
-				bid, usr, idx, time, tt, tid, img_width, their_nick, own_nick, is_res, av_url, own_id = payload[0], payload[1], payload[2], payload[3], \
-				payload[4], payload[5], payload[6], payload[7], payload[8], payload[9], payload[10], request.user.id
-			except IndexError:
-				return redirect("enter_personal_group")
-			group_id, exists = personal_group_already_exists(own_id, tid)
-			if exists:
-				ct, secret_key = request.POST.get('pl_ct',None), uuid.uuid4()
-				set_photo_upload_key(user_id=own_id, group_id=group_id, secret_key=secret_key)
-				return render(request,"personal_group/direct_response/personal_group_direct_response.html",{'tun':usr,'tau':av_url,\
-					'tt':tt,'ct':ct,'caption':request.POST.get('cp',None),'s_caption':request.POST.get('scp',None),'time':time, \
-					'sk':secret_key,'tid':tid,'ct':ct,'personal_group_form':PersonalGroupPostForm(),'bid':bid,'idx':idx,'tt':tt,\
-					'their_nick':True if their_nick == 'True' else False})
-			else:
-				return redirect("missing_page")	
-		elif decision == '2':
+		# if decision == '1':
+		# 	# direct_response
+		# 	payload = request.POST.get('pl',None)
+		# 	payload = payload.split(":")
+		# 	try:
+		# 		bid, usr, idx, time, tt, tid, img_width, their_nick, own_nick, is_res, av_url, own_id = payload[0], payload[1], payload[2], payload[3], \
+		# 		payload[4], payload[5], payload[6], payload[7], payload[8], payload[9], payload[10], request.user.id
+		# 	except IndexError:
+		# 		return redirect("enter_personal_group")
+		# 	group_id, exists = personal_group_already_exists(own_id, tid)
+		# 	if exists:
+		# 		ct, secret_key = request.POST.get('pl_ct',None), uuid.uuid4()
+		# 		set_photo_upload_key(user_id=own_id, group_id=group_id, secret_key=secret_key)
+		# 		return render(request,"personal_group/direct_response/personal_group_direct_response.html",{'tun':usr,'tau':av_url,\
+		# 			'tt':tt,'ct':ct,'caption':request.POST.get('cp',None),'s_caption':request.POST.get('scp',None),'time':time, \
+		# 			'sk':secret_key,'tid':tid,'ct':ct,'personal_group_form':PersonalGroupPostForm(),'bid':bid,'idx':idx,'tt':tt,\
+		# 			'their_nick':True if their_nick == 'True' else False})
+		# 	else:
+		# 		return redirect("missing_page")	
+		if decision == '2':
 			# save post, generalize all if clauses
 			payload = request.POST.get('pl',None)
 			payload = payload.split(":")
@@ -1917,15 +1917,20 @@ def post_js_reply_to_personal_group(request):
 	This function is only invoked in JS-enabled devices
 	"""
 	if request.method == "POST":
-		target_content_type, target_blob_id, target_index = request.POST.get('tt',None), request.POST.get('bid',None), request.POST.get('idx',None)
+		payload = request.POST.get("pl",None)
+		try:
+			payload = payload.split(":")
+			target_content_type, target_blob_id, target_index, target_id, sk_form = payload[2], payload[4], payload[3], payload[1], payload[0]
+		except (IndexError,TypeError):
+			return redirect("enter_personal_group")
 		if target_index and target_blob_id and target_content_type:
-			own_id, target_id = request.user.id, request.POST.get('tid',None)
+			own_id = request.user.id
 			request.session["personal_group_tid_key"] = target_id
 			group_id, exists = personal_group_already_exists(own_id, target_id)
 			if exists:
 				request.session["personal_group_gid_key:"+target_id] = group_id
 				is_ajax = request.is_ajax()
-				sk_form, sk_redis = str(request.POST.get('sk','0')), get_and_delete_photo_upload_key(user_id=own_id, group_id=group_id)
+				sk_redis = get_and_delete_photo_upload_key(user_id=own_id, group_id=group_id)
 				if sk_form != sk_redis:
 					request.session["personal_group_form_error"] = PERSONAL_GROUP_ERR['mismatch']
 					request.session.modified = True
@@ -2002,7 +2007,7 @@ def post_js_reply_to_personal_group(request):
 			else:
 				return redirect("personal_group_user_listing")
 		else:
-			return redirect("missing_page")
+			return redirect("enter_personal_group")
 	else:
 		return redirect("enter_personal_group")
 

@@ -26,7 +26,7 @@ class PersonalGroupPostForm(forms.Form):
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['accept'] = 'image/*'
 		# self.fields['image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-		self.fields['image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0'
+		self.fields['image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
 
 
 	def clean(self):
@@ -96,7 +96,7 @@ class PersonalGroupReplyPostForm(forms.Form):
 		self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['accept'] = 'image/*'
 		# self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-		self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0'
+		self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
 
 	def clean(self):
 		data = self.cleaned_data

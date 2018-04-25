@@ -3,6 +3,7 @@
 {% load truncap %}
 {% load human_time %}
 {% load emoticons_tags %}
+{% load url_target_blank %}
 {% load get_personal_group_big_photo %}
 {% load get_personal_group_top_navbar %}
 {% load get_personal_group_notif_chat %}
@@ -24,6 +25,19 @@
 
 body {
   height: 100%;
+}
+
+a {
+  color: #01579B;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active,a:visited {
+  color: #01579B;
 }
 
 img.pg_label:hover{
@@ -125,13 +139,13 @@ img.pg_label:hover{
 
                             {% if blob.res_type == 'text' %}
                               <div class="mbs">
-                                <span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                                <span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                               </div>
                             {% else %}
                                 
                                 {% if blob.hidden == 'no' %}
                                   <div class="mbs">
-                                    {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|emoticons css_shadow='sh-r' max_width=blob.img_width static_url=STATIC_URL %}
+                                    {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|urlize|url_target_blank|emoticons css_shadow='sh-r' max_width=blob.img_width static_url=STATIC_URL %}
                                   </div>
                                 {% elif blob.hidden == 'yes' %}
                                   <div class="mbs">
@@ -215,7 +229,7 @@ img.pg_label:hover{
                              {% if tup.2 == 'text' %}
   
                                 <div class="mbs">
-                                  <span class="lsp cl bw"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                                  <span class="lsp cl bw"><bdi>{% emoticons %}{{ tup.3|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                                 </div>
   
                              {% elif tup.2 == 'img' %}
@@ -223,7 +237,7 @@ img.pg_label:hover{
                                 {% if tup.7 == 'no' %}
 
                                  <div class="mbs">
-                                   {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|emoticons css_shadow='sh-r' max_width=tup.8 static_url=STATIC_URL %}  
+                                   {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-r' max_width=tup.8 static_url=STATIC_URL %}  
                                  </div>
 
                                 {% elif tup.7 == 'yes' %}
@@ -294,14 +308,14 @@ img.pg_label:hover{
                           
                           {% if blob.res_type == 'text' %}
                             <div class="mbs">
-                              {% if last_seen_time < blob.res_time %}<div class="new-dot mrs"></div>{% endif %}<span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content }}{% endemoticons %}</bdi></span>
+                              {% if last_seen_time < blob.res_time %}<div class="new-dot mrs"></div>{% endif %}<span class="lsp cl bw"><bdi>{% emoticons %}{{ blob.res_content|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                             </div>
                           {% elif blob.res_type == 'img' %}
                               
                               {% if blob.hidden == 'no' %}
                                 <div class="mbs">
                                 {% if last_seen_time < blob.res_time %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
-                                {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|emoticons css_shadow='sh-l' max_width=blob.img_width static_url=STATIC_URL %}
+                                {% personal_group_big_photo img_url=blob.res_content|s3 img_caption=blob.img_caption|urlize|url_target_blank|emoticons css_shadow='sh-l' max_width=blob.img_width static_url=STATIC_URL %}
                                 </div>
                               {% elif blob.hidden == 'yes' %}
                               <div class="mbs">
@@ -389,7 +403,7 @@ img.pg_label:hover{
 
                            {% if tup.2 == 'text' %}
                               <div class="mbs">
-                                {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl lsp bw"><bdi>{% emoticons %}{{ tup.3 }}{% endemoticons %}</bdi></span>
+                                {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl lsp bw"><bdi>{% emoticons %}{{ tup.3|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                               </div>
                            {% elif tup.2 == 'img' %}
                          
@@ -397,7 +411,7 @@ img.pg_label:hover{
                                
                                 <div class="mbs">
                                   {% if last_seen_time < tup.4 %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
-                                  {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL %}<br>
+                                  {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL %}<br>
                                 </div>
 
                               {% elif tup.7 == 'yes' %}

@@ -22,7 +22,7 @@ process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_us
 public_group_ranking_clean_up
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
-personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen
+personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
@@ -179,6 +179,9 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		elif txt_type not in ('reentry','creation'):
 			increment_convo_counter(group_id, own_id, group_type='pg')
+			# if not img_url and txt_type in ('text','text_res','img_res'):#,'img'):
+			if txt_type in ('text','text_res','img_res','img'):
+				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):

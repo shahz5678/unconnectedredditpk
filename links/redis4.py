@@ -70,7 +70,7 @@ del_after_idle contains groups and exit times for groups that were deleted due t
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
-
+THREE_DAYS = 60*60*24*3
 ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
@@ -225,6 +225,32 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return secret_key
 	else:
 		return '1'
+
+
+######################## Shared urls caching (for private chat) ########################
+
+def cache_meta_data(url, mapping, time_timen_to_sniff, time_taken_to_parse, is_youtube, deg_of_comp):
+	"""
+	Cache shared url's meta_data for upto a day
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.hmset(url,mapping)
+	pipeline1.expire(url,ONE_DAY)
+	pipeline1.lpush("shared_urls",url+":"+is_youtube+":"+"{0:.2f}".format(time_taken_to_parse)+":"+"{0:.2f}".format(time_timen_to_sniff)+":"+"{0:.2f}".format(time.time())+":"+deg_of_comp)
+	pipeline1.ltrim("shared_urls",0,999)#saving up to 1000 hits
+	pipeline1.execute()
+
+def get_cached_meta_data(url):
+	"""
+	Returns cached meta data, and extends life of cache by 3 days if it's a successful hit
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	meta_data = my_server.hgetall(url)
+	if meta_data:
+		my_server.expire(url,THREE_DAYS)
+		return meta_data
+	else:
+		return {}
 
 
 ###################### User credentials caching ######################

@@ -3,6 +3,7 @@
 {% load truncap %}
 {% load human_time %}
 {% load emoticons_tags %}
+{% load url_img_height %}
 {% load url_target_blank %}
 {% load get_personal_group_big_photo %}
 {% load get_personal_group_top_navbar %}
@@ -11,6 +12,7 @@
 {% load get_personal_group_exit_fields %}
 {% load get_personal_group_input_fields %}
 {% load get_personal_group_bottom_navbar %}
+{% load get_personal_group_url_meta_data %}
 {% load get_personal_group_hidden_pht_big %}
 {% load get_personal_group_own_action_chat %}
 {% load get_personal_group_hidden_pht_small %}
@@ -40,8 +42,22 @@ a:active,a:visited {
   color: #01579B;
 }
 
-img.pg_label:hover{
-  opacity: 0.75;
+img.yt_play {
+  width:65px;
+  height: 65px;
+}
+
+img.yt_play:hover{
+  width:60px;
+  height: 60px;
+}
+
+img.yt_img {
+  opacity:0.7;
+}
+
+img.yt_img:hover{
+  opacity: 1;
 }
 
 .dr {
@@ -111,7 +127,7 @@ img.pg_label:hover{
             <div class="bizcard csb" style="padding:3px;margin-top:1.3em;text-align:right;">
                   
                   <div class="mbs tr_cnr">
-                      <a href="{% url 'profile' blob.username %}">
+                      <a href="{% url 'profile' blob.username %}" style="text-decoration: none;">
                       {% if own_nick %}
                         <span style="color:#01579B;">{{ blob.username }}
                         <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb">
@@ -155,19 +171,21 @@ img.pg_label:hover{
                                 
                             {% endif %}
 
-                             <div class="mbl">
+                             
                                
                               {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index='-1' username=blob.username av_url=blob.av_url tt=blob.res_type ct=blob.res_content img_caption=blob.img_caption pt=blob.res_time is_res='res' target_username=blob.t_username target_av_url=blob.t_av_url target_content_type=blob.t_type target_content=blob.t_content target_img_caption=blob.t_img_caption target_img_s_caption=blob.t_img_s_caption static_url=STATIC_URL target_posting_time=blob.t_writing_time target_status=blob.t_status id_name="minus-bl" own_anon_status=own_nick their_anon_status=their_nick img_width=blob.img_width %}
                               <span class="sp cxs cgy">{{ blob.res_time|human_time }}</span>
 
-                             </div>
+                             {% if blob.doc %}
+                             {% personal_group_url_meta_data doc=blob.doc url=blob.url url_desc=blob.url_desc url_title=blob.url_title url_img=blob.url_img url_height=blob.url_hw_ratio|url_img_height is_youtube=blob.yt static_url=STATIC_URL %}
+                             {% endif %}
 
                             <!-- personal_group_response_reference_left -->
 
-                            <div class="mrl mll mbl bizcard ca" style="padding:3px;text-align:left">
+                            <div class="mtl mrl mll mbl bizcard ca" style="padding:3px;text-align:left">
         
                               <div class="mbs cs tl_cnr">
-                                  <a href="{% url 'profile' blob.t_username %}">
+                                  <a href="{% url 'profile' blob.t_username %}" style="text-decoration: none;">
                                   {% if their_nick %}
                                     <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
                                     <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
@@ -231,6 +249,14 @@ img.pg_label:hover{
                                 <div class="mbs">
                                   <span class="lsp cl bw"><bdi>{% emoticons %}{{ tup.3|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                                 </div>
+
+                                {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+
+                                <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+
+                                 {% if tup.5 %}
+                                 {% personal_group_url_meta_data doc=tup.5 url=tup.6 url_desc=tup.7 url_title=tup.8 url_img=tup.9 url_height=tup.10|url_img_height is_youtube=tup.11 static_url=STATIC_URL %}
+                                 {% endif %}
   
                              {% elif tup.2 == 'img' %}
                              
@@ -240,21 +266,28 @@ img.pg_label:hover{
                                    {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-r' max_width=tup.8 static_url=STATIC_URL %}  
                                  </div>
 
+                                 {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+
+                                 <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+
+                                 {% if tup.11 %}
+                                 {% personal_group_url_meta_data doc=tup.11 url=tup.12 url_desc=tup.13 url_title=tup.14 url_img=tup.15 url_height=tup.16|url_img_height is_youtube=tup.17 static_url=STATIC_URL %}
+                                 {% endif %}
+
                                 {% elif tup.7 == 'yes' %}
 
                                   <div class="mbs">
                                     {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-r' right_align='ral' %}
                                   </div>
 
+                                  {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
+
+                                  <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+
                                 {% endif %}
                                 
                              {% endif %}
                              
-                             {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 %}
-
-                             <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
-                             
-
                          {% endif %}
 
                       {% endfor %}
@@ -283,7 +316,7 @@ img.pg_label:hover{
             <div class="bizcard ca" style="padding:3px;margin-top:1.3em">
                 
                 <div class="mbs tl_cnr">
-                    <a href="{% url 'profile' blob.username %}">
+                    <a href="{% url 'profile' blob.username %}" style="text-decoration: none;">
                       {% if their_nick %}
                       <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb ab">
                       <span style="color:#306654">{{ blob.username }}</span>
@@ -326,20 +359,21 @@ img.pg_label:hover{
                               
                           {% endif %}
 
-                           <div class="mbl">
                              
                              <div class="sp cxs cgy mrl" style="display:inline">{{ blob.res_time|human_time }}</div>
 
                              {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content form=personal_group_rep_form sk=sk human_time=blob.res_time|human_time %}
 
-                           </div>
+                             {% if blob.doc and blob.hidden != 'yes'%}
+                             {% personal_group_url_meta_data doc=blob.doc url=blob.url url_desc=blob.url_desc url_title=blob.url_title url_img=blob.url_img url_height=blob.url_hw_ratio|url_img_height is_youtube=blob.yt static_url=STATIC_URL %}
+                             {% endif %}
 
                           <!-- personal_group_response_reference_right -->
 
-                             <div class="mrl mll mbl bizcard csb" style="padding:3px;text-align:right">
+                             <div class="mtl mrl mll mbl bizcard csb" style="padding:3px;text-align:right">
                               
                               <div class="mbs cs tr_cnr">
-                                  <a href="{% url 'profile' blob.t_username %}">
+                                  <a href="{% url 'profile' blob.t_username %}" style="text-decoration: none;">
                                   {% if own_nick %}
                                   <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
                                   <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%;">
@@ -405,6 +439,14 @@ img.pg_label:hover{
                               <div class="mbs">
                                 {% if last_seen_time < tup.4 %}<div class="new-dot mrs"></div>{% endif %}<span class="cl lsp bw"><bdi>{% emoticons %}{{ tup.3|urlize|url_target_blank }}{% endemoticons %}</bdi></span>
                               </div>
+
+                              <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption='' main_content=tup.3 static_url=STATIC_URL img_s_caption='' incl_hide=tup.2 hide_key='' img_id='' their_nick=their_nick own_nick=own_nick img_width='' is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
+
+                                 {% if tup.5 %}
+                                 {% personal_group_url_meta_data doc=tup.5 url=tup.6 url_desc=tup.7 url_title=tup.8 url_img=tup.9 url_height=tup.10|url_img_height is_youtube=tup.11 static_url=STATIC_URL %}
+                                 {% endif %}
+
                            {% elif tup.2 == 'img' %}
                          
                               {% if tup.7 == 'no' %}
@@ -414,19 +456,25 @@ img.pg_label:hover{
                                   {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL %}<br>
                                 </div>
 
+                                <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
+
+                                 {% if tup.11 %}
+                                 {% personal_group_url_meta_data doc=tup.11 url=tup.12 url_desc=tup.13 url_title=tup.14 url_img=tup.15 url_height=tup.16|url_img_height is_youtube=tup.17 static_url=STATIC_URL %}
+                                 {% endif %}
+
                               {% elif tup.7 == 'yes' %}
                                
                                 <div class="mbs">
                                   {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-l' right_align='' %}
                                 </div>
+
+                                <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
                                
                               {% endif %}
                     
                             {% endif %}
-
-                           
-                             <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
 
                         {% endif %}                         
 

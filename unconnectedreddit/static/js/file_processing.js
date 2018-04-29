@@ -196,11 +196,12 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
   personal_group_preloader('update');
   // send the form via AJAX
   var xhr = new XMLHttpRequest();
+  // console.log(target_action);
   xhr.open('POST', target_action);
   xhr.timeout = 45000; // time in milliseconds, i.e. 45 seconds
   xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
   xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
+  // console.log(xhr);
   xhr.onload = function () {
     if (this.status == 200) {
       var resp = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
@@ -224,6 +225,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
     // XMLHttpRequest timed out
     window.location.replace(fail_url);
     personal_group_preloader('destroy');
+    // console.log(e)
   };
   xhr.send(form_data);
 }
@@ -248,6 +250,10 @@ function prep_image(src_img, text, img_name, target_action, type, img_field, rep
         img_width = this.width;
         img_height = this.height;
         img_to_send = resize_and_compress(this, img_width, img_height, "image/jpeg", orientation, target_size);//, 100);
+        // console.log("Image to send:");
+        // console.log(img_to_send.size);
+        // console.log("Source image:");
+        // console.log(src_img.size);
         if (img_to_send.size > src_img.size){
           callback(text, img_name, target_action, src_img, false, false, type, img_field, reply_field, fail_url);
         } else {

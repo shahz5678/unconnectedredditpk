@@ -1,0 +1,21 @@
+{
+    "name": "Damadam",
+    "short_name": "Damadam",
+    "icons": [
+        {
+            "src": "/static/img/android-chrome-192x192.png?v=2",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/img/android-chrome-384x384.png?v=2",
+            "sizes": "384x384",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#00ffcc",
+    "background_color": "#00ffcc",
+    "start_url": "https://damadam.pk",
+    "display": "standalone",
+    "orientation": "portrait"
+}

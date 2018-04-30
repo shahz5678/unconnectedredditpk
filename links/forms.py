@@ -122,7 +122,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		self.user = kwargs.pop('user', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
-		self.fields['avatar'].widget.attrs['accept'] = 'image/*'
+		# self.fields['avatar'].widget.attrs['accept'] = 'image/*'
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -291,7 +291,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.user_id = kwargs.pop('user_id',None)
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
-		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
 		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
 		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
@@ -979,7 +979,7 @@ class UploadPhotoForm(forms.ModelForm):
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		# self.fields["image_file"].widget.attrs['class'] = 'p'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
-		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
@@ -999,7 +999,7 @@ class PicsChatUploadForm(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
-		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))

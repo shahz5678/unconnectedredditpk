@@ -80,6 +80,14 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
 
+<script type="text/javascript">
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
+  });
+}
+</script>
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

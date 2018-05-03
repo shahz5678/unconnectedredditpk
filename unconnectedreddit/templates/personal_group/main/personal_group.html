@@ -52,6 +52,24 @@ img.yt_play:hover{
   height: 60px;
 }
 
+.op{
+  opacity:1;
+}
+
+.op:hover{
+  opacity:0.75;
+}
+
+.cam_img{
+  position:absolute;
+  z-index:4;
+  opacity:0.01;
+  border:none;
+  max-width:132px;
+  height:60px;
+  font-size:50px
+}
+
 img.yt_img {
   opacity:0.7;
 }
@@ -104,7 +122,7 @@ img.yt_img:hover{
 
     {% else %}
       
-      {% personal_group_input_fields sk=sk no_permit=no_permit no_sms=no_sms no_save_chat=no_save_chat t_nick=t_nick form_errors=form_errors personal_group_form=personal_group_form tid=tid static_url=STATIC_URL chat_not_empty=not_empty their_last_seen_time=their_last_seen_time|human_time last_seen_time_diff=last_seen_time_diff %}
+      {% personal_group_input_fields sk=sk no_permit=no_permit no_sms=no_sms no_save_chat=no_save_chat t_nick=t_nick form_errors=form_errors personal_group_form=personal_group_form tid=tid static_url=STATIC_URL chat_not_empty=not_empty their_last_seen_time=their_last_seen_time|human_time last_seen_time_diff=last_seen_time_diff is_js_env=is_js_env %}
 
     {% endif %}
 

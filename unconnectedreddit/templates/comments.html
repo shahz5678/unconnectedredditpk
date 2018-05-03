@@ -195,7 +195,7 @@
            {% if comment.submitted_by.username in verified %}
              <span class="pinkstar"><b>*</b></span>
             {% endif %}
-    :&nbsp;<bdi class="clb lsp">{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi><span class="cxs sp cgy mrl"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
+    :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mrl"><bdi>, {{ comment.submitted_on|naturaltime }}</bdi>
 
     </span>
         {% block_button comment.submitted_by_id comment.submitted_by.username user.id photo.pk 'photo:comments' STATIC_URL %}

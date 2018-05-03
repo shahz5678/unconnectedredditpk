@@ -7,7 +7,9 @@
 {% load s3 %}
 {% block content %}
 <head><title>{{ count }} comments on photo titled {{ photo.caption }} | Damadam.pk</title></head>
-<div class="margin">
+<style>body{background: #E9EBEE}</style>
+<div style="margin: 0 auto;max-width:600px;width:98%;">
+<div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
 {% if authorized %}
     <div style="overflow:hidden">
     {% if origin %}
@@ -92,9 +94,9 @@
     {% endif %}
     </div>
     {% if not is_first or photo.vote_score < -2 %}
-    <span class="cgy cs">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span>
+    <div class="cgy cs mbs">photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></div>
     {% else %}
-    <span class="cgy cs">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></span>
+    <div class="cgy cs mbs">, photo by <a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a></div>
     {% endif %}
     {% if banned %}
 
@@ -106,7 +108,7 @@
         <br>
 
     {% else %}
-    <form class="mtl" action="{% url 'comment' photo.id %}" method="POST">
+    <form class="mt" action="{% url 'comment' photo.id %}" method="POST" style="display:inline">
     {% csrf_token %}
     <input type="hidden" name="sk" value="{{ sk }}">
     <input type="hidden" name="origin" value="{{ origin }}">
@@ -115,23 +117,18 @@
         {% if warned %}
         <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likhein jo mahol khrab krey. Photo nahi pasand toh 'bekaar' dabana kafi hai</span><br>
         {% endif %}
-    <br>
+    
     <input type="hidden" name="popk" value="{{ photo.owner_id }}">
-    <button class="btn bco cs bm mts mbl" type="submit" style="height:22px" id="id_submit">OK</button>
+    <button class="btn bco cm sp bm mts mbl mrl" type="submit" style="height:27px" id="id_submit">OK</button>
     </form>
+
+    <form action="{% url 'comment' photo.id origin %}" method="GET" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="btn bms bco mrs mll mbl" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></form>
+
     {% endif %}
 {% if count > 0 %}
-    {% if count > 25 %}
-      <span class="cs csw co sp">Latest <b>25</b> tabsrey:</span><br>
-      {% elif count == 1 %}
-      <span class="cs csw co sp"><b>1</b> tabsra:</span><br>
-      {% else %}
-      <span class="cs csw co sp"><b>{{ count }}</b> tabsrey:</span><br>
-      {% endif %}
-    <table>
+    <div class="mts">
     {% for comment in comments %}
     
-    <tr><td>
         {% if forloop.counter != 1 %}
         <hr size=1 COLOR="#ffd7b3">
         {% endif %}
@@ -245,36 +242,36 @@
         {% group_button user.id comment.submitted_by_id photo.pk 'photos' 'photo_comments' comment.submitted_by.username %}
         </div>
     {% endif %}
-    </td></tr>
+    
     {% endfor %}
-    </table>
+    </div>
 {% endif %}
-<p class="mt"></p>
+
 <hr size=1 COLOR="#ffd7b3">
 <p style="margin-top:-0.9em;"></p>
 <hr size=1 COLOR="#ffd7b3">
+
 {% if thumbs != None %}
 <span class="cgy sp">More photos by <a href="{% url 'profile' photo.owner %}">{{ photo.owner }}</a>:</span>
 <form method="POST" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mts">{% csrf_token %}
 {{ thumbs|safe }}
 </form>
-<hr size=1 COLOR="#ffd7b3">
-<p style="margin-top:-0.9em;"></p>
-<hr size=1 COLOR="#ffd7b3">
 {% endif %}
-<div class="cs cgy mtl mbs"><b>Faces banane ke liye unke sath likha '.' aur harf likhein:</b></div>
-{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
-
-{% emoticons_index as emoticons_list %}
-
-{% for emoticons in emoticons_list %}
-{% if forloop.counter in random %}
-<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
-{% endif %}
-{% endfor %}
-
 {% else %}
 <h2 class="clb csw">Ye is terah nahi chalta!</h2>
 {% endif %}
+</div>
+    <div class="mls mbl">
+    <div class="cs cgy mtl mbs"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></div>
+    {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emojis full list</a>
+
+    {% emoticons_index as emoticons_list %}
+
+    {% for emoticons in emoticons_list %}
+    {% if forloop.counter in random %}
+    <p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
+    {% endif %}
+    {% endfor %}
+    </div>
 </div>
 {% endblock %}

@@ -13,7 +13,7 @@ class PersonalGroupPostForm(forms.Form):
 	Handles personal group chat input
 	"""
 	image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
-		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
+		'invalid_image': 'Ye foto kharab hai. Koi aur chunein','required':'Foto lagana zaruri hai'})
 	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
 		'autofocus': 'autofocus'}))
 	
@@ -24,9 +24,7 @@ class PersonalGroupPostForm(forms.Form):
 		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
-		# self.fields['image'].widget.attrs['accept'] = 'image/gif, image/jpg, image/jpeg, image/png'
-		# self.fields['image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-		self.fields['image'].widget.attrs['style'] = 'position: absolute;left:-1000px;top:-1000px;opacity: 0;width: 0.1px;height: 0.1px;'
+		self.fields['image'].widget.attrs['class'] = 'cam_img'
 
 	def clean(self):
 		data = self.cleaned_data

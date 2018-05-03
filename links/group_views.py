@@ -66,14 +66,14 @@ def retrieve_user_env(user_agent, fbs):
 	Opera mini (extreme mode) and free basics do not support JS
 	"""
 	if fbs:
-		return False
+		return False, True
 	elif user_agent:
 		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
-			return False
+			return False, False
 		else:
-			return True
+			return True, False
 	else:
-		return True
+		return True, False
 
 
 def sms_lock_time_remaining(time_of_lock):
@@ -410,12 +410,12 @@ def enter_personal_group(request):
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_sms = request.session.pop("personal_group_sms_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
+		is_js_env, is_fbs = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
-			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
+			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env, 'is_fbs':True})
 	else:
 		return redirect("missing_page")
 
@@ -716,26 +716,26 @@ def personal_group_their_chat_buttons(request):
 	"""
 	if request.method == "POST":
 		decision = request.POST.get('dec',None)
-		# if decision == '1':
-		# 	# direct_response
-		# 	payload = request.POST.get('pl',None)
-		# 	payload = payload.split(":")
-		# 	try:
-		# 		bid, usr, idx, time, tt, tid, img_width, their_nick, own_nick, is_res, av_url, own_id = payload[0], payload[1], payload[2], payload[3], \
-		# 		payload[4], payload[5], payload[6], payload[7], payload[8], payload[9], payload[10], request.user.id
-		# 	except IndexError:
-		# 		return redirect("enter_personal_group")
-		# 	group_id, exists = personal_group_already_exists(own_id, tid)
-		# 	if exists:
-		# 		ct, secret_key = request.POST.get('pl_ct',None), uuid.uuid4()
-		# 		set_photo_upload_key(user_id=own_id, group_id=group_id, secret_key=secret_key)
-		# 		return render(request,"personal_group/direct_response/personal_group_direct_response.html",{'tun':usr,'tau':av_url,\
-		# 			'tt':tt,'ct':ct,'caption':request.POST.get('cp',None),'s_caption':request.POST.get('scp',None),'time':time, \
-		# 			'sk':secret_key,'tid':tid,'ct':ct,'personal_group_form':PersonalGroupPostForm(),'bid':bid,'idx':idx,'tt':tt,\
-		# 			'their_nick':True if their_nick == 'True' else False})
-		# 	else:
-		# 		return redirect("missing_page")	
-		if decision == '2':
+		if decision == '1':
+			# direct_response
+			payload = request.POST.get('pl',None)
+			payload = payload.split(":")
+			try:
+				bid, usr, idx, time, tt, tid, img_width, their_nick, own_nick, is_res, av_url, own_id = payload[0], payload[1], payload[2], payload[3], \
+				payload[4], payload[5], payload[6], payload[7], payload[8], payload[9], payload[10], request.user.id
+			except IndexError:
+				return redirect("enter_personal_group")
+			group_id, exists = personal_group_already_exists(own_id, tid)
+			if exists:
+				ct, secret_key = request.POST.get('pl_ct',None), uuid.uuid4()
+				set_photo_upload_key(user_id=own_id, group_id=group_id, secret_key=secret_key)
+				return render(request,"personal_group/direct_response/personal_group_direct_response.html",{'tun':usr,'tau':av_url,\
+					'tt':tt,'ct':ct,'caption':request.POST.get('cp',None),'s_caption':request.POST.get('scp',None),'time':time, \
+					'sk':secret_key,'tid':tid,'ct':ct,'personal_group_form':PersonalGroupPostForm(),'bid':bid,'idx':idx,'tt':tt,\
+					'their_nick':True if their_nick == 'True' else False})
+			else:
+				return redirect("missing_page")	
+		elif decision == '2':
 			# save post, generalize all if clauses
 			payload = request.POST.get('pl',None)
 			payload = payload.split(":")

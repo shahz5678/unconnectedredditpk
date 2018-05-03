@@ -380,7 +380,7 @@ img.yt_img:hover{
                              
                              <div class="sp cxs cgy mrl" style="display:inline">{{ blob.res_time|human_time }}</div>
 
-                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content form=personal_group_rep_form sk=sk human_time=blob.res_time|human_time %}
+                             {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=blob.res_time content_type=blob.res_type index='-1' img_caption=blob.img_caption main_content=blob.res_content static_url=STATIC_URL img_s_caption=blob.img_s_caption incl_hide=blob.res_type hide_key=blob.hidden img_id=blob.img_id their_nick=their_nick own_nick=own_nick img_width=blob.img_width is_res='res' t_uname=blob.t_username t_aurl=blob.t_av_url t_st=blob.t_status t_ctype=blob.t_type t_s_img_cap=blob.t_img_s_caption t_time=blob.t_writing_time t_ct=blob.t_content form=personal_group_rep_form sk=sk human_time=blob.res_time|human_time is_fbs=is_fbs %}
 
                              {% if blob.doc and blob.hidden != 'yes'%}
                              {% personal_group_url_meta_data doc=blob.doc url=blob.url url_desc=blob.url_desc url_title=blob.url_title url_img=blob.url_img url_height=blob.url_hw_ratio|url_img_height is_youtube=blob.yt static_url=STATIC_URL %}
@@ -459,7 +459,7 @@ img.yt_img:hover{
                               </div>
 
                               <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption='' main_content=tup.3 static_url=STATIC_URL img_s_caption='' incl_hide=tup.2 hide_key='' img_id='' their_nick=their_nick own_nick=own_nick img_width='' is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption='' main_content=tup.3 static_url=STATIC_URL img_s_caption='' incl_hide=tup.2 hide_key='' img_id='' their_nick=their_nick own_nick=own_nick img_width='' is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time is_fbs=is_fbs %}
 
                                  {% if tup.5 %}
                                  {% personal_group_url_meta_data doc=tup.5 url=tup.6 url_desc=tup.7 url_title=tup.8 url_img=tup.9 url_height=tup.10|url_img_height is_youtube=tup.11 static_url=STATIC_URL %}
@@ -475,7 +475,7 @@ img.yt_img:hover{
                                 </div>
 
                                 <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time is_fbs=is_fbs %}
 
                                  {% if tup.11 %}
                                  {% personal_group_url_meta_data doc=tup.11 url=tup.12 url_desc=tup.13 url_title=tup.14 url_img=tup.15 url_height=tup.16|url_img_height is_youtube=tup.17 static_url=STATIC_URL %}
@@ -488,7 +488,7 @@ img.yt_img:hover{
                                 </div>
 
                                 <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
-                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time %}
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob form=personal_group_rep_form sk=sk human_time=tup.4|human_time is_fbs=is_fbs %}
                                
                               {% endif %}
                     

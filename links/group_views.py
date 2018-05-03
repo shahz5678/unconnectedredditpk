@@ -59,6 +59,22 @@ def get_uname_and_avurl(target_id, their_anon_status):
 		return get_single_user_credentials(target_id,as_list=False)
 		# return retrieve_credentials(target_id, decode_uname=True)
 
+def retrieve_user_env(user_agent, fbs):
+	"""
+	Checks whether environment can support JS
+
+	Opera mini (extreme mode) and free basics do not support JS
+	"""
+	if fbs:
+		return False
+	elif user_agent:
+		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
+			return False
+		else:
+			return True
+	else:
+		return True
+
 
 def sms_lock_time_remaining(time_of_lock):
 	"""
@@ -394,11 +410,12 @@ def enter_personal_group(request):
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_sms = request.session.pop("personal_group_sms_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
-			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm()})
+			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
 	else:
 		return redirect("missing_page")
 

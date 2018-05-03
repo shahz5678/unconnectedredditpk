@@ -8,6 +8,16 @@
 <head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam.pk</title></head>
 <div class="nos margin clb" style="max-width:600px;width:92%;margin-top:2em">
 
+  {% if personal_group_form.non_field_errors %}
+  
+    <div class="clb lsp mbl bizcard" style="padding:10px;text-align:center;background-color:#fef0ee">
+    <span class="cxl cr">{{ personal_group_form.non_field_errors.0 }}</span>
+    <hr size=1 COLOR="#ffcccc">
+    <span class="cgy sp">Agr wapis jana ho tou 'Cancel' dabain</span>
+    </div>
+  
+  {% else %}
+
     <div class="bizcard mbl ca" style="padding:3px">
         
         <div class="mbs tl_cnr">
@@ -35,10 +45,13 @@
 
     </div>
 
-    <div id="pg_size_err" style="display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span><hr size=1 COLOR="#E0E0E0"></div>
-    <div id="pg_mime_err" style="display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span><hr size=1 COLOR="#E0E0E0"></div>
+    <div id="personal_group_top">
+      {% if tt == 'text' %}<span class="cgy lsp sp">Is baat ka jawab de kar OK dabaein</span>{% elif tt == 'img' %}<span class="cgy lsp sp">Is foto pe jawab de kar OK dabaein</span>{% endif %}
+    </div>
 
-    <form action="{% url 'post_to_personal_group' %}" method="POST" class="mtl" style="display:inline" enctype="multipart/form-data">
+  {% endif %}
+
+    <form action="{% url 'post_to_personal_group' %}" method="POST" class="mtl" style="display:inline" enctype="multipart/form-data">        
     {% csrf_token %}
     
         <input type="hidden" name="tun" value="{{ tun }}">
@@ -54,21 +67,11 @@
         <input type="hidden" name="ct" value="{{ ct }}">
         <input type="hidden" name="cp" value="{{ caption }}">
 
-        <div id="personal_group_top">
-        {% if personal_group_form.non_field_errors %}<span class="cr lsp">{{ personal_group_form.non_field_errors.0 }}<hr size=1 COLOR="#E0E0E0"></span>{% elif tt == 'text' %}<span class="cgy lsp">Is baat ka jawab de kar OK dabaein</span><hr size=1 COLOR="#e6e6e6">{% elif tt == 'img' %}<span class="cgy lsp">Is foto pe jawab de kar OK dabaein</span><hr size=1 COLOR="#e6e6e6">{% endif %}
-        </div>
-
-        <div class="mbs mts" style="width:75%;display:inline-block;">
+        <div class="mts">
             {{ personal_group_form.reply }}
         </div>
-
-        <div class="mbs mts" style="width:22%;display:inline-block;float:right;text-align:center;">
-            {{ personal_group_form.image }}
-            <label for="browse_image_btn" style="cursor: pointer"><img class="mt pg_label" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /></label>
-            <br><span class="cxs sp mts cb bw" id="filename"></span>
-        </div>
-
-        <button class="btn bm bcb mbs mrl pg_ok" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
+        <input class="mts" style="max-width:600px;width:98%;border: 1px #E7ECEE solid;" name="image" type="file" id="browse_image_btn">
+        <button class="btn bm bcb mtl mbs mrl pg_ok" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
 
     </form>
 
@@ -82,5 +85,4 @@
 
   <br><br>
 
-<script type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.6.js"></script>
 {% endblock %}

@@ -58,7 +58,7 @@ def get_degree_of_completeness(img_meta):
 		return '0'#no metadata was retrieved
 
 
-def get_web_img_dimensions(url):#='/ims/2017/04/iStock-534113148_4x3.jpg'):
+def get_web_img_dimensions(url):
 	"""
 	Returns image dimensions
 	"""
@@ -73,7 +73,7 @@ def get_web_img_dimensions(url):#='/ims/2017/04/iStock-534113148_4x3.jpg'):
 	return im.size
 
 	
-def get_meta_data(url):#='https://bam.nr-data.net'):
+def get_meta_data(url):
 	"""
 	Returns meta data of provided url
 	"""
@@ -154,4 +154,4 @@ def get_meta_data(url):#='https://bam.nr-data.net'):
 
 
 # if __name__=="__main__":
-# 	get_web_img_dimensions()
+# 	get_meta_data()

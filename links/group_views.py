@@ -415,7 +415,7 @@ def enter_personal_group(request):
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
-			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env, 'is_fbs':True})
+			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env, 'is_fbs':is_fbs})
 	else:
 		return redirect("missing_page")
 

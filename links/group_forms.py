@@ -15,7 +15,7 @@ class PersonalGroupPostForm(forms.Form):
 	image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye foto kharab hai. Koi aur chunein','required':'Foto lagana zaruri hai'})
 	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
-		'autofocus': 'autofocus'}))
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
 	def __init__(self,*args,**kwargs):
@@ -52,7 +52,8 @@ class PersonalGroupSMSForm(forms.Form):
 	Handles personal group sms text
 	"""
 	sms = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
-		'maxlength':PERSONAL_GROUP_MAX_SMS_SIZE}),error_messages={'invalid':"SMS sahi se likhein",'required':"SMS ko khali nahi chore sakte"})
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PERSONAL_GROUP_MAX_SMS_SIZE}),\
+	error_messages={'invalid':"SMS sahi se likhein",'required':"SMS ko khali nahi chore sakte"})
 
 
 	def __init__(self,*args,**kwargs):
@@ -81,7 +82,8 @@ class PersonalGroupReplyPostForm(forms.Form):
 	"""
 	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
-	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus'}))
+	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		,'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
 	def __init__(self,*args,**kwargs):

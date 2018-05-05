@@ -83,7 +83,7 @@ class PersonalGroupReplyPostForm(forms.Form):
 	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
 	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
-		,'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
 	def __init__(self,*args,**kwargs):

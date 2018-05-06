@@ -82,20 +82,19 @@ class PersonalGroupReplyPostForm(forms.Form):
 	"""
 	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
-	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
-		'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
+	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autocorrect':'off',\
+		'autocapitalize':'off','spellcheck':'false','placeholder':'Reply likhein...'}))
 	
 
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupReplyPostForm, self).__init__(*args,**kwargs)
-		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:60px;box-sizing: border-box;border-radius:8px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
-		self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
-		# self.fields['rep_image'].widget.attrs['accept'] = 'image/*'
-		# self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-		self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
+		# self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
+		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
+		# self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
 
 	def clean(self):
 		data = self.cleaned_data

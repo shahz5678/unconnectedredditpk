@@ -66,14 +66,14 @@ def retrieve_user_env(user_agent, fbs):
 	Opera mini (extreme mode) and free basics do not support JS
 	"""
 	if fbs:
-		return False, True
+		return False#, True
 	elif user_agent:
 		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
-			return False, False
+			return False#, False
 		else:
-			return True, False
+			return True#, False
 	else:
-		return True, False
+		return True#, False
 
 
 def sms_lock_time_remaining(time_of_lock):
@@ -410,12 +410,12 @@ def enter_personal_group(request):
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_sms = request.session.pop("personal_group_sms_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
-		is_js_env, is_fbs = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
-			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env, 'is_fbs':is_fbs})
+			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
 	else:
 		return redirect("missing_page")
 
@@ -2085,12 +2085,13 @@ def post_js_reply_to_personal_group(request):
 	This function is only invoked in JS-enabled devices
 	"""
 	if request.method == "POST":
-		payload = request.POST.get("pl",None)
-		try:
-			payload = payload.split(":")
-			target_content_type, target_blob_id, target_index, target_id, sk_form = payload[2], payload[4], payload[3], payload[1], payload[0]
-		except (IndexError,TypeError):
-			return redirect("enter_personal_group")
+		target_content_type, target_blob_id, target_index, target_id, sk_form = request.POST.get('tt',None), request.POST.get('bid',None),\
+		request.POST.get('idx',None), request.POST.get('tid',None), request.POST.get('sk',None)
+		# try:
+		# 	payload = payload.split(":")
+		# 	target_content_type, target_blob_id, target_index, target_id, sk_form = payload[2], payload[4], payload[3], payload[1], payload[0]
+		# except (IndexError,TypeError):
+		# 	return redirect("enter_personal_group")
 		if target_index and target_blob_id and target_content_type:
 			own_id = request.user.id
 			request.session["personal_group_tid_key"] = target_id

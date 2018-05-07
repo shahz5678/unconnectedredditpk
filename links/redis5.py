@@ -1,14 +1,18 @@
 # coding=utf-8
+import re
 import ujson as json
 import redis, time, random
+from urlparse import urlparse
 from location import REDLOC5
 from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
-PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME
+PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED
+from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
-from redis4 import retrieve_bulk_credentials, retrieve_credentials
+from get_meta_data import get_meta_data
+from urlmarker import URL_REGEX1
 
 '''
 ##########Redis Namespace##########
@@ -63,6 +67,9 @@ uname:<user_id> hash storing nickname of 'user_id'
 
 pgfgm:<user_id> personal_group_friend_group_mapping is a sorted set containing group_id:friend_id pairs sorted by latest touch time
 
+rlus:<own_id>:<group_id> rate_limited_url_submissions ascertains whether url scraping is currently rate limited or not
+usl:<own_id>:<group_id> url_submissions_left is used to determine whether it's time to rate limit the user
+
 ###########
 '''
 
@@ -71,6 +78,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 THREE_SECS = 3
 SIX_SECS = 6
 TWO_MINS = 120
+FOUR_MINS = 4*60
 FIVE_MINS = 5*60
 EIGHT_MINS = 8*60
 TEN_MINS = 10*60
@@ -245,14 +253,13 @@ def cache_personal_group_data(json_obj, group_id):
 	redis.Redis(connection_pool=POOL).setex('pgd:'+group_id,json_obj,ONE_DAY)
 
 
-######################################## Update Last Seen in Personal Group ########################################
+########################################### Update Last Seen in Personal Group ###########################################
 
 def update_personal_group_last_seen(own_id, group_id, time_now = None):
 	"""
 	Update user's last seen in group
 	"""
-	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time()) # putting these in pipeline doesn't speed up the commands (already profiled)
-
+	redis.Redis(connection_pool=POOL).hset("pgah:"+group_id,'last_seen'+str(own_id),time_now if time_now else time.time())
 
 ######################################## Content Deletion/Hiding in Personal Group ########################################
 
@@ -1016,7 +1023,7 @@ def save_personal_group_content(own_id, their_id, group_id, blob_id, index):
 		return False, PERSONAL_GROUP_SAVE_MSGS['err4'], None
 
 
-######################################## Content Addition in Personal Group ########################################
+######################################## Content Manipulation in Personal Group ########################################
 
 """
 Content types:
@@ -1186,6 +1193,79 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 	return result[-1], PERSONAL_GROUP_OBJECT_CEILING, group_id, bid, idx, img_id, img_wid, img_hw_ratio
 
 
+def set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, type_):
+	"""
+	Checks content and turns URLs clickable
+	"""
+	my_server, own_id = redis.Redis(connection_pool=POOL), str(own_id)
+	rate_limit_key = "rlus:"+own_id+":"+group_id
+	rate_limited = my_server.get(rate_limit_key)#rate limit url submission
+	if not rate_limited:
+		start_time = time.time()
+		urls = re.findall(URL_REGEX1, text)# check if this regex can be optimized
+		parsing_time = time.time() - start_time
+		if urls:
+			url = urls[0]
+			is_yt = '1' if ('youtube.com/watch' in url or 'youtu.be/' in url) else '0'# detect youtube url
+ 			components = urlparse(url)
+			# first search in cache, else fall back to BeautifulSoup
+			location = components.netloc+components.path+components.query+components.fragment
+			url = url if components.netloc else 'http://'+url
+			meta_data = get_cached_meta_data(location)
+			if meta_data:
+				# cached metadata exists, use that
+				# print "meta data from cache: %s" % meta_data
+				meta_data['url'] = url
+			else:
+				# if nothing is cached
+				meta_data, time_taken = get_meta_data(url=url)
+				# print "meta data from the internet: {} in {} seconds".format(meta_data,time_taken)
+				# if meaningful metadata was successfully retrieved, cache it
+				if 'doc' in meta_data:
+					cache_meta_data(location, meta_data, time_taken, parsing_time, is_yt, meta_data['doc'])
+					meta_data['url'] = url
+			meta_data['yt'] = is_yt
+			if 'doc' in meta_data and meta_data['doc'] != '0':
+				if idx != '-1':
+					meta_data['doc'+idx], meta_data['url'+idx], meta_data['yt'+idx] = meta_data['doc'], meta_data['url'], meta_data['yt']
+					del meta_data['doc']
+					del meta_data['url']
+					del meta_data['yt']
+					if 'url_desc' in meta_data:
+						meta_data['url_desc'+idx] = meta_data['url_desc']
+						del meta_data['url_desc']
+					if 'url_title' in meta_data:
+						meta_data['url_title'+idx] = meta_data['url_title']
+						del meta_data['url_title']
+					if 'url_img' in meta_data:
+						meta_data['url_img'+idx] = meta_data['url_img']
+						del meta_data['url_img']
+					if 'url_iw' in meta_data:
+						meta_data['url_iw'+idx] = meta_data['url_iw']
+						del meta_data['url_iw']
+					if 'url_ih' in meta_data:
+						meta_data['url_ih'+idx] = meta_data['url_ih']
+						del meta_data['url_ih']
+					if 'url_hw_ratio' in meta_data:
+						meta_data['url_hw_ratio'+idx] = meta_data['url_hw_ratio']
+						del meta_data['url_hw_ratio']
+				######## set the relevant blob ########
+				blob_hash = "pgh:"+group_id+":"+blob_id
+				my_server.hmset(blob_hash,meta_data)
+				my_server.delete('pgd:'+group_id)
+				######### checking ratelimit ##########
+				tries = 'usl:'+own_id+":"+group_id
+				tries_used = my_server.incrby(tries,amount=1)#url submissions left
+				if tries_used == 1:
+					# it's the first try in some time
+					my_server.expire(tries,FOUR_MINS)
+				elif tries_used >= URL_POSTINGS_ALLOWED:
+					# if it' the 3rd url (or more) within 4 mins, rate limit the spamming user for 5 mins 
+					my_server.setex(rate_limit_key,'1',FIVE_MINS)
+
+
+
+
 ########################################## Personal Group Exit Settings ###########################################
 
 def exit_already_triggered(own_id, target_id, group_id, sus_time=False):
@@ -1275,6 +1355,7 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		mapping = {'lt_msg_tp':'unsuspend','lt_msg_wid':own_id,'lt_msg_t':unsuspend_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
 		'lt_img_id':''}
 		my_server.hmset(group_hash,mapping)
+		purge_exit_list(group_id, own_id)
 		return True
 	else:
 		return False
@@ -1607,54 +1688,58 @@ def personal_group_hard_deletion():
 	thirty_days_ago = time.time() - PERSONAL_GROUP_HARD_DELETION_CUTOFF
 	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', thirty_days_ago)
-	pgp_keys = []
-	for group_id in group_ids:
-		pgp_keys.append("pgp:"+group_id)
-	user_id_pairs = my_server.mget(*pgp_keys)
-	count, groups_and_participants = 0, []
-	for group_id in group_ids:
-		try:
-			participants = user_ids_pairs[count].split(":")
-			groups_and_participants.append((group_id,participants[0],participants[1]))
-		except (AttributeError, IndexError):
-			pass
-		count += 1
-	for group_id in group_ids:
-		permanently_delete_entire_personal_group(group_id, my_server=my_server)
-	pipeline1 = my_server.pipeline()
-	pipeline1.zrem("personal_group_attendance",*group_ids)
-	pipeline1.zrem("exited_personal_groups",*group_ids)
-	pipeline1.execute()
-	bulk_delete_pergrp_notif(groups_and_participants)
+	if group_ids:
+		pgp_keys = []
+		for group_id in group_ids:
+			pgp_keys.append("pgp:"+group_id)
+		user_id_pairs = my_server.mget(*pgp_keys)
+		count, groups_and_participants = 0, []
+		for group_id in group_ids:
+			try:
+				participants = user_ids_pairs[count].split(":")
+				groups_and_participants.append((group_id,participants[0],participants[1]))
+			except (AttributeError, IndexError):
+				pass
+			count += 1
+		for group_id in group_ids:
+			permanently_delete_entire_personal_group(group_id, my_server=my_server)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zrem("personal_group_attendance",*group_ids)
+		pipeline1.zrem("exited_personal_groups",*group_ids)
+		pipeline1.execute()
+		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_idle')
+		bulk_delete_pergrp_notif(groups_and_participants)
 
 #call daily
 def exited_personal_group_hard_deletion(group_ids=None):
 	"""
 	Permanently deleting all data of groups that have been exited
 	"""
-	pgp_keys = []
-	for group_id in group_ids:
-		pgp_keys.append("pgp:"+group_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	user_id_pairs = my_server.mget(*pgp_keys)
-	count, groups_and_participants = 0, []
-	for group_id in group_ids:
-		try:
-			participants = user_id_pairs[count].split(":")
-			groups_and_participants.append((group_id,participants[0],participants[1]))
-		except (AttributeError, IndexError):
-			pass
-		count += 1
 	if not group_ids:
 		seven_days_ago = time.time() - EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF
 		group_ids = my_server.zrangebyscore("exited_personal_groups",'-inf', seven_days_ago)
-	for group_id in group_ids:
-		permanently_delete_entire_personal_group(group_id, my_server=my_server)
-	pipeline1 = my_server.pipeline()
-	pipeline1.zrem("exited_personal_groups",*group_ids)
-	pipeline1.zrem("personal_group_attendance",*group_ids)
-	pipeline1.execute()
-	bulk_delete_pergrp_notif(groups_and_participants)
+	if group_ids:
+		pgp_keys = []
+		for group_id in group_ids:
+			pgp_keys.append("pgp:"+group_id)
+		user_id_pairs = my_server.mget(*pgp_keys)
+		count, groups_and_participants = 0, []
+		for group_id in group_ids:
+			try:
+				participants = user_id_pairs[count].split(":")
+				groups_and_participants.append((group_id,participants[0],participants[1]))
+			except (AttributeError, IndexError):
+				pass
+			count += 1
+		for group_id in group_ids:
+			permanently_delete_entire_personal_group(group_id, my_server=my_server)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zrem("exited_personal_groups",*group_ids)
+		pipeline1.zrem("personal_group_attendance",*group_ids)
+		pipeline1.execute()
+		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_exit')
+		bulk_delete_pergrp_notif(groups_and_participants)
 
 ########################################### Personal Group Anonymization ###########################################
 

@@ -13,20 +13,18 @@ class PersonalGroupPostForm(forms.Form):
 	Handles personal group chat input
 	"""
 	image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
-		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
+		'invalid_image': 'Ye foto kharab hai. Koi aur chunein','required':'Foto lagana zaruri hai'})
 	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
-		'autofocus': 'autofocus'}))
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupPostForm, self).__init__(*args,**kwargs)
-		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
-		self.fields['image'].widget.attrs['accept'] = 'image/*'
-		self.fields['image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-
+		self.fields['image'].widget.attrs['class'] = 'cam_img'
 
 	def clean(self):
 		data = self.cleaned_data
@@ -54,7 +52,8 @@ class PersonalGroupSMSForm(forms.Form):
 	Handles personal group sms text
 	"""
 	sms = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
-		'maxlength':PERSONAL_GROUP_MAX_SMS_SIZE}),error_messages={'invalid':"SMS sahi se likhein",'required':"SMS ko khali nahi chore sakte"})
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PERSONAL_GROUP_MAX_SMS_SIZE}),\
+	error_messages={'invalid':"SMS sahi se likhein",'required':"SMS ko khali nahi chore sakte"})
 
 
 	def __init__(self,*args,**kwargs):
@@ -83,18 +82,19 @@ class PersonalGroupReplyPostForm(forms.Form):
 	"""
 	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
-	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus'}))
+	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autocorrect':'off',\
+		'autocapitalize':'off','spellcheck':'false','placeholder':'Reply likhein...'}))
 	
 
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupReplyPostForm, self).__init__(*args,**kwargs)
-		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:60px;box-sizing: border-box;border-radius:8px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
-		self.fields['rep_image'].widget.attrs['accept'] = 'image/*'
+		# self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-
+		# self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
 
 	def clean(self):
 		data = self.cleaned_data

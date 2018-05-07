@@ -5,27 +5,7 @@
     <!-- has to be the first tag in head -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <!-- ****** faviconit.com favicons ****** -->
-    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
-    <link rel="icon" sizes="16x16 32x32 64x64" href="{{ STATIC_URL }}img/favicon.ico">
-    <link rel="icon" type="image/png" sizes="196x196" href="{{ STATIC_URL }}img/favicon-192.png">
-    <link rel="icon" type="image/png" sizes="160x160" href="{{ STATIC_URL }}img/favicon-160.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="{{ STATIC_URL }}img/favicon-96.png">
-    <link rel="icon" type="image/png" sizes="64x64" href="{{ STATIC_URL }}img/favicon-64.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ STATIC_URL }}img/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ STATIC_URL }}img/favicon-16.png">
-    <link rel="apple-touch-icon" sizes="57x57" href="{{ STATIC_URL }}img/favicon-57.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}img/favicon-114.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}img/favicon-72.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="{{ STATIC_URL }}img/favicon-144.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="{{ STATIC_URL }}img/favicon-60.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="{{ STATIC_URL }}img/favicon-120.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="{{ STATIC_URL }}img/favicon-76.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ STATIC_URL }}img/favicon-152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_URL }}img/favicon-180.png">
-    <meta name="msapplication-TileColor" content="#FFFFFF">
-    <meta name="msapplication-TileImage" content="{{ STATIC_URL }}img/favicon-144.png">
-    <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
+    {% include "favicons.html" %}
         
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
@@ -99,6 +79,14 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
+
+<script type="text/javascript">
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
+  });
+}
+</script>
 
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>

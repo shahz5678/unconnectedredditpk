@@ -36,7 +36,7 @@ function personal_group_preloader(action) {
       var caption = document.createElement('div');
       caption.id = "preloader_message";
       caption.className = "cap sp cs cgy mbl";//
-      caption.innerHTML = '- resizing foto -';
+      caption.insertAdjacentText('afterbegin','- resizing foto -');
       document.body.appendChild(overlay);
       document.body.appendChild(parent);
       parent.insertAdjacentElement('afterbegin',loader);
@@ -87,7 +87,8 @@ function show_image_name(e) {
 	
   document.getElementById('main_cam').style.display = 'none';
   var filename = document.getElementById('filename');
-  filename.innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
+  // filename.innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
+  filename.insertAdjacentText('afterbegin',e.target.value.replace(/^.*[\\\/]/, '').slice(0,20));
 	filename.style.display = 'block';
 
   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
@@ -186,11 +187,11 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
     form_data.append("sk",document.getElementById('pub_img_sk').value);
   } else if (type === 'pg_reply') {
     // uploading from private chat (direct response)
-    form_data.append("tt", document.getElementById('rep_tt').value);
-    form_data.append("bid", document.getElementById('rep_bid').value);
-    form_data.append("idx", document.getElementById('rep_idx').value);
-    form_data.append("tid",document.getElementById('rep_tid').value);
-    form_data.append("sk",document.getElementById('rep_sk').value);
+    form_data.append("tt",rep_tt);
+    form_data.append("bid",rep_bid);
+    form_data.append("idx",rep_idx);
+    form_data.append("tid",rep_tid);
+    form_data.append("sk",rep_sk);
   } else {
     // uploading from public group
     form_data.append("gp",document.getElementById('pub_grp_subform').value);
@@ -204,7 +205,6 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
   xhr.timeout = 45000; // time in milliseconds, i.e. 45 seconds
   xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
   xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
   xhr.onload = function () {
     if (this.status == 200) {
       var resp = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
@@ -375,19 +375,20 @@ function get_cookie(name) {
   if (parts.length >= 2) return parts.pop().split(";").shift();
 }
 
+
 function throw_err(file_target,type,which_section) {
 	if (which_section == 'pub_grp_img') {
-    if (type == 'size') {target_elem = document.getElementById("pub_grp_img_size_err");} else {target_elem = document.getElementById("pub_grp_img_mime_err");}
+    if (type == 'size') {var target_elem = document.getElementById("pub_grp_img_size_err");} else {var target_elem = document.getElementById("pub_grp_img_mime_err");}
     pub_grp_form.insertAdjacentElement('afterbegin',target_elem);
   } else if (which_section == 'public_img') {
-    if (type == 'size') {target_elem = document.getElementById("pub_img_size_err");} else {target_elem = document.getElementById("pub_img_mime_err");}
+    if (type == 'size') {var target_elem = document.getElementById("pub_img_size_err");} else {var target_elem = document.getElementById("pub_img_mime_err");}
     public_photo_form.insertAdjacentElement('afterbegin',target_elem);
   } else if (which_section == 'pg_reply') {
-    if (type == 'size') {target_elem = document.getElementById("pg_rep_size_err");} else {target_elem = document.getElementById("pg_rep_mime_err");}
+    if (type == 'size') {var target_elem = document.getElementById("pg_rep_size_err");} else {var target_elem = document.getElementById("pg_rep_mime_err");}
     form_template.insertAdjacentElement('afterbegin',target_elem);
   } else {
-    top_elem = document.getElementById("personal_group_top");
-  	if (type == 'size') {target_elem = document.getElementById("pg_size_err");} else {target_elem = document.getElementById("pg_mime_err");}
+    var top_elem = document.getElementById("personal_group_top");
+  	if (type == 'size') {var target_elem = document.getElementById("pg_size_err");} else {var target_elem = document.getElementById("pg_mime_err");}
   	if (top_elem) {
       top_elem.innerHTML = '';
     	top_elem.insertAdjacentElement('afterbegin',target_elem);
@@ -470,147 +471,131 @@ Blob = (function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Direct Response in Private Chat (JS functionality)
-var is_reply = false;
-var valid_rep_img = false;
-var form_template = document.querySelector('#form_template');//supported
-var rep_btns = document.querySelectorAll('button.rep');
-if (form_template) {form_template.onsubmit = personal_group_reply_submit;};
-var browse_rep_image_btn = document.getElementById('browse_rep_image_btn');//supported
+
+
+
+  // var form_template = document.querySelector('#form_template');//select form in personal_group.html
+var form_template = document.getElementById('form_template');
+if (form_template) {
+  // var rep_size = form_template.querySelector('#pg_rep_size_err');
+  var rep_size = form_template.firstElementChild.nextElementSibling; // 5 times faster than prev statement
+  // var rep_mime = form_template.querySelector('#pg_rep_mime_err');
+  var rep_mime = form_template.firstElementChild.nextElementSibling.nextElementSibling; // 3 times faster than prev statement
+  form_template.onsubmit = personal_group_reply_submit;
+};// call personal_group_reply_submit if form_template is submitted
+
+document.getElementById('rep_text_field').onfocus = remove_placeholder;
+
+var browse_rep_image_btn = document.getElementById('browse_rep_image_btn');//select direct reply's image upload button
 if (browse_rep_image_btn) {browse_rep_image_btn.onchange = show_rep_image_name;}
-// Array.from(rep_btns).forEach(btn => btn.onclick = toggle_rep);//supported
+
+
+var rep_btns = document.getElementsByClassName('rep');//selects all 'rep' buttons from personal_group_their_chat_buttons (much faster than querySelectorAll)
+// var rep_btns = document.querySelectorAll('button.rep');//selects all 'rep' buttons from personal_group_their_chat_buttons
 for (var i=0, len=rep_btns.length; i < len; i++) rep_btns[i].onclick = toggle_rep;
 
+
+var is_reply = false;
+var valid_rep_img = false;
+
+var rep_tt = null;
+var rep_bid = null;
+var rep_idx = null;
+var rep_tid = null;
+var rep_sk = null;
+
+
+function remove_placeholder(e) {
+  this.placeholder = '';
+}
 
 function show_rep_image_name(e) { 
   // if opera mini, do nothing
   if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.target.files) return;
-  document.getElementById("pg_rep_size_err").style.display = 'none';
-  document.getElementById("pg_rep_mime_err").style.display = 'none';
+  var filename = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
 
-  document.getElementById('rep_cam').style.display = 'none';
   var rep_filename = document.getElementById('rep_filename');
-  rep_filename.innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,15);
-  rep_filename.style.display = 'block';
+  var camera_icon = document.getElementById('rep_cam');
+  var ok_btn = document.getElementById('rep_subform');
 
-  // document.getElementById('rep_filename').innerHTML = e.target.value.replace(/^.*[\\\/]/, '').slice(0,15);
+  ok_btn.disabled = true;
   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
     if (window.FileReader && window.Blob){
-      is_reply = true;
-      validate_img_file(e);
+      // is_reply = true;
+      // validate_img_file(e);
+      var file = e.target.files[0];
+      var reader = new FileReader();//supported
+      reader.onload = function(e){
+          var header = "";
+          var arr = new Uint8Array(e.target.result);//supported
+          for(var i = 0; i < arr.length; i++) {
+             header += arr[i].toString(16);
+          }
+          switch (header) {
+            case "89504e47":
+              valid_rep_img='png';
+              rep_size.style.display = 'none';
+              rep_mime.style.display = 'none';
+              ok_btn.disabled = false;
+              break;
+            case "47494638":
+              valid_rep_img = 'gif';
+              rep_size.style.display = 'none';
+              rep_mime.style.display = 'none';
+              ok_btn.disabled = false;
+              break;
+            case "ffd8ffe0":
+            case "ffd8ffe1":
+            case "ffd8ffe2":
+            case "ffd8ffe3":
+            case "ffd8ffe8":
+            case "ffd8ffdb":
+              valid_rep_img = 'jpeg';
+              rep_size.style.display = 'none';
+              rep_mime.style.display = 'none';
+              ok_btn.disabled = false;
+              break;
+            default:
+              valid_rep_img = null;
+              rep_size.style.display = 'none';
+              rep_mime.style.display = 'block';
+              break;
+          }
+          rep_filename.innerHTML = filename;
+          camera_icon.style.display = 'none';
+          rep_filename.style.display = 'flex';
+        };//validate_file;
+      reader.readAsArrayBuffer(file.slice(0,4));// instead of slice(0,25)
     }
   } else {
     valid_rep_img = null;
-    throw_err(e.target,'size','pg_reply');
+    rep_mime.style.display = 'none';
+    rep_size.style.display = 'block';
   }
-}
-
-
-// function create_input(name, payload) {
-//   // populating input fields with correct values
-//   var input = document.createElement('input');//supported
-//   input.setAttribute('type','hidden');//supported
-//   input.setAttribute('id',name);//supported
-//   input.setAttribute('name',name);  //supported
-//   input.setAttribute('value',payload);  //supported
-//   return(input);
-// }
-
-// function rem_input_fields() {
-//   // remove unneeded input fields
-//     child1 = document.getElementById('tt');
-//     child2 = document.getElementById('bid');
-//     child3 = document.getElementById('idx');
-//     if (child1 != null) { form_template.removeChild(child1); }//supported
-//     if (child2 != null) { form_template.removeChild(child2); }//supported
-//     if (child3 != null) { form_template.removeChild(child3); }//supported
-// }
-
-// function append_input_fields(payload) {
-
-//   // getting value from "reply" button
-//     payload = payload.split(':');
-//     var tt = payload[4];
-//     var bid = payload[0];
-//     var idx = payload[2];
-  
-//     // assigning populated input fields to form_template 
-//     form_template.appendChild(create_input('tt', tt));//supported
-//     form_template.appendChild(create_input('bid', bid));//supported
-//     form_template.appendChild(create_input('idx', idx));//supported
-
-// }
-
-function populate_input_fields(tt, bid, idx) {
-  
-    var field1 = document.getElementById('rep_tt');
-    field1.value = tt;
-    var e1 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field1.dispatchEvent(e1);
-
-    var field2 = document.getElementById('rep_bid');
-    field2.value = bid;
-     var e2 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field2.dispatchEvent(e2);
-
-    var field3 = document.getElementById('rep_idx');
-    field3.value = idx;
-     var e3 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field3.dispatchEvent(e3);
 
 }
 
-function empty_input_fields() {
-
-    var field1 = document.getElementById('rep_tt');
-    field1.value='';
-    var event1 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field1.dispatchEvent(event1);
-
-    var field2 = document.getElementById('rep_bid');
-    field2.value='';
-    var event2 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field2.dispatchEvent(event2);
-
-    var field3 = document.getElementById('rep_idx');
-    field3.value='';
-    var event3 = new UIEvent('change', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-    field3.dispatchEvent(event3);
-
-}
-
-
+ 
 function personal_group_reply_submit(e) {
-  if (detect_android_ver() < 4.1) return;
+  if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || detect_android_ver() < 4.1) return;
   // This can preventDefault only if image is attached, otherwise do nothing
   if (valid_rep_img) {
     e.preventDefault();
+
+    var image_file = browse_rep_image_btn.files[0];//document.getElementById('browse_rep_image_btn').files[0];
+    var rep_text = document.getElementById('rep_text_field').value;
+    var target_action = form_template.action;
+    
+    rep_tt = document.getElementById('rep_tt').value;
+    rep_bid = document.getElementById('rep_bid').value;
+    rep_idx = document.getElementById('rep_idx').value;
+    rep_tid = document.getElementById('rep_tid').value;
+    rep_sk = document.getElementById('rep_sk').value;      
+    
     personal_group_preloader('create');
+
     // prep_image does some asynchronous things, so utilize callback by passing process_ajax() as an argument
-    prep_image(browse_rep_image_btn.files[0],rep_text_field.value, browse_rep_image_btn.files[0].name, e.target.action, 'pg_reply','rep_image', 'rep_reply', '/private_chat/',null ,process_ajax);
+    prep_image(image_file,rep_text, image_file.name, target_action, 'pg_reply','rep_image', 'rep_reply', '/private_chat/',null ,process_ajax);
   } else {
     if (valid_rep_img == null) {
       e.preventDefault();
@@ -621,37 +606,48 @@ function personal_group_reply_submit(e) {
   }
 }
 
+// var milliseconds1 = Date.now();
+//       for (var i=0,len=50000;i<len;i++){
+//       }
+//       var milliseconds2 = Date.now();
+//       console.log('time-diff of method2:');
+//       console.log(milliseconds2-milliseconds1);
+
+
+// turns "direct reply" on and off in JS supported devices
 function toggle_rep(e) {
   // error-handling cases
   if (!form_template || Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || detect_android_ver() < 4.1) return;
+  
   // prevent form submission
   e.preventDefault();
-  // var payload = e.target.parentNode.querySelector('#payload').value;
-  var payload = this.parentNode.querySelector('#payload').value.split(':');
+  
+  var parent = this.form;
+
+  var payload = parent.firstElementChild.nextElementSibling.value.split(':');
   var tt = payload[4];
   var bid = payload[0];
   var idx = payload[2];
+
   // first check if reply form was already added under reply button
-  var to_remove = this.parentNode.nextElementSibling;//supported
-  // var to_remove = e.target.parentNode.nextElementSibling;//supported
+  var to_remove = parent.nextElementSibling;//supported
 
   if (to_remove == null) {
+
+      // remove unneeded input fields
+      empty_input_fields();
+
+
+      // moving ghost form into position
+      parent.insertAdjacentElement('afterend', form_template);
+
+      // creating and appending desired input fields in form_template
+      populate_input_fields(tt, bid, idx);
 
       // make the form visible
       form_template.style.display = 'inline';
 
-      // remove unneeded input fields
-      // rem_input_fields();
-      empty_input_fields();
-
-      // moving ghost form into position
-      e.target.parentNode.insertAdjacentElement('afterend', form_template);//supported
-
-      // creating and appending desired input fields in form_template
-      populate_input_fields(tt, bid, idx);
-      // append_input_fields(payload);//supported
-
-  }
+  } else {
 
    if (to_remove != null && to_remove.id == 'form_template') {
 
@@ -660,45 +656,183 @@ function toggle_rep(e) {
         form_template.style.display = 'none';
         
         // remove unneeded input fields
-        // rem_input_fields();
         empty_input_fields();
       }
       else {
-        form_template.style.display = 'inline';
 
         // remove unneeded input fields
-        // rem_input_fields();
         empty_input_fields();
 
         // moving ghost form into position
-        e.target.parentNode.insertAdjacentElement('afterend', form_template);
-
+        parent.insertAdjacentElement('afterend', form_template);
+        
         // creating and appending desired input fields in form_template
         populate_input_fields(tt, bid, idx);
-        // append_input_fields(payload);
+
+        // make the form visible
+        form_template.style.display = 'inline';
       }
 
       
 
   } else {
 
-      // make the form visible
-      form_template.style.display = 'inline';
-
       // remove unneeded input fields
-      // rem_input_fields();
       empty_input_fields();
 
       // moving ghost form into position
-      e.target.parentNode.insertAdjacentElement('afterend', form_template);
+      parent.insertAdjacentElement('afterend', form_template);
 
       // creating and appending desired input fields in form_template
       populate_input_fields(tt, bid, idx);
-      // append_input_fields(payload);
+
+      // make the form visible
+      form_template.style.display = 'inline';
 
   }
 
+  }
 };
+
+
+// inserting relevant values in input fields of form_template (event dispatcher is commented)
+function populate_input_fields(tt, bid, idx) {
+  
+    var field1 = document.getElementById('rep_tt');
+    field1.value = tt;
+    // var e1 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field1.dispatchEvent(e1);
+
+    var field2 = document.getElementById('rep_bid');
+    field2.value = bid;
+    //  var e2 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field2.dispatchEvent(e2);
+
+    var field3 = document.getElementById('rep_idx');
+    field3.value = idx;
+    //  var e3 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field3.dispatchEvent(e3);
+
+}
+
+
+
+// empties relevant fields of universal form #form_template (event dispatcher is commented)
+function empty_input_fields() {
+
+    var field1 = document.getElementById('rep_tt');
+    field1.value='';
+    // var event1 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field1.dispatchEvent(event1);
+
+    var field2 = document.getElementById('rep_bid');
+    field2.value='';
+    // var event2 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field2.dispatchEvent(event2);
+
+    var field3 = document.getElementById('rep_idx');
+    field3.value='';
+    // var event3 = new UIEvent('change', {
+    //     'view': window,
+    //     'bubbles': true,
+    //     'cancelable': true
+    // });
+    // field3.dispatchEvent(event3);
+
+}
+
+
+// function show_rep_image_name(e) { 
+//   // if opera mini, do nothing
+//   if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.target.files) return;
+
+//   var filename = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
+//   var target_form = e.target.form;
+//   var rep_filename = target_form.querySelector('#rep_filename');
+//   var camera_icon =  target_form.querySelector('#rep_cam');
+//   var ok_btn = target_form.querySelector('#rep_ok_btn');
+//   var modal_top = target_form.querySelector('#modal_top');
+//   ok_btn.disabled = true;
+//   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
+//     if (window.FileReader && window.Blob){
+//       // is_reply = true;
+//       // validate_img_file(e);
+//       var file = e.target.files[0];
+//       var reader = new FileReader();//supported
+//       reader.onload = function(e){
+//           var header = "";
+//           var arr = new Uint8Array(e.target.result);//supported
+//           for(var i = 0; i < arr.length; i++) {
+//              header += arr[i].toString(16);
+//           }
+//           switch (header) {
+//             case "89504e47":
+//               valid_rep_img='png';
+//               modal_top.className = "sp cs mbs cgy";//
+//               modal_top.innerHTML = 'Jawab:';
+//               ok_btn.onclick = personal_group_reply_submit;
+//               ok_btn.disabled = false;
+//               break;
+//             case "47494638":
+//               valid_rep_img = 'gif';
+//               modal_top.className = "sp cs mbs cgy";//
+//               modal_top.innerHTML = 'Jawab:';
+//               ok_btn.onclick = personal_group_reply_submit;
+//               ok_btn.disabled = false;
+//               break;
+//             case "ffd8ffe0":
+//             case "ffd8ffe1":
+//             case "ffd8ffe2":
+//             case "ffd8ffe3":
+//             case "ffd8ffe8":
+//             case "ffd8ffdb":
+//               valid_rep_img = 'jpeg';
+//               modal_top.className = "sp cs mbs cgy";//
+//               modal_top.innerHTML = 'Jawab:';
+//               ok_btn.onclick = personal_group_reply_submit;
+//               ok_btn.disabled = false;
+//               break;
+//             default:
+//               valid_rep_img = null;
+//               modal_top.className = "cr lsp";//
+//               modal_top.innerHTML = 'Ye foto kharab hai, koi aur chunein';
+//               break;
+//           }
+//           rep_filename.innerHTML = filename;
+//           camera_icon.style.display = 'none';
+//           rep_filename.style.display = 'flex';
+//         };//validate_file;
+//       reader.readAsArrayBuffer(file.slice(0,4));// instead of slice(0,25)
+//     }
+//   } else {
+//     valid_rep_img = null;
+//     modal_top.className = "cr lsp";//
+//     modal_top.innerHTML = 'Ye foto buhut barri hai, choti foto chunein';
+//   }
+
+// }
+
+
 /////////////////////////////////////////////////////////
 // Uploading Public Photos (JS functionality)
 var is_pub_img = false;

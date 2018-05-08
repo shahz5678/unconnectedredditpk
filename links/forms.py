@@ -430,8 +430,8 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 class CommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;','class': 'cxl','autofocus': 'autofocus',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
 	sk = forms.CharField(required=False)
 
 	class Meta:

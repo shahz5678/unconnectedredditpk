@@ -748,22 +748,32 @@ class UnseenActivityForm(forms.Form):
 		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
 		self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
 		self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['public_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['public_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
 		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
 		self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['private_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['private_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
 		self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
 		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
+		self.fields['home_comment'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['home_comment'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
 		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
+		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['personal_group_reply'].widget.attrs['class'] = 'box-with-button-right'
 		self.fields['personal_group_reply'].widget.attrs['style'] = 'color:#306654;border: 1px solid #306654'
 		self.fields['personal_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['personal_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['personal_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 
 	def clean(self):

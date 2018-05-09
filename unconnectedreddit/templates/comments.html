@@ -122,7 +122,7 @@
     <button class="btn bco cm sp bm mts mbl mrl" type="submit" style="height:27px" id="id_submit">OK</button>
     </form>
 
-    <form action="{% url 'comment' photo.id origin %}" method="GET" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="btn bms bco mrs mll mbl" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></form>
+    <a href="{% url 'comment' photo.id origin %}"><button class="btn bms bco mrs mll mbl" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></a>
 
     {% endif %}
 {% if count > 0 %}

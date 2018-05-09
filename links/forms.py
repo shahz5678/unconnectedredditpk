@@ -177,7 +177,7 @@ class UserSettingsForm(forms.ModelForm):
 
 class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autocomplete': 'off'}))
+		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -226,7 +226,8 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}),error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),\
+	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -277,7 +278,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	gp = forms.IntegerField()
@@ -309,6 +310,8 @@ class PublicGroupReplyForm(forms.ModelForm):
 				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
 				if rate_limited > 0:
 					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('tip: yahan foto laganey ke liye apna mobile number verify karwain')
 				else:
 					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
 						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
@@ -355,8 +358,8 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	gp = forms.IntegerField()
@@ -489,7 +492,8 @@ class VideoCommentForm(forms.ModelForm):
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}), error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}), \
+	error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
 	class Meta:

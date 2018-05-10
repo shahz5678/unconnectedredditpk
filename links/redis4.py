@@ -1145,3 +1145,34 @@ def purge_exit_list(group_id, user_id):
 	Purge a value from 'exits' (called when a user rejoins a group after exiting it)
 	"""
 	redis.Redis(connection_pool=POOL).zrem("exits",group_id+":"+str(user_id))
+
+
+########################################### Reporting Metrics for Personal Groups ###########################################
+
+
+def avg_num_of_chats_per_type():
+	"""
+	What are avg number of chats produced per type of chat?
+	"""
+	my_server = redis.Redis(connection_pool=POOL)	
+	
+	pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
+	total_pms = len(pm_data)
+	median_pm_idx = int(total_pms/2)
+	median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+	pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
+	total_pgs = len(pg_data)
+	median_pg_idx = int(total_pgs/2)
+	median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+	# data is list of (group_id,chat_num) type tuples
+	aggregate_pm_chats, aggregate_pg_chats = 0, 0
+	for tup in pm_data:
+		aggregate_pm_chats += int(tup[1])
+	for tup in pg_data:
+		aggregate_pg_chats += int(tup[1])
+	avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
+	avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs)) 
+	return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+	aggregate_pg_chats, avg_chat_per_pg

@@ -10,7 +10,7 @@ from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from redis3 import tutorial_unseen, get_user_verified_number
 from redis2 import update_notification, skip_private_chat_notif
-from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls
+from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -2236,3 +2236,23 @@ def private_chat_help_ad(request):
 	"""
 	"""
 	return render(request,"personal_group/help/private_chat_help_ad.html",{})	
+
+
+#####################################################################################################################
+################################################### Metrics Page ####################################################
+#####################################################################################################################
+
+
+def personal_group_metrics(request):
+	"""
+	Displays metrics related to personal groups
+
+	1) How many personal groups are created each day, and how many are exited
+	2) What are avg number of chats produced per type of chat?
+	3) What are avg number of switchovers produced per type of chat?
+	"""
+	total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, aggregate_pg_chats, \
+	avg_chat_per_pg = avg_num_of_chats_per_type()
+	return render(request,"personal_group/metrics/personal_group_metrics.html",{'total_pms':total_pms,'agg_pm_chats':aggregate_pm_chats,\
+		'avg_pm_chats':avg_chat_per_pm,'total_pgs':total_pgs,'agg_pg_chats':aggregate_pg_chats,'avg_pg_chats':avg_chat_per_pg,\
+		'med_pm_idx':median_pm_idx,'med_pg_idx':median_pg_idx,'med_pm_tup':median_pm_tuple,'med_pg_tup':median_pg_tuple})

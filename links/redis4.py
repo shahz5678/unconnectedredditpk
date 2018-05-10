@@ -1149,30 +1149,95 @@ def purge_exit_list(group_id, user_id):
 
 ########################################### Reporting Metrics for Personal Groups ###########################################
 
+def avg_num_of_switchovers_per_type():
+	"""
+	What are avg number of chats produced per type of chat?
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	total_pms = my_server.get('total_pms_sw')
+	if total_pms:
+		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
+			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
+		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+	else:
+		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
+		total_pms = len(pm_data)
+		median_pm_idx = int(total_pms/2)
+		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
+		total_pgs = len(pg_data)
+		median_pg_idx = int(total_pgs/2)
+		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+		# data is list of (group_id,chat_num) type tuples
+		aggregate_pm_sws, aggregate_pg_sws = 0, 0
+		for tup in pm_data:
+			aggregate_pm_sws += int(tup[1])
+		for tup in pg_data:
+			aggregate_pg_sws += int(tup[1])
+		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
+		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
+		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
+		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
+		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
+		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
+		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
+		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
+		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
+		pipeline1.execute()
+		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+			aggregate_pg_sws, avg_sw_per_pg
+
 
 def avg_num_of_chats_per_type():
 	"""
 	What are avg number of chats produced per type of chat?
 	"""
-	my_server = redis.Redis(connection_pool=POOL)	
-	
-	pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
-	total_pms = len(pm_data)
-	median_pm_idx = int(total_pms/2)
-	median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+	my_server = redis.Redis(connection_pool=POOL)
+	total_pms = my_server.get('total_pms')
+	if total_pms:
+		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
+			'aggregate_pg_chats','avg_chat_per_pg'])
+		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+	else:
+		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
+		total_pms = len(pm_data)
+		median_pm_idx = int(total_pms/2)
+		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
 
-	pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
-	total_pgs = len(pg_data)
-	median_pg_idx = int(total_pgs/2)
-	median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
+		total_pgs = len(pg_data)
+		median_pg_idx = int(total_pgs/2)
+		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
 
-	# data is list of (group_id,chat_num) type tuples
-	aggregate_pm_chats, aggregate_pg_chats = 0, 0
-	for tup in pm_data:
-		aggregate_pm_chats += int(tup[1])
-	for tup in pg_data:
-		aggregate_pg_chats += int(tup[1])
-	avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
-	avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs)) 
-	return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-	aggregate_pg_chats, avg_chat_per_pg
+		# data is list of (group_id,chat_num) type tuples
+		aggregate_pm_chats, aggregate_pg_chats = 0, 0
+		for tup in pm_data:
+			aggregate_pm_chats += int(tup[1])
+		for tup in pg_data:
+			aggregate_pg_chats += int(tup[1])
+		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
+		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('total_pms',total_pms,TEN_MINS)
+		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
+		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
+		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
+		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
+		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
+		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
+		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
+		pipeline1.execute()
+		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+		aggregate_pg_chats, avg_chat_per_pg

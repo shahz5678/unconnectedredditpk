@@ -1,4 +1,4 @@
-{% extends "base_ecomm.html" %}
+{% extends "base_pg.html" %}
 {% load humanize %}
 {% block content %}
 
@@ -10,7 +10,7 @@
 	<h2 style="text-align:center">Raw chat metrics</h2>
 	<table>
 	<tr><td width="150"></td><td width="100"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
-	<tr><td width="150"><b>Sample size</b></td><td width="100">{{ total_pms }}</td><td>{{ total_pgs }}</td></tr>
+	<tr><td width="150"><b>Groups sampled</b></td><td width="100">{{ total_pms }}</td><td>{{ total_pgs }}</td></tr>
 	<tr><td width="150"><b>Total msgs</b></td><td width="100">{{ agg_pm_chats }}</td><td>{{ agg_pg_chats }}</td></tr>
 	<tr><td width="150"><b>Avg msgs/grp</b></td><td width="100">{{ avg_pm_chats }}</td><td>{{ avg_pg_chats }}</td></tr>
 	<tr><td width="150"><b>Med msgs/grp</b></td><td width="100">{{ med_pm_tup }}</td><td>{{ med_pg_tup }}</td></tr>
@@ -19,6 +19,13 @@
 
 <div class="bizcard" style="padding:3px 10px 10px 10px;background-color:snow">
 	<h2 style="text-align:center">Switchover metrics:</h2>
+	<table>
+	<tr><td width="150"></td><td width="100"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="150"><b>Groups sampled</b></td><td width="100">{{ total_pms_sw }}</td><td>{{ total_pgs_sw }}</td></tr>
+	<tr><td width="150"><b>Total sws</b></td><td width="100">{{ agg_pm_sws }}</td><td>{{ agg_pg_sws }}</td></tr>
+	<tr><td width="150"><b>Avg sws/grp</b></td><td width="100">{{ avg_pm_sws }}</td><td>{{ avg_pg_sws }}</td></tr>
+	<tr><td width="150"><b>Med sws/grp</b></td><td width="100">{{ med_pm_tup_sw }}</td><td>{{ med_pg_tup_sw }}</td></tr>
+	</table>
 </div>
 
 

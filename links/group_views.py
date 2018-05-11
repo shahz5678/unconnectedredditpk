@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from redis3 import tutorial_unseen, get_user_verified_number
 from redis2 import update_notification, skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
-avg_num_of_switchovers_per_type
+avg_num_of_switchovers_per_type, avg_sessions_per_type
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -2258,9 +2258,13 @@ def personal_group_metrics(request):
 	total_pms_sw, median_pm_sw_idx, median_pm_sw_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs_sw, median_pg_sw_idx, median_pg_sw_tuple, \
 	aggregate_pg_sws, avg_sw_per_pg = avg_num_of_switchovers_per_type()
 
+	total_pgs_sess, total_pms_sess, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm = avg_sessions_per_type()
+
 	return render(request,"personal_group/metrics/personal_group_metrics.html",{'total_pms':total_pms,'agg_pm_chats':aggregate_pm_chats,\
 		'avg_pm_chats':avg_chat_per_pm,'total_pgs':total_pgs,'agg_pg_chats':aggregate_pg_chats,'avg_pg_chats':avg_chat_per_pg,\
 		'med_pm_idx':median_pm_idx,'med_pg_idx':median_pg_idx,'med_pm_tup':median_pm_tuple,'med_pg_tup':median_pg_tuple,\
 		'total_pms_sw':total_pms_sw,'agg_pm_sws':aggregate_pm_sws,'avg_pm_sws':avg_sw_per_pm,'total_pgs_sw':total_pgs_sw,\
 		'agg_pg_sws':aggregate_pg_sws,'avg_pg_sws':avg_sw_per_pg,'med_pm_idx_sw':median_pm_sw_idx,'med_pg_idx_sw':median_pg_sw_idx,\
-		'med_pm_tup_sw':median_pm_sw_tuple,'med_pg_tup_sw':median_pg_sw_tuple})
+		'med_pm_tup_sw':median_pm_sw_tuple,'med_pg_tup_sw':median_pg_sw_tuple,'avg_sess_per_user_per_pg':avg_sess_per_user_per_pg,\
+		'avg_sess_per_user_per_pm':avg_sess_per_user_per_pm,'med_sess_per_user_per_pg':med_sess_per_user_per_pg,\
+		'med_sess_per_user_per_pm':med_sess_per_user_per_pm,'pgs_sampled_sess':total_pgs_sess,'pms_sampled_sess':total_pms_sess})

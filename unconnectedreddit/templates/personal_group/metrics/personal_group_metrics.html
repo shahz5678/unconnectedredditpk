@@ -4,30 +4,39 @@
 
 <head><title>Personal group metrics | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-<div class="margin clb" style="max-width:400px">
+<div class="margin clb" style="max-width:500px">
 
 <div class="bizcard mbl" style="padding:3px 10px 10px 10px;background-color:snow">
 	<h2 style="text-align:center">Raw chat metrics</h2>
 	<table>
-	<tr><td width="150"></td><td width="100"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
-	<tr><td width="150"><b>Groups sampled</b></td><td width="100">{{ total_pms }}</td><td>{{ total_pgs }}</td></tr>
-	<tr><td width="150"><b>Total msgs</b></td><td width="100">{{ agg_pm_chats }}</td><td>{{ agg_pg_chats }}</td></tr>
-	<tr><td width="150"><b>Avg msgs/grp</b></td><td width="100">{{ avg_pm_chats }}</td><td>{{ avg_pg_chats }}</td></tr>
-	<tr><td width="150"><b>Med msgs/grp</b></td><td width="100">{{ med_pm_tup }}</td><td>{{ med_pg_tup }}</td></tr>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ total_pms }}</td><td>{{ total_pgs }}</td></tr>
+	<tr><td width="200"><b>Total msgs</b></td><td width="150">{{ agg_pm_chats }}</td><td>{{ agg_pg_chats }}</td></tr>
+	<tr><td width="200"><b>Avg msgs/grp</b></td><td width="150">{{ avg_pm_chats }}</td><td>{{ avg_pg_chats }}</td></tr>
+	<tr><td width="200"><b>Med msgs/grp</b></td><td width="150">{{ med_pm_tup }}</td><td>{{ med_pg_tup }}</td></tr>
+	</table>
+</div>
+
+<div class="bizcard mbl" style="padding:3px 10px 10px 10px;background-color:snow">
+	<h2 style="text-align:center">Switchover metrics</h2>
+	<table>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ total_pms_sw }}</td><td>{{ total_pgs_sw }}</td></tr>
+	<tr><td width="200"><b>Total sws</b></td><td width="150">{{ agg_pm_sws }}</td><td>{{ agg_pg_sws }}</td></tr>
+	<tr><td width="200"><b>Avg sws/grp</b></td><td width="150">{{ avg_pm_sws }}</td><td>{{ avg_pg_sws }}</td></tr>
+	<tr><td width="200"><b>Med sws/grp</b></td><td width="150">{{ med_pm_tup_sw }}</td><td>{{ med_pg_tup_sw }}</td></tr>
 	</table>
 </div>
 
 <div class="bizcard" style="padding:3px 10px 10px 10px;background-color:snow">
-	<h2 style="text-align:center">Switchover metrics:</h2>
+	<h2 style="text-align:center">Sessions</h2>
 	<table>
-	<tr><td width="150"></td><td width="100"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
-	<tr><td width="150"><b>Groups sampled</b></td><td width="100">{{ total_pms_sw }}</td><td>{{ total_pgs_sw }}</td></tr>
-	<tr><td width="150"><b>Total sws</b></td><td width="100">{{ agg_pm_sws }}</td><td>{{ agg_pg_sws }}</td></tr>
-	<tr><td width="150"><b>Avg sws/grp</b></td><td width="100">{{ avg_pm_sws }}</td><td>{{ avg_pg_sws }}</td></tr>
-	<tr><td width="150"><b>Med sws/grp</b></td><td width="100">{{ med_pm_tup_sw }}</td><td>{{ med_pg_tup_sw }}</td></tr>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ pms_sampled_sess }}</td><td>{{ pgs_sampled_sess }}</td></tr>
+	<tr><td width="200"><b>Avg session/user/grp</b></td><td width="150">{{ avg_sess_per_user_per_pm }}</td><td>{{ avg_sess_per_user_per_pg }}</td></tr>
+	<tr><td width="200"><b>Med session/user/grp</b></td><td width="150">{{ med_sess_per_user_per_pm }}</td><td>{{ med_sess_per_user_per_pg }}</td></tr>
 	</table>
 </div>
-
 
 </div>
 <br><br>

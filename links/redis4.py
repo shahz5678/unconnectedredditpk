@@ -1149,6 +1149,86 @@ def purge_exit_list(group_id, user_id):
 
 ########################################### Reporting Metrics for Personal Groups ###########################################
 
+def avg_sessions_per_type():
+	"""
+	Retrieves session information for personal groups
+
+	1) What are avg number of sessions per type of chat
+	2) What are median number of sessions per type of chat
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pgs_sampled = my_server.get('pgs_sampled_for_sess')
+	if pgs_sampled:
+		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
+			'avg_sess_per_user_per_pm'])
+		return pgs_sampled, results[0], results[1], results[2], results[3], results[4]
+	else:
+		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
+		pg_sample_size = len(pg_data)
+		pg_med_idx = int(pg_sample_size/2)
+
+		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
+		pm_sample_size = len(pm_data)
+		pm_med_idx = int(pm_sample_size/2)
+
+		# data contains <group_id>:<user_id> tuples
+		pg_sessions, pm_sessions, all_pgs, all_pms = 0, 0, set(), set()
+		for tup in pg_data:
+			pg_sessions += int(tup[1])
+			all_pgs.add(tup[0].split(":")[0])
+		pgs_sampled = len(all_pgs)
+		for tup in pm_data:
+			pm_sessions += int(tup[1])
+			all_pms.add(tup[0].split(":")[0])
+		pms_sampled = len(all_pms)
+		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
+		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
+		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
+		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
+		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.execute()
+		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm
+	"""
+	Get avg sessions per user per group
+	Get med sessions per user per group
+
+	These tell us how good is a group setting in increasing each users' sessions.
+	Method for average:
+	1) For each group, calculate total sessions and total users. 
+	2) Calculate sessions/user for each group using (1)
+	3) Then add all averages, divide by number of groups. We get avg sessions per user per group
+	Method for median:
+	1) (1) and (2) as before.
+	2) Insert result into a sorted set
+	3) Find the median. We get med sessions per user per group
+ 	Method for avg num of users per group type:
+ 	1) This is '2' for pg
+ 	2) For pm, find total users for each group
+ 	3) Add these together, and divide by total groups to get Avg num of users per group
+ 	Method for med num of users per group type:
+ 	1) This is '2' for pg
+ 	2) For pm, find total users for each group
+ 	3) Insert total user result into a sorted set and find the median
+
+	What if we calculate?
+	Get avg sessions per group
+	Get med sessions per group
+	Result: These tell us how good groups are in increasing all participants' sessions collectively. This is slightly weaker than the previous number(s)
+
+	"""
+
+
+	# my_server.zincrby(group_type+"_sess",group_id+":"+user_id,amount=1)
+
+
 def avg_num_of_switchovers_per_type():
 	"""
 	What are avg number of chats produced per type of chat?

@@ -2253,7 +2253,7 @@ def personal_group_metrics(request):
 	3) What are avg number of switchovers produced per type of chat?
 	"""
 	total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, aggregate_pg_chats, \
-	avg_chat_per_pg = avg_num_of_chats_per_type()
+	avg_chat_per_pg, pms_with_sws, pgs_with_sws = avg_num_of_chats_per_type()
 	
 	total_pms_sw, median_pm_sw_idx, median_pm_sw_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs_sw, median_pg_sw_idx, median_pg_sw_tuple, \
 	aggregate_pg_sws, avg_sw_per_pg = avg_num_of_switchovers_per_type()
@@ -2270,4 +2270,4 @@ def personal_group_metrics(request):
 		'avg_sess_per_user_per_pm':avg_sess_per_user_per_pm,'med_sess_per_user_per_pg':med_sess_per_user_per_pg,\
 		'med_sess_per_user_per_pm':med_sess_per_user_per_pm,'pgs_sampled_sess':total_pgs_sess,'pms_sampled_sess':total_pms_sess,\
 		'avg_users_per_pm':avg_users_per_pm, 'med_users_per_pm':med_users_per_pm,'avg_users_per_pg':avg_users_per_pg,\
-		'med_users_per_pg':med_users_per_pg})
+		'med_users_per_pg':med_users_per_pg,'pms_with_sws':pms_with_sws,'pgs_with_sws':pgs_with_sws})

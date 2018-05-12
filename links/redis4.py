@@ -1323,7 +1323,8 @@ def avg_num_of_switchovers_per_type():
 			aggregate_pg_sws, avg_sw_per_pg
 
 	"""
-	SWITCHOVERS should be normalized according to number of participants in a group type
+	Add pecent of groups where AT LEAST 1 switchover happened (i.e. all participants became aware of each other and responded)
+	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
 	"""
 
 
@@ -1335,8 +1336,8 @@ def avg_num_of_chats_per_type():
 	total_pms = my_server.get('total_pms')
 	if total_pms:
 		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
-			'aggregate_pg_chats','avg_chat_per_pg'])
-		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
+		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
 	else:
 		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
 		total_pms = len(pm_data)
@@ -1357,6 +1358,9 @@ def avg_num_of_chats_per_type():
 		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
 		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
 
+		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
+		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
+
 		# caching the results
 		pipeline1 = my_server.pipeline()
 		pipeline1.setex('total_pms',total_pms,TEN_MINS)
@@ -1369,6 +1373,8 @@ def avg_num_of_chats_per_type():
 		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
 		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
 		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
+		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
+		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
 		pipeline1.execute()
 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-		aggregate_pg_chats, avg_chat_per_pg
+		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws

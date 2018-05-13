@@ -160,7 +160,7 @@ body{background: #E9EBEE}
 			</a></span>
 
 			{% if is_mob %}
-			<a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-action="share/whatsapp/share">
+			<a rel="nofollow" class="wa-sharing" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-pid="{{ photo.i }}" data-sid="{{ user.id }}" data-oid="{{ photo.oi }}" data-st="wa" data-org="2" data-action="share/whatsapp/share">
 			<button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align:middle;display:inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
 			</a>
 			{% endif %}
@@ -194,4 +194,5 @@ body{background: #E9EBEE}
 	</div>
 </div>
 <br><br>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/logging_funcs.v1.1.js"></script>
 {% endblock %}

@@ -101,3 +101,7 @@ MERCH = {
 '14': {'price':'11300','discounted_price':'11300', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Huawei Ascend G700'}, \
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#PHONE MODELS
+###############################################################################################################
+SHARE_ORIGIN = {'2':'fresh_photos','3':'user_albums'}
+SHARED_PHOTOS_CEILING = 120
+PHOTO_DELETION_BUFFER = 15

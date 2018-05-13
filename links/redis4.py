@@ -4,7 +4,8 @@ import redis, time, random
 from datetime import datetime
 from django.contrib.auth.models import User
 from location import REDLOC4
-from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
+from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
+SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER
 from models import UserProfile
 
 '''
@@ -65,6 +66,11 @@ sms_eft tracks sms effectiveness. It contains <user_id>:<time_passed_since_sms> 
 exits contains <group_id>:<exit_by_id> pairs alongwith times of exiting a private chat. Useful for charting average life of a private chat.
 del_after_exit contains groups and exit times for groups that were deleted due to exiting
 del_after_idle contains groups and exit times for groups that were deleted due to idleness
+
+------------ Social Sharing ------------
+
+as:<photp_id>:<sharer_id> key to check whether a photo was already shared by a certain user (in whatsapp)
+
 ###########
 '''
 
@@ -1036,6 +1042,51 @@ def many_short_messages(user_id,section,obj_id):
 	else:
 		return False
 
+################################################# Logging Sharing in Photos #################################################
+
+
+def log_share(photo_id, photo_owner_id, sharer_id, share_type='undefined', origin=None):
+	"""
+	Logs image sharing attempts
+	
+	1) If origin is 'user_albums', user is originating from user profiles
+	1) If origin is 'fresh_photos', user is originating from fresh photos
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if origin == 'user_albums':
+		# log shared profiles
+		if not my_server.get('as:'+photo_id+":"+str(sharer_id)):
+			# this sharer hasn't shared this photo in the last 20 mins
+			added = my_server.sadd('shared_user_albums_set',photo_id)
+			if added == 1:
+				my_server.lpush('shared_user_albums_list',photo_id)
+				if my_server.llen('shared_user_albums_list') > SHARED_PHOTOS_CEILING:
+					expiring_photo_ids = my_server.lrange('shared_user_albums_list', (SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER), -1)
+					pipeline1 = my_server.pipeline()
+					pipeline1.ltrim('shared_user_albums_list',0,(SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER-1))	
+					pipeline1.zrem('sorted_user_albums_photos',*expiring_photo_ids)
+					pipeline1.srem('shared_user_albums_set',*expiring_photo_ids)
+					pipeline1.execute()
+			my_server.zincrby('sorted_user_albums_photos',photo_id,amount=1)
+			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
+	elif origin == 'fresh_photos':
+		# log shared photos
+		if not my_server.get('as:'+photo_id+":"+str(sharer_id)):
+			# this sharer hasn't shared this photo in the last 20 mins
+			added = my_server.sadd('shared_public_photos_set',photo_id)
+			if added == 1:
+				my_server.lpush('shared_public_photos_list',photo_id)
+				if my_server.llen('shared_public_photos_list') > SHARED_PHOTOS_CEILING:
+					expiring_photo_ids = my_server.lrange('shared_public_photos_list', (SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER), -1)
+					pipeline1 = my_server.pipeline()
+					pipeline1.ltrim('shared_public_photos_list',0,(SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER-1))
+					pipeline1.zrem('sorted_shared_public_photos',*expiring_photo_ids)
+					pipeline1.srem('shared_public_photos_set',*expiring_photo_ids)
+					pipeline1.execute()
+			my_server.zincrby('sorted_shared_public_photos',photo_id,amount=1)
+			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
+	else:
+		pass
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 
@@ -1323,7 +1374,6 @@ def avg_num_of_switchovers_per_type():
 			aggregate_pg_sws, avg_sw_per_pg
 
 	"""
-	Add pecent of groups where AT LEAST 1 switchover happened (i.e. all participants became aware of each other and responded)
 	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
 	"""
 

@@ -1211,8 +1211,10 @@ def avg_sessions_per_type():
 	pgs_sampled = my_server.get('pgs_sampled_for_sess')
 	if pgs_sampled:
 		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
-			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg'])
-		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
+			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
+		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
+		results[10],results[11], results[12], results[13]
 	else:
 		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
 		pg_sample_size = len(pg_data)
@@ -1247,6 +1249,7 @@ def avg_sessions_per_type():
 			med_users_per_pg = array_pg[half]
 		else:
 			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
+
 		# calculating pm data
 		pm_sessions, all_pms, all_pm_users = 0, set(), {}
 		for tup in pm_data:
@@ -1260,12 +1263,56 @@ def avg_sessions_per_type():
 			payload = tup[0].split(":")
 			group_id, user_id = payload[0], payload[1]
 			all_pm_users[group_id].update({user_id:'user_id'})
-		total_pm_users, pm_users_set = 0, []
+		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
 		for key, value in all_pm_users.iteritems():
 			num_users_in_group = len(value)
 			pm_users_set.append(num_users_in_group)
+			if num_users_in_group < 3:
+				# retriving 2 user pms
+				two_user_pms[key] = num_users_in_group
 			total_pm_users += num_users_in_group
-		# finding median
+		
+		# retrieving sessions for 2 user pms in {gid:num_sess} form
+		two_user_pm_sess = {}
+		for tup in pm_data:
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			if group_id in two_user_pms:
+				# it's a two person pm
+				if group_id in two_user_pm_sess:
+					# already entered data for 1 user
+					num_sess = two_user_sess[group_id]
+					two_user_sess[group_id] = num_sess + int(tup[1])
+				else:
+					two_user_pm_sess[group_id] = int(tup[1])
+
+		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
+		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
+		for key,value in two_user_pm_sess.iteritems():
+			total_two_user_pm_sess += int(value)
+			all_two_user_pm_sess.append(value)
+		total_two_user_pm_users, all_two_user_pm_users = 0, []
+		for key,value in two_user_pms.iteritems():
+			total_two_user_pm_users += int(value)
+			all_two_user_pm_users.append(value)
+		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
+		sorted_sess = sorted(all_two_user_pm_sess)
+		halved, is_odd = divmod(len(sorted_sess), 2)
+		if is_odd:
+			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
+		else:
+			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
+		total_two_user_pms = len(two_user_pms)
+		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
+		sorted_users = sorted(all_two_user_pm_users)
+		bisect, isodd = divmod(len(sorted_users), 2)
+		if isodd:
+			med_users_per_two_user_pm = sorted_users[bisect]
+		else:
+			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
+		# we now have avg and median sessions per user per two user pm
+
+		# finding overall median
 		array_pm = sorted(pm_users_set)
 		half, odd = divmod(len(array_pm), 2)
 		if odd:
@@ -1287,13 +1334,20 @@ def avg_sessions_per_type():
 		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
 		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
 		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
+		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
 		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
 		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
 		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
 		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
 		pipeline1.execute()
 		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
-		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg
+		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
+		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
 	"""
 	Get avg sessions per user per group
 	Get med sessions per user per group

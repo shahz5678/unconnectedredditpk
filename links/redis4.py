@@ -1281,8 +1281,8 @@ def avg_sessions_per_type():
 				# it's a two person pm
 				if group_id in two_user_pm_sess:
 					# already entered data for 1 user
-					num_sess = two_user_sess[group_id]
-					two_user_sess[group_id] = num_sess + int(tup[1])
+					num_sess = two_user_pm_sess[group_id]
+					two_user_pm_sess[group_id] = num_sess + int(tup[1])
 				else:
 					two_user_pm_sess[group_id] = int(tup[1])
 

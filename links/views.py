@@ -6677,67 +6677,67 @@ class LinkCreateView(CreateView):
 		self.request.session.modified = True
 		user = self.request.user
 		user_id = user.id
-		if not self.request.mobile_verified:
+		mobile_verified = self.request.mobile_verified
+		if not mobile_verified:
 			CSRF = csrf.get_token(self.request)
 			temporarily_save_user_csrf(str(user_id), CSRF)
 			return render(self.request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF})
-		if valid_uuid(str(token)):
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
-			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-			if user.userprofile.score < -25:
-				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-					user.userprofile.score = random.randint(10,71)
-					f.submitter = user
-				else:
-					f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-			else:
-				f.submitter = user
-				f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-			# category = '1'#self.request.POST.get("btn")
-			# f.cagtegory = category
-			if self.request.is_feature_phone:
-				f.device = '1'
-			elif self.request.is_phone:
-				f.device = '2'
-			elif self.request.is_tablet:
-				f.device = '4'
-			elif self.request.is_mobile:
-				f.device = '5'
-			else:
-				f.device = '3'
-			try:
-				av_url = user.userprofile.avatar.url
-			except ValueError:
-				av_url = None
-			if is_urdu(text=f.description):
-				category = '17'
-			else:
-				category = '1'
-			f.cagtegory = category
-			f.save()
-			add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
-				scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
-				by_pinkstar = (True if user.username in FEMALES else False))
-			if self.request.user_banned:
-				extras = add_unfiltered_post(f.id)
-				if extras:
-					queue_for_deletion.delay(extras)
-			else:
-				add_filtered_post(f.id, is_ur=True if category == '17' else False)
-				extras = add_unfiltered_post(f.id)
-				if extras:
-					queue_for_deletion.delay(extras)
-			f.submitter.userprofile.save()
-			##############################################################################################
-			##############################################################################################
-			# config_manager.get_obj().track('wrote_onhome', user_id)
-			##############################################################################################
-			##############################################################################################
-			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:
-			return redirect("score_help")
+			if valid_uuid(str(token)) and mobile_verified:
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
+				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+				if user.userprofile.score < -25:
+					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+						user.userprofile.score = random.randint(10,71)
+						f.submitter = user
+					else:
+						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
+				else:
+					f.submitter = user
+					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+				if self.request.is_feature_phone:
+					f.device = '1'
+				elif self.request.is_phone:
+					f.device = '2'
+				elif self.request.is_tablet:
+					f.device = '4'
+				elif self.request.is_mobile:
+					f.device = '5'
+				else:
+					f.device = '3'
+				try:
+					av_url = user.userprofile.avatar.url
+				except ValueError:
+					av_url = None
+				if is_urdu(text=f.description):
+					category = '17'
+				else:
+					category = '1'
+				f.cagtegory = category
+				f.save()
+				add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
+					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
+					by_pinkstar = (True if user.username in FEMALES else False))
+				if self.request.user_banned:
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				else:
+					add_filtered_post(f.id, is_ur=True if category == '17' else False)
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				f.submitter.userprofile.save()
+				##############################################################################################
+				##############################################################################################
+				# config_manager.get_obj().track('wrote_onhome', user_id)
+				##############################################################################################
+				##############################################################################################
+				return super(CreateView, self).form_valid(form) #saves the link automatically
+			else:
+				return redirect("home")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")

@@ -1361,7 +1361,7 @@ def all_best_urdu_posts():
 
 def all_best_posts():
 	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("bestposts", 0, -1)
+	return my_server.lrange("bestposts_2", 0, -1)
 
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################

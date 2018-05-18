@@ -61,7 +61,7 @@ from brake.decorators import ratelimit
 from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session, calc_photo_quality_benchmark
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -2916,7 +2916,6 @@ class TopPhotoView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(TopPhotoView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			calc_photo_quality_benchmark()
 			context["verified"] = FEMALES
 		return context
 
@@ -7414,7 +7413,12 @@ def cast_photo_vote(request,*args,**kwargs):
 		if request.user_banned:
 			return redirect("missing_page")
 		own_id = request.user.id
-		if request.mobile_verified:
+		mob_verified = request.mobile_verified
+		if not mob_verified:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(own_id), CSRF)
+			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
+		elif mob_verified:
 			photo_id = request.POST.get("pid","")
 			photo_owner_id = get_photo_owner(photo_id)
 			if not photo_owner_id:

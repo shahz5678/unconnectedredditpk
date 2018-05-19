@@ -394,7 +394,7 @@ def enter_personal_group(request):
 			own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
 			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, \
 				their_avurl)
-			cache_personal_group.delay(json.dumps(content_list_of_dictionaries),group_id)
+			cache_personal_group.delay(json.dumps(content_list_of_dictionaries, ensure_ascii=False),group_id)#ensure_ascii used to get rid of error 'Unpaired high surrogate when decoding 'string'
 			t_nick = their_uname
 		t_nick = t_nick[:1].upper() if their_anon_status == '1' else t_nick
 		their_nick = False if their_anon_status == '1' else True

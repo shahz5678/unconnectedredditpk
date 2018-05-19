@@ -1875,9 +1875,10 @@ def personal_group_invite_status(own_id, own_username, target_id, target_usernam
 	elif expiry_time[1]:
 		return '1', expiry_time[1] - TWO_DAYS, False
 	else:
+		# they already invited me:
 		pipeline2 = my_server.pipeline()
 		key_name1 = "pgii:"+own_id+":"+target_id
-		key_name2 = "pgiia:"+own_id+":"+target_id
+		key_name2 = "pgiia:"+own_id+":"+target_id#'personal_group_ignore_invite' means they invited me 'anonymously', and I declined it
 		pipeline2.zscore(sorted_set,they_invited_me)
 		pipeline2.zscore(sorted_set,they_invited_me_anonymously)
 		pipeline2.get(key_name1)
@@ -1888,9 +1889,15 @@ def personal_group_invite_status(own_id, own_username, target_id, target_usernam
 		elif expiry_time[1]:
 			return '3', expiry_time[1] - TWO_DAYS, False
 		elif expiry_time[2]:
-			return '2', float(expiry_time[2]) - TWO_DAYS, True # 'recently_declined' is set to True
+			try:
+				return '2', float(expiry_time[2]) - TWO_DAYS, True # 'recently_declined' is set to True
+			except TypeError:
+				return '2', None, True
 		elif expiry_time[3]:
-			return '3', float(expiry_time[2]) - TWO_DAYS, True # 'recently_declined' is set to True
+			try:
+				return '3', float(expiry_time[2]) - TWO_DAYS, True # 'recently_declined' is set to True
+			except TypeError:
+				return '3', None, True # 'recently_declined' is set to True
 		else:
 			return 'nothing', None, False
 
@@ -1966,6 +1973,7 @@ def ignore_invite(own_id, own_username, their_id, their_username):
 		pipeline2.set(key_name2,expiry_time[1])
 		pipeline2.expireat(key_name2,int(expiry_time[1]))
 	else:
+		# can this happen?
 		pass
 	pipeline2.execute()
 	# removing invites

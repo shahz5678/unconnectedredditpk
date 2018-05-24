@@ -9,7 +9,7 @@ set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo
 personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,personal_group_help,\
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
-post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif#, deletion_test
+post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif, personal_group_metrics#, deletion_test
 from links.number_verification import verify_personal_group_user
 
 admin.autodiscover()
@@ -62,4 +62,6 @@ urlpatterns = patterns('',
 	############################## Personal Group Notifications ###############################
 	url(r'^private_chat_help/$', auth(personal_group_help), name='personal_group_help'),
 	url(r'^private_chat_ad/$', auth(private_chat_help_ad), name='private_chat_help_ad'),
+	############################ Personal Group Metrics Reporting #############################
+	url(r'^personal_group_metrics/$', auth(personal_group_metrics), name='personal_group_metrics'),
 )

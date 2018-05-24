@@ -122,7 +122,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 		self.user = kwargs.pop('user', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
-		self.fields['avatar'].widget.attrs['accept'] = 'image/*'
+		# self.fields['avatar'].widget.attrs['accept'] = 'image/*'
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -177,7 +177,7 @@ class UserSettingsForm(forms.ModelForm):
 
 class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autocomplete': 'off'}))
+		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -226,7 +226,8 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}),error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),\
+	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -277,7 +278,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	gp = forms.IntegerField()
@@ -291,7 +292,7 @@ class PublicGroupReplyForm(forms.ModelForm):
 		self.user_id = kwargs.pop('user_id',None)
 		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
 		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
-		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
 		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
 		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
@@ -309,6 +310,8 @@ class PublicGroupReplyForm(forms.ModelForm):
 				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
 				if rate_limited > 0:
 					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('tip: yahan foto laganey ke liye apna mobile number verify karwain')
 				else:
 					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
 						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
@@ -355,8 +358,8 @@ class OutsiderGroupForm(forms.ModelForm):
 		fields = ("image", "text")
 
 class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off'}),error_messages={'required': 'tip: likhna zaruri hai'})
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	gp = forms.IntegerField()
@@ -430,8 +433,8 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 class CommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;','class': 'cxl','autofocus': 'autofocus',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -489,7 +492,8 @@ class VideoCommentForm(forms.ModelForm):
 
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off'}), error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}), \
+	error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
 	class Meta:
@@ -748,22 +752,32 @@ class UnseenActivityForm(forms.Form):
 		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
 		self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
 		self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['public_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['public_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
 		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
 		self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['private_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['private_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
 		self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
 		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
+		self.fields['home_comment'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['home_comment'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
 		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
+		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
 
 		self.fields['personal_group_reply'].widget.attrs['class'] = 'box-with-button-right'
 		self.fields['personal_group_reply'].widget.attrs['style'] = 'color:#306654;border: 1px solid #306654'
 		self.fields['personal_group_reply'].widget.attrs['autocomplete'] = 'off'
+		self.fields['personal_group_reply'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['personal_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 
 	def clean(self):
@@ -979,7 +993,7 @@ class UploadPhotoForm(forms.ModelForm):
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		# self.fields["image_file"].widget.attrs['class'] = 'p'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
-		self.fields['image_file'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image_file'].widget.attrs['accept'] = 'image/*'
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
@@ -999,7 +1013,7 @@ class PicsChatUploadForm(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
-		self.fields['image'].widget.attrs['accept'] = 'image/*'
+		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 
 class ChangeGroupRulesForm(forms.ModelForm):
 	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))

@@ -1,26 +1,25 @@
 <form action="{% url 'personal_group_their_chat_buttons' %}" method="POST" style="display:inline">
-   {% csrf_token %}
-   <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
-   <input type="hidden" name="pl_ct" value="{{ ct }}">
-   <input type="hidden" name="cp" value="{{ img_caption }}">
-   <input type="hidden" name="scp" value="{{ img_s_caption }}">
-   <input type="hidden" name="hval" value="{{ hval }}">
-   <input type="hidden" name="iid" value="{{ img_id }}">
+ {% csrf_token %}
+ <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
+ <input type="hidden" name="pl_ct" value="{{ ct }}">
+ <input type="hidden" name="cp" value="{{ img_caption }}">
+ <input type="hidden" name="scp" value="{{ img_s_caption }}">
+ <input type="hidden" name="hval" value="{{ hval }}">
+ <input type="hidden" name="iid" value="{{ img_id }}">
 
-   {% if incl_tgt %}
-   <input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}">
-   <input type="hidden" name="t_pl_ct" value="{{ t_ct }}">
-   <input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
-   {% endif %}
+ {% if incl_tgt %}
+ <input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}">
+ <input type="hidden" name="t_pl_ct" value="{{ t_ct }}">
+ <input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
+ {% endif %}
 
-   <button type="submit" class="rep re re-bg mrl" name="dec" value="1" style="height:19px;width:22px;vertical-align:middle;padding:3px 5px;{{ incl_dresp }}">
-    <div id="line-gr"></div>
-    <div id="line-gr"></div>
-    <div id="line-gr" style="width: 8px;"></div>
-   </button>
-   
-  <button type="submit" class="re re-bg mrl" style="width:22px;height:19px;vertical-align:middle;{{ incl_save }}" name="dec" value="2"><div id="t-arr-gr"></div><div id="b-arr-gr"></div></button>
+ <button type="submit" class="rep re re-bg mrl" name="dec" value="1" style="height:19px;width:22px;vertical-align:middle;padding:3px 5px;{{ incl_dresp }}">
+  <div id="line-gr"></div>
+  <div id="line-gr"></div>
+  <div id="line-gr" style="width: 8px;"></div>
+ </button>
+ 
+<button type="submit" class="re re-bg mrl" style="width:22px;height:19px;vertical-align:middle;{{ incl_save }}" name="dec" value="2"><div id="t-arr-gr"></div><div id="b-arr-gr"></div></button>
 
-   <button type="submit" class="re re-bg mrl" style="padding:0;width:22px;height:19px;vertical-align: middle;{{ incl_hide }}" name="dec" value="3"><div id="{{ hide_id }}"></div></button>
-   
+ <button type="submit" class="re re-bg mrl" style="padding:0;width:22px;height:19px;vertical-align: middle;{{ incl_hide }}" name="dec" value="3"><div id="{{ hide_id }}"></div></button> 
 </form>

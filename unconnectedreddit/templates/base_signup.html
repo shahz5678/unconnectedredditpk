@@ -6,27 +6,7 @@
     <!-- has to be the first tag in head -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <!-- ****** faviconit.com favicons ****** -->
-    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
-    <link rel="icon" sizes="16x16 32x32 64x64" href="{{ STATIC_URL }}img/favicon.ico">
-    <link rel="icon" type="image/png" sizes="196x196" href="{{ STATIC_URL }}img/favicon-192.png">
-    <link rel="icon" type="image/png" sizes="160x160" href="{{ STATIC_URL }}img/favicon-160.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="{{ STATIC_URL }}img/favicon-96.png">
-    <link rel="icon" type="image/png" sizes="64x64" href="{{ STATIC_URL }}img/favicon-64.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ STATIC_URL }}img/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ STATIC_URL }}img/favicon-16.png">
-    <link rel="apple-touch-icon" sizes="57x57" href="{{ STATIC_URL }}img/favicon-57.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}img/favicon-114.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}img/favicon-72.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="{{ STATIC_URL }}img/favicon-144.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="{{ STATIC_URL }}img/favicon-60.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="{{ STATIC_URL }}img/favicon-120.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="{{ STATIC_URL }}img/favicon-76.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ STATIC_URL }}img/favicon-152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_URL }}img/favicon-180.png">
-    <meta name="msapplication-TileColor" content="#FFFFFF">
-    <meta name="msapplication-TileImage" content="{{ STATIC_URL }}img/favicon-144.png">
-    <meta name="msapplication-config" content="{{ STATIC_URL }}img/browserconfig.xml">
+   {% include "favicons.html" %}
 
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
@@ -38,8 +18,8 @@
         <meta property="og:type" content="website">
         <meta property="og:url" content="https://damadam.pk/signup/">
         <meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
-        <meta property="og:image" content="https://s3.eu-central-1.amazonaws.com/damadam/photos/18e1bc11-a32b-44af-9ebb-ede48e68b079.jpg">
-        <meta property="og:image:width" content="234">
+        <meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
+        <meta property="og:image:width" content="300">
         <meta property="og:image:height" content="300">
         <meta property="fb:app_id" content="1758220174446684" />
         <meta name="google-site-verification" content="zS-_T9VgNM06nRZnT3XawfMeE2OI7oZHpqx0oU8h32E" />
@@ -57,10 +37,18 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
         
 </head>
 <body>
-
+{% include "fb_analytics.html" %}
 <a name="section0"></a>
 {% block content %}
 {% endblock %}
+
+<script type="text/javascript">
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
+  });
+}
+</script>
 
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>

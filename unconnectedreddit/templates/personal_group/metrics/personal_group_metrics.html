@@ -1,0 +1,52 @@
+{% extends "base_pg.html" %}
+{% load humanize %}
+{% block content %}
+
+<head><title>Personal group metrics | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="margin clb" style="max-width:500px">
+
+<div class="bizcard mbl" style="padding:3px 10px 10px 10px;background-color:snow">
+	<h2 style="text-align:center">Raw chat metrics</h2>
+	<table>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ total_pms }}</td><td>{{ total_pgs }}</td></tr>
+	<tr><td width="200"><b>Total msgs</b></td><td width="150">{{ agg_pm_chats }}</td><td>{{ agg_pg_chats }}</td></tr>
+	<tr><td width="200"><b>Avg msgs/grp</b></td><td width="150">{{ avg_pm_chats }}</td><td>{{ avg_pg_chats }}</td></tr>
+	<tr><td width="200"><b>Med msgs/grp</b></td><td width="150">{{ med_pm_tup }}</td><td>{{ med_pg_tup }}</td></tr>
+	<tr><td width="200"><b>% w/ at least 1 sw</b></td><td width="150">{{ pms_with_sws }}%</td><td>{{ pgs_with_sws }}%</td></tr>
+	</table>
+</div>
+
+<div class="bizcard mbl" style="padding:3px 10px 10px 10px;background-color:snow">
+	<h2 style="text-align:center">Switchover metrics</h2>
+	<table>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ total_pms_sw }}</td><td>{{ total_pgs_sw }}</td></tr>
+	<tr><td width="200"><b>Total sws</b></td><td width="150">{{ agg_pm_sws }}</td><td>{{ agg_pg_sws }}</td></tr>
+	<tr><td width="200"><b>Avg sws/grp</b></td><td width="150">{{ avg_pm_sws }}</td><td>{{ avg_pg_sws }}</td></tr>
+	<tr><td width="200"><b>Med sws/grp</b></td><td width="150">{{ med_pm_tup_sw }}</td><td>{{ med_pg_tup_sw }}</td></tr>
+	</table>
+</div>
+
+<div class="bizcard" style="padding:3px 10px 10px 10px;background-color:snow">
+	<h2 style="text-align:center">Daily sessions</h2>
+	<table>
+	<tr><td width="200"></td><td width="150"><b>Mehfil</b></td><td><b>Priv Chat</b></td></tr>
+	<tr><td width="200"><b>Groups sampled</b></td><td width="150">{{ pms_sampled_sess }}</td><td>{{ pgs_sampled_sess }}</td></tr>
+	<tr><td width="200"><b>Avg users/grp</b></td><td width="150">{{ avg_users_per_pm }}</td><td>{{ avg_users_per_pg }}</td></tr>
+	<tr><td width="200"><b>Med users/grp</b></td><td width="150">{{ med_users_per_pm }}</td><td>{{ med_users_per_pg }}</td></tr>
+	<tr><td width="200"><b>Avg days/user/grp</b></td><td width="150">{{ avg_sess_per_user_per_pm }}</td><td>{{ avg_sess_per_user_per_pg }}</td></tr>
+	<tr><td width="200"><b>Med days/user/grp</b></td><td width="150">{{ med_sess_per_user_per_pm }}</td><td>{{ med_sess_per_user_per_pg }}</td></tr>
+	<tr><td width="200"><b>2-grps sampled</b></td><td width="150">{{ total_two_user_pms }}</td><td>{{ pgs_sampled_sess }}</td></tr>
+	<tr><td width="200"><b>Avg users/2-grp</b></td><td width="150">{{ avg_users_per_two_user_pm }}</td><td>{{ avg_users_per_pg }}</td></tr>
+	<tr><td width="200"><b>Med users/2-grp</b></td><td width="150">{{ med_users_per_two_user_pm }}</td><td>{{ med_users_per_pg }}</td></tr>
+	<tr><td width="200"><b>Avg days/user/2-grp</b></td><td width="150">{{ avg_sess_per_user_per_two_user_pm }}</td><td>{{ avg_sess_per_user_per_pg }}</td></tr>
+	<tr><td width="200"><b>Med days/user/2-grp</b></td><td width="150">{{ med_sess_per_user_per_two_user_pm }}</td><td>{{ med_sess_per_user_per_pg }}</td></tr>
+	</table>
+</div>
+
+</div>
+<br><br>
+
+{% endblock %}

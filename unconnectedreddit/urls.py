@@ -14,6 +14,7 @@ from urls_ads import urlpatterns as urlpatterns_ads
 from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from urls_groups import urlpatterns as urlpatterns_groups
+from urls_sharing import urlpatterns as urlpatterns_sharing
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
@@ -336,3 +337,4 @@ urlpatterns += urlpatterns_ret
 urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
+urlpatterns += urlpatterns_sharing

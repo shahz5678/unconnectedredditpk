@@ -10,7 +10,8 @@ from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from redis3 import tutorial_unseen, get_user_verified_number
 from redis2 import update_notification, skip_private_chat_notif
-from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls
+from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
+avg_num_of_switchovers_per_type, avg_sessions_per_type
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -58,6 +59,22 @@ def get_uname_and_avurl(target_id, their_anon_status):
 	else:
 		return get_single_user_credentials(target_id,as_list=False)
 		# return retrieve_credentials(target_id, decode_uname=True)
+
+def retrieve_user_env(user_agent, fbs):
+	"""
+	Checks whether environment can support JS
+
+	Opera mini (extreme mode) and free basics do not support JS
+	"""
+	if fbs:
+		return False#, True
+	elif user_agent:
+		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
+			return False#, False
+		else:
+			return True#, False
+	else:
+		return True#, False
 
 
 def sms_lock_time_remaining(time_of_lock):
@@ -167,15 +184,166 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 				dictionary["t_username"] = own_uname
 				dictionary["t_av_url"] = own_avurl
 		else:
+			"""
+			Degree of completeness (of retrieved metadata):
+
+			'0': no metadata retrieved
+			'1': just image retrieved
+			'2': just title retrieved
+			'3': just desc retrieved
+			'4': just img and img_dim retrieved
+			'5': just desc and img retrieved
+			'6': just title and img retrieved
+			'7': just desc and title retrieved
+			'8': just title, img and img_dim retrieved
+			'9': just desc, img and img_dim retrieved
+			'10': just desc, title and img retrieved
+			'11': desc, title, img and img_dim retrieved
+			"""
 			normal_chat = []
 			for i in range(1,int(dictionary["idx"])+1):
 				idx = str(i)
-				if dictionary['type'+idx] == 'text':
+				doc = 'doc'+idx
+				has_url_meta = doc in dictionary
+				if has_url_meta and dictionary['type'+idx] == 'text':
+					meta_complete = dictionary[doc]
+					# add meta_complete in every 5th index (i.e. tup.5)
+					# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
+					if meta_complete == '1':
+						# just image retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'1',\
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '2':
+						# just title retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'2',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+					elif meta_complete == '3':
+						# just desc retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'3',\
+							dictionary['url'+idx], dictionary['url_desc'+idx],'','','',dictionary['yt'+idx]))
+					elif meta_complete == '4':
+						# img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'4',\
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					elif meta_complete == '5':
+						# desc and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'5',\
+							dictionary['url'+idx], dictionary['url_desc'+idx],'',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '6':
+						# title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'6',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '7':
+						# desc and title
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'7',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+					elif meta_complete == '8':
+						# title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'8',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
+							dictionary['yt'+idx]))
+					elif meta_complete == '9':
+						# desc, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'9',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],'',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
+							dictionary['yt'+idx]))
+					elif meta_complete == '10':
+						# desc, title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'10',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],'',\
+							dictionary['yt'+idx]))
+					elif meta_complete == '11':
+						# desc, title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'11',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],\
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					else:
+						# no meaningful metadata
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
+				elif has_url_meta and dictionary['type'+idx] == 'img':
+					meta_complete = dictionary[doc]
+					# add meta_complete in each 11th index (i.e. tup.11)
+					# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
+					if meta_complete == '1':
+						# just image retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'1',dictionary['url'+idx],'','',dictionary['url_img'+idx],'',\
+							dictionary['yt'+idx]))
+					elif meta_complete == '2':
+						# just title retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'2',dictionary['url'+idx],'',dictionary['url_title'+idx],'','',\
+							dictionary['yt'+idx]))
+					elif meta_complete == '3':
+						# just desc retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'3',dictionary['url'+idx],dictionary['url_desc'+idx],'','','',\
+							dictionary['yt'+idx]))
+					elif meta_complete == '4':
+						# img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'4',dictionary['url'+idx],'','',dictionary['url_img'+idx],\
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					elif meta_complete == '5':
+						# desc and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'5',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
+							dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '6':
+						# title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'6',dictionary['url'+idx],'',dictionary['url_title'+idx],\
+							dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '7':
+						# desc and title
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'7',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+					elif meta_complete == '8':
+						# title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'8',dictionary['url'+idx],'',dictionary['url_title'+idx],\
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					elif meta_complete == '9':
+						# desc, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'9',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					elif meta_complete == '10':
+						# desc, title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'10',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+					elif meta_complete == '11':
+						# desc, title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'11',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+					else:
+						# no meaningful metadata
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
+				elif dictionary['type'+idx] == 'text':
 					normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
 				elif dictionary['type'+idx] == 'img':
 					normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
+				else:
+					# append nothing - this case shouldn't arise
+					pass
 			dictionary["iterator"] = normal_chat
 	return content_list_of_dictionaries
 
@@ -226,7 +394,7 @@ def enter_personal_group(request):
 			own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
 			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, \
 				their_avurl)
-			cache_personal_group.delay(json.dumps(content_list_of_dictionaries),group_id)
+			cache_personal_group.delay(json.dumps(content_list_of_dictionaries, ensure_ascii=False),group_id)#ensure_ascii used to get rid of error 'Unpaired high surrogate when decoding 'string'
 			t_nick = their_uname
 		t_nick = t_nick[:1].upper() if their_anon_status == '1' else t_nick
 		their_nick = False if their_anon_status == '1' else True
@@ -243,11 +411,12 @@ def enter_personal_group(request):
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_sms = request.session.pop("personal_group_sms_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
-			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm()})
+			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
 	else:
 		return redirect("missing_page")
 
@@ -1917,15 +2086,21 @@ def post_js_reply_to_personal_group(request):
 	This function is only invoked in JS-enabled devices
 	"""
 	if request.method == "POST":
-		target_content_type, target_blob_id, target_index = request.POST.get('tt',None), request.POST.get('bid',None), request.POST.get('idx',None)
+		target_content_type, target_blob_id, target_index, target_id, sk_form = request.POST.get('tt',None), request.POST.get('bid',None),\
+		request.POST.get('idx',None), request.POST.get('tid',None), request.POST.get('sk',None)
+		# try:
+		# 	payload = payload.split(":")
+		# 	target_content_type, target_blob_id, target_index, target_id, sk_form = payload[2], payload[4], payload[3], payload[1], payload[0]
+		# except (IndexError,TypeError):
+		# 	return redirect("enter_personal_group")
 		if target_index and target_blob_id and target_content_type:
-			own_id, target_id = request.user.id, request.POST.get('tid',None)
+			own_id = request.user.id
 			request.session["personal_group_tid_key"] = target_id
 			group_id, exists = personal_group_already_exists(own_id, target_id)
 			if exists:
 				request.session["personal_group_gid_key:"+target_id] = group_id
 				is_ajax = request.is_ajax()
-				sk_form, sk_redis = str(request.POST.get('sk','0')), get_and_delete_photo_upload_key(user_id=own_id, group_id=group_id)
+				sk_redis = get_and_delete_photo_upload_key(user_id=own_id, group_id=group_id)
 				if sk_form != sk_redis:
 					request.session["personal_group_form_error"] = PERSONAL_GROUP_ERR['mismatch']
 					request.session.modified = True
@@ -2002,7 +2177,7 @@ def post_js_reply_to_personal_group(request):
 			else:
 				return redirect("personal_group_user_listing")
 		else:
-			return redirect("missing_page")
+			return redirect("enter_personal_group")
 	else:
 		return redirect("enter_personal_group")
 
@@ -2062,3 +2237,40 @@ def private_chat_help_ad(request):
 	"""
 	"""
 	return render(request,"personal_group/help/private_chat_help_ad.html",{})	
+
+
+#####################################################################################################################
+################################################### Metrics Page ####################################################
+#####################################################################################################################
+
+
+def personal_group_metrics(request):
+	"""
+	Displays metrics related to personal groups
+
+	1) How many personal groups are created each day, and how many are exited
+	2) What are avg number of chats produced per type of chat?
+	3) What are avg number of switchovers produced per type of chat?
+	"""
+	total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, aggregate_pg_chats, \
+	avg_chat_per_pg, pms_with_sws, pgs_with_sws = avg_num_of_chats_per_type()
+	
+	total_pms_sw, median_pm_sw_idx, median_pm_sw_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs_sw, median_pg_sw_idx, median_pg_sw_tuple, \
+	aggregate_pg_sws, avg_sw_per_pg = avg_num_of_switchovers_per_type()
+
+	total_pgs_sess, total_pms_sess, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm, \
+	avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
+	total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm = avg_sessions_per_type()
+
+	return render(request,"personal_group/metrics/personal_group_metrics.html",{'total_pms':total_pms,'agg_pm_chats':aggregate_pm_chats,\
+		'avg_pm_chats':avg_chat_per_pm,'total_pgs':total_pgs,'agg_pg_chats':aggregate_pg_chats,'avg_pg_chats':avg_chat_per_pg,\
+		'med_pm_idx':median_pm_idx,'med_pg_idx':median_pg_idx,'med_pm_tup':median_pm_tuple,'med_pg_tup':median_pg_tuple,\
+		'total_pms_sw':total_pms_sw,'agg_pm_sws':aggregate_pm_sws,'avg_pm_sws':avg_sw_per_pm,'total_pgs_sw':total_pgs_sw,\
+		'agg_pg_sws':aggregate_pg_sws,'avg_pg_sws':avg_sw_per_pg,'med_pm_idx_sw':median_pm_sw_idx,'med_pg_idx_sw':median_pg_sw_idx,\
+		'med_pm_tup_sw':median_pm_sw_tuple,'med_pg_tup_sw':median_pg_sw_tuple,'avg_sess_per_user_per_pg':avg_sess_per_user_per_pg,\
+		'avg_sess_per_user_per_pm':avg_sess_per_user_per_pm,'med_sess_per_user_per_pg':med_sess_per_user_per_pg,\
+		'med_sess_per_user_per_pm':med_sess_per_user_per_pm,'pgs_sampled_sess':total_pgs_sess,'pms_sampled_sess':total_pms_sess,\
+		'avg_users_per_pm':avg_users_per_pm, 'med_users_per_pm':med_users_per_pm,'avg_users_per_pg':avg_users_per_pg,\
+		'med_users_per_pg':med_users_per_pg,'pms_with_sws':pms_with_sws,'pgs_with_sws':pgs_with_sws,'total_two_user_pms':total_two_user_pms,\
+		'avg_sess_per_user_per_two_user_pm':avg_sess_per_user_per_two_user_pm,'med_sess_per_user_per_two_user_pm':med_sess_per_user_per_two_user_pm,\
+		'avg_users_per_two_user_pm':avg_users_per_two_user_pm, 'med_users_per_two_user_pm':med_users_per_two_user_pm})

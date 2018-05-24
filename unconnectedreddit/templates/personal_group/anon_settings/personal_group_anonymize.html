@@ -10,7 +10,7 @@
 	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
 		<span class="cxl">Ab apka nickname <b>{{ own_name|truncatechars:15 }}</b> ke bajai <b>{{ own_name|truncap }}</b> nazar aye ga</span>
 		<hr size=1 COLOR="#E6E6E6">
-		<div class="mt cl cgy">
+		<div class="mt cl cgy lsp">
 			Chat mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
@@ -23,9 +23,9 @@
 {% elif new_anon_value == '0' %}
 
 	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-		<span class="cxl">Ab apki profile foto aur poora nickname nazar aye gi</span>
+		<span class="cxl">Ab apki profile foto aur poora nickname nazar aien ge</span>
 		<hr size=1 COLOR="#E6E6E6">
-		<div class="mt cl cgy">
+		<div class="mt cl cgy lsp">
 			Chat mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
@@ -48,9 +48,9 @@
 
 	<div class="mbs mtl">
 	{% if own_anon %}
-	<span class="cl"><b>Show</b>: Kya apka nickname aur profile foto is chat mein dikha diya jaye?</span>
+	<span class="cl lsp"><b>Show</b>: Kya apka nickname aur profile foto is chat mein dikha diya jaye?</span>
 	{% else %}
-	<span class="cl"><b>Hide</b>: Kya apka nickname aur profile foto is chat se ghayeb kar diya jaye?</span>
+	<span class="cl lsp"><b>Hide</b>: Kya apka nickname aur profile foto is chat se ghayeb kar diya jaye?</span>
 	{% endif %}
 	</div>
 

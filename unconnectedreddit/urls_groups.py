@@ -6,11 +6,11 @@ process_personal_group_invite, personal_group_sms_text, post_to_personal_group, 
 delete_post_from_personal_group, post_chat_action_in_personal_group, delete_all_posts_from_personal_group, save_post_in_personal_group,\
 anonymize_user_in_personal_group, accept_personal_group_invite, send_personal_group_invite, personal_group_grant_chat_saving_perm, \
 set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo_settings, hide_photo_from_personal_group_chat, private_chat_help_ad,\
-personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,personal_group_help,\
+personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,personal_group_help1,\
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
 post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif, personal_group_metrics, share_photo_in_personal_group,\
-photo_shared, cant_share_photo#, deletion_test
+photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4#, deletion_test
 from links.number_verification import verify_personal_group_user
 
 admin.autodiscover()
@@ -61,7 +61,6 @@ urlpatterns = patterns('',
 	url(r'^unpergrp/(?P<gid>\d+)/(?P<fid>\d+)/$', auth(unseen_per_grp), name='unseen_per_grp'),
 	url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
 	############################## Personal Group Notifications ###############################
-	url(r'^private_chat_help/$', auth(personal_group_help), name='personal_group_help'),
 	url(r'^private_chat_ad/$', auth(private_chat_help_ad), name='private_chat_help_ad'),
 	############################ Personal Group Metrics Reporting #############################
 	url(r'^personal_group_metrics/$', auth(personal_group_metrics), name='personal_group_metrics'),
@@ -70,4 +69,9 @@ urlpatterns = patterns('',
 	url(r'^pccsf/$', auth(cant_share_photo), name='cant_share_photo'),
 	url(r'^pccsf/(?P<ttl>\d+)/$', auth(cant_share_photo), name='cant_share_photo'),
 	url(r'^pcfs/$', auth(photo_shared), name='photo_shared'),
+	################################ Personal Group Help Pages #################################
+	url(r'^private_chat_help_page1/$', auth(personal_group_help1), name='personal_group_help1'),
+	url(r'^private_chat_help_page2/$', auth(personal_group_help2), name='personal_group_help2'),
+	url(r'^private_chat_help_page3/$', auth(personal_group_help3), name='personal_group_help3'),
+	url(r'^private_chat_help_page4/$', auth(personal_group_help4), name='personal_group_help4'),
 )

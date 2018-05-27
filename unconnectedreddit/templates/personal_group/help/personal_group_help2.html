@@ -1,0 +1,74 @@
+{% extends "base_pg.html" %}
+{% block content %}
+<head><title>Private chat help page 2 | Damadam.pk</title></head>
+<style>
+
+body
+
+{background: #E9EBEE}
+
+
+
+.help {
+
+	display: flex;
+	justify-content: flex-start;
+	border-bottom: 1px solid lightgrey;
+	
+	
+}
+
+.helpitem {
+	padding:10px;
+}
+
+.nav-btn {
+
+	display:inline-block;
+	font-weight:bold;
+	 background-color:white; 
+	 border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+    border-style: solid;
+    border-width: 1px;
+    padding: 1px 7px 2px;"
+}
+
+</style>
+
+<body>
+	<div style="margin:0 auto; text-align:center;">
+	<h1 class="cxl"> Help Menu </h1>
+</div>
+<div class="bizcard" style="width:90%;  margin:0 auto; max-width:500px; border-radius:6px; background-color: white;">
+
+<div class="help">
+    <div class="helpitem"><button  class="re re-bg mrl" style="padding:0;width:22px;height:19px;vertical-align: middle; background-color:#BDEBFE; border-radius: 1px 8px 1px 8px; border:none; cursor:default; padding-bottom:2px;"><div id="bplus-gr"></div></button> </div>
+    <div class="helpitem"> Is se ap apni mitai howi chat wapis la sakte hain</div>
+</div>
+
+<div class="help">
+    <div class="helpitem"><img src="/static/img/anon.svg"></div>
+    <div class="helpitem"> Is se ap apna nickname chat main ghayab kar sakte hain</div>
+</div>
+
+<div class="help">
+    <div class="helpitem"><img src="/static/img/photo.svg"></div>
+    <div class="helpitem"> Is main 4 option hain:
+        <ul> <b>- Allow:</b> Ap doosray ko pic send karne ki ijazat de sakte hain</ul>
+        <ul> <b>- Delete:</b> Ap apni share ki howi tamam pics aik saath delete kar sakte hain</ul>
+        <ul> <b>- Restore:</b> Ap apni delete ki howi tamam pics aik saath bahal kar sakte hain</ul>
+        <ul> <b>- All Photos:</b> Ap apni aur dusrey ki share ki howi tamam pics aik saath dekh sakte hain</ul>
+    </div>
+</div>
+</div>
+
+<br>
+
+<div style="text-align:center">
+<a href="{% url 'personal_group_help1'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">1</button></a>
+<a href="{% url 'personal_group_help2'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:black">2</button></a>
+<a href="{% url 'personal_group_help3'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">3</button></a>
+<a href="{% url 'personal_group_help4'%}#section0" ><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090;">4</button></a></div>
+<br><br>
+
+{% endblock %}

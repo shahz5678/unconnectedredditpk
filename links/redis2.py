@@ -944,6 +944,9 @@ def set_benchmark(benchmark):
 	my_server.zadd(photos_benchmark,*benchmark)
 
 def set_uploader_score(user_id,benchmark_score):
+	"""
+	Sets avg score of the user's prev 5 photos
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	user_score_hash = "us:"+str(user_id)
 	mapping = { 'b':benchmark_score }

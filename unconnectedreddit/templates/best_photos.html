@@ -139,7 +139,7 @@ body{background: #E9EBEE}
 		<span class="cgy">--- --- ---</span><br>
 		{% else %}
 		<div itemscope itemtype="http://schema.org/ImageObject">
-		<div style="overflow:hidden"><span itemprop="caption"><b class="cl cb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b></span></div>
+		<div style="overflow:hidden"><span itemprop="caption"><b class="cl clb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b></span></div>
 		{% endif %}
 			<span itemprop="contentUrl">
 			{% if photo.vo|add:"0" < -2 %}
@@ -151,7 +151,16 @@ body{background: #E9EBEE}
 			{% endif %}<br>
 			</span>
 			</div>
-			{% if photo.fbs == '1' %}<div class="cgy cxs sp">uploaded via freebasics</div>{% endif %}
+			
+			<div class="cgy cxs sp">
+			<span class="mrs">uploaded {{ photo.t|human_time }} {% if photo.fbs == '1' %}(fbs){% endif %}</span>
+			<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+			{% csrf_token %}
+			<input type="hidden" name="pl" value="{{ photo.o }}:{{ photo.i }}:2:{{ photo.oi }}:{{ photo.ca }}">
+			<button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ photo.u }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+			</form>
+			</div>
+
 			{% if can_vote and photo.i not in voted and photo.o != username %}
 				{% vote_buttons vote_type='photo_vote' pid=photo.i origin=2 oun=photo.o static_url=STATIC_URL %}
 			{% endif %}

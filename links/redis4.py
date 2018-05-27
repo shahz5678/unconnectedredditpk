@@ -71,11 +71,16 @@ del_after_idle contains groups and exit times for groups that were deleted due t
 
 as:<photp_id>:<sharer_id> key to check whether a photo was already shared by a certain user (in whatsapp)
 
+pdim:<photo_id> key that temporarily caches a shared photo's width and height
+
+"sp:<photo_owner_id> is a sorted set containing information about photos shared of each user
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
+TWO_WEEKS = 60*60*24*7*2
 THREE_DAYS = 60*60*24*3
 ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
@@ -258,6 +263,27 @@ def get_cached_meta_data(url):
 	else:
 		return {}
 
+
+###################### Photo dimensions caching ######################
+
+def get_cached_photo_dim(photo_id):
+	"""
+	Return photo with photo_id's height and width
+	"""
+	key = 'pdim:'+photo_id
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.expire(key,THREE_DAYS)#extending life of cache
+	return my_server.hmget(key,'h','w')
+
+
+def cache_photo_dim(photo_id,img_height,img_width):
+	"""
+	Cache photo dimensions for use in photo sharing to personal groups
+	"""
+	mapping, key = {'h':img_height,'w':img_width}, 'pdim:'+photo_id
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.hmset(key,mapping)
+	my_server.expire(key,THREE_DAYS)
 
 ###################### User credentials caching ######################
 
@@ -1047,7 +1073,7 @@ def many_short_messages(user_id,section,obj_id):
 
 def log_share(photo_id, photo_owner_id, sharer_id, share_type='undefined', origin=None):
 	"""
-	Logs image sharing attempts
+	Logs image sharing attempts (via Whatsapp)
 	
 	1) If origin is 'user_albums', user is originating from user profiles
 	1) If origin is 'fresh_photos', user is originating from fresh photos
@@ -1067,7 +1093,7 @@ def log_share(photo_id, photo_owner_id, sharer_id, share_type='undefined', origi
 					pipeline1.zrem('sorted_user_albums_photos',*expiring_photo_ids)
 					pipeline1.srem('shared_user_albums_set',*expiring_photo_ids)
 					pipeline1.execute()
-			my_server.zincrby('sorted_user_albums_photos',photo_id,amount=1)
+			my_server.zincrby('sorted_user_albums_photos',photo_id,amount=1)# query this when getting report of which photos were shared the most
 			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
 	elif origin == 'fresh_photos':
 		# log shared photos
@@ -1083,10 +1109,73 @@ def log_share(photo_id, photo_owner_id, sharer_id, share_type='undefined', origi
 					pipeline1.zrem('sorted_shared_public_photos',*expiring_photo_ids)
 					pipeline1.srem('shared_public_photos_set',*expiring_photo_ids)
 					pipeline1.execute()
-			my_server.zincrby('sorted_shared_public_photos',photo_id,amount=1)
+			my_server.zincrby('sorted_shared_public_photos',photo_id,amount=1)# query this when getting report of which photos were shared the most
 			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
 	else:
 		pass
+
+
+def logging_sharing_metrics(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids):
+	"""
+	Logs metrics for photos shared internally (from public albums to personal groups)
+
+	This is a separate functionality from sharing via Whatsapp
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	sharer_id, num_shares, sharing_time = str(sharer_id), str(num_shares), str(sharing_time)
+	key = "sp:"+photo_owner_id
+	pipeline1 = my_server.pipeline()
+	
+	# use this to calculate total shares in the last week, also total all_time shares (list resets if user inactive for two weeks)
+	pipeline1.zadd(key,photo_id+":"+num_shares+":"+sharer_id+":"+sharing_time,sharing_time)
+	pipeline1.expire(key,TWO_WEEKS)
+	# can also give to each user: latest shared photo, most highly shared photo, and all other shared photos (alongwith num shares)
+
+	# save the act of sharing in a global list as well, for our viewing
+	pipeline1.lpush('shared_photos',photo_id+":"+num_shares+":"+photo_owner_id+":"+sharing_time)
+	pipeline1.ltrim('shared_photos',0,500)
+
+	pipeline1.execute()
+	##################################### SHARER METRICS #####################################
+	# one_month_ago = sharing_time - (60*60*24*30)
+	# most proflific sharers of own content (remove those inactive for a month)
+	# if photo_owner_id == sharer_id:
+	# 	my_server.zadd('ocst',sharer_id,sharing_time)#'own content sharing time'
+	# 	my_server.zincrby('ocsv',sharer_id,amount=num_shares)#'own content sharing volume'
+	# 	expired_sharer_ids = my_server.zrangebyscore("ocst",'-inf',one_month_ago)
+	# 	if expired_sharer_ids:
+	# 		my_server.zrem('ocst',*expired_sharer_ids)
+	# 		my_server.zrem('ocsv',*expired_sharer_ids)
+	
+	# most prolific sharers of others' content (remove those inactive for a month)
+	# else:
+	# 	my_server.zadd('cst',sharer_id,sharing_time)#'content sharing time'
+	# 	my_server.zincrby('csv',sharer_id,amount=num_shares)#'content sharing volume'
+	# 	expired_sharer_ids = my_server.zrangebyscore("cst",'-inf',one_month_ago)
+	# 	if expired_sharer_ids:
+	# 		my_server.zrem('cst',*expired_sharer_ids)
+	# 		my_server.zrem('csv',*expired_sharer_ids)
+	
+	# most prolific sharers who influence the most number of people. Can use formula volume_shared^(simpson_diversity_index) to calculate 'influencer score'
+	# volume_shared is simply total number of shares (it counts each individual share as 1)
+	# simpson_diversity_index is here: https://www.youtube.com/watch?v=zxzwvWDeTT8
+	
+
+# def log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value):
+# 	"""
+# 	Maintains list of photos that are 'trending' via actvity from fresh photos
+	
+# 	Note: 'action' may be 'photo_vote' or 'photo_comment'
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if action == 'photo_vote':
+# 		if vote_value == '1':
+# 			pass
+# 		elif vote_value == '-1':
+# 			pass
+# 		else:
+# 			pass
+
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 
@@ -1349,37 +1438,11 @@ def avg_sessions_per_type():
 		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
 		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
 	"""
-	Get avg sessions per user per group
-	Get med sessions per user per group
+	Measure 2-user pms vs 2-user pgs
+	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
 
-	These tell us how good is a group setting in increasing each users' sessions.
-	Method for average:
-	1) For each group, calculate total sessions and total users. 
-	2) Calculate sessions/user for each group using (1)
-	3) Then add all averages, divide by number of groups. We get avg sessions per user per group
-	Method for median:
-	1) (1) and (2) as before.
-	2) Insert result into a sorted set
-	3) Find the median. We get med sessions per user per group
-	Method for avg num of users per group type:
-	1) This is '2' for pg
-	2) For pm, find total users for each group
-	3) Add these together, and divide by total groups to get Avg num of users per group
-	Method for med num of users per group type:
-	1) This is '2' for pg
-	2) For pm, find total users for each group
-	3) Insert total user result into a sorted set and find the median
-
-	What if we calculate?
-	Get avg sessions per group
-	Get med sessions per group
-	Result: These tell us how good groups are in increasing all participants' sessions collectively. This is slightly weaker than the previous number(s)
-
+	Get rid of less than 2 user cases to make it like for like
 	"""
-
-
-	# my_server.zincrby(group_type+"_sess",group_id+":"+user_id,amount=1)
-
 
 def avg_num_of_switchovers_per_type():
 	"""

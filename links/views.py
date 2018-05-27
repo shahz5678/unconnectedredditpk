@@ -58,10 +58,10 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
-from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
+from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session#, log_organic_attention
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -4152,7 +4152,8 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					request.user.username, url, citizen)
 				##############################################################################################
 				##############################################################################################
-				# config_manager.get_obj().track('wrote_inline_photocomment', user_id)
+				# if origin == '1':
+				# 	log_organic_attention.delay(photo_id=pk,att_giver=user_id,photo_owner_id=photo_owner_id, action='photo_comm')
 				##############################################################################################
 				##############################################################################################
 				if user_id != photo_owner_id:
@@ -6624,15 +6625,6 @@ class UserSettingsEditView(UpdateView):
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# try:
-		# 	deduction = 2 * -1
-		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
-		# 	request.user.userprofile.save()
-		# 	context = {'unique': 'ID'}
-		# 	return render(request, 'penalty_linkcreate.html', context)
-		# except:
-		# 	context = {'unique': 'ID'}
-		# 	return render(request, 'penalty_linkcreate.html', context)
 		return redirect("missing_page")
 	else:
 		request.session["link_create_token"] = uuid.uuid4()
@@ -7459,6 +7451,10 @@ def cast_photo_vote(request,*args,**kwargs):
 					if added and citizen:
 						# do not process vote if the user is not a 'citizen'
 						process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
+					######################
+					# if request.POST.get("from",None) == '1':
+					# 	log_organic_attention.delay(photo_id=photo_id,att_giver=own_id,photo_owner_id=photo_owner_id, action='photo_vote',vote_value=value)
+					######################
 					#return the user to origin
 					return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))
 			else:

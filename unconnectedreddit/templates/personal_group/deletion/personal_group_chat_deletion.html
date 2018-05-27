@@ -48,10 +48,10 @@
               {% if tt == 'text' %}
                   <span class="lsp"><bdi>{% emoticons %}{{ ct }}{% endemoticons %}</bdi></span>
               {% else %}
-                  {% personal_group_big_photo img_url=ct|s3 img_caption=imc|emoticons css_shadow="sh-r" max_width=img_width static_url=STATIC_URL %}
+                  {% personal_group_big_photo img_url=ct|s3 img_caption=imc|emoticons css_shadow="sh-r" max_width=img_width static_url=STATIC_URL original_poster=original_poster %}
               {% endif %}
 
-               <div class="mts mbl">
+               <div class="mts mbs">
                 <span class="sp cxs cgy">{{ t|human_time }}</span>
                </div>
 

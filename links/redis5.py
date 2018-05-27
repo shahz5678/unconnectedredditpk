@@ -8,7 +8,7 @@ from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
-PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED
+PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
 from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
 from get_meta_data import get_meta_data
@@ -70,6 +70,10 @@ pgfgm:<user_id> personal_group_friend_group_mapping is a sorted set containing g
 rlus:<own_id>:<group_id> rate_limited_url_submissions ascertains whether url scraping is currently rate limited or not
 usl:<own_id>:<group_id> url_submissions_left is used to determine whether it's time to rate limit the user
 
+pgfl:<user_id> 'personal_group_friend_list' is a key containing cached friend_list credentials for user with id 'user_id
+
+rlfs:<user_id> 'rate_limit_photo_sharing' is a key that rate limits sharing behavior in personal groups
+
 ###########
 '''
 
@@ -77,6 +81,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 THREE_SECS = 3
 SIX_SECS = 6
+ONE_MIN = 60
 TWO_MINS = 120
 FOUR_MINS = 4*60
 FIVE_MINS = 5*60
@@ -225,7 +230,6 @@ def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, 
 	my_server.hset(group_key,own_last_seen,time_now) # putting these in pipeline doesn't speed up the commands (already profiled)
 	prev_time = time_now - THIRTY_MINS if prev_time is None else float(prev_time)
 	if chat_data is False:
-		start_time = time.time()
 		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, \
 		get_target_username(target_id, my_server)
 	else:
@@ -1048,6 +1052,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 	personal_group_list = "pgl:"+group_id
 	is_response = (type_ == 'text_res' or type_ == 'img_res')
 	is_normal_chat = (type_ == 'text' or type_ == 'img')
+	is_shared_content = type_ == 'shared_img'
 	if content and (type_=='action' or type_=='notif'):
 		# creating new blob
 		new_blob_id = str(my_server.incr("pgbid:"+group_id))
@@ -1152,7 +1157,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 					't_content':target_content,'t_writing_time':target_writing_time,'img_s_caption':img_s_caption,'hidden':'no',\
 					't_type':target_content_type,'status':'undel','t_status':target_status,'t_img_s_caption':'',\
 					'img_id':img_id,'img_hw_ratio':img_hw_ratio}
-					if target_content_type == 'img':
+					if target_content_type in ('img','shared_img'):#about 25% faster than doing two '==' comparisons (benchmarked)
 						hash_content["t_img_id"] = target_img_id
 						hash_content["t_img_caption"] = target_img_caption
 						hash_content["t_img_s_caption"] = target_img_s_caption
@@ -1164,7 +1169,7 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 					hash_content = {'id':writer_id,'res_content':content,'res_time':t_now,'res_type':'text','status':'undel',\
 					'blob_id':new_blob_id,'t_content':target_content,'t_writing_time':target_writing_time,'which_blob':'res',\
 					't_type':target_content_type,'t_status':target_status,'t_img_s_caption':''}
-					if target_content_type == 'img':
+					if target_content_type in ('img','shared_img'):#about 20% faster than doing two '==' comparisons (benchmarked)
 						hash_content["t_img_id"] = target_img_id
 						hash_content["t_img_caption"] = target_img_caption
 						hash_content["t_img_s_caption"] = target_img_s_caption
@@ -1176,6 +1181,59 @@ def add_content_to_personal_group(content, type_, writer_id, group_id, res_blob=
 		else:
 			# target blob no longer exists
 			return 0, PERSONAL_GROUP_OBJECT_CEILING, None, None, None, '-1', None, None#'-1' img_id ensures image won't be saved separately
+	elif content and is_shared_content:
+		first_element = my_server.lindex(personal_group_list,0) #blob_id:writer_id:comment_count
+		if first_element is None:
+			prev_blob_id, prev_writer_id, prev_comment_count = None, None, None
+		else:
+			info = first_element.split(":")
+			prev_blob_id, prev_writer_id, prev_comment_count = info[0], info[1], int(info[2])
+		if writer_id == prev_writer_id and 0 < prev_comment_count < PERSONAL_GROUP_BLOB_SIZE_LIMIT:
+			# append to existing blob
+			personal_group_hash, append = "pgh:"+group_id+":"+prev_blob_id, True
+			################################
+			# creating blob content
+			prev_comment_count += 1
+			comment_count, t_now = str(prev_comment_count), time.time()
+			# if type_ == 'img':
+			img_wid, img_height, img_caption, owner_uname = content["img_width"], content["img_height"], content["img_caption"], content["owner_uname"]
+			content = content["img_url"]
+			# print img_caption
+			img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
+			# print img_s_caption
+			img_id = str(my_server.incr("pgiid:"+group_id))
+			img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
+			hash_content = {type_+comment_count:content, 'time'+comment_count:t_now, 'type'+comment_count:type_, 'idx':comment_count,\
+			'img_width'+comment_count:int(img_wid)+EXTRA_PADDING,'img_height'+comment_count:img_height, 'img_caption'+comment_count:img_caption,\
+			'status'+comment_count:'undel','img_id'+comment_count:img_id,'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no',\
+			'img_hw_ratio'+comment_count:img_hw_ratio,'owner_uname'+comment_count:owner_uname}
+			group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel',\
+			'lt_img_id':img_id}
+			list_content, bid, idx = prev_blob_id+":"+writer_id+":"+comment_count, prev_blob_id, comment_count
+		else:
+			# create a new blob
+			new_blob_id = str(my_server.incr("pgbid:"+group_id))
+			personal_group_hash, append = "pgh:"+group_id+":"+new_blob_id, False
+			################################
+			# creating blob content
+			comment_count, t_now = '1', time.time()
+			# if type_ == 'img':
+			img_wid, img_height, img_caption, owner_uname = content["img_width"], content["img_height"], content["img_caption"], content["owner_uname"]
+			content = content["img_url"]
+			# print img_caption
+			img_s_caption = small_photo_caption(img_caption, float(img_wid)/float(img_height))
+			# print img_s_caption
+			img_id = str(my_server.incr("pgiid:"+group_id))
+			img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
+			hash_content = {'status'+comment_count:'undel',type_+comment_count:content,'time'+comment_count:t_now,\
+			'type'+comment_count:type_,'which_blob':'nor','img_id'+comment_count:img_id, 'blob_id':new_blob_id,\
+			'img_s_caption'+comment_count:img_s_caption,'hidden'+comment_count:'no', 'id':writer_id, \
+			'img_caption'+comment_count:img_caption,'img_width'+comment_count:int(img_wid)+EXTRA_PADDING,\
+			'img_height'+comment_count:img_height,'img_hw_ratio'+comment_count:img_hw_ratio,'idx':comment_count,\
+			'owner_uname'+comment_count:owner_uname}
+			group_content = {'lt_msg_tp':type_,'lt_msg_t':t_now,'lt_msg_wid':writer_id,'lt_msg_tx':img_caption,'lt_msg_img':content,'lt_msg_st':'undel',\
+			'lt_img_id':img_id}
+			list_content, bid, idx = new_blob_id+":"+writer_id+":"+comment_count, new_blob_id, comment_count
 	################################
 	# setting blob content
 	pipeline1 = my_server.pipeline()
@@ -1514,7 +1572,7 @@ def personal_group_photo_xfer_invite_allwd(their_id, group_id):
 
 def personal_group_image_transfer_not_permitted(their_id, group_id):
 	"""
-	Checking whether a user can share a photo in a personal group
+	Checking whether a user can send a photo in a personal group
 	"""
 	hash_name, their_id = "pgah:"+group_id, str(their_id)
 	no_perm = True if redis.Redis(connection_pool=POOL).hget(hash_name,'phrec'+their_id) == '0' else False
@@ -1578,16 +1636,20 @@ def get_personal_group_photo_rec_settings(own_id, target_id):
 
 
 
-def set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
+def set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id, is_shared=False, op=None):
 	"""
-	Saves photo separately in personal group for viewing
+	Saves photo separately in personal group photo settings, for later viewing
 	"""
 	if img_id != '-1':
-		my_server = redis.Redis(connection_pool=POOL)
 		list_payload = img_id+":"+blob_id+":"+index+":"+str(own_id)
-		mapping = {'img_url':img_url,'owner_id':own_id,'blob_id':blob_id,'index':index,'status':'undel','img_quality':img_quality,'img_id':img_id,\
-		'hidden':'no','img_width':img_wid,'img_b_width':int(img_wid)+EXTRA_PADDING,'hw_ratio':hw_ratio} 
+		if is_shared:
+			mapping = {'img_url':img_url,'owner_id':own_id,'blob_id':blob_id,'index':index,'status':'undel','img_quality':img_quality,'img_id':img_id,\
+			'hidden':'no','img_width':img_wid,'img_b_width':int(img_wid)+EXTRA_PADDING,'hw_ratio':hw_ratio,'is_shared':True,'owner_uname':op} 
+		else:
+			mapping = {'img_url':img_url,'owner_id':own_id,'blob_id':blob_id,'index':index,'status':'undel','img_quality':img_quality,'img_id':img_id,\
+			'hidden':'no','img_width':img_wid,'img_b_width':int(img_wid)+EXTRA_PADDING,'hw_ratio':hw_ratio} 
 		photo_list = "pgpl:"+group_id
+		my_server = redis.Redis(connection_pool=POOL)
 		pipeline1 = my_server.pipeline()
 		pipeline1.lpush(photo_list,list_payload)
 		pipeline1.hmset('pgih:'+group_id+":"+img_id,mapping)
@@ -1611,6 +1673,77 @@ def retrieve_all_personal_group_images(group_id):
 		pipeline1.hgetall(img_hash)
 	return pipeline1.execute()
 
+
+def can_share_photo(group_ids,user_id):
+	"""
+	Checks with user with user_id can share a photo in list of groups (group_ids)
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	# retrieve group members (if they exist)
+	if len(group_ids) > 3:
+		pipeline1 = my_server.pipeline()
+		for group_id in group_ids:
+			pipeline1.get("pgp:"+group_id)
+		result1, groups, counter = pipeline1.execute(), {}, 0
+		for group_id in group_ids:
+			groups[group_id] = result1[counter]
+			counter += 1
+	else:
+		groups = {}
+		for group_id in group_ids:
+			groups[group_id] = my_server.get("pgp:"+group_id)
+	# check user_id's membership in retrieved groups
+	legit_groups, nonlegit_groups = {}, []
+	for group_id in group_ids:
+		try:
+			participants = groups[group_id].split(":")#don't use maxsplit [e.g. split(":",1)] since it's 9 times slower than vanilla/regular split (tested)
+		except AttributeError:
+			participants = ''#i.e. if the group with group_id doesn't exist
+		if user_id in participants:
+			legit_groups[group_id] = participants[0] if participants[1] == user_id else participants[1]# legit_groups is a dictionary {group_id:their_id} containing groups user_id is a member of
+		else:
+			nonlegit_groups.append(group_id)# nonlegit_groups is a list containing group_ids that user_id isn't a member of (or they don't exist)
+	photo_allwd, photo_disallwd = [],[]
+	if len(legit_groups) > 3:
+		pipeline2 = my_server.pipeline()
+		for group_id,their_id in legit_groups.iteritems():
+			pipeline2.hget("pgah:"+group_id,'phrec'+their_id)
+		result2, counter = pipeline2.execute(), 0
+		for group_id,their_id in legit_groups.iteritems():
+			pht_perm = result2[counter]
+			if pht_perm == '0':
+				photo_disallwd.append(group_id)
+			else:
+				photo_allwd.append(group_id)
+			counter += 1
+	else:
+		for group_id,their_id in legit_groups.iteritems():
+			pht_perm = my_server.hget("pgah:"+group_id,'phrec'+their_id)
+			if pht_perm == '0':
+				photo_disallwd.append(group_id)
+			else:
+				photo_allwd.append(group_id)
+	return photo_allwd, photo_disallwd, legit_groups, nonlegit_groups
+
+
+def rate_limit_personal_group_sharing(user_id):
+	"""
+	Setting rate limit for photo sharing in personal groups
+	"""
+	redis.Redis(connection_pool=POOL).setex('rlfs:'+str(user_id),'1',ONE_MIN)
+
+
+def get_rate_limit_in_personal_group_sharing(user_id):
+	"""
+	Checking whether photo sharing in personal groups is rate limited for user with id 'user_id'
+	"""
+	ttl = redis.Redis(connection_pool=POOL).ttl('rlfs:'+str(user_id))
+	if ttl > 0:
+		return True, ttl
+	else:
+		return False, None
+
 ############################################ User Personal Group Lists #############################################
 
 
@@ -1618,12 +1751,11 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 	"""
 	Construct list of replies from active user groups
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	cached_data_key = 'pgld:'+user_id+":"+ str(start_idx)+":"+str(end_idx)
+	my_server = redis.Redis(connection_pool=POOL)
 	json_data = my_server.get(cached_data_key)
 	if json_data:
-		start_time = time.time()
 		data = json.loads(json_data)
 		return data[0], data[1]
 	else:
@@ -1649,8 +1781,44 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 			payload.append(data)
 			counter += 1
 		num_of_grps = my_server.zcard("pgfgm:"+user_id) if payload else 0
-		my_server.setex(cached_data_key,json.dumps([payload,num_of_grps]),USER_GROUP_LIST_CACHING_TIME)
+		my_server.setex(cached_data_key,json.dumps([payload,num_of_grps]),USER_GROUP_LIST_CACHING_TIME)#cached for 10 secs
 		return payload, num_of_grps
+
+
+def get_user_friend_list(user_id):
+	"""
+	Returns list of friend names and avatar urls for any user
+
+	Must return anonymization status where warranted
+	"""
+	user_id = str(user_id)
+	cached_data_key = 'pgfl:'+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	json_data = my_server.get(cached_data_key)
+	if json_data:
+		return json.loads(json_data)
+	else:
+		groups_and_friends = my_server.zrevrange("pgfgm:"+user_id,0,-1,withscores=True)
+		fid_gid, friend_list, gid_seen = {}, [], {}
+		for tup,touch_time in groups_and_friends:
+			data = tup.split(":")
+			gid, fid = data[0], data[1]
+			fid_gid[fid] = gid
+			gid_seen[gid] = touch_time
+			friend_list.append(fid)
+		friend_credentials = retrieve_bulk_credentials(friend_list, decode_unames=True)#friend_credentials is a dict_of_dictionaries
+		group_and_friend, dict_of_grps_and_frnds = [], {}
+		for fid in friend_list:
+			group_and_friend.append((fid_gid[fid],friend_credentials[int(fid)]))
+			dict_of_grps_and_frnds[fid_gid[fid]] = fid
+		groups_anon_status = are_users_anon(dict_of_grps_and_frnds, my_server=my_server) #returns dictionary {group_id:anon_state of friend}
+		for tup in group_and_friend:
+			tup[1]['is_anon'] = groups_anon_status[tup[0]]#adding 'anon' information
+			tup[1]['last_seen'] = gid_seen[tup[0]]#adding 'seen' information
+			tup[1]['fid'] = dict_of_grps_and_frnds[tup[0]]
+		my_server.setex(cached_data_key, json.dumps(group_and_friend, ensure_ascii=False),USER_FRIEND_LIST_CACHING_TIME)#cached for 5 mins
+		return group_and_friend
+
 
 ########################################### Personal Group Sanitization ############################################
 
@@ -1787,11 +1955,28 @@ def get_personal_group_anon_state(own_id, target_id):
 		return None, None, None
 
 
-# def is_user_anon(user_id, group_id):
-# 	"""
-# 	Retrieves anon_state of a single user, for use in notifications 
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).hget('pgah:'+group_id,'anon'+user_id)
+def are_users_anon(groups_and_friends,my_server=None):
+	"""
+	Retrieves anon_state of users in various groups
+
+	Must be fed {group_id:friend_id} dictionary
+	"""
+	if not my_server:
+		my_server = redis.Redis(connection_pool=POOL)
+	if len(groups_and_friends) > 3:
+		pipeline1 = my_server.pipeline()
+		for group_id, friend_id in groups_and_friends.iteritems():
+			pipeline1.hget('pgah:'+group_id,'anon'+friend_id)
+		result1, counter, group_anon_states = pipeline1.execute(), 0, {}
+		for group_id, friend_id in groups_and_friends.iteritems():
+			group_anon_states[group_id] = result1[counter]
+			counter += 1
+		return group_anon_states
+	else:
+		group_anon_states = {}
+		for group_id, friend_id in groups_and_friends.iteritems():
+			group_anon_states[group_id] = my_server.hget('pgah:'+group_id,'anon'+friend_id)
+		return group_anon_states
 
 
 # def get_obj_state(pgh, index=None):
@@ -2038,6 +2223,7 @@ def sanitize_personal_group_invites(own_id, own_username, target_id, target_user
 
 ######################################## Personal Group Creation & Existence ########################################
 
+
 def personal_group_exists(group_id,own_id,target_id):
 	"""
 	Checks for existence via the group_id route
@@ -2069,8 +2255,8 @@ def personal_group_already_exists(own_id, target_id, server=None):
 def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_rec_photo='0', target_rec_photo='0', own_del='0', target_del='0',\
 	autodel='0',own_rec_sms='0',target_rec_sms='0',own_num_chg='1',target_num_chg='1',target_svch_perm='0',own_svch_perm='0',\
 	own_saves_remaining=PERSONAL_GROUP_SAVED_CHAT_COUNTER,target_saves_remaining=PERSONAL_GROUP_SAVED_CHAT_COUNTER):
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	group_id, already_exists = personal_group_already_exists(own_id, target_id, my_server)
 	if group_id:
 		return group_id, True

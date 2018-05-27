@@ -2235,28 +2235,53 @@ def personal_group_user_listing(request):
 ####################################################################################################################
 
 
+@csrf_protect
 def personal_group_help1(request):
 	"""
+	Renders private chat help page
 	"""
-	return render(request,"personal_group/help/personal_group_help1.html",{})
+	if request.method == 'POST':
+		tid = request.POST.get('tid',None)
+		return render(request,"personal_group/help/personal_group_help1.html",{'tid':tid})
+	else:
+		return render(request,"personal_group/help/personal_group_help1.html",{})
 
 
+@csrf_protect
 def personal_group_help2(request):
 	"""
+	Renders private chat help page
 	"""
-	return render(request,"personal_group/help/personal_group_help2.html",{})
+	if request.method == 'POST':
+		tid = request.POST.get('tid',None)
+		return render(request,"personal_group/help/personal_group_help2.html",{'tid':tid})
+	else:
+		return render(request,"personal_group/help/personal_group_help2.html",{})
 
 
+@csrf_protect
 def personal_group_help3(request):
 	"""
+	Renders private chat help page
 	"""
-	return render(request,"personal_group/help/personal_group_help3.html",{})
+	if request.method == 'POST':
+		tid = request.POST.get('tid',None)
+		return render(request,"personal_group/help/personal_group_help3.html",{'tid':tid})
+	else:
+		return render(request,"personal_group/help/personal_group_help3.html",{})
 
 
+@csrf_protect
 def personal_group_help4(request):
 	"""
+	Renders private chat help page 
 	"""
-	return render(request,"personal_group/help/personal_group_help4.html",{})
+	if request.method == 'POST':
+		tid = request.POST.get('tid',None)
+		return render(request,"personal_group/help/personal_group_help4.html",{'tid':tid})
+	else:
+		return render(request,"personal_group/help/personal_group_help4.html",{})
+
 	
 def private_chat_help_ad(request):
 	"""

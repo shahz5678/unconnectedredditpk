@@ -22,10 +22,11 @@ process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_us
 public_group_ranking_clean_up
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
-personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group
+personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
+rate_limit_personal_group_sharing
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share
+log_share, logging_sharing_metrics#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
@@ -131,11 +132,20 @@ def invalidate_avatar_url(user_id,set_rate_limit=False):
 	invalidate_avurl(user_id, set_rate_limit)
 	invalidate_cached_user_data(user_id)
 
+@celery_app1.task(name='tasks.photo_sharing_metrics_and_rate_limit')
+def photo_sharing_metrics_and_rate_limit(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids):
+	#rate limiting sharing
+	rate_limit_personal_group_sharing(sharer_id)
+	#logging metrics
+	logging_sharing_metrics(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids)
 
 
 @celery_app1.task(name='tasks.add_image_to_personal_group_storage')
-def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id):
-	set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
+def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id, is_shared=False, op=None):
+	if is_shared:
+		set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id, True, op)
+	else:
+		set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
 
 
 @celery_app1.task(name='tasks.personal_group_trimming_task')
@@ -154,7 +164,7 @@ def cache_personal_group(pg_data, group_id):
 
 @celery_app1.task(name='tasks.private_chat_tasks')
 def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
-	own_avurl='',deleted='',hidden='',successful=True, from_unseen=False):
+	own_avurl='',deleted='',hidden='',successful=True, from_unseen=False, sharing=False):
 	if successful:
 		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
 		own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
@@ -171,18 +181,18 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			target_id=target_id)
 		update_private_chat_notifications(sender_id=own_id, receiver_id=target_id, group_id=group_id, sender_seen=True, receiver_seen=False,\
 			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
-		if from_unseen:
-			update_personal_group_last_seen(own_id, group_id, posting_time)
+		if from_unseen or sharing:
+			update_personal_group_last_seen(own_id, group_id, posting_time)#supposed to update 'seen' of contributer
 			increment_session(group_id, own_id, group_type='pg')
-			check_p2p_sms(own_id)
-		# ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation'
+			check_p2p_sms(own_id) #Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
+		# ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
 		if txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		elif txt_type not in ('reentry','creation'):
 			increment_convo_counter(group_id, own_id, group_type='pg')
-			# if not img_url and txt_type in ('text','text_res','img_res'):#,'img'):
-			if txt_type in ('text','text_res','img_res','img'):
-				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)
+			# if not img_url and txt_type in ('text','text_res','img_res'):
+			if txt_type in ('text','text_res','img_res','img','shared_img'):
+				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):
@@ -352,6 +362,11 @@ def save_online_user(user_id,user_ip):
 @celery_app1.task(name='tasks.detail_click_logger')
 def detail_click_logger(ad_id, clicker_id):
 	log_detail_click(ad_id, clicker_id)
+
+
+# @celery_app1.task(name='tasks.log_organic_attention')
+# def log_organic_attention(photo_id,att_giver,photo_owner_id, action, vote_value=None):
+# 	log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value)
 
 
 @celery_app1.task(name='tasks.enqueue_sms')

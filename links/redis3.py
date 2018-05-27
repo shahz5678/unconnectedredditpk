@@ -1733,6 +1733,7 @@ def get_ranked_public_groups():
 '0' 'personal group anonymous invite'
 '1' 'personal group sms settings'
 '2' 'granting permission to save posts'
+'3' 'sharing internal photo in personal groups'
 
 def tutorial_unseen(user_id, which_tut, renew_lease=False):
 	my_server = redis.Redis(connection_pool=POOL)

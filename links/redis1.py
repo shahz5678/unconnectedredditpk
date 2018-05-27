@@ -958,6 +958,11 @@ def never_posted_photo(user_id):
 		return True
 
 def get_recent_photos(user_id):
+	"""
+	Contains last 5 photos
+
+	This list self-deletes if user doesn't upload a photo for more than 4 days
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("phts:"+str(user_id), 0, -1)
 

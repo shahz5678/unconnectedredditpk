@@ -8,10 +8,11 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
+from redis1 import check_photo_upload_ban
 from redis3 import tutorial_unseen, get_user_verified_number
 from redis2 import update_notification, skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
-avg_num_of_switchovers_per_type, avg_sessions_per_type
+avg_num_of_switchovers_per_type, avg_sessions_per_type, get_cached_photo_dim, cache_photo_dim, retrieve_uname
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -22,18 +23,19 @@ disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_inv
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
-get_single_user_credentials, get_user_credentials#, exited_personal_group_hard_deletion
+get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo#, exited_personal_group_hard_deletion
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
-cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen
+cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
-PRIV_CHAT_NOTIF
-from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm
+PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
+from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_personal_group_image
 from views import get_page_obj, get_object_list_and_forms
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
+from models import Photo
 
 ONE_DAY = 60*60*24
 
@@ -55,10 +57,8 @@ def get_uname_and_avurl(target_id, their_anon_status):
 	target_id = str(target_id)
 	if their_anon_status:
 		return get_target_username(target_id), None
-		# return retrieve_uname(target_id,decode=True), None
 	else:
 		return get_single_user_credentials(target_id,as_list=False)
-		# return retrieve_credentials(target_id, decode_uname=True)
 
 def retrieve_user_env(user_agent, fbs):
 	"""
@@ -341,6 +341,10 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 					normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
+				elif dictionary['type'+idx] == 'shared_img':
+					normal_chat.append((dictionary['status'+idx], idx, 'shared_img', dictionary['shared_img'+idx], float(dictionary['time'+idx]), \
+						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],dictionary['owner_uname'+idx].decode('utf-8')))
 				else:
 					# append nothing - this case shouldn't arise
 					pass
@@ -625,6 +629,7 @@ def personal_group_own_chat_buttons(request):
 			payload = request.POST.get('pl',None)
 			content = request.POST.get('pl_ct',None)
 			image_caption = request.POST.get('imc',None)
+			original_poster = request.POST.get('op',None)
 			payload = payload.split(":")
 			try:
 				blob_id, index, username, tt, posting_time, av_url, is_res, target_id, own_nick, their_nick, img_width = payload[0], \
@@ -634,7 +639,8 @@ def personal_group_own_chat_buttons(request):
 			group_id, exists = personal_group_already_exists(own_id, target_id)
 			if exists:	
 				context = {'tt':tt, 'usr':username, 'ct':content, 'aurl':av_url, 't':posting_time, 'imc':image_caption, 'is_res':is_res,'idx':index,\
-				'delete_single_chat':True,'own_nick':own_nick,'their_nick':their_nick,'img_width':img_width,'tid':target_id,'bid':blob_id}
+				'delete_single_chat':True,'own_nick':own_nick,'their_nick':their_nick,'img_width':img_width,'tid':target_id,'bid':blob_id,\
+				'original_poster':original_poster}
 				if is_res == 'res':
 					target_content = request.POST.get('rpl_ct',None)
 					direct_response_payload = request.POST.get('rpl',None)
@@ -2237,6 +2243,232 @@ def private_chat_help_ad(request):
 	"""
 	"""
 	return render(request,"personal_group/help/private_chat_help_ad.html",{})	
+
+
+#####################################################################################################################
+######################################### Sharing Photos in Personal Groups #########################################
+#####################################################################################################################
+
+
+def cant_share_photo(request, ttl=None,*args, **kwargs):
+	"""
+	Shows failure message if photo can't be shared due to photo owner being banned
+	"""
+	if ttl:
+		try:
+			ttl = int(ttl)
+		except ValueError:
+			ttl = None
+	photo_id = request.session.get("personal_group_shared_photo_id",None)
+	origin = request.session.get("personal_group_shared_photo_origin",None)
+	photo_url = request.session.get("personal_group_shared_photo_url",None)
+	photo_caption = request.session.get("personal_group_shared_photo_caption",None)
+	photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
+	return render(request,"personal_group/sharing/photo_not_shared.html",{'photo_caption':photo_caption,'photo_id':photo_id,'photo_url':photo_url,\
+		'photo_owner_username':photo_owner_username,'origin':origin,'ttl':ttl})
+
+
+def photo_shared(request):
+	"""
+	Shows success message after photo is shared in personal group(s)
+	"""
+	photo_id = request.session.get("personal_group_shared_photo_id",None)
+	origin = request.session.get("personal_group_shared_photo_origin",None)
+	photo_url = request.session.get("personal_group_shared_photo_url",None)
+	photo_caption = request.session.get("personal_group_shared_photo_caption",None)
+	allwd_friends = request.session.get("personal_group_shared_photo_allwd_friends",None)
+	disallwd_friends = request.session.get("personal_group_shared_photo_disallwd_friends",None)
+	photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
+	return render(request,"personal_group/sharing/photo_shared.html",{'allwd_friends':allwd_friends,'disallwd_friends':disallwd_friends,\
+		'own_uname':retrieve_uname(request.user.id,decode=True),'origin':origin,'photo_caption':photo_caption,'num_sent':len(allwd_friends),\
+		'num_unsent':len(disallwd_friends),'photo_url':photo_url,'photo_id':photo_id,'photo_owner_username':photo_owner_username})
+
+
+def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo_id,photo_owner_username,own_id, photo_owner_id):
+	"""
+	Post a shared image post to list of personal groups
+	"""
+	photo_allwd, photo_disallwd, legit_groups, nonlegit_groups = can_share_photo(group_ids,own_id)
+	if photo_allwd:
+		img_height, img_width = get_cached_photo_dim(photo_id)
+		if not img_height:
+			img_obj = Photo.objects.get(id=photo_id) # reaffirm url at this point too
+			img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+			cache_photo_dim(photo_id,img_height,img_width)
+		sharing_time = time.time()
+		for group_id in photo_allwd:
+			# send the photo!
+			content, type_ = {'img_url':photo_url, 'img_width':img_width, 'img_height':img_height, 'owner_uname':photo_owner_username, \
+			'img_caption':photo_caption},'shared_img'
+			obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=content, type_=type_,\
+				writer_id=own_id, group_id=group_id)
+			# image 'quality' shows the "low quality - uploaded via fbs" msg. We can omit it for this case, hence setting it to 'True'
+			quality = True
+			add_image_to_personal_group_storage.delay(photo_url, img_id, img_wid, hw_ratio, quality, bid, idx, own_id, gid, True, photo_owner_username)#set_personal_group_image_storage()
+			# 'text' is photo_caption in this case
+			private_chat_tasks.delay(own_id=own_id,target_id=legit_groups[group_id],group_id=group_id,posting_time=sharing_time,text=photo_caption,\
+				txt_type=type_,own_anon='',target_anon='',blob_id=bid, idx=idx, img_url=photo_url,own_uname='',own_avurl='',deleted='undel',\
+				hidden='no',successful=True if bid else False,sharing=True)
+			personal_group_sanitization(obj_count, obj_ceiling, gid)
+		photo_sharing_metrics_and_rate_limit.delay(own_id, photo_id, photo_owner_id, len(photo_allwd),sharing_time, photo_allwd)
+	else:
+		pass
+	# print photo_allwd # list of groups where photos were permitted
+	# print legit_groups # dictionary of {group_id:their_id} containing groups own_id is a member of
+	# print nonlegit_groups # list of groups user wasn't a part of
+	# print photo_disallwd # list of groups where photos weren' permitted
+
+	# test multiple shares (done)
+	# fix user chat list (done)
+	# does single_notif work? (done)
+	# does matka work? (done)
+	# update 'seen' of sharing user (done)
+	# is private_chat_tasks called twice? (done - yes it's called as many times as needed!)
+	# rate limit sharing feature (done)
+	# make it possible to go into respective chats when on 'photo shared successfully' page (done)
+	# how does it all behave with nicks not utilizing english characters? (done)
+	# shared photo analytics (done)
+	# does group content deletion get hindered because of the new 'shared_img' category? (done)
+	# revert log_photo_attention_from_fresh() related functionality in redis4.py
+
+	return photo_allwd, photo_disallwd
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def share_photo_in_personal_group(request):
+	"""
+	Allows sharing any Damadam photo in a personal group
+
+	Permission to share photo must have been granted for this to work
+	"""
+	if request.method == "POST":
+		user_id = request.user.id
+		decision_made = request.POST.get("dm",None)
+		new_title = request.POST.get("nt",None)
+		if new_title:
+			# before processing, ensure this user's all photos aren't banned:
+			photo_owner_id = request.session.get("personal_group_shared_photo_owner_id",None)
+			banned, time_remaining = check_photo_upload_ban(photo_owner_id)
+			if banned:
+				return redirect("cant_share_photo")
+			elif not banned:
+				photo_caption = request.session.get("personal_group_shared_photo_caption",None)
+				photo_url = request.session.get("personal_group_shared_photo_url",None)
+				if request.POST.get('dec',None) == '1':
+					form = PersonalGroupSharedPhotoCaptionForm(request.POST)
+					if form.is_valid():
+						# change photo caption
+						photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
+						group_ids = request.session.get("personal_group_shared_photo_group_ids",None)
+						photo_id = request.session.get("personal_group_shared_photo_id",None)
+						new_photo_caption = form.cleaned_data.get("text")
+						is_limited, cooloff_time = get_rate_limit_in_personal_group_sharing(user_id)
+						if is_limited:
+							return redirect("cant_share_photo",cooloff_time)
+						elif not is_limited:
+							allwd_grps, disallwd_grps = post_shared_photo_to_personal_groups(group_ids,photo_url,new_photo_caption,photo_id,\
+								photo_owner_username,user_id, photo_owner_id)
+							targeted_friends = request.session.get("personal_group_shared_photo_group_contents",None)
+							allwd_friends, disallwd_friends = [], []
+							for group_id in allwd_grps:
+								allwd_friends.append(targeted_friends[group_id])
+							for group_id in disallwd_grps:
+								disallwd_friends.append(targeted_friends[group_id])
+							request.session["personal_group_shared_photo_caption"] = new_photo_caption
+							request.session["personal_group_shared_photo_allwd_friends"] = allwd_friends
+							request.session["personal_group_shared_photo_disallwd_friends"] = disallwd_friends
+							request.session.modified = True
+							return redirect("photo_shared")
+						else:
+							return redirect("cant_share_photo",cooloff_time)
+					else:
+						# validation error when trying to change photo caption
+						context = {'photo_url':photo_url,'edit_caption':True,'photo_caption':photo_caption,'form':form}
+						return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
+				else:
+					# user pressed 'skip' - i.e. no change in photo caption
+					photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
+					group_ids = request.session.get("personal_group_shared_photo_group_ids",None)
+					photo_id = request.session.get("personal_group_shared_photo_id",None)
+					is_limited, cooloff_time = get_rate_limit_in_personal_group_sharing(user_id)
+					if is_limited:
+						return redirect("cant_share_photo",cooloff_time)
+					elif not is_limited:
+						allwd_grps, disallwd_grps = post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo_id,\
+							photo_owner_username,user_id, photo_owner_id)
+						targeted_friends = request.session.get("personal_group_shared_photo_group_contents",None)
+						allwd_friends, disallwd_friends = [], []
+						for group_id in allwd_grps:
+							allwd_friends.append(targeted_friends[group_id])
+						for group_id in disallwd_grps:
+							disallwd_friends.append(targeted_friends[group_id])
+						request.session["personal_group_shared_photo_allwd_friends"] = allwd_friends
+						request.session["personal_group_shared_photo_disallwd_friends"] = disallwd_friends
+						request.session.modified = True
+						return redirect("photo_shared")
+					else:
+						return redirect("cant_share_photo",cooloff_time)
+			else:
+				return redirect("cant_share_photo")
+		elif decision_made:
+			groups = request.POST.getlist('gid',None)# contains group_ids in list format
+			photo_url = request.session.get("personal_group_shared_photo_url",None)
+			photo_caption = request.session.get("personal_group_shared_photo_caption",None)
+			if groups:
+				if len(groups) > PHOTO_SHARING_FRIEND_LIMIT:
+					# return to select friends screen, alongwith message asking user to select lesser friends
+					context = {'must_select_less':True,'limit':PHOTO_SHARING_FRIEND_LIMIT,'photo_url':photo_url,'photo_caption':photo_caption}
+					group_and_friend = get_user_friend_list(user_id)
+					if not group_and_friend:
+						context["no_friends"] = True
+					else:
+						context["friend_data"] = group_and_friend
+					return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
+				else:
+					group_ids, group_contents = [], {}
+					for group in groups:
+						data = group.split(":",4)
+						group_id = data[0]
+						group_ids.append(group_id)
+						group_contents[group_id] = {'friend_uname':data[4],'friend_avurl':data[2],'friend_id':data[3],'is_anon':data[1]}
+					request.session["personal_group_shared_photo_group_ids"] = group_ids
+					request.session["personal_group_shared_photo_group_contents"] = group_contents
+					request.session.modified = True
+					context = {'photo_url':photo_url,'edit_caption':True,'photo_caption':photo_caption,'form':PersonalGroupSharedPhotoCaptionForm()}
+					return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
+			else:
+				# return to select friends screen, alongwith message asking user to at least select 1 friend
+				context = {'must_select_one':True,'photo_url':photo_url,'photo_caption':photo_caption}
+				group_and_friend = get_user_friend_list(user_id)
+				if not group_and_friend:
+					context["no_friends"] = True
+				else:
+					context["friend_data"] = group_and_friend
+				return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
+		else:
+			payload = request.POST.get("pl").split(":",4)#maxsplit set to 4 to ensure caption containing ':' is not split
+			owner_username, photo_id, origin, owner_id, photo_caption = payload[0], payload[1], payload[2], payload[3], payload[4]
+			photo_url = request.POST.get("purl")
+			request.session["personal_group_shared_photo_id"] = photo_id
+			request.session["personal_group_shared_photo_url"] = photo_url
+			request.session["personal_group_shared_photo_origin"] = origin
+			request.session["personal_group_shared_photo_owner_id"] = owner_id
+			request.session["personal_group_shared_photo_caption"] = photo_caption
+			request.session["personal_group_shared_photo_owner_username"] = owner_username
+			request.session.modified = True
+			context = {'photo_url':photo_url,'photo_caption':photo_caption,'limit':PHOTO_SHARING_FRIEND_LIMIT,'origin':origin,'photo_id':photo_id,\
+			'owner_username':owner_username}
+			if tutorial_unseen(user_id=user_id, which_tut='3', renew_lease=True):
+				context["show_first_time_tutorial"] = True
+			group_and_friend = get_user_friend_list(user_id)
+			if not group_and_friend:
+				context["no_friends"] = True
+			else:
+				context["friend_data"] = group_and_friend
+			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
+	else:
+		return redirect("missing_page")
 
 
 #####################################################################################################################

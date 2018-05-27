@@ -1,7 +1,7 @@
 import unicodedata
 from django import forms
 from django.core.exceptions import ValidationError
-from page_controls import PERSONAL_GROUP_MAX_SMS_SIZE
+from page_controls import PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE
 
 
 def clear_zalgo_text(text):
@@ -45,6 +45,32 @@ class PersonalGroupPostForm(forms.Form):
 			raise forms.ValidationError('1500 haroof se barri baat nah likhein')
 		# data["reply"] = clear_zalgo_text(reply) if reply else reply
 		return data
+
+
+class PersonalGroupSharedPhotoCaptionForm(forms.Form):
+	"""
+	Handles personal group shared photo captions
+	"""
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autocomplete': 'off','autocorrect':'off',\
+		'autofocus': 'autofocus','autocapitalize':'off','spellcheck':'false','maxlength':PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE}),\
+	error_messages={'invalid':"Title sahi se likhein"})
+
+
+	def __init__(self,*args,**kwargs):
+		# self.on_fbs = kwargs.pop('on_fbs',None)
+		super(PersonalGroupSharedPhotoCaptionForm, self).__init__(*args,**kwargs)
+		self.fields['text'].required = False
+		self.fields['text'].widget.attrs['style'] = 'width:95%;height:50px;border-radius:10px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px'
+
+	def clean_text(self):
+		text = self.cleaned_data.get("text").strip()
+		if text:
+			text_len = len(text)
+			if text_len > PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE:
+				raise forms.ValidationError('Title {} characters se bara nahi likhein'.format(PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE))
+			return clear_zalgo_text(text)
+		else:
+			return ''
 
 
 class PersonalGroupSMSForm(forms.Form):

@@ -1,0 +1,67 @@
+{% extends "base_pg.html" %}
+{% block content %}
+<head><title>Private chat help page 2 | Damadam.pk</title></head>
+<style>
+
+body
+
+{background: #E9EBEE}
+
+
+
+.help {
+
+	display: flex;
+	justify-content: flex-start;
+	border-bottom: 1px solid lightgrey;
+	
+}
+
+.helpitem {
+	padding:10px;
+}
+
+.nav-btn {
+
+	display:inline-block;
+	font-weight:bold;
+	 background-color:white; 
+	 border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+    border-style: solid;
+    border-width: 1px;
+    padding: 1px 7px 2px;"
+}
+
+</style>
+
+<body>
+	<div style="margin:0 auto; text-align:center;">
+	<h1 class="cxl"> Help Menu </h1>
+</div>
+<div class="bizcard" style="width:90%;  margin:0 auto; max-width:500px; border-radius:6px; background-color: white;">
+
+<div class="help">
+	<div class="helpitem"><img src="/static/img/delundel.svg"></div>
+	<div class="helpitem"> Ap apni sari chat aik hi button daba kar mita sakte hain</div>
+</div>
+
+<div class="help">
+	<div class="helpitem"><img src="/static/img/sv.svg"></div>
+	<div class="helpitem"> Is main 3 option hain:
+		<ul> <b>- Allow Saving:</b> Ap doosray ko apki chat save karne ki ijazat de sakte hain</ul>
+		<ul> <b>- Delete:</b> Ap apni tamam saved chat aik saath delete kar sakte hain</ul>
+		<ul> <b>- All Saved Chat:</b> Ap apni tamam saved chat ko dekh sakte hain</ul>
+	</div>
+</div>
+
+</div>
+
+<br>
+<div style="text-align:center">
+<a href="{% url 'personal_group_help1'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">1</button></a>
+<a href="{% url 'personal_group_help2'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">2</button></a>
+<a href="{% url 'personal_group_help3'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:black">3</button></a>
+<a href="{% url 'personal_group_help4'%}#section0" ><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090;">4</button></a></div>
+<br><br>
+
+{% endblock %}

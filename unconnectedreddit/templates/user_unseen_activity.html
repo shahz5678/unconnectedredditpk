@@ -97,7 +97,7 @@
 				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 			{% endif %}
 			</div>
-		{% elif notif.type == 'img' or notif.type == 'img_res' %}
+		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
 			<div class="cs sp mbl">Photo ayi {{ notif.lrti|human_time }}:</div>
 			<form action="{% url 'enter_personal_group' %}" method="POST">
 			{% csrf_token %}
@@ -219,7 +219,7 @@
 				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 			{% endif %}
 			</div>
-		{% elif notif.type == 'img' or notif.type == 'img_res' %}
+		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
 			<div class="cs sp mbl">new photo ayi {{ notif.lrti|human_time }}:</div>
 			<form action="{% url 'enter_personal_group' %}" method="POST">
 			{% csrf_token %}
@@ -507,8 +507,15 @@
 		{% endif %}
 
 	{% if notif.s == 'True' %}
-		<div class="cs sp cgy" style="overflow:hidden">photo by <a href="{% url 'profile' notif.oon %}" class="cgy"><div style="border-bottom:1px dotted #808080;display:inline-block">{{ notif.oon }}</div></a></div>
-		<div class="mtl">
+		<div class="cs sp cgy" style="overflow:hidden">
+		photo by <a href="{% url 'profile' notif.oon %}" class="cgy mrs" style="border-bottom:1px dotted #808080;display:inline-block">{{ notif.oon }}</a>
+		<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+	      {% csrf_token %}
+	    <input type="hidden" name="pl" value="{{ notif.oon }}:{{ notif.oi }}:5:{{ notif.ooi }}:{{ notif.od }}">
+	    <button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ notif.p }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+	    </form>
+		</div>
+		<div class="mts">
 		{% if notif.nc != 'True' %}
 			<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=user_id %}">
 			<button class="btn nw mbs mrl sp" style="color:#808080;background-color:#F8F8F8;border:1px solid #B8B8B8;height:30px;padding-left:10px;padding-right:10px;">
@@ -553,7 +560,14 @@
 		</div>
 		</div>
 	{% else %}
-	<div class="cs sp co" style="overflow:hidden">photo by <a href="{% url 'profile' notif.oon %}" class="co"><div style="border-bottom:1px dotted #e6b800;display:inline-block">{{ notif.oon }}</div></a></div>
+	<div class="cs sp co" style="overflow:hidden">
+	photo by <a href="{% url 'profile' notif.oon %}" class="co mrs" style="border-bottom:1px dotted #e6b800;display:inline-block">{{ notif.oon }}</a>
+	<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+      {% csrf_token %}
+    <input type="hidden" name="pl" value="{{ notif.oon }}:{{ notif.oi }}:5:{{ notif.ooi }}:{{ notif.od }}">
+    <button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ notif.p }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+    </form>
+	</div>
 	<div class="mtl">
 	{% if notif.nc != 'True' %}
 		<a href="{% url 'comment_pk' pk=notif.oi origin=4 ident=notif.ooi %}">

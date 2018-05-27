@@ -22,10 +22,19 @@ body{background: #E9EBEE}
 
 </style>
 
+<div style="margin:0 auto;max-width:520px;width:92%;">
 <div style="margin:0 auto; text-align:center">
-	<h1 class="clb cxl">Private Chat Help</h1>
+	<h1 class="clb cxl mbs">Private Chat Help</h1>
 </div>
-<div class="clb bizcard" style="width:90%;  margin:0 auto; max-width:500px; border-radius:6px; background-color: white;">
+
+{% if tid %}
+<form method="POST" style="text-align:center" class="mbl" action="{% url 'enter_personal_group' %}" >
+{% csrf_token %}
+<button name="tid" value="{{ tid }}" class="cl" style="padding:0;background:0 0;border:none;border-bottom:1px dotted #666666;color:#666666;border-radius:0">wapis</button>
+</form>
+{% endif %}
+
+<div class="clb bizcard cl" style="width:90%;  margin:0 auto; max-width:500px; border-radius:6px; background-color: white;">
 
 
 <div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
@@ -47,10 +56,16 @@ body{background: #E9EBEE}
 <br>
 
 <div style="text-align:center">
-<a href="{% url 'personal_group_help1'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">1</button></a>
-<a href="{% url 'personal_group_help2'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:black">2</button></a>
-<a href="{% url 'personal_group_help3'%}#section0"><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090">3</button></a>
-<a href="{% url 'personal_group_help4'%}#section0" ><button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090;">4</button></a></div>
-<br><br>
 
+<form method="POST" style="display:inline" action="{% url 'personal_group_help1'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">1</button></form>
+
+<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:black">2</button>
+
+<form method="POST" style="display:inline" action="{% url 'personal_group_help3'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">3</button></form>
+
+<form method="POST" style="display:inline" action="{% url 'personal_group_help4'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">4</button></form>
+
+</div>
+<br><br>
+</div>
 {% endblock %}

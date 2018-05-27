@@ -242,7 +242,7 @@ img.yt_img:hover{
                                     <div class="mbs">{% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}</div>
                                 {% elif blob.t_type == 'text' %}
                                     <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
-                                {% elif blob.t_type == 'img' %}
+                                {% elif blob.t_type == 'img' or blob.t_type == 'shared_img' %}
                                     
                                       {% if blob.t_hidden == 'yes' %}
                                       <div class="mbl mtl">
@@ -250,6 +250,7 @@ img.yt_img:hover{
                                       </div>
 
                                       {% else %}
+
                                         <div class="mbl mtl">
                                           {% personal_group_small_photo img_url=blob.t_content|s3:'thumb' img_caption=blob.t_img_s_caption|emoticons css_shadow='sh-l' static_url=STATIC_URL %}
                                         </div>
@@ -300,6 +301,29 @@ img.yt_img:hover{
                                  {% personal_group_url_meta_data doc=tup.5 url=tup.6 url_desc=tup.7 url_title=tup.8 url_img=tup.9 url_height=tup.10|url_img_height is_youtube=tup.11 static_url=STATIC_URL %}
                                  {% endif %}
   
+                             {% elif tup.2 == 'shared_img' %}
+
+                              {% if tup.7 == 'no' %}
+                               <div class="mbs">
+                                 {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-r' max_width=tup.8 static_url=STATIC_URL original_poster=tup.11 %}  
+                               </div>
+
+                               {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 original_poster=tup.11 %}
+
+                               <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+
+                              {% elif tup.7 == 'yes' %}
+
+                                <div class="mbs">
+                                  {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-r' right_align='ral' %}
+                                </div>
+
+                                {% personal_group_own_chat_buttons blob_id=blob.blob_id tid=tid index=tup.1 username=blob.username av_url=blob.av_url tt=tup.2 ct=tup.3 img_caption=tup.6 pt=tup.4 is_res=blob.which_blob id_name="minus-bl" static_url=STATIC_URL own_anon_status=own_nick their_anon_status=their_nick img_width=tup.8 original_poster=tup.11 %}
+
+                                <span class="sp cxs cgy">{{ tup.4|human_time }}</span>
+
+                              {% endif %}
+
                              {% elif tup.2 == 'img' %}
                              
                                 {% if tup.7 == 'no' %}
@@ -432,7 +456,7 @@ img.yt_img:hover{
                                     </div>
                                   {% elif blob.t_type == 'text' %}
                                       <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
-                                  {% elif blob.t_type == 'img' %}
+                                  {% elif blob.t_type == 'img' or blob.t_type == 'shared_img' %}
                                       
                                      {% if blob.t_hidden == 'no' %}
                                        
@@ -489,10 +513,32 @@ img.yt_img:hover{
                                  {% personal_group_url_meta_data doc=tup.5 url=tup.6 url_desc=tup.7 url_title=tup.8 url_img=tup.9 url_height=tup.10|url_img_height is_youtube=tup.11 static_url=STATIC_URL %}
                                  {% endif %}
 
+                           {% elif tup.2 == 'shared_img' %}
+
+                              {% if tup.7 == 'no' %}
+                                <div class="mbs">
+                                  {% if last_seen_time < tup.4 %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
+                                  {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL original_poster=tup.11 %}<br>
+                                </div>
+
+                                <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
+
+                              {% elif tup.7 == 'yes' %}
+
+                                <div class="mbs">
+                                  {% personal_group_hidden_pht_big max_width=tup.8 hw_ratio=tup.9 css_shadow='sh-l' right_align='' %}
+                                </div>
+
+                                <div class="sp cxs cgy mrl" style="display:inline">{{ tup.4|human_time }}</div>  
+                                {% personal_group_their_chat_buttons blob_id=blob.blob_id target_id=tid username=blob.username av_url=blob.av_url posting_time=tup.4 content_type=tup.2 index=tup.1 img_caption=tup.6 main_content=tup.3 static_url=STATIC_URL img_s_caption=tup.5 incl_hide=tup.2 hide_key=tup.7 img_id=tup.10 their_nick=their_nick own_nick=own_nick img_width=tup.8 is_res=blob.which_blob %}
+
+                              {% endif %}
+
                            {% elif tup.2 == 'img' %}
                          
                               {% if tup.7 == 'no' %}
-                               
+
                                 <div class="mbs">
                                   {% if last_seen_time < tup.4 %}<div class="new-dot" style="position: absolute;z-index: 1;"></div>{% endif %}
                                   {% personal_group_big_photo img_url=tup.3|s3 img_caption=tup.6|urlize|url_target_blank|emoticons css_shadow='sh-l' max_width=tup.8 static_url=STATIC_URL %}<br>

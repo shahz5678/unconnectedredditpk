@@ -2,7 +2,7 @@ from django import template
 
 register = template.Library()
 
-@register.inclusion_tag(file_name='personal_group/shared_urls/personal_group_url_meta_data.html')
+@register.inclusion_tag(file_name='personal_group/sharing/personal_group_url_meta_data.html')
 def personal_group_url_meta_data(doc, url, url_desc, url_title, url_img, url_height, is_youtube, static_url):
 	"""
 	'doc' stands for degree of completeness (of retrieved metadata):

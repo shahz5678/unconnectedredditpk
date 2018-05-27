@@ -26,9 +26,9 @@
 
   <div class="mbl" style="text-align:center">  
   {% if own_profile %}
-  {% group_button user.id user.id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">Your profile and photos:</h1>
+  {% group_button user.id user.id slug 'profile' 'profile_photos' slug %}&nbsp;<h1 class="cl" style="display:inline">Your profile and photos:</h1>
   {% else %}
-  {% group_button user.id star_id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
+  {% group_button user.id star_id slug 'profile' 'profile_photos' slug %}&nbsp;<h1 class="cl" style="display:inline">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
   {% endif %}
   </div>
 {% if page_obj.number == 1 %}
@@ -175,7 +175,7 @@
       {% endif %}
      
 
-      <div style="font-weight:bold;overflow:hidden" class="cb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></div>
+      <div style="font-weight:bold;overflow:hidden" class="clb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></div>
 
       {% if time_remaining == '-2' %}
       <img class="iw ibg mt" src="{{ photo.image_file|s3 }}" style="border-radius:12px" alt="{{ photo.caption }}">
@@ -183,7 +183,14 @@
       <img class="iw ibg mt" src="{{ photo.image_file|s3:'thumb' }}" style="border-radius:12px" alt="{{ photo.caption }}">
       {% endif %}
       
-      <div class="mt mbs cxs lsp sp cgy">uploaded {{ photo.upload_time|naturaltime }}</div>
+      <div class="mt mbs lsp">
+      <span class="cgy sp cxs mrs">uploaded {{ photo.upload_time|naturaltime }}</span>
+      <form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="pl" value="{{ subject.username }}:{{ photo.id }}:4:{{ star_id }}:{{ photo.caption }}">
+      <button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ photo.image_file }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+      </form>
+      </div>
 
       {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}
         {% vote_buttons vote_type='photo_vote' pid=photo.id origin=4 oun=subject.username static_url=STATIC_URL %}

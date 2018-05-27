@@ -125,7 +125,7 @@
 					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				{% endif %}
 				</div>
-			{% elif parent.type == 'img' or parent.type == 'img_res' %}
+			{% elif parent.type == 'img' or parent.type == 'img_res' or parent.type == 'shared_img' %}
 				<div class="cs sp mbl">New photo:</div>
 				<form action="{% url 'enter_personal_group' %}" method="POST">
 				{% csrf_token %}
@@ -139,9 +139,9 @@
 				</form>
 				<div class="mbs" style="overflow:hidden">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-					<a href="{% url 'profile' parent.lrsn %}" class="cb">{{ parent.lrsn|truncap }}</a>:
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
 				{% else %}
-					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>:
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
 				{% endif %}
 				{% if parent.h == 'no' %}
 					{% if parent.lrtx %}

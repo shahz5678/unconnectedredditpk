@@ -2234,11 +2234,30 @@ def personal_group_user_listing(request):
 #################################################### Help Page #####################################################
 ####################################################################################################################
 
-def personal_group_help(request):
-	"""
-	"""
-	return render(request,"personal_group/help/personal_group_help.html",{})
 
+def personal_group_help1(request):
+	"""
+	"""
+	return render(request,"personal_group/help/personal_group_help1.html",{})
+
+
+def personal_group_help2(request):
+	"""
+	"""
+	return render(request,"personal_group/help/personal_group_help2.html",{})
+
+
+def personal_group_help3(request):
+	"""
+	"""
+	return render(request,"personal_group/help/personal_group_help3.html",{})
+
+
+def personal_group_help4(request):
+	"""
+	"""
+	return render(request,"personal_group/help/personal_group_help4.html",{})
+	
 def private_chat_help_ad(request):
 	"""
 	"""

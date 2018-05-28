@@ -2510,6 +2510,7 @@ def share_photo_in_personal_group(request):
 				context["no_friends"] = True
 			else:
 				context["friend_data"] = group_and_friend
+				context["num_friends"] = len(group_and_friend)
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:
 		return redirect("missing_page")

@@ -708,7 +708,8 @@ def personal_group_own_chat_buttons(request):
 				'their_tgt_nick':their_nick,'their_css_shadow':'sh-l','shadow_base_color':'#00E699','usr':username,'aurl':av_url,'idx':index,'ct':content,\
 				'tt':tt,'img_width':img_width,'time':posting_time,'img_cap':image_caption,'t_usr':target_username,'is_res':is_res,'tid':target_id,\
 				't_aurl':target_av_url,'t_st':target_status,'t_tt':target_content_type,'t_time':target_posting_time,'t_ct':request.POST.get('rpl_ct',None),\
-				't_img_cap':request.POST.get('t_isc',None),'bclass':PERSONAL_GROUP_OWN_BORDER,'their_bclass':PERSONAL_GROUP_THEIR_BORDER})
+				't_img_cap':request.POST.get('t_isc',None),'bclass':PERSONAL_GROUP_OWN_BORDER,'their_bclass':PERSONAL_GROUP_THEIR_BORDER,\
+				'original_poster':request.POST.get('op',None)})
 		else:
 			return redirect("enter_personal_group")
 	else:
@@ -743,7 +744,7 @@ def personal_group_their_chat_buttons(request):
 			else:
 				return redirect("missing_page")	
 		elif decision == '2':
-			# save post, generalize all if clauses
+			# save their post, generalize all if clauses
 			payload = request.POST.get('pl',None)
 			payload = payload.split(":")
 			try:
@@ -783,7 +784,7 @@ def personal_group_their_chat_buttons(request):
 					'own_tgt_nick':own_nick,'their_css_shadow':'sh-r','shadow_base_color':'#68D0FD','usr':usr,'aurl':av_url,'tt':tt,'t_time':t_time,'t_usr':t_usr,\
 					'ct':request.POST.get('pl_ct',None),'idx':idx,'img_cap':request.POST.get('cp',None),'img_width':img_width,'time':time,'is_res':is_res,'tid':tid,\
 					't_st':t_st,'t_tt':t_tt,'t_ct':request.POST.get('t_pl_ct',None),'t_img_cap':request.POST.get('t_scp',None),'their_bclass':PERSONAL_GROUP_OWN_BORDER,\
-					't_aurl':t_aurl})
+					't_aurl':t_aurl,'original_poster':request.POST.get('op',None)})
 		elif decision == '3':
 			# hide/unhide
 			payload = request.POST.get('pl',None)

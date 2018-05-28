@@ -52,7 +52,7 @@
 		
 		<div style="text-align:center">
 		<img src='{{ photo_url|s3:"thumb" }}' style="border-radius:5px;overflow:hidden;background-color:#f9e1bb;text-align:left" height="38" class="cxs sp mrs" alt="pic">
-		<span class="cs clb">{{ photo_caption|truncatechars:'23' }}</span>
+		<span class="cs clb">{% emoticons %}{{ photo_caption|truncatechars:'23' }}{% endemoticons %}</span>
 		</div>
 
 		{% if no_friends %}

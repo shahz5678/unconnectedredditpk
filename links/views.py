@@ -4463,20 +4463,6 @@ def best_photos_list(request,*args,**kwargs):
 				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
 				context["page"] = page_obj
 				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-				# photos = cache.get('best_photos'+str(page_num))
-				# page_obj = cache.get('best_photos_page_obj'+str(page_num))
-				# if page_obj:
-				# 	context["page"] = page_obj	
-				# else:
-				# 	obj_list = all_best_photos()
-				# 	obj_list_keys = map(itemgetter(0), obj_list)
-				# 	page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-					# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
-				# if photos:
-				# 	context["object_list"] = photos
-				# else:
-				# 	context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-					# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = user.username

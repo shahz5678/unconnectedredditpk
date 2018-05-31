@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Public group refreshing error | Damadam.pk</title></head>
 <div class="margin clb">
-<h2>Damadam ka sans hi nikal gya! {% emoticons %}:p{% endemoticons %}</h2>
+<h2>Damadam ka sans hi nikal gya! {% emoticons %}:({% endemoticons %}</h2>
 {% if unique == 'none' %}
 <a href="{% url 'group_page' %}">
 <button class="btn bcp bm">wapis</button></a>

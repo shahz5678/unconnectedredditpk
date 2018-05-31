@@ -1,0 +1,25 @@
+{% extends "base_pg.html" %}
+{% load truncap %}
+{% load s3 %}
+{% block content %}
+<head><title>Mobile verification for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+
+	<div class="card mtl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Apka mobile verify ho gya, ab ap private chat ki <img src="{{ STATIC_URL }}img/sms.svg" width="27" height="27" alt="sms" style="vertical-align:text-bottom"> setting mein ja kar SMS receive kar saktey hain</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy">
+			{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<b>{{ name|truncatechars:15 }}</b>{% endif %} ke sath private chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+
+</div>
+<br><br>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Photo shared by {{ own_uname }} | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+	<img src='{{ photo_url|s3:"thumb" }}' style="border-radius:5px;overflow:hidden;background-color:#f9e1bb;text-align:left" height="38" class="cxs sp mrs" alt="pic">
+	<span class="cs cgy">{% emoticons %}{{ photo_caption|truncatechars:'23' }}{% endemoticons %}</span>
+
+	<hr size=1 COLOR="#E9EBEE">
+	
+	{% if allwd_friends %}
+		<div class="mt">
+		
+		{% if num_sent > 1 %}
+			
+			<div class="cl mbs lsp">Ye foto in dostoon ke sath share kar di geyi:</div>
+			
+			<form class="lsp" method="POST" action="{% url 'enter_personal_group' %}">
+			{% csrf_token %}
+			{% for friend in allwd_friends %}
+			{% if friend.is_anon == '1' %}<button name="tid" style="background:0 0;border:0;padding:0" value="{{ friend.friend_id }}"><div class="av_btn sbb cl mrs" style="width:22px;height:22px;color:#01579B;line-height:23px;vertical-align: text-bottom">{{ friend.friend_uname|truncap }}</div></button>{% else %}<button name="tid" style="background:0 0;padding:0;border:none" value="{{ friend.friend_id }}"><b class="cl" style="color:#01579B;border-bottom:1px dotted #01579B">{{ friend.friend_uname }}</b></button>{% endif %}
+			{% endfor %}
+			</form>
+
+		{% elif num_sent == 1 %}
+
+			<div class="cl lsp">{% if allwd_friends.0.is_anon == '1' %}Ye foto <form style="display:inline" method="POST" action="{% url 'enter_personal_group' %}">{% csrf_token %}<button name="tid" class="cm" value="{{ allwd_friends.0.friend_id }}" style="background:0 0;border:none;padding:0"><div class="av_btn cs sbb" style="width:22px;height:22px;color:#01579B;line-height:23px">{{ allwd_friends.0.friend_uname|truncap }}</div></button></form> ke sath share kar di geyi{% else %}Ye foto <form style="display:inline" method="POST" action="{% url 'enter_personal_group' %}">{% csrf_token %}<button class="cm" name="tid" style="font-weight:bold;background:0 0;border:none;padding:0;color:#01579B;border-bottom:1px dotted #01579B" value="{{ allwd_friends.0.friend_id }}">{{ allwd_friends.0.friend_uname }}</button></form> ke sath share kar di geyi{% endif %}</div>
+
+		{% endif %}
+		
+		</div>
+	{% endif %}
+
+	{% if disallwd_friends %}
+		<div class="mt">
+		{% if num_unsent > 1 %}
+			<div class="cl lsp cgy">Sorry! Ye foto in dostoon ko nahi bheji ja saki kiyun ke inhoon ne apko foto bhejney ki ijazat nahi di hui:</div>
+			
+			<form class="lsp" method="POST" action="{% url 'enter_personal_group' %}">
+			{% csrf_token %}
+			{% for friend in disallwd_friends %}
+			{% if friend.is_anon == '1' %}<button name="tid" style="background:0 0;border:0;padding:0" value="{{ friend.friend_id }}"><div class="av_btn mrs" style="border:1px solid lightgray;width:22px;height:22px;color:gray;line-height:23px;vertical-align: text-bottom">{{ friend.friend_uname|truncap }}</div></button>{% else %}<button name="tid" style="background:0 0;padding:0;border:none" value="{{ friend.friend_id }}"><b class="cl cgy mrs" style="border-bottom:1px dotted gray">{{ friend.friend_uname }}</b></button>{% endif %}
+			{% endfor %}
+			</form>
+			
+		{% elif num_unsent == 1 %}
+			<div class="cl lsp cgy">{% if disallwd_friends.0.is_anon == '1' %}Sorry! Ye foto <form method="POST" action="{% url 'enter_personal_group' %}" style="display:inline">{% csrf_token %}<button name="tid" class="cm" style="background:0 0;padding:0;border:none" value="{{ disallwd_friends.0.friend_id }}"><div class="av_btn" style="border:1px solid lightgray;width:22px;height:22px;color:gray;line-height:23px">{{ disallwd_friends.0.friend_uname|truncap }}</div></button></form> ko nahi bheji geyi kiyun ke us ne apko foto bhejney ki ijazat nahi di hui{% else %}Sorry! Ye foto <form method="POST" action="{% url 'enter_personal_group' %}" style="display:inline">{% csrf_token %}<button name="tid" class="cm" style="font-weight:bold;border:none;border-bottom:1px dotted gray;background:0 0;padding:0;color:gray" value="{{ disallwd_friends.0.friend_id }}">{{ disallwd_friends.0.friend_uname }}</button></form> ko nahi bheji geyi kiyun ke us ne apko foto bhejney ki ijazat nahi di hui{% endif %}</div>
+		{% endif %}
+		</div>
+	{% endif %}
+
+	{% if origin == '1' %}
+	<a href="{% url 'home' %}">
+	{% elif origin == '2' %}
+	<a href="{% url 'best_photo_loc_pk' photo_id %}">
+	{% elif origin == '3' %}
+	<a href="{% url 'see_photo_pk' photo_id %}">
+	{% elif origin == '4' %}
+	<a href="{% url 'user_profile_photo' photo_owner_username photo_id %}">
+	{% elif origin == '5' %}
+	<a href="{% url 'unseen_activity' user.username %}">
+	{% else %}
+	<a href="{% url 'home' %}">
+	{% endif %}
+	<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:27px">wapis</button>
+
+</div>
+<br><br>
+{% endblock %}

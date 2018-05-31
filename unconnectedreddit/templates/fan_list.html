@@ -3,17 +3,18 @@
 {% load get_block_button %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>User fans | Damadam.pk</title></head>
     <div class="margin">
         {% if not fans %}
-        <b class="clb">
+        <b class="clb cl">
         {% emoticons %}Abhi tak koi fan nahi hai ;({% endemoticons %}</b>
-        <br><br>
+        <br>
             <a href="{% url 'profile' star.username %}#section0">
-            <button class="btn bcg mtl mbl bm">wapis</button>
+            <button class="btn bcg mtl mbl sp bm" style="height:25px">wapis</button>
             </a>
         {% else %}
         {% if user == star %}
-        <b><a href="{% url 'profile' user.username %}#section0">Tumhare</a> {{count}} fans:</b><br>
+        <b><a href="{% url 'profile' user.username %}#section0">Apke</a> {{count}} fans:</b><br>
         {% else %}
         <b><a href="{% url 'profile' star.username %}#section0">{{ star.username }}</a> ke {{ count }} fans:</b><br>
         {% endif %}
@@ -25,9 +26,9 @@
         <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}.</span>
         <a href="{% url 'profile' slug=fan.username %}#section0">
     	{% if fan.userprofile.avatar %}
-    		<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
+    		<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic">
     	{% else %}
-    		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+    		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
     	{% endif %}
         {{ fan.username }}</a>{% if fan.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
     	{% if fan.userprofile.score %}

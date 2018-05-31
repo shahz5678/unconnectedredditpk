@@ -25,6 +25,13 @@ def process_buyer_sms(target_number,order_id,order_data, buyer_number=None):
 
 
 
+def send_personal_group_sms(mobile_number, sms_text):
+	"""
+	Send SMS to personal group user, inviting them online
+	"""
+	message = client.messages.create(to=mobile_number, from_="+18328955063",body=sms_text)
+
+
 # def process_bulk_sms(target_number_list, ad_ids=None, status=None, buyer_number_list=None):
 # 	for target_number in target_number_list:
 # 		body = "Damadam pe apka muft ad khatam ho gaya hai. Neya ad laganey ke liye yahan ao: https://damadam.pk/kuch_baicho/"
@@ -33,6 +40,9 @@ def process_buyer_sms(target_number,order_id,order_data, buyer_number=None):
 
 
 def bind_user_to_twilio_notify_service(user_id,phone_number):
+	"""
+	Twilio bindings are helpful in sending bulk SMSes
+	"""
 	binding = service.bindings.create(
 		identity=user_id,
 		binding_type='sms',

@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Leave {{ topic }} | Damadam.pk</title></head>
 <div class="margin clb">
 <b class="cl"><span class="cg">{% emoticons %}{{ topic }}</span> ko chorna hai? .j1{% endemoticons %}</b>
 <br class="mbl">
-<a href="{% url 'left_private_group' pk unique private %}"><button class="btn bcg bm mbl mls">Haan</button></a><br>
+<form method="POST" action="{% url 'left_private_group' %}">{% csrf_token %}
+<input type="hidden" name="guid" value="{{ unique }}">
+<input type="hidden" name="prv" value="{{ private }}">
+<button type="submit" name="gid" class="btn bcg bm mbl mls" value="{{ pk }}">Haan</button>
+</form>
 {% if inside_grp == '1' %}
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcr mls mbs">Nahi</button></form>
 {% else %}

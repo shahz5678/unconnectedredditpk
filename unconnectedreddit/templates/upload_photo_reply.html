@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
+<head><title>Upload photo in response | Damadam.pk</title></head>
 <div class="margin">
 {% if authenticated %}
 <a href="{% url 'see_photo_pk' photo.pk %}">

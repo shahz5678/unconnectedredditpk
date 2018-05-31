@@ -11,7 +11,7 @@ def get_choices(num_list):
     nums = []
     for num in num_list:
         num = "0"+num
-        nums.append((num,num))
+        nums.append((num,'Woh number jis ke akhir mein {} hai'.format(num[-4:])))
     nums.append(('Kisi aur number pe','Kisi aur number pe'))
     return tuple(nums)
 

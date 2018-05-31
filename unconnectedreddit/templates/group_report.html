@@ -1,16 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Report user in public group | Damadam.pk</title></head>
 <div class="margin clb">
 {% if captain %}
-	<h2>Kiya tum is baat ko mita dena chahte ho?</h2>
-	<form action="{% url 'group_report' %}" method="POST">
+	<b class="cxl">Kya ap is baat ko mita dena chahtey hain?</b>
+	<form action="{% url 'group_report_pk' %}" class="mtl" method="POST">
 	{% csrf_token %}
-	</span><button type="submit" name="report" class="btn bcg bm" value="Haan mita do">Haan</button><br>
-	</span><button type="submit" name="report" class="btn bcr bm mtl" value="Nahi rehne do">Nahi</button>
+    <input type="hidden" name="slug" value="{{ unique }}">
+    <input type="hidden" name="pk" value="{{ reply_pk }}">
+	<button type="submit" name="repdec" class="btn bcg bm mrl mbs" value="1">Haan</button>
+	<button type="submit" name="repdec" class="btn bcr bm mts" value="0">Nahi</button>
 	</form>
 {% else %}
-	<h2>Tum is baat ko report nahi kr sakte</h2>
-	Ye kam sirf is mehfil ke afsar kr sakte hain!<br>
+	<b class="cxl cp">Ap is baat ko report nahi kar sakte</b>
+	<div class="mts cl">
+	Ye sirf is mehfil ke officer kar sakte hain!
+	</div>
 	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcp bm mtl mbs">wapis</button></a>
 {% endif %}
 </div><br><br>

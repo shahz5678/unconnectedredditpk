@@ -1,0 +1,44 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>Bulk delete (or restore) private messages | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+    <div style="text-align:center">
+        {% if their_anon %}
+          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+        {% else %}
+          <div class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</div>
+        {% endif %}
+    </div>
+    <hr size=1 COLOR="#ffeb3b">
+
+    <div class="mbs mtl">
+    <span class="lsp cl"><b>Delete</b>: Kya ap apni sari chat mita dena chahtey hain?</span>
+    </div>
+
+    <form action="{% url 'delete_all_posts_from_personal_group' %}" method="POST" class="mts mbl" style="text-align:center;">
+        {% csrf_token %}
+        <input type="hidden" name="tid" value="{{ tid }}">
+        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="dec" value="Cancel">
+    </form>
+
+    <hr size=1 COLOR="#e6e6e6">
+
+    <span class="lsp cl"><b>Restore</b>: Kya ap miti hui sari chat bahal karna chahtey hain?</span><br>
+    <div class="sp cgy mt cs">Ye option use karien agr ap ne chat mitai hai</div>
+
+    <form action="{% url 'delete_all_posts_from_personal_group' %}" method="POST" class="mts mbl" style="text-align:center;">
+        {% csrf_token %}
+        <input type="hidden" name="un" value="1">
+        <input type="hidden" name="tid" value="{{ tid }}">
+        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="dec" value="Cancel">
+    </form>
+
+</div>
+<br><br>
+
+{% endblock %}

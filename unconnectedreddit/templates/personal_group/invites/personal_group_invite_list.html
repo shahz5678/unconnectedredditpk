@@ -1,0 +1,147 @@
+{% extends "base_pg.html" %}
+{% load get_private_chat_navbar %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% load next_page %}
+{% load prev_page %}
+{% block content %}
+<head><title>{{ user.username }}'s private chat invite list | Damadam.pk</title></head>
+<style type="text/css">
+	body{background: #E9EBEE}
+	.pages{
+		border:1px solid #E6E6E6;
+		padding:2px 10px;
+		border-radius:6px;
+		background-color:#F0F3F4;
+	}
+	button.pages:focus{
+        background-color:#E6E6E6;
+ 	}
+ 	.curr_page{
+ 		border:2px solid #E6E6E6;
+		padding:2px 10px;
+		border-radius:6px;
+		background-color:#FDFDFD;
+ 	}
+</style>
+
+<div class="clb lsp" style="max-width:450px;width:92%;padding-left:5px;padding-right:5px;margin:0 auto">
+
+
+<div class="mbl" style="text-align:center;">
+	{% if invite_accepted %}
+		<div class="card" style="background-color:#FFFAF0;padding-top:10px;">
+			{% load s3 %}
+			{% load truncap %}
+			<span class="cxl">Ap ne {% if is_anon %}<b>{{ t_username|truncap  }}</b>{% else %}<img src="{{ t_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ t_username|truncatechars:15 }}</b>{% endif %} ka invite qabool kar lia</span>
+			<hr size=1 COLOR="#E6E6E6">
+			<div class="mt cl cgy">
+				Chat shuru karney ke liye OK dabain:<br>
+				<form method="POST" action="{% url 'enter_personal_group' %}">
+					{% csrf_token %}
+					<input type="hidden" name="tid" value="{{ tid }}">
+					<button type="submit" class="btn bcb bs mtl" style="border:none;height:30px">OK</button>
+				</form>
+			</div>
+		</div>
+	{% else %}
+		{% private_chat_navbar static_url=STATIC_URL section='invites' %}
+		{% if num_pages < 2 %}
+		<h1 class="cxl">Chat invites</h1>
+		{% else %}
+		<div class="mtl fx fxjscn fxaicn">
+			<div>
+			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' %}">
+			<button style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|prev_page:num_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+			</form>
+			</div>
+			<!--  -->
+			<div><h1 style="display:inline" class="mls mrs cxl">Chat invites</h1></div>
+			<!--  -->
+			<div>
+			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' %}">
+			<button  style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|next_page:num_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+			</form>
+			</div>
+		</div>
+		{% endif %}
+	{% endif %}
+</div>
+
+<div class="bizcard mbl" style="background-color:white;width:95%;padding:10px;">
+{% for id_1, uname_1, id_2, uname_2, creation_time in invites %}
+	
+	<div class="mt cl lsp" style="text-align:left">
+
+		{% if own_id == id_1 %}
+			{% if forloop.counter != 1 %}<hr size=1 COLOR="#f2f2f2">{% endif %}
+			<div class="fx fxjssb fxaibl" style="color:#009973">	
+			{% if uname_1|slice:":1" == '*' %}
+			<div style="color:#808080">Ap ne nickname khufiya rakh ke <a href="{% url 'profile' uname_2 %}" style="color:#808080"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
+			{% else %}
+			<div style="color:#808080">Ap ne <a href="{% url 'profile' uname_2 %}" style="color:#808080"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
+			{% endif %}
+			</div>
+		{% elif own_id == id_2 %}
+			{% if forloop.counter != 1 %}<hr size=1 COLOR="#BFFFEF">{% endif %}
+			<div class="fx fxjssb fxaibl" style="color:#009973">	
+				{% if uname_1|slice:":1" == '*' %}
+			
+					<div><a href="{% url 'profile' uname_1|slice:"2:" %}" class="cb"><div class="av_btn" style="border: 1px #1947D1 solid;width:22px;height:22px;line-height: 23px;"><b>{{ uname_1|slice:"1:2" }}</b></div></a> ne apko invite kia</div>
+					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
+			
+				{% else %}
+			
+					<div><a href="{% url 'profile' uname_1 %}" class="cb"><b class="bw">{{ uname_1 }}</b></a> ne apko invite kia</div>
+					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
+			
+				{% endif %}
+			</div>
+
+			<form method="POST" action="{% url 'process_personal_group_invite' %}" style="text-align:center;" class="mts mbs">
+			{% csrf_token %}
+			<input type="hidden" name="tid" value="{{ id_1 }}">
+			<button type="submit" class="acc acc-bg mrl" style="background-color:#00cc99;padding:1px 10px 2px 10px;height:23px" name="sel" value="1"><img src="{{ STATIC_URL }}img/check.svg"></button>
+			<button type="submit" class="acc acc-bg mll" style="background-color:#ff9980;padding:2px 10px 2px 10px;height:23px" name="sel" value="0"><img src="{{ STATIC_URL }}img/cross.svg"></button>
+			</form>
+		{% endif %}
+	</div>
+	{% empty %}
+		{% if invite_accepted %}
+		<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
+		<span class="cxl cgy">Invite list khali ho geyi</span>
+		</div>
+		{% else %}
+		<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
+		<span class="cxl">Ye khali hai</span>
+		<hr size=1 COLOR="#f2f2f2">
+		<span class="cl cgy">Kisi bhi user ko friend bana ke private chat mein invite karney ke liye uskay nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+						<div id="line"></div>
+						<div id="line"></div>
+						<div id="line" style="width: 8px"></div>
+						</button> button dabain</span>
+		<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bm sp" style="height:23px">wapis</button></a></div>
+		</div>
+		{% endif %}
+
+{% endfor %}
+</div>
+	{% if num_pages > 1 %}
+		<div style="text-align:center">
+		<form method="GET" action="{% url 'show_personal_group_invite_list' %}">
+		{% for page_num in pages %}
+			{% if current_page == page_num %}
+			<button class="mrs curr_page cl" name="page" value="{{ page_num }}" style="display:inline-block;font-weight:bold">{{ page_num }}</button>
+			{% else %}
+			<button class="mrs pages" name="page" value="{{ page_num }}" style="display:inline-block;color:#909090">{{ page_num }}</button>
+			{% endif %}	
+		{% endfor %}
+		</form>
+		</div>
+	{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

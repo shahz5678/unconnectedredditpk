@@ -1,12 +1,79 @@
+<style>
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
+}
+
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
+}
+
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px; 
+ max-width:98%; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
+
+</style>
 {% extends "base.html" %}
 {% block content %}
-<div class="margin clb">
-<b class="cxl clb">Ap ka order hamarey pass aagya hai</b><br> 
-<b class="cxl clb">Hamari partner dukan ka numainda aap say jald rabta keray ga</b><br>
-<br>
-<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl"><b>wapis</b></button></a>
-<hr size=1 COLOR="#bfbfbf">
+<head><title>Order received | Damadam.pk</title></head>	
+<div style="text-align:center">
+  <div class="margin clb" style="display:inline-block">
+    <span itemscope itemtype="http://schema.org/Product">
+    <div  class="mbl background-box" style="text-align:center;background-color:#80acaa; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset;color:white">
+		<div class="cl" style="text-align:center;">
+			<b class="cl">Ap ka order hamarey pass aagya hai</b><br> 
+			<b class="cm" style="text-align:center;">Hamari partner dukan ka numainda <br>aap say jald rabta keray ga</b><br>
+			<br>
+			<a href="{% url 'home' %}"><button class="btn bco bl mtl mbl" style="background-color:#05f6cb;"><b>wapis</b></button></a>
 
+		</div>
+	</div>
 </div>
-<br><br>
+</div>
 {% endblock %}

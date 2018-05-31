@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="margin" style="color:#404040;"> 
+<head><title>Report user| Damadam.pk</title></head>
+<div class="margin clb"> 
 
 {% if target %}
 	<b style="font-size:105%;">Kya <span style="color:#229ec3;">{{target.username }}</span> ka nickname behooda hai?</b><br>
@@ -13,7 +14,7 @@
 	&nbsp;<input class="voting" type="submit" name="report" style="font-weight:bold;color:white;border-color: #cc0000;background: #FF1A1A;width:4em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);text-align: center;margin-top:0.3em;font-size:90%;" value="Nahi"><br>
 	</form>
 {% else %}
-	<b>Damadam ki yad daasht chali gaii! Tum kon ho?!</b>
+	<b>Damadam ki yad daasht chali gai!</b>
 {% endif %}
 	<br><br>
 

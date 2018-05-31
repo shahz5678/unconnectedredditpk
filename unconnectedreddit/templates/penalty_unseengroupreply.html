@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin">
 {% if not_member %}
 <h2>Is mehfil mein nahi likh saktey!&nbsp;{% emoticons %}.k2{% endemoticons %}</h2>
+{% elif not_verified %}
+<h2>Verify kiye beghair is mehfil mein nahi likh saktey!&nbsp;{% emoticons %}.k2{% endemoticons %}</h2>
 {% else %}
 <h2>Bar bar likhne pe apke <b class="cr">{{ penalty }}</b> points cut gaye!&nbsp;{% emoticons %}.g5{% endemoticons %}</h2>
 {% endif %}

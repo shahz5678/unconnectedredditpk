@@ -2,12 +2,18 @@
 {% load humanize %}
 {% load get_block_button %}
 {% load emoticons_tags %}
+{% load get_group_button %}
+{% load show_error %}
 {% load s3 %}
 {% block content %}
-<div class="margin clb">
+<head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div style="margin: 0 auto;max-width:600px;width:98%" class="clb">
 {% if error %}
     <span class="co"><b>Jawab nahi de sakte!</b></span>
 {% else %}
+<div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">
+<div style="overflow:hidden">
     <a href="{% url 'profile' slug=parent_submitter_username %}"><bdi>{{ parent_submitter_username }}</bdi></a>
     {% if authenticated and score > 25 %}
         {% if parent.submitter.userprofile.score < 0 %}
@@ -20,66 +26,54 @@
         {% if parent_submitter_username in ensured %}
             <span class="pinkstar"><b>*</b></span>
         {% endif %}
-    :&nbsp;<bdi class="clb cl bw">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy cxs mrs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
+    :&nbsp;<bdi class="clb cl bw lsp">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy sp cxs mrs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
     </span>
-    {% block_button parent.submitter_id parent_submitter_username user.id parent.id 'publicreply:link' STATIC_URL %}<br>
+    {% block_button parent.submitter_id parent_submitter_username user.id parent.id 'publicreply:link' STATIC_URL %}
+</div>
+
     <a name="sectionJ"></a> 
 
 
     {% if score < -9 %}
-        <b class="co">Tumhara score itna nahi ke jawab de sko</b>
+        <b class="co">Apka score itna nahi ke jawab de sako</b>
         <br><br>
     {% elif banned %}
-        <br><hr size=1 COLOR="#3cb7dd">
-        <span class="cr">Tum jawab de sko ge <b>{{ time_remaining }}</b> ke baad</span>
+        <br><hr size=1 COLOR="#d4eff7">
+        <span class="cr">Ap jawab de sakein ge <b>{{ time_remaining }}</b> ke baad</span>
         <br>
-        <span class="cm ct">Aese jawab na likho jo logoon ko burre lagein</span>
-         <hr size=1 COLOR="#3cb7dd">
+        <span class="cm ct">Aese jawab na likhein jo logoon ko burre lagein</span>
+         <hr size=1 COLOR="#d4eff7">
         <br>
     {% else %}
         <br>
         <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
             {% csrf_token %}
-            {% if form.description.errors %}
-            <span class="cr">{{ form.description.errors.0 }}</span>
-            {% else %}
-            <span class="cs ct"><b>Jawab likho:</b>
-            {% endif %}
+            {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<b class="ct">Jawab likhein:</b>{% endif %}
+            <input type="hidden" name="sk" value="{{ sk }}">
             <input type="hidden" name="user_id" value="{{ user.id }}">
             <input type="hidden" name="link_id" value="{{ parent.id }}">
             <input type="hidden" name="lwpk" value="{{ parent.submitter_id }}">
-            <br class="mbs">
-            </span>{{ form.description }}
-        <br>
-        <button class="btn bm bct mbl mts mrl" type="submit" id="id_submit">OK</button>
+            {{ form.description }}
+            <button class="btn bm bct mbl mts mrl sp" type="submit" style="height:27px" id="id_submit">OK</button>
         </form>
-        <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="btn bms bco mrs mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></form><br>
+        <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="btn bms bco mrs mll" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;" name="lid" value="{{ parent.id }}" type="submit">&nbsp;</button></form>
 
     {% endif %}
-
-    {% if parent.reply_count == 0 %}
-    {% elif parent.reply_count < 26 %}
-        <span class="cs ct"><b>{{ parent.reply_count }}</b> jawab:</span><br>
-    {% else %}
-        <span class="cs ct">Pichle <b>25</b> jawab:</span><br>
-    {% endif %}
-
-    <table>
+    <div class="mts">
     {% for reply in replies %}
-    <tr><td>
+    
     {% if forloop.counter != 1 %}
-    <hr size=1 COLOR="#3cb7dd">
+    <hr size=1 COLOR="#d4eff7">
     {% endif %}
-    <span class="cxs ct">
-            {{ forloop.counter }}.
-        </span>
+    <div style="overflow:hidden">
+
         <a href="{% url 'profile' slug=reply.submitted_by %}#section0">
         {% if reply.submitted_by.userprofile.avatar %}
-            <img src="{{ reply.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
+            <img src="{{ reply.submitted_by.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="pic"></img>
             
         {% else %}
             
-            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic"></img>
             
         {% endif %}
         </a>
@@ -120,28 +114,29 @@
             </span>
                {% if reply.submitted_by.username in ensured %}  
                     <span class="pinkstar"><b>*</b></span>
-                {% endif %}:&nbsp;<bdi class="clb bw" style="overflow:hidden;">{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi>
-                <span class="cxs cgy mrs"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
+                {% endif %}:&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span>
+                <span class="cxs cgy mrs sp"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
 
             {% block_button reply.submitted_by_id reply.submitted_by.username user.id parent.pk 'publicreply:reply' STATIC_URL %}
      &nbsp;
         {% if user == parent.submitter %}
-        &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=parent.pk %}"><button class="btn bcgy bs cxs">hide</button></a>
+        &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=parent.pk %}"><button class="btn bcgy bs cxs"><b>hide</b></button></a>
         {% endif %}
         {% if user != reply.submitted_by %}
-        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by_id num=parent.pk %}"><button class=" btn bct bs cxs"><b>mehfil</b></button></a>
+        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by_id num=parent.pk %}"><button class="btn bct bs cxs"><b>mehfil</b></button></a>
         {% endif %}
+
     {% endif %}
-        <br>
-        </td></tr>
+    {% group_button user.id reply.submitted_by_id parent.pk 'home' 'publicreply' comment.submitted_by.username %}
+        </div>
+    
     {% endfor %}
-    </table>
-    <p style="margin-top:0.5em;"></p>
-    <hr size=1 COLOR="#3cb7dd">
-    <p style="margin-top:-0.9em;"></p>
-    <hr size=1 COLOR="#3cb7dd">
-    <span class="cs cgy"><b>Faces banane ke liye unke sath likhe harf likho:</b></span><br>
-    <span class="cs cgy"><b>.</b> zarur likhna&nbsp;</span><span class="cs">|</span>&nbsp;{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs">{% endif %}faces full list</a>
+    </div>
+</div>    
+
+    
+    <span class="cs cgy"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></span><br>
+    {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs sp">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emoji full list</a>
     {% emoticons_index as emoticons_list %}
     {% for emoticons in emoticons_list %}
     {% if forloop.counter in random %}

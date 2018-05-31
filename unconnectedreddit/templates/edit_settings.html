@@ -1,6 +1,7 @@
 {% extends "base.html" %}
                                
 {% block content %}
+<head><title>Edit user settings | Damadam.pk</title></head>
 <div class="margin">
 <h2>{{ user.username }} ke ikhtiyar</h2>
 <form method="post" action="">
@@ -13,7 +14,7 @@
   			<label for="{{ radio.id_for_label }}">
   			<td>
   				<span style="margin-left:2em;font-size:90%;">{{ radio.choice_label }}</span>
-  				<span style="margin:auto;">{{ radio.tag }}</span>
+  				<span class="ma">{{ radio.tag }}</span>
 			</td>
   			</label>
  		</tr>

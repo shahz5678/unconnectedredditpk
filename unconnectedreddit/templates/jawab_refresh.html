@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Home reply refreshing tutorial | Damadam.pk</title></head>
 <div class="margin clb">
 	
 	<form method="POST" action="{% url 'publicreply_view' %}">
 	{% csrf_token %}
 	<input type="hidden" name="lid" value="{{ lid }}">
 	<img src="{{ STATIC_URL }}img/rfrsh1.png" style="margin-right:0.6em;" alt="no pic" height="26" width="26"></a>
-	Ye button daba kr yahan pr agr new jawab aye hain toh woh dekhe ja sakte hain
+	Ye button daba ke yahan pe agar new jawab aye hain toh woh dekhe ja sakte hain
 	<br>
 	<button class="btn bct bl mbs mtl">Theek hai</button>
 	</form>

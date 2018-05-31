@@ -43,14 +43,10 @@ hash_name = "pcbah:"+str(user_id) #pcbah is 'profile cyber bullying abuse hash',
 hash_name = "ph:"+str(photo_id)
 hash_name = "poah:"+str(user_id) #poah is 'profile obscenity abuse hash', it contains latest integrity value
 set_name = "pgm:"+str(group_id) #pgm is private/public_group_members
-prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
 photo_report = "phr:"+str(photo_id) #photo report hash - contains all complaints, appended toegether
 list_name = "phts:"+str(user_id)
 hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 photo_payables = "pp:"+str(photo_id) #photo payables sorted set - contains all point amounts owed to all reporter ids
-prev_replies = "prp5:"+str(user_id) #prp5 is a set containing 5 previous replies
-prev_retort = "pr:"+str(user_id)
-prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
 prev_times = "pt6:"+str(user_id) # set 6 previous times
 photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
 hash_name = "pvb:"+str(user_id) #pub is 'photo vote ban'
@@ -97,9 +93,6 @@ FORTY_FIVE_SECS = 45
 
 VOTE_SPREE_ALWD = 6
 PHOTO_VOTE_SPREE_ALWD = 6
-
-SHORT_MESSAGES_ALWD = 3 # with an expiry of 3 mins, this means a max of 1 per min is allowed
-
 
 
 
@@ -762,6 +755,7 @@ def truncate_payload(payload):
 		raw_text_set = filter(None,payload.split('#el#'))[-5:] #just keeping the latest 5 entries
 		payload = '#el#'.join(raw_text_set)+"#el#" #reforming the payload
 	return payload
+	
 
 def retrieve_photo_posts(photo_id_list):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -775,18 +769,19 @@ def retrieve_photo_posts(photo_id_list):
 	result1 = pipeline1.execute()
 	count = 0
 	for hash_obj in result1:
-		if 'u' in hash_obj:
+		if 'u' in hash_obj:#'u' is image_url
 			list_of_dictionaries.append(hash_obj)
 		count += 1
 	return list_of_dictionaries 
 
 def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None,\
 	upload_time=None,invisible_score=None,caption=None,photo_owner_username=None,\
-	device=None):
-	my_server = redis.Redis(connection_pool=POOL)
+	device=None,from_fbs=None):
 	hash_name = "ph:"+str(photo_id)
 	mapping = {'i':photo_id,'oi':owner_id,'oa':owner_av_url,'u':image_url,'t':upload_time,\
-	'in':invisible_score,'ca':caption,'o':photo_owner_username,'d':device,'vi':'0','vo':'0'}
+	'in':invisible_score,'ca':caption,'o':photo_owner_username,'d':device,'vi':'0','vo':'0',\
+	'fbs':'1' if from_fbs else '0'}
+	my_server = redis.Redis(connection_pool=POOL)
 	my_server.hmset(hash_name, mapping)
 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
@@ -794,8 +789,11 @@ def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
 	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None, \
 	time=None):
-	my_server = redis.Redis(connection_pool=POOL)
+	"""
+	Adds comment to photo object (only if it exists)
+	"""
 	hash_name = "ph:"+str(photo_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(hash_name):
 		#################################Saving latest photo comment################################
 		existing_payload = my_server.hget(hash_name,'comments')
@@ -811,10 +809,11 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 
 
 
-
 def get_raw_comments(photo_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.hget("ph:"+str(photo_id),"comments")
+	"""
+	Returns comments associated to a photo
+	"""
+	return redis.Redis(connection_pool=POOL).hget("ph:"+str(photo_id),"comments")
 
 
 def ban_photo(photo_id,ban):
@@ -830,9 +829,9 @@ def ban_photo(photo_id,ban):
 			pass
 
 def add_vote_to_photo(photo_id, username, value,is_pinkstar, is_citizen):
-	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "vp:"+str(photo_id) #vv is 'voted photo'
 	hash_name = "ph:"+str(photo_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	already_exists = my_server.zscore(sorted_set, username)
 	if already_exists != 0 and already_exists != 1:
 		#add the voter's username and vote_value (for display later)
@@ -963,6 +962,11 @@ def never_posted_photo(user_id):
 		return True
 
 def get_recent_photos(user_id):
+	"""
+	Contains last 5 photos
+
+	This list self-deletes if user doesn't upload a photo for more than 4 days
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.lrange("phts:"+str(user_id), 0, -1)
 
@@ -1173,7 +1177,7 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	ph_cc=None, scr=None, cc=None, writer_pk=None, device=None, by_pinkstar=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-	av_url = av_url_formatting(av_url=av_url,categ=categ)
+	av_url = av_url_formatting(av_url=av_url,style='round',categ=categ)
 	scr = scr_formatting(scr)
 	device = device_formatting(device)
 	categ_head,categ_tail = category_formatting(categ)
@@ -1188,69 +1192,33 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 		# this announces public mehfil creation on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		'm':meh_url, 't':time.time(),'ch':categ_head,'ct':categ_tail}#,'p':pinkstar,'rb':reply_button }
-	elif categ == '3':
-		# this is a link about KARACHI KINGS
+	elif categ in ('3','4','5','7','8','9','10','11','12','13','14','15','16','18','19','20'):
+		# Relates to cricket:
+		# '3' Karachi Kings
+		# '4' Peshawar Zalmi
+		# '5' Lahre Qalandards
+		# '7' Quetta Gladiators
+		# '8' Islamabad United
+		# '10' New Zealand
+		# '11' South Africa
+		# '12' Pakistan
+		# '13' West Indies
+		# '14' India
+		# '15' Sri Lanka
+		# '16' England
+		# '18' World Eleven
+		# '19' Multan Sultans
+		# '20' Australia
+		# '9' Other cricket team
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '4':
-		# this is a link about PESHAWAR ZALMI
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '5':
-		# this is a link about LAHORE QALANDARS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }	
+		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}
 	elif categ == '6':
 		# this is a photo-containing link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		'aw':awld, 'h':hot_sc, 'i':img_url, 'v':v_sc, 'pi':ph_pk, 'pc':ph_cc, 't':time.time(),'ch':categ_head,'ct':categ_tail,\
 		'p':pinkstar }
-	elif categ == '7':
-		# this is a link about QUETTA GLADIATORS
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '8':
-		# this is a link about ISLAMABAD UNITED
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '9':
-		# this is a link about misc
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '10':
-		# this is a link about New Zealand Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '11':
-		# this is a link about South African Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '12':
-		# this is a link about Pakistani Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '13':
-		# this is a link about West Indian Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '14':
-		# this is a link about Indian Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '15':
-		# this is a link about Sri Lankan Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '16':
-		# this is a link about English Cricket
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	elif categ == '17':
 		# this is a link in Urdu
-		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
-		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
-	elif categ == '18':
-		# this is a link for World-XI Cricket
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
 		't':time.time(),'ch':categ_head,'ct':categ_tail,'p':pinkstar}#,'rb':reply_button }
 	# add the info in a hash
@@ -1291,58 +1259,11 @@ def get_latest_group_replies(group_id_list):
 	return pipeline1.execute()
 
 def set_latest_group_reply(group_id, reply_id):
+	"""
+	Used to populate group list
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.setex("lgr:"+str(group_id),reply_id,TWO_WEEKS)
-
-def set_prev_group_replies(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_group_replies = "pgrp5:"+str(user_id) # set 5 previous group replies
-	my_server.lpush(prev_group_replies,text)
-	my_server.ltrim(prev_group_replies, 0, 4)
-	my_server.expire(prev_group_replies,ONE_HOUR)
-
-def set_prev_replies(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_replies = "prp5:"+str(user_id) # set 5 previous replies
-	my_server.lpush(prev_replies,text)
-	my_server.ltrim(prev_replies, 0, 4)
-	my_server.expire(prev_replies,ONE_HOUR)
-
-def set_prev_retorts(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retorts = "pr5:"+str(user_id) # set 5 previous retorts
-	my_server.lpush(prev_retorts,text)
-	my_server.ltrim(prev_retorts, 0, 4)
-	my_server.expire(prev_retorts,ONE_HOUR)
-
-def set_prev_retort(user_id,text):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retort = "pr:"+str(user_id)
-	my_server.set(prev_retort,text)
-	my_server.expire(prev_retort,ONE_HOUR)
-
-def get_prev_group_replies(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_group_replies = "pgrp5:"+str(user_id)
-	return my_server.lrange(prev_group_replies,0,-1)
-
-def get_prev_replies(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_replies = "prp5:"+str(user_id)
-	return my_server.lrange(prev_replies,0,-1)
-
-def get_prev_retorts(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retorts = "pr5:"+str(user_id)
-	return my_server.lrange(prev_retorts,0,-1)
-
-def get_prev_retort(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_retort = "pr:"+str(user_id)
-	try:
-		return my_server.get(prev_retort).decode('utf-8')
-	except:
-		return "no string"
 	
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1989,24 +1910,6 @@ def delete_avg_hash(hash_list, categ=None):
 		else:
 			my_server.zrem("perceptual_hash_set", *hash_list)
 
-##############################short messages##############################
-
-def log_short_message(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	short_message = "sm:"+str(user_id)
-	my_server.incr(short_message)
-	my_server.expire(short_message,THREE_MINS)
-
-def many_short_messages(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	short_message = "sm:"+str(user_id)
-	if not my_server.exists(short_message):
-		return False
-	elif int(my_server.get(short_message)) > SHORT_MESSAGES_ALWD:
-		my_server.expire(short_message,TEN_MINS) #now ban the person for 10 mins
-		return True
-	else:
-		return False
 
 ############################saving ad feedback############################
 

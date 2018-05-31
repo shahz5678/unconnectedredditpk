@@ -1,3 +1,5 @@
+THUMB_HEIGHT = 38
+###############################################################################################################
 VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jhappi</b> di</span><br>',\
 '-1':'<span style="font-size:80%;color:#F4511E;"> ne bharey bazar mein <b>chupair</b> mari</span><br>',\
 '2': '<span style="font-size:80%;color:#009940;"> ne zordar <b>jhappi</b> di <b>(+20)</b></span><br>',\
@@ -22,19 +24,20 @@ PUBLICREPLY = 2 #score for leaving publicreply on a home 'link'
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 6 #aggregated 'visible_score' over previous 5 photos, above which your photo appears on home
 ###############################################################################################################
-CRICKET_SUPPORT_STARTING_POINT = 15 #score at which PSL support options open up
+CRICKET_SUPPORT_STARTING_POINT = 10 #score at which PSL support options open up
 CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
 'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
 'South Africa':'South Africa','New Zealand':'New Zealand', 'Pakistan':'Pakistan',\
 'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka','England':'England',\
-'World-XI':'World-XI'}
+'World-XI':'World-XI','Multan Sultans':'Sultans','Australia':'Australia'}
 CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
 'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10',\
-'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18'}
-CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni',\
+'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18',\
+'Multan Sultans':'19','Australia':'20'}
+CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Multan Sultans':'msu',\
 'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
 'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind',\
-'Sri Lanka':'slk','England':'eng','World-XI':'wxi'}
+'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 SEARCH_FEATURE_THRESHOLD = 100
@@ -58,7 +61,47 @@ MOST_DURATION = 336 # Two weeks in hours
 LEAST_DURATION = 168 # One week in hours
 TWILIO_NOTIFY_THRESHOLD = 20
 ###############################################################################################################
-NUMBER_VERIFICATION_THRESHOLD = 25
+NUMBER_VERIFICATION_THRESHOLD = 0
 NUMBER_VERIFICATION_BONUS = 500
 ###############################################################################################################
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
+###############################################################################################################
+PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
+'mismatch':'Rabta munqata ho gaya, phir se karien','generic':'Internet ka rabta munqata ho gaya, phir se karien'}
+PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki private chat mein bulaya'
+EXTRA_PADDING = 20 #used to adjust image sizes in cases where CSS uses box-sizing:border-box property
+PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye chat mita diye janey ki waja se save nahi ho saki',\
+'err3':'Ye chat hide honay ki waja se save nahi ho saki','err4':'Ye chat apkey save karney se pehlay delete ho geyi',\
+'err5':'Ap is chat ko save kar sakein ge ','err1':'Ye chat save nahi ho sakti','msg1':'Chat save kar di geyi',\
+'err6':'Ye chat save karney ke liye apni pichli saved chat mein se kuch delete karein',\
+'err7':'Ye chat pehlay bhi save ki ja chuki hai, dubara nahi ho sakti',\
+'err8':'Kharabi ho geyi, phir se koshish karein','err9':'Ap ko ye chat save karney ki ijazat nahi'}
+###############################################################################################################
+# helps in setting TTL on rate limits set on abusive users. Each key defines 'level' of offense, values are ttl
+BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
+RATELIMIT_TTL = {'0':60*5,'1':60*10,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
+SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
+FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
+LAZY_FLOODING_THRESHOLD = 7 # 7 seconds on avg between multiple sentences
+SHORT_MESSAGES_ALWD = 4
+MERCH = { 
+'1': {'price':'4200' ,'discounted_price':'4200', 'points_cost': '5000', 'discount':'Rs. 400', 'name':'Qmobile Noir X29' }, \
+'2': {'price':'4500' ,'discounted_price':'4500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir X33'}, \
+'3': {'price':'7800' ,'discounted_price':'7800', 'points_cost': '5000', 'discount':'Rs. 680', 'name':'QMobile Noir i8i'}, \
+'4': {'price':'6570' ,'discounted_price':'6570', 'points_cost': '5000', 'discount':'Rs. 730', 'name':'QMobile Noir i6 Metal One'}, \
+'5': {'price':'8100','discounted_price':'8100', 'points_cost': '5000', 'discount':'Rs. 900', 'name':'Samsung J1 Mini Prime'}, \
+'6': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 1070', 'name':'QMobile Noir S6'}, \
+'7': {'price':'7000','discounted_price':'6500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Noir 4G LT550'}, \
+'8': {'price':'8500','discounted_price':'8500', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Infinix Smart'}, \
+'9': {'price':'8840','discounted_price':'8840', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Huawei Y3 3G 2017'}, \
+'10': {'price':'9630','discounted_price':'9630', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'QMobile Energy X2'}, \
+'11': {'price':'13800','discounted_price':'13800', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung Galaxy Grand Prime Plus'}, \
+'12': {'price':'18900','discounted_price':'18900', 'points_cost': '5000', 'discount':'Rs. 500', 'name':'Samsung J5 Prime'}, \
+'13': {'price':'5500','discounted_price':'5500', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'QMobile Noir X36'}, \
+'14': {'price':'11300','discounted_price':'11300', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Huawei Ascend G700'}, \
+'15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
+}#PHONE MODELS
+###############################################################################################################
+SHARE_ORIGIN = {'2':'fresh_photos','3':'user_albums'}
+SHARED_PHOTOS_CEILING = 120
+PHOTO_DELETION_BUFFER = 15

@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Create public group | Damadam.pk</title></head>
 <div class="margin">
-<b class="cp">Apni mehfil ka mazedar sa topic dalo!</b><br>
+
 <form method="post" action="" method="POST">
 {% csrf_token %}
 
-	<span class="cr">{{ form.topic.errors }}</span>
+	{% if form.topic.errors %}<div class="cr mbs">{{ form.topic.errors.0 }}<br></div>{% else %}<b class="cp cl">Apni mehfil ka aik mazedar topic likhein:</b><br>{% endif %}
 	{{ form.topic }}<br>
 
-	<br><b class="cp">Mehfil ke rules kya rakhne hain?</b><br>  
+	<br><b class="cp cl">Mehfil ke rules likhein:</b><br>  
 	<span class="cr">{{ form.rules.errors }}</span>
 	{{ form.rules }}<br>
 
-	<br><b class="cp">Mehfil mien pics dalne ki ijazat deni hai?</b><br>
+	<br><b class="cp cl">Mehfil mien pics laganey ki ijazat deni hai?</b><br>
 	<span class="cr">{{ form.pics_ki_ijazat.errors }}</span>
-	{% for radio in form.pics_ki_ijazat %}<table><tr><label for="{{ radio.id_for_label }}"><td><span class="cp mll">{{ radio.choice_label }}</span><span style="margin:auto">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}
+	{% for radio in form.pics_ki_ijazat %}<table><tr><label for="{{ radio.id_for_label }}"><td><span class="cp mll">{{ radio.choice_label }}</span><span class="ma">{{ radio.tag }}</span></td></label></tr></table>{% endfor %}
 	<br>
-<button class="btn bm bcp mts" type="submit">OK</button>
+<button class="btn bm bcp mts" type="submit" style="height:25px">OK</button>
 </form>
 </div>
 <br><br>

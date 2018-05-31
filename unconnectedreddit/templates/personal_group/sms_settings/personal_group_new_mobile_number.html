@@ -1,0 +1,42 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>SMS settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;text-align:center">
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+		{% if from_chat %}
+		<div class="lsp mbs mts cxl">Pehley apna number verify karwain</div>
+		{% else %}
+		<div class="lsp mbs mts cxl">Apna new number verify karwaney ke liye <b>OK</b> dabain:</div>
+		{% endif %}
+		<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/" style="display:inline;">
+		  <input type="hidden" name="country_code" value="PK">
+		  <input type="hidden" name="app_id" value="1758220174446684">
+		  <input type="hidden" name="locale" value="ur_PK">
+		  <input type="hidden" name="debug" value="true">
+		  <input type="hidden" name="redirect" value="https://damadam.pk/vpg/">
+		  <input type="hidden" name="state" value="{{ csrf }}">
+		  <input type="hidden" name="fbAppEventsEnabled" value=true>
+		  <button type="submit" class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="mver" value="1">OK</button>
+		</form>
+		<form method="POST" class="mts" action="{% url 'enter_personal_group' %}" style="display:inline;">
+			{% csrf_token %}
+			<input type="hidden" name="tid" value="{{ tid }}">
+			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" value="Cancel">
+		</form>
+	
+
+</div>
+<br><br>
+
+{% endblock %}

@@ -10,12 +10,12 @@ from django.shortcuts import redirect, render
 from django.middleware import csrf
 from tasks import registration_task
 from redis1 import account_creation_disallowed
-from redis3 import insert_nick
+from redis3 import insert_nick, temporarily_save_user_csrf
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified#, log_forgot_password
-from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ResetForgettersPasswordForm, SignInForm
+from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ForgettersNicknameForm, ResetForgettersPasswordForm, SignInForm
 from forms import getip
 from score import PW
 from brake.decorators import ratelimit
@@ -48,12 +48,18 @@ def create_dummy_user(request):
 
 ######################################################################################
 
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def logout_then_login(request):
 	if request.method == "POST":
-		logout(request)
-		return redirect("login")
+		if request.mobile_verified:
+			logout(request)
+			return redirect("login")
+		else:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(request.user.id), CSRF)
+			return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
 	else:
 		return redirect("home")
 
@@ -96,32 +102,10 @@ def set_forgetters_password(request, *args, **kwargs):
 @csrf_protect
 def forgot_password(request, lang=None, *args, **kwargs):
 	if request.method == "POST":
-		form = CreateNickNewForm(data=request.POST)
+		form = ForgettersNicknameForm(data=request.POST)
 		if form.is_valid():
-			username = form.cleaned_data['username'][2] # the returned username is a tuple with 3 entries, pick the last one
-			exists = nick_already_exists(username, exact=True)
-			if exists:
-				# the nickname exists
-				user_id = User.objects.only('id').get(username=username).id
-			elif exists is None:
-				try:
-					user_id = User.objects.only('id').get(username=username).id
-				except User.DoesNotExist:
-					# username is not taken
-					if lang == 'ur':
-						return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
-					else:
-						return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
-			elif exists is False:
-				if lang == "ur":
-					return render(request,"forgot_password_ur.html",{'form':form,'nick':username,'nick_does_not_exist':True})
-				else:
-					return render(request,"forgot_password.html",{'form':form,'nick':username,'nick_does_not_exist':True})
-			###################################################################################################
+			username, user_id = form.cleaned_data.get("username")
 			if is_mobile_verified(user_id):
-				################################################
-				#log_forgot_password(user_id=user_id,username=username,flow_level='start')#
-				################################################
 				if lang == "ur":
 					return render(request,"verify_forgetters_account_ur.html",{'user_id':user_id, 'id_in_csrf':True})
 				else:
@@ -137,7 +121,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 			else:
 				return render(request,"forgot_password.html",{'form':form})
 	else:
-		form = CreateNickNewForm()
+		form = ForgettersNicknameForm()
 		if lang == 'ur':
 			return render(request,"forgot_password_ur.html",{'form':form})
 		else:

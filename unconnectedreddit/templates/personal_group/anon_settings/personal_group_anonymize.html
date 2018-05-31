@@ -1,0 +1,67 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>Privacy settings for private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:420px;width:92%;">
+
+{% if new_anon_value == '1' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Ab apka nickname <b>{{ own_name|truncatechars:15 }}</b> ke bajai <b>{{ own_name|truncap }}</b> nazar aye ga</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy lsp">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% elif new_anon_value == '0' %}
+
+	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
+		<span class="cxl">Ab apki profile foto aur poora nickname nazar aien ge</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cl cgy lsp">
+			Chat mein janey ke liye OK dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcb bs mtl cl pg_ok" style="border:none;height:30px;">OK</button>
+			</form>
+		</div>
+	</div>
+
+{% endif %}
+
+	<div style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="{{ name|slice:":1" }}" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#ffeb3b">
+
+	<div class="mbs mtl">
+	{% if own_anon %}
+	<span class="cl lsp"><b>Show</b>: Kya apka nickname aur profile foto is chat mein dikha diya jaye?</span>
+	{% else %}
+	<span class="cl lsp"><b>Hide</b>: Kya apka nickname aur profile foto is chat se ghayeb kar diya jaye?</span>
+	{% endif %}
+	</div>
+
+	<form action="{% url 'anonymize_user_in_personal_group' %}" method="POST" class="mts mbl" style="text-align:center;">
+        {% csrf_token %}
+        <input type="hidden" name="tid" value="{{ tid }}">
+        <button class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="anon_dec" value="1">Haan</button>
+        <input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" name="anon_dec" value="Cancel">
+    </form>
+
+</div>
+<br><br>
+
+{% endblock %}

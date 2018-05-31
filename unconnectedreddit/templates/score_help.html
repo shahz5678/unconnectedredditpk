@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Score help | Damadam.pk</title></head>
 {% load cache %}
 {% cache 3600 scores_help_fragment %}
 
 <span class="score">
-<div style="margin-left:20px;color:#404040;">
+<div class="clb" style="margin-left:20px">
 <h3>Score kaise barhta hai:</h3>
 1) Home pe likhne se score <b style="color:green;">+1</b> barhta hai<br>
 2) Home pe jawab dene se score <b style="color:green;">+2</b> barhta hai<br>
@@ -25,4 +26,19 @@
 </span>
 
 {% endcache %}
+
+<div class="mtl" style="text-align:center">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Damadam Test Ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-2568547635306983"
+     data-ad-slot="9730443228"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>
+
+<br><br>
 {% endblock %}

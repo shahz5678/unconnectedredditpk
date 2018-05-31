@@ -22,6 +22,7 @@ my_server.lpush("ala:"+str(locker_id),ad_id) # agent's locked ads (ala:)
 pipeline1.zincrby("at:"+ad_city,ad_town,amount=1) # approved towns within a city
 key_name = "b:"+str(low)+":"+str(high) #stores ban data
 my_server.zrange("bl:"+str(own_id),0,-1) # a user's block-list
+blrl:<own_id>:<target_id> is a rate limiting key set when a user unblocks another user
 server.lpush("ecomm_clicks",(user_id, ad_id, time_now)) # recording the click in a list of tuples
 pipeline1.sadd("sn:"+ad_id,clicker_id) #saving who all has already seen the seller's number. "sn:" stands for 'seen number'
 pipeline1.zincrby("approved_locations",city,amount=1)
@@ -56,15 +57,18 @@ search_history = "sh:"+str(searcher_id)
 
 user_thumbs = "upt:"+owner_uname
 
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
-TWENTY_MINS = 20*60
+TEN_MINS = 10*60
+FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
 TWO_HOURS = 2*60*60
 SIX_HOURS = 6*60*60
+ONE_DAY = 24*60*60
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
@@ -355,7 +359,7 @@ def add_search_photo(img_url,photo_id,owner_uname):
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_thumbs = "upt:"+owner_uname
-	ids_with_thumbs = [(item[0],get_s3_object(item[1],category=thumb)) for item in ids_with_urls]
+	ids_with_thumbs = [(item[0],get_s3_object(item[1],category='thumb')) for item in ids_with_urls]
 	payload = []
 	for obj in ids_with_thumbs:
 		payload.append(image_thumb_formatting(obj[1],obj[0]))
@@ -474,6 +478,11 @@ def remove_banned_users_in_bulk(own_id, ids_to_remove_from_ban_list):
 
 
 def remove_single_ban(own_id, target_id):
+	"""
+	Removes blocked user from block list
+
+	Rate limits users from banning said user again
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
 	key_name = "b:"+str(low)+":"+str(high)
@@ -484,6 +493,7 @@ def remove_single_ban(own_id, target_id):
 		pipeline1 = my_server.pipeline()
 		pipeline1.delete(key_name)
 		pipeline1.zrem("bl:"+own_id,target_id)
+		pipeline1.setex("blrl:"+own_id+":"+target_id,'1',ONE_DAY)
 		pipeline1.execute()
 		return True
 	else:
@@ -515,25 +525,33 @@ def is_already_banned(own_id, target_id, key_name=None, server=None, return_bann
 			return False
 
 def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban, recent_joiner):
-	my_server = redis.Redis(connection_pool=POOL)
+	"""
+	Bans a given target user by setting relevant data in redis
+	"""
 	low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
 	key_name = "b:"+str(low)+":"+str(high)
-	existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
-	if existing_ttl is None or existing_ttl is False or can_unban == '1':
-		pipeline1 = my_server.pipeline()
-		# a 'solitary' key, to help make quick decision on whether an interaction is to be allowed or not
-		pipeline1.setex(key_name,own_id,ttl)
-		# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
-		pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
-		# only add to the global list if it was NOT a re-ban
-		if not can_unban and recent_joiner:
-			#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
-			#pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
-			pipeline1.zincrby("malicious_user_list",target_id,amount=1)
-		pipeline1.execute()
-		return True
+	my_server = redis.Redis(connection_pool=POOL)
+	cooloff_ttl = my_server.ttl("blrl:"+str(own_id)+":"+target_id)
+	if cooloff_ttl > 0:
+		return None, cooloff_ttl
 	else:
-		return False
+		existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
+		if existing_ttl is None or existing_ttl is False or can_unban == '1':
+			pipeline1 = my_server.pipeline()
+			# a 'solitary' key, to help make quick decision on whether an interaction is to be allowed or not
+			pipeline1.setex(key_name,own_id,ttl)
+			# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
+			pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
+			# only add to the global list if it was NOT a re-ban
+			if not can_unban and recent_joiner:
+				#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
+				#pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
+				pipeline1.zincrby("malicious_user_list",target_id,amount=1)
+			pipeline1.execute()
+			return True, None
+		else:
+			return False, None
+
 
 def get_global_ban_leaderboard():
 	my_server = redis.Redis(connection_pool=POOL)
@@ -783,14 +801,19 @@ def someone_elses_number(national_number, user_id):
 		return True
 
 
-def get_user_verified_number(user_id):
+
+def get_user_verified_number(user_id,country_code=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	user_id = str(user_id)
 	numbers = my_server.lrange('um:'+user_id,0,-1)
 	if numbers:
 		mob_nums = []
-		for number in numbers:
-			mob_nums.append(ast.literal_eval(number)["national_number"])
+		if country_code:
+			for number in numbers:
+				mob_nums.append(ast.literal_eval(number)["number"])
+		else:
+			for number in numbers:
+				mob_nums.append(ast.literal_eval(number)["national_number"])
 		# sending back numbers appended in a list
 		return mob_nums
 	else:
@@ -1614,6 +1637,21 @@ def skip_outage(user_id):
 
 ###########################################################
 
+def add_mobile_customer(user_id,star_ids, type_):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	set_name = 'mobile_consultancy_'+type_
+	my_server.sadd(set_name,user_id)
+	all_ids = my_server.smembers(set_name)
+	relevant_ids_in_order = []
+	for star_id in star_ids:
+		if str(star_id) in all_ids:
+			relevant_ids_in_order.append(star_id)
+	return my_server.scard(set_name), relevant_ids_in_order, all_ids - set(relevant_ids_in_order)
+
+###########################################################
+
 def return_all_ad_data():
 	my_server = redis.Redis(connection_pool=POOL)
 	ad_ids = my_server.lrange("global_ads_list", 0, -1)
@@ -1627,3 +1665,118 @@ def return_all_ad_data():
 		pipeline2.hgetall("ad:"+ad_id)
 	result2 = pipeline2.execute()
 	return result1, result2
+
+
+###################### Public Group Ranking System #######################
+
+
+def public_group_ranking_clean_up():
+	"""
+	Periodically clean up dormant public groups from the ranking system
+
+	Run every 30 mins
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_ids = my_server.zrange("public_group_rank",0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_ids:
+		last_public_group_writer = "lpubgw:"+group_id 
+		pipeline1.exists(last_public_group_writer)
+	exists = pipeline1.execute()
+	counter = 0
+	pipeline2 = my_server.pipeline()
+	for group_id in group_ids:
+		if not exists[counter]:
+			pipeline2.delete("pugbs:"+group_id)
+			pipeline2.zrem("public_group_rank",group_id)
+		counter += 1
+	pipeline2.execute()
+
+
+
+def public_group_ranking(group_id,writer_id):
+	"""
+	Ascertains whether the group earned a ranking vote or not
+	
+	Based on unique switchover pairs within a given time
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, current_time = str(group_id), time.time()
+	last_public_group_writer = "lpubgw:"+group_id
+	recent_writer_id = my_server.get(last_public_group_writer)
+	if recent_writer_id:
+		if recent_writer_id != str(writer_id):
+			public_group_last_cull_time = "pubglct:"+group_id
+			culled_recently = my_server.exists(public_group_last_cull_time)
+			# ensuring only last 10 mins are counted
+			public_group_switchovers = "pubgs:"+group_id
+			if not culled_recently:
+				# ensures only culls once in a 10 min window
+				pipeline1 = my_server.pipeline()
+				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-TEN_MINS)
+				pipeline1.setex(public_group_last_cull_time,1,TEN_MINS)
+				pipeline1.execute()
+			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
+			if added:
+				# it was a unique switchover in the last 10 mins
+				sorted_set = "public_group_rank"
+				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
+				# only increase ttl if it was a unique switchover
+				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+	else:
+		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
+
+def del_from_rankings(group_id):
+	"""
+	Used when group owner deletes public group
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	pipeline1.delete("pugbs:"+str(group_id))
+	pipeline1.zrem("public_group_rank",group_id)
+	pipeline1.execute()
+
+def get_ranked_public_groups():
+	"""
+	Returns top 10 public groups
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrevrange("public_group_rank",0,49,withscores=True) # returning highest 50 groups
+
+
+###################### First Time User Tutorials #########################
+
+'0' 'personal group anonymous invite'
+'1' 'personal group sms settings'
+'2' 'granting permission to save posts'
+'3' 'sharing internal photo in personal groups'
+
+def tutorial_unseen(user_id, which_tut, renew_lease=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+	if my_server.exists(key_name):
+		if renew_lease:
+			# increase TTL if renew_lease is passed
+			my_server.expire(key_name,TWO_WEEKS)
+		return False
+	else:
+		my_server.setex(key_name,1,ONE_MONTH)
+		return True
+
+###################### Retrieving all mobile numbers ######################
+
+def retrieve_all_mobile_numbers():
+	"""
+	Return all mobile numbers and their associated user ids
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zrange('verified_numbers',0,-1,withscores=True)
+
+def retrieve_numbers_with_country_codes(list_of_user_ids):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in list_of_user_ids:
+		pipeline1.lrange("um:"+str(user_id), 0, -1)
+	return pipeline1.execute()

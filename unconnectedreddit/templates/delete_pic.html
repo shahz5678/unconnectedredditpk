@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Remove photo | Damadam.pk</title></head>
 <div class="margin">
 <span style="font-size:90%;">Yeh photo hamesha ke liye mita di jaye gi:</span><br><br>
 <form method="POST" action="{% url 'delete_pic' slug=unique %}">

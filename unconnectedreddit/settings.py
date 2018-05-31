@@ -413,12 +413,29 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=90),  # execute every 110 seconds
+		'schedule': timedelta(seconds=110),  # execute every 110 seconds
+		'args': (),
+	},
+	'tasks.public_group_ranking_clean_up_task': {
+		'task': 'tasks.public_group_ranking_clean_up_task',
+		'schedule': timedelta(seconds=25*60),  # execute every 25 mins
 		'args': (),
 	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
 		'schedule': timedelta(seconds=60), #execute every 60 seconds
+	},
+	'tasks.delete_chat_from_idle_personal_group': {
+		'task': 'tasks.delete_chat_from_idle_personal_group',
+		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days
+	},
+	'tasks.delete_idle_personal_group': {
+		'task': 'tasks.delete_idle_personal_group',
+		'schedule': timedelta(seconds=6*24*60*60), # execute every 6 days
+	},
+	'tasks.delete_exited_personal_group': {
+		'task': 'tasks.delete_exited_personal_group',
+		'schedule': timedelta(seconds=24*60*60), # execute daily
 	},
 }
 

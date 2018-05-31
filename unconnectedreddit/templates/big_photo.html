@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 
+<head><title>Photo above size limit (error) | Damadam.pk</title></head>
+
 <div class="margin clb">
 <b class="cxl">Is photo ka size buhut bara hai!</b><br>
-<a href="{% url 'upload_public_photo' %}"><button class="btn bco mtl mbl bm">wapis</button>
+{% if photo == 'pub_grp' %}
+<a href="{% url 'public_group' %}"><button class="btn bcp mtl mbl bm">
+{% elif photo == 'prv_grp' %}
+<a href="{% url 'private_group_reply' %}"><button class="btn bcg mtl mbl bm">
+{% else %}
+<a href="{% url 'upload_public_photo' %}"><button class="btn bco mtl mbl bm">
+{% endif %}
+wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

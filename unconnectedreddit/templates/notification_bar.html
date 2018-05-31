@@ -1,147 +1,281 @@
 {% load s3 %}
+{% load truncap %}
 {% load get_block_button %}
 {% load emoticons_tags %}
 	{% if notification %}
 		{% if type_of_object == '2' %}
 			
-			<div class="card box dbt mbl">
+			<div class="bizcard box dbt mbl" style="padding:5px">
 			{% if first_time_user %}
 				<div class="ct cs mbs">
-				Tumhe <b>welcome</b> kiya:
+				Apko <b>welcome</b> kiya:
 				</div>
 				
 			{% else %}
+				<div class="mbl" style="overflow:hidden">
 				{% if parent.ooa != 'None' %}
-					<img src="{{ parent.ooa|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
+					<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 				{% else %} 
-					<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22"></img>
+					<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 				{% endif %}
-				<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
+				<span class="cgy"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy lsp">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
 				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
-				<button name="lid" class="btn nw bs cs bct mls" type="submit" value="{{ parent_pk }}">post</button></form>
-				<p style="margin-top:.5em;"></p>
+				<button name="lid" class="btn nw bs cs bct mls" type="submit" style="height:22px" value="{{ parent_pk }}">post</button></form>
+				</div>
 			
-				<span class="ct cs">
-				is pr <b>new</b> jawab aya:
+				<span class="ct cs sp">
+				New jawab:
 				</span>
 				<p style="margin-top:.3em;"></p>
 			{% endif %}	
 			
+			<div class="mbl" style="overflow:hidden">
 			<a href="{% url 'profile' parent.lrsn %}">
 			{% if parent.lrau != 'None' %}
-			<img src="{{ parent.lrau|s3:'thumb' }}" alt="no pic" width="22" height="22">
+			<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 			{% else %}
-			<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+			<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 			{% endif %}
 			<bdi>{{ parent.lrsn }}</bdi>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar" ><b>*</b></span>
 			    {% endif %}</a>
-			:<bdi class="clb">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cs mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
+			:<bdi class="clb lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
-				<p style="margin-top:.5em;"></p>
-				{% if form.home_comment.errors %}<span class="cr">{{ form.home_comment.errors.0 }}</span>{% endif %}
+			</div>
+				{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
 				{% csrf_token %}
 				<div class="box-with-button-right">
+				<input type="hidden" name="sk" value="{{ sk }}">
 				<input type="hidden" name="origin" value="{{ origin }}">
 				<input type="hidden" name="lang" value="{{ lang }}">
 				<input type="hidden" name="sort_by" value="{{ sort_by }}">
-				<input type="hidden" name="public_group_reply" value="111">
-				<input type="hidden" name="private_group_reply" value="111">
-				<input type="hidden" name="photo_comment" value="111">
 				<input type="hidden" name="lwpk" value="{{ parent.ooi }}">
 				{{ form.home_comment }}
 				<button class="btn bct bms mts" type="submit">jawab do</button>
 				</div>
 				</form>
-				<a href="{% url 'x_notif' parent_pk ident origin lang sort_by %}"><button class="btn mtl bs cs bco">skip</button></a>
+				<a href="{% url 'x_notif' parent_pk ident origin lang sort_by %}"><button class="btn mtl bs cs bco sp" style="height:22px">skip</button></a>
 			</div>
 			
+	{% elif type_of_object == '5' %}
+
+	<div class="bizcard ca mbl" style="padding:7px;border:1px solid #4DFFC3 ;border-radius:6px;color:#306654">
+		<form class="mbl" method="POST" action="{% url 'enter_personal_group' %}">
+		{% csrf_token %}
+		{% if ident|slugify == parent.id1 %}
+			{% if parent.id2 == parent.anon1 or parent.id2 == parent.anon2 %}
+				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncap }}</b>&nbsp;se private chat</button>
+			{% else %}
+				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncatechars:15 }}</b> se private chat</button>
+			{% endif %}
+			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id2 }}">
+			<div id="line"></div>
+			<div id="line"></div>
+			<div id="line" style="width: 8px;"></div>
+			</button>
+		{% else %}
+			{% if parent.id1 == parent.anon1 or parent.id1 == parent.anon2 %}
+				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncap }}</b>&nbsp;se private chat</button>
+			{% else %}
+				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncatechars:15 }}</b> se private chat</button>
+			{% endif %}
+			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id1 }}">
+			<div id="line"></div>
+			<div id="line"></div>
+			<div id="line" style="width: 8px;"></div>
+			</button>
+		{% endif %}
+		</form>
+
+		{% if parent.d = 'del' %}
+			<div class="cs sp mbl">New pegham:</div>
+			<div class="mbs">
+			{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
+				<a href="{% url 'profile' parent.lrsn %}" class="cb"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+			{% else %}
+				<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+			{% endif %}
+			<span class="sp cgy lsp mrs">chat mita di geyi</span>
+			</div>
+		{% else %}
+			{% if parent.type == 'exited' %}
+				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} ne private chat chore di</div>
+			{% elif parent.type == 'reentry' %}
+				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} chori hui private chat mein wapis aa gaya</div>
+			{% elif parent.type == 'creation' %}
+				<div class="cs sp mbs">Chat start karney ke liye neechay likhein:</div>
+			{% elif parent.type == 'notif' %}
+				<div class="cs sp mbl">New permission:</div>
+				<div class="mbs" style="overflow:hidden">
+				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+				{% else %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+				{% endif %}
+				</div>
+			{% elif parent.type == 'action' %}
+				<div class="cs sp mbl">New emoji:</div>
+				<div class="mbs" style="overflow:hidden">
+				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+				{% else %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+				{% endif %}
+				</div>
+			{% elif parent.type == 'img' or parent.type == 'img_res' or parent.type == 'shared_img' %}
+				<div class="cs sp mbl">New photo:</div>
+				<form action="{% url 'enter_personal_group' %}" method="POST">
+				{% csrf_token %}
+				<button name="tid" style="background:0 0;padding:0;border:none" value="{{ parent.lrwi }}">
+				{% if parent.h == 'no' %}
+				<img src="{{ parent.rp|s3:'thumb' }}" alt="pic" height="60" style="border-radius:6px">
+				{% else %}
+				<img src="{{ static_url }}img/default-avatar.jpg" alt="pic" height="60" style="border-radius:6px">
+				{% endif %}
+				</button>
+				</form>
+				<div class="mbs" style="overflow:hidden">
+				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+				{% else %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+				{% endif %}
+				{% if parent.h == 'no' %}
+					{% if parent.lrtx %}
+					<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ parent.lrtx }}{% endemoticons %}</bdi></span><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					{% else %}
+					<span class="sp lsp mrs"> .. ..</span><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					{% endif %}
+				{% else %}
+				<span class="sp lsp mrs"> .. ..</span>
+				{% endif %}
+				</div>
+			{% else %}
+				<div class="cs sp mbl">New pegham:</div>
+				<div class="mbs" style="overflow:hidden">
+				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+				{% else %}
+					<a href="{% url 'profile' parent.lrsn %}" class="cb"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+				{% endif %}
+				<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ parent.lrtx }}{% endemoticons %}</bdi></span><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+				</div>
+			{% endif %}
 			
+		{% endif %}
+		{% if parent.type == 'exited' %}
+		<a href="{% url 'x_per_grp_notif' parent_pk parent.lrwi origin %}"><button class="btn mts bco bs cs sp" style="height:22px">skip</button></a>
+		{% else %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if ident|slugify == parent.id2 %}
+		<form method="POST" action="{% url 'unseen_per_grp' parent_pk parent.id1 %}">
+		{% else %}
+		<form method="POST" action="{% url 'unseen_per_grp' parent_pk parent.id2 %}">
+		{% endif %}
+			{% csrf_token %}
+			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
+			<input type="hidden" name="origin" value="{{ origin }}">
+			<input type="hidden" name="loc" value="123">
+			<input type="hidden" name="lang" value="{{ lang }}">
+			<input type="hidden" name="sort_by" value="{{ sort_by }}">
+			{{ form.personal_group_reply }}
+			<button class="btn bms mts" style="background-color:#306654" type="submit" >jawab do</button>
+		</div>
+		</form>
+		<a href="{% url 'x_per_grp_notif' parent_pk parent.lrwi origin %}"><button class="btn mtl bco bs cs sp" style="height:22px">skip</button></a>
+		{% endif %}
+	</div>
 	{% elif type_of_object == '3a' %}
 	<!-- private -->
-	<div class="card box dbg mbl">
-		<b class="cg cm">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mbl mls">mehfil</button></form>
-		<br><span class="cg cs" >mein <b>new</b> pegham aya:</span><br><br>
+	<div class="bizcard box dbg mbl" style="padding:5px">
+		<div class="mbl" style="overflow:hidden">
+		<b class="cg cm lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button style="height:22px" type="submit" name="private_uuid" value="{{ parent.l }}" class="btn nw bs cs bcg mls">mehfil</button></form>
+		</div>
+		<span class="cg cs sp" >New pegham:</span><br><br>
+		<div class="mbl" style="overflow:hidden">
 		{% if parent.rp != 'None' %}
-		<img src="{{ parent.rp }}" alt="no pic"><br>
+		<img src="{{ parent.rp }}" style="border-radius:12px" alt="photo"><br>
 		{% endif %}
 		<a href="{% url 'profile' parent.lrsn %}">
 		{% if parent.lrau != 'None' %}
-		<img src="{{ parent.lrau|s3:'thumb' }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% else %}
-		<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% endif %}
 		{{ parent.lrsn }}</a>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span class="clb">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
-		<p style="margin-top:.5em;"></p>
-		{% if form.private_group_reply.errors %}<span class="cr">{{ form.private_group_reply.errors.0 }}</span>{% endif %}
+		<span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		</div>
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
+			<input type="hidden" name="loc" value="123">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
-			<input type="hidden" name="public_group_reply" value="111">
-			<input type="hidden" name="home_comment" value="111">
-			<input type="hidden" name="photo_comment" value="111">
 			{{ form.private_group_reply }}
 			<button class="btn bcg bms mts" type="submit" >jawab do</button>
 		</div>
 		</form>
-		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn mtl bco bs cs" >skip</button></a>
+		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn mtl bco bs cs sp" style="height:22px">skip</button></a>
 	</div>
 			
 	{% elif type_of_object == '3b' %}
 	<!-- public -->
-	<div class="card box dbp mbl">
-		<b class="cp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl">mehfil</button></a>
-		<br><span class="cp cs">mein <b>new</b> pegham aya:</span><br><br>
+	<div class="bizcard box dbp mbl" style="padding:5px">
+		<div style="overflow:hidden">
+			<b class="cp lsp">{% emoticons %}{{ parent.od|truncatechars:40 }}{% endemoticons %}</b><a href="{% url 'public_group' parent.l %}"><button class="btn nw bcp bs cs mls mbl" style="height:22px">mehfil</button></a>
+		</div>
+		<span class="cp cs sp">New pegham:</span><br><br>
 		{% if parent.rp != 'None' %}
-		<img src="{{ parent.rp }}"><br>
+		<img src="{{ parent.rp }}" style="border-radius:12px" alt="photo"><br>
 		{% endif %}
+		
+		<div style="overflow:hidden">
 		<a href="{% url 'profile' parent.lrsn %}">
 		{% if parent.lrau != 'None' %}
-		<img src="{{ parent.lrau|s3:'thumb' }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% else %}
-		<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% endif %}
 		{{ parent.lrsn }}</a>
 				{% if parent.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}
-		<span style="color:#404040;">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cs cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		<span style="color:#404040;" class="lsp">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+		</div>
 		<p style="margin-top:.5em;"></p>
-		{% if form.public_group_reply.errors %}<span class="cr">{{ form.public_group_reply.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
-			<input type="hidden" name="private_group_reply" value="111">
-			<input type="hidden" name="home_comment" value="111">
-			<input type="hidden" name="photo_comment" value="111">
 			{{ form.public_group_reply }}
 			<button class="btn bcp bms mts" type="submit">jawab do</button>
 		</div>
 		</form>
-		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn bs cs bco mtl">skip</button></a>
+		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn bs cs bco mtl sp" style="height:22px">skip</button></a>
 	</div>
 	
 	
 	{% elif type_of_object == '4' %}
-		<div class="card box dbg mbl">
+		<div class="bizcard box dbg mbl" style="padding:5px">
 		<a href="{% url 'profile' parent.oon %}#section0">
 		{% if parent.ooa != 'None' %}
-		<img src="{{ parent.ooa|s3:'thumb' }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% else %}
-		<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% endif %}
 		{{ parent.oon }}</a>
 				{% if parent.oon in checked %}
@@ -156,63 +290,63 @@
 		</div>
 	
 	{% elif type_of_object == '0' %}
-		<div class="card box dby mbl">
+		<div class="bizcard box dby mbl" style="padding:5px">
 		
-		<div class="mbl">
+		<div class="mbl" style="overflow:hidden">
 		<a href="{% url 'comment_pk' parent_pk 6 %}">
 		{% if parent.v|add:"0" < -2 %}
-			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			<img src="{{ static_url }}img/broken_pic_small.png" alt="pic" style="border-radius:4px" width="38" height="38">
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|s3:'thumb' }}" alt="{{ parent.od }}" class="pht bright"></img>
+			<img src="{{ parent.p|s3:'thumb' }}" alt="{{ parent.od }}" style="border-radius:4px" class="pht bright">
 			{% else %}
-			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			<img src="{{ static_url }}img/broken_pic_small.png" style="border-radius:4px" alt="pic" width="38" height="38">
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|s3:'thumb' }}" alt="{{ parent.od }}"></img>
+			<img src="{{ parent.p|s3:'thumb' }}" style="border-radius:4px" alt="{{ parent.od }}">
 		{% endif %}
-		<span class="cgy">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span></a>
+		<span class="cgy lsp">{% emoticons %}{{ parent.od|truncatechars:30 }}{% endemoticons %}</span></a>
 		</div>
-		<span class="co cs">Photo pr <b>new</b> tabsra aya:</span><p style="margin-top:.3em;"></p>
+		<span class="co cs sp">New tabsra:</span><p style="margin-top:.3em;"></p>
+		<div class="mbl" style="overflow:hidden">
 		<a href="{% url 'profile' parent.lrsn %}">
 		{% if parent.lrau != 'None' %}
-		<img src="{{ parent.lrau|s3:'thumb' }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.lrau|s3:'thumb' }}" alt="pic" style="border-radius:50%" width="22" height="22">
 		{% else %}
-		<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% endif %}
 		<bdi>{{ latest_comment.lrsn }}</bdi>
 				{% if latest_comment.lrsn in checked %}
 			    	<span class="pinkstar"><b>*</b></span>
 			    {% endif %}</a>
-		:&nbsp;<span class="cl clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cs mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
-		<p style="margin-top:.5em;"></p>
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
+		</div>
+		
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
-			<input type="hidden" name="private_group_reply" value="111">
-			<input type="hidden" name="public_group_reply" value="111">
-			<input type="hidden" name="home_comment" value="111">
 			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
 			<button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>
 		</form>
-		<a href="{% url 'cross_comment_notif' parent_pk ident origin 0 lang sort_by %}"><button class="btn bs cs mtl bco">skip</button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident origin 0 lang sort_by %}"><button class="btn bs cs mtl bco sp" style="height:22px">skip</button></a>
 		</a>
 		</div>
 		
 	{% elif type_of_object == '1' %}
-		<div class="card box dby mbl">
+		<div class="bizcard box dby mbl" style="padding:5px">
 		<span class="co cm">
 		<a href="{% url 'profile' parent.oon %}">
 		{% if parent.ooa != 'None' %}
-		<img src="{{ parent.ooa|s3:'thumb' }}" alt="no pic" width="22" height="22">
+		<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% else %}
-		<img src="{{ static_url }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22">
+		<img src="{{ static_url }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% endif %}
 		{{ parent.oon }}</a>
 				{% if parent.oon in checked %}
@@ -221,18 +355,19 @@
 		ne new photo lagai:</span><p style="margin-top:.3em;"></p>
 		<a href="{% url 'user_profile_photo' parent.oon parent_pk 1 %}">
 		{% if parent.v|add:"0" < -2 %}
-			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			<img src="{{ static_url }}img/broken_pic_small.png" style="border-radius:4px" alt="pic" width="38" height="38">
 		{% elif parent.v|add:"0" < -1 %}
 			{% if parent.p != 'None' %}
-			<img src="{{ parent.p|s3 }}" alt="no pic" class="pht bright"></img>
+			<img src="{{ parent.p|s3 }}" alt="pic" style="border-radius:12px" class="pht bright">
 			{% else %}
-			<img src="{{ static_url }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
+			<img src="{{ static_url }}img/broken_pic_small.png" style="border-radius:4px" alt="pic" width="38" height="38">
 			{% endif %}
 		{% else %}
-			<img src="{{ parent.p|s3 }}" alt="no pic" class="pht"></img>
+			<img src="{{ parent.p|s3 }}" alt="photo" style="border-radius:12px" class="pht">
 		{% endif %}
 		</a>&nbsp;&nbsp;
-		<br><span class="cl cgy mrl">{{ parent.od }}</span>
+		
+		<div class="mbl" style="overflow:hidden"><span class="cl cgy mrl">{{ parent.od }}</span>
 		<form method="POST" action="{% url 'fan' %}" style="display:inline">
 		{% csrf_token %}
 			<input type="hidden" name="oid" value="{{ parent.oi }}">
@@ -242,41 +377,37 @@
 			<button name="sid_btn" class="btn bms bcgy mts mbs" style="background-image: url({{ static_url }}img/unfan.png);background-size: 1.6em 1.6em;background-repeat: no-repeat;background-position: center;width:1.6em;height:1.6em;" type="submit" value="{{ parent.ooi }}">&nbsp;</button>
 		{% endif %}
 		</form>
-		<br>
+		</div>
 		<p style="margin-top:.5em;"></p>
-		{% if form.photo_comment.errors %}<span class="cr">{{ form.photo_comment.errors.0 }}</span>{% endif %}
+		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 		<form method="POST" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
+			<input type="hidden" name="sk" value="{{ sk }}">
 			<input type="hidden" name="origin" value="{{ origin }}">
 			<input type="hidden" name="lang" value="{{ lang }}">
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
-			<input type="hidden" name="private_group_reply" value="111">
-			<input type="hidden" name="public_group_reply" value="111">
-			<input type="hidden" name="home_comment" value="111">
 			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
 			<button class="btn bco bms mts" type="submit">tabsra kro</button>
 		</div>
 		</form>
-		<a href="{% url 'cross_comment_notif' parent_pk ident origin 1 lang sort_by %}"><button class="btn bs cs mtl bco">skip</button></a>
+		<a href="{% url 'cross_comment_notif' parent_pk ident origin 1 lang sort_by %}"><button class="btn bs cs mtl bco sp" style="height:22px">skip</button></a>
 		</div>
 			
 		{% endif %}
 	{% else %}
 		{% if is_home %}
-			<table>
-			<tr><td>
+			<div class="mbs sp lsp">
 			{% if random < 3 %}
-				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+				<span class="co cs"><b>Top</b> damadam stars <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hain</b></button></a></span>
 			{% else %}
 				{% if username == newest_user.username %}
-				<span class="co cs"><b>Top</b> damadam stars ki list <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hai</b></button></a></span><hr size=1 COLOR="#ff9933">
+				<span class="co cs"><b>Top</b> damadam stars <a href="{% url 'top_photo' %}#section0"><button class="btn nw bm bco cm"><b>ye hain</b></button></a></span>
 				{% else %}
-				<span class="ct cs"><b> {{ newest_user.username|truncatechars:30 }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bct cm" style="width:8.7em;"><b>mithai bhejo</b></button></a></span><hr size=1 COLOR="#3cb7dd">
+				<span class="ct cs sp"><b> {{ newest_user.username|truncatechars:30 }}</b> new hai, isko <a href="{% url 'welcome_pk' pk=newest_user.pk %}"><button class="btn nw bct cm" style="padding:1px 8px 1px 8px"><b>mithai bhejein</b></button></a></span>
 				{% endif %}
 			{% endif %}
-			</td></tr>
-			</table>
+			</div>
 		{% endif %}
 	{% endif %}

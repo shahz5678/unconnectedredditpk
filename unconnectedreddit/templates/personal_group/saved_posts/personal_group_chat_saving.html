@@ -1,0 +1,108 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_personal_group_big_photo %}
+{% load get_personal_group_small_photo %}
+{% load get_personal_group_deleted_post_message %}
+{% block content %}
+<head><title>Saving posts in private messaging | Damadam.pk</title></head>
+<div class="margin clb" style="max-width:600px;width:92%;">
+
+    <div class="mbl" style="text-align:center">
+    
+       <div class="mbs">
+        <span class="cl cgy">Kya ye chat save kar di jai?</span>
+       </div>
+
+          <form action="{% url 'save_post_in_personal_group' %}" method="POST" class="mtl mbl">
+            {% csrf_token %}
+            <input type="hidden" name="bid" value="{{ bid }}">
+            <input type="hidden" name="idx" value="{{ idx }}">
+            <input type="hidden" name="tid" value="{{ tid }}">
+            <button class="btn bcb bm mrl mbs pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
+            <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" name="dec" value="0">Nahi</button>
+          </form>
+    
+        <hr size=1 COLOR="#e6e6e6">
+    
+    </div>
+
+    <div class="card {{ bgclass }}" style="margin-top:1.3em;{{ text_align }}">
+
+        <div class="mbs {{ corner_class }}">
+          <a href="{% url 'profile' usr %}">
+          {% if their_nick %}
+            <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
+            <span style="color:#306654;">{{ usr }}</span>
+          {% elif their_anon %}
+            <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ usr|truncap }}</div>
+          {% elif own_nick %}
+              <span style="color:#01579B;">{{ usr }}</span>
+              <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
+          {% elif own_anon %}
+            <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ usr|truncap }}</div>
+          {% endif %}
+          </a>
+        </div>
+
+          <div class="mls mbs mrs">
+
+              {% if tt == 'img' or tt == 'shared_img' %}
+                  {% personal_group_big_photo img_url=ct|s3 img_caption=img_cap|emoticons css_shadow=css_shadow max_width=img_width static_url=STATIC_URL original_poster=original_poster %}
+              {% elif tt == 'text' %}
+                  <span class="lsp cl"><bdi>{% emoticons %}{{ ct }}{% endemoticons %}</bdi></span>
+              {% endif %}
+
+               <div class="mtl mbs">
+                <span class="sp cxs cgy">{{ time|human_time }}</span>
+               </div>
+
+              {% if is_res == 'res' %}
+              
+              <div class="mrl mll mtl mbl card {{ their_bgclass }}" style="{{ their_text_align }}">  
+                <div class="mbs cs {{ their_corner_class }}">
+                    <a href="{% url 'profile' t_usr %}">
+                    
+                    {% if own_tgt_nick %}
+                      <span style="color:#01579B;">{{ t_usr|truncatechars:15 }}</span>
+                      <img src="{{ t_aurl|s3:'thumb' }}" alt="{{ t_usr|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
+                    {% elif own_tgt_anon %}
+                      <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ t_usr|truncap }}</div>
+                    {% elif their_tgt_nick %}
+                      <img src="{{ t_aurl|s3:'thumb' }}" alt="{{ t_usr|slice:":1" }}" width="22" height="22" class="av_btn {{ their_bclass }}">
+                      <span style="color:#306654;">{{ t_usr|truncatechars:15 }}</span>
+                    {% elif their_tgt_anon %}
+                      <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ t_usr|truncap }}</div>
+                    {% endif %}
+
+                    </a>
+                </div>
+                
+                  <div class="cs mls mbs mrs">
+                   
+                    {% if t_st == 'del' %}
+                        {% personal_group_deleted_post_message inset_color='white' shadow_base_color=shadow_base_color %}
+                    {% elif t_tt == 'text' %}
+                        <span class="lsp"><bdi>{% emoticons %}{{ t_ct }}{% endemoticons %}</bdi></span>
+                    {% else %}
+                        <div class="mbl mtl">
+                        {% personal_group_small_photo img_url=t_ct|s3:'thumb' img_caption=t_img_cap|emoticons css_shadow=their_css_shadow static_url=STATIC_URL %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mts">
+                    <span class="sp cxs cgy">{{ t_time|human_time }}</span>
+                    </div>
+
+                  </div>
+              </div>
+
+              {% endif %}
+          </div>
+    </div>
+
+</div>
+<br><br>
+{% endblock %}

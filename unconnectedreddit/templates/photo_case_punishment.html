@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<head><title>Punishing {{ oun }} | Damadam.pk</title></head>
 <div class="margin clb">
 
 {% if single_photo %}
@@ -62,7 +63,7 @@
 	{% if already_banned == '-1' %}
 	Ye pehle se hi <b class="co">hamesha ke liye</b> yahan pr photo charhane se banned hai
 	{% elif already_banned == '0' %}
-	Iske khilaf kia qadm uthana hai?
+	Iske khilaf kia qadam uthana hai?
 	{% else %}
 	Ye pehle se hi banned hai, aur photo charha sake ga <b class="co">{{ already_banned|naturaltime }}</b>
 	{% endif %}

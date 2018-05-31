@@ -7,9 +7,17 @@ from .redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erron
 from abuse import BANNED_WORDS
 import re
 
+def validate_nickname_chars(value):
+	reg = re.compile('^[\w\s.@+-]+$')
+	if not reg.match(value):
+		raise ValidationError('Nickname mein sirf english harf, number ya @ _ . + - likhein')
+	for name in BANNED_WORDS:
+		if name in value.lower():
+			raise ValidationError('Nickname mein "%s" nahi ho sakta!' % name)
+
 
 class ResetForgettersPasswordForm(forms.Form):
-	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likho:"})
+	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likhein:"})
 	class Meta:
 		fields = ('password',)
 
@@ -21,25 +29,29 @@ class ResetForgettersPasswordForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_password(self):
 		password = self.cleaned_data["password"]
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.user.username
 		lower_nick = nickname.lower()
 		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_nick in lower_pass:
-			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)
+			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')
 		return password
 
 
@@ -51,11 +63,58 @@ class ResetForgettersPasswordForm(forms.Form):
 			user.save()
 		return user
 
+
+class ForgettersNicknameForm(forms.Form):
+	username = forms.CharField(max_length=30,error_messages={'invalid': "Nickname mein sirf english harf, number ya @ _ . + - likhein",\
+		'required':"Is safed patti mein nickname likh ke OK dabain:"})#,validators=[validate_whitespaces_in_nickname])
+	class Meta:
+		fields = ('username',)
+
+	def __init__(self, *args, **kwargs):
+		super(ForgettersNicknameForm, self).__init__(*args, **kwargs)
+		self.fields['username'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
+
+	def clean_username(self):
+		"""
+		Validate that the username exists
+		"""
+		username = self.cleaned_data['username']
+		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
+		validate_nickname_chars(username)
+		exists = check_nick_status(nickname=username)
+		if exists is True:
+			try:
+				user_id = User.objects.only('id').get(username=username).id
+			except User.DoesNotExist:
+				raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+			return username, user_id
+		elif exists is False:
+			raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+		elif exists is '1':
+			raise forms.ValidationError('"%s" mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % username)
+		elif exists is '0':
+			pass
+		elif exists is None:
+			#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it
+			try:
+				user_id = User.objects.only('id').get(username=username).id
+			except User.DoesNotExist:
+				raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
+			return username, user_id
+
 ############################################################################################################
 
 class SignInForm(forms.Form):
-	username = forms.CharField(max_length=30,error_messages={'required': "naam khali nah choro"})
-	password = forms.CharField(error_messages={'required':"password khali nah choro"})
+	username = forms.CharField(max_length=30,error_messages={'required': "nickname khali nah chorein"})
+	password = forms.CharField(error_messages={'required':"password khali nah chorein"})
 
 	def __init__(self,*args,**kwargs):
 		super(SignInForm, self).__init__(*args,**kwargs)
@@ -64,21 +123,29 @@ class SignInForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		# self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		# self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
 
 	def clean(self):
 		username = self.cleaned_data.get('username')
 		password = self.cleaned_data.get('password')
 		if not username:
-			raise forms.ValidationError('naam khali nah choro')
+			raise forms.ValidationError('Nickname khali nah chorein')
 		if not password:
-			raise forms.ValidationError('password khali nah choro')
+			raise forms.ValidationError('Password khali nah chorein')
 		username = username.strip()
 		password = password.strip()
+		if not username:
+			raise forms.ValidationError('Nickname mein harf likhna zaruri hain')
+		if not password:
+			raise forms.ValidationError('Password mein harf likhna zaruri hain')
 		exists = nick_already_exists(nickname=username)
 		result = check_nick_status(nickname=username)
 		if result is None:
@@ -86,19 +153,19 @@ class SignInForm(forms.Form):
 			try:
 				User._default_manager.get(username=username)
 			except User.DoesNotExist:
-				raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+				raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
 		elif result is True:
 			pass
 		elif result is False:
-			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+			raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
 		elif result == '0':
-			raise forms.ValidationError('"%s" naam hamarey record mein nahi' % username)
+			raise forms.ValidationError('"%s" hamarey record mein nahi' % username)
 		elif result == '1':
-			raise forms.ValidationError('"%s" naam mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % username)
+			raise forms.ValidationError('"%s" nickname mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % username)
 		if username and password:
 		    user = authenticate(username=username,password=password)
 		    if user is None:
-		        raise forms.ValidationError('Password sahi nahi. Agr bhool gaye ho tou neechay "Password yad nahi" pe jao')
+		        raise forms.ValidationError('Password sahi nahi. Agr bhool gaye hain tou neechay "Password yad nahi" dabain')
 		    elif not user.is_active:
 		        raise forms.ValidationError(self.error_messages['inactive'])
 		    else:
@@ -107,8 +174,8 @@ class SignInForm(forms.Form):
 ############################################################################################################
 
 class CreateAccountForm(forms.ModelForm):
-	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': "ye naam sahi nahi hai"})
-	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"password khali nah choro"})
+	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'),error_messages={'invalid': "ye nickname sahi nahi hai"})
+	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"password khali nah chorein"})
 	class Meta:
 		model = User
 		fields = ('username',)
@@ -122,9 +189,9 @@ class CreateAccountForm(forms.ModelForm):
 				User._default_manager.get(username=username)
 			except User.DoesNotExist:
 				return username
-			raise forms.ValidationError('%s naam aap se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s nickname ap se pehle kisi aur ne rakh liya' % username)
 		elif exists:
-			raise forms.ValidationError('%s naam aap se pehle kisi aur ne rakh liya' % username)
+			raise forms.ValidationError('%s nickname ap se pehle kisi aur ne rakh liya' % username)
 		else:
 			return username
 
@@ -134,13 +201,13 @@ class CreateAccountForm(forms.ModelForm):
 		if len(password) < 6:
 			raise ValidationError('password mein kam se kam 6 harf zaruri hai')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein' % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')	
 		return password
 
 	def save(self, commit=True):
@@ -157,7 +224,7 @@ class CreateAccountForm(forms.ModelForm):
 
 class CreatePasswordForm(forms.Form):
 	username = forms.RegexField(max_length=30,regex=re.compile('^[\w.@+-]+$'))
-	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likho:"})
+	password = forms.CharField(widget=forms.PasswordInput(),error_messages={'required':"Safed patti mein password likhein:"})
 	class Meta:
 		fields = ('password','username')
 
@@ -170,6 +237,8 @@ class CreatePasswordForm(forms.Form):
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_username(self):
 		return self.cleaned_data.get("username")
@@ -177,21 +246,23 @@ class CreatePasswordForm(forms.Form):
 	def clean_password(self):
 		password = self.cleaned_data.get("password")
 		password = password.strip()
+		if not password:
+			raise ValidationError('Password mein harf likhna zaruri hain')
 		lower_pass = password.lower()
 		nickname = self.cleaned_data.get("username")
 		lower_nick = nickname.lower()
 		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hai!')
+			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
 		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho' % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein' % lower_pass)
 		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likho'  % lower_pass)
+			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
 		elif lower_nick in lower_pass:
-			raise ValidationError('"%s" nahi likh sakte kiyunke naam mein hai' % nickname)
+			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
 		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likho')
+			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
 		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likho')	
+			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')	
 		return password
 
 ############################################################################################################
@@ -208,14 +279,6 @@ def process_choices(alternatives):
 			if len(alt_choices) > 2:
 				return alt_choices
 	return alt_choices
-
-def validate_nickname_chars(value):
-	reg = re.compile('^[\w\s.@+-]+$')
-	if not reg.match(value):
-		raise ValidationError('Naam mein sirf english harf, number ya @ _ . + - ho sakta hai')
-	for name in BANNED_WORDS:
-		if name in value.lower():
-			raise ValidationError('Naam mein "%s" nahi ho sakta!' % name)
 
 # for nicks with spaces
 def form_variants(username):
@@ -270,8 +333,8 @@ def form_suggestions(username):
 		username+'-786'] #49 suggestions
 
 class CreateNickNewForm(forms.Form):
-	username = forms.CharField(max_length=30,error_messages={'invalid': "Naam mein sirf english harf, number ya @ _ . + - ho sakta hai",\
-		'required':"Is safed patti mein naam likh kar OK dabao:"})#,validators=[validate_whitespaces_in_nickname])
+	username = forms.CharField(max_length=30,error_messages={'invalid': "Nickname mein sirf english harf, number ya @ _ . + - likhein",\
+		'required':"Is safed patti mein nickname likh ke OK dabain:"})#,validators=[validate_whitespaces_in_nickname])
 	class Meta:
 		fields = ('username',)
 
@@ -282,6 +345,8 @@ class CreateNickNewForm(forms.Form):
 		self.fields['username'].widget.attrs['class'] = 'cxl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
+		self.fields['username'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['username'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_username(self):
 		"""
@@ -291,7 +356,13 @@ class CreateNickNewForm(forms.Form):
 		"""
 		username = self.cleaned_data['username']
 		username = username.strip()
+		if not username:
+			raise ValidationError('Nickname mein harf likhna zaruri hain')
 		validate_nickname_chars(username)
+		if username[:1] == '.':
+			raise ValidationError('Nickname ke shuru mein . nah dalein')
+		if username[-1:] == '.':
+			raise ValidationError('Nickname ke akhir mein . nah dalein')
 		exists = nick_already_exists(nickname=username)
 		altered = {}
 		if exists is None:
@@ -301,10 +372,10 @@ class CreateNickNewForm(forms.Form):
 				username = ''.join(username.split())
 				altered = {'status':'joined'}
 				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username_original)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username_original)
 			else:
 				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 			return [username], altered, username
 		############################################
 		else:
@@ -315,7 +386,7 @@ class CreateNickNewForm(forms.Form):
 				alt_choices = process_choices(alternatives)
 				if not alt_choices:
 					# no suggestions could be unearthed
-					raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
+					raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 				else:
 					# some suggestions unearthed
 					altered = {'status':'joined'}
@@ -326,7 +397,7 @@ class CreateNickNewForm(forms.Form):
 					alternatives = form_suggestions(username) #returns list of tuples containing suggestions and their statuses
 					alt_choices = process_choices(alternatives)
 					if not alt_choices:
-						raise ValidationError('"%s" kisi aur ka naam hai. Kuch aur likho' % username)
+						raise ValidationError('"%s" kisi aur ka nickname hai. Kuch aur likhein' % username)
 					else:
 						altered = {'status':'replaced'}
 						return alt_choices, altered, username

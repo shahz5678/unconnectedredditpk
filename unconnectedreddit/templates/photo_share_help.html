@@ -2,12 +2,19 @@
 {% load humanize %}
 {% load emoticons_tags %}
 {% block content %}
-<div class="margin clb"> 
+<head><title>Photo sharing | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:98%;padding:10px 7px;background-color:white"> 
 {% if not no_id %}
-	Jis se photo share krni hai, kya woh <b class="co">freebasics</b> pe hai?<br><br>
-	<b class="cgy">.</b> Agr <span class="co">haan</span>, toh usse ye link bhejo:<br><b class="cl co" style="word-wrap: break-word;">&nbsp;&nbsp;{{ freebasics_url }}</b><br><br>
+	<h1 class="cl">Jis se photo share karni hai, kya woh <b class="co">freebasics</b> pe hai?</h1>
 	
-	<b class="cgy">.</b> Agr <span class="cp">nahi</span>, toh usse ye link bhejo:<br><b class="cl cp" style="word-wrap: break-word;">&nbsp;&nbsp;{{ regular_url }}</b><br>
+	<div class="mbl">Agar <span class="cp">nahi</span>, toh ye link share karein:<br>
+	<blockquote class="lsp mbl mts cl cp bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ regular_url }}</blockquote>
+	</div>
+
+	<div class="mbl">Agar <span class="co">haan</span>, toh ye link share karein:<br>
+	<blockquote class="lsp mbl mts cl co bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ freebasics_url }}</blockquote>
+	</div>
 
 	{% if loc == '1' %}
 		{% if authenticated %}
@@ -23,16 +30,21 @@
 		{% endif %}
 	{% elif loc == '3' %}
 	<a href="{% url 'user_profile_photo' username ident %}">
+	{% elif loc == '4' %}
+	<a href="{% url 'home_loc' %}">
 	{% elif loc == '5' %}
     <a href="{% url 'photo_detail' ident %}">
+    {% elif loc == '6' %}
+    <a href="{% url 'unseen_activity' user.username %}">
 	{% else %}
 	<a href="{% url 'best_photo' %}#section0">
 	{% endif %}
-	<button class="btn bco bs mtl mbl">wapis</button></a>
+	<button class="btn bco bs mbl" style="height:22px">wapis</button></a>
 
 	<hr size=1 COLOR="#ff9933">
-	Agr link copy kr ke bhejna nahi ata, toh button dbao:</span><br><a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mtl mbl">freebasics SMS</button></a><br>
-    <a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mbl">normal SMS</button></a>
+	Agr link copy kar ke bhejna nahi ata, toh button dabain:</span><br>
+	<a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mtl mbl" style="height:25px">normal SMS</button></a><br>
+	<a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mbl" style="height:25px">freebasics SMS</button></a>
 {% else %}
 		<b>Ye photo kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
         Hum dhoondne ki koshish kr rahe hain<br>

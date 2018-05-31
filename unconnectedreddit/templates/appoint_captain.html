@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+
+<head><title>Appoint group officer | Damadam.pk</title></head>
+
 <div class="margin clb">
 {% if authorized %}
 {% if appoint == '1' %}
@@ -18,7 +21,7 @@
 {% endif %}
 	<a href="{% url 'owner_group_online_kon' %}"><button class="btn bcr bm mbl">Nahi</button></a>
 {% else %}
-<b>Tum ye nahi kar sakte!</b>
+<b>Ap ye nahi kar sakte!</b>
 {% endif %}
 </div>
 {% endblock %}

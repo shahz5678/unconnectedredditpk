@@ -3,6 +3,7 @@
 {% load emoticons_tags %}
 {% load s3 %}
 {% block content %}
+<head><title>{{ count }} comments under {{ video.caption }} (video uploaded by {{ video.owner }}) | Damadam.pk</title></head>
 <div class="margin">
 {% if video %}
 	<a href="{% url 'see_video' %}#section0">

@@ -9,28 +9,34 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from image_processing import clean_image_file_with_hash
-from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
-SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER
+SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk
-from .redis4 import expire_online_users, get_recent_online, set_online_users
-from .redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, \
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
+public_group_ranking_clean_up
+from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
+invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
+personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
+rate_limit_personal_group_sharing
+from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
+retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
+log_share, logging_sharing_metrics#, log_photo_attention_from_fresh
+from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, expire_top_groups, public_group_vote_incr, clean_expired_notifications, get_top_100,\
-get_fan_counts_in_bulk, get_all_fans, is_fan, remove_notification_of_banned_user, remove_from_photo_owner_activity
-from .redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
+get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
+remove_notification_of_banned_user, remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, \
+update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif
+from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, set_prev_retort, get_current_cricket_match, del_cricket_match, \
-update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, set_prev_replies, set_prev_group_replies, \
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, set_latest_group_reply, get_photo_link_mapping, \
-all_best_photos
+add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
+update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -68,6 +74,21 @@ MAX_FANS_TARGETED = 0.95 # 95%
 # 		# If page is out of range (e.g. 9999), deliver last page of results.
 # 		return paginator.page(paginator.num_pages)
 
+def get_credentials(user_id, uname=None, avurl=None):
+	if not uname and not avurl:
+		# both dont exist
+		uname, avurl = retrieve_credentials(user_id, decode_uname=True)
+	elif avurl:
+		# uname doesnt exist
+		uname = retrieve_uname(user_id,decode=True)
+	elif uname:
+		# avurl desn't exist
+		avurl = retrieve_avurl(user_id)
+	else:
+		# both exist, do nothing
+		pass
+	return uname, avurl
+
 
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
@@ -104,6 +125,114 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
+
+
+@celery_app1.task(name='tasks.invalidate_avatar_url')
+def invalidate_avatar_url(user_id,set_rate_limit=False):
+	invalidate_avurl(user_id, set_rate_limit)
+	invalidate_cached_user_data(user_id)
+
+@celery_app1.task(name='tasks.photo_sharing_metrics_and_rate_limit')
+def photo_sharing_metrics_and_rate_limit(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids):
+	#rate limiting sharing
+	rate_limit_personal_group_sharing(sharer_id)
+	#logging metrics
+	logging_sharing_metrics(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids)
+
+
+@celery_app1.task(name='tasks.add_image_to_personal_group_storage')
+def add_image_to_personal_group_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id, is_shared=False, op=None):
+	if is_shared:
+		set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id, True, op)
+	else:
+		set_personal_group_image_storage(img_url, img_id, img_wid, hw_ratio, img_quality, blob_id, index, own_id, group_id)
+
+
+@celery_app1.task(name='tasks.personal_group_trimming_task')
+def personal_group_trimming_task(group_id, object_count):
+	trim_personal_group(group_id,object_count)
+
+
+@celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
+def queue_personal_group_invitational_sms(mobile_number, sms_text, own_id, target_id, sending_time):
+	send_personal_group_sms(mobile_number, sms_text)
+	track_p2p_sms(own_id, target_id, sending_time)
+
+@celery_app1.task(name='tasks.cache_personal_group')
+def cache_personal_group(pg_data, group_id):
+	cache_personal_group_data(pg_data,group_id)
+
+@celery_app1.task(name='tasks.private_chat_tasks')
+def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
+	own_avurl='',deleted='',hidden='',successful=True, from_unseen=False, sharing=False):
+	if successful:
+		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
+		own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
+		pgh, index = "pgh:"+group_id+":"+blob_id if blob_id else '', idx if (idx and int(idx) > 0) else ''
+		updated = update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,\
+			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
+			hidden=hidden,update=True)
+		if not updated:
+			own_anon, target_anon, group_id = get_personal_group_anon_state(own_id,target_id)
+			their_uname, their_avurl = get_credentials(target_id)
+			update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,hidden=hidden,\
+			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
+			anon1=own_id if own_anon else '',anon2=target_id if target_anon else '',target_uname=their_uname,target_avurl=their_avurl, \
+			target_id=target_id)
+		update_private_chat_notifications(sender_id=own_id, receiver_id=target_id, group_id=group_id, sender_seen=True, receiver_seen=False,\
+			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
+		if from_unseen or sharing:
+			update_personal_group_last_seen(own_id, group_id, posting_time)#supposed to update 'seen' of contributer
+			increment_session(group_id, own_id, group_type='pg')
+			check_p2p_sms(own_id) #Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
+		# ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
+		if txt_type == 'exited':
+			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
+		elif txt_type not in ('reentry','creation'):
+			increment_convo_counter(group_id, own_id, group_type='pg')
+			# if not img_url and txt_type in ('text','text_res','img_res'):
+			if txt_type in ('text','text_res','img_res','img','shared_img'):
+				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
+
+@celery_app1.task(name='tasks.update_notif_object_anon')
+def update_notif_object_anon(value,which_user,which_group):
+	update_pg_obj_anon(value=value,object_id=which_group,user_id=which_user)
+
+@celery_app1.task(name='tasks.update_notif_object_del')
+def update_notif_object_del(group_id, action=None, blob_id=None,idx=None,bulk_deletion=False):
+	if bulk_deletion:
+		# bulk deletion was called in personal group, handle notif object accordingly
+		update_pg_obj_notif_after_bulk_deletion(group_id)
+	else:
+		update_pg_obj_del(action,blob_id,idx,group_id)
+
+@celery_app1.task(name='tasks.update_notif_object_hide')
+def update_notif_object_hide(action,blob_id,idx,group_id):
+	update_pg_obj_hide(action,blob_id,idx,group_id)
+
+
+@celery_app1.task(name='tasks.private_chat_seen')
+def private_chat_seen(own_id, group_id, curr_time):
+	skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
+	increment_session(group_id, own_id, group_type='pg')
+	check_p2p_sms(own_id)
+
+
+# execute every 3 days
+@celery_app1.task(name='tasks.delete_chat_from_idle_personal_group')
+def delete_chat_from_idle_personal_group():
+	personal_group_soft_deletion()
+
+# execute every 6 days
+@celery_app1.task(name='tasks.delete_idle_personal_group')
+def delete_idle_personal_group():
+	personal_group_hard_deletion()
+
+
+# execute daily
+@celery_app1.task(name='tasks.delete_exited_personal_group')
+def delete_exited_personal_group():
+	exited_personal_group_hard_deletion()
 
 
 def retrieve_object_type(origin):
@@ -235,6 +364,11 @@ def detail_click_logger(ad_id, clicker_id):
 	log_detail_click(ad_id, clicker_id)
 
 
+# @celery_app1.task(name='tasks.log_organic_attention')
+# def log_organic_attention(photo_id,att_giver,photo_owner_id, action, vote_value=None):
+# 	log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value)
+
+
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
 	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
@@ -242,6 +376,24 @@ def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=
 @celery_app1.task(name='tasks.enqueue_buyer_sms')
 def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
 	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
+@celery_app1.task(name='tasks.enqueue_orderer_sms')
+def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):
+	cleansed_data = "Assalam-o-Alikum! Apka "+str(order_data['model'])+" ka order hamarey pas agya hai. Mobile shop ka numainda apko jald call keray ga. Shukriya :-)"
+	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
+@celery_app1.task(name='tasks.send_orderer_pin')
+def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
+	cleansed_data = "Aap ka pin code hai '"+str(pin)+"'. Iss pin ko mobile shop ki confirm order ki screen per dalien aur apna "+str(order_data)+" ghar mangaien."
+	cleansed_data2 = "Pin code: '"+str(pin)+"' Mob# "+str(mobile_number)+"' Phone model: "+str(order_data)
+	mobile_number2 = '+923491058364'
+	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
+	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
+
+@celery_app1.task(name='tasks.enqueue_query_sms')
+def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
+	cleansed_data = "Assalam-o-Alikum! Apko 03105430851 se Damadam Mobile Shop ka numainda rabta kare ga. Ap khud bhi is number per rabta kr sakte hein. Shukriya :-)"
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
 
 @celery_app1.task(name='tasks.delete_notifications')
@@ -322,7 +474,8 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
-	expire_top_groups()
+	pass
+	# expire_top_groups()
 
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():
@@ -336,21 +489,39 @@ def sanitize_photo_report(photo_id):#return price paid (as a default)
 		for user_id,payable_score in payables:
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
+
 #paying back points spent by photo reporters
 @celery_app1.task(name='tasks.process_reporter_payables')
 def process_reporter_payables(payables):
 	for user_id,payable_score in payables:
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
+
 #auto-populating photo thumbs in search results (triggered whenever a user profile is visited)
 @celery_app1.task(name='tasks.populate_search_thumbs')
 def populate_search_thumbs(username,ids_with_urls):
 	bulk_add_search_photos(username,ids_with_urls)
 
+
+@celery_app1.task(name='tasks.sanitize_erroneous_notif')
+def sanitize_erroneous_notif(notif_name, user_id):
+	remove_erroneous_notif(notif_name, user_id)
+
+
 #used to calculate group ranking
-@celery_app1.task(name='tasks.public_group_vote_tasks')
-def public_group_vote_tasks(group_id,priority):
-	public_group_vote_incr(group_id,priority)
+# @celery_app1.task(name='tasks.public_group_vote_tasks')
+# def public_group_vote_tasks(group_id,priority):
+# 	public_group_vote_incr(group_id,priority)
+
+@celery_app1.task(name='tasks.rank_public_groups')
+def rank_public_groups(group_id,writer_id):
+	public_group_ranking(group_id,writer_id)
+
+
+@celery_app1.task(name='tasks.public_group_ranking_clean_up_task')
+def public_group_ranking_clean_up_task():
+	public_group_ranking_clean_up()
+
 
 @celery_app1.task(name='tasks.public_group_attendance_tasks')
 def public_group_attendance_tasks(group_id,user_id):
@@ -380,9 +551,16 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	if not updated:
 		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 			unseen_activity=True)
-	set_prev_group_replies(sender_id,reply_text)
 	set_latest_group_reply(group_id,reply_id)
-	# set_prev_retort(sender_id,reply_text)
+	if priv == '1':
+		increment_convo_counter(group_id, sender_id, group_type='pm')
+		increment_session(str(group_id), sender_id, group_type='pm')
+
+
+@celery_app1.task(name='tasks.log_private_mehfil_session')
+def log_private_mehfil_session(group_id,user_id):
+	increment_session(str(group_id), user_id, group_type='pm')
+
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
@@ -453,18 +631,14 @@ def rank_all_photos1():
 			del_cricket_match(enqueued_match['id'])
 
 
-# @celery_app1.task(name='tasks.reset_best_photos_cache')
-# def reset_best_photos_cache(photo_id):
-# 	obj_list = all_best_photos()
-# 	obj_list_keys = map(itemgetter(0), obj_list)
-# 	try:
-# 		index = obj_list_keys.index(photo_id)
-# 		page_num = get_page(index,PHOTOS_PER_PAGE)
-# 		cache.delete('best_photos'+str(page_num))
-# 		cache.delete('best_photos_page_obj'+str(page_num))
-# 	except:
-# 		pass
-		
+@celery_app1.task(name='tasks.set_input_rate_and_history')
+def set_input_rate_and_history(section,section_id,text,user_id,time_now):
+	"""
+	Keeps check of writing rates to rate limit abusive users
+	"""
+	log_input_text(section, section_id,text,user_id)
+	# log_input_rate(section,user_id,time_now,text)
+	log_input_rate(section,user_id,time_now)
 
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
@@ -633,7 +807,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
-	set_prev_replies(user_id,text)
+	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -699,7 +873,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	set_prev_replies(user_id,text)
+	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 	if user_id != photo_owner_id and not it_exists:
@@ -763,8 +937,14 @@ def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
 @celery_app1.task(name='tasks.registration_task')
 def registration_task(ip,username,user_id):
 	account_created(ip,username)
-	# insert_nickname(username)
-	# mp.track(user_id,'sign_ups')
+
+@celery_app1.task(name='tasks.log_sharing_click')
+def log_sharing_click(photo_id, photo_owner_id, sharer_id, share_type, origin_key):
+	try:
+		origin = SHARE_ORIGIN[origin_key]
+	except KeyError:
+		origin = None
+	log_share(photo_id, photo_owner_id, sharer_id, share_type, origin)
 
 @celery_app1.task(name='tasks.video_tasks')
 def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
@@ -773,7 +953,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	video.second_latest_comment = video.latest_comment
 	video.latest_comment_id = videocomment_id
 	video.comment_count = count
-	set_prev_retort(user_id,text)
+	# set_prev_retort(user_id,text)
 	if user_id != video.owner_id and not it_exists:
 		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
 		video.owner.userprofile.media_score = video.owner.userprofile.media_score + 2 #giving media score to the video poster
@@ -795,7 +975,7 @@ def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
-	set_prev_replies(user_id,description)
+	# set_prev_replies(user_id,description)
 	if is_someone_elses_post:
 		# ensuring self commenting doesn't add anything to a post's rating
 		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)

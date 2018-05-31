@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Create private group | Damadam.pk</title></head>
 <div class="margin">
-<b class="cg">Apni mehfil ka dilchusp sa topic dalo!</b><br class="mbs">
+<b class="cg">Apni mehfil ka aik yadgaar topic rekhein:</b><br class="mbs">
 
 <form method="post" action="{% url 'closed_group_create' %}" method="POST">
 	{% csrf_token %}
 	<span class="cr">{{ form.topic.errors }}</span>
 	{{ form.topic }}<br>
-	<button class="btn bcg bm mts" type="submit">OK</button>
+	<button class="btn bcg bm mts" type="submit" style="height:25px">OK</button>
 </form>
 </div>
 <br><br>

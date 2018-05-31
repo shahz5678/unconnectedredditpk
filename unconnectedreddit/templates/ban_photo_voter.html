@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+
+<head><title>Judgement on {{ owner_name }}'s photo's voters | Damadam.pk</title></head>
+
 <div class="margin clb">
 	<form method="POST" action="{% url 'ban_photo_voter' %}">
 	{% csrf_token %}
@@ -15,8 +18,8 @@
 				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name %}#section0">{{ name }}</a><br>
 			{% endfor %}
 		{% endif %}
-			<br>In sb ko photos pr vote krne se kitne waqt ke liye ban krna hai?
-			<br><span class="cgy cs">(tip: jisko chorna hai, uske box ka tick mark hata do)</span><br>
+			<br>In sab ko photos pe vote karney se kitney waqt ke liye ban karna hai?
+			<br><span class="cgy cs">(tip: jisko chorna hai, uske box ka tick mark hata dein)</span><br>
 
 		<input type="hidden" name="photo_id" value="{{ pk }}">
 		<input type="hidden" name="owner_name" value="{{ owner_name }}">

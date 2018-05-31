@@ -4,109 +4,75 @@
 {% load emoticons_tags %}
 {% load get_item %}
 {% load voted %}
+{% load show_error %}
 {% load photo_voted %}
 {% load human_time %}
 {% load s3 %}
-{% load get_mobile_shop %}
 {% load get_fan_button %}
 {% load get_voting %}
 {% load get_curate_photo %}
 {% load get_block_button %}
+{% load get_group_button %}
 {% load get_notification_bar %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
 {% load get_mobile_verification_bar %}
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
-{% load get_live_mobile_shop %}
 {% block content %}
-
-<style>
-
-
-body {
-
-	background: #E8F5E9;
-
-   background: repeating-linear-gradient(
-  to right,
- #FAFAFA,
-  #FAFAFA 50px,
-  #E8F5E9 50px,
-  #E8F5E9 100px
-);
- }
-
-
-</style>
-
+<head><title>Home | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 <div class="margin">
-
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	{% newbie_rules 'home' STATIC_URL newbie_lang %}
 {% else %}
-	<!-- -->
 
-	<!-- -->
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 
 	{% mobile_verification_bar ident csrf mobile_verified score %}
 
-	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True %}	
+	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}	
 {% endif %}
-
-<p style="margin-top:.5em;">
-{% if is_paginated %}
-<span start="{{ page_obj.start_index }}">
-{% else %}
-<span>
-{% endif %}
-</span>
-</p>
-
-<!-- ################################################################################################# -->
 
 {% for link in link_list %}
 {% with replyforms|get_item:link.l as replyform %}
+
+	{% if forloop.counter == 1 %}
+		<div style="text-align:center">
+			<ins class="adsbygoogle"
+			     style="display:block"
+			     data-ad-client="ca-pub-2568547635306983"
+			     data-ad-slot="4400307806"
+			     data-ad-format="auto"></ins>
+			<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>
+	{% endif %}
+
 	{% if forloop.counter == 6 %}
 		{% if enqueued_match %}
-		<div  class="card" style="background-color:#FFFF33;margin-top:-1em;padding-top:1em; position: relative; margin-bottom:35px; padding-bottom:10px;">
-			{% if enqueued_match.ended == '1' %}
-				<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.status }}</span><br>
-			{% elif enqueued_match.ended == '0' %}
-				{% if enqueued_match.score1 != 'None' and enqueued_match.score2 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
-				{% elif enqueued_match.score1 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;{{ enqueued_match.score1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
-				{% elif enqueued_match.score2 != 'None' %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}&nbsp;{{ enqueued_match.score2 }}</span><br>
-				{% else %}
-					<span class="cg"><b class="ct">Match</b>:&nbsp;{{ enqueued_match.team1 }}&nbsp;&nbsp;vs&nbsp;&nbsp;{{ enqueued_match.team2 }}</span><br>
-				{% endif %}
-				
-			{% endif %}
-				<form method="POST" action="{% url 'cricket_comment_page' %}">
-					{% csrf_token %}
-					{% if enqueued_match.cc|add:"0" > 1 %}
-						<button type="submit" class="btn bcg bl mts">{{ enqueued_match.cc }} tabsre</button><span class="ct"> match pe</span>
-					{% else %}
-						<button type="submit" class="btn bcg bl mts">tabsra kro</button><span class="ct"> match pe</span>
-					{% endif %}
-				</form>
-		
-				</div>
+			{% load get_cricket_summary %}
+			<div class="bizcard" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
+				{% cricket_summary enqueued_match %}
+			</div>
 		{% endif %}
 	{% endif %}
-	{% if forloop.counter == 3 %}
-		<div class="card" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png'); position: relative; margin-bottom:14px; padding-bottom:10px;">
-		<div class="mls">
-		<b class="cxl" style="color:#388e3c;">Damadam pe Buy & Sell</b><br>
-		<a href="{% url 'classified_listing' %}"><button class="btn bcg bl cl mtl mbs">Check karo</button></a>
-		</div>
+
+
+	{% if forloop.counter == 9 %}
+		<div class="bizcard" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px;padding:3px; padding-bottom:10px;">
+			<div class="mls">
+				<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
+				<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
+				<a href="{% url 'classified_listing' %}" itemprop="url"><button class="btn bcg bl cl mtl mbs" style="height:25px" itemprop="name">Start</button></a>
+				</div>
+			</div>
 		</div>
 	{% endif %}
-	{% if forloop.counter == 13 %}
+
+	{% if forloop.counter == 10 %}
 		{% if not show_current and not show_next %}
 			<!-- nothing to show -->
 		{% elif show_current and not show_next %}
@@ -123,131 +89,152 @@ body {
 		{% endif %}
 	{% endif %}
 
-	{% if link.c == '2' %}
-		<div class="card" style="margin-bottom:16px; padding:0px;">
+{% if link.c == '2' %}
+	
+	<div class="bizcard mtl" style="margin-bottom:16px">
 		{{ link.ch|safe }}
 		<a href="{% url 'profile' slug=link.n %}#section0">
 		{{ link.au|safe }}
 		{{ link.n }} {{ link.p|safe }}
 		    
-		</a><span class="clb"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp">shamil ho</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" ><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
+		</a><span class="clb lsp" itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement"> ki new <b>mehfil</b> mein <a href="{% url 'public_group' slug=link.m %}"><button class="btn nw bl bcp" style="height:22px" itemprop="name">shamil hon</button></a>&nbsp;:&nbsp;<a href="{% url 'public_group' slug=link.m %}" class="cp" itemprop="url"><u>{{ link.de }}</u></a></span><span class="cs cgy"><bdi>, {{ link.t|human_time }}</bdi></span>
 		{{ link.ct|safe }}
-		</div>
-	{% elif link.c == '6' %}
-		<div class="card" style="margin-bottom:35px;padding-bottom:10px;">
-	<div class="mbs">
-		<a href="{% url 'profile' link.n %}#secton0" class="mrl">
-		{{ link.au|safe }}
-		</a>
-
-		{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
-			{% if link.aw == '1' and link.h|add:"0" > 7 %}
-				<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
-			{% else %}
-				<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
-			{% endif %}
-			<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border-color:#B8B8B8;">
-			<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
-		{% endif %}
-
-
-		<a name="section{{ forloop.counter }}"></a>
-
-		<div style="display:inline-block">
-		{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
-		</div>
-
-
-		<div style="display:inline-block">
-		{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
-		</div><br>	    
+	</div>
 	
+{% elif link.c == '6' %}
+	
+	<div class="bizcard" style="background-color:white;margin-bottom:35px;padding:3px;padding-bottom:10px;">
+	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
+	
+		
+	<a href="{% url 'profile' link.n %}#secton0" class="mrl" style="vertical-align:middle">
+	<span itemprop="author">{{ link.au|safe }}</span>
+	</a>
+
+	{% if link.pc|default_if_none:"0"|add:"0" > 6 %}
+		<span itemprop="discussionUrl">
+		{% if link.aw == '1' and link.h|add:"0" > 7 %}
+		<a href="{% url 'comment_pk' pk=link.pi origin='6' ident=link.l %}">
+		{% else %}
+		<a href="{% url 'comment_chat_pk' pk=link.pi ident=link.l %}">
+		{% endif %}
+		<button class="btn nw bl mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px">
+		<b>{{ link.pc }}</b>&nbsp;&nbsp;tabsrey</button></a>
+		</span>
+	{% endif %}
+
+	<a name="section{{ forloop.counter }}"></a>
+
+	<div style="display:inline-block">
+	{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
 	</div>
 
+	<div style="display:inline-block">
+	{% curate_photo pid=link.pi vsc=link.v oun=link.n caption=link.de oid=link.w purl=link.i|s3:"thumb" lid=link.l origin=3 static_url=STATIC_URL %}
+	</div>
+	
 
-			<b class="cl cb"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></b>
-			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}<br>
+		<div style="overflow:hidden"><b class="cl clb lsp"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></b>
+		{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}</div>
 
-
-		    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
-		    <a href="{% url 'see_photo_pk' link.pi %}">
-		    {% if link.v|add:"0" < -2 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		    {% elif link.v|add:"0" < -1 %}
-			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
+	    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
+	    <a href="{% url 'see_photo_pk' link.pi %}">
+	    {% if link.v|add:"0" < -2 %}
+	    	<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+	    {% elif link.v|add:"0" < -1 %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
 		    {% else %}
-			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright"></img>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% endif %}
-		    </a>
+	    {% else %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" style="border-radius:12px" class="pht bright">
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
 		    {% endif %}
-		    
+	    {% endif %}
+	    </a>
+	    {% endif %}
+	    
 
 		{% if link.aw == '1' and link.h|add:"0" > 5 %}
-	    	{% if link.v|add:"0" < -2 %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-		    {% elif link.v|add:"0" < -1 %}
-			    {% if link.i %}
-			    <img src="{{ link.i|s3:"thumb" }}" class="pht bright" alt="{{ link.de }}"></img>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
-			{% else %}
-			    {% if link.i %}
-			    <a href="{% url 'see_photo_pk' link.pi %}#section0">
-			    <img class="pht" style="border-color:blue" src="{{ link.i|s3 }}" alt="{{ link.de }}"></img></a>
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
-			    {% endif %}
-		    {% endif %}    
-	    	<br>
-	    
+		{% if link.v|add:"0" < -2 %}
+			<img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		{% elif link.v|add:"0" < -1 %}
+		    {% if link.i %}
+		    <img itemprop="image" src="{{ link.i|s3:"thumb" }}" class="pht bright" style="border-radius:12px" alt="{{ link.de }}">
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		    {% endif %}
+		{% else %}
+		    {% if link.i %}
+		    <a href="{% url 'see_photo_pk' link.pi %}#section0">
+		    <img itemprop="image" class="pht" style="border-color:#D3D3D3;border-radius:12px" src="{{ link.i|s3 }}" alt="{{ link.de }}"></a>
+		    {% else %}
+		    <img itemprop="image" src="{{ STATIC_URL }}img/broken_pic_small.png" style="border-radius:4px" alt="photo" width="38" height="38">
+		    {% endif %}
+		{% endif %}    
 		{% endif %}
 
+		<div class="cxs sp cgy mrs">
+		<span itemprop="datePublished" class="mrs">uploaded {{ link.t|human_time }}</span>
+		<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+		{% csrf_token %}
+		<input type="hidden" name="pl" value="{{ link.n }}:{{ link.pi }}:1:{{ link.w }}:{{ link.de }}">
+		<button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ link.i }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+		</form>
+		</div>
+
+		{% if is_mob %}
+	      <div class="mt"><a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ link.pi }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ link.pi }}" data-action="share/whatsapp/share">
+	      <button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
+	      </a></div>
+	      {% else %}
+	      <div class="mt"><a href="{% url 'photo_share' link.pi 4 link.n %}"><button class="btn nw bl mts mbs" style="color:#944CB2;background-color:#F8F8F8;border:1px solid #B8B8B8;height:34px">share photo</button></a></div>
+		{% endif %}
 
 		{% if can_vote and link.n != user.username and not link.pi|photo_voted:user.username %}
 			{% vote_buttons vote_type='photo_vote' lid=link.l pid=link.pi lang=lang sort_by=sort_by origin=3 static_url=STATIC_URL %}
 		{% endif %}
 
+		<div class="mt">
 		{{ link.vt|safe }}
-
+		</div>
 		
 		{% if link.pi %}
 			{% photo_comments_section link.pi STATIC_URL ident '3' score %}
 		{% endif %}
 
-		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l %}
-
+		{% home_photo_comment_bar link.pi link.w lang sort_by ident comment_form '3' link.l sk %}
 		
 	</div>
+	</div>	
 	
+{% else %}
 	
-	{% else %}
-	<div class="card" style="position: relative; margin-bottom:35px; margin-top:10px; padding-bottom:10px;">
-			{{ link.ch|safe }}
+	<div class="bizcard" style="background-color:white;margin-bottom:35px; margin-top:10px; padding:3px;padding-bottom:10px">
+	<div itemscope itemtype="http://schema.org/SocialMediaPosting">	
+		{{ link.ch|safe }}
+			<div style="overflow:hidden">
 			<a href="{% url 'profile' slug=link.n %}#section0">
-				{{ link.au|safe }}
-				<bdi class="cl">{{ link.n }}</bdi>
+				<span itemprop="image">{{ link.au|safe }}</span>
+				<bdi class="cl"><span itemprop="author">{{ link.n }}</span></bdi>
 				</a>
 			{% if score > 25 %}				
 				{{ link.sc|safe }}
 			{% endif %}
 
 			{{ link.p|safe }}:
-	    	<span class="cl clb bw"><bdi>{% emoticons %}{{ link.de }}{% endemoticons %}</bdi></span>
+	    	<span class="cl clb bw lsp"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></span>
 				<a name="section{{ forloop.counter  }}"></a>
-			<span class="cs cgy mrs"><bdi>, {{ link.t|human_time }}</bdi></span>
+			<span class="cs cgy mrs"><bdi>,<span itemprop="datePublished">{{ link.t|human_time }}</span></bdi></span>
 
 			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
 
-			<br>
+			{% group_button ident link.w link.l 'link' 'home' link.n %}
+
+			</div>
 
 			{% if can_vote and link.n != user.username and not link.l|voted:user.username %}
 				<div class="mls mts">
@@ -256,15 +243,15 @@ body {
 			{% endif %}
 
 			{% if link.vt %}
-			<div class="mls mts">
-			{{ link.vt|safe }}
-			</div>
+				<div class="mls mts">
+				{{ link.vt|safe }}
+				</div>
 			{% endif %}
 			
 			{% if link.cc|add:"0" > 6 %}
 				<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline;">
 				{% csrf_token %}
-				&nbsp;&nbsp;<button class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border-color:#B8B8B8;" value="{{ link.l }}"><b>{{ link.cc }}</b>&nbsp;&nbsp;jawab</button>
+				&nbsp;&nbsp;<button itemprop="discussionUrl" class="btn nw bl mtl" name="lid" type="submit" style="color:#229ec3;background-color:#F8F8F8;border:1px solid #B8B8B8;height:25px" value="{{ link.l }}"><b><span itemprop="commentCount">{{ link.cc }}</span></b>&nbsp;&nbsp;jawab</button>
 				</form>
 			{% endif %}
 
@@ -278,31 +265,37 @@ body {
 			{% endif %}
 
 			<div class="mtl">
-				{% home_publicreply_bar link_pk=link.l link_writer_pk=link.w lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home'%}
+				{% home_publicreply_bar link_pk=link.l link_writer_pk=link.w lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home' sk=sk %}
 			</div>
 		
 
 			
 			{{ link.ct|safe }}
-			
-	{% endif %}
+	</div>		
+	</div>
+{% endif %}
+
 {% endwith %}
+
 {% empty %}
 	<span class="clb">Ao gup lagain!</span>
 	<p><hr size=1 COLOR="#BDBDBD"></p>
+
 {% endfor %}
 
-
-<br><div style="text-align: center;">
+</div>
+<br>
+	<div class="mbs" style="text-align: center;">
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
 	    {% endif %}
 	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg" itemprop="url"><bdi>aagey</bdi></button></a>
 	    {% endif %}
 	</div>
-
-</div>
-<br><br>
+	</div>
+<br>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

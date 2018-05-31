@@ -1,5 +1,6 @@
 {% extends "base_min.html" %}
 {% block content %}
+<head><title>Feedback form | Damadam.pk</title></head>
 <div class="margin clb mtl">
 <form action="{% url 'website_feedback' %}" method="POST">
 {% csrf_token %}
@@ -49,7 +50,3 @@
 </div>
 <br><br>
 {% endblock %}
-<!-- 
-Ap ne Damadam pe new dost banai?<br>
-Damadam ke kis feature ke steps simplify kiye ja saktey hain?<br>
-Kiya app Damadam Free Basics se bahir bhi istimal kartey ho?<br> -->

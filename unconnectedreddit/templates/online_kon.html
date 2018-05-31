@@ -2,13 +2,14 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Online users | Damadam.pk</title></head>
     <div class="margin">
     <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high photo score</b></a>&nbsp;<span class="cs">|</span>
     <a href="{% url 'top' %}#section0" class="cg cxs" ><b>high chat score</b></a>&nbsp;<span class="cs" >|</span>
     <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a><br>
         {% if not whose_online %}
             <br>
-            <span class="clb">Online kon ka bheja fry ho {% emoticons %}gaya .i1.i2.i3.i4{% endemoticons %}</span><br>
+            <span class="cgy">-- Ye abhi khali hai --</span><br>
         {% elif with_thumbs %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
@@ -16,13 +17,13 @@
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' slug=obj.username %}#section0">
                 {% if obj.userprofile__avatar %}
-                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
+                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% else %}
-                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+                    <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% endif %}
                 <b class="cb">{{ obj.username }}</b>
                 {% if obj.username in legit %}
-                    <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
+                    <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
                 {% endif %}
                 </a>
                 {% if obj.userprofile__score %}
@@ -39,7 +40,7 @@
                 {% endif %}
                 <hr size=1 COLOR="#b3e6b3">
             {% endfor %}
-            <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+            <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% else %}
             <br>
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
@@ -47,13 +48,13 @@
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">
                         {% if obj.userprofile__avatar %}
-                            <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
+                            <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% else %}
-                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
+                            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% endif %}
                         {{ obj.username }}
                             {% if obj.username in legit %}
-                                <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">
+                                <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
                             {% endif %}
                         </a>
                         {% if obj.userprofile__score %}
@@ -66,7 +67,7 @@
                 <br>
             {% endfor %}
         <hr size=1 COLOR="#b3e6b3">
-        <span class="cs">Nickname forun online kon pr nazr nahi aa jata, thora time lagta hai</span>
+        <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% endif %}
 
     {% if show_locked_search %}

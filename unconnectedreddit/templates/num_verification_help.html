@@ -1,61 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="margin clb">
+<head><title>Mobile verification help | Damadam.pk</title></head>
 
-    <h2 style="color:black">Tasdiq karwatay huay kia masla aa raha hai?</h2>
+<div class="margin clb lsp" style="padding:0 7px 0 7px">
+  <div class="card mbl" style="background-color:#B3FFF1;border:1px solid #80FFE8;padding:7px">
+  <h1 class="mt mbs mrs cxl sp" style="font-weight:normal;color:#006699;display:inline">Verify your mobile number to win 500 points!</h1>
+  {% if csrf %}
+  <form method="get" class="mrs" style="display:inline" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+    <input type="hidden" name="country_code" value="PK">
+    <input type="hidden" name="app_id" value="1758220174446684">
+    <input type="hidden" name="locale" value="ur_PK">
+    <input type="hidden" name="debug" value=false>
+    <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+    <input type="hidden" name="state" value="{{ csrf }}">
+    <input type="hidden" name="fbAppEventsEnabled" value=true>
+    <input type="submit" class="mt ma sp" style="color:white;background-color:#006699;border:solid 1px #006699;font-size:100%" value="  OK  ">
+  </form>
+  {% endif %}
+  <hr size=1 COLOR="#66FFE3">
 
-    <div class="mtl">
-  <b class="cg cl">Mera number kis ke pas jaye ga?</b><br>
-  <div class="mt">
-  <span class="clb">Apka number kisi ko nahi diya jaye ga, aur na hi apko kabhi call ki jaye gi. Tasdiq karwanay say hum fake accounts khatam kar saktey hain. Ye sahulat ap ke faiday ke liye banai gaye hai</span>
-  </div>
-</div>
+  <h2 class="mt mbs sp cl" style="font-weight:normal">Steps:</h2>
+  <div class="mt mls">1) OK dabain</div>
+  <div class="mt mls">2) Agli screen pe mobile number dalein</div>
+  <div class="mt mls">3) Apko SMS mein code aye ga</div>
+  <div class="mt mls mbs">4) Woh code dalein, verify ho gaya!</div>
+  <hr size=1 COLOR="#66FFE3">
 
-<hr size=1 COLOR="#e0e0e0">
-     <div class="mtl">
-  <b class="cg cl">Tasdiq kaisay hoti hai?</b><br>
-  <div class="mt">
-  <span class="clb">Step 1: Shuru mein ap ne mobile number aur country code <b>+92</b> likhna hai<br> Step 2: Iskey baad apko aik SMS aye ga<br>Step 3: SMS main aik code ho ga<br>Step 4: Ye code apne agley page pe likh kar OK dabana hai. Tasdiq ho jaye gi!<br>Step 5: Agr SMS waqt par mosool na ho, tou tasdiq karney ke liye kuch time intezar kar lein<br></span>
-  </div>
-  <span class="cl cr"> Khiyal rakhein: code wahan na likhein jahan phone number likha tha. Us se agley page pe likhein!</span>
-</div>
-<hr size=1 COLOR="#e0e0e0">
-<div class="mtl">
-<b class="cg cl">SMS main jo code aya hai wo kahan likhna hai?</b><br>
-<div class="mt">
-  <span class="clb">Phone number likhnay ke baad aik aur green color ki screen ho gi, wahan SMS main aya hua code likh ke OK daba dain<br> Khiyal rahay ke code wahan na likhain jahan phone number likhna hota hai</span>
-  </div>
-</div>
-<hr size=1 COLOR="#e0e0e0">
-<div class="mtl">
-  <b class="cg cl">Ye mujh se country code mang raha hai, wo kia hai?</b>
-  <div class="mt">
-  <span class="clb">Pakistan ka country code <b>+92</b> hai. Agar country code wala page khulay to wahan ap ne Pakistan select karna hai</span>
-  </div>
-</div>
-<hr size=1 COLOR="#e0e0e0">
+  <h2 class="mt mbs sp cl" style="font-weight:normal">Mazeed malumat (info):</h2>
+  <div class="mt mls"><b>Secure:</b> apka mobile number mahfooz rehay ga aur koi apko call nahi karey ga</div>
+  <div class="mts mls"><b>500 points:</b> Points Damadam ki money hai. In se website pe buhut kuch kiya ja sakta hai!</div>
+  <div class="mts mls"><b>Can't Verify:</b> SMS code ghalti se us screen mein nahi daiein jahan mobile number dala tha. Agr SMS code aney mein deir ho rahi hai, ya verify nahi ho raha, tou 1 hour baad dubara koshish karein</div>
+  <div class="mts mls"><b>Non-Pakistani:</b> If you are not from Pakistan and want to verify your mobile number, please contact the creator of the website (nickname: mhb11)</div>
 
+  <hr size=1 COLOR="#66FFE3">
 
-<div class="mtl">
-  <b class="cg cl">Mujh se tasdiq nahin ho rahi, kiun?</b>
-  <div class="mt">
-  <span class="clb">Baar baar 'back' button dabaney ya 'cross' karney se tasdiq nai hoti.'Back' ya 'cross' ka button na dabain</span>
-  </div>
+  <h1 class="mt mbs mrs cxl sp" style="font-weight:normal;color:#006699;display:inline">Verify your mobile number to win 500 points!</h1>
+  {% if csrf %}
+  <form method="get" class="mrs" style="display:inline" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
+    <input type="hidden" name="country_code" value="PK">
+    <input type="hidden" name="app_id" value="1758220174446684">
+    <input type="hidden" name="locale" value="ur_PK">
+    <input type="hidden" name="debug" value=false>
+    <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
+    <input type="hidden" name="state" value="{{ csrf }}">
+    <input type="hidden" name="fbAppEventsEnabled" value=true>
+    <input type="submit" class="mt ma sp" style="color:white;background-color:#006699;border:solid 1px #006699;font-size:100%" value="  OK  ">
+  </form>
+  {% endif %}
+
 </div>
-{% if csrf %}
-<hr size=1 COLOR="#e0e0e0">
-<h2 style="color:black">Abhi number tasdiq karwaney ke liye ye dabain:</h2>
-<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
-  <input type="hidden" name="country_code" value="PK">
-  <input type="hidden" name="app_id" value="1758220174446684">
-  <input type="hidden" name="locale" value="ur_PK">
-  <input type="hidden" name="debug" value=false>
-  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
-  <input type="hidden" name="state" value="{{ csrf }}">
-  <input type="hidden" name="fbAppEventsEnabled" value=true>
-  <input type="submit" class="mtl mbl" style="margin:auto; color:white;background-color:#00c853;border:solid 1px #008035;font-size:110%;font-weight:bold;" value="  OK  ">
-</form><br>
-{% endif %}
-</div>
-<br><br>
+</div>    
 {% endblock %}

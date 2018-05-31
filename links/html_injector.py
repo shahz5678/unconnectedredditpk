@@ -49,92 +49,100 @@ def category_formatting(categ):
 	if categ == '1':
 		#tyical home link
 		div_head = '<span></span>'
-		div_tail = '</div>'
+		div_tail = ''
 	elif categ == '2':
 		#public mehfil creation announcement on home
-		div_head = '<div style="background-color:#faebeb;padding-top:1em;padding-bottom:1em;" >'
+		div_head = '<div style="background-color:#F5E8ED;padding-top:1em;padding-bottom:1em" >'
 		div_tail = '</div>'
 	elif categ == '3':
 		#Karachi Kings
-		div_head = '<div style="background-color:#e9eefc;"><h1 style="font-size:0.7em;background-color:#244ed8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Karachi Kings</h1>'
-		div_tail = '<p><hr size=1 COLOR="#244ed8"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#2857D0;color:#BFCDF3;padding:0.3em;border-radius:4px;letter-spacing: 1px">Karachi Kings fan</div>'
+		div_tail = ''
 	elif categ == '4':
 		#Peshawar Zalmi
-		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Peshawar Zalmi</h1>'
-		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#FCEE0A;color:#979002;padding:0.3em;border-radius:4px;letter-spacing: 1px">Peshawar Zalmi fan</div>'
+		div_tail = ''
 	elif categ == '5':
 		#Lahore Qalandars
-		div_head = '<div style="background-color:#e6ffe6;"><h1 style="font-size:0.7em;background-color:#00e600;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Lahore Qalandars</h1>'
-		div_tail = '<p><hr size=1 COLOR="#00e600"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#8AE44F;color:#366E11;padding:0.3em;border-radius:4px;letter-spacing: 1px">Lahore Qalandars fan</div>'
+		div_tail = ''
 	elif categ == '6':
 		#Photo sharing
 		div_head = '<span></span>'
-		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p>'
+		div_tail = ''
 	elif categ == '7':
 		#Quetta Glads
-		div_head = '<div style="background-color:#f5edf8;"><h1 style="font-size:0.7em;background-color:#9040a8;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Quetta Gladiators</h1>'
-		div_tail = '<p><hr size=1 COLOR="#9040a8"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#54348A;color:#C6B5E3;padding:0.3em;border-radius:4px;letter-spacing: 1px">Quetta Gladiators fan</div>'
+		div_tail = ''
 	elif categ == '8':
 		#Islamabad United
-		div_head = '<div style="background-color:#ffece6;"><h1 style="font-size:0.7em;background-color:#ff4500;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Islamabad United</h1>'
-		div_tail = '<p><hr size=1 COLOR="#ec544f"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#EE3000;color:#FFD6CC;padding:0.3em;border-radius:4px;letter-spacing: 1px">Islamabad United fan</div>'
+		div_tail = ''
 	elif categ == '9':
 		#misc
-		div_head = '<div style="background-color:#e7f2fe;"><h1 style="font-size:0.7em;background-color:#59A5F5;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Cricket</h1>'
-		div_tail = '<p><hr size=1 COLOR="#BDBDBD"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#40BEFC;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Cricket commentator</div>'
+		div_tail = ''
 	elif categ == '10':
 		#New Zealand
-		div_head = '<div style="background-color:#f2f2f2;"><h1 style="font-size:0.7em;background-color:#404040;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">New Zealand</h1>'
-		div_tail = '<p><hr size=1 COLOR="#404040"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#404040;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">New Zealand fan</div>'
+		div_tail = ''
 	elif categ == '11':
 		# South Africa
-		div_head = '<div style="background-color:#fbf8ea;"><h1 style="font-size:0.7em;background-color:#ddcc5e;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">South Africa</h1>'
-		div_tail = '<p><hr size=1 COLOR="#ddcc5e"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#006663;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">South African fan</div>'
+		div_tail = ''
 	elif categ == '12':
 		# Pakistan
-		div_head = '<div style="background-color:#e6ffe6;"><h1 style="font-size:0.7em;background-color:#008000;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Pakistan</h1>'
-		div_tail = '<p><hr size=1 COLOR="#008000"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#00C354;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Pakistan fan</div>'
+		div_tail = ''
 	elif categ == '13':
 		# West Indies
-		div_head = '<div style="background-color:#ffe6e6;"><h1 style="font-size:0.7em;background-color:#990000;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">West Indies</h1>'
-		div_tail = '<p><hr size=1 COLOR="#990000"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#AE2D39;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">West Indies fan</div>'
+		div_tail = ''
 	elif categ == '14':
 		# India
-		div_head = '<div style="background-color:#e8f7fd;"><h1 style="font-size:0.7em;background-color:#1293CC;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">India</h1>'
-		div_tail = '<p><hr size=1 COLOR="#1293CC"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#1F92D6;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Indian fan</div>'
+		div_tail = ''
 	elif categ == '15':
 		# Sri Lanka
-		div_head = '<div style="background-color:#ebf2fa;"><h1 style="font-size:0.7em;background-color:#26548B;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">Sri Lanka</h1>'
-		div_tail = '<p><hr size=1 COLOR="#26548B"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#003366;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">Sri Lankan fan</div>'
+		div_tail = ''
 	elif categ == '16':
 		# England
-		div_head = '<div style="background-color:#e6e6ff;"><h1 style="font-size:0.7em;background-color:#020277;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">England</h1>'
-		div_tail = '<p><hr size=1 COLOR="#020277"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#1C16C1;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">England fan</div>'
+		div_tail = ''
 	elif categ == '17':
 		# urdu home link
 		div_head = '<span></span>'
-		div_tail = '</div>'
+		div_tail = ''
 	elif categ == '18':
 		# World-XI
-		div_head = '<div style="background-color:#ffffcc;"><h1 style="font-size:0.7em;background-color:#4d0099;color:white;margin-top:-1.5em;padding-top:0.3em;padding-left:0.3em;padding-bottom:0.3em;">World-XI</h1>'
-		div_tail = '<p><hr size=1 COLOR="#4d0099"></p></div>'
+		div_head = '<div class="mbs cs" style="background-color:#5A00B2;color:white;padding:0.3em;border-radius:4px;letter-spacing: 1px">World XI fan</div>'
+		div_tail = ''
+	elif categ == '19':
+		#Multan Sultans
+		div_head = '<div class="mbs cs" style="background-color:#525045;color:#D1CFC7;padding:0.3em;border-radius:4px;letter-spacing: 1px">Multan Sultans fan</div>'
+		div_tail = ''
+	elif categ == '20':
+		#Australia
+		div_head = '<div class="mbs cs" style="background-color:#FFFF4D;color:#808000;padding:0.3em;border-radius:4px;letter-spacing: 1px">Australian supporter</div>'
+		div_tail = ''
 	else:
 		div_head = '<span></span>'
-		div_tail = '<span></span>'
+		div_tail = ''
 	return div_head, div_tail
 
 
 def device_formatting(device):
 	if device == '1':
-		device = '&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12"></img>'
+		device = '&nbsp;<img src="/static/img/featurephone.png" alt="pic" width="7" height="12">'
 	elif device == '2':
-		device = '&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12"></img>'
+		device = '&nbsp;<img src="/static/img/smartphone.png" alt="pic" width="7" height="12">'
 	elif device == '3':
-		device = '&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13"></img>'
+		device = '&nbsp;<img src="/static/img/laptop.png" alt="pic" width="17" height="13">'
 	elif device == '4':
-		device = '&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11"></img>'
+		device = '&nbsp;<img src="/static/img/tablet.png" alt="pic" width="14" height="11">'
 	elif device == '5':
-		device = '&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12"></img>'
+		device = '&nbsp;<img src="/static/img/other.png" alt="pic" width="7" height="12">'
 	else:
 		device = None
 	return device
@@ -180,17 +188,17 @@ def av_url_formatting(av_url, style=None, categ=None):
 			url = av_url
 	if url:
 		if style == 'round':
-			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'.format(url)
+			return '<img src="{}" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'.format(url)
 		else:
 			if categ == '6':
-				return '<button class="mbs" alt="no avatar" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>'.format(url)
+				return '<button class="mbs" alt="pic" style="background-image: url({});border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9">&nbsp;</button>'.format(url)
 			else:
-				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22"/>'.format(url)
+				return '<img src="{}" style="border: 1px solid lightgrey" width="22" height="22">'.format(url)
 	else:
 		if style == 'round':
-			return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border-radius:50%;border: 1px solid lightgrey;" width="22" height="22"/>'
+			return '<img src="/static/img/default-avatar-min.jpg" alt="pic" style="border-radius:50%;border: 1px solid lightgrey" width="22" height="22">'
 		else:
 			if categ == '6':
-				return '<button class="mbs" alt="no avatar" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>'
+				return '<button class="mbs" alt="pic" style="background-image: url(/static/img/default-avatar-min.jpg);border-radius:0px;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0">&nbsp;</button>'
 			else:
-				return '<img src="/static/img/default-avatar-min.jpg" alt="no pic" style="border:1px solid lightgrey;" width="22" height="22"/>'
+				return '<img src="/static/img/default-avatar-min.jpg" alt="pic" style="border:1px solid lightgrey" width="22" height="22">'

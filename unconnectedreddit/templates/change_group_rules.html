@@ -1,20 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
+<head><title>Change public group rules | Damadam.pk</title></head>
 <div class="margin clb">
 {% if unauthorized %}
 	<span class="cr"><b>Sirf mehfil ka admin ye kaam kr sakta hai!</b></span>
 {% else %}
-	<span>Is mehfil ka new qanoon kya rakhna hai?</span><br><br>
+	<span class="cxl">Is mehfil ke new rules kya rakhne hain?</span><br><br>
 	<form method="post" action="" style="display:inline">
 	{% csrf_token %}
 	<span class="cr">{{ form.rules.errors }}</span>
-	<b class="cp">New Qanoon:</b><br>{{ form.rules }}<br>
-	<button class="btn bcp bms mtl mbl mrl" type="submit">OK</button>
+	<b class="cp">New Rules:</b><br>{{ form.rules }}<br>
+	<button class="btn bcp bms mtl mbl mrl bm" style="border:none;height:23px" type="submit">OK</button>
 	</form>
 		{% if group.private == '1' %}
 		<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcgy mtl mls mbs">wapis</button></form>
 		{% elif group.private == '0' %}
-		<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mtl mls mbs">wapis</button></a>
+		<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mtl mbs" style="border:none;height:23px">wapis</button></a>
 		{% else %}
 		{% endif %}
 	{% endif %}

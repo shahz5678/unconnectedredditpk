@@ -1,56 +1,61 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load mathfilters %}
+{% load get_group_button %}
 {% load s3 %}
 {% load get_votes %}
 {% load emoticons_tags %}
 {% load get_block_button %}
 {% block content %}
+<head><title>{{ username }}'s home history | Damadam.pk</title></head>
 {{ block.super }}
 
-<div class="clb" style="margin-left:-1.3em;line-height:1.8;">
+<div class="clb lsp" style="margin-left:-1.3em">
 {% if is_paginated %}
 <ul start="{{ page_obj.start_index }}">
 {% else %}
 <ul>
 {% endif %}
 
-<b>Home ki chat history:</b><br>
+<h1 class="cm">{{ username|truncatechars:12 }}'s home history:</h1>
 
 {% for link in object_list %}
 	{% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"></img><br>
+    	<img src="{{ link.image_file.url }}"><br>
 	{% endif %}
-	<a href="{% url 'profile' slug=link.submitter %}#section0">
-    {% if link.submitter.userprofile.avatar %}
-		
-		<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
-		
-	{% else %}
-		
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-		
-	{% endif %}
-	<bdi>{{ username }}</bdi></a>
-	{% if user.is_authenticated and user.userprofile.score > 25 %}
-		{% if link.submitter.userprofile.score < 0 %}
-	    	<span class="cg cs">(1)</span>
-	    {% else %}
-	    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
+	<div style="overflow:hidden">
+		<a href="{% url 'profile' slug=link.submitter %}#section0">
+	    {% if link.submitter.userprofile.avatar %}
+			
+			<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" style="border-radius:50%" alt="pic">
+			
+		{% else %}
+			
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
+			
 		{% endif %}
-	{% endif %}
-	{% if username in verified %}
-    	<span class="pinkstar"><b>*</b></span>
-    {% endif %}
-	: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
-	</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}<br>
+		<bdi>{{ username }}</bdi></a>
+		{% if user.is_authenticated and user.userprofile.score > 25 %}
+			{% if link.submitter.userprofile.score < 0 %}
+		    	<span class="cg cs">(1)</span>
+		    {% else %}
+		    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
+			{% endif %}
+		{% endif %}
+		{% if username in verified %}
+	    	<span class="pinkstar"><b>*</b></span>
+	    {% endif %}
+		: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
+		</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}
+		{% group_button ident link.submitter_id link.pk 'link' 'history' username %}
+	</div>
 
 		<form action="{% url 'publicreply_view' %}" method="POST">
 		{% csrf_token %}
 		{% if link.reply_count > 0 %}
-		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}"><b>{{ link.reply_count }}</b>&nbsp;&nbsp;jawab</button>
+		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}" style="height:22px"><b>{{ link.reply_count }}</b>&nbsp;jawab</button>
 		{% else %}
-		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}">isko jawab do</button>
+		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}" style="height:22px">jawab dein</button>
 		{% endif %}
 		</form>
 

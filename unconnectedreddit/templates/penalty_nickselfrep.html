@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin clb">
-<h2>Apne aap ko report nahi kya ja sakta</h2>
+<h2>Apne ap ko report nahi kya ja sakta</h2>
 {% if private == '1' %}
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ uuid }}" class="btn bm bcg mtl">wapis</button></form>
 {% else %}

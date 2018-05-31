@@ -1,0 +1,88 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_personal_group_small_photo %}
+{% block content %}
+<head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam.pk</title></head>
+<div class="nos margin clb" style="max-width:600px;width:92%;margin-top:2em">
+
+  {% if personal_group_form.non_field_errors %}
+  
+    <div class="clb lsp mbl bizcard" style="padding:10px;text-align:center;background-color:#fef0ee">
+    <span class="cxl cr">{{ personal_group_form.non_field_errors.0 }}</span>
+    <hr size=1 COLOR="#ffcccc">
+    <span class="cgy sp">Agr wapis jana ho tou 'Cancel' dabain</span>
+    </div>
+  
+  {% else %}
+
+    <div class="bizcard mbl ca" style="padding:3px">
+        
+        <div class="mbs tl_cnr">
+          <a href="{% url 'profile' tun %}">
+          {% if their_nick %}
+            <img src="{{ tau|s3:'thumb' }}" alt="{{ tun|slice:":1" }}" width="22" height="22" class="av_btn ab" style="">
+            <span style="color:#306654;">{{ tun }}</span>
+          {% else %}
+            <div class="av_btn ab" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ tun|truncap }}</div>
+          {% endif %}
+          </a>
+        </div>
+
+        <div class="mls mbs mrs">
+         {% if tt == 'text' %}
+           <span class="lsp"><bdi>{% emoticons %}{{ ct|truncatechars:100 }}{% endemoticons %}</bdi></span>
+         {% elif tt == 'img' %}
+           <div class="cs">{% personal_group_small_photo img_url=ct|s3:'thumb' img_caption=s_caption|emoticons css_shadow="sh-l" static_url=STATIC_URL %}</div>
+         {% endif %}
+
+          <div class="mts">
+          <span class="sp cxs cgy">{{ time|human_time }}</span>
+          </div>
+        </div>
+
+    </div>
+
+    <div id="personal_group_top">
+      {% if tt == 'text' %}<span class="cgy lsp sp">Is baat ka jawab de kar OK dabaein</span>{% elif tt == 'img' %}<span class="cgy lsp sp">Is foto pe jawab de kar OK dabaein</span>{% endif %}
+    </div>
+
+  {% endif %}
+
+    <form action="{% url 'post_to_personal_group' %}" method="POST" class="mtl" style="display:inline" enctype="multipart/form-data">        
+    {% csrf_token %}
+    
+        <input type="hidden" name="tun" value="{{ tun }}">
+        <input type="hidden" name="sk" value="{{ sk }}">
+        <input type="hidden" name="tau" value="{{ tau }}">
+        <input type="hidden" name="tn" value="{{ their_nick }}">
+        <input type="hidden" name="dr" value="1">
+        <input type="hidden" name="tt" value="{{ tt }}">
+        <input type="hidden" name="t" value="{{ time }}">
+        <input type="hidden" name="scp" value="{{ s_caption }}">
+        <input type="hidden" name="bid" value="{{ bid }}">
+        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="ct" value="{{ ct }}">
+        <input type="hidden" name="cp" value="{{ caption }}">
+
+        <div class="mts">
+            {{ personal_group_form.reply }}
+        </div>
+        <input class="mts" style="max-width:600px;width:98%;border: 1px #E7ECEE solid;" name="image" type="file" id="browse_image_btn">
+        <button class="btn bm bcb mtl mbs mrl pg_ok" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
+
+    </form>
+
+    <form action="{% url 'enter_personal_group' %}" method="POST" style="display:inline">
+    {% csrf_token %}
+    <input type="hidden" name="tid" value="{{ tid }}">
+    <button class="btn bcgy bm mts pg_cl" style="height:30px;" type="submit">Cancel</button>
+    </form>
+
+</div>
+
+  <br><br>
+
+{% endblock %}

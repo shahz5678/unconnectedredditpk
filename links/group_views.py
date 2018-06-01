@@ -2324,8 +2324,6 @@ def show_shared_photo_metrics(request,nick):
 			final_photo_data = []
 			for photo_id in photo_ids:
 				photo_data[photo_id]['num_shares'] = last_week_shared_by_others[photo_id]
-				time_string = photo_data[photo_id]['upload_time']
-				photo_data[photo_id]['upload_time'] = datetime.strptime(time_string, "%Y-%m-%d %H:%M:%S.%f")
 				final_photo_data.append(photo_data[photo_id])
 			cache_photo_shares.delay(json.dumps(final_photo_data), their_id)
 		if own_id and tutorial_unseen(user_id=own_id, which_tut='4', renew_lease=True):

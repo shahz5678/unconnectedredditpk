@@ -1,6 +1,6 @@
 {% extends "base_pg.html" %}
 {% load emoticons_tags %}
-{% load humanize %}
+{% load human_time %}
 {% load s3 %}
 {% block content %}
 <head><title>{{ username }}'s shared photos | Damadam.pk</title></head>
@@ -29,9 +29,7 @@
 	</div>
 	{% else %}
 	<a href="{% url 'profile' username %}">
-	
 		<span class="cm sp" style="border-bottom:1px dotted gray;color:gray">wapis</span>
-	
 	</a><br>
 	
 	<ul style="margin:0 auto;display:inline-block;padding: 0;list-style: none">
@@ -40,7 +38,7 @@
 	<li style="text-align:left" class="mbs">
 	<div style="font-weight:bold;max-width:400px" class="cl mts bw">{% emoticons %}{{ photo.caption }}{% endemoticons %}</div>
 	<img class="mt cs sp" src="{{ photo.image_url|s3 }}" alt="{{ photo.caption }}" style="overflow:hidden;border-radius:12px;width:100%;max-width:400px;"><br>
-	{% if own_profile %}<span class="cxs sp mrs" style="color:#0847c4">Shared {{ photo.num_shares }} {% if photo.num_shares == 1 %}time{% else %}times{% endif %} in 1 week</span>{% else %}<span class="cgy cxs sp mrs">uploaded {{ photo.upload_time|naturaltime }}</span>{% endif %}
+	{% if own_profile %}<span class="cxs sp mrs" style="color:#0847c4">Shared {{ photo.num_shares }} {% if photo.num_shares == 1 %}time{% else %}times{% endif %} in 1 week</span>{% else %}<span class="cgy cxs sp mrs">uploaded {{ photo.upload_time|human_time }}</span>{% endif %}
 	<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
 		{% csrf_token %}
 		<input type="hidden" name="pl" value="{{ username }}:{{ photo.id }}:6:{{ photo_owner_id }}:{{ photo.caption }}">

@@ -2385,7 +2385,7 @@ def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo
 		for group_id in photo_allwd:
 			# send the photo!
 			content, type_ = {'img_url':photo_url, 'img_width':img_width, 'img_height':img_height, 'owner_uname':photo_owner_username, \
-			'img_caption':photo_caption},'shared_img'
+			'img_caption':photo_caption,'owner_id':photo_owner_id,'pid':photo_id},'shared_img'
 			obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=content, type_=type_,\
 				writer_id=own_id, group_id=group_id)
 			# image 'quality' shows the "low quality - uploaded via fbs" msg. We can omit it for this case, hence setting it to 'True'
@@ -2399,24 +2399,6 @@ def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo
 		photo_sharing_metrics_and_rate_limit.delay(own_id, photo_id, photo_owner_id, len(photo_allwd),sharing_time, photo_allwd)
 	else:
 		pass
-	# print photo_allwd # list of groups where photos were permitted
-	# print legit_groups # dictionary of {group_id:their_id} containing groups own_id is a member of
-	# print nonlegit_groups # list of groups user wasn't a part of
-	# print photo_disallwd # list of groups where photos weren' permitted
-
-	# test multiple shares (done)
-	# fix user chat list (done)
-	# does single_notif work? (done)
-	# does matka work? (done)
-	# update 'seen' of sharing user (done)
-	# is private_chat_tasks called twice? (done - yes it's called as many times as needed!)
-	# rate limit sharing feature (done)
-	# make it possible to go into respective chats when on 'photo shared successfully' page (done)
-	# how does it all behave with nicks not utilizing english characters? (done)
-	# shared photo analytics (done)
-	# does group content deletion get hindered because of the new 'shared_img' category? (done)
-	# revert log_photo_attention_from_fresh() related functionality in redis4.py
-
 	return photo_allwd, photo_disallwd
 
 

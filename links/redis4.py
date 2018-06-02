@@ -49,6 +49,8 @@ pht:<photo_id> is a hash containing image_url and caption data of a photo posted
 phd:<user_id> contains cached photo sharing data for a specific user_id (cached for 20 mins)
 aurl:<user_id> is 'avatar_uploading_rate_limit', and is used to rate limit how frequently a user can change their avatar
 
+vb:<star_id>:<visitor_id> 'visited_by' key that stores which star_id was visited by which visitor_id
+
 ------------ Personal Group Metrics ------------
 
 lig_pm:<group_id> contains user_id that performed latest interaction in private mehfil with id group_id
@@ -89,6 +91,7 @@ THREE_DAYS = 60*60*24*3
 ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
+THIRTY_MINS = 30*60
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 SEVEN_MINS = 7*60
@@ -1079,6 +1082,7 @@ def log_input_text(section, section_id,text,user_id):
 	my_server.ltrim(key,0,3) # keeping previous 4 sentences
 	my_server.expire(key,TEN_MINS)
 
+
 def retrieve_previous_msgs(section, section_id,user_id):
 	"""
 	retrieve previous messages stored for a certain section_id
@@ -1094,6 +1098,7 @@ def retrieve_previous_msgs(section, section_id,user_id):
 	elif section == 'home_rep':
 		key = "hrit:"+str(user_id)+":"+str(section_id)
 	return redis.Redis(connection_pool=POOL).lrange(key,0,-1)
+
 
 ############################ Ratelimiting short messages ###############################
 
@@ -1246,6 +1251,28 @@ def retrieve_fresh_photo_shares_or_cached_data(user_id):
 	else:
 		return my_server.zrange("sp:"+user_id,0,-1), False
 
+
+def logging_profile_view(visitor_id,star_id,viewing_time):
+	"""
+	Logs profile view if a visitor visits
+
+	Only last 24 hours are preserved
+	Ensures self visits don't count
+	Ensures repeat visits don't count
+	"""
+	star_id = str(star_id)
+	one_day_ago = viewing_time - ONE_DAY
+	viewing_time = str(viewing_time)
+	visitor_id = str(visitor_id)
+	key = "vb:"+star_id+":"+visitor_id
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.get(key):
+		# can log visit
+		sorted_set = 'pf:'+star_id
+		my_server.zremrangebyscore(sorted_set,'-inf',one_day_ago)#purging old data
+		my_server.zadd(sorted_set,visitor_id+":"+viewing_time,viewing_time)
+		my_server.expire(sorted_set,ONE_DAY)#this expires if no new views appear for 24 hours
+		my_server.setex(key,'1',THIRTY_MINS)
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 

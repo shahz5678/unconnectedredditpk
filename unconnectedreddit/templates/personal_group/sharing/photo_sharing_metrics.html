@@ -16,15 +16,12 @@
 <h1 class="cl clb" style="text-align:center">{% if own_profile %}Your{% else %}{{ username|truncatechars:13 }}'s{% endif %} {% if num_photos == 1 %}top shared photo{% elif num_photos == 0 %}top shared photos{% else %}top {{ num_photos }} shared photos{% endif %}:</h1>
 {% endif %}
 
-<!-- Apkey khud karda shares is mein count nahi hotay -->
-
-
 <div class="bizcard clb" style="background-color:white;padding:10px 8px;text-align:center">
 	{% if num_photos < 1 %}
 	<div class="cxl">
 		Pichley 1 week mein koi photo share nahi hui
 		<hr size=1 COLOR="#f2f2f2">
-		<div class="cgy cs sp">{% if own_profile %}Apkey khud kiye huay shares is list mein shamil nahi{% else %}Ye list kuch waqfay baad update ho gi{% endif %}</div>
+		<div class="cgy cs sp">{% if own_profile %}Apkey khud kiye huay shares is list mein shamil nahi{% else %}Ye list kuch waqfay baad update hogi{% endif %}</div>
 		<a href="{% url 'profile' username %}"><button class="btn bcb bm mts mbl" style="height:26px">wapis</button></a>
 	</div>
 	{% else %}

@@ -127,7 +127,7 @@ def punish_gibberish_writers(dict_of_targets):
 		queue_punishment_amount(user_id,score_penalty)
 
 
-@celery_app1.task(name='tasks.cache_photo_shares')
+@celery_app1.task(name='tasks.log_profile_view')
 def log_profile_view(visitor_id,star_id,viewing_time):
 	logging_profile_view(visitor_id,star_id,viewing_time)
 

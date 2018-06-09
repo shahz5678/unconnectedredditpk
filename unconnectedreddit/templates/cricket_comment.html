@@ -33,8 +33,8 @@ body {
 	  {% csrf_token %}
 	  <input type="hidden" name="sk" value="{{ sk }}">
 	  {{ form.description }}<br>
-	  	<button class="btn bl mtl mrl {{ css_class1 }}" style="height:25px" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button>
-	  	<button class="btn bl mtl mbs {{ css_class2 }}" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
+	  	<button class="btn bl mtl mrl {{ css_class1 }} pg_ok_res" style="height:25px" name="btn" value="{{ team1_id }}" type="submit">{{ team1 }}</button>
+	  	<button class="btn bl mtl mbs {{ css_class2 }} pg_ok_res" style="height:25px" name="btn" value="{{ team2_id }}" type="submit">{{ team2 }}</button><br>
 	</form>
 
 	

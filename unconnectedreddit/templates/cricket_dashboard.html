@@ -46,8 +46,10 @@
 			{% for match in teams_with_results %}
 			<span class="cg">{{ forloop.counter }}.</span>
 			<input class="mbl" type="radio" name="game" value="{{ match.0.0 }}" checked><span class="ct"><b>{{ match.0.0 }}</b>&nbsp;{{ match.0.1 }}</span>&nbsp;&nbsp;<span class="cp">vs&nbsp;&nbsp;<b>{{ match.1.0 }}</b>&nbsp;{{ match.1.1 }}</span><br>
+			{% empty %}
+			<div class="cl clb mbs">No cricket match available</div>
 			{% endfor %}
-			<button class="btn bm bcg mbs mts" type="submit">Submit</button>
+			<button class="btn bm bcg mbs mts" type="submit" style="height:26px">Submit</button>
 		</form>
 	{% endif %}
 {% endif %}

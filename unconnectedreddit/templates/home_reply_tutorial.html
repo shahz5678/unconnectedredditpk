@@ -15,13 +15,13 @@
 </div>
 {% endif %}
 {% if lang and sort_by_best %}
-<a href="{% url 'home_loc_ur_best' lang %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+<a href="{% url 'home_loc_ur_best' lang %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
 {% elif sort_by_best %}
-<a href="{% url 'home_loc_best' %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+<a href="{% url 'home_loc_best' %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
 {% elif lang %}
-<a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+<a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
 {% else %}
-<a href="{% url 'home_loc' %}"><button class="btn nw bct bl mts mbs" type="submit">Theek hai</button></a>
+<a href="{% url 'home_loc' %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
 {% endif %}
 
 </div><br><br>

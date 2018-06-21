@@ -1,25 +1,23 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<head><title>Unable to vote on photo | Damadam.pk</title></head>
+<head><title>Unable to vote | Damadam.pk</title></head>
 <div class="margin clb">
 {% if time_remaining == '-1' %}
-	Apko photos pe vote krne ki ijazat nahi!<br><br>
-	<span class="cgy cs">Kuch bhi karte waqt insaf aur pakeezgi ka khyal rakha karein</span><br><br>
+	Apko vote karney ki ijazat nahi!<br><br>
+	<span class="cgy cs sp">Damadam pe insaf aur pakeezgi ka khyal rakhein aur kisi ke sath bura salook nahi karein. Shukriya!</span><br><br>
 {% else %}
-	Apko photos vote krne ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
-	<span class="cgy cs">Kuch bhi karte waqt insaf aur pakeezgi ka khyal rakhein</span><br><br>
+	Apko vote karney ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
+	<span class="cgy cs sp">Damadam pe insaf aur pakeezgi ka khyal rakhein aur kisi ke sath bura salook nahi karein. Shukriya!</span><br><br>
 {% endif %}
 	{% if origin == '1' %}
-	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
 	{% elif origin == '2' %}
-	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
 	{% elif origin == '3' %}
-	<a href="{% url 'home_loc_pk' lid %}"><button class="btn bco bm mtl mbs">wapis</button></a>
-	{% elif origin == '4' %}
-	<a href="{% url 'profile_pk' slug pk %}#section0"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'home_loc_pk' lid %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
 	{% else %}
-	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
 	{% endif %}
 </div><br>
 {% endblock %}

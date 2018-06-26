@@ -326,6 +326,7 @@ urlpatterns = patterns('',
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
+	url(r'^djga/', include('google_analytics.urls')),
 	#################################################################################################
 )
 urlpatterns += urlpatterns_ecomm

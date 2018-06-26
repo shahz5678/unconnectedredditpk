@@ -40,6 +40,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}
 {% khoji_unlocked as ku %}
+
 <div class="header cxl">Damadam pe gup shup aur fotos</div>
 <ul class="navbar">
 
@@ -78,7 +79,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
+{% include "ga_ss.html" %}
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
+
 </html>

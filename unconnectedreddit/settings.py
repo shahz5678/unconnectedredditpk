@@ -70,6 +70,11 @@ USE_TZ = False
 
 GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-68289796-1'
 
+GOOGLE_ANALYTICS = {
+    'google_analytics_id': 'UA-121366807-1',
+}
+
+
 GOOGLE_ANALYTICS_SITE_SPEED = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
@@ -196,6 +201,7 @@ INSTALLED_APPS = (
 	'storages',
 	'emoticons',
 	'django_extensions',
+	'google_analytics',
 	#'request',
 	# 'debug_toolbar',
 	# Uncomment the next line to enable admin documentation:

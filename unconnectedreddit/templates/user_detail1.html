@@ -26,9 +26,9 @@
 
   <div class="mbl" style="text-align:center">  
   {% if own_profile %}
-  {% group_button user.id user.id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">Your profile and photos:</h1>
+  {% group_button user.id user.id slug 'profile' 'profile_photos' slug %}&nbsp;<h1 class="cl" style="display:inline">Your profile and photos:</h1>
   {% else %}
-  {% group_button user.id star_id slug 'profile' 'profile_photos' slug %}<h1 class="cl" style="display:inline">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
+  {% group_button user.id star_id slug 'profile' 'profile_photos' slug %}&nbsp;<h1 class="cl" style="display:inline">{{ slug }}'s{% if slug in legit %}<span class="pinkstar">*</span>{% endif %} profile and photos:</h1>
   {% endif %}
   </div>
 {% if page_obj.number == 1 %}
@@ -75,6 +75,8 @@
       <br><b>Joined {{ subject.date_joined|naturaltime }}</b>
       <hr size=1 COLOR="#b3e6b3">
       <b>Photo score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
+      <hr size=1 COLOR="#b3e6b3">
+      <b>Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' slug %}"><button type="submit" class="btn nw bcg bm" style="height:22px">fotos</button></a>
       <hr size=1 COLOR="#b3e6b3">
       <b>Nickname:&nbsp;</b><span class="clb">{{ slug }}</span><a href="{% url 'user_profile' slug %}#section0" class="cs">&nbsp;<button class="btn bcg bm mls" style="height:22px">profile</button></a>
       <hr size=1 COLOR="#b3e6b3">
@@ -139,7 +141,7 @@
       {% if manageable and user.username == 'pathan-e-khan' or user.username == 'mhb11' %}&nbsp;<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user.id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm mls" style="height:22px">manage</button></form>{% endif %}
       <hr size=1 COLOR="#b3e6b3">
       <b>Fans:</b>
-      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn bcg mrl mbs" style="height:22px">&nbsp;{{ fans }}&nbsp;</button></a>
+      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn bcg mrl" style="height:22px">&nbsp;{{ fans }}&nbsp;</button></a>
        {% if authenticated and not own_profile and allowed_fan %}
         <form action="{% url 'fan' %}" method="POST" style="display:inline">
         {% csrf_token %}
@@ -152,7 +154,8 @@
           {% endif %}
         </form>
         {% endif %}
-      
+      <hr size=1 COLOR="#b3e6b3">
+      <b>Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' slug %}"><button type="submit" class="btn nw bcg bm" style="height:22px">fotos</button></a>
                   
     {% endif %}
 </div>
@@ -175,7 +178,7 @@
       {% endif %}
      
 
-      <div style="font-weight:bold;overflow:hidden" class="cb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></div>
+      <div style="font-weight:bold;overflow:hidden" class="clb cl lsp"><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></div>
 
       {% if time_remaining == '-2' %}
       <img class="iw ibg mt" src="{{ photo.image_file|s3 }}" style="border-radius:12px" alt="{{ photo.caption }}">
@@ -183,7 +186,14 @@
       <img class="iw ibg mt" src="{{ photo.image_file|s3:'thumb' }}" style="border-radius:12px" alt="{{ photo.caption }}">
       {% endif %}
       
-      <div class="mt mbs cxs lsp sp cgy">uploaded {{ photo.upload_time|naturaltime }}</div>
+      <div class="mt mbs lsp">
+      <span class="cgy sp cxs mrs">uploaded {{ photo.upload_time|naturaltime }}</span>
+      <form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="pl" value="{{ subject.username }}:{{ photo.id }}:4:{{ star_id }}:{{ photo.caption }}">
+      <button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ photo.image_file }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
+      </form>
+      </div>
 
       {% if not own_profile and can_vote and photo.id not in voted and time_remaining == '-2' %}
         {% vote_buttons vote_type='photo_vote' pid=photo.id origin=4 oun=subject.username static_url=STATIC_URL %}
@@ -212,7 +222,7 @@
       </a>
 
       {% if is_mob %}
-      <a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-action="share/whatsapp/share">
+      <a rel="nofollow" class="wa-sharing" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.id }}" data-pid="{{ photo.id }}" data-sid="{{ user.id }}" data-oid="{{ star_id }}" data-st="wa" data-org="3" data-action="share/whatsapp/share">
       <button class="btn mts mbs" style="height:34px;background-color:#26CC66;padding-left:10px;padding-right:10px"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
       </a>
       {% else %}
@@ -247,4 +257,5 @@
 </div>
 {% endif %}
 <br>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/logging_funcs.v1.1.js"></script>
 {% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% load future_time %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Cant share photo | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+	<img src='{{ photo_url|s3:"thumb" }}' style="border-radius:5px;overflow:hidden;background-color:#f9e1bb;text-align:left" height="38" class="cxs sp mrs" alt="pic">
+	<span class="cs cgy">{% emoticons %}{{ photo_caption|truncatechars:'23' }}{% endemoticons %}</span>
+
+	<hr size=1 COLOR="#E9EBEE">
+	
+	{% if ttl %}
+	<div class="cl lsp">Ap ye foto share kar sakein ge:<br><span class="cxl">{{ ttl|future_time }}</span></div>
+	{% else %}
+	<div class="cl lsp">Ye foto share nahi ki ja sakti kiyun ke isko upload karney waley ki fotos banned hain</div>
+	{% endif %}
+
+	{% if origin == '1' %}
+	<a href="{% url 'home' %}">
+	{% elif origin == '2' %}
+	<a href="{% url 'best_photo_loc_pk' photo_id %}">
+	{% elif origin == '3' %}
+	<a href="{% url 'see_photo_pk' photo_id %}">
+	{% elif origin == '4' %}
+	<a href="{% url 'user_profile_photo' photo_owner_username photo_id %}">
+	{% elif origin == '5' %}
+	<a href="{% url 'unseen_activity' user.username %}">
+	{% elif origin == '6' %}
+	<a href="{% url 'show_shared_photo_metrics' photo_owner_username %}">
+	{% else %}
+	<a href="{% url 'home' %}">
+	{% endif %}
+	<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:27px">wapis</button>
+
+</div>
+<br><br>
+{% endblock %}

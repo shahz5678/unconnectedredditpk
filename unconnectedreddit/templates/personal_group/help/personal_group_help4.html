@@ -1,0 +1,68 @@
+{% extends "base_pg.html" %}
+{% block content %}
+<head><title>Private chat help page 2 | Damadam.pk</title></head>
+<style>
+
+body{background: #E9EBEE}
+
+.helpitem {
+	padding:10px;
+}
+
+.nav-btn {
+
+	display:inline-block;
+	font-weight:bold;
+	 background-color:white; 
+	 border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+    border-style: solid;
+    border-width: 1px;
+    padding: 1px 7px 2px;
+}
+
+</style>
+<div style="margin:0 auto;max-width:520px;width:92%;">
+<div style="margin:0 auto; text-align:center">
+	<h1 class="cxl clb mbs">Private Chat Help</h1>
+</div>
+
+{% if tid %}
+<form method="POST" style="text-align:center" class="mbl" action="{% url 'enter_personal_group' %}" >
+{% csrf_token %}
+<button name="tid" value="{{ tid }}" class="cl" style="padding:0;background:0 0;border:none;border-bottom:1px dotted #666666;color:#666666;border-radius:0">wapis</button>
+</form>
+{% endif %}
+
+<div class="bizcard clb cl" style="width:90%;  margin:0 auto; max-width:500px; border-radius:6px; background-color: white;">
+
+<div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
+	<div class="helpitem"><img src="{{ STATIC_URL }}img/sms.svg"></div>
+	<div class="helpitem lsp">Is main 2 options hain:<br>
+		<div class="mtl lsp"><b>- Send SMS:</b> Ap dusrey ko damadam ke zariye SMS kar ke online bulwa sakte hain</div>
+		<div class="mts mbs lsp"><b>- Recieve SMS:</b> Ap dusrey ko ijazat de sakte hain ke apko SMS kar ke online bulwaye</div>
+	</div>
+</div>
+
+<div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
+	<div class="helpitem"><img src="{{ STATIC_URL }}img/exit.svg"></div>
+	<div class="helpitem lsp">Ap ye daba ke chat ko hamesha ke liye chore sakte hain</div>
+</div>
+
+</div>
+
+<br>
+
+<div style="text-align:center">
+
+<form method="POST" style="display:inline" action="{% url 'personal_group_help1'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">1</button></form>
+
+<form method="POST" style="display:inline" action="{% url 'personal_group_help2'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">2</button></form>
+
+<form method="POST" style="display:inline" action="{% url 'personal_group_help3'%}">{% csrf_token %}<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:#909090" name="tid" value="{{ tid }}">3</button></form>
+
+<button class="mrs curr_page cl nav-btn" style="text-decoration:none; color:black;">4</button>
+</div>
+</div>
+<br><br>
+
+{% endblock %}

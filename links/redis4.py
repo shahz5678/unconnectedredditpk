@@ -1,11 +1,13 @@
 
 # coding=utf-8
+import ujson as json
 import redis, time, random
 from datetime import datetime
 from django.contrib.auth.models import User
 from location import REDLOC4
-from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD
-from models import UserProfile
+from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
+SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER
+from models import UserProfile, Photo
 
 '''
 ##########Redis Namespace##########
@@ -41,8 +43,13 @@ hrit:<user_id> - home reply input text (list holding text of home replies for a 
 
 sm:<user_id>:<section>:<obj_id> - counter to count short messages sent on home objects
 
+user_id:<username> is a key containing user_ids of certain usernames
 uname:<user_id> is a hash containing username and avatar_url data of a user
+pht:<photo_id> is a hash containing image_url and caption data of a photo posted by user
+phd:<user_id> contains cached photo sharing data for a specific user_id (cached for 20 mins)
 aurl:<user_id> is 'avatar_uploading_rate_limit', and is used to rate limit how frequently a user can change their avatar
+
+vb:<star_id>:<visitor_id> 'visited_by' key that stores which star_id was visited by which visitor_id
 
 ------------ Personal Group Metrics ------------
 
@@ -65,15 +72,26 @@ sms_eft tracks sms effectiveness. It contains <user_id>:<time_passed_since_sms> 
 exits contains <group_id>:<exit_by_id> pairs alongwith times of exiting a private chat. Useful for charting average life of a private chat.
 del_after_exit contains groups and exit times for groups that were deleted due to exiting
 del_after_idle contains groups and exit times for groups that were deleted due to idleness
+
+------------ Social Sharing ------------
+
+as:<photp_id>:<sharer_id> key to check whether a photo was already shared by a certain user (in whatsapp)
+
+pdim:<photo_id> key that temporarily caches a shared photo's width and height
+
+"sp:<photo_owner_id> is a sorted set containing information about photos shared of each user
+
 ###########
 '''
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
+TWO_WEEKS = 60*60*24*7*2
 THREE_DAYS = 60*60*24*3
 ONE_DAY = 60*60*24
 ONE_HOUR = 60*60
 TWELVE_HOURS = 60*60*12
+THIRTY_MINS = 30*60
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 SEVEN_MINS = 7*60
@@ -81,6 +99,9 @@ FIVE_MINS = 5*60
 THREE_MINS = 3*60
 ONE_MIN = 60
 
+
+def convert_to_epoch(time):
+	return (time-datetime(1970,1,1)).total_seconds()
 
 
 def save_deprecated_photo_ids_and_filenames(deprecated_photos):
@@ -252,6 +273,51 @@ def get_cached_meta_data(url):
 	else:
 		return {}
 
+
+###################### Photo dimensions and data caching ######################
+
+def get_cached_photo_dim(photo_id):
+	"""
+	Return photo with photo_id's height and width
+	"""
+	key = 'pdim:'+photo_id
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.expire(key,THREE_DAYS)#extending life of cache
+	return my_server.hmget(key,'h','w')
+
+
+def cache_photo_dim(photo_id,img_height,img_width):
+	"""
+	Cache photo dimensions for use in photo sharing to personal groups
+	"""
+	mapping, key = {'h':img_height,'w':img_width}, 'pdim:'+photo_id
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.hmset(key,mapping)
+	my_server.expire(key,THREE_DAYS)
+
+
+def retrieve_photo_data(photo_ids, owner_id):
+	"""
+	Retrieves photo data (caption and url)
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	photo_data, missing_photos = {}, []
+	for photo_id in photo_ids:
+		caption, image_url, upload_time = my_server.hmget('pht:'+photo_id,'caption','image_url','upload_time')
+		if caption and image_url and upload_time:
+			photo_data[photo_id] = {'caption':caption.decode('utf-8'),'image_url':image_url,'id':photo_id,'upload_time':upload_time}
+		else:
+			missing_photos.append(photo_id)
+	if missing_photos:
+		missing_data = Photo.objects.filter(id__in=missing_photos).values('id','image_file','caption','upload_time')
+		for data in missing_data:
+			photo_id = str(data['id'])
+			key = 'pht:'+photo_id
+			upload_time = str(convert_to_epoch(data['upload_time']))
+			photo_data[photo_id] = {'caption':data['caption'],'image_url':data['image_file'],'id':photo_id,'upload_time':upload_time}
+			my_server.hmset(key,{'caption':data['caption'],'image_url':data['image_file'],'upload_time':upload_time})
+			my_server.expire(key,THREE_DAYS)
+	return photo_data
 
 ###################### User credentials caching ######################
 
@@ -452,12 +518,32 @@ def retrieve_credentials(user_id,decode_uname=False):
 		pipeline1.execute()
 		return username, avurl
 
+
+def retrieve_user_id(username):
+	"""
+	Returns user's user_id (for a given username)
+	"""
+	key = 'user_id:'+username
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = my_server.get(key)
+	if user_id:
+		my_server.expire(key,THREE_DAYS)# extend lease for 3 days
+		return user_id
+	else:
+		try:
+			user_id = User.objects.filter(username=username).values_list('id',flat=True)[0]
+		except IndexError:
+			return None
+		my_server.setex(key,user_id,ONE_DAY)
+		return str(user_id)
+
+
 def retrieve_avurl(user_id):
 	"""
 	Returns user's avatar_url
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = 'uname:'+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
 	avurl = my_server.hget(hash_name,'avurl')
 	if not avurl:
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
@@ -996,6 +1082,7 @@ def log_input_text(section, section_id,text,user_id):
 	my_server.ltrim(key,0,3) # keeping previous 4 sentences
 	my_server.expire(key,TEN_MINS)
 
+
 def retrieve_previous_msgs(section, section_id,user_id):
 	"""
 	retrieve previous messages stored for a certain section_id
@@ -1011,6 +1098,7 @@ def retrieve_previous_msgs(section, section_id,user_id):
 	elif section == 'home_rep':
 		key = "hrit:"+str(user_id)+":"+str(section_id)
 	return redis.Redis(connection_pool=POOL).lrange(key,0,-1)
+
 
 ############################ Ratelimiting short messages ###############################
 
@@ -1036,6 +1124,155 @@ def many_short_messages(user_id,section,obj_id):
 	else:
 		return False
 
+################################################# Logging Sharing in Photos #################################################
+
+
+def log_share(photo_id, photo_owner_id, sharer_id, share_type='undefined', origin=None):
+	"""
+	Logs image sharing attempts (via Whatsapp)
+	
+	1) If origin is 'user_albums', user is originating from user profiles
+	1) If origin is 'fresh_photos', user is originating from fresh photos
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if origin == 'user_albums':
+		# log shared profiles
+		if not my_server.get('as:'+photo_id+":"+str(sharer_id)):
+			# this sharer hasn't shared this photo in the last 20 mins
+			added = my_server.sadd('shared_user_albums_set',photo_id)
+			if added == 1:
+				my_server.lpush('shared_user_albums_list',photo_id)
+				if my_server.llen('shared_user_albums_list') > SHARED_PHOTOS_CEILING:
+					expiring_photo_ids = my_server.lrange('shared_user_albums_list', (SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER), -1)
+					pipeline1 = my_server.pipeline()
+					pipeline1.ltrim('shared_user_albums_list',0,(SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER-1))	
+					pipeline1.zrem('sorted_user_albums_photos',*expiring_photo_ids)
+					pipeline1.srem('shared_user_albums_set',*expiring_photo_ids)
+					pipeline1.execute()
+			my_server.zincrby('sorted_user_albums_photos',photo_id,amount=1)# query this when getting report of which photos were shared the most
+			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
+	elif origin == 'fresh_photos':
+		# log shared photos
+		if not my_server.get('as:'+photo_id+":"+str(sharer_id)):
+			# this sharer hasn't shared this photo in the last 20 mins
+			added = my_server.sadd('shared_public_photos_set',photo_id)
+			if added == 1:
+				my_server.lpush('shared_public_photos_list',photo_id)
+				if my_server.llen('shared_public_photos_list') > SHARED_PHOTOS_CEILING:
+					expiring_photo_ids = my_server.lrange('shared_public_photos_list', (SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER), -1)
+					pipeline1 = my_server.pipeline()
+					pipeline1.ltrim('shared_public_photos_list',0,(SHARED_PHOTOS_CEILING-PHOTO_DELETION_BUFFER-1))
+					pipeline1.zrem('sorted_shared_public_photos',*expiring_photo_ids)
+					pipeline1.srem('shared_public_photos_set',*expiring_photo_ids)
+					pipeline1.execute()
+			my_server.zincrby('sorted_shared_public_photos',photo_id,amount=1)# query this when getting report of which photos were shared the most
+			my_server.setex('as:'+photo_id+":"+str(sharer_id),'1',TWENTY_MINS)
+	else:
+		pass
+
+
+
+def logging_sharing_metrics(sharer_id, photo_id, photo_owner_id, num_shares, sharing_time, group_ids):
+	"""
+	Logs metrics for photos shared internally (from public albums to personal groups)
+
+	This is a separate functionality from sharing via Whatsapp
+	"""
+	sharer_id, num_shares, sharing_time = str(sharer_id), str(num_shares), str(sharing_time)
+	key = "sp:"+photo_owner_id
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	
+	# use this to calculate total shares in the last week, also total all_time shares (list resets if user inactive for two weeks)
+	pipeline1.zadd(key,photo_id+":"+num_shares+":"+sharer_id+":"+sharing_time,sharing_time)
+	pipeline1.expire(key,TWO_WEEKS)
+	# can also give to each user: latest shared photo, most highly shared photo, and all other shared photos (alongwith num shares)
+
+	# save the act of sharing in a global list as well, for our viewing
+	pipeline1.lpush('shared_photos',photo_id+":"+num_shares+":"+photo_owner_id+":"+sharing_time)
+	pipeline1.ltrim('shared_photos',0,500)
+
+	pipeline1.execute()
+	##################################### SHARER METRICS #####################################
+	# one_month_ago = sharing_time - (60*60*24*30)
+	# most proflific sharers of own content (remove those inactive for a month)
+	# if photo_owner_id == sharer_id:
+	# 	my_server.zadd('ocst',sharer_id,sharing_time)#'own content sharing time'
+	# 	my_server.zincrby('ocsv',sharer_id,amount=num_shares)#'own content sharing volume'
+	# 	expired_sharer_ids = my_server.zrangebyscore("ocst",'-inf',one_month_ago)
+	# 	if expired_sharer_ids:
+	# 		my_server.zrem('ocst',*expired_sharer_ids)
+	# 		my_server.zrem('ocsv',*expired_sharer_ids)
+	
+	# most prolific sharers of others' content (remove those inactive for a month)
+	# else:
+	# 	my_server.zadd('cst',sharer_id,sharing_time)#'content sharing time'
+	# 	my_server.zincrby('csv',sharer_id,amount=num_shares)#'content sharing volume'
+	# 	expired_sharer_ids = my_server.zrangebyscore("cst",'-inf',one_month_ago)
+	# 	if expired_sharer_ids:
+	# 		my_server.zrem('cst',*expired_sharer_ids)
+	# 		my_server.zrem('csv',*expired_sharer_ids)
+	
+	# most prolific sharers who influence the most number of people. Can use formula volume_shared^(simpson_diversity_index) to calculate 'influencer score'
+	# volume_shared is simply total number of shares (it counts each individual share as 1)
+	# simpson_diversity_index is here: https://www.youtube.com/watch?v=zxzwvWDeTT8
+	
+
+# def log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value):
+# 	"""
+# 	Maintains list of photos that are 'trending' via actvity from fresh photos
+	
+# 	Note: 'action' may be 'photo_vote' or 'photo_comment'
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if action == 'photo_vote':
+# 		if vote_value == '1':
+# 			pass
+# 		elif vote_value == '-1':
+# 			pass
+# 		else:
+# 			pass
+
+def cache_photo_share_data(json_data,user_id):
+	"""
+	Caches photo sharing data of given user_id for twenty mins
+	"""
+	redis.Redis(connection_pool=POOL).setex('phd:'+user_id,json_data,TWENTY_MINS)
+
+
+def retrieve_fresh_photo_shares_or_cached_data(user_id):
+	"""
+	Returns shared photos of user_id
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	cached_photo_data = my_server.get('phd:'+user_id)
+	if cached_photo_data:
+		return json.loads(cached_photo_data), True
+	else:
+		return my_server.zrange("sp:"+user_id,0,-1), False
+
+
+def logging_profile_view(visitor_id,star_id,viewing_time):
+	"""
+	Logs profile view if a visitor visits
+
+	Only last 24 hours are preserved
+	Ensures self visits don't count
+	Ensures repeat visits don't count
+	"""
+	star_id = str(star_id)
+	one_day_ago = viewing_time - ONE_DAY
+	viewing_time = str(viewing_time)
+	visitor_id = str(visitor_id)
+	key = "vb:"+star_id+":"+visitor_id
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.get(key):
+		# can log visit
+		sorted_set = 'pf:'+star_id
+		my_server.zremrangebyscore(sorted_set,'-inf',one_day_ago)#purging old data
+		my_server.zadd(sorted_set,visitor_id+":"+viewing_time,viewing_time)
+		my_server.expire(sorted_set,ONE_DAY)#this expires if no new views appear for 24 hours
+		my_server.setex(key,'1',THIRTY_MINS)
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 
@@ -1145,3 +1382,263 @@ def purge_exit_list(group_id, user_id):
 	Purge a value from 'exits' (called when a user rejoins a group after exiting it)
 	"""
 	redis.Redis(connection_pool=POOL).zrem("exits",group_id+":"+str(user_id))
+
+
+########################################### Reporting Metrics for Personal Groups ###########################################
+
+def avg_sessions_per_type():
+	"""
+	Retrieves session information for personal groups
+
+	1) What are avg number of sessions per type of chat
+	2) What are median number of sessions per type of chat
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pgs_sampled = my_server.get('pgs_sampled_for_sess')
+	if pgs_sampled:
+		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
+			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
+			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
+		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
+		results[10],results[11], results[12], results[13]
+	else:
+		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
+		pg_sample_size = len(pg_data)
+		pg_med_idx = int(pg_sample_size/2)
+
+		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
+		pm_sample_size = len(pm_data)
+		pm_med_idx = int(pm_sample_size/2)
+
+		# data contains <group_id>:<user_id> tuples
+		pg_sessions, all_pgs, all_pg_users = 0, set(), {}
+		for tup in pg_data:
+			pg_sessions += int(tup[1])
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			all_pgs.add(group_id)
+			all_pg_users[group_id] = {}
+		pgs_sampled = len(all_pgs)
+		for tup in pg_data:
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			all_pg_users[group_id].update({user_id:'user_id'})
+		total_pg_users, pg_users_set = 0, []
+		for key, value in all_pg_users.iteritems():
+			num_users_in_group = len(value)
+			pg_users_set.append(num_users_in_group)
+			total_pg_users += num_users_in_group
+		# finding median
+		array_pg = sorted(pg_users_set)
+		half, odd = divmod(len(array_pg), 2)
+		if odd:
+			med_users_per_pg = array_pg[half]
+		else:
+			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
+
+		# calculating pm data
+		pm_sessions, all_pms, all_pm_users = 0, set(), {}
+		for tup in pm_data:
+			pm_sessions += int(tup[1])
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			all_pms.add(group_id)
+			all_pm_users[group_id] = {}
+		pms_sampled = len(all_pms)
+		for tup in pm_data:
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			all_pm_users[group_id].update({user_id:'user_id'})
+		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
+		for key, value in all_pm_users.iteritems():
+			num_users_in_group = len(value)
+			pm_users_set.append(num_users_in_group)
+			if num_users_in_group < 3:
+				# retriving 2 user pms
+				two_user_pms[key] = num_users_in_group
+			total_pm_users += num_users_in_group
+		
+		# retrieving sessions for 2 user pms in {gid:num_sess} form
+		two_user_pm_sess = {}
+		for tup in pm_data:
+			payload = tup[0].split(":")
+			group_id, user_id = payload[0], payload[1]
+			if group_id in two_user_pms:
+				# it's a two person pm
+				if group_id in two_user_pm_sess:
+					# already entered data for 1 user
+					num_sess = two_user_pm_sess[group_id]
+					two_user_pm_sess[group_id] = num_sess + int(tup[1])
+				else:
+					two_user_pm_sess[group_id] = int(tup[1])
+
+		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
+		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
+		for key,value in two_user_pm_sess.iteritems():
+			total_two_user_pm_sess += int(value)
+			all_two_user_pm_sess.append(value)
+		total_two_user_pm_users, all_two_user_pm_users = 0, []
+		for key,value in two_user_pms.iteritems():
+			total_two_user_pm_users += int(value)
+			all_two_user_pm_users.append(value)
+		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
+		sorted_sess = sorted(all_two_user_pm_sess)
+		halved, is_odd = divmod(len(sorted_sess), 2)
+		if is_odd:
+			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
+		else:
+			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
+		total_two_user_pms = len(two_user_pms)
+		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
+		sorted_users = sorted(all_two_user_pm_users)
+		bisect, isodd = divmod(len(sorted_users), 2)
+		if isodd:
+			med_users_per_two_user_pm = sorted_users[bisect]
+		else:
+			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
+		# we now have avg and median sessions per user per two user pm
+
+		# finding overall median
+		array_pm = sorted(pm_users_set)
+		half, odd = divmod(len(array_pm), 2)
+		if odd:
+			med_users_per_pm = array_pm[half]
+		else:
+			med_users_per_pm = (array_pm[half - 1] + array_pm[half]) / 2.0
+		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
+		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
+		avg_users_per_pg = "{0:.2f}".format(float(total_pg_users)/pgs_sampled)
+		avg_users_per_pm = "{0:.2f}".format(float(total_pm_users)/pms_sampled)
+		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
+		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
+		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
+		pipeline1.setex('avg_users_per_pm',avg_users_per_pm,TEN_MINS)
+		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
+		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
+		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
+		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
+		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
+		pipeline1.execute()
+		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
+		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
+		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
+	"""
+	Measure 2-user pms vs 2-user pgs
+	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
+
+	Get rid of less than 2 user cases to make it like for like
+	"""
+
+def avg_num_of_switchovers_per_type():
+	"""
+	What are avg number of chats produced per type of chat?
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	total_pms = my_server.get('total_pms_sw')
+	if total_pms:
+		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
+			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
+		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+	else:
+		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
+		total_pms = len(pm_data)
+		median_pm_idx = int(total_pms/2)
+		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
+		total_pgs = len(pg_data)
+		median_pg_idx = int(total_pgs/2)
+		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+		# data is list of (group_id,chat_num) type tuples
+		aggregate_pm_sws, aggregate_pg_sws = 0, 0
+		for tup in pm_data:
+			aggregate_pm_sws += int(tup[1])
+		for tup in pg_data:
+			aggregate_pg_sws += int(tup[1])
+		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
+		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
+		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
+		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
+		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
+		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
+		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
+		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
+		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
+		pipeline1.execute()
+		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+			aggregate_pg_sws, avg_sw_per_pg
+
+	"""
+	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
+	"""
+
+
+def avg_num_of_chats_per_type():
+	"""
+	What are avg number of chats produced per type of chat?
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	total_pms = my_server.get('total_pms')
+	if total_pms:
+		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
+			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
+		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
+	else:
+		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
+		total_pms = len(pm_data)
+		median_pm_idx = int(total_pms/2)
+		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
+		total_pgs = len(pg_data)
+		median_pg_idx = int(total_pgs/2)
+		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+		# data is list of (group_id,chat_num) type tuples
+		aggregate_pm_chats, aggregate_pg_chats = 0, 0
+		for tup in pm_data:
+			aggregate_pm_chats += int(tup[1])
+		for tup in pg_data:
+			aggregate_pg_chats += int(tup[1])
+		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
+		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
+
+		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
+		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
+
+		# caching the results
+		pipeline1 = my_server.pipeline()
+		pipeline1.setex('total_pms',total_pms,TEN_MINS)
+		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
+		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
+		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
+		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
+		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
+		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
+		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
+		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
+		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
+		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
+		pipeline1.execute()
+		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws

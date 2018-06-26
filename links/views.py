@@ -58,18 +58,18 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
-from .tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
+from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session, log_profile_view#, log_organic_attention
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-from .redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
-invalidate_avurl
+from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
+invalidate_avurl, retrieve_user_id
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
@@ -1938,6 +1938,8 @@ class UserProfilePhotosView(ListView):
 				context["subject_id"] = star_id
 				context["own_profile"] = False
 				context["allowed_fan"] = True
+			if star_id != user_id:
+				log_profile_view.delay(user_id,star_id,time.time())
 		else:
 			context["authenticated"] = False
 			context["not_fan"] = True
@@ -2378,6 +2380,11 @@ class UserProfileDetailView(DetailView):
 	def get_context_data(self, **kwargs):
 		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
 		context["ratified"] = FEMALES
+		if self.request.user.is_authenticated():
+			user_id = str(self.request.user.id)
+			star_id = retrieve_user_id(self.kwargs["slug"])
+			if star_id != user_id:
+				log_profile_view.delay(user_id,star_id,time.time())
 		return context
 
 class DirectMessageCreateView(FormView):
@@ -4152,7 +4159,8 @@ def photo_comment(request,pk=None,*args,**kwargs):
 					request.user.username, url, citizen)
 				##############################################################################################
 				##############################################################################################
-				# config_manager.get_obj().track('wrote_inline_photocomment', user_id)
+				# if origin == '1':
+				# 	log_organic_attention.delay(photo_id=pk,att_giver=user_id,photo_owner_id=photo_owner_id, action='photo_comm')
 				##############################################################################################
 				##############################################################################################
 				if user_id != photo_owner_id:
@@ -4462,20 +4470,6 @@ def best_photos_list(request,*args,**kwargs):
 				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
 				context["page"] = page_obj
 				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-				# photos = cache.get('best_photos'+str(page_num))
-				# page_obj = cache.get('best_photos_page_obj'+str(page_num))
-				# if page_obj:
-				# 	context["page"] = page_obj	
-				# else:
-				# 	obj_list = all_best_photos()
-				# 	obj_list_keys = map(itemgetter(0), obj_list)
-				# 	page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-					# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
-				# if photos:
-				# 	context["object_list"] = photos
-				# else:
-				# 	context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-					# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
 			user = request.user
 			context["threshold"] = UPLOAD_PHOTO_REQ
 			context["username"] = user.username
@@ -6624,15 +6618,6 @@ class UserSettingsEditView(UpdateView):
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# try:
-		# 	deduction = 2 * -1
-		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
-		# 	request.user.userprofile.save()
-		# 	context = {'unique': 'ID'}
-		# 	return render(request, 'penalty_linkcreate.html', context)
-		# except:
-		# 	context = {'unique': 'ID'}
-		# 	return render(request, 'penalty_linkcreate.html', context)
 		return redirect("missing_page")
 	else:
 		request.session["link_create_token"] = uuid.uuid4()
@@ -6677,67 +6662,67 @@ class LinkCreateView(CreateView):
 		self.request.session.modified = True
 		user = self.request.user
 		user_id = user.id
-		if not self.request.mobile_verified:
+		mobile_verified = self.request.mobile_verified
+		if not mobile_verified:
 			CSRF = csrf.get_token(self.request)
 			temporarily_save_user_csrf(str(user_id), CSRF)
 			return render(self.request, 'cant_write_on_home_without_verifying.html', {'csrf':CSRF})
-		if valid_uuid(str(token)):
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
-			f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-			if user.userprofile.score < -25:
-				if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-					HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-					user.userprofile.score = random.randint(10,71)
-					f.submitter = user
-				else:
-					f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-			else:
-				f.submitter = user
-				f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-			# category = '1'#self.request.POST.get("btn")
-			# f.cagtegory = category
-			if self.request.is_feature_phone:
-				f.device = '1'
-			elif self.request.is_phone:
-				f.device = '2'
-			elif self.request.is_tablet:
-				f.device = '4'
-			elif self.request.is_mobile:
-				f.device = '5'
-			else:
-				f.device = '3'
-			try:
-				av_url = user.userprofile.avatar.url
-			except ValueError:
-				av_url = None
-			if is_urdu(text=f.description):
-				category = '17'
-			else:
-				category = '1'
-			f.cagtegory = category
-			f.save()
-			add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
-				scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
-				by_pinkstar = (True if user.username in FEMALES else False))
-			if self.request.user_banned:
-				extras = add_unfiltered_post(f.id)
-				if extras:
-					queue_for_deletion.delay(extras)
-			else:
-				add_filtered_post(f.id, is_ur=True if category == '17' else False)
-				extras = add_unfiltered_post(f.id)
-				if extras:
-					queue_for_deletion.delay(extras)
-			f.submitter.userprofile.save()
-			##############################################################################################
-			##############################################################################################
-			# config_manager.get_obj().track('wrote_onhome', user_id)
-			##############################################################################################
-			##############################################################################################
-			return super(CreateView, self).form_valid(form) #saves the link automatically
 		else:
-			return redirect("score_help")
+			if valid_uuid(str(token)) and mobile_verified:
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
+				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+				if user.userprofile.score < -25:
+					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+						user.userprofile.score = random.randint(10,71)
+						f.submitter = user
+					else:
+						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
+				else:
+					f.submitter = user
+					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+				if self.request.is_feature_phone:
+					f.device = '1'
+				elif self.request.is_phone:
+					f.device = '2'
+				elif self.request.is_tablet:
+					f.device = '4'
+				elif self.request.is_mobile:
+					f.device = '5'
+				else:
+					f.device = '3'
+				try:
+					av_url = user.userprofile.avatar.url
+				except ValueError:
+					av_url = None
+				if is_urdu(text=f.description):
+					category = '17'
+				else:
+					category = '1'
+				f.cagtegory = category
+				f.save()
+				add_home_link(link_pk=f.id, categ=category, nick=user.username, av_url=av_url, desc=f.description, \
+					scr=f.submitter.userprofile.score, cc=0, writer_pk=user_id, device=f.device, \
+					by_pinkstar = (True if user.username in FEMALES else False))
+				if self.request.user_banned:
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				else:
+					add_filtered_post(f.id, is_ur=True if category == '17' else False)
+					extras = add_unfiltered_post(f.id)
+					if extras:
+						queue_for_deletion.delay(extras)
+				f.submitter.userprofile.save()
+				##############################################################################################
+				##############################################################################################
+				# config_manager.get_obj().track('wrote_onhome', user_id)
+				##############################################################################################
+				##############################################################################################
+				return super(CreateView, self).form_valid(form) #saves the link automatically
+			else:
+				return redirect("home")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
@@ -7413,7 +7398,12 @@ def cast_photo_vote(request,*args,**kwargs):
 		if request.user_banned:
 			return redirect("missing_page")
 		own_id = request.user.id
-		if request.mobile_verified:
+		mob_verified = request.mobile_verified
+		if not mob_verified:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(own_id), CSRF)
+			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
+		elif mob_verified:
 			photo_id = request.POST.get("pid","")
 			photo_owner_id = get_photo_owner(photo_id)
 			if not photo_owner_id:
@@ -7454,6 +7444,10 @@ def cast_photo_vote(request,*args,**kwargs):
 					if added and citizen:
 						# do not process vote if the user is not a 'citizen'
 						process_photo_vote(photo_id, photo_owner_id, int(value), own_id)
+					######################
+					# if request.POST.get("from",None) == '1':
+					# 	log_organic_attention.delay(photo_id=photo_id,att_giver=own_id,photo_owner_id=photo_owner_id, action='photo_vote',vote_value=value)
+					######################
 					#return the user to origin
 					return return_to_photo(request,origin,photo_id,request.POST.get("lid",""),request.POST.get("oun",""))
 			else:
@@ -7471,7 +7465,12 @@ def cast_vote(request,*args,**kwargs):
 		if request.user_banned:
 			return redirect("missing_page")
 		own_id = request.user.id
-		if request.mobile_verified:
+		mob_verified = request.mobile_verified
+		if not mob_verified:
+			CSRF = csrf.get_token(request)
+			temporarily_save_user_csrf(str(own_id), CSRF)
+			return render(request, 'cant_vote_without_verifying.html', {'csrf':CSRF})
+		elif mob_verified:
 			link_id = request.POST.get("lid","")
 			lang = request.POST.get("lang",None)
 			sort_by = request.POST.get("sort_by",None)

@@ -484,7 +484,8 @@ if (form_template) {
   form_template.onsubmit = personal_group_reply_submit;
 };// call personal_group_reply_submit if form_template is submitted
 
-document.getElementById('rep_text_field').onfocus = remove_placeholder;
+var rep_text_field = document.getElementById('rep_text_field');
+if (rep_text_field) {rep_text_field.onfocus = remove_placeholder;};
 
 var browse_rep_image_btn = document.getElementById('browse_rep_image_btn');//select direct reply's image upload button
 if (browse_rep_image_btn) {browse_rep_image_btn.onchange = show_rep_image_name;}

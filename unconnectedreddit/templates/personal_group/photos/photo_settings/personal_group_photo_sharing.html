@@ -134,9 +134,14 @@
 				{% if photo.status == 'undel' %}
 					{% if photo.hidden == 'no' %}
 						<div class="sh cvs ext-cvs ctr csb" style="max-width:{{ photo.img_width }}px">
+							{% if photo.is_shared %}
+							<div class="cxs sp mbl mt">
+							<a href="{% url 'profile' photo.owner_uname %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							</div>
+							{% endif %}
 							<img src="{{ photo.img_url|s3 }}" alt="photo" class="pgpic">
 							{% if photo.img_quality == 'None' %}
-								<div class="sp mts cxs" style="color:#4C5EA3">low quality (freebasics se charhai)</div>
+								<div class="sp mts cxs" style="color:#4C5EA3">low quality (from freebasics)</div>
 							{% endif %}
 							
 							<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
@@ -149,11 +154,15 @@
 						</div><br>
 					{% else %}
 						<div class="sh mbl cvs ctr csb" style="max-width:{{ photo.img_b_width }}px">
-							
+							{% if photo.is_shared %}
+							<div class="cxs sp mbl mt">
+							<a href="{% url 'profile' photo.owner_uname %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							</div>
+							{% endif %}
 							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}
 
 							{% if photo.img_quality == 'None' %}
-								<div class="sp mts cxs" style="color:#4C5EA3">low quality (freebasics se charhai)</div>
+								<div class="sp mts cxs" style="color:#4C5EA3">low quality (from freebasics)</div>
 							{% endif %}
 							 	<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
 									{% csrf_token %}
@@ -182,9 +191,14 @@
 				{% if photo.status == 'undel' %}
 					{% if photo.hidden == 'no' %}
 						<div class="sh cvs ext-cvs ctr ca" style="max-width:{{ photo.img_width }}px">
+							{% if photo.is_shared %}
+							<div class="cxs sp mbl mt">
+							<a href="{% url 'profile' photo.owner_uname %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							</div>
+							{% endif %}
 							<img src="{{ photo.img_url|s3 }}" alt="photo" class="pgpic">
 							{% if photo.img_quality == 'None' %}
-								<div class="sp mts cxs" style="color:#069E9C">low quality (freebasics se charhai)</div>
+								<div class="sp mts cxs" style="color:#069E9C">low quality (from freebasics)</div>
 							{% endif %}
 
 								<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
@@ -199,11 +213,15 @@
 					{% else %}
 
 						<div class="sh mbl cvs ctr ca" style="max-width:{{ photo.img_b_width }}px">
-						
+							{% if photo.is_shared %}
+							<div class="cxs sp mbl mt">
+							<a href="{% url 'profile' photo.owner_uname %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							</div>
+							{% endif %}
 							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}
 
 							{% if photo.img_quality == 'None' %}
-								<div class="sp mts cxs" style="color:#069E9C">low quality (freebasics se charhai)</div>
+								<div class="sp mts cxs" style="color:#069E9C">low quality (from freebasics)</div>
 							{% endif %}
 							 	<form method="POST" class="mts" action="{% url 'delete_or_hide_photo_from_photo_settings' %}">
 									{% csrf_token %}

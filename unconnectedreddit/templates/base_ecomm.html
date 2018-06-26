@@ -42,13 +42,15 @@ for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElemen
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 
 </head>
-<body> 
+<body>
+{% include "fb_analytics.html" %}
 {% load count %}
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}
 {% khoji_unlocked as ku %}
 <div class="header cxl">Damadam pe Buy and Sell</div>
-<ul class="navbar">    
+<ul class="navbar">
+
 {% if user.is_authenticated %}
     <!-- bunched HTML removes spaces between <li> elements -->
     <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a class="sharing" href="{% url 'show_user_ads' %}#section0">Meray Ads</a></li><li><a href="{% url 'home' %}">Chat and Fotos</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a></li>

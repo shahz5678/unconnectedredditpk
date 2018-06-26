@@ -1750,6 +1750,7 @@ def get_ranked_public_groups():
 '1' 'personal group sms settings'
 '2' 'granting permission to save posts'
 '3' 'sharing internal photo in personal groups'
+'4' 'visiting shared photos listing'
 
 def tutorial_unseen(user_id, which_tut, renew_lease=False):
 	my_server = redis.Redis(connection_pool=POOL)

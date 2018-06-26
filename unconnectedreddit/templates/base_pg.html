@@ -32,13 +32,13 @@
 
 </head>
 <body style="position: relative">
+
 {% load count %}
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}
 {% khoji_unlocked as ku %}
 <div class="header cxl">Damadam pe gup shup aur fotos</div>
 <ul class="navbar">
-
 {% if user.is_authenticated %}
     <!-- bunched HTML removes spaces between <li> elements -->
     <li><a href="/">Home</a></li><li><a class="sharing" href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li>{% if user.userprofile.score and user.userprofile.score > 40 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a></li>{% if ku %}<li><a href="{% url 'search_username' %}">Khoji</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% elif user.userprofile.score and user.userprofile.score > 14 %}<li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Apka Matka{% if notif_count > 0 %}<span style="color:blue ;">({{ notif_count }}){% endif %}</a></span>{% else %}{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">Private Chat</a></li>{% if user.userprofile.score and user.userprofile.score < 10 %}<li><a href="{% url 'help' %}#section0"><b>Damadam Help</b></a></li>{% elif user.userprofile.score and user.userprofile.score < 15 %}<li><a href="{% url 'help' %}#section0">Damadam Help</a></li>{% elif user.userprofile.score and user.userprofile.score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% else %}{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if user.userprofile.score > 0 %}<span style="color:green;font-size:90%;"> ({{ user.userprofile.score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
@@ -73,7 +73,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
+{% include "ga_ss.html" %}
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

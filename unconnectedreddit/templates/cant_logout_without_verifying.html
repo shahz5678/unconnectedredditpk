@@ -2,12 +2,12 @@
 {% block content %}
 
 <head><title>Unable to logout without mobile verification | Damadam.pk</title></head>
-
-<div class="margin clb">
-<b class="cxl">Mobile number verify kiye beghair logout nahi chalta</b><br>
-<div class="mt">
-<span class="cl">Verify karwaney ke liye 'OK' dabain:</span><br>
-</div>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Verify yourself</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<b class="cxl lsp">Mobile number verify kiye beghair logout nahi kar saktey</b>
+<hr size=1 COLOR="#E9EBEE">
+<div class="mt cl sp lsp">Verify karwaney ke liye dabain:</div>
 
 	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
 	  <input type="hidden" name="country_code" value="PK">
@@ -17,9 +17,9 @@
 	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
 	  <input type="hidden" name="state" value="{{ csrf }}">
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
-	  <input type="submit" class="ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:4em;" value="OK">
-	</form><br>
-<b class="cgy cs">Verify karney mein hamari partner company FACEBOOK shamil hai</b>
+	  <input type="submit" class="ma" style="color:white;background-color:#00C853;border:solid 1px #00C853;font-size:110%;width:6em;" value="Verify">
+	</form>
+<span class="cgy cs sp">Verify karney mein hamari partner company FACEBOOK shamil hai</span>
 </div>
 <br><br>
 {% endblock %}

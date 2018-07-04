@@ -5,10 +5,9 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 {% include "favicons.html" %}
-    
+{% include "css.html" %}    
   <title>Damadam.pk</title>
         
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/video.css">
         
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
@@ -39,11 +38,9 @@
 
 {% if user.is_authenticated %}
     
-    {% if user.userprofile.score and user.userprofile.score > 14 %}
-    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Likho</a>
-    {% else %}
-    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Kuch Likho</a>
-    {% endif %}
+    
+    <a class="sharing" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px #886081;">Share</a>
+    
     <span style="color:white;">|</span>
     <a href="{% url 'best_photo' %}" style="text-shadow:0 0 0.1px #886081;"> Photos </a><span style="color:white;">|</span>
         {% if user.userprofile.score and user.userprofile.score > 40 %}
@@ -103,7 +100,7 @@
 </ul>
 </div>
 {% if user.is_authenticated %}
-<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px blue;">Kuch Likho </a><span style="color:grey;">|</span>
+<span style="color:grey;">|</span> <a class="foot2" href="{% url 'link_create_pk' %}#section0" style="text-shadow:0 0 0.1px blue;">Share </a><span style="color:grey;">|</span>
 <a class="foot2" href="{% url 'logout_penalty' %}#section0" style="text-shadow:0 0 0.1px blue;">Bahir Niklo </a><span style="color:grey;">|</span>
 {% else %}
 <span style="color:grey;">|</span> <a class="foot2" href="{% url 'register_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Neya Account </a><span style="color:grey;">|</span>  <a class="foot2" href="{% url 'login_walkthrough' %}#section0" style="text-shadow:0 0 0.1px blue;">Purana Account </a></a><span style="color:grey;">|</span>

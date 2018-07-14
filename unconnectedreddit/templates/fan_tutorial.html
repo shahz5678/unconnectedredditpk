@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Fan tutorial | Damadam.pk</title></head>
-<div class="margin clb">
-<div class="mbl">
-<img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><span class="cg"><b class="cxl"> Ye button daba ke ap fan ban jatey ho </b></span><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><img src="{{ STATIC_URL }}img/fan_star.png" width="30" height="30" alt="no pic"><br>
-</div>
-<span class="cl">Jin ke ap fan ho, unki fotos ap ko sab se pehle nazar aati hain<br>
-OK dabain takey ap <b>{{ name }}</b> ke fan ban jaein!</span>
-<br>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Become a fan!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+<img src="{{ STATIC_URL }}img/fan.svg" class="mrs" width="30" height="30"><span class="cxl lsp">Ye button daba ke ap fan ban saktey hain</span>
+<hr size=1 COLOR="#e5e7e9">
+<div class="cl sp lsp">Jin users ki posts pasand aien, unki hosla afzai ke liye unkey fan banein</div>
+<div class="mts mbs cs sp lsp cgy">Ab OK dabain takey ap <b>{{ name }}</b> ke fan ban jaein</div>
 <form action="{% url 'fan' %}" method="POST">
  	{% csrf_token %}
 	<input type="hidden" name="oid" value="{{ obj_id }}">
 	<input type="hidden" name="org" value="{{ origin }}">
-	<button type="submit" name="sid_btn" class="btn bcg bm mtl" value="{{ star_id }}">OK</button>
+	<button type="submit" name="sid_btn" class="mbs mts bm pg_ok_res sp" style="height:26px;background-color:#FFCD00;color:white;border:none;font-weight:bold" value="{{ star_id }}">OK</button>
 </form>
 </div>
 <br><br>

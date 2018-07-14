@@ -2,27 +2,23 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Home reply tutorial | Damadam.pk</title></head>
-<div class="margin clb">
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Reply sent!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 {% if target == own_self %}
-<b class="cxl">Ap ne apni hi post pe jawab de diya&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
+<b class="cxl lsp">Ap ne apni hi post pe jawab de diya</b>
+<hr size=1 COLOR="#e5e7e9">
 <div class="mt mbl">
-<span class="cgy cl">Ye jawab private nahi hai, isko har koi dekh sakta hai</span><br>
+<span class="cgy cs sp lsp">Ye jawab private nahi hai, isko har koi read sakta hai</span><br>
 </div>
 {% else %}
-<b class="cxl">Apka jawab <span class="ct">{{ target }}</span> ki post pe chala gaya!&nbsp;{% emoticons %}.c1{% endemoticons %}</b>
-<div class="mt mbl">
-<span class="cgy cl">Ye jawab private nahi hai, issey har koi dekh sakta hai</span><br>
+<b class="cxl lsp">Apka jawab <span class="ct">{{ target }}</span> ki post pe chala gaya</b>
+<hr size=1 COLOR="#e5e7e9">
+<div class="mt mbs">
+<span class="cgy cs sp lsp">Ye jawab private nahi hai, issey har koi read kar sakta hai</span><br>
 </div>
 {% endif %}
-{% if lang and sort_by_best %}
-<a href="{% url 'home_loc_ur_best' lang %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
-{% elif sort_by_best %}
-<a href="{% url 'home_loc_best' %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
-{% elif lang %}
-<a href="{% url 'home_loc_ur' lang %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
-{% else %}
-<a href="{% url 'home_loc' %}"><button class="btn nw bct bl mts mbs pg_ok_res" style="height:26px" type="submit">Theek hai</button></a>
-{% endif %}
+<a href="{% url 'home_loc' %}"><button class="btn nw bct bm mts mbs pg_ok_res" style="height:26px" type="submit">OK</button></a>
 
 </div><br><br>
 

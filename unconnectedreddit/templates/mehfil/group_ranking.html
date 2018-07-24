@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Trending public groups | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="clb cxl" style="text-align:center">Popular mehfils:</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="mbl" style="text-align:center">
+<a href="{% url 'group_type' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>create mehfil</b></a><span class="cs">&nbsp;|</span>
+<a href="{% url 'group_page' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>apki mehfils</b></a><span class="cs">&nbsp;|</span>
+<a href="{% url 'group_help' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>help</b></a>
+</div>
+{% for group in object_list %}
+	<a href="{% url 'public_group' slug=group.unique %}">
+	<button class="mbl" style="border:none;width:100%;padding:7px 10px">
+	<div class="mbl lsp" style="overflow:hidden;text-align:left">
+	<span class="cp"><b class="cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b></span>
+	</div>
+	<div class="sp cs" style="color:gray;text-align:right">created by {{ group.owner }}</div>
+	</button>
+	</a>
+	<br>
+{% empty %}
+<div class="cgy sp" style="text-align:center">-- list khali hai -- </div>
+{% endfor %}
+</div>
+<br>
+{% endblock %}
+
+{% block pagination %}
+{% if is_paginated %}
+<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+	{% if page_obj.has_previous %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+<br>
+{% endblock %}

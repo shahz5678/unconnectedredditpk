@@ -116,7 +116,7 @@ def deprecate_nicks(request,*args,**kwargs):
 	Only 'mhb11' can run this function.
 	"""
 	if request.user.username == 'mhb11':
-		three_months_ago = datetime.utcnow()-timedelta(days=90)#240
+		three_months_ago = datetime.utcnow()-timedelta(days=240)#240
 		
 		# all user ids who last logged in more than 3 months ago
 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))

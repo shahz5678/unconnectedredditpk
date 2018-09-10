@@ -391,54 +391,55 @@ def deprecate_nicks(request,*args,**kwargs):
 			print "... saved in redis\n"
 		
 		# all user ids
-		all_users = set(User.objects.all().values_list('id',flat=True))
-		print "step 14 calculated"
+		all_users = list(User.objects.all().values_list('id',flat=True))
+		all_users = (map(str, all_users)
+		print "step 15 calculated"
 
-		# # all inactives are simply all users minus all active users
-		# all_inactives = all_users - active_users
-		# print "step 15 calculated"
-		# all_inactives = list(all_inactives)
-		# llen = len(all_inactives)
-		# list1 = all_inactives[:llen/2]
-		# list2 = all_inactives[llen/2:]
-		# my_server.lpush("all_inactives",*list1)
-		# my_server.lpush("all_inactives",*list2)
-		# my_server.expire("all_inactives",ONE_DAY)
-		# print "... saved in redis\n"
+		# all inactives are simply all users minus all active users
+		all_inactives = set(all_users) - set(active_users)
+		print "step 16 calculated"
+		all_inactives = list(all_inactives)
+		llen = len(all_inactives)
+		list1 = all_inactives[:llen/2]
+		list2 = all_inactives[llen/2:]
+		my_server.lpush("all_inactives",*list1)
+		my_server.lpush("all_inactives",*list2)
+		my_server.expire("all_inactives",ONE_DAY)
+		print "... saved in redis\n"
 
 		
 
-		# # populate required sorted_set in redis 1 (called 'inactive_users')
-		# inactives = []
-		# inactives_data = User.objects.select_related('userprofile').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
-		# for inact in inactives_data:
-		# 	inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-		# print "step 16 calculated"
+		# populate required sorted_set in redis 1 (called 'inactive_users')
+		inactives = []
+		inactives_data = User.objects.select_related('userprofile').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
+		for inact in inactives_data:
+			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
+		print "step 17 calculated"
 		
-		# # inactives = list(all_inactives)
-		# size = len(inactives)
-		# child1 = inactives[:size/8]
-		# child2 = inactives[size/8:size/4]
-		# child3 = inactives[size/4:(size*3)/8]
-		# child4 = inactives[(size*3)/8:size/2]
-		# child5 = inactives[size/2:(size*5)/8]
-		# child6 = inactives[(size*5)/8:(size*6)/8]
-		# child7 = inactives[(size*6)/8:(size*7)/8]
-		# child8 = inactives[(size*7)/8:]
-		# print "step 17 calculated"
+		# inactives = list(all_inactives)
+		size = len(inactives)
+		child1 = inactives[:size/8]
+		child2 = inactives[size/8:size/4]
+		child3 = inactives[size/4:(size*3)/8]
+		child4 = inactives[(size*3)/8:size/2]
+		child5 = inactives[size/2:(size*5)/8]
+		child6 = inactives[(size*5)/8:(size*6)/8]
+		child7 = inactives[(size*6)/8:(size*7)/8]
+		child8 = inactives[(size*7)/8:]
+		print "step 18 calculated"
 		
-		# from itertools import chain	
-		# # breaking it into 8 lists avoids socket time out
-		# set_inactives([x for x in chain.from_iterable(child1)])
-		# set_inactives([x for x in chain.from_iterable(child2)])
-		# set_inactives([x for x in chain.from_iterable(child3)])
-		# set_inactives([x for x in chain.from_iterable(child4)])
-		# set_inactives([x for x in chain.from_iterable(child5)])
-		# set_inactives([x for x in chain.from_iterable(child6)])
-		# set_inactives([x for x in chain.from_iterable(child7)])
-		# set_inactives([x for x in chain.from_iterable(child8)])
-		# print "step 18 calculated\n"
-		# print "we are done!"
+		from itertools import chain	
+		# breaking it into 8 lists avoids socket time out
+		set_inactives([x for x in chain.from_iterable(child1)])
+		set_inactives([x for x in chain.from_iterable(child2)])
+		set_inactives([x for x in chain.from_iterable(child3)])
+		set_inactives([x for x in chain.from_iterable(child4)])
+		set_inactives([x for x in chain.from_iterable(child5)])
+		set_inactives([x for x in chain.from_iterable(child6)])
+		set_inactives([x for x in chain.from_iterable(child7)])
+		set_inactives([x for x in chain.from_iterable(child8)])
+		print "step 19 calculated\n"
+		print "we are done!"
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

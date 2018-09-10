@@ -222,47 +222,41 @@ def deprecate_nicks(request,*args,**kwargs):
 		# all user ids who last logged in more than 4 months ago
 		latest_ids = set(User.objects.filter(last_login__gte=four_months_ago).values_list('id',flat=True))
 		print "step 1 complete"
-		# user ids not found in Sessions
+		
+		# latest user ids found in Sessions
 		current_users = set(Session.objects.filter(user__isnull=False,last_activity__gte=four_months_ago).values_list('user_id',flat=True))
 		print "step 2 complete"
-		# logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-		# print "step 2b complete"
-		# messaged on home more than 4 months ago
+
+		# messaged on home recently
 		current_home_messegers = set(Link.objects.filter(submitted_on__gte=four_months_ago).values_list('submitter_id',flat=True))
 		print "step 3 complete"
-		# never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-		# print "step 3b complete"
-		# never submitted a publicreply
-		current_public_repliers = set(Publicreply.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		
+		# submitted a publicreply recently
+		random_four_months_old_publicreply = 115706681
+		#(used 'pathan-e-khans' publicreply to 'chewinggum')
+		current_public_repliers = set(Publicreply.objects.filter(id__gte=random_four_months_old_publicreply).values_list('submitted_by_id',flat=True))
 		print "step 4 complete"
-		# never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
-		# print "step 4b complete"
-		# never sent a photocomment
-		current_photo_commenters = set(PhotoComment.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		
+		# sent a photocomment recently
+		random_four_months_old_photocomment = 53000000#(guessed the ID and checked its date)
+		current_photo_commenters = set(PhotoComment.objects.filter(id__gte=random_four_months_old_photocomment).values_list('submitted_by_id',flat=True))
 		print "step 5 complete"
-		# never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
-		# print "step 5b complete"
-		# never wrote in a group
+		
+		# wrote in a group recently
 		current_group_writers = set(Reply.objects.filter(submitted_on__gte=four_months_ago).values_list('writer_id',flat=True))
 		print "step 6 complete"
-		# never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
-		# print "step 6b complete"
-		# never uploaded a photo
+
+		# uploaded a photo recently
 		current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
 		print "step 7 complete"
-		# never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-		# print "step 7b complete"
-		# never sent a chatpic
+
+		# sent a chatpic recently
 		current_chat_pic_users = set(ChatPic.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
 		print "step 8 complete"
-		# never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
-		# print "step 8b complete"
-		# never fanned anyone
-		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
+		
+		# fanned someone recently
 		current_fanners = set(UserFan.objects.filter(fanning_time__gte=four_months_ago).values_list('fan_id',flat=True))
 		print "step 9 complete"
-		# never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-		# print "step 9b complete"
 		
 		# score is above 500
 		less_than_1000 = set(UserProfile.objects.filter(score__gte=500).values_list('user_id',flat=True))
@@ -275,9 +269,9 @@ def deprecate_nicks(request,*args,**kwargs):
 		# has active 1-on-1 private chats
 		# TODO: 1_on_1_chatted = 
 
-		# Take a union of all the data
+		# create a list of the data
 		sets = [latest_ids, current_users, current_home_messegers, current_public_repliers, current_photo_commenters, current_group_writers, \
-		current_photo_uploaders, current_chat_pic_users, current_fanners, less_than_1000, pink_stars]
+		current_photo_uploaders, current_chat_pic_users, current_fanners, less_than_1000, pink_stars]#, 1_on_1_chatted]
 		print "step 12 complete"
 
 		# the union of all of the above gives us users that have been at least remotely active in the last 4 months

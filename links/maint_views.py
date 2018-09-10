@@ -232,6 +232,80 @@ def deprecate_nicks(request,*args,**kwargs):
 			print "by passing steps 1-14\n"
 
 		else:
+
+			# wrote in a group recently
+			if my_server.exists("group_writers"):
+				current_group_writers = my_server.lrange("group_writers",0,-1)
+				print "step 6 from cache"
+			else:
+				random_four_months_old_reply = 165000000
+				current_group_writers = set(Reply.objects.filter(id__gte=random_four_months_old_reply).values_list('writer_id',flat=True))
+				print "step 6 calculated"
+				my_server.lpush("group_writers",*current_group_writers)
+				my_server.expire("group_writers",ONE_DAY)
+				print "... saved in redis\n"
+
+			# uploaded a photo recently
+			if my_server.exists("photo_uploaders"):
+				current_photo_uploaders = my_server.lrange("photo_uploaders",0,-1)
+				print "step 7 from cache"
+			else:
+				current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
+				print "step 7 calculated"
+				my_server.lpush("photo_uploaders",*current_photo_uploaders)
+				my_server.expire("photo_uploaders",ONE_DAY)
+				print "... saved in redis\n"
+
+
+			# sent a chatpic recently
+			if my_server.exists("chatpic_uploaders"):
+				current_chat_pic_users = my_server.lrange("chatpic_uploaders",0,-1)
+				print "step 8 from cache"
+			else:
+				current_chat_pic_users = set(ChatPic.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
+				print "step 8 calculated"
+				my_server.lpush("chatpic_uploaders",*current_chat_pic_users)
+				my_server.expire("chatpic_uploaders",ONE_DAY)
+				print "... saved in redis\n"
+
+			
+			# fanned someone recently
+			if my_server.exists("fanners"):
+				current_fanners = my_server.lrange("fanners",0,-1)
+				print "step 9 from cache"
+			else:
+				current_fanners = set(UserFan.objects.filter(fanning_time__gte=four_months_ago).values_list('fan_id',flat=True))
+				print "step 9 calculated"
+				my_server.lpush("fanners",*current_fanners)
+				my_server.expire("fanners",ONE_DAY)
+				print "... saved in redis\n"
+			
+			
+			# score is above 500
+			if my_server.exists("high_score_users"):
+				more_than_500 = my_server.lrange("high_score_users",0,-1)
+				print "step 10 from cache"
+			else:
+				more_than_500 = set(UserProfile.objects.filter(score__gte=500).values_list('user_id',flat=True))
+				print "step 10 calculated"
+				my_server.lpush("high_score_users",*more_than_500)
+				my_server.expire("high_score_users",ONE_DAY)
+				print "... saved in redis\n"
+
+
+			# is a pink stars
+			if my_server.exists("pink_stars"):
+				pink_stars = my_server.lrange("pink_stars",0,-1)
+				print "step 11 from cache"
+			else:
+				pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
+				print "step 11 calculated"
+				my_server.lpush("pink_stars",*pink_stars)
+				my_server.expire("pink_stars",ONE_DAY)
+				print "... saved in redis\n"
+
+
+
 			# submitted a publicreply recently
 			random_four_months_old_publicreply = 115706681
 			if my_server.exists("public_repliers"):
@@ -298,77 +372,6 @@ def deprecate_nicks(request,*args,**kwargs):
 				print "... saved in redis\n"
 
 			
-			# wrote in a group recently
-			if my_server.exists("group_writers"):
-				current_group_writers = my_server.lrange("group_writers",0,-1)
-				print "step 6 from cache"
-			else:
-				current_group_writers = set(Reply.objects.filter(submitted_on__gte=four_months_ago).values_list('writer_id',flat=True))
-				print "step 6 calculated"
-				my_server.lpush("group_writers",*current_group_writers)
-				my_server.expire("group_writers",ONE_DAY)
-				print "... saved in redis\n"
-
-
-			# uploaded a photo recently
-			if my_server.exists("photo_uploaders"):
-				current_photo_uploaders = my_server.lrange("photo_uploaders",0,-1)
-				print "step 7 from cache"
-			else:
-				current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
-				print "step 7 calculated"
-				my_server.lpush("photo_uploaders",*current_photo_uploaders)
-				my_server.expire("photo_uploaders",ONE_DAY)
-				print "... saved in redis\n"
-
-
-			# sent a chatpic recently
-			if my_server.exists("chatpic_uploaders"):
-				current_chat_pic_users = my_server.lrange("chatpic_uploaders",0,-1)
-				print "step 8 from cache"
-			else:
-				current_chat_pic_users = set(ChatPic.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
-				print "step 8 calculated"
-				my_server.lpush("chatpic_uploaders",*current_chat_pic_users)
-				my_server.expire("chatpic_uploaders",ONE_DAY)
-				print "... saved in redis\n"
-
-			
-			# fanned someone recently
-			if my_server.exists("fanners"):
-				current_fanners = my_server.lrange("fanners",0,-1)
-				print "step 9 from cache"
-			else:
-				current_fanners = set(UserFan.objects.filter(fanning_time__gte=four_months_ago).values_list('fan_id',flat=True))
-				print "step 9 calculated"
-				my_server.lpush("fanners",*current_fanners)
-				my_server.expire("fanners",ONE_DAY)
-				print "... saved in redis\n"
-			
-			
-			# score is above 500
-			if my_server.exists("high_score_users"):
-				more_than_500 = my_server.lrange("high_score_users",0,-1)
-				print "step 10 from cache"
-			else:
-				more_than_500 = set(UserProfile.objects.filter(score__gte=500).values_list('user_id',flat=True))
-				print "step 10 calculated"
-				my_server.lpush("high_score_users",*more_than_500)
-				my_server.expire("high_score_users",ONE_DAY)
-				print "... saved in redis\n"
-
-
-			# is a pink stars
-			if my_server.exists("pink_stars"):
-				pink_stars = my_server.lrange("pink_stars",0,-1)
-				print "step 11 from cache"
-			else:
-				pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
-				print "step 11 calculated"
-				my_server.lpush("pink_stars",*pink_stars)
-				my_server.expire("pink_stars",ONE_DAY)
-				print "... saved in redis\n"
-
 
 			# has active 1-on-1 private chats
 			# TODO: 1_on_1_chatted = 

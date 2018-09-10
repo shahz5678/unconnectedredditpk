@@ -232,11 +232,14 @@ def deprecate_nicks(request,*args,**kwargs):
 		print "step 3 complete"
 		
 		# submitted a publicreply recently
-		current_public_repliers = set(Publicreply.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		random_four_months_old_publicreply = 115706681
+		#(used 'pathan-e-khans' publicreply to 'chewinggum')
+		current_public_repliers = set(Publicreply.objects.filter(id__gte=random_four_months_old_publicreply).values_list('submitted_by_id',flat=True))
 		print "step 4 complete"
 		
 		# sent a photocomment recently
-		current_photo_commenters = set(PhotoComment.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		random_four_months_old_photocomment = 53000000#(guessed the ID and checked its date)
+		current_photo_commenters = set(PhotoComment.objects.filter(id__gte=random_four_months_old_photocomment).values_list('submitted_by_id',flat=True))
 		print "step 5 complete"
 		
 		# wrote in a group recently
@@ -266,9 +269,9 @@ def deprecate_nicks(request,*args,**kwargs):
 		# has active 1-on-1 private chats
 		# TODO: 1_on_1_chatted = 
 
-		# Take a union of all the data
+		# create a list of the data
 		sets = [latest_ids, current_users, current_home_messegers, current_public_repliers, current_photo_commenters, current_group_writers, \
-		current_photo_uploaders, current_chat_pic_users, current_fanners, less_than_1000, pink_stars]
+		current_photo_uploaders, current_chat_pic_users, current_fanners, less_than_1000, pink_stars]#, 1_on_1_chatted]
 		print "step 12 complete"
 
 		# the union of all of the above gives us users that have been at least remotely active in the last 4 months

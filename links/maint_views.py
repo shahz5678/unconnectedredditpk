@@ -108,6 +108,107 @@ def export_nicks(request,*args,**kwargs):
 
 
 
+# def deprecate_nicks(request,*args,**kwargs):
+# 	"""This singles out user_ids and nicks that haven't been in use over the past 3 months.
+
+# 	It looks at criteria such as last messaging time and a ton of other things.
+# 	It ensures pink stars are not included in the list.
+# 	Only 'mhb11' can run this function.
+# 	"""
+# 	if request.user.username == 'mhb11':
+# 		three_months_ago = datetime.utcnow()-timedelta(days=240	)#240
+		
+# 		# all user ids who last logged in more than 3 months ago
+# 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
+# 		print "step 1 complete"
+# 		# user ids not found in Sessions
+# 		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
+# 		print "step 2a complete"
+# 		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
+# 		print "step 2b complete"
+# 		# messaged on home more than 3 months ago
+# 		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
+# 		print "step 3a complete"
+# 		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
+# 		print "step 3b complete"
+# 		# never submitted a publicreply
+# 		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
+# 		print "step 4a complete"
+# 		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
+# 		print "step 4b complete"
+# 		# never sent a photocomment
+# 		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
+# 		print "step 5a complete"
+# 		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
+# 		print "step 5b complete"
+# 		# never wrote in a group
+# 		current_group_writers = Reply.objects.filter(submitted_on__gte=three_months_ago).values_list('writer_id',flat=True)
+# 		print "step 6a complete"
+# 		never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
+# 		print "step 6b complete"
+# 		# never uploaded a photo
+# 		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
+# 		print "step 7a complete"
+# 		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
+# 		print "step 7b complete"
+# 		# never sent a chatpic
+# 		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
+# 		print "step 8a complete"
+# 		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
+# 		print "step 8b complete"
+# 		# never fanned anyone
+# 		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
+# 		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
+# 		print "step 9a complete"
+# 		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
+# 		print "step 9b complete"
+# 		# score is below 15000 (score requirement too high, should be lessened)
+# 		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
+# 		print "step 10 complete"
+# 		# do not have active 1-on-1 private chats
+# 		# TODO: never_1_on_1_chatted = 
+
+# 		# intersection of all such ids (and not union)
+# 		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000, \
+# 		never_groupreply, never_sent_chat_pic]#, never_1_on_1_chatted]
+# 		inactive = set.intersection(*sets)# passing list of sets to set.intersection()
+# 		print "step 11 complete"
+# 		#sanitize pink stars:
+# 		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
+# 		inactive = inactive - pink_stars
+# 		print "step 12 complete"
+# 		# populate required sorted_set in redis 1 (called 'inactive_users')
+# 		inactives = []
+# 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
+# 		for inact in inactives_data:
+# 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
+# 		print "step 13 complete"
+# 		size = len(inactives)
+# 		child1 = inactives[:size/8]
+# 		child2 = inactives[size/8:size/4]
+# 		child3 = inactives[size/4:(size*3)/8]
+# 		child4 = inactives[(size*3)/8:size/2]
+# 		child5 = inactives[size/2:(size*5)/8]
+# 		child6 = inactives[(size*5)/8:(size*6)/8]
+# 		child7 = inactives[(size*6)/8:(size*7)/8]
+# 		child8 = inactives[(size*7)/8:]
+# 		print "step 14 complete"
+# 		from itertools import chain
+# 		# breaking it into 8 lists avoids socket time out
+# 		set_inactives([x for x in chain.from_iterable(child1)])
+# 		set_inactives([x for x in chain.from_iterable(child2)])
+# 		set_inactives([x for x in chain.from_iterable(child3)])
+# 		set_inactives([x for x in chain.from_iterable(child4)])
+# 		set_inactives([x for x in chain.from_iterable(child5)])
+# 		set_inactives([x for x in chain.from_iterable(child6)])
+# 		set_inactives([x for x in chain.from_iterable(child7)])
+# 		set_inactives([x for x in chain.from_iterable(child8)])
+# 		print "step 15 complete"
+# 		return render(request,'deprecate_nicks.html',{})
+# 	else:
+# 		return render(request,'404.html',{})
+
+
 def deprecate_nicks(request,*args,**kwargs):
 	"""This singles out user_ids and nicks that haven't been in use over the past 3 months.
 
@@ -116,73 +217,88 @@ def deprecate_nicks(request,*args,**kwargs):
 	Only 'mhb11' can run this function.
 	"""
 	if request.user.username == 'mhb11':
-		three_months_ago = datetime.utcnow()-timedelta(days=240)#240
+		four_months_ago = datetime.utcnow()-timedelta(days=120)#240
 		
-		# all user ids who last logged in more than 3 months ago
-		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
+		# all user ids who last logged in more than 4 months ago
+		latest_ids = set(User.objects.filter(last_login__gte=four_months_ago).values_list('id',flat=True))
 		print "step 1 complete"
 		# user ids not found in Sessions
-		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
-		print "step 2a complete"
-		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-		print "step 2b complete"
-		# messaged on home more than 3 months ago
-		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
-		print "step 3a complete"
-		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-		print "step 3b complete"
+		current_users = set(Session.objects.filter(user__isnull=False,last_activity__gte=four_months_ago).values_list('user_id',flat=True))
+		print "step 2 complete"
+		# logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
+		# print "step 2b complete"
+		# messaged on home more than 4 months ago
+		current_home_messegers = set(Link.objects.filter(submitted_on__gte=four_months_ago).values_list('submitter_id',flat=True))
+		print "step 3 complete"
+		# never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
+		# print "step 3b complete"
 		# never submitted a publicreply
-		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-		print "step 4a complete"
-		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
-		print "step 4b complete"
+		current_public_repliers = set(Publicreply.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		print "step 4 complete"
+		# never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
+		# print "step 4b complete"
 		# never sent a photocomment
-		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-		print "step 5a complete"
-		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
-		print "step 5b complete"
+		current_photo_commenters = set(PhotoComment.objects.filter(submitted_on__gte=four_months_ago).values_list('submitted_by_id',flat=True))
+		print "step 5 complete"
+		# never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
+		# print "step 5b complete"
 		# never wrote in a group
-		current_group_writers = Reply.objects.filter(submitted_on__gte=three_months_ago).values_list('writer_id',flat=True)
-		print "step 6a complete"
-		never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
-		print "step 6b complete"
+		current_group_writers = set(Reply.objects.filter(submitted_on__gte=four_months_ago).values_list('writer_id',flat=True))
+		print "step 6 complete"
+		# never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
+		# print "step 6b complete"
 		# never uploaded a photo
-		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
-		print "step 7a complete"
-		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-		print "step 7b complete"
+		current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
+		print "step 7 complete"
+		# never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
+		# print "step 7b complete"
 		# never sent a chatpic
-		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
-		print "step 8a complete"
-		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
-		print "step 8b complete"
+		current_chat_pic_users = set(ChatPic.objects.filter(upload_time__gte=four_months_ago).values_list('owner_id',flat=True))
+		print "step 8 complete"
+		# never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
+		# print "step 8b complete"
 		# never fanned anyone
 		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
-		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
-		print "step 9a complete"
-		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-		print "step 9b complete"
-		# score is below 15000 (score requirement too high, should be lessened)
-		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
+		current_fanners = set(UserFan.objects.filter(fanning_time__gte=four_months_ago).values_list('fan_id',flat=True))
+		print "step 9 complete"
+		# never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
+		# print "step 9b complete"
+		
+		# score is above 500
+		less_than_1000 = set(UserProfile.objects.filter(score__gte=500).values_list('user_id',flat=True))
 		print "step 10 complete"
-		# do not have active 1-on-1 private chats
-		# TODO: never_1_on_1_chatted = 
 
-		# intersection of all such ids (and not union)
-		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000, \
-		never_groupreply, never_sent_chat_pic]#, never_1_on_1_chatted]
-		inactive = set.intersection(*sets)# passing list of sets to set.intersection()
-		print "step 11 complete"
-		#sanitize pink stars:
+		# is a pink stars
 		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
-		inactive = inactive - pink_stars
+		print "step 11 complete"
+
+		# has active 1-on-1 private chats
+		# TODO: 1_on_1_chatted = 
+
+		# Take a union of all the data
+		sets = [latest_ids, current_users, current_home_messegers, current_public_repliers, current_photo_commenters, current_group_writers, \
+		current_photo_uploaders, current_chat_pic_users, current_fanners, less_than_1000, pink_stars]
 		print "step 12 complete"
+
+		# the union of all of the above gives us users that have been at least remotely active in the last 4 months
+		active_users = set.union(*sets)
+		print "step 13 complete"
+		
+		# all user ids
+		all_users = set(User.objects.all().values_list('id',flat=True))
+		print "step 14 complete"
+		
+		# all inactives are simply all users minus all active users
+		all_inactives = all_users - active_users
+		print "step 15 complete"
+		
 		# populate required sorted_set in redis 1 (called 'inactive_users')
 		inactives = []
-		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
+		inactives_data = User.objects.select_related('userprofile').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
 		for inact in inactives_data:
 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-		print "step 13 complete"
+		print "step 16 complete"
+		
 		size = len(inactives)
 		child1 = inactives[:size/8]
 		child2 = inactives[size/8:size/4]
@@ -192,8 +308,9 @@ def deprecate_nicks(request,*args,**kwargs):
 		child6 = inactives[(size*5)/8:(size*6)/8]
 		child7 = inactives[(size*6)/8:(size*7)/8]
 		child8 = inactives[(size*7)/8:]
-		print "step 14 complete"
-		from itertools import chain
+		print "step 17 complete"
+		
+		from itertools import chain	
 		# breaking it into 8 lists avoids socket time out
 		set_inactives([x for x in chain.from_iterable(child1)])
 		set_inactives([x for x in chain.from_iterable(child2)])
@@ -203,11 +320,11 @@ def deprecate_nicks(request,*args,**kwargs):
 		set_inactives([x for x in chain.from_iterable(child6)])
 		set_inactives([x for x in chain.from_iterable(child7)])
 		set_inactives([x for x in chain.from_iterable(child8)])
-		print "step 15 complete"
+		print "step 18 complete"
+		
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})
-
 
 
 def insert_nicks(request,*args,**kwargs):

@@ -226,10 +226,10 @@ def deprecate_nicks(request,*args,**kwargs):
 
 		four_months_ago = datetime.utcnow()-timedelta(days=120)#240
 		
-		if my_server.exists("all_inactives"):
-			print "step 15 from cache"
-			all_inactives = my_server.lrange("all_inactives",0,-1)
-			print "by passing steps 1-14\n"
+		if my_server.exists("active_users"):
+			print "step 14 from cache"
+			active_users = my_server.lrange("active_users",0,-1)
+			print "by passing steps 1-13\n"
 
 		else:
 
@@ -375,8 +375,8 @@ def deprecate_nicks(request,*args,**kwargs):
 
 			
 
-			# has active 1-on-1 private chats
-			# TODO: 1_on_1_chatted = 
+				# has active 1-on-1 private chats
+				# TODO: 1_on_1_chatted = 
 
 			# create a list of the data
 			sets = [set(current_public_repliers),set(current_photo_commenters),set(latest_logins),set(current_sessions),set(current_home_messegers),\
@@ -386,56 +386,59 @@ def deprecate_nicks(request,*args,**kwargs):
 			# the union of all of the above gives us users that have been at least remotely active in the last 4 months
 			active_users = set.union(*sets)
 			print "step 13 calculated"
-			
-			# all user ids
-			all_users = set(User.objects.all().values_list('id',flat=True))
-			print "step 14 calculated"
-			
-			# all inactives are simply all users minus all active users
-			all_inactives = all_users - active_users
-			print "step 15 calculated"
-			all_inactives = list(all_inactives)
-			llen = len(all_inactives)
-			list1 = all_inactives[:llen/2]
-			list2 = all_inactives[llen/2:]
-			my_server.lpush("all_inactives",*list1)
-			my_server.lpush("all_inactives",*list2)
-			my_server.expire("all_inactives",ONE_DAY)
+			my_server.lpush("active_users",*active_users)
+			my_server.expire("active_users",ONE_DAY)
 			print "... saved in redis\n"
+		
+		# all user ids
+		all_users = set(User.objects.all().values_list('id',flat=True))
+		print "step 14 calculated"
+
+		# # all inactives are simply all users minus all active users
+		# all_inactives = all_users - active_users
+		# print "step 15 calculated"
+		# all_inactives = list(all_inactives)
+		# llen = len(all_inactives)
+		# list1 = all_inactives[:llen/2]
+		# list2 = all_inactives[llen/2:]
+		# my_server.lpush("all_inactives",*list1)
+		# my_server.lpush("all_inactives",*list2)
+		# my_server.expire("all_inactives",ONE_DAY)
+		# print "... saved in redis\n"
 
 		
 
-		# populate required sorted_set in redis 1 (called 'inactive_users')
-		inactives = []
-		inactives_data = User.objects.select_related('userprofile').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
-		for inact in inactives_data:
-			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-		print "step 16 calculated"
+		# # populate required sorted_set in redis 1 (called 'inactive_users')
+		# inactives = []
+		# inactives_data = User.objects.select_related('userprofile').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
+		# for inact in inactives_data:
+		# 	inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
+		# print "step 16 calculated"
 		
-		# inactives = list(all_inactives)
-		size = len(inactives)
-		child1 = inactives[:size/8]
-		child2 = inactives[size/8:size/4]
-		child3 = inactives[size/4:(size*3)/8]
-		child4 = inactives[(size*3)/8:size/2]
-		child5 = inactives[size/2:(size*5)/8]
-		child6 = inactives[(size*5)/8:(size*6)/8]
-		child7 = inactives[(size*6)/8:(size*7)/8]
-		child8 = inactives[(size*7)/8:]
-		print "step 17 calculated"
+		# # inactives = list(all_inactives)
+		# size = len(inactives)
+		# child1 = inactives[:size/8]
+		# child2 = inactives[size/8:size/4]
+		# child3 = inactives[size/4:(size*3)/8]
+		# child4 = inactives[(size*3)/8:size/2]
+		# child5 = inactives[size/2:(size*5)/8]
+		# child6 = inactives[(size*5)/8:(size*6)/8]
+		# child7 = inactives[(size*6)/8:(size*7)/8]
+		# child8 = inactives[(size*7)/8:]
+		# print "step 17 calculated"
 		
-		from itertools import chain	
-		# breaking it into 8 lists avoids socket time out
-		set_inactives([x for x in chain.from_iterable(child1)])
-		set_inactives([x for x in chain.from_iterable(child2)])
-		set_inactives([x for x in chain.from_iterable(child3)])
-		set_inactives([x for x in chain.from_iterable(child4)])
-		set_inactives([x for x in chain.from_iterable(child5)])
-		set_inactives([x for x in chain.from_iterable(child6)])
-		set_inactives([x for x in chain.from_iterable(child7)])
-		set_inactives([x for x in chain.from_iterable(child8)])
-		print "step 18 calculated\n"
-		print "we are done!"
+		# from itertools import chain	
+		# # breaking it into 8 lists avoids socket time out
+		# set_inactives([x for x in chain.from_iterable(child1)])
+		# set_inactives([x for x in chain.from_iterable(child2)])
+		# set_inactives([x for x in chain.from_iterable(child3)])
+		# set_inactives([x for x in chain.from_iterable(child4)])
+		# set_inactives([x for x in chain.from_iterable(child5)])
+		# set_inactives([x for x in chain.from_iterable(child6)])
+		# set_inactives([x for x in chain.from_iterable(child7)])
+		# set_inactives([x for x in chain.from_iterable(child8)])
+		# print "step 18 calculated\n"
+		# print "we are done!"
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

@@ -394,8 +394,14 @@ def deprecate_nicks(request,*args,**kwargs):
 			# all inactives are simply all users minus all active users
 			all_inactives = all_users - active_users
 			print "step 15 calculated"
-			my_server.lpush("all_inactives",*all_inactives)
+			all_inactives = list(all_inactives)
+			llen = len(all_inactives)
+			list1 = all_inactives[:llen/2]
+			list2 = all_inactives[llen/2:]
+			my_server.lpush("all_inactives",*list1)
+			my_server.lpush("all_inactives",*list2)
 			my_server.expire("all_inactives",ONE_DAY)
+			print "... saved in redis\n"
 
 		
 

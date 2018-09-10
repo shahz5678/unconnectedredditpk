@@ -40,7 +40,7 @@ def damadam_cleanup(request, *args, **kwargs):
 ######################################## Username Sanitzation ########################################
 
 @csrf_protect
-# IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO
+# IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO (in case those users want to verify new IDs)
 def change_nicks(request,*args,**kwargs):
 	"""This frees up the name space of nicks, 100K at a time.
 
@@ -116,45 +116,60 @@ def deprecate_nicks(request,*args,**kwargs):
 	Only 'mhb11' can run this function.
 	"""
 	if request.user.username == 'mhb11':
+		three_months_ago = datetime.utcnow()-timedelta(days=150)
+		
 		# all user ids who last logged in more than 3 months ago
-		three_months_ago = datetime.utcnow()-timedelta(days=90)
 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
+
 		# user ids not found in Sessions
 		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
 		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-		# # messaged on home more than 3 months ago
+
+		# messaged on home more than 3 months ago
 		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
 		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-		# # never submitted a publicreply
+
+		# never submitted a publicreply
 		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
 		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
+
 		# never sent a photocomment
 		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
 		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
+		
 		# never wrote in a group
 		current_group_writers = Reply.objects.filter(submitted_on__gte=three_months_ago).values_list('writer_id',flat=True)
 		never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
-		# # never uploaded a photo
+		
+		# never uploaded a photo
 		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
 		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-		# # never sent a chatpic
+		
+		# never sent a chatpic
 		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
 		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
-		# # never fanned anyone
-		# # change this to never fanned ever (not in the last 3 months, because that could include people like 'Sit' too)
+		
+		# never fanned anyone
+		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
 		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
 		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-		# # score is below 15000
+		
+		# score is below 15000 (score requirement too high, should be lessened)
 		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
-		# # intersection of all such ids
+		
+		# do not have active 1-on-1 private chats
+		# TODO
+
+		# intersection of all such ids (and not union)
 		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000, \
 		never_groupreply, never_sent_chat_pic]
-		inactive = set.intersection(*sets)
-		#################
+		inactive = set.intersection(*sets)# passing list of sets to set.intersection()
+		
 		#sanitize pink stars:
 		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
 		inactive = inactive - pink_stars
-		#################
+		
+		# populate required sorted_set in redis 1 (called 'inactive_users')
 		inactives = []
 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
 		for inact in inactives_data:
@@ -173,7 +188,7 @@ def deprecate_nicks(request,*args,**kwargs):
 
 
 def insert_nicks(request,*args,**kwargs):
-	"""Inserts nicks in a redis sorted set for quick checking at the time of sign up
+	"""Inserts nicks in a redis sorted set (for quick validation at the time of sign up)
 
 	All nicknames are first retrieved from the database.
 	They are then inserted, chunk-wise, into the redis sorted set.
@@ -200,7 +215,7 @@ def insert_nicks(request,*args,**kwargs):
 
 @csrf_protect
 def remove_inactives_notification_activity(request,*args,**kwargs):
-	"""Sanitize all notification acitivity of inactive users from redis2.
+	"""Sanitize all notification activity of inactive users from redis2.
 
 	We will be removing the following for each inactive user:
 	1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
@@ -233,7 +248,8 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 @csrf_protect
 def remove_inactives_groups(request,*args,**kwargs):
 	"""Sanitize all group invites and memberships.
-
+	
+	This is from redis 1
 	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":

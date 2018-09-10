@@ -392,8 +392,8 @@ def deprecate_nicks(request,*args,**kwargs):
 		
 		# all user ids
 		all_users = list(User.objects.all().values_list('id',flat=True))
-		all_users = (map(str, all_users)
-		print "step 15 calculated"
+		all_users = (map(str, all_users))
+		print "step 15 calculated\n"
 
 		# all inactives are simply all users minus all active users
 		all_inactives = set(all_users) - set(active_users)

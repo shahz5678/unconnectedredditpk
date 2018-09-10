@@ -116,7 +116,7 @@ def deprecate_nicks(request,*args,**kwargs):
 	Only 'mhb11' can run this function.
 	"""
 	if request.user.username == 'mhb11':
-		three_months_ago = datetime.utcnow()-timedelta(days=150)
+		three_months_ago = datetime.utcnow()-timedelta(days=210)
 		
 		# all user ids who last logged in more than 3 months ago
 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
@@ -158,11 +158,11 @@ def deprecate_nicks(request,*args,**kwargs):
 		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
 		
 		# do not have active 1-on-1 private chats
-		# TODO
+		# TODO: never_1_on_1_chatted = 
 
 		# intersection of all such ids (and not union)
 		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000, \
-		never_groupreply, never_sent_chat_pic]
+		never_groupreply, never_sent_chat_pic]#, never_1_on_1_chatted]
 		inactive = set.intersection(*sets)# passing list of sets to set.intersection()
 		
 		#sanitize pink stars:
@@ -174,13 +174,19 @@ def deprecate_nicks(request,*args,**kwargs):
 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
 		for inact in inactives_data:
 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
+		
 		size = len(inactives)
-		list1 = inactives[:size/2]
-		list2 = inactives[size/2:]
+		child1 = inactives[:size/4]
+		child2 = inactives[size/4:size/2]
+		child3 = inactives[size/2:(size*3)/4]
+		child4 = inactives[(size*3)/4:]
+
 		from itertools import chain
-		# breaking it into two lists avoids socket time out
-		set_inactives([x for x in chain.from_iterable(list1)])
-		set_inactives([x for x in chain.from_iterable(list2)])
+		# breaking it into four lists avoids socket time out
+		set_inactives([x for x in chain.from_iterable(child1)])
+		set_inactives([x for x in chain.from_iterable(child2)])
+		set_inactives([x for x in chain.from_iterable(child3)])
+		set_inactives([x for x in chain.from_iterable(child4)])
 		return render(request,'deprecate_nicks.html',{})
 	else:
 		return render(request,'404.html',{})

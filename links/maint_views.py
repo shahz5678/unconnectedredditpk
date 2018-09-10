@@ -238,7 +238,7 @@ def deprecate_nicks(request,*args,**kwargs):
 				current_group_writers = my_server.lrange("group_writers",0,-1)
 				print "step 6 from cache"
 			else:
-				random_four_months_old_reply = 175550000#165000000
+				random_four_months_old_reply = 179000000#175550000#165000000
 				current_group_writers = Reply.objects.filter(id__gte=random_four_months_old_reply).values_list('writer_id',flat=True)
 				print "step 6a calculated"
 				current_group_writers = list(set(current_group_writers))

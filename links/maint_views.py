@@ -116,44 +116,52 @@ def deprecate_nicks(request,*args,**kwargs):
 	Only 'mhb11' can run this function.
 	"""
 	if request.user.username == 'mhb11':
-		three_months_ago = datetime.utcnow()-timedelta(days=90)#240
+		three_months_ago = datetime.utcnow()-timedelta(days=240)#240
 		
 		# all user ids who last logged in more than 3 months ago
 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
 		print "step 1 complete"
 		# user ids not found in Sessions
 		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
+		print "step 2a complete"
 		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-		print "step 2 complete"
+		print "step 2b complete"
 		# messaged on home more than 3 months ago
 		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
+		print "step 3a complete"
 		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-		print "step 3 complete"
+		print "step 3b complete"
 		# never submitted a publicreply
 		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
+		print "step 4a complete"
 		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
-		print "step 4 complete"
+		print "step 4b complete"
 		# never sent a photocomment
 		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
+		print "step 5a complete"
 		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
-		print "step 5 complete"
+		print "step 5b complete"
 		# never wrote in a group
 		current_group_writers = Reply.objects.filter(submitted_on__gte=three_months_ago).values_list('writer_id',flat=True)
+		print "step 6a complete"
 		never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
-		print "step 6 complete"
+		print "step 6b complete"
 		# never uploaded a photo
 		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
+		print "step 7a complete"
 		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-		print "step 7 complete"
+		print "step 7b complete"
 		# never sent a chatpic
 		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
+		print "step 8a complete"
 		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
-		print "step 8 complete"
+		print "step 8b complete"
 		# never fanned anyone
 		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
 		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
+		print "step 9a complete"
 		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-		print "step 9 complete"
+		print "step 9b complete"
 		# score is below 15000 (score requirement too high, should be lessened)
 		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
 		print "step 10 complete"

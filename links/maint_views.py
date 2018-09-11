@@ -457,6 +457,13 @@ def deprecate_nicks(request,*args,**kwargs):
 	# 	# all inactives are simply all users minus all active users
 	# 	all_inactives = set(all_users) - set(active_users)
 	# 	print "step 16 calculated"
+
+		# sanitizing recently created IDs also
+	#	six_months_ago = datetime.utcnow()-timedelta(days=180)#240
+	#	latest_user_ids = User.objects.filter(date_joined__gte=six_months_ago).values_list('id',flat=True)
+	#	latest_user_ids = map(str, latest_user_ids)
+	#	all_inactives = all_inactives - set(latest_user_ids)
+
 	# 	all_inactives = list(all_inactives)
 	# 	llen = len(all_inactives)
 	# 	list1 = all_inactives[:llen/2]
@@ -553,7 +560,8 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 				id_list = map(itemgetter(1), inactives) #list of user ids
 				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = bulk_sanitize_notifications(id_list)
 				if last_batch:
-					delete_inactives_copy(delete_orig=True)
+					# delete_inactives_copy(delete_orig=True)
+					delete_inactives_copy()
 				return render(request,'sanitize_inactives_activity.html',{'inactives_remaining':get_inactive_count(key_name="copy_of_inactive_users"),\
 					'last_batch':last_batch,'notif_deleted':notification_hash_deleted,'sorted_sets_deleted':sorted_sets_deleted,\
 					'objs_deleted':object_hash_deleted})

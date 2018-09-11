@@ -1454,6 +1454,7 @@ def bulk_sanitize_group_invite_and_membership(user_ids_list):
 	for user_id in user_ids_list:
 		user_id = str(int(user_id))
 		pipeline1.delete("ug:"+user_id)
+		pipeline1.delete('ipg:'+user_id)
 		pipeline1.delete("pir:"+user_id)
 	pipeline1.execute()
 

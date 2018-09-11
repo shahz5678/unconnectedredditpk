@@ -231,6 +231,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		latest_user_ids = User.objects.filter(date_joined__gte=six_months_ago).values_list('id',flat=True)
 		latest_user_ids = map(str, latest_user_ids)
 		all_old_inactives = set(inactive_ids) - set(latest_user_ids)
+		all_old_inactives = list(all_old_inactives)
 		llen = len(all_old_inactives)
 		list1 = all_old_inactives[:llen/2]
 		list2 = all_old_inactives[llen/2:]

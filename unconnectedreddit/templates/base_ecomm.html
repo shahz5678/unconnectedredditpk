@@ -44,6 +44,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 </head>
 <body>
 {% include "fb_analytics.html" %}
+{% include "ga_user_analytics.html" with my_var=user.id %}
 {% load count %}
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}

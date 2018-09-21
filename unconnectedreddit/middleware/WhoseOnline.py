@@ -7,5 +7,5 @@ class WhoseOnlineMiddleware(object):
     	ran_num = random.random()
     	if ran_num < 0.12 and request.user.is_authenticated():
     		save_online_user.delay(user_id=request.session['_auth_user_id'], user_ip=request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-    	if ran_num < 0.1:
+    	if ran_num > 0.9:
 			set_user_age.delay(user_id=request.session['_auth_user_id'])    	

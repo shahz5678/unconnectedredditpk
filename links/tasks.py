@@ -19,7 +19,7 @@ from order_home_posts import order_home_posts, order_home_posts2, order_home_pos
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up
+public_group_ranking_clean_up,set_world_age
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -363,6 +363,15 @@ def log_gibberish_writer(user_id,text,length_of_text):
 							log_gibberish_text_writer(user_id)
 							# log_spam_text_writer(user_id, text)
 
+
+@celery_app1.task(name='tasks.set_user_age')
+def set_user_age(user_id):
+	"""
+	Task that increments user's age in the world
+	"""
+	set_world_age(user_id)
+
+
 @celery_app1.task(name='tasks.save_online_user')
 def save_online_user(user_id,user_ip):
 	set_online_users(str(user_id),str(user_ip))
@@ -378,14 +387,21 @@ def detail_click_logger(ad_id, clicker_id):
 # 	log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value)
 
 
+
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
 	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
 
+# @celery_app1.task(name='tasks.enqueue_buyer_sms')
+# def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
+# 	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+# 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
 @celery_app1.task(name='tasks.enqueue_buyer_sms')
 def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
-	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone=+92"+str(order_data['phonenumber'][1:])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
 
 @celery_app1.task(name='tasks.enqueue_orderer_sms')
 def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):

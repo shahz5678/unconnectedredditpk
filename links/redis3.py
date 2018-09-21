@@ -1781,3 +1781,22 @@ def retrieve_numbers_with_country_codes(list_of_user_ids):
 	for user_id in list_of_user_ids:
 		pipeline1.lrange("um:"+str(user_id), 0, -1)
 	return pipeline1.execute()
+
+
+###################### setting user's world age ######################
+
+def set_world_age(user_id):
+	"""
+	Increments user's age on the platform
+
+	A hit increments the counter by 1 and the sets a six-hour rate limit
+	If user returns after those six hours, the counter goes up again
+	This way, a person with age 4 has at least visited the website in 4 different intervals separated by at least 6 hours
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.exists('warl:'+user_id):
+	    my_server.zincrby('world_age',user_id,amount=1)
+	    my_server.setex('warl:'+user_id,'1',SIX_HOURS)
+
+

@@ -1,0 +1,88 @@
+<style>
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
+}
+
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
+}
+
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px; 
+ max-width:98%; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
+
+</style>
+<title>
+User verification | Damadam.pk 
+</title>
+{% extends "base_min.html" %}
+{% block content %}
+<div style="text-align:center">
+  <div class="margin" style="display:inline-block">	
+
+
+		<form method="POST" action="{% url 'pin_verification' %}" class="mtl">
+			Enter Pin - Pin Likhien
+			{% csrf_token %}
+					<br>{% if form.pinnumber.errors %}<span class="cr">{{ form.pinnumber.errors.0 }}</span><br>{% endif %}
+			{{ form.pinnumber}}<br>
+			<div class="sp"style="color:grey;font-size:11px;">{{ phonenumber }} per bheja gya Pin Code <br>yahan daal ker "Order" ka button dabaien
+			</div>
+
+			<input type="submit" class="btn mt mbs bl bcb cs" style="background-color:#05f6cb;border-color:#1fbea1;" value='Order'>
+			<div class="sp" style="color:blue;font-size:11px;">Tip: 15 minute tuk Pin dobara nahi mangwaya ja sakta TBD
+			</div>
+		</form>
+
+		
+	</div>
+</div>
+{% endblock %}

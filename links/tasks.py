@@ -607,24 +607,28 @@ def rank_home_posts():
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
-	previous_best_photo_id = get_previous_best_photo()
-	current_best_photo_id = get_best_photo()
-	if current_best_photo_id is not None:
-		if previous_best_photo_id is not None:
-			if previous_best_photo_id == current_best_photo_id:
-				pass
-			else:
-				# print "uploading %s to Facebook..." % current_best_photo_id
-				set_best_photo(current_best_photo_id)
-				photo = Photo.objects.get(id=current_best_photo_id)
-				photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-		else:
-			set_best_photo(current_best_photo_id)
-			photo = Photo.objects.get(id=current_best_photo_id)
-			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	else:
-		pass
-
+	"""
+	Function used to post photos to facebook fanpage
+	"""
+	# previous_best_photo_id = get_previous_best_photo()
+	# current_best_photo_id = get_best_photo()
+	# if current_best_photo_id is not None:
+	# 	if previous_best_photo_id is not None:
+	# 		if previous_best_photo_id == current_best_photo_id:
+	# 			pass
+	# 		else:
+	# 			# print "uploading %s to Facebook..." % current_best_photo_id
+	# 			set_best_photo(current_best_photo_id)
+	# 			photo = Photo.objects.get(id=current_best_photo_id)
+	# 			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# 	else:
+	# 		set_best_photo(current_best_photo_id)
+	# 		photo = Photo.objects.get(id=current_best_photo_id)
+	# 		photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# else:
+	# 	pass
+	pass
+	
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	enqueued_match = get_current_cricket_match()

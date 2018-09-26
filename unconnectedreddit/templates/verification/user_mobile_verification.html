@@ -1,0 +1,94 @@
+<style>
+.cheapoffer {
+border: 1px solid lightgrey;
+padding:3px;
+width: 100%;
+max-width:200px;
+border-radius:6px;
+margin:0 auto;
+}
+
+.productdescription {
+
+border: 1px solid lightgrey;
+padding:3px;
+margin-top:5px;
+margin-bottom:5px;
+width: 95%;
+border-radius:6px;
+background-color:white;
+
+}
+
+
+hr.style-offer {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin:-2px;
+    
+}
+
+
+.background-box {
+ line-height:25px;
+ letter-spacing:0.05px; 
+ max-width:98%; 
+ background-color:#F8F8F8; 
+ padding:5px;
+ box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
+ display:block
+}
+
+body {
+
+	background: #E8F5E9;
+	/*
+		Fallback for Mini and other browsers
+		that don’t support CSS gradients
+	*/
+
+   background: repeating-linear-gradient(
+  to right,
+ #FAFAFA,
+  #FAFAFA 50px,
+  #E8F5E9 50px,
+  #E8F5E9 100px
+);
+ 
+ }
+
+</style>
+<title>
+User verification | Damadam.pk 
+</title>
+{% extends "base_min.html" %}
+{% block content %}
+<div style="text-align:center">
+  <div class="margin" style="display:inline-block">	
+
+
+
+  	{% if form.phonenumber.errors %}<span class="card cxl cr">{{ form.phonenumber.errors.0 }}</span><br>
+ 	{% endif %}
+					
+		<form method="post" action="{% url 'verify_user_mobile' %}" class="mtl" style="color:#615a56;">
+
+		<div class="mbl background-box" style="text-align:center;background-color:#ffffff; border-radius:6px;box-shadow:0 1px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 0, 0, .1) inset">
+			<h2 class="bw" style="color:#615a56">Apni malumat likhien:</h2>
+			<div style="text-align:left;display:inline-block">
+
+			{% csrf_token %}
+			<b>Apna number likhien jo abhi on hai aur aap ke pass hai<br>(misaal: 03451234567):</b><br><b class='cs cgy'>Ap ko abhi iss number per 5 hinsoon ka PIN CODE bheja jaiey ga</b><br>
+			{% if form.phonenumber.errors %}<span class="cr mtl">{{ form.phonenumber.errors.0 }}</span><br>{% endif %}
+			{{ form.phonenumber }}
+			</div><br>
+			<input class="btn mtl mbs bxl cl" style="background-color:05f6cb;border-color:#1fbea1;" type="submit" value="Aagay Chalien">
+		</form><br>	
+		</div>
+
+		
+	</div>
+</div>
+{% endblock %}

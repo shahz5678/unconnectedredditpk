@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
+process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN
 # from page_controls import PHOTOS_PER_PAGE
@@ -415,6 +416,16 @@ def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
 	mobile_number2 = '+923491058364'
 	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
 	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
+
+@celery_app1.task(name='tasks.send_user_pin')
+def send_user_pin(mobile_number, pin, buyer_number=None):
+	"""
+	this function sends the pin code to user
+	"""
+	payload = "Aap ka pin code hai '"+str(pin)+"'. Iss pin ko damadam per 'Enter Pin' ki screen per dalien"
+	process_user_pin_sms(mobile_number,str(payload))
+
+
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):

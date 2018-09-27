@@ -1836,31 +1836,17 @@ def retrieve_random_pin(target_user_id):
             else:
                 my_server.delete('pcb:'+target_user_id)
         rand_pin = my_server.lpop('pin_codes_pool:'+current_pool_version)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,ONE_HOUR)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TEN_MINS)
         return rand_pin
     else:
         # pool does not exist
         new_pool_ver = create_random_pool(my_server=my_server)
         rand_pin = my_server.lpop('pin_codes_pool:'+new_pool_ver)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,ONE_HOUR)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TEN_MINS)
         return rand_pin
 
 
-def rate_limit_sms_sending(target_user_id):
-    """
-    Rate limits sms sending for those who are just sent an SMS (for verification purposes)
-    """
-    redis.Redis(connection_pool=POOL).setex('rlss:'+str(target_user_id),'1',FIFTEEN_MINS)
 
-def is_sms_sending_rate_limited(target_user_id):
-    """
-    Retrieves the ttl in case sms sending is rate limited (for verification purposes)
-    """
-    ttl = redis.Redis(connection_pool=POOL).ttl('rlss:'+str(target_user_id))
-    if ttl > 2:
-        return ttl
-    else:
-        return None
 
 def verify_user_pin(target_user_id, entered_pin_code):
     """
@@ -1880,6 +1866,7 @@ def verify_user_pin(target_user_id, entered_pin_code):
             pin, pool_ver = payload[0], payload[1]
             if str(entered_pin_code) == pin:
                 if pool_ver == current_pool_version:
+                    invalidate_user_pin(target_user_id,my_server)
                     return True, 'pin_matched'
                 else:
                     # pool expired - the pool versions didn't match
@@ -1892,3 +1879,22 @@ def verify_user_pin(target_user_id, entered_pin_code):
     else:
         # pool doesn't - the pool versions didn't match
         return False, 'pin_invalid'
+
+
+def is_sms_sending_rate_limited(target_user_id):
+    """
+    Retrieves the ttl in case sms sending is rate limited (for verification purposes)
+    """
+    ttl = redis.Redis(connection_pool=POOL).ttl('pcb:'+str(target_user_id))
+    if ttl > 2:
+        return ttl
+    else:
+        return None
+
+
+def invalidate_user_pin(user_id, my_server=None):
+    """
+    Invalidates (deletes) rate limit on user mobile entry
+    """
+    my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+    my_server.delete('pcb:'+str(user_id))

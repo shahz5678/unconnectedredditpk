@@ -4,11 +4,11 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm,PinVerifyForm
+from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points
-from redis3 import save_consumer_number, rate_limit_sms_sending, retrieve_random_pin
+from score import NUMBER_VERIFICATION_BONUS
 from redis4 import retrieve_uname
 from models import UserProfile
-from score import NUMBER_VERIFICATION_BONUS
 
 
 
@@ -48,8 +48,6 @@ def verify_user_artificially(request):
 		return redirect('missing_page')
 
 ############################## User number verification #################################
-# @csrf_protect
-# def buyer_details(request,origin,*args,**kwargs):
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -60,24 +58,30 @@ def verify_user_mobile(request):
 
 	"""
 	user_id = request.user.id
-	if request.method == "POST":
+	if is_mobile_verified(user_id):
+		return redirect("missing_page")
+	elif request.method == "POST":
 		form = MobileVerificationForm(request.POST,user_id=user_id)
 		if form.is_valid():
 			phonenumber = form.cleaned_data.get("phonenumber")
-			user_id = request.user.id
-			pin = retrieve_random_pin(user_id)
 			target_number = '+92'+phonenumber[-10:]
-			send_user_pin.delay(target_number,pin)
-			rate_limit_sms_sending(user_id)
-			form = PinVerifyForm
-			request.session['phonenumber']=phonenumber	
+			# retrieve/generate a pin code
+			#pin = retrieve_random_pin(user_id)
+			# send a pin code to the given mobile number
+			send_user_pin.delay(user_id, target_number)
+			# rate limit the user from sending more SMSes
+			request.session['phonenumber'+str(user_id)] = phonenumber	
 			request.session.modified = True
-			return render(request,"verification/enter_pin_code.html",{'form':form,'phonenumber':phonenumber})
+			return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm()})
 		else:
 			return render(request,'verification/user_mobile_verification.html',{'form':form})
-	else:		
-		form = MobileVerificationForm()
-		return render(request,'verification/user_mobile_verification.html',{'form':form})
+	else:
+		ttl = is_sms_sending_rate_limited(user_id)
+		if ttl:
+			return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm(),'ttl':ttl,'reentry_instr':True})
+		else:
+			return render(request,'verification/user_mobile_verification.html',{'pin_expired':request.session.pop("start_verification_again"+str(user_id),None),\
+				'form':MobileVerificationForm()})
 	
 
 
@@ -86,12 +90,11 @@ def verify_user_mobile(request):
 def pin_verification(request):
 	"""
 	This will verify the pin entered by the user
-
 	"""
 	if request.method == "POST":
 		user_id = request.user.id
 		form = PinVerifyForm(request.POST,user_id=user_id)
-		phonenumber = request.session.get('phonenumber',None)
+		phonenumber = request.session.get('phonenumber'+str(user_id),None)
 		if form.is_valid():
 			pin_state = form.cleaned_data.get("pinnumber")
 			if pin_state == 'pin_matched':
@@ -102,8 +105,13 @@ def pin_verification(request):
 				save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
 				increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 				return render(request,"reward_earned.html",{})
+			else:
+				# pin_state is 'invalid' or 'expired'
+				request.session['start_verification_again'+str(user_id)] = '1'
+				request.session.modified = True
+				return redirect("verify_user_mobile")
 		else:
-			return render(request,"verification/enter_pin_code.html",{'form':form,'phonenumber':phonenumber})
+			return render(request,"verification/enter_pin_code.html",{'form':form})
 	else:
 		return redirect('missing_page')
 

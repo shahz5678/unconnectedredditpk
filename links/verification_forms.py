@@ -1,7 +1,8 @@
 import redis, re
 from django import forms
 from django.contrib.auth.models import User
-from redis3 import is_mobile_verified, someone_elses_number, is_sms_sending_rate_limited, verify_user_pin
+from redis3 import is_mobile_verified, someone_elses_number, is_sms_sending_rate_limited, verify_user_pin,\
+invalidate_user_pin
 from location import REDLOC3
 TEN_SECS = 10
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
@@ -109,8 +110,8 @@ class MobileVerificationForm(forms.Form):
 	Generates a form for user mobile number verification
 	"""	
 	phonenumber = forms.RegexField(max_length=11, regex=re.compile("^[0-9]+$"),\
-		error_messages={'required': 'Mobile number diay gaiey tareekay say likhna zaroori hai',\
-		'invalid':'Mobile number di gai misaal ki tarah likhien'})
+		error_messages={'required': 'Mobile number likhna zaruri hai',\
+		'invalid':'Mobile number is andaz mein likhein - 03451234567'})
 	
 	class Meta:
 		fields = ('phonenumber')
@@ -118,10 +119,9 @@ class MobileVerificationForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(MobileVerificationForm, self).__init__(*args, **kwargs)
-		self.fields['phonenumber'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
+		self.fields['phonenumber'].widget.attrs['style'] = 'width:95%;height:30px;border-radius:10px;border: 1px #95c5f8 solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['phonenumber'].widget.attrs['autofocus'] = 'on'	
-		self.fields['phonenumber'].widget.attrs['class'] = 'cxl'
+		self.fields['phonenumber'].widget.attrs['class'] = 'cxl sp'
 		self.fields['phonenumber'].widget.attrs['autocomplete'] = 'off'
 
 	
@@ -134,7 +134,7 @@ class MobileVerificationForm(forms.Form):
 		elif phonenumber[0:2] != '03':
 			raise forms.ValidationError('Mobile number "03" se start karein')
 		elif mobile_length < 11:
-			raise forms.ValidationError('Poora mobile number likhein')
+			raise forms.ValidationError('Pura mobile number likhein')
 		elif phonenumber == '03451234567':
 			raise forms.ValidationError('Apna real mobile number likhein')
 		elif already_verified:
@@ -145,7 +145,7 @@ class MobileVerificationForm(forms.Form):
 		#phonenumber = ''.join(re.split('[, \-_!?:]+',phonenumber)) #removes any excess characters from the mobile number
 		check = someone_elses_number(phonenumber[-10:],self.user_id)
 		if check: 
-			raise forms.ValidationError('Ye number aik aur user ka hai, mukhtalif number likhien')
+			raise forms.ValidationError('Ye number kisi aur user ka hai, koi aur number likhien')
 			#Check if phone number associated with another profile
 			 
 		return phonenumber[-11:]
@@ -153,7 +153,7 @@ class MobileVerificationForm(forms.Form):
 
 
 class PinVerifyForm(forms.Form):
-	pinnumber = forms.RegexField(max_length=5,regex=re.compile("^[0-9]+$"),error_messages={'required': 'Pin Code likhna zaroori hai','invalid':'Pin mein sirf number likhein'})
+	pinnumber = forms.RegexField(max_length=5,regex=re.compile("^[0-9]+$"),error_messages={'required': 'Pin code likhna zaroori hai','invalid':'Pin mein sirf number likhein'})
 
 	class Meta:
 		fields = ('pinnumber')
@@ -161,8 +161,9 @@ class PinVerifyForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(PinVerifyForm, self).__init__(*args, **kwargs)		
-		self.fields['pinnumber'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:65px;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
+		# self.fields['pinnumber'].widget.attrs['style'] = \
+		# 'background-color:#fffce6;width:65px;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
+		self.fields['pinnumber'].widget.attrs['style'] = 'width:80px;height:30px;border-radius:10px;border: 1px #95c5f8 solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['pinnumber'].widget.attrs['class'] = 'cxl'
 		self.fields['pinnumber'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['pinnumber'].widget.attrs['autocomplete'] = 'off'
@@ -170,7 +171,7 @@ class PinVerifyForm(forms.Form):
 	def clean_pinnumber(self):
 		pinnumber = self.cleaned_data.get('pinnumber')
 		if len(pinnumber) < 5:
-			raise forms.ValidationError('Poora pin code likhien')
+			raise forms.ValidationError('Pura pin code likhien')
 		exists, status = verify_user_pin(self.user_id,pinnumber)	
 		if exists:
 			return status
@@ -178,8 +179,9 @@ class PinVerifyForm(forms.Form):
 			if status == 'pin_incorrect':
 				raise forms.ValidationError('Apki pin ghalat hai')
 			else:
-				#runs when pin is invalid or has expired
-				raise forms.ValidationError('Sorry! Apki pin expire ho gai hai. Dobara shuru say verify kerien')
+				#return when pin is invalid or has expired
+				invalidate_user_pin(self.user_id)
+				return status
 				
 
 

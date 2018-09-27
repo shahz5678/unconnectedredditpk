@@ -20,7 +20,7 @@ from order_home_posts import order_home_posts, order_home_posts2, order_home_pos
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up,set_world_age
+public_group_ranking_clean_up,set_world_age, retrieve_random_pin
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -417,14 +417,16 @@ def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
 	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
 	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
 
-@celery_app1.task(name='tasks.send_user_pin')
-def send_user_pin(mobile_number, pin, buyer_number=None):
-	"""
-	this function sends the pin code to user
-	"""
-	payload = "Aap ka pin code hai '"+str(pin)+"'. Iss pin ko damadam per 'Enter Pin' ki screen per dalien"
-	process_user_pin_sms(mobile_number,str(payload))
 
+@celery_app1.task(name='tasks.send_user_pin')
+def send_user_pin(sender_id, mobile_number):
+    """
+    this function sends the pin code to user (for home-grown verification purposes)
+    """
+    pin = retrieve_random_pin(sender_id)
+    payload = "Salam! %s apka Damadam pin code hai. Isko apni screen mein enter karein. Have a nice day & enjoy Damadam :-)" % (pin)
+    print payload +" < payload, mobile number > " +str(mobile_number)
+    process_user_pin_sms(mobile_number,payload)
 
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
@@ -607,23 +609,27 @@ def rank_home_posts():
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
-	previous_best_photo_id = get_previous_best_photo()
-	current_best_photo_id = get_best_photo()
-	if current_best_photo_id is not None:
-		if previous_best_photo_id is not None:
-			if previous_best_photo_id == current_best_photo_id:
-				pass
-			else:
-				# print "uploading %s to Facebook..." % current_best_photo_id
-				set_best_photo(current_best_photo_id)
-				photo = Photo.objects.get(id=current_best_photo_id)
-				photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-		else:
-			set_best_photo(current_best_photo_id)
-			photo = Photo.objects.get(id=current_best_photo_id)
-			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	else:
-		pass
+	"""
+	Function used to post photos to facebook fanpage
+	"""
+	# previous_best_photo_id = get_previous_best_photo()
+	# current_best_photo_id = get_best_photo()
+	# if current_best_photo_id is not None:
+	# 	if previous_best_photo_id is not None:
+	# 		if previous_best_photo_id == current_best_photo_id:
+	# 			pass
+	# 		else:
+	# 			# print "uploading %s to Facebook..." % current_best_photo_id
+	# 			set_best_photo(current_best_photo_id)
+	# 			photo = Photo.objects.get(id=current_best_photo_id)
+	# 			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# 	else:
+	# 		set_best_photo(current_best_photo_id)
+	# 		photo = Photo.objects.get(id=current_best_photo_id)
+	# 		photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# else:
+	# 	pass
+	pass
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():

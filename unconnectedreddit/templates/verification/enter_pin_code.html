@@ -1,88 +1,31 @@
-<style>
-.cheapoffer {
-border: 1px solid lightgrey;
-padding:3px;
-width: 100%;
-max-width:200px;
-border-radius:6px;
-margin:0 auto;
-}
-
-.productdescription {
-
-border: 1px solid lightgrey;
-padding:3px;
-margin-top:5px;
-margin-bottom:5px;
-width: 95%;
-border-radius:6px;
-background-color:white;
-
-}
-
-
-hr.style-offer {
-    border: 0;
-    height: 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    margin:-2px;
-    
-}
-
-
-.background-box {
- line-height:25px;
- letter-spacing:0.05px; 
- max-width:98%; 
- background-color:#F8F8F8; 
- padding:5px;
- box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0) inset; 
- display:block
-}
-
-body {
-
-	background: #E8F5E9;
-	/*
-		Fallback for Mini and other browsers
-		that don’t support CSS gradients
-	*/
-
-   background: repeating-linear-gradient(
-  to right,
- #FAFAFA,
-  #FAFAFA 50px,
-  #E8F5E9 50px,
-  #E8F5E9 100px
-);
- 
- }
-
-</style>
-<title>
-User verification | Damadam.pk 
-</title>
-{% extends "base_min.html" %}
+{% extends "base.html" %}
 {% block content %}
-<div style="text-align:center">
-  <div class="margin" style="display:inline-block">	
+<head><title>User verification | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 
+<h1 class="cxl lsp clb" style="text-align:center">Enter pin code:</h1>
 
-		<form method="POST" action="{% url 'pin_verification' %}" class="mtl">
-			Enter Pin - Pin Likhien
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+	{% if reentry_instr %}<div class="cxl mt lsp clb">Kuch hi time pehlay apko pin code SMS kiya gaya hai</div>{% else %}<div class="cxl mt lsp clb">Apkey mobile number pe pin code SMS kar dia gya hai</div>{% endif %}
+
+	<hr size=1 COLOR="#e6e6e6">
+
+		<form method="POST" action="{% url 'pin_verification' %}" class="mtl cgy">
 			{% csrf_token %}
-					<br>{% if form.pinnumber.errors %}<span class="cr">{{ form.pinnumber.errors.0 }}</span><br>{% endif %}
-			{{ form.pinnumber}}<br>
-			<div class="sp"style="color:grey;font-size:11px;">{{ phonenumber }} per bheja gya Pin Code <br>yahan daal ker "Order" ka button dabaien
-			</div>
-
-			<input type="submit" class="btn mt mbs bl bcb cs" style="background-color:#05f6cb;border-color:#1fbea1;" value='Order'>
-			<div class="sp" style="color:blue;font-size:11px;">Tip: 15 minute tuk Pin dobara nahi mangwaya ja sakta TBD
-			</div>
+			<div class="sp lsp mbl">Pin code neechay likh ke "OK" dabaien</div>
+			{% if form.pinnumber.errors %}<b class="cr sp cl lsp mt mbs">{{ form.pinnumber.errors.0 }}</b><br>{% endif %}
+			{{ form.pinnumber }}<br>
+			<button class="btn bcb mtl mbs bm cl sp pg_ok_res" style="height:28px">OK</button>
 		</form>
 
-		
-	</div>
-</div>
+		<hr size=1 COLOR="#e6e6e6">
+		{% if ttl %}
+			{% load future_time %}
+			<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note I:</b> ap dubara pin code SMS karwa sakein ge<span style="color:red" > {{ ttl|future_time }}</span><br><b>Note II:</b> kuch deir wait karein, network slow ho sakta hai</span></div>
+		{% else %}
+			<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note:</b> is screen pe wait karein jab tak SMS na aye, network slow ho sakta hai</div>
+		{% endif %}
+
+</div><br><br>
 {% endblock %}

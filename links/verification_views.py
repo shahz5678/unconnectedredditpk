@@ -1,15 +1,13 @@
-import uuid
-from django.db.models import F
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
-from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm,PinVerifyForm
+from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm, PinVerifyForm
 from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points
 from score import NUMBER_VERIFICATION_BONUS
-from redis4 import retrieve_uname
-from models import UserProfile
 
+
+############################## Artificial user number verification #################################
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -20,12 +18,16 @@ def verify_user_artificially(request):
 
 	This also processes the verification step
 	"""
+	from redis4 import retrieve_uname
 	if retrieve_uname(request.user.id,decode=True) in ['pathan-e-khan','Damadam-Feedback','mhb11']:
 		if request.method == "POST":
 			processed_form = AddVerifiedUserForm(request.POST)
 			if processed_form.is_valid():
 				success = rate_limit_artificial_verification()
 				if success:
+					import uuid
+					from django.db.models import F
+					from models import UserProfile
 					valid_user_id = processed_form.cleaned_data.get("user_id")
 					random_string = str(uuid.uuid4())
 					account_kid_id = 'artificial_verification'		
@@ -47,7 +49,15 @@ def verify_user_artificially(request):
 	else:
 		return redirect('missing_page')
 
+
 ############################## User number verification #################################
+
+
+def number_verification_help(request):
+	"""
+	Renders help page showing the advantages of verification
+	"""
+	return render(request,"verification/num_verification_help.html",{})
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -65,9 +75,7 @@ def verify_user_mobile(request):
 		if form.is_valid():
 			phonenumber = form.cleaned_data.get("phonenumber")
 			target_number = '+92'+phonenumber[-10:]
-			# retrieve/generate a pin code
-			#pin = retrieve_random_pin(user_id)
-			# send a pin code to the given mobile number
+			# generate and send a pin code to the given mobile number
 			send_user_pin.delay(user_id, target_number)
 			# rate limit the user from sending more SMSes
 			request.session['phonenumber'+str(user_id)] = phonenumber	
@@ -104,7 +112,7 @@ def pin_verification(request):
 				mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 				save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
 				increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
-				return render(request,"reward_earned.html",{})
+				return render(request,"verification/reward_earned.html",{})
 			else:
 				# pin_state is 'invalid' or 'expired'
 				request.session['start_verification_again'+str(user_id)] = '1'
@@ -116,3 +124,4 @@ def pin_verification(request):
 		return redirect('missing_page')
 
 	
+############################## Pink star verification #################################

@@ -3,46 +3,12 @@ from django import forms
 from django.contrib.auth.models import User
 from redis3 import is_mobile_verified, someone_elses_number, is_sms_sending_rate_limited, verify_user_pin,\
 invalidate_user_pin
+from views import secs_to_mins
 from location import REDLOC3
+
 TEN_SECS = 10
+
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
-
-def secs_to_mins(seconds):
-	try:
-		m, s = divmod(seconds, 60)
-		h, m = divmod(m, 60)
-		d, h = divmod(h, 24)
-		mo, d = divmod(d, 30)
-		if mo:
-			if mo == 1:
-				return "1 month"
-			else:
-				return "{} months".format(mo)
-		elif d:
-			if d == 1:
-				return "1 day"
-			else:
-				return "{} days".format(d)
-		elif h:
-			if h == 1:
-				return "1 hour"
-			else:
-				return "{} hours".format(h)
-		elif m:
-			if m == 1:
-				return "1 min"
-			else:
-				return "{} mins".format(m)
-		elif s:
-			if s == 1:
-				return "1 sec"
-			else:
-				return "{} secs".format(s)
-		else:
-			return ""
-	except (NameError,TypeError):
-		return ""
-
 
 
 def rate_limit_artificial_verification():
@@ -119,7 +85,7 @@ class MobileVerificationForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(MobileVerificationForm, self).__init__(*args, **kwargs)
-		self.fields['phonenumber'].widget.attrs['style'] = 'width:95%;height:30px;border-radius:10px;border: 1px #95c5f8 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['phonenumber'].widget.attrs['style'] = 'width:95%;height:30px;border-radius:10px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
 		self.fields['phonenumber'].widget.attrs['autofocus'] = 'on'	
 		self.fields['phonenumber'].widget.attrs['class'] = 'cxl sp'
 		self.fields['phonenumber'].widget.attrs['autocomplete'] = 'off'
@@ -142,7 +108,6 @@ class MobileVerificationForm(forms.Form):
 		ttl = is_sms_sending_rate_limited(self.user_id)
 		if ttl:
 			raise forms.ValidationError('Ap dubara SMS receive kar sakein ge {0} baad'.format(secs_to_mins(ttl)))
-		#phonenumber = ''.join(re.split('[, \-_!?:]+',phonenumber)) #removes any excess characters from the mobile number
 		check = someone_elses_number(phonenumber[-10:],self.user_id)
 		if check: 
 			raise forms.ValidationError('Ye number kisi aur user ka hai, koi aur number likhien')
@@ -160,10 +125,8 @@ class PinVerifyForm(forms.Form):
 
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
-		super(PinVerifyForm, self).__init__(*args, **kwargs)		
-		# self.fields['pinnumber'].widget.attrs['style'] = \
-		# 'background-color:#fffce6;width:65px;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
-		self.fields['pinnumber'].widget.attrs['style'] = 'width:80px;height:30px;border-radius:10px;border: 1px #95c5f8 solid; background-color:#FAFAFA;padding:5px;'
+		super(PinVerifyForm, self).__init__(*args, **kwargs)
+		self.fields['pinnumber'].widget.attrs['style'] = 'width:80px;height:30px;border-radius:10px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
 		self.fields['pinnumber'].widget.attrs['class'] = 'cxl'
 		self.fields['pinnumber'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['pinnumber'].widget.attrs['autocomplete'] = 'off'

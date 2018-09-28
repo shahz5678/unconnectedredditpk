@@ -4,7 +4,6 @@
 {% load show_error %}
 {% load emoticons_tags %}
 {% load get_group_button %}
-{% load get_mobile_verification_bar %}
 {% block content %}
 <head><title>{% if switching %}Public group{% else %}{{ group.topic }} (public group){% endif %} | Damadam.pk</title></head>
 <div class="margin">
@@ -30,7 +29,8 @@
             </script>
             </div>
         {% else %}
-            {% mobile_verification_bar user.id csrf mobile_verified score %}
+        {% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
+
         {% endif %}
 
         <div style="overflow:hidden">

@@ -1,15 +1,32 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Mobile verification successful | Damadam.pk</title></head>
-<div class="margin clb">
-<div class="mbl">
-<b class="cxl">Mubarak ho! {% emoticons %}.p5{% endemoticons %}</b><br>
-<span class="cgy cl">Mobile verify karwaney pe apko <b class="cg">500 points</b> diye ja rehay hain! Vote, block aur logout ke options bhi mil gye hain</span><br>
-<hr size=1 COLOR="#b3e6b3">
-</div>
-<span class="cgy">OK daba ke Damadam ke rules dekh lain...</span><br>
-<a href="{% url 'website_rules' %}"><button class="btn bcg mtl mbl bm">OK</button></a>
+<head><title>Account verification successful | Damadam.pk</title></head>
+
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Congratulations!</span></h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+	<img src="{{ STATIC_URL }}img/verified.svg" width="100" height="100" class="mbs mts">
+	<div class="cxl sp" style="border-bottom:1px dashed darkgray;padding-bottom:10px">
+	Apka account verify ho gya<br>
+	<span class="cxs sp cgy" style="font-weight:lighter">Apko 500 points bhi mil gaye</span>
+	</div>
+
+	<div class="sp lsp clb">
+		<div style="padding:0 12px">
+			<ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
+				<li style="text-align:left" class="mbl">Ab ap Damadam pe share karien apni pasand ke items</li>
+				<li style="text-align:left" class="mbl">Public mehfils join karein aur gupshup lagain</li>
+				<li style="text-align:left" class="mbl">Foto and text items pe jawab dein and tabsrey karein</li>
+				<li style="text-align:left" class="mbl">Items pe jhappi and chpair ke zariye voting karein</li>
+				<li style="text-align:left" class="mbl">Private Chat mein friends ko free SMS se online bulaien</li>
+				<li style="text-align:left" class="mbl">Password bhool gaye tou password retrieve kar lein</li>
+				<li style="text-align:left">Aur bhi buhut kuch!</li>
+			</ul>
+		</div>
+	</div>
 
 </div>
 <br><br>

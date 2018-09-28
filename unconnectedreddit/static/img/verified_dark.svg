@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="225 225 50 50">
+  <circle cx="250" cy="250" r="22.5" fill="#FFF"/>
+  <linearGradient id="a" x1="225" x2="275" y1="250" y2="250" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#02e3a7"/>
+    <stop offset="1" stop-color="#3cb7dd"/>
+  </linearGradient>
+  <path fill="url(#a)" d="M267.68 232.32c-4.72-4.72-11-7.32-17.68-7.32s-12.96 2.6-17.68 7.32-7.32 11-7.32 17.68 2.6 12.96 7.32 17.68 11 7.32 17.68 7.32 12.96-2.6 17.68-7.32 7.32-11 7.32-17.68-2.6-12.96-7.32-17.68zM250 272.07A22.1 22.1 0 0 1 227.93 250 22.1 22.1 0 0 1 250 227.93 22.1 22.1 0 0 1 272.07 250 22.1 22.1 0 0 1 250 272.07z"/>
+  <linearGradient id="b" x1="237.63" x2="262.37" y1="250" y2="250" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#02e3a7"/>
+    <stop offset="1" stop-color="#3cb7dd"/>
+  </linearGradient>
+  <path fill="url(#b)" d="M261.94 241.98a1.47 1.47 0 0 0-2.07 0l-12.93 12.94-6.81-6.81a1.47 1.47 0 0 0-2.07 2.07l7.85 7.85c.29.29.66.43 1.04.43s.75-.14 1.04-.43l13.97-13.97c.56-.58.56-1.51-.02-2.08z"/>
+</svg>

@@ -43,11 +43,10 @@
 		</form>
 
 {% elif not_verified %}
-	<span class="cxl lsp">Block karney ke liye pehlay apna mobile number verify karwain</span><br>
-	<div class="mt">
-	<span class="cl lsp cgy">Verify karwaney ke liye 'OK' dabain:</span><br>
-	</div>
+	
+    <div class="cxl lsp mbs">Sorry! Block karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 
+<<<<<<< HEAD
 	<form method="get" class="mtl mbs" style="text-align:center" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
 	  <input type="hidden" name="country_code" value="PK">
 	  <input type="hidden" name="app_id" value="1758220174446684">
@@ -58,6 +57,9 @@
 	  <input type="hidden" name="fbAppEventsEnabled" value=true>
 	  <button class="btn bcb bm sp pg_ok_res" style="height:27px">OK</button>
 	</form>
+=======
+    {% include "verification/verification_button.html" with is_user_verified='1' static_url=STATIC_URL %}
+>>>>>>> 92852e256826150ee6cc99be4ccc7618f96408d4
 
 {% elif already_banned %}
 	

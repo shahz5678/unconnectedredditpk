@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% block content %}
+
+<head><title>Unable to become fan | Damadam.pk</title></head>
+
+<div class="margin clb">
+{% if banned_by_yourself %}
+<span class="cxl">Aap ne inko block kiya hua hai, ap inkey fan nahi ban saktey</span><br>
+
+<div class="mt">
+<span class="cgy cl">Block khatam ho ga <b>{{ ban_time|future_time }}</b>. Abhi block time change karney ke liye <a href="{% url 'banned_users_list' %}#section0"><button class="btn bcgy cs bm mt" style="height:26px">ye dabain</button></a></span>
+</div>
+
+
+
+{% else %}
+<span class="cxl">Aap inkey fan nahi ban saktey</span><br>
+{% endif %}
+
+<a href="{% url 'profile' target_username %}"><button class="btn bcg mtl bm mbs" style="height:26px">wapis</button></a>
+</div>
+<br><br>
+{% endblock %}

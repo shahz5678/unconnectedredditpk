@@ -108,6 +108,42 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 mp = Mixpanel(MIXPANEL_TOKEN)
+def secs_to_mins(seconds):
+	try:
+		m, s = divmod(seconds, 60)
+		h, m = divmod(m, 60)
+		d, h = divmod(h, 24)
+		mo, d = divmod(d, 30)
+		if mo:
+			if mo == 1:
+				return "1 month"
+			else:
+				return "{} months".format(mo)
+		elif d:
+			if d == 1:
+				return "1 day"
+			else:
+				return "{} days".format(d)
+		elif h:
+			if h == 1:
+				return "1 hour"
+			else:
+				return "{} hours".format(h)
+		elif m:
+			if m == 1:
+				return "1 min"
+			else:
+				return "{} mins".format(m)
+		elif s:
+			if s == 1:
+				return "1 sec"
+			else:
+				return "{} secs".format(s)
+		else:
+			return ""
+	except (NameError,TypeError):
+		return ""
+
 
 def set_rank():
 	epoch = datetime(1970, 1, 1).replace(tzinfo=None)
@@ -228,12 +264,6 @@ def valid_uuid(uuid):
 	match = regex.match(uuid)
 	return bool(match)
 
-def number_verification_help(request):
-	if request.method == "POST":
-		csrf = request.POST.get("csrf",None)
-		return render(request,"num_verification_help.html",{'csrf':csrf})
-	else:
-		return render(request,"num_verification_help.html",{'csrf':None})
 
 
 # link_id, writer_username, writer_avatar_url, writer_id, link_description
@@ -1381,7 +1411,6 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["sort_by"] = 'best' if sort_by_best else 'recent'
 		context["checked"] = FEMALES
 		context["form"] = form
-		context["csrf"] = csrf.get_token(request)
 		context["can_vote"] = False
 		context["authenticated"] = False
 		if request.is_feature_phone or request.is_phone or request.is_mobile:
@@ -4302,7 +4331,6 @@ def photo_list(request,*args, **kwargs):
 			context["username"] = request.user.username
 			context["score"] = user.userprofile.score
 			context["voted"] = []
-			context["csrf"] = csrf.get_token(request)
 			context["girls"] = FEMALES
 			context["mobile_verified"] = request.mobile_verified
 			secret_key = uuid.uuid4()
@@ -4479,7 +4507,6 @@ def best_photos_list(request,*args,**kwargs):
 			context["score"] = user.userprofile.score
 			context["voted"] = []
 			context["girls"] = FEMALES
-			context["csrf"] = csrf.get_token(request)
 			context["mobile_verified"] = request.mobile_verified
 			secret_key = uuid.uuid4()
 			context["sk"] = secret_key
@@ -5440,7 +5467,6 @@ class PublicGroupView(CreateView):
 				context["form"] = self.request.session.pop("public_group_form") if "public_group_form" in self.request.session else \
 				PublicGroupReplyForm()
 				context["score"] = self.request.user.userprofile.score
-				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["group"] = group
 				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
@@ -5755,7 +5781,6 @@ class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it
 				set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				context["score"] = self.request.user.userprofile.score
-				context["csrf"] = csrf.get_token(self.request)
 				context["switching"] = False
 				context["ensured"] = FEMALES
 				context["mobile_verified"] = self.request.mobile_verified

@@ -1898,3 +1898,17 @@ def invalidate_user_pin(user_id, my_server=None):
     """
     my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
     my_server.delete('pcb:'+str(user_id))
+
+
+
+def twiliolog_pin_sms_sent():
+    """
+    this function logs the number of smses sent out for verification
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+
+def twiliolog_user_verified():
+    """
+    this function logs the number of verified users through twilio
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_verified_count")

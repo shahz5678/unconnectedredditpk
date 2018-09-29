@@ -1898,3 +1898,35 @@ def invalidate_user_pin(user_id, my_server=None):
     """
     my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
     my_server.delete('pcb:'+str(user_id))
+
+def log_pin_attempt(user_id):
+    """
+    Log the fact that pin is entered - if it happens way too many times, rate-limit the user
+    """
+    user_id = str(user_id)
+    my_server = redis.Redis(connection_pool=POOL)
+    # check if user already rate-limited
+    ttl = my_server.ttl('rlpa:'+user_id)
+    if ttl > 1:
+        return False, ttl
+    else:
+        # log the attempt
+        attempts = my_server.incr('pa:'+user_id)
+        my_server.expire('pa:'+user_id,TEN_MINS)
+        if attempts > 12:
+            my_server.setex('rlpa:'+user_id,'1',TWO_HOURS)
+            return False, TWO_HOURS
+        else:
+            return True, None
+
+def twiliolog_pin_sms_sent():
+    """
+    this function logs the number of smses sent out for verification
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+
+def twiliolog_user_verified():
+    """
+    this function logs the number of verified users through twilio
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_verified_count")

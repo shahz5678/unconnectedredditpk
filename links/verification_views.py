@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm, PinVerifyForm
-from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited
+from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited, twiliolog_pin_sms_sent, twiliolog_user_verified
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points
 from score import NUMBER_VERIFICATION_BONUS
 
@@ -77,7 +77,7 @@ def verify_user_mobile(request):
 			target_number = '+92'+phonenumber[-10:]
 			# generate and send a pin code to the given mobile number
 			send_user_pin.delay(user_id, target_number)
-			# rate limit the user from sending more SMSes
+			twiliolog_pin_sms_sent()
 			request.session['phonenumber'+str(user_id)] = phonenumber	
 			request.session.modified = True
 			return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm()})
@@ -112,6 +112,7 @@ def pin_verification(request):
 				mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 				save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
 				increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
+				twiliolog_user_verified()
 				return render(request,"verification/reward_earned.html",{})
 			else:
 				# pin_state is 'invalid' or 'expired'

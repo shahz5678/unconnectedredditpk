@@ -64,6 +64,7 @@ user_thumbs = "upt:"+owner_uname
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
 TEN_MINS = 10*60
+TWENTY_MINS = 20*60
 FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
 ONE_HOUR = 60*60
@@ -1836,17 +1837,14 @@ def retrieve_random_pin(target_user_id):
             else:
                 my_server.delete('pcb:'+target_user_id)
         rand_pin = my_server.lpop('pin_codes_pool:'+current_pool_version)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TEN_MINS)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TWENTY_MINS)
         return rand_pin
     else:
         # pool does not exist
         new_pool_ver = create_random_pool(my_server=my_server)
         rand_pin = my_server.lpop('pin_codes_pool:'+new_pool_ver)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TEN_MINS)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TWENTY_MINS)
         return rand_pin
-
-
-
 
 def verify_user_pin(target_user_id, entered_pin_code):
     """

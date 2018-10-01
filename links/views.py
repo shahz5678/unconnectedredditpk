@@ -1450,58 +1450,58 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		############################################# Home Rules #################################################
 		context["home_rules"] = spammer_punishment_text(context["ident"])
 		############################################ Namaz feature ###############################################
-		now = datetime.utcnow()+timedelta(hours=5)
-		day = now.weekday()
-		cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-				'LOCATION': MEMLOC, 'TIMEOUT': 70,
-			})
-		salat_timings = cache_mem.get('salat_timings')
-		context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
-		if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
-			context["current_namaz"] = 'Jummah'
-		else:
-			context["current_namaz"] = salat_timings['namaz']
-		if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
-			context["next_namaz"] = 'Jummah'	
-		else:
-			context["next_namaz"] = salat_timings['next_namaz']
-		if not salat_timings['namaz'] and not salat_timings['next_namaz']:
-			# do not show namaz element at all, some error may have occurred
-			context["show_current"] = False
-			context["show_next"] = False
-		elif not salat_timings['namaz']:
-			try:
-				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
-				already_prayed = AlreadyPrayed(latest_salat, now)
-				if already_prayed == 2:
-					#if user skipped previous namaz, no need to show prompt
-					context["show_current"] = False
-					context["show_next"] = False
-				else:
-					context["show_current"] = False
-					context["show_next"] = True
-			except:
-				context["show_current"] = False
-				context["show_next"] = True
-		else:
-			try:
-				latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
-				already_prayed = AlreadyPrayed(latest_salat, now)
-				if already_prayed:
-					if already_prayed == 2:
-						context["show_current"] = False
-						context["show_next"] = False
-					else:
-						context["show_current"] = False
-						context["show_next"] = True
-				else:
-					#i.e. show the CURRENT namaz the user has to offer
-					context["show_current"] = True
-					context["show_next"] = False
-			except:
-				#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
-				context["show_current"] = True
-				context["show_next"] = False
+		# now = datetime.utcnow()+timedelta(hours=5)
+		# day = now.weekday()
+		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+		# 		'LOCATION': MEMLOC, 'TIMEOUT': 70,
+		# 	})
+		# salat_timings = cache_mem.get('salat_timings')
+		# context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
+		# if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
+		# 	context["current_namaz"] = 'Jummah'
+		# else:
+		# 	context["current_namaz"] = salat_timings['namaz']
+		# if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
+		# 	context["next_namaz"] = 'Jummah'	
+		# else:
+		# 	context["next_namaz"] = salat_timings['next_namaz']
+		# if not salat_timings['namaz'] and not salat_timings['next_namaz']:
+		# 	# do not show namaz element at all, some error may have occurred
+		# 	context["show_current"] = False
+		# 	context["show_next"] = False
+		# elif not salat_timings['namaz']:
+		# 	try:
+		# 		latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
+		# 		already_prayed = AlreadyPrayed(latest_salat, now)
+		# 		if already_prayed == 2:
+		# 			#if user skipped previous namaz, no need to show prompt
+		# 			context["show_current"] = False
+		# 			context["show_next"] = False
+		# 		else:
+		# 			context["show_current"] = False
+		# 			context["show_next"] = True
+		# 	except:
+		# 		context["show_current"] = False
+		# 		context["show_next"] = True
+		# else:
+		# 	try:
+		# 		latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
+		# 		already_prayed = AlreadyPrayed(latest_salat, now)
+		# 		if already_prayed:
+		# 			if already_prayed == 2:
+		# 				context["show_current"] = False
+		# 				context["show_next"] = False
+		# 			else:
+		# 				context["show_current"] = False
+		# 				context["show_next"] = True
+		# 		else:
+		# 			#i.e. show the CURRENT namaz the user has to offer
+		# 			context["show_current"] = True
+		# 			context["show_next"] = False
+		# 	except:
+		# 		#never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
+		# 		context["show_current"] = True
+		# 		context["show_next"] = False
 		################################################################################################################
 		if "comment_form" in request.session:
 			context["comment_form"] = request.session["comment_form"]
@@ -1532,7 +1532,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 			else:
 				context["notif_form"] = UnseenActivityForm()
 			context["process_notification"] = True
-			context["salat_timings"] = salat_timings
+			# context["salat_timings"] = salat_timings
 			return render(request, 'link_list.html', context)
 		return render(request, 'link_list.html', context)
 	else:

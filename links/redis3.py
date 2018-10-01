@@ -1837,13 +1837,13 @@ def retrieve_random_pin(target_user_id):
             else:
                 my_server.delete('pcb:'+target_user_id)
         rand_pin = my_server.lpop('pin_codes_pool:'+current_pool_version)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TWENTY_MINS)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TEN_MINS)
         return rand_pin
     else:
         # pool does not exist
         new_pool_ver = create_random_pool(my_server=my_server)
         rand_pin = my_server.lpop('pin_codes_pool:'+new_pool_ver)
-        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TWENTY_MINS)
+        my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TEN_MINS)
         return rand_pin
 
 def verify_user_pin(target_user_id, entered_pin_code):
@@ -1928,3 +1928,21 @@ def twiliolog_user_verified():
     this function logs the number of verified users through twilio
     """
     redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
+
+
+def set_forgot_password_rate_limit(user_id):
+    """
+    Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
+    """
+    redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
+
+
+def is_forgot_password_rate_limited(user_id):
+    """
+    Checks if user already recently reset their password, and stops them from doing it again so soon
+    """
+    ttl = redis.Redis(connection_pool=POOL).ttl("prrl:"+str(user_id))
+    if ttl > 3:
+        return ttl
+    else:
+        return None

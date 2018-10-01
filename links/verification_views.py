@@ -72,17 +72,20 @@ def verify_user_mobile(request):
 		return redirect("missing_page")
 	elif request.method == "POST":
 		form = MobileVerificationForm(request.POST,user_id=user_id)
+		ttl = is_sms_sending_rate_limited(user_id)
 		if form.is_valid():
-			phonenumber = form.cleaned_data.get("phonenumber")
-			target_number = '+92'+phonenumber[-10:]
-			# generate and send a pin code to the given mobile number
-			send_user_pin.delay(user_id, target_number)
-			twiliolog_pin_sms_sent()
-			request.session['phonenumber'+str(user_id)] = phonenumber    
-			request.session.modified = True
-			return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm()})
+			if ttl:
+				return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm(),'ttl':ttl,'reentry_instr':True})
+			else:
+				phonenumber = form.cleaned_data.get("phonenumber")
+				target_number = '+92'+phonenumber[-10:]
+				# generate and send a pin code to the given mobile number
+				send_user_pin.delay(user_id, target_number)
+				twiliolog_pin_sms_sent()
+				request.session['phonenumber'+str(user_id)] = phonenumber    
+				request.session.modified = True
+				return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm()})
 		else:
-			ttl = is_sms_sending_rate_limited(user_id)
 			if ttl:
 				return render(request,"verification/enter_pin_code.html",{'form':PinVerifyForm(),'ttl':ttl,'reentry_instr':True})
 			else:
@@ -110,6 +113,7 @@ def pin_verification(request):
 		if form.is_valid():
 			pin_state = form.cleaned_data.get("pinnumber")
 			if pin_state == 'pin_matched':
+				request.session.pop('phonenumber'+str(user_id),None)
 				account_kid_id = 'twilio_verification'
 				national_number = phonenumber[-10:]
 				number ='+92'+national_number	

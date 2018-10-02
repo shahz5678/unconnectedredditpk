@@ -705,13 +705,6 @@ def rank_photos():
 			pass
 	add_photos_to_best(photo_id_and_scr)
 
-@celery_app1.task(name='tasks.whoseonline')
-def whoseonline():
-	user_ids = get_recent_online()
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 67,
-		})
-	cache_mem.set('online', user_ids)
 
 @celery_app1.task(name='tasks.fans')
 def fans():

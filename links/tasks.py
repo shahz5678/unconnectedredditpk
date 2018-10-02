@@ -27,7 +27,7 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view#, log_photo_attention_from_fresh
+log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, save_most_recent_online_users#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
@@ -377,6 +377,10 @@ def set_user_age(user_id):
 def save_online_user(user_id,user_ip):
 	set_online_users(str(user_id),str(user_ip))
 
+@celery_app1.task(name='tasks.whoseonline')
+def whoseonline():
+    user_ids = get_recent_online()
+    save_most_recent_online_users(user_ids)
 
 @celery_app1.task(name='tasks.detail_click_logger')
 def detail_click_logger(ad_id, clicker_id):

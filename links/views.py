@@ -2655,7 +2655,7 @@ def invite_private(request, slug=None, *args, **kwargs):
 		return redirect("score_help")
 
 class InviteUsersToPrivateGroupView(ListView):
-	model = Session
+	# model = Session
 	template_name = "invite_for_private_group.html"
 	paginate_by = 100
 
@@ -2663,12 +2663,12 @@ class InviteUsersToPrivateGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 30,
-			})
+			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			# 'LOCATION': MEMLOC, 'TIMEOUT': 30,
+			# })
 			global condemned
+			user_ids = get_most_recent_online_users()#cache_mem.get('online')
 			try:
-				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["unique_id"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
@@ -2693,7 +2693,7 @@ class InviteUsersToPrivateGroupView(ListView):
 
 
 class InviteUsersToGroupView(ListView):
-	model = Session
+	# model = Session
 	template_name = "invite_for_groups.html"
 	paginate_by = 100
 	
@@ -2701,12 +2701,12 @@ class InviteUsersToGroupView(ListView):
 		if self.request.user_banned:
 			return []
 		else:
-			cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 30,
-			})	
+			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+			# 'LOCATION': MEMLOC, 'TIMEOUT': 30,
+			# })	
 			global condemned
+			user_ids = get_most_recent_online_users()#cache_mem.get('online')
 			try:
-				user_ids = cache_mem.get('online')
 				group = Group.objects.get(unique=self.request.session["public_uuid"])
 				users_purified = [pk for pk in user_ids if pk not in condemned]
 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)

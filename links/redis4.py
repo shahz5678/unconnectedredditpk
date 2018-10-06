@@ -649,6 +649,21 @@ def get_recent_online():
 		online_ids.append(user.split(":",1)[0])
 	return online_ids
 
+def save_most_recent_online_users(user_ids):
+    """
+    Saves a snapshot of online user ids
+    """
+    my_server = redis.Redis(connection_pool=POOL)
+    if user_ids:
+        my_server.delete("online_user_ids")
+        my_server.lpush('online_user_ids',*user_ids)
+
+
+def get_most_recent_online_users():
+    """
+    Retrieves online user ids to show in OnlineKonView()
+    """
+    return redis.Redis(connection_pool=POOL).lrange('online_user_ids',0,-1)
 
 ######################################## Detect Clones of User ID ########################################
 
@@ -747,6 +762,7 @@ def del_careem_data():
 ##################################################Mobile_Shop
 
 
+
 def log_buyer_form_err(error_data):
 	my_server = redis.Redis(connection_pool=POOL)
 	error_id = get_error_id()
@@ -797,23 +813,21 @@ def place_order(user_id):
 	order_id = get_order_id()
 	order_data['order_id'] = order_id
 	pipeline1.zadd('ordersinprocess',user_id,order_id)
+	pipeline1.zadd('numbersinprocess',order_data['phonenumber'],order_id)
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	pipeline1.hmset("placedorders:"+str(order_id),order_data)
 	pipeline1.execute()
 	return order_data
 
-def delete_order(order_id,user_id):
+def delete_order(order_id,user_id,phonenumber):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	my_server.zrem("ordersinprocess",user_id)
+	my_server.zrem("numbersinprocess",phonenumber)
 	my_server.delete("placedorders:"+str(order_id))
 	pipeline1.execute()
 	return {}
-
-
-
-
 
 def get_temp_order_data(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -825,18 +839,32 @@ def get_temp_order_data(user_id):
 	else:
 		return {}
 
-def check_orders_processing(user_id):
-	user = redis.Redis(connection_pool=POOL).zscore('ordersinprocess',user_id)
+def check_orders_processing(user_id,phone=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	user = my_server.zscore('ordersinprocess',user_id)
 	if user == None:
-		return False
+		print "user = "
+		print user
+		if phone:
+			phonenumber = my_server.zscore('numbersinprocess',phone)
+			print "Phone = "
+			print phonenumber
+			if phonenumber:
+				return True
+			else:
+				return False
+		else:
+				return False
 	else:
 		return True
 
 def get_order_id():
-	return redis.Redis(connection_pool=POOL).incr("order_id")
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("order_id")
 
 def get_total_orders():
-	return redis.Redis(connection_pool=POOL).get("order_id")
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("order_id")
 
 def show_new_orders():
 	total_orders = get_total_orders()
@@ -868,6 +896,8 @@ def show_new_queries():
 			pipeline1.hgetall('querydata:'+obj)
 		result1 = pipeline1.execute()
 		return result1
+
+
 
 
 

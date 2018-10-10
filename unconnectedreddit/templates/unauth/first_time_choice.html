@@ -1,0 +1,18 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>New user selection | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='' translate='0' %}
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:10px;background-color:#2de0ae;text-align:center">
+<div class="cxl mt lsp" style="color:white;">Ap ne <b>gupshup</b> lagani hai,<br>ya <b>fotos</b> dekhni hain?</div>
+	<form method="POST" action="{% url 'first_time_choice' %}" class="mts mbs">
+	   {% csrf_token %}
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6.5em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500;height:30px" class="mrs mtl mbl sp pg_ok_res" value="1">Gupshup</button>
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6.5em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500;height:30px" class="mls mbl sp pg_ok_res" value="2">Fotos</button>
+	</form>
+</div>
+
+<br><br>
+</div>
+{% endblock %}

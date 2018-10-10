@@ -1,0 +1,22 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Forgot password (Urdu) | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+
+{% include "unauth/title.html" with lang='1' translate='0' %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+
+<div style="color:white;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;font-size:23px;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">{% if reentry_instr %}تھوڑی دیر پہلے آپکو ایک خفیہ کوڈ ایس ایم ایس کیا گیا{% else %}آپکو ایک خفیہ کوڈ ایس ایم ایس کیا گیا ہے{% endif %}</div>
+
+<form method="POST" style="padding:5px 10px 10px 10px" class="mt mbs" action="{% url 'verify_forgetters_pin' 'ur' %}">
+	{% csrf_token %}
+	<div class="mts mbl">{% if form.pinnumber.errors %}<b style="color:#f9ef6c;text-shadow:1px 1px #009940;" class="cxl"><bdi>{{ form.pinnumber.errors.0 }}</bdi></b>{% else %}<b style="color:white;text-shadow:1px 1px #009940;" class="cxl">وہ خفیہ کوڈ یہاں لکھیں</b>{% endif %}</div>
+	{{ form.pinnumber }}<br>
+	<button class="mtl mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
+</form>
+
+</div>
+
+{% include "unauth/old_account_button.html" with lang='ur' %}
+</div>
+{% endblock %}

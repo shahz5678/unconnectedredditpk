@@ -1,0 +1,18 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>New user selection (Urdu) | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='ur' translate='0' %}
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:10px;background-color:#2de0ae;text-align:center">
+<div class="lsp mt" style="color:white;font-size:23px"><bdi dir="rtl">آپ نے <b>چیٹ</b> کرنی ہے یا <b>فوٹو</b> دیکھنے ﮨیں؟</bdi></div>
+	<form method="POST" action="{% url 'first_time_choice' 'ur' %}" class="mts mbs">
+	   {% csrf_token %}
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mrs mtl mbl sp pg_ok_res" value="1">چیٹ</button>
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mls mbl sp pg_ok_res" value="2">فوٹو</button>
+	</form>
+</div>
+
+<br><br>
+</div>
+{% endblock %}

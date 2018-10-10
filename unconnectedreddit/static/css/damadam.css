@@ -83,10 +83,10 @@ S1: Html styling
     }
 
     .header {
-    background-color: #00c853;
+    background-color: #2de0ae;
     font-family: arial;
-    font-weight: lighter;
-    letter-spacing: 1px;
+    font-weight: bold;
+    letter-spacing: 2px;
     width: 100%;
     color: #FFF;
     text-align: center;
@@ -116,7 +116,7 @@ S1: Html styling
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #ff9933;
+    background-color: #ff9c00;
     font-size: 90%;
     text-align: center;
     }

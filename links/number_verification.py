@@ -55,7 +55,7 @@ def verify_forgetter_number(request,*args,**kwargs):
 		mob_nums = get_user_verified_number(user_id)
 		if MN_data['national_number'] in mob_nums:
 			# prompt user to change password
-			return render(request,"set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
+			return render(request,"unauth/set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
 		else:
 			return render(request,"unverified_number.html",{'referrer':'login','from_ecomm':False})
 	elif user_id == 'generic' or user_id == 'used' or user_id == 'expired' or user_id == 'invalid':

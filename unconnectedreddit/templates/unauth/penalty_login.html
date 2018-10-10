@@ -1,0 +1,12 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='' translate='1' login='1' %}
+<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;padding:10px;width:93%;background-color:#2de0ae;text-align:center">
+	<div class="cxl lsp" style="color:#f9ef6c;text-shadow:1px 1px #009940;font-weight:bold">Ap dubara login ki koshish kr sakein ge 60 mins baad</div>
+	<a href="{% url 'login' %}"><button class="mtl mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button></a>
+</div>
+</div>
+<br><br>
+{% endblock %}

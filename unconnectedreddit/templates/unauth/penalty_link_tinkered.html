@@ -1,0 +1,16 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Unable to complete action | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='' translate='1' %}
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+	<div class="mt cxl sp lsp" style="color:#f9ef6c;text-shadow:1px 1px #009940;font-weight:bold;padding:10px;border-bottom:1px dashed #c0f4d5;border-top-right-radius:6px;border-top-left-radius:6px;background-color:#26d5ab">Please try again!</div>
+	<div style="padding:10px;">
+		<h2 class="sp cl" style="color:white;text-shadow:1px 1px #009940;">Damadam ki tabiyat kharab ho geyi</h2>
+		<a href="{% url 'unauth_home_new' %}#section0"><button class="mt mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button></a>
+	</div>
+</div>
+
+</div>
+{% endblock %}

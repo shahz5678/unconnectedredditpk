@@ -1,0 +1,59 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Pick another username | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='' translate='1' %}
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+
+<div class="lsp cxl" style="background-color:#26d5ab;color:#f9ef6c;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;border-top-left-radius:6px;border-top-right-radius:6px">
+<b>
+{% if status == 'joined' %}
+	Sorry! Nickname mein khali jaga nahi dal saktey
+{% else %}
+	Sorry! {{ original }} kisi aur ka nickname hai
+{% endif %}
+</b>
+</div>
+
+<div class="mts cxl" style="color:white">
+
+	{% if single %}
+	<div style="padding:10px">
+		<b class="lsp" style="text-shadow:1px 1px #009940"><b class="sp">{{ alternatives.0 }}</b> rakhna hai?</b><br>
+		<form method="POST" action="{% url 'create_nick_new' %}#section0" class="mt" style="display:inline">
+			{% csrf_token %}
+			<input type="hidden" name="system_suggestion" value="{{ alternatives.0 }}">
+			<button class="btn mtl mbl bm cs sp pg_ok_res mrs" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">YES</button>
+		</form>
+		<a href="{% url 'create_nick_new' %}"><button class="mls btn mtl mbl bm cs sp pg_ok_res" style="display: inline;color:white;background-color:#bdbdbd;border:solid 1px #a6a6a6;text-shadow:1px 1px #978696;font-weight:bold;height:30px" type="submit">NO</button></a>
+	</div>		
+	{% else %}
+	<div style="padding:10px">
+		<b class="lsp" style="text-shadow:1px 1px #009940;">In mein se koi nickname rakh lein:</b><br>
+		<form method="POST" action="{% url 'create_nick_new' %}#section0" class="mt">
+			{% csrf_token %}
+			<ul style="display:inline-block;padding: 0;list-style:none">
+				{% for nick in alternatives reversed %}
+				<li style="text-align:left" class="mbs sp">
+					<input type="radio" name="system_suggestion" value="{{ nick }}" id="{{ nick }}" checked><label for="{{ nick }}" style="background-color:transparent"><b class="sp" style="color:white;text-shadow:1px 1px #009940;">&nbsp;{{ nick }}</b></b>
+				</li>
+				{% endfor %}
+			</ul><br>
+			<button class="btn mbs bs cs sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit"><span class="cl">OK</span></button>
+		</form>
+	</div>
+		<div class="cs sp lsp" style="background-color:#26d5ab;text-shadow:1px 1px #009940;padding:10px;border-top:1px dashed #c0f4d5;border-bottom-left-radius:6px;border-bottom-right-radius:6px">
+			<b>Agar uper waley nickname(s) pasand nahi tou <a href="{% url 'create_nick_new' %}" style="color:#f9ef6c;text-shadow:1px 1px #009940;border-bottom:1px dotted #f9ef6c"><b>ye dabain</b></a></b>
+		</div>
+
+	{% endif %}
+
+</div>
+
+</div>
+
+<br>
+{% include "unauth/old_account_button.html" with lang='' %}
+</div>
+{% endblock %}

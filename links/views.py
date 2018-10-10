@@ -69,11 +69,11 @@ ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, H
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
-invalidate_avurl, retrieve_user_id, get_most_recent_online_users
+invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
-get_banned_users_count, is_already_banned, is_mobile_verified, get_ranked_public_groups, del_from_rankings#, log_erroneous_passwords
+get_banned_users_count, is_already_banned, is_mobile_verified, get_ranked_public_groups, del_from_rankings,tutorial_unseen#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, del_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, \
@@ -107,7 +107,9 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
+
 mp = Mixpanel(MIXPANEL_TOKEN)
+
 def secs_to_mins(seconds):
 	try:
 		m, s = divmod(seconds, 60)
@@ -642,18 +644,18 @@ class RegisterHelpView(FormView):
 	template_name = "register_help.html"
 
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
 def logout_rules(request):
-	user_id = request.user.id
-	if request.mobile_verified:
-		if first_time_log_outter(user_id):
-			add_log_outter(user_id)
-			return render(request,"logout_tutorial.html",{})
-		else:
-			return render(request,"logout_rules.html",{})
-	else:
-		CSRF = csrf.get_token(request)
-		temporarily_save_user_csrf(str(user_id), CSRF)
-		return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
+    user_id = request.user.id
+    if request.mobile_verified:
+        if request.method == "POST":
+            return render(request,"logout/logout_rules.html",{})
+        else:
+            return render(request,"logout/logout_tutorial.html",{})
+    else:
+        return render(request, 'cant_logout_without_verifying.html', {'logout':True})
 
 
 class LogoutPenaltyView(FormView):
@@ -1634,10 +1636,9 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			return redirect("home")
 	else:
 		if lang == 'ur':
-			return render(request,"first_time_choice_ur.html")
+			return render(request,"unauth/first_time_choice_ur.html")
 		else:
-			return render(request,"first_time_choice.html")
-
+			return render(request,"unauth/first_time_choice.html")
 
 ##############################################################################################################################
 ##############################################################################################################################
@@ -2864,65 +2865,57 @@ class GroupRankingView(ListView):
 @sensitive_post_parameters()
 @csrf_protect
 def reset_password(request,*args,**kwargs):
-	if request.method == 'POST':
-		form = ResetPasswordForm(data=request.POST,request=request)
-		if form.is_valid():
-			form.save()
-			password = request.POST.get("password")
-			context={'new_pass':password}
-			request.session.pop("authentic_password_owner", None)
-			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
-			return render(request,'new_password.html',context)
-		else:
-			try:
-				allowed = request.session['authentic_password_owner']
-				if allowed is True:
-					context={'form':form,'allowed':True}					
-				else:
-					context={'form':form,'allowed':False}
-			except:
-				context={'form':form,'allowed':None}
-			return render(request,'reset_password.html',context)	
-	else:
-		form = ResetPasswordForm()
-		try:
-			allowed = request.session['authentic_password_owner']
-			if allowed is True:
-				#can press forward, user is 'allowed'
-				context={'form':form,'allowed':allowed}
-				return render(request,'reset_password.html',context)
-			else:
-				#send back for reauth
-				return redirect("reauth")
-		except:
-			#send back for reauth
-			return redirect("reauth")
+    if request.method == 'POST':
+        form = ResetPasswordForm(data=request.POST,request=request)
+        if form.is_valid():
+            form.save()
+            password = request.POST.get("password")
+            request.session.pop("authentic_password_owner", None)
+            request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+            return render(request,'change_password/new_password.html',{'new_pass':password})
+        else:
+            allowed = request.session.get('authentic_password_owner',None)
+            if allowed == '1':
+                context={'form':form,'allowed':True}
+            else:
+                context={'form':form,'allowed':None}
+            return render(request,'change_password/reset_password.html',context)    
+    else:
+        form = ResetPasswordForm()
+        try:
+            allowed = request.session.get('authentic_password_owner',None)
+            if allowed == '1':
+                #can press forward, user is 'allowed'
+                return render(request,'change_password/reset_password.html',{'form':form,'allowed':True})
+            else:
+                #send back for reauth
+                return redirect("reauth")
+        except:
+            #send back for reauth
+            return redirect("reauth")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(method='POST', rate='7/h')
+@ratelimit(method='POST', rate='25/h')
 def reauth(request, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		context={'pk':'pk'}
-		return render(request, 'penalty_reauth.html', context)
-	elif first_time_password_changer(request.user.id):
-		add_password_change(request.user.id)
-		context={'username':request.user.username}
-		return render(request, 'password_change_tutorial.html', context)
-	else:
-		if request.method == 'POST':
-			form = ReauthForm(data=request.POST,request=request)
-			if form.is_valid():
-				request.session['authentic_password_owner'] = True
-				return redirect("reset_password")
-			else:
-				context={'form':form}
-				return render(request, 'reauth.html', context)
-		else:
-			form = ReauthForm()
-			context = {'form':form}
-			return render(request, 'reauth.html', context)
+    was_limited = getattr(request, 'limits', False)
+    if was_limited:
+        return render(request, 'change_password/penalty_reauth.html', {'pk':'pk'})
+    else:
+        user_id = request.user.id
+        if tutorial_unseen(user_id=user_id, which_tut='27', renew_lease=True):
+            return render(request, 'change_password/password_change_tutorial.html', {'username':retrieve_uname(user_id,decode=True)})
+        else:
+            if request.method == 'POST':
+                form = ReauthForm(data=request.POST,request=request)
+                if form.is_valid():
+                    request.session['authentic_password_owner'] = '1'
+                    request.session.modified = True
+                    return redirect("reset_password")
+                else:
+                    return render(request, 'change_password/reauth.html', {'form':form})
+            else:
+                return render(request, 'change_password/reauth.html', {'form':ReauthForm()})
 
 class VerifiedView(ListView):
 	model = User

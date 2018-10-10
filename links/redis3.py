@@ -1917,17 +1917,24 @@ def log_pin_attempt(user_id):
         else:
             return True, None
 
-def twiliolog_pin_sms_sent():
+
+def twiliolog_pin_sms_sent(forgot_pass=False):
     """
     this function logs the number of smses sent out for verification
     """
-    redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+    if forgot_pass:
+        redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_sms_count") 
+    else:
+        redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
 
-def twiliolog_user_verified():
+def twiliolog_user_verified(forgot_pass=False):
     """
     this function logs the number of verified users through twilio
     """
-    redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
+    if forgot_pass:
+        redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_verified_count")
+    else:
+        redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
 
 
 def set_forgot_password_rate_limit(user_id):
@@ -1935,7 +1942,6 @@ def set_forgot_password_rate_limit(user_id):
     Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
     """
     redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
-
 
 def is_forgot_password_rate_limited(user_id):
     """
@@ -1946,3 +1952,17 @@ def is_forgot_password_rate_limited(user_id):
         return ttl
     else:
         return None
+
+
+#########################################Invalid Nickname Logger##################################
+
+def invalid_nick_logger(banned_word,nick):
+    """
+    this function logs the nicks that were filtered by abuse.py
+
+    Works both for new nick creation and forgotten nicks
+    """
+    myserver = redis.Redis(connection_pool=POOL)
+    myserver.lpush("invalid_nicks",nick+":"+banned_word)
+    myserver.ltrim("invalid_nicks",0,999)
+    

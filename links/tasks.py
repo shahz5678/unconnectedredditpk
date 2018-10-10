@@ -421,17 +421,14 @@ def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
 	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
 	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
 
-
 @celery_app1.task(name='tasks.send_user_pin')
 def send_user_pin(sender_id, mobile_number):
     """
-    this function sends the pin code to user (for home-grown verification purposes)
+    This function sends the pin code to user (for home-grown verification purposes)
     """
     pin = retrieve_random_pin(sender_id)
-    payload = "Salam! %s apka Damadam pin code hai. Isko apni screen mein enter karein. Have a nice day & enjoy Damadam :-)" % (pin)
-    print payload +" < payload, mobile number > " +str(mobile_number)
+    payload = "Salam! %s apka Damadam pin code hai. Isko pin code wali screen mein enter karein. Have a nice day & enjoy Damadam.pk :-)" % (pin)
     process_user_pin_sms(mobile_number,payload)
-
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):

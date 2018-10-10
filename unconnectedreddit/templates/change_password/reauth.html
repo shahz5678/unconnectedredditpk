@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Change password | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">Enter existing password</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl lsp">Pehlay apna abhi wala password likhein:</div>
+<hr size=1 COLOR="#e5e7e9">
+<form method="post" action="{% url 'reauth' %}#section0">
+  {% csrf_token %}
+  	  {% if form.password.errors %}
+  	  	<div class="cr sp lsp mts mbs">{{ form.password.errors.0 }}</div>
+  	  {% else %}
+  	  	<div class="sp lsp mts mbs cgy">Baray aur chotay harf ka khyal rakhein</div>
+  	  {% endif %}
+      {{ form.password }}<br>
+  <button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:28px">OK</button>
+</form>
+</div>
+<br><br>
+{% endblock %}

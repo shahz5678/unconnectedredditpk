@@ -1,0 +1,46 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Sign in (Urdu) | Damadam.pk</title></head>
+<div style="margin-top:5%">
+{% include "unauth/title.html" with lang='ur' translate='1' login='1' %}
+
+<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+
+  {% if form.errors %}
+  <div class="mt mbs" style="padding:10px;border-bottom:1px dashed #c0f4d5;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">
+    <b style="color:#f9ef6c;text-shadow:1px 1px #009940;font-size:23px"><bdi>{{ form.errors.items.0.1.0 }}</bdi></b>
+  </div>
+  {% else %}
+   {% if just_logged_out %}
+    <div class="mt mbs" style="padding:10px;border-bottom:1px dashed #c0f4d5;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">
+      <div style="color:#f9ef6c;text-shadow:1px 1px #009940;padding-bottom:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;font-size:23px" class="lsp"><bdo dir="rtl">آپ لاگ آؤٹ ہو گئے!</bdo></div>
+      <div style="color:white;text-shadow:1px 1px #009940;font-weight:bold" class="mt cxl"><bdo dir="rtl">لاگ ان کرنے کے لئے اپنا نک نیم اور پاس ورڈ لکھ کے <bdo dir="ltr">OK</bdo> دبایں</bdo></div>
+    </div>
+   {% else %}
+    <div class="mt mbs" style="padding:10px;border-bottom:1px dashed #c0f4d5;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">
+    <b style="color:white;text-shadow:1px 1px #009940;font-size:23px"><bdo dir="rtl">اپنا نک نیم اور پاس ورڈ لکھ کے <bdo dir="ltr">OK</bdo> دبایں</bdo></b>
+  </div>
+   {% endif %}
+  {% endif %}
+  <form method="post" action="{% url 'login' 'ur' %}" style="padding:0 10px 10px 10px;border-bottom:1px dashed #c0f4d5">
+    {% csrf_token %}
+   	
+   	<div class="mtl mbl">
+      <b class="cxl" style="color:white;text-shadow:1px 1px #009940;"><bdo dir="rtl">نک نیم:</bdo></b><br>
+        <div class="mt">{{ form.username }}</div>
+    	</div>
+    	<div class="mbl">
+      <b class="cxl" style="color:white;text-shadow:1px 1px #009940;"><bdo dir="rtl">پاس ورڈ:</bdo></b><br>
+        <div class="mt">{{ form.password }}</div>
+     </div>
+    <button class="mt mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
+    
+  </form>
+
+<a href="{% url 'forgot_password' 'ur' %}"><button class="cxl pg_ok_res" style="background:0 0;border:none;padding:0;width:100%"><div style="padding:15px 0;background-color:#26d5ab;border-bottom-left-radius:6px;border-bottom-right-radius:6px"><b style="color:white;text-shadow:1px 1px #009940;border-bottom:2px dotted #dcf9e8" class="lsp sp">پاس ورڈ بھول گۓ</b></div></button></a>
+
+</div>
+
+{% include "unauth/new_account_button.html" with lang='ur' %}
+</div>
+{% endblock %}

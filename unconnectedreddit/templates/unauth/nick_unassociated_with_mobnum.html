@@ -1,0 +1,21 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Unable to retrieve password | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='' translate='0' %}
+
+<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+
+<div class="lsp cxl" style="color:#f9ef6c;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">{{ nick }} ka password nahi mil sakta</div>
+
+<div style="padding:0 10px 10px 10px">
+	<div class="mtl mbl">
+    	<b style="color:white;text-shadow:1px 1px #009940;" class="lsp cxl">Password sirf aisi ID ka milta hai jiska mobile number verified ho</b>
+	</div>
+	<a href="{% url 'login' %}"><button class="mt mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button></a>
+</div>
+
+</div>
+{% include "unauth/old_account_button.html" with lang='' %}
+</div>
+{% endblock %}

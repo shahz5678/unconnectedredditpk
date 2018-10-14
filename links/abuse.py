@@ -1,6 +1,6 @@
 CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc','phvk','sex','seks','s-e-x','s_e_x','s.e.x','s.e_x','s.e-x','s-e.x',\
-'s_e.x','s-e_x','s_e-x','pussy','pssy','dick','penis','cock','vagina','vulva','boob','breast','pimp','whore','asshole','bastard','pubic','piss','shit',\
-'idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','anal','clit','asswhole','a_s_s','a-s-s','anus','b00b','blowjob','blojob','booob',\
+'s_e.x','s-e_x','s_e-x','pusy','pussy','pssy','dick','penis','cock','vagina','vulva','boob','breast','pimp','whore','asshole','bastard','pubic','piss',\
+'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','anal','clit','asswhole','a_s_s','a-s-s','anus','b00b','blowjob','blojob','booob',\
 'boooob','booooob','booooooob','c0ck','cumshot','cumsh0t','d1ck','dildo','dlck','f4nny','fanny','faggot','fcuk','f_u_c_k','gangbang','nigga','s_3-x',\
 'n1gga','n1gger','nigger','poop','p00p','p0op','po0p','rectum','semen','sh1t','shemale','titties','viagra','turd','wanker','erotic','hooker','incest',\
 'intercourse','milf','m1lf','nipple','pig','rape','rapist','rap1st','rap!st','raping','rap1ng','sodom','threesome','topless','upskirt','vibrator','tits',\
@@ -8,9 +8,9 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'x_x_x','x.x.x','nude','naked','n!gger','b!tch','pen!s','d!ck','b0ob','bo0b','buub','h00ker','h0mo','hom0','cl!t','rektum','v!agra','assho1e','assh0le',\
 'assh01e','n!gga','ballz','bawls','bawlz','vag1na','vag!na','pen1s','pinis','peenus','p1g','p!g','shema!e','shimale','shima1e','top1ess','top!ess','3some',\
 'b1tch','brest','vu1va','p1mp','sh!t','p!mp','wh0re','porkistan','p0rkistan','pork!stan','p0rk!stan','porkistaan','p0rkistaan','pork!staan','p0rk!staan'\
-'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kok','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e',\
-'f-ck','f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x',\
-'s.3_x','s.3-x','s-3.x','s_3.x','s-3_x']#'butt',
+'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
+'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
+'s.3-x','s-3.x','s_3.x','s-3_x','sxsy']#'butt','kok'
 
 CORE_URDU_ABUSE_WORDS = ['phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','lanti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
 'phdi','lanat','lant','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharwe','phutti','chod','kuss','mujra','mjra','mojra',\
@@ -28,8 +28,8 @@ CORE_URDU_ABUSE_WORDS = ['phuddi','phudi','phodi','lun','choot','gashti','gandu'
 'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay']
 
 
-CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','nazi','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','naz!',\
-'1s1s','!s!s','is-is','is_is','is.is','terrorist','terr0rist','terror!st','terr0r!st','terorist','ter0rist','teror!st','ter0r!st','hindutva','hindutwa',\
+CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\
+'!s!s','is-is','is_is','is.is','terrorist','terr0rist','terror!st','terr0r!st','terorist','ter0rist','teror!st','ter0r!st','hindutva','hindutwa',\
 'i.s.i.s','h.i.t.l.e.r']
 
 MISC_POLITICALLY_SENSITIVE_WORDS = ['india','pakistan','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\

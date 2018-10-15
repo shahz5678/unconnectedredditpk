@@ -61,7 +61,7 @@ def export_nicknames_csv(request):
 			wtr.writerow(columns)
 			for user in hell_banned_users:
 				user_id = user['user_id']
-				username = user['username']
+				username = user['username'].encode('utf-8')
 				date_joined = user['date_joined']
 				to_write = [user_id,date_joined,username]
 				wtr.writerows([to_write])

@@ -1,9 +1,102 @@
 import time
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
-from .redis1 import clean_up_feedback, get_website_feedback, save_website_feedback_user_details, save_website_feedback, first_time_feedbacker, \
+from website_feedback_form import WebsiteDescriptiveFeedbackForm, WebsiteFeedbackUserDetailsForm, WebsiteChoicesFeedbackForm
+from redis1 import clean_up_feedback, get_website_feedback, save_website_feedback_user_details, save_website_feedback, first_time_feedbacker, \
 add_website_feedbacker
-from .website_feedback_form import WebsiteDescriptiveFeedbackForm, WebsiteFeedbackUserDetailsForm, WebsiteChoicesFeedbackForm
+from views import convert_to_epoch
+from models import HellBanList
+
+############################################## Nicknames extractor ################################################
+
+
+def retrieve_hell_banned_nicknames():
+	"""
+	Populates hell_banned nicknames in a sorted set (sorted by joining time)
+	"""
+	hell_banned_user_and_times = HellBanList.objects.all().values('condemned_id','when')
+	hell_banned_user_ids = []
+	nicks_and_ban_times = {}
+	for dictionary in hell_banned_user_and_times:
+		banned_id, ban_time = dictionary['condemned_id'], dictionary['when']
+		hell_banned_user_ids.append(dictionary['condemned_id'])
+		nicks_and_ban_times[banned_id] = convert_to_epoch(ban_time)
+	hell_banned_users = User.objects.filter(id__in=hell_banned_user_ids).values('id','username','date_joined')
+	banned_usernames_and_ban_times = []
+	for user in hell_banned_users:
+		user_id = user['id']
+		username = user['username']
+		date_joined = user['date_joined']
+		banned_usernames_and_ban_times.append({'username':username,'user_id':user_id,'date_joined':date_joined})
+	return banned_usernames_and_ban_times
+
+
+def retrieve_regular_nicknames(how_many):
+	"""
+	Populates hell_banned nicknames in a sorted set (sorted by joining time)
+	"""
+	hell_banned_user_ids = HellBanList.objects.all().values_list('condemned_id',flat=True)
+	regular_users = User.objects.order_by('-id').values_list('id','username','date_joined')[:how_many]
+	usernames_and_joining_time = []
+	for user_id, username, date_joined in regular_users:
+		if user_id not in hell_banned_user_ids:
+			usernames_and_joining_time.append({'username':username,'user_id':user_id,'date_joined':date_joined})
+	return usernames_and_joining_time
+
+
+def export_nicknames_csv(request):
+	"""
+	Retrieve all hell-banned usernames for parsing into "good" and "bad"
+	"""
+	hell_banned_users = retrieve_hell_banned_nicknames()
+	regular_users = retrieve_regular_nicknames(how_many=20000)
+	
+	if hell_banned_users:
+		import csv
+		filename = 'hell_banned_nicks_'+str(int(time.time()))+'.csv'
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = "user_id date_joined username".split()
+			wtr.writerow(columns)
+			for user in hell_banned_users:
+				user_id = user['user_id']
+				username = user['username']
+				date_joined = user['date_joined']
+				to_write = [user_id,date_joined,username]
+				wtr.writerows([to_write])
+	if regular_users:
+		import csv
+		filename = 'regular_nicks_'+str(int(time.time()))+'.csv'
+		with open(filename,'wb') as f:
+			wtr = csv.writer(f)
+			columns = "user_id date_joined username".split()
+			wtr.writerow(columns)
+			for user in regular_users:
+				user_id = user['user_id']
+				username = user['username'].encode('utf-8')
+				date_joined = user['date_joined']
+				to_write = [user_id,date_joined,username]
+				wtr.writerows([to_write])
+	return render(request,"404.html",{})
+
+###################################################################################################################
+
+# Survey 2:
+
+# "1) Agr ap ke koi dost Damadam chur ke gaye hain tu us ki kiya waja thi?"
+# "2) Damadam mein kon si aisee cheez badli hai jo ap ko buri lagi ho?"
+# "3) Ap Damadam mein kiya shamil kerna chaho ge?"
+# "4) Damadam mein ap ko kis cheez ka sub se zada faida hota hai?"
+# "5) Damadam ki sub se boring cheez kiya lagti hai, aur kiun?"
+
+# Survey 1:
+
+# "1) Agr ap Damadam choro, tou kis wajah se choro ge?"
+# "2) Ap Damadam mein sab se ziyada kiya istimal kartey ho?"
+# "3) Damadam mein aisa kuch hai jo Facebook mein nahi?"
+# "4) Damadam mein aisa kuch hai jo Whatsapp mein nahi?"
+# "5) Damadam ki sab se ziyada mazedar baat kiya hai?"
 
 @csrf_protect
 def see_website_feedback(request,*args,**kwargs):
@@ -177,19 +270,3 @@ def website_feedback(request,*args,**kwargs):
 				return render(request,"website_descriptive_feedback.html",context)
 	else:
 		return render(request,"404.html",{})
-
-# Survey 2:
-
-# "1) Agr ap ke koi dost Damadam chur ke gaye hain tu us ki kiya waja thi?"
-# "2) Damadam mein kon si aisee cheez badli hai jo ap ko buri lagi ho?"
-# "3) Ap Damadam mein kiya shamil kerna chaho ge?"
-# "4) Damadam mein ap ko kis cheez ka sub se zada faida hota hai?"
-# "5) Damadam ki sub se boring cheez kiya lagti hai, aur kiun?"
-
-# Survey 1:
-
-# "1) Agr ap Damadam choro, tou kis wajah se choro ge?"
-# "2) Ap Damadam mein sab se ziyada kiya istimal kartey ho?"
-# "3) Damadam mein aisa kuch hai jo Facebook mein nahi?"
-# "4) Damadam mein aisa kuch hai jo Whatsapp mein nahi?"
-# "5) Damadam ki sab se ziyada mazedar baat kiya hai?"

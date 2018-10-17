@@ -15,11 +15,13 @@ import re
 def validate_string_chars(value, banned_nicks, lang=None):
 	reg = re.compile('^[\w\s.@+-]+$')
 	if not reg.match(value):
-		raise ValidationError(retrieve_validation_error_string('invalid_new_nick',lang=lang))
-	for name in banned_nicks:
-		if name.lower() in value.lower():
-			invalid_nick_logger(name,value)
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload=name.capitalize()))
+		return False, 'invalid_new_nick', None
+	else:
+		for name in banned_nicks:
+			if name.lower() in value.lower():
+				invalid_nick_logger(name,value)
+				return False, 'banned_sequence_in_nick', name.capitalize()
+	return True, '', None
 
 
 ############################################# Forgot Password ##############################################
@@ -196,29 +198,35 @@ class ForgettersNicknameForm(forms.Form):
 		if not username:
 			raise forms.ValidationError(retrieve_validation_error_string('required_visible_nick',lang=lang))
 		else:
-			validate_string_chars(username, BANNED_FORGOTTEN_NICKS, lang)
-			exists = check_nick_status(nickname=username)
-			if exists is True:
-				try:
-					# nick exists, try to retrieve the existing nickname's ID
-					user_id = User.objects.only('id').get(username=username).id
-				except User.DoesNotExist:
+			is_valid, err_string, payload = validate_string_chars(username, BANNED_FORGOTTEN_NICKS, lang)
+			if is_valid:
+				exists = check_nick_status(nickname=username)
+				if exists is True:
+					try:
+						# nick exists, try to retrieve the existing nickname's ID
+						user_id = User.objects.only('id').get(username=username).id
+					except User.DoesNotExist:
+						raise forms.ValidationError(retrieve_validation_error_string('not_found',lang=lang,payload=username))
+					return username, user_id
+				elif exists is False:
 					raise forms.ValidationError(retrieve_validation_error_string('not_found',lang=lang,payload=username))
-				return username, user_id
-			elif exists is False:
-				raise forms.ValidationError(retrieve_validation_error_string('not_found',lang=lang,payload=username))
-			elif exists is '1':
-				raise forms.ValidationError(retrieve_validation_error_string('bad_case',lang=lang,payload=username))
-			elif exists is '0':
-				#this shouldn't happen - the specific form of a nickname can't exist without its generic form in our DB
-				pass
-			elif exists is None:
-				#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it
-				try:
-					user_id = User.objects.only('id').get(username=username).id
-				except User.DoesNotExist:
-					raise forms.ValidationError(retrieve_validation_error_string('not_found',lang=lang,payload=username))
-				return username, user_id
+				elif exists is '1':
+					raise forms.ValidationError(retrieve_validation_error_string('bad_case',lang=lang,payload=username))
+				elif exists is '0':
+					#this shouldn't happen - the specific form of a nickname can't exist without its generic form in our DB
+					pass
+				elif exists is None:
+					#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it
+					try:
+						user_id = User.objects.only('id').get(username=username).id
+					except User.DoesNotExist:
+						raise forms.ValidationError(retrieve_validation_error_string('not_found',lang=lang,payload=username))
+					return username, user_id
+			else:
+				if err_string == 'invalid_new_nick':
+					raise ValidationError(retrieve_validation_error_string(err_string,lang=lang))
+				elif err_string == 'banned_sequence_in_nick':
+					raise ValidationError(retrieve_validation_error_string(err_string,lang=lang,payload=payload))
 
 ############################################################################################################
 
@@ -546,80 +554,85 @@ class CreateNickNewForm(forms.Form):
 		elif username[-1:] == '_':
 			raise ValidationError(retrieve_validation_error_string('uscore_at_nick_end',lang=lang))
 		elif '..' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='..'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='..'))
 		elif '--' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='--'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='--'))
 		elif '__' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='__'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='__'))
 		elif '++' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='++'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='++'))
 		elif '+.' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='+.'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+.'))
 		elif '+-' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='+-'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+-'))
 		elif '+_' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='+_'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+_'))
 		elif '.+' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='.+'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='.+'))
 		elif '-+' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='-+'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-+'))
 		elif '_+' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='_+'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_+'))
 		elif '-.' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='-.'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-.'))
 		elif '-_' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='-_'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-_'))
 		elif '.-' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='.-'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='.-'))
 		elif '_-' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='_-'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_-'))
 		elif '_.' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='_.'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_.'))
 		elif '._' in username:
-			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_nick',lang=lang,payload='._'))
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='._'))
 		
-		validate_string_chars(username, BANNED_NICKS, lang)
-
-		exists = nick_already_exists(nickname=username)
-		altered = {}
-		if exists is None:
-			#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it (can't give suggestions)
-			if ' ' in username:
-				username_original = username
-				username = ''.join(username.split())
-				altered = {'status':'joined'}
-				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username_original))
-			else:
-				if User.objects.filter(username__iexact=username).exists():
-					raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username))
-			return [username], altered, username
-		############################################
-		else:
-			# form variants and suggestions
-			# check all against redis DB
-			if ' ' in username:
-				alternatives = form_variants(username) #returns list of tuples containing variants and their statuses
-				alt_choices = process_choices(alternatives)
-				if not alt_choices:
-					# no suggestions could be unearthed
-					raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username))
-				else:
-					# some suggestions unearthed
+		is_valid, err_string, payload = validate_string_chars(username, BANNED_NICKS, lang)
+		if is_valid:
+			exists = nick_already_exists(nickname=username)
+			altered = {}
+			if exists is None:
+				#the redis DB is compromised, use PSQL DB. Check nick against DB, that's it (can't give suggestions)
+				if ' ' in username:
+					username_original = username
+					username = ''.join(username.split())
 					altered = {'status':'joined'}
-					return alt_choices, altered, username
+					if User.objects.filter(username__iexact=username).exists():
+						raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username_original))
+				else:
+					if User.objects.filter(username__iexact=username).exists():
+						raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username))
+				return [username], altered, username
+			############################################
 			else:
-				if exists:
-					# nick is not available
-					alternatives = form_suggestions(username) #returns list of tuples containing suggestions and their statuses
+				# form variants and suggestions
+				# check all against redis DB
+				if ' ' in username:
+					alternatives = form_variants(username) #returns list of tuples containing variants and their statuses
 					alt_choices = process_choices(alternatives)
 					if not alt_choices:
+						# no suggestions could be unearthed
 						raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username))
 					else:
-						altered = {'status':'replaced'}
+						# some suggestions unearthed
+						altered = {'status':'joined'}
 						return alt_choices, altered, username
 				else:
-					#nick is available
-					return [username], altered, username
+					if exists:
+						# nick is not available
+						alternatives = form_suggestions(username) #returns list of tuples containing suggestions and their statuses
+						alt_choices = process_choices(alternatives)
+						if not alt_choices:
+							raise ValidationError(retrieve_validation_error_string('nick_is_taken',lang=lang,payload=username))
+						else:
+							altered = {'status':'replaced'}
+							return alt_choices, altered, username
+					else:
+						#nick is available
+						return [username], altered, username
+		else:
+			if err_string == 'invalid_new_nick':
+				raise ValidationError(retrieve_validation_error_string(err_string,lang=lang))
+			elif err_string == 'banned_sequence_in_nick':
+				raise ValidationError(retrieve_validation_error_string(err_string,lang=lang,payload=payload))
 
 ############################################################################################################

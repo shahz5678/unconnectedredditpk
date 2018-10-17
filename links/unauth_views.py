@@ -64,7 +64,7 @@ def logout_then_login(request):
 			CSRF = csrf.get_token(request)
 			temporarily_save_user_csrf(str(request.user.id), CSRF)
 			return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
-			return render(request, 'unable_to_submit_without_verifying.html', {'logout':True})
+			#return render(request, 'unable_to_submit_without_verifying.html', {'logout':True})
 	else:
 		return redirect("home")
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 import shortuuid
 from django.db import transaction
 from django.contrib.auth import login as quick_login
@@ -14,7 +15,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, insert_nick, temporarily_save_user_csrf, set_forgot_password_rate_limit, \
-is_forgot_password_rate_limited, twiliolog_user_verified, twiliolog_pin_sms_sent#, log_forgot_password
+is_forgot_password_rate_limited, twiliolog_user_verified, twiliolog_pin_sms_sent, log_post_banned_username#, log_forgot_password, is_sms_sending_rate_limited
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ForgettersNicknameForm, ResetForgettersPasswordForm, SignInForm,\
 ForgettersMobileNumber, ForgettersPin
 from forms import getip
@@ -63,7 +64,7 @@ def logout_then_login(request):
 			CSRF = csrf.get_token(request)
 			temporarily_save_user_csrf(str(request.user.id), CSRF)
 			return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
-			#return render(request, 'unable_to_submit_without_verifying.html', {'csrf':CSRF,'logout':True})
+			return render(request, 'unable_to_submit_without_verifying.html', {'logout':True})
 	else:
 		return redirect("home")
 
@@ -313,6 +314,15 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 				except:
 					pass
 				request.session["first_time_user"] = 1
+				#############
+				#############
+				#############
+				tried_banned_word = request.session.pop("banned_word_caught",None)
+				if tried_banned_word == '1':
+					log_post_banned_username(username)
+				#############
+				#############
+				#############
 				return redirect("new_user_gateway",lang=lang)
 			else:
 				# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values
@@ -429,6 +439,19 @@ def create_nick_new(request,lang=None,*args,**kwargs):
 						return redirect('create_password_new',slug=result,length=length)
 			else:
 				template_name = 'unauth/create_nick_new_ur.html' if lang == 'ur' else 'unauth/create_nick_new.html'
+				##################
+				##################
+				##################
+				try:
+					err_string = form.errors.as_text().split("*")[2]
+					if err_string[-5:].encode("utf-8") in ('sakta','ڈالیں'):
+						request.session["banned_word_caught"] = '1'
+						request.session.modified = True
+				except (IndexError,TypeError):
+					pass
+				##################
+				##################
+				##################
 				return render(request, template_name, {'form':form})
 	else:
 		template_name = 'unauth/create_nick_new_ur.html' if lang == 'ur' else 'unauth/create_nick_new.html'

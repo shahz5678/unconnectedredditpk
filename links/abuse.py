@@ -12,20 +12,20 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
 's.3-x','s-3.x','s_3.x','s-3_x','sxsy']#'anus',butt','kok'
 
-CORE_URDU_ABUSE_WORDS = ['aunty','phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','lanti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
-'phdi','lanat','lant','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharwe','phutti','chod','kuss','mujra','mjra','mojra',\
+CORE_URDU_ABUSE_WORDS = ['aunty','phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
+'phdi','lanat','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharwe','phutti','chod','kuss','mujra','mjra','mojra',\
 'bund','tawaif','twaif',' dalla ','dlla','chdai','chudai','bhosra','bhosri','bhosre','mammay','mammey','lora','lowra','khuss','qus','qhus','bhosri','bhosry',\
-'bosri','bosry','phati','phtti','phti','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri','ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phudd!','phud!',\
+'bosri','bosry','phati','phtti','phti','phoodi','pyasi','pyasa','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri','ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phudd!','phud!',\
 'gasht!','1anat','da11a','d11a','h!jra','hijjra','hjra','khassi','qhassi','khasi','qhasi','kutte','rundi','rund!','sooar','suar','suer','sooer','soowar',\
 'soower','suuer','suuar','mamey','bhosad','bhosd','ch00t',' muth ','bhosda','choosay','choosti','choosta','chodun','chodho','chuda!','lorray',' gand ','phdy',\
 '1orra','1ora','ghasti','gasti','gast!','chuse','charh','randee','randy','rande','rand!','tattay','tatay','tutta','tutty','tutti','tatti','tatey','tetti',\
-' tati ','gasht1','gast1','rand1','tutt1','tatt1','tatte','tutte','tutta','salle','mumma','kanjar','kunjur','kunjer','kanjer','kanjr','kenjr','kanjjar','kannjar',\
-'canjar','canjer','kenjer','kuta','kutey','kutay','qutay','fuddi','fudi','fudddi','phudddi','phdddi','chaval','podi','p0di','p0d!','pudd!','pudi','soor',\
+' tati ','gasht1','gast1','gand','rand1','tutt1','tatt1','tatte','tutte','tutta','salle','mumma','kanjar','kunjur','kunjer','kanjer','kanjr','kenjr','kanjjar','kannjar',\
+'canjar','canjer','kenjer','kuta','kutey','kutay','k@njr','qutay','fuddi','fudi','fudddi','phudddi','phdddi','chaval','podi','p0di','p0d!','pudd!','pudi','soor',\
 'pudda','puddda','pdda','yawan','yaawan','khusra','kusra','qhusra','qusra','yawaan','yavan','yaavan','yavaan','yuvai','yuwai','yuvay','yvai','ywai','yave',\
 'ph-ddi','ph_ddi','ph.ddi','hij-ra','h1jra','h!jra','ran-di','ran_di','ran.di','hij.ra','h1j.ra','qhussra','khussra','kuty','p.h.u.d.i','p.h.u.d.d.i',\
 'l.u.n','g.a.n.d','r.a.n.d.i','g.a.s.h.t.i','h.i.j.r.a','c.h.o.o.t','p.h.o.d.i','l.u.u.n','g.s.h.t.i','r.n.d.i','k.u.s.s','k.h.u.s.s','1.u.n','h.1.j.r.a',\
 'k.a.n.j.a.r','f.u.d.d.i','f.u.d.i','p.o.d.i','p.u.d.d.a','p.u.d.d.d.a','k.h.u.s.r.a','yavai','y.a.v.a.i','y.u.v.a.i','l.u.l','c.h.o.d','s.u.a.r','p.d.d.a',\
-'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay']
+'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay']#lanti,lant
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\

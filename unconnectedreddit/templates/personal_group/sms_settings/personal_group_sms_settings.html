@@ -61,21 +61,15 @@
 
 	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
 		<div class="mbs cxl">Pehlay apna mobile number verify karwain</div>
-		<form method="get" class="mtl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/" style="display:inline;">
-		  <input type="hidden" name="country_code" value="PK">
-		  <input type="hidden" name="app_id" value="1758220174446684">
-		  <input type="hidden" name="locale" value="ur_PK">
-		  <input type="hidden" name="debug" value=false>
-		  <input type="hidden" name="redirect" value="https://damadam.pk/vpg/">
-		  <input type="hidden" name="state" value="{{ csrf }}">
-		  <input type="hidden" name="fbAppEventsEnabled" value=true>
-		  <button type="submit" class="btn bcb bm mrs mbs cl pg_ok" style="border:none;height:30px;" name="mver" value="1">OK</button>
-		</form>
-		<form method="POST" class="mts" action="{% url 'enter_personal_group' %}" style="display:inline;">
+		
+		{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+
+		<form method="POST" class="mts" action="{% url 'enter_personal_group' %}">
 			{% csrf_token %}
 			<input type="hidden" name="tid" value="{{ tid }}">
-			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts mls" value="Cancel">
+			<input type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mts" value="Cancel">
 		</form>
+
 	</div>
 
 {% endif %}

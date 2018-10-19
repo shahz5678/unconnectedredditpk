@@ -3,7 +3,11 @@
 <head><title>User verification | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
+{% if for_personal_group %}
+<h1 class="cxl lsp clb" style="text-align:center">Enter your mobile number:</h1>
+{% else %}
 <h1 class="cxl lsp clb" style="text-align:center">Verify your account:</h1>
+{% endif %}
 
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
 

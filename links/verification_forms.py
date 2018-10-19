@@ -84,6 +84,7 @@ class MobileVerificationForm(forms.Form):
 
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
+		self.allow_reverification = kwargs.pop('allow_reverification',None)
 		super(MobileVerificationForm, self).__init__(*args, **kwargs)
 		self.fields['phonenumber'].widget.attrs['style'] = 'width:95%;height:30px;border-radius:10px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
 		self.fields['phonenumber'].widget.attrs['autofocus'] = 'on'	
@@ -93,7 +94,8 @@ class MobileVerificationForm(forms.Form):
 	
 	def clean_phonenumber(self):
 		phonenumber = self.cleaned_data.get('phonenumber')
-		already_verified = is_mobile_verified(self.user_id)
+		user_id = self.user_id
+		already_verified = is_mobile_verified(user_id)
 		mobile_length = len(phonenumber)
 		if phonenumber[0] != '0':
 			raise forms.ValidationError('Mobile number "0" se start karein')
@@ -104,11 +106,12 @@ class MobileVerificationForm(forms.Form):
 		elif phonenumber == '03451234567':
 			raise forms.ValidationError('Apna real mobile number likhein')
 		elif already_verified:
-			raise forms.ValidationError('Ap pehley se verified hain')
-		ttl = is_sms_sending_rate_limited(self.user_id)
+			if not self.allow_reverification:
+				raise forms.ValidationError('Ap pehley se verified hain')
+		ttl = is_sms_sending_rate_limited(user_id)
 		if ttl:
 			raise forms.ValidationError('Ap dubara SMS receive kar sakein ge {0} baad'.format(secs_to_mins(ttl)))
-		check = someone_elses_number(phonenumber[-10:],self.user_id)
+		check = someone_elses_number(phonenumber[-10:],user_id)
 		if check: 
 			raise forms.ValidationError('Ye number kisi aur user ka hai, koi aur number likhien')
 			#Check if phone number associated with another profile
@@ -125,6 +128,7 @@ class PinVerifyForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id',None)
+        self.allow_reverification = kwargs.pop('allow_reverification',None)
         super(PinVerifyForm, self).__init__(*args, **kwargs)
         self.fields['pinnumber'].widget.attrs['style'] = 'width:80px;height:30px;border-radius:10px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
         self.fields['pinnumber'].widget.attrs['class'] = 'cxl'
@@ -132,13 +136,17 @@ class PinVerifyForm(forms.Form):
         self.fields['pinnumber'].widget.attrs['autocomplete'] = 'off'
             
     def clean_pinnumber(self):
+    	user_id = self.user_id
         pinnumber = self.cleaned_data.get('pinnumber')
-        if len(pinnumber) < 5:
+        already_verified = is_mobile_verified(user_id)
+        if already_verified and not self.allow_reverification:
+        		raise forms.ValidationError('Ap pehley se verified hain')
+        elif len(pinnumber) < 5:
             raise forms.ValidationError('Pura pin code likhien')
         else:
-            logged, ttl = log_pin_attempt(self.user_id)
+            logged, ttl = log_pin_attempt(user_id)
             if logged:
-                exists, status = verify_user_pin(self.user_id,pinnumber)    
+                exists, status = verify_user_pin(user_id,pinnumber)    
                 if exists:
                     return status
                 else:
@@ -146,14 +154,7 @@ class PinVerifyForm(forms.Form):
                         raise forms.ValidationError('Apki pin ghalat hai')
                     else:
                         #return when pin is invalid or has expired
-                        invalidate_user_pin(self.user_id)
+                        invalidate_user_pin(user_id)
                         return status
             else:
                 raise forms.ValidationError('Ziyada ghalat tries ho gaien, {0} baad wapis aien'.format(secs_to_mins(ttl)))
-
-				
-
-
-
-
-

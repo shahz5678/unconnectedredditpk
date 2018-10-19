@@ -1918,6 +1918,23 @@ def log_pin_attempt(user_id):
 			return True, None
 
 
+def set_forgot_password_rate_limit(user_id):
+	"""
+	Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
+	"""
+	redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
+
+def is_forgot_password_rate_limited(user_id):
+	"""
+	Checks if user already recently reset their password, and stops them from doing it again so soon
+	"""
+	ttl = redis.Redis(connection_pool=POOL).ttl("prrl:"+str(user_id))
+	if ttl > 3:
+		return ttl
+	else:
+		return None
+
+################################################### Twilio usage related loggers ###########################
 def twiliolog_pin_sms_sent(forgot_pass=False):
 	"""
 	this function logs the number of smses sent out for verification
@@ -1936,22 +1953,18 @@ def twiliolog_user_verified(forgot_pass=False):
 	else:
 		redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
 
+def twiliolog_reverification_pin_sms_sent(forgot_pass=False):
+    """
+    This function logs the number of smses sent out for reverification
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_reverified_sms_count") 
 
-def set_forgot_password_rate_limit(user_id):
-	"""
-	Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
-	"""
-	redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
+def twiliolog_user_reverified(forgot_pass=False):
+    """
+    This function logs the number of reverified users through twilio
+    """
+    redis.Redis(connection_pool=POOL).incr("twilio_reverified_count")
 
-def is_forgot_password_rate_limited(user_id):
-	"""
-	Checks if user already recently reset their password, and stops them from doing it again so soon
-	"""
-	ttl = redis.Redis(connection_pool=POOL).ttl("prrl:"+str(user_id))
-	if ttl > 3:
-		return ttl
-	else:
-		return None
 
 
 #########################################Invalid Nickname Logger##################################
@@ -1973,3 +1986,6 @@ def log_post_banned_username(username):
 	myserver = redis.Redis(connection_pool=POOL)
 	myserver.lpush("post_abuse_nicks",username)
 	myserver.ltrim("post_abuse_nicks",0,999)
+
+
+

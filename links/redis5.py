@@ -2015,6 +2015,18 @@ def set_personal_group_target_id_and_csrf(own_id, target_id, csrf):
 	pipeline1.setex("pgmvcsrf:"+own_id,csrf,ONE_DAY)
 	pipeline1.execute()
 
+def get_personal_group_target_id(own_id):
+    """
+    Getting temporarily saved "tid" to redirect user back to group after mobile number verification
+    """
+    return redis.Redis(connection_pool=POOL).get("pgmvtid:"+str(own_id))
+
+def set_personal_group_target_id(own_id, target_id):
+    """
+    Temporarily saving 'tid' while user verifies their mobile number from a personal group
+    """
+    redis.Redis(connection_pool=POOL).setex("pgmvtid:"+str(own_id),target_id,ONE_DAY)
+
 
 def set_personal_group_mobile_num_cooloff(own_id):
 	"""

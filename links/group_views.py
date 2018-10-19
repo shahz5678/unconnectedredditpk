@@ -21,7 +21,7 @@ delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_cont
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
 set_personal_group_anon_state, create_personal_group, toggle_personal_group_photo_settings, get_personal_group_photo_rec_settings, ignore_invite,\
 personal_group_image_transfer_not_permitted, set_personal_group_photo_permission, personal_group_photo_xfer_invite_allwd, get_user_sms_setting,\
-retrieve_all_personal_group_images, delete_or_hide_photo_from_settings, enable_personal_group_sms_rec, set_personal_group_target_id_and_csrf, \
+retrieve_all_personal_group_images, delete_or_hide_photo_from_settings, enable_personal_group_sms_rec, set_personal_group_target_id, \
 disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_invite_list, set_sms_notif_from_chat, retrieve_user_group_list_contents,\
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
@@ -1732,10 +1732,11 @@ def personal_group_receive_sms(request):
 				which_num = request.POST.get("mob",None)
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				if which_num == 'new':
-					CSRF = csrf.get_token(request)
-					set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
-					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'csrf':CSRF,'tid':tid,\
-						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status})
+					#CSRF = csrf.get_token(request)
+					#set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					set_personal_group_target_id(own_id, tid)
+					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'tid':tid,\
+						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status})#'csrf':CSRF
 				else:
 					mobnums = get_user_verified_number(own_id)
 					try:
@@ -1767,12 +1768,13 @@ def personal_group_receive_sms(request):
 							'avatar':their_avurl}
 						return render(request,"personal_group/sms_settings/personal_group_mobile_number_selection.html",context)
 					else:
-						CSRF = csrf.get_token(request)
-						set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+						# CSRF = csrf.get_token(request)
+						# set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+						set_personal_group_target_id(own_id, tid)
 						mobunver_rec = '1'
 						return render(request,"personal_group/sms_settings/personal_group_sms_settings.html",{'their_anon':their_anon_status,\
-							'tid':tid,'name':their_uname,'smsrec':sms_rec, 'mobunver_rec':mobunver_rec,'csrf':CSRF,'sms_text':sms_text,\
-							'avatar':their_avurl,'is_verified':request.mobile_verified})
+							'tid':tid,'name':their_uname,'smsrec':sms_rec, 'mobunver_rec':mobunver_rec,'sms_text':sms_text,\
+							'avatar':their_avurl,'is_verified':request.mobile_verified})#'csrf':CSRF
 			else:
 				return redirect("enter_personal_group")		
 	else:
@@ -1797,10 +1799,11 @@ def personal_group_receive_sms_from_chat(request):
 				which_num = request.POST.get("mob",None)
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				if which_num == 'new':
-					CSRF = csrf.get_token(request)
-					set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
-					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'csrf':CSRF,'tid':tid,\
-						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status})
+					#CSRF = csrf.get_token(request)
+					#set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					set_personal_group_target_id(own_id, tid)
+					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'tid':tid,\
+						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status})#'csrf':CSRF
 				else:
 					mobnums = get_user_verified_number(own_id)
 					try:
@@ -1828,10 +1831,11 @@ def personal_group_receive_sms_from_chat(request):
 						'avatar':their_avurl,'tid':tid}
 					return render(request,"personal_group/sms_settings/personal_group_mobile_number_selection.html",context)
 				else:
-					CSRF = csrf.get_token(request)
-					set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					#CSRF = csrf.get_token(request)
+					#set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					set_personal_group_target_id(own_id, tid)
 					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'their_anon':their_anon_status,\
-					'avatar':their_avurl,'tid':tid,'name':their_uname,'csrf':CSRF,'from_chat':True})
+					'avatar':their_avurl,'tid':tid,'name':their_uname,'from_chat':True})#'csrf':CSRF
 			elif sms_decision == '0':
 				bid = request.POST.get("bid",None)
 				set_sms_notif_from_chat(group_id, tid, bid)

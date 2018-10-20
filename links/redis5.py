@@ -77,6 +77,13 @@ rlfs:<user_id> 'rate_limit_photo_sharing' is a key that rate limits sharing beha
 ###########
 '''
 
+#########################################
+
+PERSONAL_GROUP_INVITES_SENT = "pgis:" # personal group invites sent - this is a sorted set containing invites sent by a user
+PERSONAL_GROUP_INVITES_RECEIVED = "pgir:" # personal group invites received - this is a sorted set containing invites received by a user
+
+#########################################
+
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC5, db=0)
 
 THREE_SECS = 3
@@ -2121,7 +2128,13 @@ def return_invite_list(own_id, start_idx, end_idx):
 	# trim list before returning
 	if not my_server.exists(rate_limit_key):
 		pipeline1 = my_server.pipeline()
-		pipeline1.zremrangebyscore(sorted_set,'-inf',time.time()-1.0)
+		pipeline1.zremrangebyscore(sorted_set,'-inf',time.time())
+		##########################
+		##########################
+		pipeline1.zremrangebyscore(PERSONAL_GROUP_INVITES_RECEIVED+own_id,'-inf',time.time())
+		pipeline1.zremrangebyscore(PERSONAL_GROUP_INVITES_SENT+own_id,'-inf',time.time())
+		##########################
+		##########################
 		# ratelimiting trimming call
 		pipeline1.setex("ilt:"+own_id,1,EIGHT_MINS)
 		pipeline1.execute()
@@ -2150,6 +2163,20 @@ def interactive_invite_privacy_settings(own_id, own_username, target_id, target_
 			pipeline1.execute()
 			reset_ttl("pgil:"+target_id,my_server)
 			reset_ttl("pgil:"+own_id,my_server)
+			###############################
+			###############################
+			sent_sorted_set = PERSONAL_GROUP_INVITES_SENT+own_id
+			received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED+target_id
+			pipeline2 = my_server.pipeline()
+			pipeline2.zadd(sent_sorted_set, new_invite, expiry_time)
+			pipeline2.zadd(received_sorted_set, new_invite, expiry_time)
+			pipeline2.zrem(sent_sorted_set, invite)
+			pipeline2.zrem(received_sorted_set, invite)
+			pipeline2.execute()
+			reset_ttl(sent_sorted_set,my_server)
+			reset_ttl(received_sorted_set,my_server)
+			###############################
+			###############################
 
 
 def ignore_invite(own_id, own_username, their_id, their_username):
@@ -2187,6 +2214,15 @@ def ignore_invite(own_id, own_username, their_id, their_username):
 	# reseting invite list TTL
 	if my_server.exists(sorted_set):
 		reset_ttl(sorted_set, my_server)
+	###############################
+	###############################
+	received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED+own_id
+	my_server.zrem(received_sorted_set,*invites)
+	# reseting invite list TTL
+	if my_server.exists(received_sorted_set):
+		reset_ttl(received_sorted_set, my_server)
+	###############################
+	###############################
 
 
 def process_invite_sending(own_id, own_username, target_id, target_username):
@@ -2215,12 +2251,26 @@ def process_invite_sending(own_id, own_username, target_id, target_username):
 	pipeline1.expireat(target_sorted_set, expiry_time)
 	pipeline1.expireat(own_sorted_set, expiry_time)
 	pipeline1.execute()
+	###############################
+	###############################
+	sent_sorted_set = PERSONAL_GROUP_INVITES_SENT+own_id
+	received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED+target_id
+	pipeline2 = my_server.pipeline()
+	pipeline2.zadd(received_sorted_set, invite, expiry_time)
+	pipeline2.zadd(sent_sorted_set, invite, expiry_time)
+	pipeline2.expireat(received_sorted_set, expiry_time)
+	pipeline2.expireat(sent_sorted_set, expiry_time)
+	pipeline2.execute()
+	###############################
+	###############################
 	return True, None
 
 
 def sanitize_personal_group_invites(own_id, own_username, target_id, target_username):
 	"""
 	Run once personal group has been created
+
+	It's only called in situation where 'they invited me' (anonymously or not)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
@@ -2239,7 +2289,14 @@ def sanitize_personal_group_invites(own_id, own_username, target_id, target_user
 		reset_ttl(target_sorted_set, my_server)
 	if my_server.exists(own_sorted_set):
 		reset_ttl(own_sorted_set, my_server)
-
+	###############################
+	###############################
+	sent_sorted_set = PERSONAL_GROUP_INVITES_SENT+target_id
+	received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED+own_id
+	my_server.zrem(received_sorted_set, *their_invite)	
+	my_server.zrem(sent_sorted_set, *their_invite)
+	###############################
+	###############################
 
 
 ######################################## Personal Group Creation & Existence ########################################

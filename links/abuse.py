@@ -10,7 +10,8 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'b1tch','brest','vu1va','p1mp','sh!t','p!mp','wh0re','porkistan','p0rkistan','pork!stan','p0rk!stan','porkistaan','p0rkistaan','pork!staan','p0rk!staan'\
 'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
-'s.3-x','s-3.x','s_3.x','s-3_x','sxsy']#'anus',butt','kok'
+'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','hot','bobs','sixy','x.xx']#'anus',butt','kok'
+
 
 CORE_URDU_ABUSE_WORDS = ['aunty','phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
 'phdi','lanat','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharwe','phutti','chod','kuss','mujra','mjra','mojra',\
@@ -25,7 +26,9 @@ CORE_URDU_ABUSE_WORDS = ['aunty','phuddi','phudi','phodi','lun','choot','gashti'
 'ph-ddi','ph_ddi','ph.ddi','hij-ra','h1jra','h!jra','ran-di','ran_di','ran.di','hij.ra','h1j.ra','qhussra','khussra','kuty','p.h.u.d.i','p.h.u.d.d.i',\
 'l.u.n','g.a.n.d','r.a.n.d.i','g.a.s.h.t.i','h.i.j.r.a','c.h.o.o.t','p.h.o.d.i','l.u.u.n','g.s.h.t.i','r.n.d.i','k.u.s.s','k.h.u.s.s','1.u.n','h.1.j.r.a',\
 'k.a.n.j.a.r','f.u.d.d.i','f.u.d.i','p.o.d.i','p.u.d.d.a','p.u.d.d.d.a','k.h.u.s.r.a','yavai','y.a.v.a.i','y.u.v.a.i','l.u.l','c.h.o.d','s.u.a.r','p.d.d.a',\
-'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay']#lanti,lant
+'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay','r@ndi','naangi','behn','bahn','-ki-','.ki.','_ki_','-ki_','_ki-',\
+'.ki_','_ki.','.ki-','-ki.','-ke-','.ke.','_ke_','-ke_','_ke-','.ke_','_ke.','.ke-','-ke.','gasshti','chuut','kanjjri','ghashti','ranndy','behen','behan',\
+'bahan','phuda']#lanti,lant
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\

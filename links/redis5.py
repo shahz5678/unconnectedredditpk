@@ -1880,7 +1880,7 @@ def personal_group_hard_deletion():
 		count, groups_and_participants = 0, []
 		for group_id in group_ids:
 			try:
-				participants = user_ids_pairs[count].split(":")
+				participants = user_id_pairs[count].split(":")
 				groups_and_participants.append((group_id,participants[0],participants[1]))
 			except (AttributeError, IndexError):
 				pass

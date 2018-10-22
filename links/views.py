@@ -49,7 +49,7 @@ HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListF
 AdFeedbackForm, SearchAdFeedbackForm, PhotoCommentForm#, GroupReportForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, Http404
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from user_sessions.models import Session
@@ -1907,9 +1907,8 @@ class UserProfilePhotosView(ListView):
 		context["error"] = False
 		try:
 			subject = User.objects.get(username=slug)
-		except:
-			context["error"] = True
-			return context
+		except User.DoesNotExist:
+			raise Http404("User ID does not compute")
 		star_id = subject.id
 		context["mobile_verified"] = self.request.mobile_verified if star_id == self.request.user.id else is_mobile_verified(star_id)
 		###########
@@ -7839,8 +7838,14 @@ def manage_user_help(request,*args,**kwargs):
 	else:
 		return render(request,"404.html",{})
 
+# def missing_page(request,*args,**kwargs):
+# 	return render(request,'404.html',{})
+
 def missing_page(request,*args,**kwargs):
-	return render(request,'404.html',{})
+    """
+    Responsible for giving a 404 HTTP Response
+    """
+    raise Http404("The page you requested has gone AWOL")
 
 # def LinkAutoCreate(user, content):   
 # 	link = Link()

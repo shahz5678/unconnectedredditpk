@@ -340,3 +340,9 @@ urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
 urlpatterns += urlpatterns_sharing
 urlpatterns += urlpatterns_verification
+
+
+handler404 = 'links.error_views.not_found'
+handler500 = 'links.error_views.server_error'
+handler403 = 'links.error_views.permission_denied'
+handler400 = 'links.error_views.bad_request'

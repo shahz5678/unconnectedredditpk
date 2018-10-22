@@ -1907,9 +1907,8 @@ class UserProfilePhotosView(ListView):
 		context["error"] = False
 		try:
 			subject = User.objects.get(username=slug)
-		except:
-			context["error"] = True
-			return context
+		except User.DoesNotExist:
+			raise Http404("User ID does not compute")
 		star_id = subject.id
 		context["mobile_verified"] = self.request.mobile_verified if star_id == self.request.user.id else is_mobile_verified(star_id)
 		###########

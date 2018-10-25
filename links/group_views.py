@@ -1926,7 +1926,7 @@ def render_personal_group_invite(request):
 					request.session.modified = True
 					return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,'target_av_url':\
 						target_av_url,'org':origin,'poid':parent_object_id})
-	return redirect("show_personal_group_invite_list")
+	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 
 
 

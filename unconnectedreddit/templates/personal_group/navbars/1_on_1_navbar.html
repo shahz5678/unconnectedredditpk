@@ -1,0 +1,40 @@
+{% if section == '1' %}
+<div class="mbl fx fxjscn fxaicn">
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/chat_boxes.svg" width="30" height="23" style="vertical-align:middle"></button>
+
+	{% if inv_count %}
+	<a href="{% url 'show_personal_group_invite_list' 'received' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><div class="sp" style="margin:0 auto;font-size:14px;color:darkgray;font-weight:bold">({{ inv_count }})</div></button></a>
+	{% else %}
+	<a href="{% url 'show_personal_group_invite_list' 'received' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/invite_received_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	{% endif %}
+
+	<a href="{% url 'show_personal_group_invite_list' 'sent' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/invite_sent_disabled.svg" width="22" height="22" style="vertical-align:middle"></button></a>
+</div>
+{% elif section == '2' %}
+<div class="mbl fx fxjscn fxaicn">
+	<a href="{% url 'personal_group_user_listing' %}"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/chat_boxes_disabled.svg" width="20" height="16" style="vertical-align:middle"></button></a>
+
+	{% if inv_count %}
+		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><div class="cb sp" style="margin:0 auto;font-size:18px;font-weight:bold">({{ inv_count }})</div></button>
+	{% else %}
+		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/invite_received.svg" width="30" height="30" style="vertical-align:middle"></button>
+	{% endif %}
+	
+	<a href="{% url 'show_personal_group_invite_list' 'sent' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/invite_sent_disabled.svg" width="22" height="22" style="vertical-align:middle"></button></a>
+</div>
+{% elif section == '3' %}
+<div class="mbl fx fxjscn fxaicn">
+	
+	<a href="{% url 'personal_group_user_listing' %}"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/chat_boxes_disabled.svg" width="20" height="16" style="vertical-align:middle"></button></a>
+	
+	{% if inv_count %}
+	<a href="{% url 'show_personal_group_invite_list' 'received' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><div class="sp" style="margin:0 auto;font-size:14px;color:darkgray;font-weight:bold">({{ inv_count }})</div></button></a>
+	{% else %}
+		<a href="{% url 'show_personal_group_invite_list' 'received' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/invite_received_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	{% endif %}
+
+	<button class="bizcard" type="submit" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/invite_sent.svg" width="32" height="32" style="vertical-align:middle"></button>
+
+</div>
+{% else %}
+{% endif %}

@@ -47,7 +47,7 @@
 					</a>
 				{% endif %}
 
-				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' %}">
+				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' 'sent' %}">
 				{% csrf_token %}
 				<input type="submit" class="cs sp cgy" style="background:0 0;border-top:0;border-left:0;border-right:0;border-bottom:1px dotted #A9A9A9;padding:0" value="see all invites">
 				</form>

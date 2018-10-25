@@ -1,5 +1,4 @@
 {% extends "base_pg.html" %}
-{% load get_private_chat_navbar %}
 {% load human_time %}
 {% load next_page %}
 {% load prev_page %}
@@ -32,7 +31,9 @@
 <div class="lsp">
 		
 		<div class="mbl" style="text-align:center">
-			{% private_chat_navbar static_url=STATIC_URL section='chats' %}
+
+			{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count='' %}
+
 			{% if num_pages < 2 %}
 			<h1 class="cxl">Chat with friends</h1>
 			{% else %}

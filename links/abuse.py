@@ -1,34 +1,34 @@
 CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc','phvk','sex','seks','s-e-x','s_e_x','s.e.x','s.e_x','s.e-x','s-e.x',\
 's_e.x','s-e_x','s_e-x','pusy','pussy','pssy','dick','penis','cock','vagina','vulva','boob','breast','pimp','whore','asshole','bastard','pubic','piss',\
-'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','anal','clit','asswhole','a_s_s','a-s-s','b00b','blowjob','blojob','booob',\
+'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','clit','asswhole','a_s_s','a-s-s','b00b','blowjob','blojob','booob',\
 'boooob','booooob','booooooob','c0ck','cumshot','cumsh0t','d1ck','dildo','dlck','f4nny','fanny','faggot','fcuk','f_u_c_k','gangbang','nigga','s_3-x',\
 'n1gga','n1gger','nigger','poop','p00p','p0op','po0p','rectum','semen','sh1t','shemale','titties','viagra','turd','wanker','erotic','hooker','incest',\
 'intercourse','milf','m1lf','nipple','pig','rape','rapist','rap1st','rap!st','raping','rap1ng','sodom','threesome','topless','upskirt','vibrator','tits',\
-'vibrater','vibratur','vibrat0r','douche','doosh','d00sh','se-x','s-ex','se.x','se.x','h0m0','shema1e','ana1','c1it','b1owjob','b000b','xxx','x-x-x',\
+'vibrater','vibratur','vibrat0r','douche','doosh','d00sh','se-x','s-ex','se.x','se.x','h0m0','shema1e','c1it','b1owjob','b000b','xxx','x-x-x',\
 'x_x_x','x.x.x','nude','naked','n!gger','b!tch','pen!s','d!ck','b0ob','bo0b','buub','h00ker','h0mo','hom0','cl!t','rektum','v!agra','assho1e','assh0le',\
 'assh01e','n!gga','ballz','bawls','bawlz','vag1na','vag!na','pen1s','pinis','peenus','p1g','p!g','shema!e','shimale','shima1e','top1ess','top!ess','3some',\
 'b1tch','brest','vu1va','p1mp','sh!t','p!mp','wh0re','porkistan','p0rkistan','pork!stan','p0rk!stan','porkistaan','p0rkistaan','pork!staan','p0rk!staan'\
 'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
-'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','hot','bobs','sixy','x.xx']#'anus',butt','kok'
+'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','whatapp','whatsapp','romentic','lesb','vigina']#'anus',butt','kok','anal','ana1','hot'
 
 
-CORE_URDU_ABUSE_WORDS = ['aunty','phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
-'phdi','lanat','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharwe','phutti','chod','kuss','mujra','mjra','mojra',\
+CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phuddi','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
+'phdi','lanat','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharw','bhrrw','bharv','bhrrv','bharw','phutti','chod','kuss','mujra','mjra','mojra',\
 'bund','tawaif','twaif',' dalla ','dlla','chdai','chudai','bhosra','bhosri','bhosre','mammay','mammey','lora','lowra','khuss','qus','qhus','bhosri','bhosry',\
-'bosri','bosry','phati','phtti','phti','phoodi','pyasi','pyasa','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri','ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phudd!','phud!',\
+'bosri','bosry','phati','phtti','phti','phoodi','pyasi','pyasa','piyasa','piyasi','payasi','payasa','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri','ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phudd!','phud!',\
 'gasht!','1anat','da11a','d11a','h!jra','hijjra','hjra','khassi','qhassi','khasi','qhasi','kutte','rundi','rund!','sooar','suar','suer','sooer','soowar',\
 'soower','suuer','suuar','mamey','bhosad','bhosd','ch00t',' muth ','bhosda','choosay','choosti','choosta','chodun','chodho','chuda!','lorray',' gand ','phdy',\
 '1orra','1ora','ghasti','gasti','gast!','chuse','charh','randee','randy','rande','rand!','tattay','tatay','tutta','tutty','tutti','tatti','tatey','tetti',\
 ' tati ','gasht1','gast1','gand','rand1','tutt1','tatt1','tatte','tutte','tutta','salle','mumma','kanjar','kunjur','kunjer','kanjer','kanjr','kenjr','kanjjar','kannjar',\
-'canjar','canjer','kenjer','kuta','kutey','kutay','k@njr','qutay','fuddi','fudi','fudddi','phudddi','phdddi','chaval','podi','p0di','p0d!','pudd!','pudi','soor',\
+'canjar','canjer','kenjer','kuta','kutey','kutay','k@njr','qutay','fuddi','fudi','fudddi','phudddi','phdddi','chaval','podi','p0di','p0d!','pudd!','pudi',\
 'pudda','puddda','pdda','yawan','yaawan','khusra','kusra','qhusra','qusra','yawaan','yavan','yaavan','yavaan','yuvai','yuwai','yuvay','yvai','ywai','yave',\
 'ph-ddi','ph_ddi','ph.ddi','hij-ra','h1jra','h!jra','ran-di','ran_di','ran.di','hij.ra','h1j.ra','qhussra','khussra','kuty','p.h.u.d.i','p.h.u.d.d.i',\
 'l.u.n','g.a.n.d','r.a.n.d.i','g.a.s.h.t.i','h.i.j.r.a','c.h.o.o.t','p.h.o.d.i','l.u.u.n','g.s.h.t.i','r.n.d.i','k.u.s.s','k.h.u.s.s','1.u.n','h.1.j.r.a',\
 'k.a.n.j.a.r','f.u.d.d.i','f.u.d.i','p.o.d.i','p.u.d.d.a','p.u.d.d.d.a','k.h.u.s.r.a','yavai','y.a.v.a.i','y.u.v.a.i','l.u.l','c.h.o.d','s.u.a.r','p.d.d.a',\
 'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay','r@ndi','naangi','behn','bahn','-ki-','.ki.','_ki_','-ki_','_ki-',\
 '.ki_','_ki.','.ki-','-ki.','-ke-','.ke.','_ke_','-ke_','_ke-','.ke_','_ke.','.ke-','-ke.','gasshti','chuut','kanjjri','ghashti','ranndy','behen','behan',\
-'bahan','phuda']#lanti,lant
+'bahan','phuda','ph0di','hawas','havas','bgarat','lorro','bhan','bhund','phoudi','ph0da']#lanti,lant,soor,
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\
@@ -37,7 +37,7 @@ CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','
 
 MISC_POLITICALLY_SENSITIVE_WORDS = ['india','pakistan','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\
 'hindustan','israel','indya','inddia','amrica','izrael','yahoodi','yah00di','yh00di','yhoodi','yahood!','hindu','h!ndu','hindoo','moslem','muzlim','muslim',\
-'mus1im','musl!m','mus1!m','yahudi','yahud!','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b','m.h-b']
+'mus1im','musl!m','mus1!m','yahudi','yahud!','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b','m.h-b','mh.b']
 
 CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['allah','bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan','kafur',\
 'bhagwaan','bagwan','bagwaan','bagvaan','jesus','ahmedi','ahmadi','haram','haraam','haaraam','haraaam','ka-fir','ka-f!r','ka_f!r','ka-ph!r','ka-ph1r',\

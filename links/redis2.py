@@ -776,7 +776,7 @@ def get_notif_count(viewer_id):
 	sorted_set = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
 	last_visit = 't:'+str(viewer_id)
 	last_visit_time = my_server.get(last_visit) #O(1)
-	count = my_server.zcount(sorted_set,'('+str(last_visit_time),'+inf') #O(log(N))
+	count = my_server.zcount(sorted_set,'('+str(last_visit_time),'+inf') if last_visit_time else 0
 	return count
 
 #####################Public Group Rankings#####################

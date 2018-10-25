@@ -3596,10 +3596,7 @@ class CommentView(CreateView):
 		try:
 			photo = Photo.objects.select_related('owner').get(id=pk)
 		except Photo.DoesNotExist:
-			context["authorized"] = False
-			context["photo"] = None
-			context["count"] = None
-			return context
+			raise Http404("Photo does not compute")
 		secret_key = uuid.uuid4()
 		set_text_input_key(self.request.user.id, pk, 'pht_comm', secret_key)
 		context["sk"] = secret_key

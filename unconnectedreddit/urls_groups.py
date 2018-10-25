@@ -55,7 +55,7 @@ urlpatterns = patterns('',
 	url(r'^acc_priv_chat_invite/$', auth(process_personal_group_invite), name='process_personal_group_invite'),
 	url(r'^priv_chat_invite_privacy/$', auth(change_personal_group_invite_privacy), name='change_personal_group_invite_privacy'),
 	############################## Personal Group Listing ###############################
-	url(r'^priv_chat_invite_list/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
+	url(r'^invites/(?P<list_type>[\w.@+-]+)/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
 	url(r'^priv_chat_list/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
 	############################## Personal Group Notifications ###############################
 	url(r'^unpergrp/(?P<gid>\d+)/(?P<fid>\d+)/$', auth(unseen_per_grp), name='unseen_per_grp'),

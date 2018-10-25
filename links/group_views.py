@@ -4,7 +4,7 @@ import uuid, random, time
 from datetime import datetime
 from collections import defaultdict
 from django.middleware import csrf
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
@@ -26,7 +26,7 @@ disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_inv
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
-get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo#, exited_personal_group_hard_deletion
+get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo #,reset_pgic
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares
@@ -426,7 +426,7 @@ def enter_personal_group(request):
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
 			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
 	else:
-		return redirect("missing_page")
+		return redirect("personal_group_user_listing")#redirect("missing_page")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1774,7 +1774,7 @@ def personal_group_receive_sms(request):
 						mobunver_rec = '1'
 						return render(request,"personal_group/sms_settings/personal_group_sms_settings.html",{'their_anon':their_anon_status,\
 							'tid':tid,'name':their_uname,'smsrec':sms_rec, 'mobunver_rec':mobunver_rec,'sms_text':sms_text,\
-							'avatar':their_avurl,'is_verified':request.mobile_verified})#'csrf':CSRF
+							'avatar':their_avurl,'is_verified':request.mobile_verified})#'csrf':CSRF,
 			else:
 				return redirect("enter_personal_group")		
 	else:
@@ -1799,8 +1799,8 @@ def personal_group_receive_sms_from_chat(request):
 				which_num = request.POST.get("mob",None)
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				if which_num == 'new':
-					#CSRF = csrf.get_token(request)
-					#set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					# CSRF = csrf.get_token(request)
+					# set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
 					set_personal_group_target_id(own_id, tid)
 					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'tid':tid,\
 						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status})#'csrf':CSRF
@@ -1831,8 +1831,8 @@ def personal_group_receive_sms_from_chat(request):
 						'avatar':their_avurl,'tid':tid}
 					return render(request,"personal_group/sms_settings/personal_group_mobile_number_selection.html",context)
 				else:
-					#CSRF = csrf.get_token(request)
-					#set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
+					# CSRF = csrf.get_token(request)
+					# set_personal_group_target_id_and_csrf(own_id, tid, CSRF)
 					set_personal_group_target_id(own_id, tid)
 					return render(request,"personal_group/sms_settings/personal_group_new_mobile_number.html",{'their_anon':their_anon_status,\
 					'avatar':their_avurl,'tid':tid,'name':their_uname,'from_chat':True})#'csrf':CSRF
@@ -1857,28 +1857,33 @@ def personal_group_receive_sms_from_chat(request):
 ######################################### Personal Group Invite Functionality #########################################
 #######################################################################################################################
 
-
-def show_personal_group_invite_list(request):
+def show_personal_group_invite_list(request, list_type):
 	"""
 	Displays list of all outstanding invites
-	"""
-	invite_accepted = request.session.pop("personal_group_invite_accepted",None)
-	t_username = request.session.pop("personal_group_invite_accepted_username",None)
-	t_av_url = request.session.pop("personal_group_invite_accepted_av_url",None)
-	is_anon = request.session.pop("personal_group_invite_accepted_is_anon",None)
-	tid = request.session.pop("personal_group_tid_key",None)
-	invites, user_id, page_num = [], request.user.id, request.GET.get('page', '1')
-	start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST)
-	invite_list, time_gap, total_invites = return_invite_list(user_id, start_index, end_index)
-	page_list = get_overall_page_list(total_invites, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST)
-	for invite, expiry_time in invite_list:
-		invite_tokens = invite.split(":")
-		creation_time = expiry_time - time_gap
-		invites.append((invite_tokens[0],invite_tokens[1].decode('utf-8'),invite_tokens[2],invite_tokens[3].decode('utf-8'),creation_time))
-	return render(request,"personal_group/invites/personal_group_invite_list.html",{'invites':invites,'own_id':str(user_id),'invite_accepted':invite_accepted,\
-		't_username':t_username,'tid':tid,'t_av_url':t_av_url,'is_anon':is_anon,'current_page':page_num,'pages':page_list,'num_pages':len(page_list)})
 
-	
+	Renders separate lists for received or sent invites
+	"""
+	if list_type in ('received','sent'):
+		invite_accepted = request.session.pop("personal_group_invite_accepted",None)
+		t_username = request.session.pop("personal_group_invite_accepted_username",None)
+		t_av_url = request.session.pop("personal_group_invite_accepted_av_url",None)
+		is_anon = request.session.pop("personal_group_invite_accepted_is_anon",None)
+		tid = request.session.pop("personal_group_tid_key",None)
+		invites, user_id, page_num = [], request.user.id, request.GET.get('page', '1')
+		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST)
+		invite_list, time_gap, total_invites = return_invite_list(user_id, list_type, start_index, end_index)
+		page_list = get_overall_page_list(total_invites, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST)
+		for invite, expiry_time in invite_list:
+			invite_tokens = invite.split(":")
+			creation_time = expiry_time - time_gap
+			invites.append((invite_tokens[0],invite_tokens[1].decode('utf-8'),invite_tokens[3].decode('utf-8'),creation_time))
+		return render(request,"personal_group/invites/personal_group_invite_list.html",{'invites':invites,'own_id':str(user_id),'invite_accepted':invite_accepted,\
+			't_username':t_username,'tid':tid,'t_av_url':t_av_url,'is_anon':is_anon,'current_page':page_num,'pages':page_list,'num_pages':len(page_list),\
+			'list_type':list_type})
+	else:
+		raise Http404("Such a listing does not exist")
+
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def render_personal_group_invite(request):
@@ -1944,6 +1949,9 @@ def accept_personal_group_invite(request):
 			target_username = username_dictionary[int_tid]
 			is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
 			sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+			############
+			#reset_pgic(own_id)
+			############
 			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 			if not already_existed:
@@ -2021,6 +2029,9 @@ def change_personal_group_invite_privacy(request):
 			if state in ('2','3'):
 				# they already invited me, so accept the invite instead of inviting them back
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+				############
+				#reset_pgic(own_id)
+				############
 				avatars = retrieve_bulk_avurls([own_id, target_id])
 				own_av_url = avatars[own_id]
 				target_av_url = avatars[int(target_id)]
@@ -2041,6 +2052,9 @@ def change_personal_group_invite_privacy(request):
 				object_type = request.session.get("personal_group_invite_object_type",None)
 				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
 				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
+				############
+				#reset_pgic(target_id)
+				############
 				if sent is False:
 					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
@@ -2051,7 +2065,7 @@ def change_personal_group_invite_privacy(request):
 							context["personal_group_invite_privacy"] = True
 							context["oun"] = own_username
 							return render(request,"helpful_instructions.html",context)
-					return redirect("show_personal_group_invite_list")
+					return redirect("show_personal_group_invite_list",list_type='sent')
 	else:
 		return redirect("home")
 
@@ -2072,6 +2086,9 @@ def process_personal_group_invite(request):
 				if request.user_banned:
 					return render(request,'500.html',{}) #errorbanning
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+				############
+				#reset_pgic(own_id)
+				############
 				own_anon, target_anon = '0', '1' if state == '3' else '0'
 				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 				if not already_existed:
@@ -2087,7 +2104,11 @@ def process_personal_group_invite(request):
 				request.session.modified = True
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
-	return redirect("show_personal_group_invite_list")
+				############
+				#reset_pgic(own_id)
+				############
+
+	return redirect("show_personal_group_invite_list",list_type='received')
 
 
 ######################################## Personal Group JS Helper Functions ########################################

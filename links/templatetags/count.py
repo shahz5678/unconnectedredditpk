@@ -9,5 +9,5 @@ def check_notif_count(context):
 	try:
 		user_id = context['request'].user.id
 		return get_notif_count(user_id) 
-	except:
+	except (KeyError,TypeError):
 		return 0

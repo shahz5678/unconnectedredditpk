@@ -49,22 +49,22 @@ def export_nicknames_csv(request):
 	"""
 	Retrieve all hell-banned usernames for parsing into "good" and "bad"
 	"""
-	hell_banned_users = retrieve_hell_banned_nicknames()
-	regular_users = retrieve_regular_nicknames(how_many=20000)
+	# hell_banned_users = retrieve_hell_banned_nicknames()
+	regular_users = retrieve_regular_nicknames(how_many=43000)
 	
-	if hell_banned_users:
-		import csv
-		filename = 'hell_banned_nicks_'+str(int(time.time()))+'.csv'
-		with open(filename,'wb') as f:
-			wtr = csv.writer(f)
-			columns = "user_id date_joined username".split()
-			wtr.writerow(columns)
-			for user in hell_banned_users:
-				user_id = user['user_id']
-				username = user['username'].encode('utf-8')
-				date_joined = user['date_joined']
-				to_write = [user_id,date_joined,username]
-				wtr.writerows([to_write])
+	# if hell_banned_users:
+	# 	import csv
+	# 	filename = 'hell_banned_nicks_'+str(int(time.time()))+'.csv'
+	# 	with open(filename,'wb') as f:
+	# 		wtr = csv.writer(f)
+	# 		columns = "user_id date_joined username".split()
+	# 		wtr.writerow(columns)
+	# 		for user in hell_banned_users:
+	# 			user_id = user['user_id']
+	# 			username = user['username'].encode('utf-8')
+	# 			date_joined = user['date_joined']
+	# 			to_write = [user_id,date_joined,username]
+	# 			wtr.writerows([to_write])
 	if regular_users:
 		import csv
 		filename = 'regular_nicks_'+str(int(time.time()))+'.csv'

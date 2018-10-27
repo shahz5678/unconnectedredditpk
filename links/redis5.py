@@ -82,6 +82,8 @@ PERSONAL_GROUP_INVITES_RATE_LIMITED = 'pgirl:' # this key cools off excessive in
 
 SENT_LIST_TRIMMING_RATE_LIMITED = 'siltrl:' # sent invite list trimming rate limited - key that rate limits trimming of said list
 RECEIVED_LIST_TRIMMING_RATE_LIMITED = 'riltrl:' # received invite list trimming rate limited - key that rate limits trimming of said list
+
+PERSONAL_GROUP_INVITE_COUNT = 'pgic' #this key holds the cached value of received invites by a user id
 #########################################
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC5, db=0)
@@ -105,6 +107,7 @@ UPPER_RES_BOUND = 2.85
 
 LEAST_CHARS = 4
 MOST_CHARS = 50
+BENCHMARK_ID = 1646458
 
 
 """
@@ -2056,10 +2059,12 @@ def reset_ttl(sorted_set, server=None):
 	"""
 	Sets the TTL of the invite list to the TTL of the latest item in it
 	"""
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
-	invite_and_expiry = server.zrange(sorted_set,-1,-1,withscores=True)[0]
-	server.expireat(sorted_set,int(invite_and_expiry[1]))
+	server = server if server else redis.Redis(connection_pool=POOL)
+	latest_item = server.zrange(sorted_set,-1,-1,withscores=True)
+	if latest_item:
+		invite_and_expiry = latest_item[0]
+		if invite_and_expiry:
+			server.expireat(sorted_set,int(invite_and_expiry[1]))
 
 
 def personal_group_invite_status(own_id, own_username, target_id, target_username):
@@ -2141,12 +2146,18 @@ def return_invite_list(own_id, inv_type, start_idx, end_idx):
 	my_server = redis.Redis(connection_pool=POOL)
 	# trim relevant list before returning
 	if not my_server.exists(rate_limit_key):
-		pipeline1 = my_server.pipeline()
-		pipeline1.zremrangebyscore(sorted_set,'-inf',time.time())
-		# ratelimiting the trimming call so that it's not called repetitively in a small time-window
-		pipeline1.setex(rate_limit_key,1,EIGHT_MINS)
-		pipeline1.execute()
+		trim_invites(sorted_set, rate_limit_key, my_server)
 	return my_server.zrevrange(sorted_set,start_idx,end_idx,withscores=True), TWO_DAYS, my_server.zcard(sorted_set)
+
+
+def trim_invites(sorted_set, rate_limit_key, my_server=None):
+	"""
+	Trims invite list via removing expired personal group received invitations
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.zremrangebyscore(sorted_set,'-inf',time.time())
+	# ratelimiting trimming call
+	my_server.setex(rate_limit_key,1,EIGHT_MINS)
 
 
 def interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible):
@@ -2292,6 +2303,73 @@ def sanitize_personal_group_invites(own_id, own_username, target_id, target_user
 	if my_server.exists(own_received_sorted_set):
 		reset_ttl(own_received_sorted_set, my_server)
 
+
+######################################## Calculating count of invites received ########################################
+
+
+def extract_most_short_lived_ttl(sorted_set, my_server=None):
+	"""
+	Extracts ttl of most short-lived item in sorted-set containing invites received by a user
+	
+	Useful when setting the ttl of "pgic:" (i.e. user's invites counter)
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	oldest_item = my_server.zrange(sorted_set,0,0,withscores=True)
+	if oldest_item:
+		invite_and_expiry = oldest_item[0]
+		if invite_and_expiry:
+			return invite_and_expiry[1]
+		else:
+			return None
+	else:
+		return None
+
+
+def retrieve_personal_group_invite_count(invitee_id):
+	"""
+	Retrieves count of invites received to be displayed in templates
+	"""
+	invitee_id = str(invitee_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	invite_count = my_server.get(PERSONAL_GROUP_INVITE_COUNT + invitee_id)
+	if invite_count is None or invite_count < 0:
+		# invite_count is None implies calculation has not been done yet, OR calculated invite key has expired - thus time to recalculate
+		# invite_count < 0 should never happen - but if it does (e.g. because of an error), just recalculate the number
+		return calculate_personal_group_invite_count(invitee_id)
+	else:
+		return invite_count
+
+
+def calculate_personal_group_invite_count(invitee_id):
+	"""
+	This calculates and returns how many personal 1-on-1 chat invites a user has in the 'received' section
+
+	It's a utility for retrieve_personal_group_invite_count()
+	"""
+	invitee_id = str(invitee_id)
+	sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + invitee_id
+	rate_limit_key = RECEIVED_LIST_TRIMMING_RATE_LIMITED + invitee_id
+	my_server = redis.Redis(connection_pool=POOL)
+	######## run trim_invites BEFORE calculating the number of invites received ########
+	trim_invites(sorted_set, rate_limit_key, my_server)
+	####################################################################################
+	latest_invite_count = my_server.zcard(sorted_set)
+	expiry = extract_most_short_lived_ttl(sorted_set) if latest_invite_count else None
+	if expiry > time.time():
+		my_server.set(PERSONAL_GROUP_INVITE_COUNT+invitee_id,latest_invite_count)
+		my_server.expireat(PERSONAL_GROUP_INVITE_COUNT+invitee_id, int(expiry))
+	else:
+		my_server.setex(PERSONAL_GROUP_INVITE_COUNT+invitee_id,latest_invite_count,TWO_DAYS)
+	return latest_invite_count
+
+
+def reset_invite_count(invitee_id):
+	"""
+	Deletes the invite count so it can be recalculated
+	"""		
+	redis.Redis(connection_pool=POOL).delete(PERSONAL_GROUP_INVITE_COUNT+str(invitee_id))
+
+
 ######################################## Personal Group Creation & Existence ########################################
 
 
@@ -2350,3 +2428,53 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		#########################################################################################
 		pipeline1.execute()
 		return group_id, False
+
+######################################## Personal Group Split tests########################################
+
+def allot_bucket_to_user(user_id, bucket_type):
+	"""
+	Records the total number of users for the data set
+	"""
+	if bucket_type:
+		redis.Redis(connection_pool = POOL).sadd(bucket_type,user_id)
+
+
+def log_invite_sent(user_id):
+	"""
+	Records the number of users who sent a freind request
+	"""
+	if user_id > BENCHMARK_ID:
+		# new users
+		bucket_type = 'N1_ir' if user_id % 2 == 0 else 'NC_ir'
+	else:
+		# old users
+		bucket_type = 'O1_ir' if user_id % 2 == 0 else 'OC_ir'
+	redis.Redis(connection_pool=POOL).incr(bucket_type)
+
+
+def log_invite_accepted(user_id):
+	"""
+	Records the numbers of users who accepted an invite
+
+	"""
+	if user_id > BENCHMARK_ID:
+		# new users
+		bucket_type = 'N1_ia' if user_id % 2 == 0 else 'NC_ia'
+	else:
+		# old users
+		bucket_type = 'O1_ia' if user_id % 2 == 0 else 'OC_ia'
+	redis.Redis(connection_pool=POOL).incr(bucket_type)
+
+
+def log_invite_rejected(user_id):
+	"""
+	Records the numbers of users who accepted an invite
+
+	"""
+	if user_id > BENCHMARK_ID:
+		# new users
+		bucket_type = 'N1_irj' if user_id % 2 == 0 else 'NC_irj'
+	else:
+		# old users
+		bucket_type = 'O1_irj' if user_id % 2 == 0 else 'OC_irj'
+	redis.Redis(connection_pool=POOL).incr(bucket_type)

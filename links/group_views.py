@@ -26,7 +26,8 @@ disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_inv
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
-get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo #,reset_pgic
+get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count,\
+log_invite_sent,log_invite_accepted, log_invite_rejected
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares
@@ -1950,7 +1951,7 @@ def accept_personal_group_invite(request):
 			is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
 			sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 			############
-			#reset_pgic(own_id)
+			reset_invite_count(own_id)
 			############
 			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
@@ -2030,7 +2031,7 @@ def change_personal_group_invite_privacy(request):
 				# they already invited me, so accept the invite instead of inviting them back
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 				############
-				#reset_pgic(own_id)
+				reset_invite_count(own_id)
 				############
 				avatars = retrieve_bulk_avurls([own_id, target_id])
 				own_av_url = avatars[own_id]
@@ -2052,8 +2053,10 @@ def change_personal_group_invite_privacy(request):
 				object_type = request.session.get("personal_group_invite_object_type",None)
 				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
 				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
+				
 				############
-				#reset_pgic(target_id)
+				reset_invite_count(target_id)
+				log_invite_sent(int(target_id))
 				############
 				if sent is False:
 					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
@@ -2087,7 +2090,8 @@ def process_personal_group_invite(request):
 					return render(request,'500.html',{}) #errorbanning
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 				############
-				#reset_pgic(own_id)
+				log_invite_accepted(int(own_id))
+				reset_invite_count(own_id)
 				############
 				own_anon, target_anon = '0', '1' if state == '3' else '0'
 				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
@@ -2105,9 +2109,9 @@ def process_personal_group_invite(request):
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
 				############
-				#reset_pgic(own_id)
+				log_invite_rejected(int(own_id))
+				reset_invite_count(own_id)
 				############
-
 	return redirect("show_personal_group_invite_list",list_type='received')
 
 

@@ -45,10 +45,18 @@
 		</div>
 	{% else %}
 
-		{% if list_type == 'received' %}
-			{% include "personal_group/navbars/1_on_1_navbar.html" with section='2' static_url=STATIC_URL inv_count='' %}
+        {% if list_type == 'received' %}
+            {% if invite_obj.bucket_type == 'O1' or  invite_obj.bucket_type == 'N1' %}
+                {% include "personal_group/navbars/1_on_1_navbar.html" with section='2' static_url=STATIC_URL inv_count=invite_obj.invite_count %}
+            {% else %}
+                {% include "personal_group/navbars/1_on_1_navbar.html" with section='2' static_url=STATIC_URL inv_count='' %}
+            {% endif %}
 		{% elif list_type == 'sent' %}
-			{% include "personal_group/navbars/1_on_1_navbar.html" with section='3' static_url=STATIC_URL inv_count='' %}
+			{% if invite_obj.bucket_type == 'O1' or  invite_obj.bucket_type == 'N1' %}	
+				{% include "personal_group/navbars/1_on_1_navbar.html" with section='3' static_url=STATIC_URL inv_count=invite_obj.invite_count %}
+			{% else %}
+            	{% include "personal_group/navbars/1_on_1_navbar.html" with section='3' static_url=STATIC_URL inv_count='' %}
+            {% endif %}	
 		{% endif %}
 		{% if num_pages < 2 %}
 			{% if list_type == 'received' %} 

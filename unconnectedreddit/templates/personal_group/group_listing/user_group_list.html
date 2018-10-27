@@ -28,11 +28,13 @@
 </style>
 
 <div class="clb" style="max-width:450px;width:95%;margin:0 auto">
-<div class="lsp">
-		
+<div class="lsp">	
 		<div class="mbl" style="text-align:center">
-
-			{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count='' %}
+			{% if invite_obj.bucket_type == 'O1' or  invite_obj.bucket_type == 'N1' %}
+            	{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count=invite_obj.invite_count %}
+            {% else %}
+            	{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count='' %}
+            {% endif %}
 
 			{% if num_pages < 2 %}
 			<h1 class="cxl">Chat with friends</h1>

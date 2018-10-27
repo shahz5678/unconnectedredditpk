@@ -2435,7 +2435,8 @@ def allot_bucket_to_user(user_id, bucket_type):
 	"""
 	Records the total number of users for the data set
 	"""
-	redis.Redis(connection_pool = POOL).sadd(bucket_type,user_id)
+	if bucket_type:
+		redis.Redis(connection_pool = POOL).sadd(bucket_type,user_id)
 
 
 def log_invite_sent(user_id):

@@ -2052,16 +2052,15 @@ def change_personal_group_invite_privacy(request):
 				target_av_url = request.session.get("personal_group_invite_target_av_url",None)
 				object_type = request.session.get("personal_group_invite_object_type",None)
 				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
-				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
-				
+				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)				
 				############
 				reset_invite_count(target_id)
-				log_invite_sent(int(target_id))
 				############
 				if sent is False:
 					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				else:
+					log_invite_sent(int(target_id))
 					if decision == '0':
 						interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
 						if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):

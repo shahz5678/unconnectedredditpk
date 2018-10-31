@@ -105,3 +105,5 @@ MERCH = {
 SHARE_ORIGIN = {'2':'fresh_photos','3':'user_albums'}
 SHARED_PHOTOS_CEILING = 120
 PHOTO_DELETION_BUFFER = 15
+################################################################################################################
+FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed

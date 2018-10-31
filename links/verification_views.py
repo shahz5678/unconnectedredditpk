@@ -1,12 +1,14 @@
+import time
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm, PinVerifyForm
 from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited, twiliolog_pin_sms_sent, twiliolog_user_verified,\
-twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified
+twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please_wait, log_fbs_user_verification
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points
-from score import NUMBER_VERIFICATION_BONUS
+from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME
+from views import convert_to_epoch
 from redis4 import retrieve_uname
 from models import UserProfile
 
@@ -61,6 +63,44 @@ def number_verification_help(request):
 	"""
 	return render(request,"verification/num_verification_help.html",{})
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def wait_before_verifying(request):
+	"""
+	Prompt shown to FBS based would-be verifiers, chiding them to wait 24 hours before dipping their beaks in the verification bucket
+	"""
+	user_id = request.user.id
+	if request.method == "POST":
+		if is_mobile_verified(user_id):
+			return redirect("home")
+		else:
+			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+			if on_fbs:
+				joining_epoch_time = convert_to_epoch(request.user.date_joined)
+				expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
+				ttw = expire_at - time.time()
+				if ttw > 0:
+					# expiry of this lock is a 'future' event
+					return render(request,'verification/wait_before_verifying.html',{'redirect_to_paid_internet':True})
+				else:
+					# this lock has expired!
+					return redirect("verify_user_mobile")
+			else:
+				return redirect("verify_user_mobile")
+	else:
+		try:
+			joining_epoch_time = convert_to_epoch(request.user.date_joined)
+			expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
+			ttw = expire_at - time.time()
+			if ttw > 0:
+				# expiry of this lock is a 'future' event
+				log_fbs_please_wait(user_id=user_id, expire_at=int(expire_at))
+				return render(request, "verification/wait_before_verifying.html", {'time_to_wait':int(ttw)})
+			else:
+				# this lock has expired!
+				return redirect("verify_user_mobile")
+		except (ValueError, TypeError):
+			return redirect('missing_page')				
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -69,7 +109,14 @@ def verify_user_mobile(request):
 	This renders a template where user puts her number that she wants verified
 
 	"""
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	user_id = request.user.id
+	if on_fbs:
+		joining_epoch_time = convert_to_epoch(request.user.date_joined)
+		if joining_epoch_time + FBS_VERIFICATION_WAIT_TIME - time.time() > 0:
+			# rate limited from verifying currently, inform accordingly
+			return redirect("wait_before_verifying")
+	######################################
 	if is_mobile_verified(user_id): 
 		if can_change_number(user_id) and get_personal_group_target_id(user_id):
 			# allow this user to proceed, even though (s)he is already verified
@@ -137,6 +184,13 @@ def pin_verification(request):
 	This will verify the pin entered by the user
 	"""
 	if request.method == "POST":
+		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+		if on_fbs:
+			joining_epoch_time = convert_to_epoch(request.user.date_joined)
+			if joining_epoch_time + FBS_VERIFICATION_WAIT_TIME - time.time() > 0:
+				# rate limited from verifying currently, inform accordingly
+				return redirect("wait_before_verifying")
+		###########################################################################
 		user_id = request.user.id
 		if is_mobile_verified(user_id):
 			target_id = get_personal_group_target_id(user_id)
@@ -160,14 +214,15 @@ def pin_verification(request):
 								return redirect("home")
 							else:
 								twiliolog_user_reverified()
+								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
 								return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",\
 									{'tid':target_id,'their_anon':their_anon_status,'name':retrieve_uname(target_id,decode=True),\
 									'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=target_id).values_list('avatar',flat=True)[0]})
 						else:
 							# maybe the key has already been popped, send the person back to the relevant personal group
 							request.session["personal_group_gid_key:"+target_id] = group_id#checked
-  							request.session.modified = True
-  							return redirect("enter_personal_group")
+							request.session.modified = True
+							return redirect("enter_personal_group")
 					else:
 						# pin_state is 'invalid' or 'expired'
 						request.session['start_verification_again'+str(user_id)] = '1'
@@ -191,6 +246,7 @@ def pin_verification(request):
 					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					twiliolog_user_verified()
+					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
 					return render(request,"verification/reward_earned.html",{})
 				else:
 					# pin_state is 'invalid' or 'expired'
@@ -200,6 +256,7 @@ def pin_verification(request):
 			else:
 				return render(request,"verification/enter_pin_code.html",{'form':form})
 	else:
+		# not a POST request
 		return redirect('missing_page')
 
 	

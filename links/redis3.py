@@ -1935,6 +1935,7 @@ def is_forgot_password_rate_limited(user_id):
 		return None
 
 ################################################### Twilio usage related loggers ###########################
+
 def twiliolog_pin_sms_sent(forgot_pass=False):
 	"""
 	this function logs the number of smses sent out for verification
@@ -1943,6 +1944,7 @@ def twiliolog_pin_sms_sent(forgot_pass=False):
 		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_sms_count") 
 	else:
 		redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+
 
 def twiliolog_user_verified(forgot_pass=False):
 	"""
@@ -1953,11 +1955,13 @@ def twiliolog_user_verified(forgot_pass=False):
 	else:
 		redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
 
+
 def twiliolog_reverification_pin_sms_sent(forgot_pass=False):
     """
     This function logs the number of smses sent out for reverification
     """
     redis.Redis(connection_pool=POOL).incr("twilio_reverified_sms_count") 
+
 
 def twiliolog_user_reverified(forgot_pass=False):
     """
@@ -1966,6 +1970,42 @@ def twiliolog_user_reverified(forgot_pass=False):
     redis.Redis(connection_pool=POOL).incr("twilio_reverified_count")
 
 
+def log_fbs_please_wait(user_id, expire_at):
+    """
+    Logging all users shown a prompt 
+    """
+    redis.Redis(connection_pool=POOL).setex("uvfbs:"+str(user_id), expire_at, ONE_WEEK)
+
+
+def log_fbs_user_verification(user_id, on_fbs, time_now):
+    """
+    Logging users' mobile verification
+    """
+    my_server = redis.Redis(connection_pool=POOL)
+    expire_at = my_server.get('uvfbs:'+str(user_id))
+    if expire_at:
+        # this user was prompted on FBS
+        if int(expire_at) > time_now:
+            # blocked from verifying on FBS
+            if on_fbs:
+                my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_before_rl_expiry')# should not happen, should be 0
+            else:
+                my_server.incr('verified_on_data_after_being_prompted_on_fbs_before_rl_expiry')# these people converted to paid internet from FBS for verification purposes
+        else:
+            # allowed to verify on FBS (i.e. waited the requisite time)
+            if on_fbs:
+                my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_after_rl_expiry')
+            else:
+                # this user chose to verify on data even though they could have verified on FBS
+                my_server.incr('verified_on_data_after_being_prompted_on_fbs_after_rl_expiry')# should be a very rare occurence
+        # get rid of the key
+        my_server.delete('uvfbs:'+str(user_id))
+    else:
+        # this user was never prompted on FBS
+        if on_fbs:
+            my_server.incr('verified_on_fbs_after_waiting_one_day_without_prompt')# these users opt to wait a day instead of going on paid internet
+        else:
+            my_server.incr('verified_on_data_without_prompt')# these users verified on data (and never received the FBS prompt)
 
 #########################################Invalid Nickname Logger##################################
 

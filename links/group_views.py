@@ -1956,6 +1956,7 @@ def accept_personal_group_invite(request):
 			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 			if not already_existed:
+				log_invite_accepted(int(own_id))
 				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
 					own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 			request.session["personal_group_tid_key"] = target_id

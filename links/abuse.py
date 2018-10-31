@@ -29,7 +29,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phuddi','phudi','phodi','
 'k.a.n.j.a.r','f.u.d.d.i','f.u.d.i','p.o.d.i','p.u.d.d.a','p.u.d.d.d.a','k.h.u.s.r.a','yavai','y.a.v.a.i','y.u.v.a.i','l.u.l','c.h.o.d','s.u.a.r','p.d.d.a',\
 'k.h.a.s.s.i','k.h.a.s.i','hijry','hijre','h!jry','h!jre','phudy','phody','khassy','yavay','r@ndi','naangi','behn','bahn','-ki-','.ki.','_ki_','-ki_','_ki-',\
 '.ki_','_ki.','.ki-','-ki.','-ke-','.ke.','_ke_','-ke_','_ke-','.ke_','_ke.','.ke-','-ke.','gasshti','chuut','kanjjri','ghashti','ranndy','behen','behan',\
-'bahan','phuda','ph0di','hawas','havas','bgarat','lorro','bhan','bhund','phoudi','ph0da','G@ndo','puddii','puudii','chout','ganndi','ch0ut','hrami','kuuttii','l00ra','gaaaando',\
+'bahan','phuda','ph0di','hawas','havas','bgarat','lorro','bhan','bhund','phoudi','ph0da','g@ndo','puddii','puudii','chout','ganndi','ch0ut','hrami','kuuttii','l00ra','gaaaando',\
 'marwani','tharki','th@rki']#salle,lanti,lant,soor,
 
 

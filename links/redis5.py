@@ -1494,13 +1494,13 @@ def get_user_sms_setting(target_id, group_id, with_cred=False):
 		allwd = False if my_server.hget("pgah:"+group_id,'smsrec'+target_id) == '0' else True
 		return allwd
 
-
 def lock_sms_sending(user_id,target_id):
 	"""
 	Locking sms sending in personal groups
 	"""
-	return redis.Redis(connection_pool=POOL).setex("ssl:"+str(user_id)+":"+target_id,time.time(),PERSONAL_GROUP_SMS_LOCK_TTL)
-
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.incr("twilio_private_chat_sms_count")
+	return my_server.setex("ssl:"+str(user_id)+":"+target_id,time.time(),PERSONAL_GROUP_SMS_LOCK_TTL)
 
 def sms_sending_locked(user_id,target_id):
 	"""

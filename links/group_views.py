@@ -26,8 +26,7 @@ disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_inv
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
-get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count,\
-log_invite_sent,log_invite_accepted, log_invite_rejected
+get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares
@@ -1956,7 +1955,6 @@ def accept_personal_group_invite(request):
 			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 			if not already_existed:
-				log_invite_accepted(int(own_id))
 				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
 					own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 			request.session["personal_group_tid_key"] = target_id
@@ -2061,7 +2059,6 @@ def change_personal_group_invite_privacy(request):
 					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				else:
-					log_invite_sent(int(target_id))
 					if decision == '0':
 						interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
 						if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
@@ -2090,7 +2087,6 @@ def process_personal_group_invite(request):
 					return render(request,'500.html',{}) #errorbanning
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 				############
-				log_invite_accepted(int(own_id))
 				reset_invite_count(own_id)
 				############
 				own_anon, target_anon = '0', '1' if state == '3' else '0'
@@ -2109,7 +2105,6 @@ def process_personal_group_invite(request):
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
 				############
-				log_invite_rejected(int(own_id))
 				reset_invite_count(own_id)
 				############
 	return redirect("show_personal_group_invite_list",list_type='received')

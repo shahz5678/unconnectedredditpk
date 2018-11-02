@@ -1949,12 +1949,10 @@ def accept_personal_group_invite(request):
 			target_username = username_dictionary[int_tid]
 			is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
 			sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-			############
-			reset_invite_count(own_id)
-			############
 			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 			if not already_existed:
+				reset_invite_count(own_id)
 				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
 					own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 			request.session["personal_group_tid_key"] = target_id
@@ -2029,15 +2027,13 @@ def change_personal_group_invite_privacy(request):
 			if state in ('2','3'):
 				# they already invited me, so accept the invite instead of inviting them back
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-				############
-				reset_invite_count(own_id)
-				############
 				avatars = retrieve_bulk_avurls([own_id, target_id])
 				own_av_url = avatars[own_id]
 				target_av_url = avatars[int(target_id)]
 				own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
 				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 				if not already_existed:
+					reset_invite_count(own_id)
 					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
 						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 				request.session["personal_group_tid_key"] = target_id
@@ -2052,13 +2048,11 @@ def change_personal_group_invite_privacy(request):
 				object_type = request.session.get("personal_group_invite_object_type",None)
 				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
 				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)				
-				############
-				reset_invite_count(target_id)
-				############
 				if sent is False:
 					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				else:
+					reset_invite_count(target_id)
 					if decision == '0':
 						interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
 						if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
@@ -2086,12 +2080,10 @@ def process_personal_group_invite(request):
 				if request.user_banned:
 					return render(request,'500.html',{}) #errorbanning
 				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-				############
-				reset_invite_count(own_id)
-				############
 				own_anon, target_anon = '0', '1' if state == '3' else '0'
 				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 				if not already_existed:
+					reset_invite_count(own_id)
 					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
 						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
 						hidden='no')
@@ -2104,9 +2096,7 @@ def process_personal_group_invite(request):
 				request.session.modified = True
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
-				############
 				reset_invite_count(own_id)
-				############
 	return redirect("show_personal_group_invite_list",list_type='received')
 
 

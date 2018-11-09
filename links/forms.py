@@ -1449,14 +1449,6 @@ class GroupListForm(forms.Form):
 	class Meta:
 		pass
 
-class OpenGroupHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class ClosedGroupHelpForm(forms.Form):
-	class Meta:
-		pass
-
 class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
@@ -1502,10 +1494,6 @@ class ReportNicknameForm(forms.Form):
 		pass
 
 class SpecialPhotoTutorialForm(forms.Form):
-	class Meta:
-		pass
-
-class ReinviteForm(forms.Form):
 	class Meta:
 		pass
 
@@ -1645,10 +1633,6 @@ class HistoryHelpForm(forms.Form):
 		pass
 
 class WhoseOnlineForm(forms.Form):
-	class Meta:
-		pass
-
-class GroupHelpForm(forms.Form):
 	class Meta:
 		pass
 

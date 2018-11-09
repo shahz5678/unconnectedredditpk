@@ -15,6 +15,7 @@ from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from urls_groups import urlpatterns as urlpatterns_groups
 from urls_sharing import urlpatterns as urlpatterns_sharing
+from urls_mehfil import urlpatterns as urlpatterns_mehfil
 from urls_verification import urlpatterns as urlpatterns_verification
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
@@ -38,10 +39,10 @@ from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoSco
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
 AboutView, ReinvitePrivateView, ChangePrivateGroupTopicView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, \
 DeviceHelpView, PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, GroupRankingView,\
-PicExpiryView, PicsChatUploadView, VerifiedView, GroupHelpView, WelcomeView, WelcomeMessageView, MehfilView, UserPhoneNumberView, \
+PicExpiryView, PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, MehfilView, UserPhoneNumberView, \
 LogoutReconfirmView, LogoutPenaltyView, OwnerGroupOnlineKonView, AppointCaptainView, SmsReinviteView, AdTitleView,TestAdsView,\
-OpenGroupHelpView, SmsInviteView, DirectMessageCreateView, DirectMessageView, PrivateGroupView,PublicGroupView, ReinviteView, \
-LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ClosedGroupHelpView, ChangeGroupTopicView,GroupOnlineKonView, \
+SmsInviteView, DirectMessageCreateView, DirectMessageView, PrivateGroupView,PublicGroupView, \
+LoginWalkthroughView, RegisterLoginView, ChangeGroupRulesView, ChangeGroupTopicView,GroupOnlineKonView, \
 GroupTypeView, GroupPageView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToGroupView,OnlineKonView, UserSettingsEditView,\
 UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, \
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
@@ -217,8 +218,6 @@ urlpatterns = patterns('',
 	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),
 	url(r'^khushamdeed/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
-	url(r'^open_group/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
-	url(r'^closed_mehfil/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),
 	url(r'^open_group/create/$', auth(OpenGroupCreateView.as_view()), name='open_group_create'),
 	url(r'^closed_group/create/$', auth(ClosedGroupCreateView.as_view()), name='closed_group_create'),
 	url(r'^group/invite/$', auth(InviteUsersToGroupView.as_view()), name='invite'),
@@ -230,7 +229,6 @@ urlpatterns = patterns('',
 	url(r'^bahir/invite/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
 	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
 	url(r'^reinvite/private/$', auth(ReinvitePrivateView.as_view()), name='reinvite_private_help'),
-	url(r'^reinvite/(?P<slug>[\w.@+-]+)/$', auth(ReinviteView.as_view()), name='reinvite_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^rhr/$', auth(retire_home_rules), name='retire_home_rules'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
@@ -239,7 +237,7 @@ urlpatterns = patterns('',
 	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
 	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
-	url(r'^group_help/$', GroupHelpView.as_view(), name='group_help'),
+
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
 	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),
 	url(r'^facespage/$', faces_pages, name='faces_pages'), 
@@ -339,6 +337,7 @@ urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
 urlpatterns += urlpatterns_sharing
+urlpatterns += urlpatterns_mehfil
 urlpatterns += urlpatterns_verification
 
 

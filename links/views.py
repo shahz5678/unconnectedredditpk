@@ -35,11 +35,11 @@ from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHel
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ChangePrivateGroupTopicForm, \
 ReinvitePrivateForm, ContactForm, InvitePrivateForm, AboutForm, PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, \
 PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, \
-PicsChatUploadForm, VerifiedForm, GroupHelpForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
+PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, WelcomeMessageForm, WelcomeForm, MehfilForm, \
 MehfildecisionForm, LogoutHelpForm, LogoutReconfirmForm, LogoutPenaltyForm, SmsReinviteForm, OwnerGroupOnlineKonForm, \
 AppointCaptainForm, OutsiderGroupForm, InviteForm, DirectMessageCreateForm,DirectMessageForm, PrivateGroupReplyForm, SearchNicknameForm,\
-PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ClosedGroupHelpForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
-GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, OpenGroupHelpForm, GroupPageForm, ReinviteForm, ScoreHelpForm, \
+PublicGroupReplyForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ChangeGroupRulesForm, ChangeGroupTopicForm, \
+GroupTypeForm, GroupOnlineKonForm, GroupTypeForm,GroupListForm, GroupPageForm, ScoreHelpForm, \
 HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
 UnseenActivityForm, ClosedGroupCreateForm, OpenGroupCreateForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
 ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
@@ -494,9 +494,6 @@ class DeviceHelpView(FormView):
 				context["device"] = None
 		return context
 
-class GroupHelpView(FormView):
-	form_class = GroupHelpForm
-	template_name = "group_help.html"
 
 class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
@@ -541,16 +538,6 @@ def fan_list(request, pk=None, *args, **kwargs):
 	else:
 		return render(request,"fan_list.html",{'fans':None,'star':star, 'count':total_count})
 
-class ReinviteView(FormView):
-	form_class = ReinviteForm
-	template_name = "reinvite.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(ReinviteView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.kwargs.get("slug")
-			context["unique"] = unique
-		return context
 
 class HistoryHelpView(FormView):
 	form_class = HistoryHelpForm
@@ -608,9 +595,6 @@ class RegisterLoginView(FormView):
 	# 	mp.track(self.request.session.get('new_id',None), 'inside_register_login')
 	# 	return context
 
-class OpenGroupHelpView(FormView):
-	form_class = OpenGroupHelpForm
-	template_name = "open_group_help.html"
 
 def website_rules(request):
 	return render(request,"website_rules.html",{})
@@ -627,9 +611,6 @@ class PrivacyPolicyView(FormView):
 	form_class = PrivacyPolicyForm
 	template_name = "privacy_policy.html"
 
-class ClosedGroupHelpView(FormView):
-	form_class = ClosedGroupHelpForm
-	template_name = "closed_group_help.html"	
 
 class HelpView(FormView):
 	form_class = HelpForm

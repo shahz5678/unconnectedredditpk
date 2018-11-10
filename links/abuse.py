@@ -11,8 +11,8 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
 's.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','whatapp','whatsapp','romentic','lesb',\
-'whatsap','sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','whtsap','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck']
-#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
+'whatsap','sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','whtsap','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck',\
+'watsap']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
 
 
 CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga','nangi','phddi',\
@@ -33,7 +33,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 'bahan','phuda','ph0di','hawas','havas','bgarat','lorro','bhan','bhund','phoudi','ph0da','g@ndo','puddii','puudii','chout','ganndi','ch0ut','hrami','kuuttii','l00ra','gaaaando',\
 'marwani','tharki','th@rki','bgairat','raandi','gannd','knjr','rnnd','gndo','bhn','gnd','pyar','garum','chudakar','thko','phude','fhudiyo','chudwa','phudda',\
 'ghushti','jismani','chot','xhodo','thoko','ch0t','lu.n','hiijra','chadwa','pyase','l0n','ghand','gndo','dewani','dewana','uff','uuf','phuud','chdwa','ghsti',\
-'iun']#salle,lanti,lant,soor,
+'iun','knnjr','gnnd']#salle,lanti,lant,soor,
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\

@@ -1115,45 +1115,9 @@ class UnseenActivityForm(forms.Form):
 				pass
 			return data
 
-
-
 class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
-
-class ClosedGroupCreateForm(forms.ModelForm):
-	class Meta:
-		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
-		fields = ("topic",)
-
-	def __init__(self, *args, **kwargs):
-		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
-
-class OpenGroupCreateForm(forms.ModelForm):
-	PicNoPic = (
-		('1','Haan'),
-		('0','Nahi'),
-		)
-	pics_ki_ijazat = forms.TypedChoiceField(choices=PicNoPic, widget=forms.RadioSelect, coerce=int)
-	class Meta:
-		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private")
-		fields = ("topic", "rules", "pics_ki_ijazat")
-
-	def __init__(self, *args, **kwargs):
-		self.is_mob_verified = kwargs.pop('verified',None)
-		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
-		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
-
-	def clean_topic(self):
-		data, is_mob_verified = self.cleaned_data.get("topic"), self.is_mob_verified
-		if not is_mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair mehfil nahi ban sakti')
-		return data
-
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
@@ -1333,10 +1297,6 @@ class SalatTutorialForm(forms.Form):
 	class Meta:
 		pass
 
-class DirectMessageForm(forms.Form):
-	class Meta:
-		pass
-
 class SalatInviteForm(forms.Form):
 	class Meta:
 		pass
@@ -1385,21 +1345,10 @@ class PicHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class DirectMessageCreateForm(forms.Form):
-	class Meta:
-		model = Group
 
 class PicExpiryForm(forms.Form):
 	class Meta:
 		pass
-
-class InvitePrivateForm(forms.Form):
-	class Meta:
-		model = Session
-
-class InviteForm(forms.Form): # doesn't work if one uses Model form
-	class Meta:
-		model = Session
 
 class VerifiedForm(forms.Form):
 	class Meta:
@@ -1412,14 +1361,6 @@ class TopPhotoForm(forms.Form):
 class TopForm(forms.Form):
 	class Meta:
 		model = User
-
-class OwnerGroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
-
-class GroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
 
 class DeviceHelpForm(forms.Form):
 	class Meta:
@@ -1440,14 +1381,6 @@ class WelcomeForm(forms.Form):
 class GroupPageForm(forms.Form):
 	class Meta:
 		model = Reply
-
-class AppointCaptainForm(forms.Form): #doesn't work as forms.ModelForm
-	class Meta:
-		pass
-
-class GroupListForm(forms.Form):
-	class Meta:
-		pass
 
 class GroupTypeForm(forms.Form):
 	class Meta:
@@ -1485,10 +1418,6 @@ class LogoutPenaltyForm(forms.Form):
 	class Meta:
 		pass
 
-class ReinvitePrivateForm(forms.Form):
-	class Meta:
-		pass
-
 class ReportNicknameForm(forms.Form):
 	class Meta:
 		pass
@@ -1501,9 +1430,6 @@ class SpecialPhotoTutorialForm(forms.Form):
 #   class Meta:
 #       pass
 
-class MehfilForm(forms.Form):
-	class Meta:
-		pass
 
 # class GroupReportForm(forms.Form):
 #   class Meta:

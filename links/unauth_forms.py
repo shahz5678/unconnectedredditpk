@@ -307,12 +307,68 @@ class CreateAccountForm(forms.ModelForm):
 
 	def clean_username(self):
 		lang, username = self.lang, self.cleaned_data.get("username")
+		username = username.strip()
+		if not username:
+			raise ValidationError(retrieve_validation_error_string('required_visible_nick',lang=lang))
+		len_uname = len(username)
 		if len(username) < 2:
 			raise ValidationError(retrieve_validation_error_string('nick_too_small',lang=lang))
 		elif username.isdigit():
 			# the username is only made up of numbers, disallow
 			raise ValidationError(retrieve_validation_error_string('nick_only_has_digits',lang=lang))
-		else:
+		elif username == username[0]*len_uname: #checks if it's a string made of a single character
+			raise ValidationError(retrieve_validation_error_string('repeating_sequence_in_nick',lang=lang))
+		elif username[:1] == '.':
+			raise ValidationError(retrieve_validation_error_string('dot_at_nick_start',lang=lang))
+		elif username[-1:] == '.':
+			raise ValidationError(retrieve_validation_error_string('dot_at_nick_end',lang=lang))
+		elif username[:1] == '-':
+			raise ValidationError(retrieve_validation_error_string('dash_at_nick_start',lang=lang))
+		elif username[-1:] == '-':
+			raise ValidationError(retrieve_validation_error_string('dash_at_nick_end',lang=lang))
+		elif username[:1] == '+':
+			raise ValidationError(retrieve_validation_error_string('plus_at_nick_start',lang=lang))
+		elif username[-1:] == '+':
+			raise ValidationError(retrieve_validation_error_string('plus_at_nick_end',lang=lang))
+		elif username[:1] == '_':
+			raise ValidationError(retrieve_validation_error_string('uscore_at_nick_start',lang=lang))
+		elif username[-1:] == '_':
+			raise ValidationError(retrieve_validation_error_string('uscore_at_nick_end',lang=lang))
+		elif '..' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='..'))
+		elif '--' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='--'))
+		elif '__' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='__'))
+		elif '++' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='++'))
+		elif '+.' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+.'))
+		elif '+-' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+-'))
+		elif '+_' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='+_'))
+		elif '.+' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='.+'))
+		elif '-+' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-+'))
+		elif '_+' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_+'))
+		elif '-.' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-.'))
+		elif '-_' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='-_'))
+		elif '.-' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='.-'))
+		elif '_-' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_-'))
+		elif '_.' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_.'))
+		elif '._' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='._'))
+		
+		is_valid, err_string, payload = validate_string_chars(username, BANNED_NICKS, lang)
+		if is_valid:
 			exists = nick_already_exists(nickname=username)
 			if exists is None:
 				# if 'nicknames' redis sorted set does not exist, resort to PSQL
@@ -325,6 +381,11 @@ class CreateAccountForm(forms.ModelForm):
 				raise ValidationError(retrieve_validation_error_string('nick_recently_taken',lang=lang,payload=username))
 			else:
 				return username
+		else:
+			if err_string == 'invalid_new_nick':
+				raise ValidationError(retrieve_validation_error_string(err_string,lang=lang))
+			elif err_string == 'banned_sequence_in_nick':
+				raise ValidationError(retrieve_validation_error_string(err_string,lang=lang,payload=payload))
 
 	def clean_password(self):
 		lang, password = self.lang, self.cleaned_data.get("password")

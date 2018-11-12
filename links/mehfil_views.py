@@ -1,23 +1,35 @@
-import uuid
+import uuid, time, json
 from operator import itemgetter
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.generic.edit import FormView, CreateView
 from django.views.generic import ListView
 from django.contrib.auth.models import User
+from django.utils import timezone
+from django.db.models import F
+from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.views.decorators.debug import sensitive_post_parameters
+from brake.decorators import ratelimit
 from verified import FEMALES
-from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST
-from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion
-from redis1 import check_group_member, remove_group_member, remove_user_group, check_group_invite, remove_group_invite, add_group_member,\
-add_user_group, add_group_invite, add_home_link, add_unfiltered_post, add_filtered_post, set_latest_group_reply, bulk_check_group_membership, bulk_check_group_invite
-from redis2 import remove_group_notification, remove_group_object, get_attendance, create_notification, create_object
-from redis4 import get_most_recent_online_users
-from redis3 import get_ranked_public_groups
-from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
-GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm
+from image_processing import clean_image_file
+from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE
 from views import condemned, convert_to_epoch, valid_uuid
-from models import Group, Reply, GroupCaptain, GroupTraffic, Link
+from models import Group, Reply, GroupCaptain, GroupTraffic, Link, GroupBanList, UserProfile
+from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion, set_input_rate_and_history, group_notification_tasks,\
+log_private_mehfil_session
+from redis1 import check_group_member, remove_group_member, remove_user_group, check_group_invite, remove_group_invite, add_group_member,\
+add_user_group, add_group_invite, add_home_link, add_unfiltered_post, add_filtered_post, set_latest_group_reply, bulk_check_group_membership,\
+bulk_check_group_invite, get_user_groups, get_latest_group_replies, get_active_invites, get_group_members, add_refresher, first_time_refresher,\
+remove_all_group_members, remove_latest_group_reply, remove_group_for_all_members
+from redis2 import remove_group_notification, remove_group_object, get_attendance, create_notification, create_object, get_replies_with_seen, \
+save_user_presence, get_latest_presence, update_notification, del_attendance, remove_group_object
+from redis4 import get_most_recent_online_users, set_text_input_key
+from redis3 import get_ranked_public_groups, del_from_rankings
+from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
+GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
+GroupPageForm, GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
 
 
 ########################## Mehfil Help #########################
@@ -223,7 +235,14 @@ class InviteUsersToGroupView(ListView):
 				context["group"] = None
 		return context
 
-########################## Mehfil creation #########################
+#################################### Mehfil creation ######################################
+
+class GroupTypeView(FormView):
+	"""
+	Renders a 'choice' form when user tries to create a mehfil from the group page
+	"""
+	form_class = GroupTypeForm
+	template_name = "mehfil/group_type.html"
 
 class OpenGroupHelpView(FormView):
 	"""
@@ -552,6 +571,62 @@ def left_private_group(request, *args, **kwargs):
 			pass
 	return redirect("group_page")
 
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def left_public_group(request, *args, **kwargs):
+	"""
+	Processes leaving a public mehfil
+	"""
+	if request.method == "POST":
+		pk = request.POST.get("pk",None)
+		inside_group = request.POST.get("igrp",None)
+		unique = request.POST.get("slug",None)
+		leaving_decision = request.POST.get("ldec",None)
+		if leaving_decision == '1':
+			username = request.user.username
+			user_id = request.user.id
+			if check_group_member(pk, username):
+				remove_group_member(pk, username)
+				remove_user_group(user_id, pk)
+				remove_group_notification(user_id,pk)
+			elif check_group_invite(user_id, pk):
+				remove_group_invite(user_id, pk)
+			else:
+				pass
+			return redirect("group_page")
+		else:
+			if inside_group == '1':
+				return redirect("public_group", slug=unique)
+			else:
+				return redirect("group_page")
+	return redirect("group_page")
+
+
+def del_public_group(request, pk=None, unique=None, private=None, *args, **kwargs):
+	"""
+	Processes public mehfil deletion
+	"""
+	group = Group.objects.get(id=pk)
+	member_ids = list(User.objects.filter(username__in=get_group_members(pk)).values_list('id',flat=True))
+	if group.owner == request.user:
+		remove_group_notification(user_id=request.user.id,group_id=pk)
+		del_from_rankings(pk)
+		del_attendance(pk)
+		remove_group_object(pk)
+		remove_all_group_members(pk)
+		remove_latest_group_reply(pk)
+		remove_group_for_all_members(pk,member_ids)
+		GroupBanList.objects.filter(which_group_id=pk).delete()
+		GroupCaptain.objects.filter(which_group_id=pk).delete()
+		Group.objects.get(id=pk).delete()
+		return redirect("group_page")
+	else:
+		context={'private':'0','unique':unique}
+		return render(request,'mehfil/penalty_groupbanned.html', context)
+
+
+
 ############################## Public mehfil administration ##############################
 
 def appoint_pk(request, pk=None, app=None, *args, **kwargs):
@@ -694,7 +769,7 @@ class GroupRankingView(ListView):
 	"""
 	model = Group
 	form_class = GroupListForm
-	template_name = "group_ranking.html"
+	template_name = "mehfil/group_ranking.html"
 	paginate_by = 25
 
 	def get_queryset(self):
@@ -710,5 +785,781 @@ class GroupRankingView(ListView):
 		trending_groups = map(itemgetter(0), trending_groups)
 		return trending_groups
 
+
+#################### Rendering list of all mehfils #####################
+
+
+class GroupPageView(ListView):
+	"""
+	Renders list of all joined and invited mehfils (public and private both)
+
+	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
+	"""
+	model = Reply
+	form_class = GroupPageForm
+	template_name = "mehfil/group.html"
+	paginate_by = 15
+
+	def get_queryset(self):
+		groups = []
+		replies = []
+		user_id = self.request.user.id
+		group_ids = get_user_groups(user_id)
+		replies = filter(None, get_latest_group_replies(group_ids))
+		invite_reply_ids = get_active_invites(user_id) #contains all current invites
+		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
+		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
+			'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:60]
+		return get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+
+	def get_context_data(self, **kwargs):
+		context = super(GroupPageView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["verified"] = FEMALES
+		return context
+
+############################## Changing public and private mehfil topic ##############################
+
+
+class ChangeGroupRulesView(CreateView):
+	"""
+	Renders public mehfil change rules form and processes new POST requests
+	"""
+	model = Group
+	form_class = ChangeGroupRulesForm
+	template_name = "mehfil/change_group_rules.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ChangeGroupRulesView, self).get_context_data(**kwargs)
+		user = self.request.user
+		context["unauthorized"] = False
+		if user.is_authenticated():
+			unique = self.request.session["public_uuid"]
+			context["unique"] = unique
+			group = Group.objects.get(unique=unique)
+			context["group"] = group
+			if group.private == '0':
+				if not group.owner == user:
+					context["unauthorized"] = True
+				else:
+					context["unauthorized"] = False
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
+		if self.request.user_banned:
+			return redirect("profile", slug=user.username)
+		else:
+			rules = self.request.POST.get("rules")
+			unique = self.request.session["public_uuid"]
+			group = Group.objects.get(unique=unique)
+			if group.private == '0' and group.owner != user:
+				return redirect("score_help")
+			group.rules = rules
+			group.save()
+			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
+			return redirect("public_group", slug=unique)	
+
+
+class ChangePrivateGroupTopicView(CreateView):
+	model = Group
+	form_class = ChangePrivateGroupTopicForm
+	template_name = "mehfil/change_private_group_topic.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ChangePrivateGroupTopicView, self).get_context_data(**kwargs)
+		user = self.request.user
+		context["unauthorized"] = False
+		if user.is_authenticated():
+			# banned, ban_type, time_remaining, warned = private_group_posting_allowed(self.request.user.id)
+			# banned = False
+			unique = self.request.session.get("unique_id",None)
+			if unique:# and not banned:	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+				if group.private == '0' or group.private == '2':
+					context["unauthorized"] = True
+					context["group"] = None
+					return context
+			else:
+				context["unauthorized"] = True
+				context["group"] = None
+				return context
+		return context
+
+	def form_valid(self, form):
+		user = self.request.user
+		if self.request.user_banned:
+			return render(self.request,'500.html',{})
+		else:
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
+			unique = self.request.session["unique_id"]
+			group = Group.objects.get(unique=unique)
+			if (group.private == '0' or group.private == '2') and group.owner != user:
+				return redirect("score_help")
+			group.topic = topic
+			group.save()
+			if self.request.is_feature_phone:
+				device = '1'
+			elif self.request.is_phone:
+				device = '2'
+			elif self.request.is_tablet:
+				device = '4'
+			elif self.request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4', device=device)
+			self.request.session["unique_id"] = unique
+			return redirect("private_group_reply")#, slug=unique)
+
+class ChangeGroupTopicView(CreateView):
+	"""
+	Changes the topic of a public mehfil
+	"""
+	model = Group
+	form_class = ChangeGroupTopicForm
+	template_name = "mehfil/change_group_topic.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ChangeGroupTopicView, self).get_context_data(**kwargs)
+		user = self.request.user
+		context["unauthorized"] = False
+		if user.is_authenticated():
+			unique = self.request.session["public_uuid"]
+			if unique:	
+				context["unique"] = unique
+				group = Group.objects.get(unique=unique)
+				context["group"] = group
+				if group.private == '0':
+					if not group.owner == user:
+						context["unauthorized"] = True
+					else:
+						context["unauthorized"] = False
+			else:
+				context["unauthorized"] = True
+				return context
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		user = self.request.user
+		if self.request.user_banned:
+			return render(self.request,'500.html',{})
+		else:
+			# topic = self.request.POST.get("topic")
+			topic = form.cleaned_data.get("topic")
+			unique = self.request.session['public_uuid']
+			group = Group.objects.get(unique=unique)
+			if group.private == '0' and group.owner != user:
+				return redirect("score_help")
+			group.topic = topic
+			group.save()
+			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
+			return redirect("public_group", slug=unique)
+
+############################## Rendering and posting to private mehfil ##############################
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@sensitive_post_parameters()
+@csrf_protect
+def priv_group(request,*args,**kwargs):
+	"""
+	Redirecting incoming to PrivateGroupView()
+	"""	
+	if request.method == 'POST':
+		slug = request.POST.get("private_uuid")
+		if valid_uuid(slug):
+			request.session["unique_id"] = slug
+			return redirect("private_group_reply")
+		else:
+			return redirect("group_page")	
+	else:
+		return redirect("group_page")
+
+
+class PrivateGroupView(CreateView): #get_queryset doesn't work in CreateView (it's a ListView thing!)
+	"""
+	Renders and processes submissions to private mehfil
+	"""
+	model = Reply
+	form_class = PrivateGroupReplyForm		
+	template_name = "mehfil/private_group_reply.html"
+
+	@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+	def dispatch(self, request, *args, **kwargs):
+		# Try to dispatch to the right method; if a method doesn't exist,
+		# defer to the error handler. Also defer to the error handler if the
+		# request method isn't on the approved list.
+		if request.method.lower() in self.http_method_names:
+			handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+		else:
+			handler = self.http_method_not_allowed
+		self.request = request
+		self.args = args
+		self.kwargs = kwargs
+		return handler(request, *args, **kwargs)
+
+	def get_form_kwargs( self ):
+		kwargs = super(PrivateGroupView,self).get_form_kwargs()
+		kwargs['user_id'] = self.request.user.id
+		return kwargs
+
+	def get_context_data(self, **kwargs):
+		context = super(PrivateGroupView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			try:
+				unique = self.request.session['unique_id']
+			except:
+				context["switching"] = True
+				return context
+			if unique:
+				context["unique"] = unique
+			else:
+				context["switching"] = True
+				return context
+			try:
+				group = Group.objects.get(unique=unique)#get DB call
+			except:
+				context["switching"] = True
+				return context
+			context["group"] = group
+			if 'private' in self.request.path and group.private=='1':
+				user_id = self.request.user.id
+				group_id = group.id
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["score"] = self.request.user.userprofile.score
+				context["switching"] = False
+				context["ensured"] = FEMALES
+				context["mobile_verified"] = self.request.mobile_verified
+				replies = Reply.objects.select_related('writer__userprofile').defer('writer__userprofile__attractiveness',\
+					'writer__userprofile__mobilenumber','writer__userprofile__previous_retort','writer__userprofile__age',\
+					'writer__userprofile__gender','writer__userprofile__bio','writer__userprofile__streak','writer__userprofile__media_score',\
+					'writer__userprofile__shadi_shuda','writer__userprofile__id','writer__is_superuser','writer__first_name','writer__last_name',\
+					'writer__last_login','writer__email','writer__date_joined','writer__is_staff','writer__is_active','writer__password').\
+				filter(which_group_id=group_id).order_by('-submitted_on')[:25]
+				time_now = timezone.now()
+				updated_at = convert_to_epoch(time_now)
+				log_private_mehfil_session.delay(group_id, user_id)
+				save_user_presence(user_id,group.id,updated_at)
+				pres_dict = get_latest_presence(group_id,set(reply.writer_id for reply in replies))
+				context["replies"] = [(reply,reply.writer,pres_dict[reply.writer_id]) for reply in replies]
+				context["unseen"] = False
+				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					members = get_group_members(group_id)
+					context["members"] = members #contains members' usernames
+					if members and replies and self.request.user.username in members:
+						# flip "unseen" notification here
+						context["unseen"] = True #i.e. the user is a member and replies exist; the prospect of unseen replies exists
+						update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, \
+							updated_at=updated_at, single_notif=False, unseen_activity=True, priority='priv_mehfil',
+							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
+						try:
+							#finding latest time user herself replied
+							context["reply_time"] = max(reply.submitted_on for reply in replies if str(reply.writer) == str(self.request.user))
+						except:
+							context["reply_time"] = None #i.e. it's the first reply in the last 25 replies (i.e. all were unseen)
+					else:
+						context["reply_time"] = None
+			else:
+				context["switching"] = True
+		return context
+
+	def form_valid(self, form): #this processes the form before it gets saved to the database
+		if self.request.user_banned:
+			return render(self.request,'500.html',{})
+		else:
+			user_id = self.request.user.id
+			if self.request.user.userprofile.score < -25:
+				HellBanList.objects.create(condemned=self.request.user)
+				self.request.user.userprofile.score = random.randint(10,71)
+				self.request.user.userprofile.save()
+				return redirect("group_page")
+			pk = self.request.POST.get('gp',None)
+			which_group = Group.objects.get(pk=pk)
+			which_group_id, unique = pk, which_group.unique
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			text = f.text #text of the reply
+			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+			if f.image:
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				if on_fbs:
+					if f.image.size > 200000:
+						context = {'pk':'pk'}
+						return render(self.request,'big_photo_fbs.html',context)
+					else:
+						pass
+				else:
+					if f.image.size > 10000000:
+						context = {'pk':'pk'}
+						return render(self.request,'big_photo_regular.html',context)
+					else:
+						pass
+				image_file = clean_image_file(f.image)
+				if image_file is False:
+					return render(self.request, 'big_photo.html', {'photo':'prv_grp'})
+				else:
+					f.image = image_file
+			else: 
+				f.image = None
+			if self.request.is_feature_phone:
+				device = '1'
+			elif self.request.is_phone:
+				device = '2'
+			elif self.request.is_tablet:
+				device = '4'
+			elif self.request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			set_input_rate_and_history.delay(section='prv_grp',section_id=which_group_id,text=text,user_id=user_id,time_now=time.time())
+			reply = Reply.objects.create(writer=self.request.user, which_group=which_group, text=text, image=f.image, \
+				device=device)
+			add_group_member(which_group_id, self.request.user.username)
+			remove_group_invite(user_id, which_group_id)
+			add_user_group(user_id, which_group_id)
+			reply_time = convert_to_epoch(reply.submitted_on)
+			try:
+				url=self.request.user.userprofile.avatar.url
+			except ValueError:
+				url=None
+			try:
+				image_url = reply.image.url
+			except ValueError:
+				image_url = None
+			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
+				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
+				reply_text=text,priv=which_group.private,slug=unique,image_url=image_url,priority='priv_mehfil',\
+				from_unseen=False, reply_id=reply.id)
+			self.request.session['unique_id'] = unique
+			self.request.session.modified = True
+			return redirect("private_group_reply")
+
+
+############################## Rendering and posting to public mehfil ##############################
+
+
+def public_group_request_denied(request):
+	"""
+	Renders errors resulting from posting in a public mehfil
+	"""
+	which_msg = request.session.pop("public_group_request_denied",None)
+	if which_msg == '1':
+		return render(request,'big_photo_fbs.html',{'pk':'pk'})
+	elif which_msg == '2':
+		return render(request,'big_photo_regular.html',{'origin':'pub_grp'})
+	elif which_msg == '3':
+		return render(request, 'big_photo.html', {'photo':'pub_grp'})
+	else:
+		return redirect("missing_page")
+
+
+class PublicGroupView(CreateView):
+	model = Reply
+	form_class = PublicGroupReplyForm
+	template_name = "mehfil/public_group_reply.html"
+
+	@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+	def dispatch(self, request, *args, **kwargs):
+		# Try to dispatch to the right method; if a method doesn't exist,
+		# defer to the error handler. Also defer to the error handler if the
+		# request method isn't on the approved list.
+		if request.method.lower() in self.http_method_names:
+			handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+		else:
+			handler = self.http_method_not_allowed
+		self.request = request
+		self.args = args
+		self.kwargs = kwargs
+		return handler(request, *args, **kwargs)
+
+	def get_form_kwargs(self):
+		kwargs = super(PublicGroupView,self).get_form_kwargs()
+		kwargs['user_id'] = self.request.user.id
+		kwargs['is_mob_verified'] = self.request.mobile_verified
+		return kwargs
+
+	def get_context_data(self, **kwargs):
+		context = super(PublicGroupView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			# pk = self.request.POST.get('gp',None)
+			unique = self.request.session.get("public_uuid",None)
+			try:
+				# group = Group.objects.get(pk=pk)
+				group = Group.objects.get(unique=unique)
+				context["unique"] = unique
+			except Group.DoesNotExist:
+				context["switching"] = True
+				context["group_banned"] = False
+				return context
+			if 'awami' in self.request.path and group.private == '0': 
+				user_id, group_id = self.request.user.id, group.id
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				set_text_input_key(user_id, group_id, 'pub_grp', secret_key)
+				context["form"] = self.request.session.pop("public_group_form") if "public_group_form" in self.request.session else \
+				PublicGroupReplyForm()
+				context["score"] = self.request.user.userprofile.score
+				context["switching"] = False
+				context["group"] = group
+				if GroupBanList.objects.filter(which_user_id=user_id,which_group_id=group_id).exists():
+					context["group_banned"]=True
+					culprit_username = self.request.user.username
+					if check_group_member(group_id, culprit_username):
+						remove_group_member(group_id, culprit_username)
+						remove_group_notification(user_id,group_id)
+						remove_user_group(user_id, group_id)
+					elif check_group_invite(user_id, group_id):
+						remove_group_invite(user_id, group_id)
+					return context#no need to process more
+				public_group_attendance_tasks.delay(group_id=group_id, user_id=user_id)
+				context["ensured"] = FEMALES
+				context["mobile_verified"] = self.request.mobile_verified
+				replies = Reply.objects.select_related('writer__userprofile').filter(which_group_id=group_id).exclude(category='1').order_by('-submitted_on')[:25]#get DB call
+				time_now = timezone.now()
+				updated_at = convert_to_epoch(time_now)
+				save_user_presence(user_id,group_id,updated_at)
+				pres_dict = get_latest_presence(group_id,set(reply.writer_id for reply in replies))
+				context["replies"] = [(reply,reply.writer,pres_dict[reply.writer_id]) for reply in replies]
+				context["unseen"] = False
+				context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
+				if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					members = get_group_members(group_id)
+					if self.request.user.username in members and context["replies"]:
+						update_notification(viewer_id=self.request.user.id, object_id=group_id, object_type='3', seen=True, \
+							updated_at=updated_at, single_notif=False, unseen_activity=True, priority='public_mehfil', \
+							bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
+			else:
+				context["switching"] = True
+				context["group_banned"] = False
+		return context
+
+	def form_invalid(self, form):
+		"""
+		If the form is invalid, re-render the context data with the
+		data-filled form and errors.
+		"""
+		self.request.session["public_group_form"] = form
+		self.request.session.modified = True
+		if self.request.is_ajax():
+			return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+		else:
+			return self.render_to_response(self.get_context_data(form=form))
+
+	def form_valid(self, form): #this processes the public form before it gets saved to the database
+		"""
+		If the form is valid, redirect to the supplied URL.
+		"""
+		is_ajax = self.request.is_ajax()
+		if self.request.user_banned:
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('missing_page')}),content_type='application/json',)
+			else:
+				return redirect("missing_page")
+		user_id = self.request.user.id
+		pk = self.request.POST.get('gp',None)
+		try:
+			which_group = Group.objects.get(id=pk)
+		except Group.DoesNotExist:
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
+		if GroupBanList.objects.filter(which_user_id=user_id, which_group_id=which_group.id).exists():
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+			else:
+				return redirect("group_page")
+		else:
+			if self.request.user.userprofile.score < -25:#
+				HellBanList.objects.create(condemned=self.request.user)
+				self.request.user.userprofile.score = random.randint(10,71)
+				self.request.user.userprofile.save()
+				if is_ajax:
+					return HttpResponse(json.dumps({'success':False,'message':reverse('group_page')}),content_type='application/json',)
+				else:
+					return redirect("group_page")
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			set_input_rate_and_history.delay(section='pub_grp',section_id=which_group.id,text=f.text,user_id=user_id,time_now=time.time())
+			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+			self.request.session["public_uuid"] = which_group.unique
+			self.request.session.modified = True
+			if f.image and which_group.pics_ki_ijazat == '1':
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				if on_fbs:
+					if f.image.size > 200000:
+						self.request.session["public_group_request_denied"] = '1'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
+				else:
+					if f.image.size > 10000000:
+						self.request.session["public_group_request_denied"] = '2'
+						self.request.session.modified = True
+						if is_ajax:
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+						else:
+							return redirect("public_group_request_denied")
+				image_file = clean_image_file(f.image, already_reoriented=self.request.POST.get('reoriented',None),\
+					already_resized=self.request.POST.get('resized',None))
+				if image_file is False:
+					self.request.session["public_group_request_denied"] = '3'
+					self.request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_group_request_denied')}),content_type='application/json',)
+					else:
+						return redirect('public_group_request_denied')
+				else:
+					f.image = image_file
+			else: 
+				f.image = None
+			if self.request.is_feature_phone:
+				device = '1'
+			elif self.request.is_phone:
+				device = '2'
+			elif self.request.is_tablet:
+				device = '4'
+			elif self.request.is_mobile:
+				device = '5'
+			else:
+				device = '3'
+			which_group_id = which_group.id
+			reply = Reply.objects.create(writer_id=user_id, which_group=which_group, text=f.text, image=f.image, device=device)#
+			add_group_member(which_group_id, self.request.user.username)
+			remove_group_invite(user_id, which_group_id)
+			add_user_group(user_id, which_group_id)
+			reply_time = convert_to_epoch(reply.submitted_on)
+			try:
+				url=self.request.user.userprofile.avatar.url
+			except ValueError:
+				url=None
+			try:
+				image_url = reply.image.url
+			except ValueError:
+				image_url = None
+			rank_public_groups.delay(group_id=which_group_id,writer_id=user_id)
+			public_group_attendance_tasks.delay(group_id=which_group_id, user_id=user_id)
+			group_notification_tasks.delay(group_id=which_group_id,sender_id=user_id,group_owner_id=which_group.owner.id,\
+				topic=which_group.topic,reply_time=reply_time,poster_url=url,poster_username=self.request.user.username,\
+				reply_text=f.text,priv=which_group.private,slug=which_group.unique,image_url=image_url,priority='public_mehfil',\
+				from_unseen=False, reply_id=reply.id)
+			if is_ajax:
+				return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
+			else:
+				return redirect("public_group")
+
+
+@ratelimit(rate='3/s')
+def public_group(request, slug=None, *args, **kwargs):
+	was_limited = getattr(request, 'limits', False)
+	if not slug:
+		slug = request.session.get("public_uuid",None)
+	else:
+		request.session["public_uuid"] = slug
+		request.session.modified = True
+	if valid_uuid(slug):
+		if was_limited:
+			return redirect("missing_page")
+		else:
+			return redirect("public_group_reply")
+	else:
+		return redirect("group_page")
+
+#################### Refreshing mehfils #####################
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def first_time_public_refresh(request):
+	"""
+	Using the refresh button for the first time in a public mehfil
+	"""
+	if request.method == "POST":
+		unique = request.POST.get('uid',None)
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			context = {'unique': unique}
+			return render(request, 'mehfil/public_mehfil_refresh.html', context)
+		else:
+			return redirect("public_group", unique)
+	else:
+		return redirect("public_group")
+
+
+
+@ratelimit(rate='3/s')
+def first_time_refresh(request, unique=None, *args, **kwargs):
+	"""
+	Using the refresh button for the first time in a private mehfil
+	"""
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		# if request.user.is_authenticated():
+		# 	deduction = 1 * -1
+		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
+		# 	request.user.userprofile.save()
+		# 	context = {'unique': unique}
+		# 	return render(request, 'mehfil_refresh_penalty.html', context)
+		# else:
+		# 	context = {'unique': 'none'}
+		# 	return render(request, 'mehfil_refresh_penalty.html', context)
+		return redirect("missing_page")
+	else:
+		if first_time_refresher(request.user.id):
+			add_refresher(request.user.id)
+			context = {'unique': unique}
+			return render(request, 'mehfil/mehfil_refresh.html', context)
+		else:
+			request.session["unique_id"] = unique
+			return redirect("private_group_reply")#, slug=unique)
+
+
+############################## Mehfil punishments ##############################
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def kick_pk(request, *args, **kwargs):
+	"""
+	Processing the kicking-out of an errant user from a public mehfil
+	"""
+	if request.user_banned:
+		return redirect("missing_page")
+	elif request.method == "POST":
+		kick_decision = request.POST.get("kdec",None)
+		decision = request.POST.get("dec",None)
+		slug = request.POST.get("slug",None)
+		writer_id = request.POST.get("pk",None)
+		if decision == 'rem':
+			context = {}
+			context["unique"] = slug
+			group = Group.objects.get(unique=slug)
+			context["unauthorized"] = False
+			if group.private != '0':
+				context["unauthorized"] = True
+			context["owner"] = group.owner
+			if group.owner != request.user:
+				context["culprit"] = request.user
+			else:
+				if Reply.objects.filter(writer_id=writer_id,which_group=group).exists():
+					culprit_username = User.objects.filter(id=writer_id).values_list('username',flat=True)[0]
+					context["culprit_username"] = culprit_username
+					context["pk"] = writer_id
+				else:
+					context["unauthorized"] = True
+			return render(request,"mehfil/kick.html",context)
+		elif kick_decision == '1':
+			if request.user.userprofile.score < -25:
+				HellBanList.objects.create(condemned=request.user)
+				request.user.userprofile.score = random.randint(10,71)
+				request.user.userprofile.save()
+				return redirect("group_page")
+			else:
+				try:
+					group = Group.objects.get(unique=slug)
+				except Group.DoesNotExist:
+					return redirect("group_page")
+				if group.private == '0':
+					if group.owner != request.user:
+						return redirect("public_group", slug=slug)
+					elif writer_id == str(request.user.id):
+						return redirect("public_group", slug=slug)
+					else:
+						group_id = group.id
+						culprit_username = User.objects.filter(id=writer_id).values_list('username',flat=True)[0]
+						is_member = check_group_member(group_id, culprit_username)
+						recently_online_ids = get_attendance(group_id)
+						if not is_member and writer_id not in recently_online_ids:
+							return redirect("public_group", slug=slug)	
+						if GroupBanList.objects.filter(which_user_id=writer_id, which_group_id=group_id).exists():# already kicked and banned
+							return redirect("public_group", slug=slug)
+						else:
+							GroupBanList.objects.create(which_user_id=writer_id,which_group_id=group_id)#placing the person in ban list
+							try:
+								GroupCaptain.objects.get(which_user_id=writer_id, which_group_id=group_id).delete()
+							except:
+								pass
+							if is_member:
+								remove_group_member(group_id, culprit_username)
+								remove_group_notification(writer_id,group_id)
+								remove_user_group(writer_id, group_id)
+								UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-50) #punish the kickee
+							elif check_group_invite(writer_id, group_id):
+								remove_group_invite(writer_id, group_id)
+							reply = Reply.objects.create(text=culprit_username, which_group_id=group_id, writer=request.user, category='2')
+							return redirect("public_group", slug=slug)
+				else:
+					return redirect("group_page")			
+		else:
+			return redirect("public_group", slug=slug)
+	else:
+		return redirect("group_page")
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def groupreport_pk(request, *args, **kwargs):	
+	"""
+	Hide a submission in a public mehfil
+	"""
+	if request.method == 'POST':
+		pk = request.POST.get("pk",None)
+		slug = request.POST.get("slug",None)
+		decision = request.POST.get("dec",None)
+		report_decision = request.POST.get("repdec",None)
+		if decision == 'rep':
+			context = {}
+			try:
+				context["unique"] = slug
+				reply_id = pk
+				group = Group.objects.get(unique=slug)
+			except:
+				context["captain"] = False
+				context["unique"] = None
+				context["reply"] = None
+			if GroupCaptain.objects.filter(which_user=request.user, which_group=group).exists() and Reply.objects.filter(pk=pk, which_group=group).exists():
+				context["captain"] = True
+				context["reply_pk"] = pk
+			else:
+				context["captain"] = False
+			return render(request,"mehfil/group_report.html",context)
+		elif report_decision == '1':
+			try:
+				group = Group.objects.get(unique=slug)
+			except:
+				return redirect("home")
+			if group.private != '0' or request.user_banned:
+				return redirect("missing_page")
+			elif GroupBanList.objects.filter(which_user_id=request.user.id, which_group=group).exists():
+				return redirect("group_page")
+			elif request.user.userprofile.score < -25:
+				HellBanList.objects.create(condemned=request.user)
+				request.user.userprofile.score = random.randint(10,71)
+				request.user.userprofile.save()
+				return redirect("group_page")
+			else:
+				reply = get_object_or_404(Reply, pk=pk)
+				if not GroupCaptain.objects.filter(which_user=request.user, which_group=group).exists() or reply.text == request.user.username \
+				or reply.which_group_id != group.id:
+					# not allowed
+					pass
+				elif reply.category == '3':
+					# already hidden
+					pass
+				else: #i.e. the person requesting this is a group captain
+					reply.category = '3'
+					reply.text = request.user.username
+					reply.writer.userprofile.score = reply.writer.userprofile.score - 5
+					reply.writer.userprofile.save()
+					reply.save()
+				return redirect("public_group", slug=group.unique)
+		else:
+			return redirect("public_group", slug=slug)
+	else:
+		return redirect("home")
 
 

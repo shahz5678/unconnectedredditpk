@@ -24,7 +24,7 @@ public_group_ranking_clean_up,set_world_age, retrieve_random_pin
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
-rate_limit_personal_group_sharing
+rate_limit_personal_group_sharing,log_message_sent,log_invite_accepted
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
 log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, save_most_recent_online_users#, log_photo_attention_from_fresh
@@ -364,13 +364,32 @@ def log_gibberish_writer(user_id,text,length_of_text):
 							log_gibberish_text_writer(user_id)
 							# log_spam_text_writer(user_id, text)
 
-
 @celery_app1.task(name='tasks.set_user_age')
 def set_user_age(user_id):
 	"""
 	Task that increments user's age in the world
 	"""
 	set_world_age(user_id)
+
+
+########################### priv chat split test ########
+
+
+@celery_app1.task(name='tasks.priv_msg_sent_logger')
+def priv_msg_sent_logger(user_id,target_id):
+	"""
+	Task that increments user's age in the world
+	"""
+	log_message_sent(user_id,target_id)
+
+@celery_app1.task(name='tasks.priv_invite_accepted_logger')
+def priv_invite_accepted_logger(user_id,target_id):
+	"""
+	Task that increments user's age in the world
+	"""
+	log_invite_accepted(user_id,target_id)
+
+######################################################
 
 
 @celery_app1.task(name='tasks.save_online_user')

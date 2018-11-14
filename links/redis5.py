@@ -107,7 +107,7 @@ UPPER_RES_BOUND = 2.85
 
 LEAST_CHARS = 4
 MOST_CHARS = 50
-BENCHMARK_ID = 1646458
+BENCHMARK_ID = 1670220
 
 
 """
@@ -2428,4 +2428,40 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		#########################################################################################
 		pipeline1.execute()
 		return group_id, False
+
+
+############################################ test for post invite accept split test #########################
+
+
+def log_invite_accepted(user_id,target_id):
+	"""
+	Records a group of users who accepted an friend request after the split test went live 
+	"""
+	if user_id > BENCHMARK_ID:
+		# new users
+		bucket_type = 'Active_New' if user_id % 2 != 0 else 'Control_New'
+	else:
+		# old users
+		bucket_type = 'Active_Old' if user_id % 2 != 0 else 'Control_Old'
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.sadd(bucket_type,str(user_id)+":"+str(target_id))
+	pipeline1.incr("Invites_"+bucket_type)
+	pipeline1.execute()
+
+
+def log_message_sent(user_id,target_id):
+	"""
+	Records the number of messages sent in chats created after the split test went live
+
+	"""
+	if user_id > BENCHMARK_ID:
+		# new users
+		bucket_type = 'Active_New' if user_id % 2 != 0 else 'Control_New'
+	else:
+		# old users
+		bucket_type = 'Active_Old' if user_id % 2 != 0 else 'Control_Old'
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.sismember(bucket_type,str(user_id)+":"+str(target_id)): 
+		my_server.incr("Messages_"+bucket_type)
+
 

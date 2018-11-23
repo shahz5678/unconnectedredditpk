@@ -14,7 +14,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from brake.decorators import ratelimit
 from verified import FEMALES
 from image_processing import clean_image_file
-from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE
+from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
+MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, PRIVATE_GROUP_MAX_MEMBERSHIP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
 from views import condemned, convert_to_epoch, valid_uuid
 from models import Group, Reply, GroupCaptain, GroupTraffic, Link, GroupBanList, UserProfile
 from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion, set_input_rate_and_history, group_notification_tasks,\
@@ -25,12 +26,12 @@ bulk_check_group_invite, get_user_groups, get_latest_group_replies, get_active_i
 remove_all_group_members, remove_latest_group_reply, remove_group_for_all_members
 from redis2 import remove_group_notification, remove_group_object, get_attendance, create_notification, create_object, get_replies_with_seen, \
 save_user_presence, get_latest_presence, update_notification, del_attendance, remove_group_object
-from redis4 import get_most_recent_online_users, set_text_input_key
+from redis4 import get_most_recent_online_users, set_text_input_key, retrieve_uname
 from redis3 import get_ranked_public_groups, del_from_rankings
 from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
 GroupPageForm, GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
-
+from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups
 
 ########################## Mehfil Help #########################
 
@@ -41,6 +42,17 @@ class GroupHelpView(FormView):
 	form_class = GroupHelpForm
 	template_name = "mehfil/group_help.html"
 
+	def get_context_data(self, **kwargs):
+		context = super(GroupHelpView, self).get_context_data(**kwargs)
+		context["private_price"] = PRIVATE_GROUP_COST
+		context["public_price"] = PUBLIC_GROUP_COST
+		context["public_owner_invites"] = MAX_OWNER_INVITES_PER_PUBLIC_GROUP
+		context["public_officer_invites"] = MAX_OFFICER_INVITES_PER_PUBLIC_GROUP
+		context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
+		context["private_member_invites"] = MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
+		context["private_owner_invites"] = MAX_OWNER_INVITES_PER_PRIVATE_GROUP
+		return context
+		
 #################### Inviting users to mehfils #####################
 
 class ReinviteView(FormView):
@@ -763,18 +775,46 @@ class GroupOnlineKonView(ListView):
 
 ########################## Popular mehfil list #########################
 
-class GroupRankingView(ListView):
+# def get_ranked_groups(request):
+#     """
+#     Displays top public mehfils, sorted by 'stickiness'
+#     """
+#     """
+#     ('5',12) does not exist in test_list (used for testing purposes)
+	
+#     test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
+#     ('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
+#     ,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
+	
+#     group_ids_list = test_list
+#     """
+#     groups_data = retrieve_cached_ranked_groups()
+#     if groups_data:
+#         trending_groups = json.loads(groups_data)
+#     else:
+#         trending_groups = []
+#         group_ids_list = get_ranked_public_groups()#get_ranked_mehfils()
+#         group_ids_dict = dict(group_ids_list)
+#         group_ids = map(itemgetter(0), group_ids_list)
+#         groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
+#         for group in groups:
+#             if group['oun']:
+#                 group_id = group['gi']
+#                 trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
+#         trending_groups.sort(key=itemgetter(4), reverse=True)
+#         cache_ranked_groups(json.dumps(trending_groups))
+#     return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
+
+def get_ranked_groups(request):
 	"""
 	Displays top public mehfils, sorted by 'stickiness'
 	"""
-	model = Group
-	form_class = GroupListForm
-	template_name = "mehfil/group_ranking.html"
-	paginate_by = 25
-
-	def get_queryset(self):
+	groups_data = retrieve_cached_ranked_groups()
+	if groups_data:
+		trending_groups = json.loads(groups_data)
+	else:
 		trending_groups = []
-		group_ids_list = get_ranked_public_groups()
+		group_ids_list = get_ranked_public_groups()#get_ranked_mehfils()
 		group_ids_dict = dict(group_ids_list)
 		group_ids = map(itemgetter(0), group_ids_list)
 		groups = Group.objects.select_related('owner').filter(id__in=group_ids)
@@ -783,7 +823,16 @@ class GroupRankingView(ListView):
 			trending_groups.append((group,group_ids_dict[group_id]))
 		trending_groups.sort(key=itemgetter(1), reverse=True)
 		trending_groups = map(itemgetter(0), trending_groups)
-		return trending_groups
+		group_data = []
+		for group in trending_groups:			
+			group_list=[]
+			group_list.append(group.owner.username)
+			group_list.append(group.topic)
+			group_list.append(group.unique) 
+			group_data.append(group_list)		
+		cache_ranked_groups(json.dumps(group_data))
+		trending_groups = group_data
+	return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
 
 
 #################### Rendering list of all mehfils #####################
@@ -795,28 +844,30 @@ class GroupPageView(ListView):
 
 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
 	"""
-	model = Reply
+	# model = Reply
 	form_class = GroupPageForm
 	template_name = "mehfil/group.html"
-	paginate_by = 15
+	paginate_by = 20
 
 	def get_queryset(self):
 		groups = []
 		replies = []
 		user_id = self.request.user.id
 		group_ids = get_user_groups(user_id)
-		replies = filter(None, get_latest_group_replies(group_ids))
-		invite_reply_ids = get_active_invites(user_id) #contains all current invites
+		replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
+		invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
 		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
-		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
-			'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:60]
+		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
+			'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
 		return get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupPageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["verified"] = FEMALES
+			context["own_uname"] = retrieve_uname(self.request.user.id, decode=True)
 		return context
+
 
 ############################## Changing public and private mehfil topic ##############################
 

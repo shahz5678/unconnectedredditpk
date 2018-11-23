@@ -1739,12 +1739,10 @@ def del_from_rankings(group_id):
 	pipeline1.execute()
 
 def get_ranked_public_groups():
-	"""
-	Returns top 10 public groups
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrevrange("public_group_rank",0,49,withscores=True) # returning highest 50 groups
-
+    """
+    Returns top 20 public groups
+    """
+    return redis.Redis(connection_pool=POOL).zrevrange("public_group_rank",0,19,withscores=True) # returning highest 20 groups
 
 ###################### First Time User Tutorials #########################
 

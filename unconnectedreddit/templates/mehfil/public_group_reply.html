@@ -10,7 +10,7 @@
 
 {% if group_banned %}
     
-    <div class="cxl cp mbs">Ap <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho!</div><div class="cp cl">Ab kisi <a href="{% url 'group_ranking' %}">aur mehfil</a> mein jain</div>
+    <div class="cxl cp mbs">Ap <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho!</div><div class="cp cl">Ab kisi <a href="{% url 'get_ranked_groups' %}">aur mehfil</a> mein jain</div>
 
 {% elif switching %}
     <span class="clb"><b>Ye mehfil ap se dar ke bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>

@@ -1,0 +1,30 @@
+{% if section == 'new' %}
+	<div class="fx fxjscn fxaicn">
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/create_mehfil.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'group_page' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'get_ranked_groups' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/trophy_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'group_help' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'list' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'group_type' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/create_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/mehfil_list.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'get_ranked_groups' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/trophy_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'group_help' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'ranking' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'group_type' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/create_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'group_page' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/trophy.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'group_help' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'help' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'group_type' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/create_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'group_page' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'get_ranked_groups' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/trophy_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/help_mehfil.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</div>	
+{% else %}
+{% endif %}

@@ -107,3 +107,9 @@ SHARED_PHOTOS_CEILING = 120
 PHOTO_DELETION_BUFFER = 15
 ################################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
+######################################
+MAX_OWNER_INVITES_PER_PUBLIC_GROUP = 30 #num users an owner can invite into a group within a week
+MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group within a week
+PRIVATE_GROUP_MAX_MEMBERSHIP = 8
+MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 1 # num users a priv mehfil member can invite

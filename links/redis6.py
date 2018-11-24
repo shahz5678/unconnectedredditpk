@@ -29,7 +29,7 @@ def retrieve_cached_ranked_groups():
 	"""
 	Fetches cached ranked groups to be displayed on popular groups page
 	"""
-return redis.Redis(connection_pool=POOL).get(CACHED_RANKED_GROUPS)
+	return redis.Redis(connection_pool=POOL).get(CACHED_RANKED_GROUPS)
 
 ######################## Caching mehfil messaging data ########################
 

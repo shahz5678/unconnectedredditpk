@@ -32,12 +32,16 @@ def retrieve_hell_banned_nicknames():
 	return banned_usernames_and_ban_times
 
 
-def retrieve_regular_nicknames(how_many):
+def retrieve_regular_nicknames(how_many='all'):
 	"""
 	Populates hell_banned nicknames in a sorted set (sorted by joining time)
 	"""
 	hell_banned_user_ids = HellBanList.objects.all().values_list('condemned_id',flat=True)
-	regular_users = User.objects.order_by('-id').values_list('id','username','date_joined')[:how_many]
+	if how_many == 'all':
+		# get all nicknames
+		regular_users = User.objects.order_by('-id').values_list('id','username','date_joined')
+	else:
+		regular_users = User.objects.order_by('-id').values_list('id','username','date_joined')[:how_many]
 	usernames_and_joining_time = []
 	for user_id, username, date_joined in regular_users:
 		if user_id not in hell_banned_user_ids:
@@ -50,7 +54,7 @@ def export_nicknames_csv(request):
 	Retrieve all hell-banned usernames for parsing into "good" and "bad"
 	"""
 	# hell_banned_users = retrieve_hell_banned_nicknames()
-	regular_users = retrieve_regular_nicknames(how_many=43000)
+	regular_users = retrieve_regular_nicknames()#43000)
 	
 	# if hell_banned_users:
 	# 	import csv

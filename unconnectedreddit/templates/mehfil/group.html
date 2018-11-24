@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load humanize %}
+{% load s3 %}
+{% block content %}
+<head><title>User mehfils | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Apki mehfils:</span></h1>
+
+{% if not object_list %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Abhi apki koi mehfil nahi</div>
+	<div class="sp mts lsp mbl cgy">Mehfil mein friends ke sath group messaging and foto sharing hoti hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="mt cs sp lsp"><a href="{% url 'group_type' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">New mehfil banain</a> ya dusrey users ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain</div>
+</div>
+{% else %}
+
+{% for reply in object_list %}
+	{% if reply.0.category == '9' %}
+	<!-- joined -->
+		{% if reply.0.which_group__private == '1' %} 
+			{% if reply.0.writer__username == own_uname %}
+				<div class="mtl">
+				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+					<form method="POST" action="{% url 'priv_group' %}">
+				    {% csrf_token %}
+					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">JOIN</div><span class="cgy">Ap ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					</button>
+					</form>
+
+					<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+				    {% csrf_token %}
+				    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+				    <input type="hidden" name="insg" value="0">
+				    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+				    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+				    </form>
+
+				</div>
+				</div>
+			{% else %}
+				<div class="mtl">
+				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+					<form method="POST" action="{% url 'priv_group' %}">
+				    {% csrf_token %}
+					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					</button>
+					</form>
+
+					<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+				    {% csrf_token %}
+				    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+				    <input type="hidden" name="insg" value="0">
+				    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+				    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+				    </form>
+
+				</div>
+				</div>
+			{% endif %}
+		{% else %}
+			{% if reply.0.writer__username == own_uname %}
+				<div class="mtl">
+				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+					<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+				    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">JOIN</div><span class="cgy">Ap ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					</button>
+
+					<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+				    {% csrf_token %}
+				    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+				    <input type="hidden" name="insg" value="0">
+				    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+				    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+				    </form>
+
+				</div>
+				</div>
+			{% else %}
+				<div class="mtl">
+				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+					<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+				    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					</button>
+
+					<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+				    {% csrf_token %}
+				    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+				    <input type="hidden" name="insg" value="0">
+				    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+				    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+				    </form>
+
+				</div>
+				</div>
+			{% endif %}
+		{% endif %}
+
+	{% elif reply.0.category == '1' %}
+	<!-- invites -->
+		{% if reply.0.which_group__private == '1' and reply.0.writer__username != own_uname %}
+			<div class="mtl">
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+			    <form method="POST" action="{% url 'priv_group' %}">
+			    {% csrf_token %}
+				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+				<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					{% if reply.0.text == own_uname %}
+						<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+					{% else %}
+						<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+					{% endif %}
+				</button>
+				</form>
+				
+				<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+			    {% csrf_token %}
+			    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+			    <input type="hidden" name="insg" value="0">
+			    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+			    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to reject</span>
+			    </form>
+				
+			</div>
+			</div>
+
+		{% elif reply.0.which_group__private == '1' and reply.0.writer__username == own_uname %}
+			<div class="mtl">
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+
+			    <form method="POST" action="{% url 'priv_group' %}">
+				{% csrf_token %}
+				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+				<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+				<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				</button>
+				</form>
+
+				<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+			    {% csrf_token %}
+			    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+			    <input type="hidden" name="insg" value="0">
+			    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+			    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+			    </form>
+
+			</div>
+			</div>
+		{% elif reply.0.which_group__private == '0' and reply.0.writer__username != own_uname %}
+			<div class="mtl">
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+
+			    <a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+			    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+			    {% if reply.0.text == own_uname %}
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				{% else %}
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				{% endif %}
+				</button>
+				</a>
+
+				<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+			    {% csrf_token %}
+			    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+			    <input type="hidden" name="insg" value="0">
+			    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+			    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to reject</span>
+			    </form>
+
+			</div>
+			</div>
+		{% elif reply.0.which_group__private == '0' and reply.0.writer__username == own_uname %}
+			<div class="mtl">
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+
+				<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+				<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+				<span class="cgy">Ap ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b>&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				</button>
+				</a>
+
+				<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+			    {% csrf_token %}
+			    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+			    <input type="hidden" name="insg" value="0">
+			    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+			    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+			    </form>
+				
+			</div>
+			</div>
+		{% else %}
+		{% endif %}
+
+	{% else %}
+	<!-- chatter -->
+	{% if reply.0.which_group__private == '1' and reply.0.writer__username == own_uname %}
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+			
+		    <form method="POST" action="{% url 'priv_group' %}">
+			{% csrf_token %}
+			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+			
+			<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold;">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			</button>
+			</form>
+
+			<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+		    </form>
+
+		</div>
+		</div>
+	{% elif reply.0.which_group__private == '1' and reply.0.writer__username != own_uname %}
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white;">
+			<form method="POST" action="{% url 'priv_group' %}">
+			{% csrf_token %}
+			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}</span> <span class="cgy">mein likha:</span> <span class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			</button>
+			</form>
+
+			<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+		    </form>
+
+		</div>
+		</div>
+	{% elif reply.0.which_group__private == '0' and reply.0.writer__username == own_uname %}
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+
+			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+			<span class="cgy">Ap&nbsp;ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</b></span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			</button>
+			</a>
+
+			<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+		    </form>
+
+		</div>
+		</div>
+	{% elif reply.0.which_group__private == '0' and reply.0.writer__username != own_uname %}
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
+
+			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %} </b></span> <span class="cgy">mein likha:</span> <div style="display:inline" class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</div><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			</button>
+			</a>
+
+			<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+		    {% csrf_token %}
+		    <input type="hidden" name="guuid" value="{{ reply.0.which_group__unique }}">
+		    <input type="hidden" name="insg" value="0">
+		    <input type="hidden" name="gid" value="{{ reply.0.which_group }}">
+		    <span class="cxs sp cgy">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="0" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to exit</span>
+		    </form>
+
+		</div>
+		</div>
+	{% else %}
+
+	{% endif %}
+
+{% endif %}
+
+{% endfor %}
+{% endif %}
+</div><br>
+{% endblock %}
+
+
+{% block pagination %}
+{% if is_paginated %}
+<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+	{% if page_obj.has_previous %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+<br>
+{% endblock %}

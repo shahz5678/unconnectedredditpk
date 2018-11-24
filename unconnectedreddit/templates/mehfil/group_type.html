@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% block content %}
+{% load cache %}
+<head><title>Select mehfil type | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Create new mehfil:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:0px;background-color:white;text-align:center">
+
+{% if ttl %}
+<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Ap ye mehfil bana sakein ge {{ ttl|future_time }}</div>
+{% elif score_inadequate %}
+<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Apka score itna nahi ke ye mehfil bana sakein</div>
+{% elif user_age_inadequate %}
+<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Ap ko join kiye huay ziyada time nahi guzra. Ap ye mehfil bana sakein ge {{ age_inadequate_ttl|future_time }}</div>
+{% endif %}
+
+{% cache 3600 mehfil_type %}
+<div class="cxl lsp" style="padding:1em 0.5em 0.5em 0.5em">Kaunsi mehfil create karni hai?</div>
+<div class="fx fxjscn fxaicn mts" style="padding-bottom:20px;border-bottom:1px solid #E9EBEE">
+
+	<a href="{% url 'open_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #866496;width:100px;height:100px;background-color:#866496" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/open.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PUBLIC<br>MEHFIL</div></button></a>
+
+	<a href="{% url 'closed_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #19a83b;width:100px;height:100px;background-color:#19a83b" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/closed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PRIVATE<br>MEHFIL</div></button></a>
+
+</div>
+<a href="{% url 'group_help' %}#section0">
+	<button class="vt" style="padding-top:1em;padding-bottom:1em;border:none;width:100%"><div class="sp cb cm" style="border-bottom:1px dotted blue;display:inline-block">mehfil kya hai?</div></button>
+</a>
+</div>
+
+<br><br>
+{% endcache %}
+{% endblock %}

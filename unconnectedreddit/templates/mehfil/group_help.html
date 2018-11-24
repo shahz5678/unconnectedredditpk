@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 3600 group_help %}
+<head><title>Group help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/mehfil_list_navbar.html" with section='help' static_url=STATIC_URL %}
+
+<h1 class="clb cxl lsp" style="text-align:center">Mehfil help:</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp">Mehfil mien group messaging and foto sharing ki jati hai</div>
+<hr size=1 COLOR="#e5e7e9"> 
+<div class="mtl mbl">
+<div style="text-align:left;font-weight:bold;margin-top:0;margin-bottom:0" class="cg sp cl">Private mehfil:</div>
+<ul style="display:inline-block;padding: 0;margin:0;list-style:none;max-width:520px" class="lsp sp">
+	<li style="text-align:left" class="mt"><b class="cs cg sp">1.</b>&nbsp;Ye mehfil sirf invited users join kar saktey hain</li>
+	<li style="text-align:left" class="mt"><b class="cs cg sp">2.</b>&nbsp;Isko create karney ke liye {{ private_price }} points dene partey hain</li>
+	<li style="text-align:left" class="mt"><b class="cs cg sp">3.</b>&nbsp;Agr sirf 1 friend se baat karni ho tou <a href="{% url 'show_personal_group_invite_list' 'received' %}#section0" class="cb" style="border-bottom:1px dotted blue">private chat</a> use karein, woh bilkul muft hai</li>
+</ul>
+</div>
+
+<div style="text-align:left;font-weight:bold;margin:0" class="cp sp cl">Public mehfil:</div>
+<ul style="display:inline-block;padding: 0;margin:0;list-style:none;max-width:520px" class="lsp sp">
+	<li style="text-align:left" class="mt"><b class="cs cp sp">1.</b>&nbsp;Ye mehfil koi bhi join kar sakta hai</li>
+	<li style="text-align:left" class="mt"><b class="cs cp sp">2.</b>&nbsp;Is mein topic and rules set kiye jatey hain</li>
+	<li style="text-align:left" class="mt"><b class="cs cp sp">3.</b>&nbsp;Iska owner 'officers' bana sakta hai jo mehfil ko manage kartey hain</li>
+	<li style="text-align:left" class="mt"><b class="cs cp sp">5.</b>&nbsp;Ye mehfil <a href="{% url 'get_ranked_groups' %}#section0" class="cb" style="border-bottom:1px dotted blue">popular mehfils</a> ki list mein nazar a sakti hai</li>
+	<li style="text-align:left" class="mt"><b class="cs cp sp">6.</b>&nbsp;Isko create karney ke liye {{ public_price }} points dene partey hain</li>
+</ul><br><br>
+</div><br><br>
+{% endcache %}
+{% endblock %}

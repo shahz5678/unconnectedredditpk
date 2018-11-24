@@ -3,44 +3,36 @@
 {% block content %}
 <head><title>Trending public groups | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-<h1 class="clb cxl" style="text-align:center">Popular mehfils:</h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
-<div class="mbl" style="text-align:center">
-<a href="{% url 'group_type' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>create mehfil</b></a><span class="cs">&nbsp;|</span>
-<a href="{% url 'group_page' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>apki mehfils</b></a><span class="cs">&nbsp;|</span>
-<a href="{% url 'group_help' %}#section0" class="cs cb sp" style="border-bottom:1px dotted blue"><b>help</b></a>
-</div>
-{% for group in object_list %}
-	<a href="{% url 'public_group' slug=group.unique %}">
-	<button class="mbl" style="border:none;width:100%;padding:7px 10px">
-	<div class="mbl lsp" style="overflow:hidden;text-align:left">
-	<span class="cp"><b class="cl">{% emoticons %}{{ group.topic }}{% endemoticons %}</b></span>
-	</div>
-	<div class="sp cs" style="color:gray;text-align:right">created by {{ group.owner }}</div>
-	</button>
-	</a>
-	<br>
-{% empty %}
-<div class="cgy sp" style="text-align:center">-- list khali hai -- </div>
-{% endfor %}
-</div>
-<br>
-{% endblock %}
 
-{% block pagination %}
-{% if is_paginated %}
-<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-	{% if page_obj.has_previous %}
-    <div style="padding:0 10px">
-    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+{% include "mehfil/mehfil_list_navbar.html" with section='ranking' static_url=STATIC_URL %}
+
+<h1 class="clb cxl lsp" style="text-align:center">Popular mehfils:</h1>
+
+{% for group in object_list %}
+
+    <div class="fx fxjsfs fxaicn bizcard" style="max-width:600px;margin: 0 auto;width:96%;">
+        
+        <div class="sp cp" style="background-color:whitesmoke;align-self:stretch;padding:10px;border-top-left-radius:6px;border-bottom-left-radius:6px;"><span style="display: inline-block;vertical-align: middle;line-height: normal;">{{ forloop.counter }}</span></div>
+
+        <div class="clb" style="width:100%;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;">
+            <a href="{% url 'public_group' slug=group.2 %}">
+                <button class="vt" style="border:none;width:100%;padding:10px;font-size:100%;border-top-left-radius:0px;border-bottom-left-radius:0">
+                <div class="mbs lsp cp cl" style="overflow:hidden;text-align:left;font-weight:bold">{% emoticons %}{{ group.1 }}{% endemoticons %}</div>
+                <div class="sp cxs" style="color:gray;text-align:right">created by {{ group.0 }}</div>
+                </button>
+            </a>
+        </div>
+
     </div>
-    {% endif %}
-    {% if page_obj.has_next %}
-    <div style="padding:0 10px">
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    <br>
+{% empty %}
+
+    <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+        <div class="cgy cxl sp" style="padding:20px 10px;text-align:center">- ye list khali hai -</div>
     </div>
-    {% endif %}
-</div>
-{% endif %}
-<br>
+
+{% endfor %}
+
+<br><br>
+
 {% endblock %}

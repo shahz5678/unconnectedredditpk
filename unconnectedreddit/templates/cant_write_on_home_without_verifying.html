@@ -1,26 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-<<<<<<< HEAD
-<head><title>Unable to share without mobile verification | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-<h1 class="cxl clb" style="text-align:center">Verify yourself</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
-<b class="cxl lsp">Share karney ke liye apna mobile number verify karwain</b><br>
-<hr size=1 COLOR="#E9EBEE">
-<div class="mt cl sp lsp">Verify karwaney ke liye dabain:</div>
-	<form method="get" class="mtl mbl" action="https://www.accountkit.com/v1.0/basic/dialog/sms_login/">
-	  <input type="hidden" name="country_code" value="PK">
-	  <input type="hidden" name="app_id" value="1758220174446684">
-	  <input type="hidden" name="locale" value="ur_PK">
-	  <input type="hidden" name="debug" value=false>
-	  <input type="hidden" name="redirect" value="https://damadam.pk/vun/">
-	  <input type="hidden" name="state" value="{{ csrf }}">
-	  <input type="hidden" name="fbAppEventsEnabled" value=true>
-	  <input type="submit" class="ma" style="color:white;background-color:#00C853;border:solid 1px #00C853;font-size:110%;width:6em;" value="Verify">
-	</form>
-<span class="cgy cs sp">Verify karney mein hamari partner company FACEBOOK shamil hai</span>
-=======
 <head><title>Account not verified | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
@@ -32,7 +12,6 @@
 
     {% include "verification/verification_button.html" with is_user_verified='1' static_url=STATIC_URL %}
 
->>>>>>> 92852e256826150ee6cc99be4ccc7618f96408d4
 </div>
 <br><br>
 {% endblock %}

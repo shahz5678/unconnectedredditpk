@@ -1,4 +1,5 @@
-import uuid, time, json
+import uuid, time
+import ujson as json
 from operator import itemgetter
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
@@ -31,7 +32,7 @@ from redis3 import get_ranked_public_groups, del_from_rankings
 from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
 GroupPageForm, GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
-from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups
+from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, retrieve_cached_mehfil_list, cache_mehfil_list
 
 ########################## Mehfil Help #########################
 
@@ -850,16 +851,24 @@ class GroupPageView(ListView):
 	paginate_by = 20
 
 	def get_queryset(self):
-		groups = []
-		replies = []
 		user_id = self.request.user.id
-		group_ids = get_user_groups(user_id)
-		replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
-		invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-		invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
-		replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
-			'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
-		return get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+		data_from_micro_cache = retrieve_cached_mehfil_list(user_id)
+		if data_from_micro_cache:
+			data = json.loads(data_from_micro_cache)
+		else:
+			groups = []
+			replies = []
+			group_ids = get_user_groups(user_id)
+			replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
+			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
+			invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
+			replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
+				'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
+			for data in replies_qset:
+				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+			cache_mehfil_list(json.dumps(data),user_id)
+		return data
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupPageView, self).get_context_data(**kwargs)

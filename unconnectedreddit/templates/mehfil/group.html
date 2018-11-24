@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
-{% load humanize %}
+{% load human_time %}
 {% load s3 %}
 {% block content %}
 <head><title>User mehfils | Damadam.pk</title></head>
@@ -30,7 +30,7 @@
 				    {% csrf_token %}
 					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-					<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">JOIN</div><span class="cgy">Ap ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">JOIN</div><span class="cgy">Ap ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 					</form>
 
@@ -51,7 +51,7 @@
 				    {% csrf_token %}
 					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-					<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cs">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 					</form>
 
@@ -72,7 +72,7 @@
 				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
 					<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 				    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">JOIN</div><span class="cgy">Ap ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">JOIN</div><span class="cgy">Ap ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 
 					<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
@@ -90,7 +90,7 @@
 				<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 5px 0;background-color:white">
 					<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 				    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|naturaltime }}</span></span>
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">JOIN</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> ko join kia<span class="cs">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 
 					<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
@@ -116,9 +116,9 @@
 				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 				<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
 					{% if reply.0.text == own_uname %}
-						<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+						<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:#19a83b;padding:3px 6px;color:white;vertical-align:text-top">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 					{% else %}
-						<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+						<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 					{% endif %}
 				</button>
 				</form>
@@ -142,7 +142,7 @@
 				{% csrf_token %}
 				<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 				<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-				<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 				</button>
 				</form>
 
@@ -163,9 +163,9 @@
 			    <a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 			    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
 			    {% if reply.0.text == own_uname %}
-					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:#9971a5;padding:3px 6px;color:white">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne apko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 				{% else %}
-					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+					<div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;border:1px solid #9971a5;background-color:white;padding:3px 6px;color:#9971a5">INVITE</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <b>{{ reply.0.text }}</b> ko</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b></span> <span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 				{% endif %}
 				</button>
 				</a>
@@ -186,7 +186,7 @@
 
 				<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 				<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-				<span class="cgy">Ap ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b>&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+				<span class="cgy">Ap ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</b>&nbsp;</span><span class="cgy">mein invite kia</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 				</button>
 				</a>
 
@@ -214,7 +214,7 @@
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
 			
-			<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold;">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy">Ap&nbsp;ne</span><span class="cg cl bw" style="font-weight:bold;">&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 			</button>
 			</form>
 
@@ -235,7 +235,7 @@
 			{% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}</span> <span class="cgy">mein likha:</span> <span class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}</span> <span class="cgy">mein likha:</span> <span class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 			</button>
 			</form>
 
@@ -255,7 +255,7 @@
 
 			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-			<span class="cgy">Ap&nbsp;ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</b></span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			<span class="cgy">Ap&nbsp;ne</span><span class="cp cl bw"><b>&nbsp;{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %}&nbsp;</b></span><span class="cgy">mein likha:</span><span class="clb bw">&nbsp;{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</span><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 			</button>
 			</a>
 
@@ -275,7 +275,7 @@
 
 			<a href="{% url 'public_group' slug=reply.0.which_group__unique %}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
-			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %} </b></span> <span class="cgy">mein likha:</span> <div style="display:inline" class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</div><span class="cgy cs">, {{ reply.0.submitted_on|naturaltime }}</span>
+			{% if reply.1 == 'False' %}<div class="sp cxs mrs" style="vertical-align: text-top;display:inline;background-color:orange;color:white;padding:3px 6px;border-radius:3px">NEW</div>{% endif %}<img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic"><span class="cgy">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne</span> <span class="cp cl bw"><b>{% emoticons %}{{ reply.0.which_group__topic|truncatechars:60 }}{% endemoticons %} </b></span> <span class="cgy">mein likha:</span> <div style="display:inline" class="clb bw">{% emoticons %}{{ reply.0.text|truncatechars:80 }}{% endemoticons %}</div><span class="cgy cs">, {{ reply.0.submitted_on|human_time }}</span>
 			</button>
 			</a>
 

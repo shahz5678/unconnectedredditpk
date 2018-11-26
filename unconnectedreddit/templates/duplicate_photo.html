@@ -2,32 +2,30 @@
 {% load s3 %}
 {% load humanize %}
 {% block content %}
-<head><title>Unable to upload duplicate photo or meme | Damadam.pk</title></head>
-<div class="margin">
-<span class="co"><b>Is jesi photo kuch waqt pehle charhai ja chuki hai:</b><br>
+<style>body{background: #E9EBEE}</style>
+<head><title>Unable to upload duplicate image | Damadam.pk</title></head>
+<h1 class="cxl clb" style="text-align:center">Duplicate foto!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl lsp mbs">Is jesi foto kuch waqt pehle upload ho chuki</div>
 {% if photo.vote_score < -2 %}
-    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+    <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px" height="38"></img>
 {% elif photo.vote_score < -1 %}
     {% if photo.image_file %}
-        <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="filter:brightness(50%);width:auto;"></img>
+        <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="border-radius:5px;filter:brightness(50%);width:auto;"></img>
     {% else %}
-        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="38px;"></img>
+        <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px;" height="38"></img>
     {% endif %}
 {% else %}
 	{% if photo.image_file %}
-    	<img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="width:auto;"></img>
+    	<img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="width:auto;border-radius:5px;"></img>
     {% else %}
-    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" width="35px;"></img>
+    	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px;" height="38"></img>
     {% endif %}
 {% endif %}
-<span class="cgy"><a href="{% url 'profile' photo.owner.username %}">{{ photo.owner }}</a>
-    	{% for person in females %}
-            {% if person == photo.owner.username %}
-            <span class="pinkstar">*</span>
-            {% endif %}
-        {% endfor %}
-ne&nbsp;lagai, {{ photo.upload_time|naturaltime }}</span>
-<br><br>Kuch new charhain!<br></span>
-<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+<div class="mts mbs cgy mrs sp cs"><a href="{% url 'profile' photo.owner.username %}" class="cb sp">{% if photo.owner.username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="10" width="10">&nbsp;{% endif %}{{ photo.owner.username|truncatechars:'13' }}</a>
+ne&nbsp;upload ki, {{ photo.upload_time|naturaltime }}</div>
+<hr size=1 COLOR="#E9EBEE">
+<div class="cl sp lsp" style="font-weight:bold">Kuch new upload karein!</div>
+<a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl mbs pg_ok_res sp" style="height:26px">wapis</button></a>
 </div><br><br>
 {% endblock %}

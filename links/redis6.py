@@ -7,6 +7,9 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 FIVE_MINS = 60*5
 
+######################### Caching mehfil messaging data #########################
+
+MEHFIL_LIST_CACHED_DATA = 'mlcd:'#contains json serialized data of a user's mehfil list
 
 ######################### Caching mehfil popularity data #########################
 
@@ -27,3 +30,18 @@ def retrieve_cached_ranked_groups():
 	Fetches cached ranked groups to be displayed on popular groups page
 	"""
 	return redis.Redis(connection_pool=POOL).get(CACHED_RANKED_GROUPS)
+
+######################## Caching mehfil messaging data ########################
+
+def cache_mehfil_list(json_data,user_id):
+	"""
+	Micro-caches data shown in a user's mehfil list
+	"""
+	redis.Redis(connection_pool=POOL).setex(MEHFIL_LIST_CACHED_DATA+str(user_id),json_data,15)# micro-caching for 15 seconds
+
+
+def retrieve_cached_mehfil_list(user_id):
+	"""
+	Retrieving cached mehfil list for a certain user
+	"""
+	return redis.Redis(connection_pool=POOL).get(MEHFIL_LIST_CACHED_DATA+str(user_id))

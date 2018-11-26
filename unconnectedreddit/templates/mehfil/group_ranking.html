@@ -15,12 +15,12 @@
         <div class="sp cp" style="background-color:whitesmoke;align-self:stretch;padding:10px;border-top-left-radius:6px;border-bottom-left-radius:6px;"><span style="display: inline-block;vertical-align: middle;line-height: normal;">{{ forloop.counter }}</span></div>
 
         <div class="clb" style="width:100%;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;">
-        	<a href="{% url 'public_group' slug=group.2 %}">
-            	<button class="vt" style="border:none;width:100%;padding:10px;font-size:100%;border-top-left-radius:0px;border-bottom-left-radius:0">
-            	<div class="mbs lsp cp cl" style="overflow:hidden;text-align:left;font-weight:bold">{% emoticons %}{{ group.1 }}{% endemoticons %}</div>
-            	<div class="sp cxs" style="color:gray;text-align:right">created by {{ group.0 }}</div>
-            	</button>
-        	</a>
+            <a href="{% url 'public_group' slug=group.2 %}">
+                <button class="vt" style="border:none;width:100%;padding:10px;font-size:100%;border-top-left-radius:0px;border-bottom-left-radius:0">
+                <div class="mbs lsp cp cl" style="overflow:hidden;text-align:left;font-weight:bold">{% emoticons %}{{ group.1 }}{% endemoticons %}</div>
+                <div class="sp cxs" style="color:gray;text-align:right">created by {{ group.0 }}</div>
+                </button>
+            </a>
         </div>
 
     </div>

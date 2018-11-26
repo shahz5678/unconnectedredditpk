@@ -11,12 +11,12 @@
 {% elif orig == '2' %}
 	<a href="{% url 'best_photo_loc_pk' pid %}">
 {% elif orig == '3' %}
-	<a href="{% url 'home_loc_pk' lid %}">
+	<a href="{% url 'home_loc' %}">
 {% elif orig == '4' %}
 	<a href="{% url 'profile_pk' oun pid %}">
 {% else %}
 	<a href="{% url 'best_photo' %}">
 {% endif %}
-<button class="btn bco bm mtl">wapis</button></a>
+<button class="btn bco bm mtl pg_ok_res" style="height:26px">wapis</button></a>
 </div><br><br>
 {% endblock %}

@@ -6,15 +6,15 @@
 <form action="{% url 'caption' num unique 0 %}" method="POST">
 {% csrf_token %}
 {% if err == '0' %}
-<b style="font-family:sans-serif;font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Likho:</b><br>
+<b style="font-family:sans-serif;font-size:90%;color:#179b36;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);">Likhein:</b><br>
 {% elif err == '1' %}
-<b style="font-family:sans-serif;font-size:90%;color:red;">Paigham buhut lamba hai, chota likho:</b><br>
+<b style="font-family:sans-serif;font-size:90%;color:red;">Paigham buhut lamba hai, chota likhein:</b><br>
 {% endif %}
 {{ form.caption }}<br><br>
 <input style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#ff9933;border-color:#ff8000;width:2.5em;color:white;border-radius:4px;margin-bottom:0.5em;" name="okay" type="submit" value="OK">
 </form>
 <hr size=1 COLOR="#ff9933">
-<span style="font-size:80%;color:grey;">Jo likho gey, woh dost ko photo ke neechay nazr aye ga</span>
+<span style="font-size:80%;color:grey;">Jo likhein gey, woh dost ko photo ke neechay nazar aye ga</span>
 
 </div>
 </body>

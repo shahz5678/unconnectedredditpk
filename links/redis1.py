@@ -1183,7 +1183,6 @@ def add_home_link(link_pk=None, categ=None, nick=None, av_url=None, desc=None, \
 	categ_head,categ_tail = category_formatting(categ)
 	pinkstar = pinkstar_formatting(by_pinkstar)
 	# reply_button = comment_count_formatting(cc,link_pk)
-	# nick = '🌻'
 	if categ == '1':
 		# this is a typical link on home
 		mapping = {'l':link_pk, 'c':categ, 'n':nick, 'au':av_url, 'de':desc, 'sc':scr, 'cc':cc, 'dc':device, 'w':writer_pk, \
@@ -1250,13 +1249,23 @@ def get_link_writer(link_id):
 	hash_name = "lk:"+str(link_id) #lk is 'link'
 	return my_server.hget(hash_name,'w')
 
+def get_latest_group_replies(group_ids):
+	"""
+	Retrieves the latest reply id for each group in a given list of groups
 
-def get_latest_group_replies(group_id_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	for group_id in group_id_list:
-		pipeline1.get("lgr:"+group_id)
-	return pipeline1.execute()
+	Useful when populating the group page
+	"""
+	if group_ids:
+		lgr_keys = []
+		for group_id in group_ids:
+			lgr_keys.append("lgr:"+group_id)
+		if lgr_keys:
+			return redis.Redis(connection_pool=POOL).mget(*lgr_keys)
+		else:
+			return []
+	else:
+		return []
+
 
 def set_latest_group_reply(group_id, reply_id):
 	"""

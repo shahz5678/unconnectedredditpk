@@ -113,3 +113,5 @@ MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite int
 PRIVATE_GROUP_MAX_MEMBERSHIP = 8
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 1 # num users a priv mehfil member can invite
+TOTAL_LIST_SIZE = 80
+MEHFIL_LIST_PAGE_SIZE = 20

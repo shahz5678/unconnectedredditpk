@@ -37,11 +37,16 @@ def cache_mehfil_list(json_data,user_id):
 	"""
 	Micro-caches data shown in a user's mehfil list
 	"""
-	redis.Redis(connection_pool=POOL).setex(MEHFIL_LIST_CACHED_DATA+str(user_id),json_data,15)# micro-caching for 15 seconds
-
+	redis.Redis(connection_pool=POOL).setex(MEHFIL_LIST_CACHED_DATA+str(user_id),json_data,25)# micro-caching for 25 seconds
 
 def retrieve_cached_mehfil_list(user_id):
 	"""
 	Retrieving cached mehfil list for a certain user
 	"""
 	return redis.Redis(connection_pool=POOL).get(MEHFIL_LIST_CACHED_DATA+str(user_id))
+
+def invalidate_cached_mehfil_list(user_id):
+	"""
+	Invalidating cached mehfil list
+	"""
+	redis.Redis(connection_pool=POOL).delete(MEHFIL_LIST_CACHED_DATA+str(user_id))	

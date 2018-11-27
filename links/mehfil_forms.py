@@ -86,10 +86,6 @@ class GroupListForm(forms.Form):
 	class Meta:
 		pass
 
-class GroupPageForm(forms.Form):
-	class Meta:
-		model = Reply
-
 class GroupTypeForm(forms.Form):
 	class Meta:
 		pass

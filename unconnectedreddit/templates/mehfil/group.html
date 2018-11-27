@@ -335,13 +335,8 @@
 {% endfor %}
 {% endif %}
 </div><br>
-{% endblock %}
-
-
-{% block pagination %}
-{% if is_paginated %}
 <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-	{% if page_obj.has_previous %}
+    {% if page_obj.has_previous %}
     <div style="padding:0 10px">
     <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
     </div>
@@ -352,6 +347,6 @@
     </div>
     {% endif %}
 </div>
-{% endif %}
 <br>
+
 {% endblock %}

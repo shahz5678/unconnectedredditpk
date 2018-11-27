@@ -889,7 +889,7 @@ def group_list(request):
 				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
 			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
 			pages, num_pages = paginate_group_list(data)
-			data = pages[page_num]
+			data = pages[page_num] if pages else []
 			cache_mehfil_pages(pages,user_id)
 		elif num_replies >= TOTAL_LIST_SIZE:
 			# only use replies to populate the list
@@ -961,7 +961,7 @@ def group_page(request):
 		data['submitted_on'] = convert_to_epoch(data['submitted_on'])
 	data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
 	pages, num_pages = paginate_group_list(data)
-	data = pages[page_num]
+	data = pages[page_num] if pages else []
 	page_num = int(page_num)
 	return render(request,"mehfil/group.html",{'verified':FEMALES,'own_uname':retrieve_uname(user_id, decode=True),\
 		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\

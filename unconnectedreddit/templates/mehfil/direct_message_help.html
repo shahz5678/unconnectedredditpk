@@ -1,25 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Private group price | Damadam.pk</title></head>	
-<div class="margin clb">
-{% if not nopk %}
-	{% if user.userprofile.score > 499 %}
-
-	Ye private mehfil bananey ki qeemat <b class="cr">500 points</b> hai.<br>Ap ye qeemat dena chahtey hain?<br><br>
-	<form action="{% url 'direct_message_create' pk=target.pk %}" method="POST">
-	{% csrf_token %}
-	<button type="submit" class="bcg btn bm mbl" style="height:22px" name="Haan" value="Haan">Haan</button>
-	</form>
-	<a href="{% url 'profile' slug=target.username %}#section0"><button style="height:22px" class="btn bcr bm mbl">Nahi</button></a>
-	{% else %}
-
-	Ye private mehfil bananey ki qeemat <b class="cr">500 points</b> hai. Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain.<br>Wapis jain aur <a href="{% url 'score_help' %}">score barhain</a>:<br><br>
-	<a href="{% url 'home' %}"><button class="btn bcg bm mbl" style="height:22px">wapis</button></a>
-
-	{% endif %}
+<head><title>Private mehfil price | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+{% if nopk %}
+	<h1 class="clb cxl" style="text-align:center">Unable to create private mehfil!</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cl sp lsp">Ye mehfil nahi ban sakti</div>
+	</div>
 {% else %}
-	<span class="cl"><b>Ye mehfil nahi chal sakti!</b></span>
+	{% if user.userprofile.score >= private_price %}
+	<h1 class="clb cxl" style="text-align:center">Create private mehfil:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Ye private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+	<hr size=1 COLOR="#e5e7e9"> 
+	<div class="cl sp mbl">Ap ye price pay karna chahtey hain?</div>
+	<form action="{% url 'direct_message_create' pk=target.pk %}" class="mt mbl" style="display:inline" method="POST">
+	{% csrf_token %}
+	<button type="submit" class="bcg btn bm cm mts mbs pg_ok_res mrs sp" style="height:26px">Haan</button>
+	</form>
+	<a href="{% url 'user_profile' slug=target.username %}#section0"><button class="btn bcgy bm cm mts mbl pg_ok_res sp mls" style="height:26px">Nahi</button></a>
+	</div>
+	{% else %}
+	<h1 class="clb cxl" style="text-align:center">Not enough points!</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+		<div class="cxl lsp">Ye private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+		<hr size=1 COLOR="#e5e7e9"> 
+		<div class="cl sp lsp mbs">Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain</div>
+		<a href="{% url 'user_profile' slug=target.username %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a>
+		<hr size=1 COLOR="#E9EBEE">
+		<span class="cs sp cgy">Posts aur fotos pe jhappi miley se points increase hotay hain</span>
+	</div>
+	{% endif %}
 {% endif %}
-</div>
 <br><br>
 {% endblock %}

@@ -32,8 +32,9 @@ from redis4 import get_most_recent_online_users, set_text_input_key, retrieve_un
 from redis3 import get_ranked_public_groups, del_from_rankings
 from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
-GroupPageForm, GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
-from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, retrieve_cached_mehfil_list, cache_mehfil_list, invalidate_cached_mehfil_list
+GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
+from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages,\
+cache_mehfil_pages
 
 ########################## Mehfil Help #########################
 
@@ -575,13 +576,13 @@ def left_private_group(request, *args, **kwargs):
 			memcount = remove_group_member(pk, request.user.username) #group membership is truncated
 			remove_user_group(user_id, pk) #user's groups are truncated
 			remove_group_notification(user_id,pk) #group removed from user's notifications
-			invalidate_cached_mehfil_list(user_id)
+			invalidate_cached_mehfil_pages(user_id)
 			if memcount < 1:
 				remove_group_object(pk)
 			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='leaving group', category='6', device=device)
 		elif check_group_invite(user_id, pk):
 			remove_group_invite(user_id, pk)
-			invalidate_cached_mehfil_list(user_id)
+			invalidate_cached_mehfil_pages(user_id)
 			Reply.objects.create(which_group_id=pk, writer_id=user_id, text='unaccepted invite', category='7', device=device)
 		else:
 			pass
@@ -606,10 +607,10 @@ def left_public_group(request, *args, **kwargs):
 				remove_group_member(pk, username)
 				remove_user_group(user_id, pk)
 				remove_group_notification(user_id,pk)
-				invalidate_cached_mehfil_list(user_id)
+				invalidate_cached_mehfil_pages(user_id)
 			elif check_group_invite(user_id, pk):
 				remove_group_invite(user_id, pk)
-				invalidate_cached_mehfil_list(user_id)
+				invalidate_cached_mehfil_pages(user_id)
 			else:
 				pass
 			return redirect("group_page")
@@ -843,6 +844,18 @@ def get_ranked_groups(request):
 
 #################### Rendering list of all mehfils #####################
 
+def paginate_group_list(data):
+	"""
+	Divides provided data list into pages
+	"""
+	pages = {}
+	if data:
+		data_len, max_pages = len(data), TOTAL_LIST_SIZE/MEHFIL_LIST_PAGE_SIZE#i.e. 4 pages
+		for page_num in xrange(1,(max_pages+1),1):
+			page_data = data[MEHFIL_LIST_PAGE_SIZE*(page_num-1):MEHFIL_LIST_PAGE_SIZE*page_num]
+			if page_data:
+				pages[str(page_num)] = page_data
+	return pages, len(pages)
 
 def group_list(request):
 	"""
@@ -850,10 +863,10 @@ def group_list(request):
 
 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
 	"""
-	user_id = request.user.id
-	data_from_micro_cache = retrieve_cached_mehfil_list(user_id)
-	if data_from_micro_cache:
-		data = json.loads(data_from_micro_cache)
+	user_id, page_num = request.user.id, request.GET.get('page', '1')
+	page_data_from_micro_cache, num_pages = retrieve_cached_mehfil_pages(user_id,page_num)
+	if page_data_from_micro_cache:
+		data = json.loads(page_data_from_micro_cache)
 	else:
 		groups, replies = [], []
 		group_ids = get_user_groups(user_id)
@@ -863,13 +876,21 @@ def group_list(request):
 		if num_replies == 0:
 			# only have invites to show
 			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-			most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:TOTAL_LIST_SIZE] if invite_reply_ids else []
+			num_invites = len(invite_reply_ids)
+			if num_invites > TOTAL_LIST_SIZE:
+				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:TOTAL_LIST_SIZE]
+			elif not num_invites:
+				most_recent_invites = []
+			else:
+				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)
 			replies_qset = Reply.objects.filter(id__in=most_recent_invites).values('id','category','text','submitted_on','which_group',\
 				'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
 			for data in replies_qset:
 				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
 			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-			cache_mehfil_list(json.dumps(data),user_id)
+			pages, num_pages = paginate_group_list(data)
+			data = pages[page_num]
+			cache_mehfil_pages(pages,user_id)
 		elif num_replies >= TOTAL_LIST_SIZE:
 			# only use replies to populate the list
 			most_recent_replies = sorted(replies, key=int,reverse=True)[:TOTAL_LIST_SIZE]
@@ -878,7 +899,9 @@ def group_list(request):
 			for data in replies_qset:
 				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
 			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-			cache_mehfil_list(json.dumps(data),user_id)
+			pages, num_pages = paginate_group_list(data)
+			data = pages[page_num]
+			cache_mehfil_pages(pages,user_id)
 		else:
 			#concatenate at least 1 invite!
 			sorted_replies = sorted(replies, key=int,reverse=True)
@@ -889,74 +912,60 @@ def group_list(request):
 				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:empty_invite_slots_available]
 				final_ids = sorted_replies + most_recent_invites
 				replies_qset = Reply.objects.filter(id__in=set(final_ids)).values('id','category','text','submitted_on','which_group',\
-					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private')	
+					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private')
 				for data in replies_qset:
 					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-
 				# re-arrange replies_qset in the same order as the list "final_ids"
 				unsorted_final_data = {}
 				for item in replies_qset:
 					unsorted_final_data[item['id']] = item
 				sorted_final_data = []
-
 				for item_id in map(int,final_ids):
 					data = unsorted_final_data.get(item_id,None)
 					if data:
-						sorted_final_data.append(data)		
-							
+						sorted_final_data.append(data)
 				# get 'Seen' status
 				data = get_replies_with_seen(group_replies=sorted_final_data,viewer_id=user_id,object_type='3')
+				pages, num_pages = paginate_group_list(data)
+				data = pages[page_num]
 				# cache and return data
-				cache_mehfil_list(json.dumps(data),user_id)
+				cache_mehfil_pages(pages,user_id)
 			else:
 				replies_qset = Reply.objects.filter(id__in=sorted_replies).values('id','category','text','submitted_on','which_group',\
 					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
 				for data in replies_qset:
 					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
 				data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-				cache_mehfil_list(json.dumps(data),user_id)
+				pages, num_pages = paginate_group_list(data)
+				data = pages[page_num]
+				cache_mehfil_pages(pages,user_id)
+	page_num = int(page_num)
 	return render(request,'mehfil/group.html',{'verified':FEMALES,'own_uname':retrieve_uname(user_id,decode=True),\
-		'object_list':data})
+		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
+		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
 
-
-class GroupPageView(ListView):
+def group_page(request):
 	"""
 	Renders list of all joined and invited mehfils (public and private both)
-
 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
 	"""
-	# model = Reply
-	form_class = GroupPageForm
-	template_name = "mehfil/group.html"
-	paginate_by = 20
-
-	def get_queryset(self):
-		user_id = self.request.user.id
-		data_from_micro_cache = retrieve_cached_mehfil_list(user_id)
-		if data_from_micro_cache:
-			data = json.loads(data_from_micro_cache)
-		else:
-			groups = []
-			replies = []
-			group_ids = get_user_groups(user_id)
-			replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
-			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-			invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
-			replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
-				'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
-			for data in replies_qset:
-				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-			cache_mehfil_list(json.dumps(data),user_id)
-		return data
-
-	def get_context_data(self, **kwargs):
-		context = super(GroupPageView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES
-			context["own_uname"] = retrieve_uname(self.request.user.id, decode=True)
-		return context
-
+	groups, replies = [], []
+	user_id, page_num = request.user.id, request.GET.get('page', '1')
+	group_ids = get_user_groups(user_id)
+	replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
+	invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
+	invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
+	replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
+		'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
+	for data in replies_qset:
+		data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+	data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+	pages, num_pages = paginate_group_list(data)
+	data = pages[page_num]
+	page_num = int(page_num)
+	return render(request,"mehfil/group.html",{'verified':FEMALES,'own_uname':retrieve_uname(user_id, decode=True),\
+		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
+		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
 
 ############################## Changing public and private mehfil topic ##############################
 

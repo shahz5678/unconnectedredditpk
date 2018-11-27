@@ -3,10 +3,10 @@ from django.conf.urls import patterns, url
 from django.contrib import admin
 from links.mehfil_views import GroupHelpView, ReinviteView, OpenGroupHelpView, ClosedGroupHelpView, MehfilView, AppointCaptainView, OwnerGroupOnlineKonView,\
 GroupOnlineKonView, DirectMessageCreateView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToPrivateGroupView, DirectMessageView, ReinvitePrivateView,\
-InviteUsersToGroupView, GroupPageView, GroupTypeView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, \
+InviteUsersToGroupView, GroupTypeView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView,\
 PublicGroupView, PrivateGroupView, group_list, appoint_pk, direct_message, leave_public_group, leave_private_group, left_private_group, mehfil_help, \
 process_public_group_invite,process_private_group_invite, invite_private, public_group_request_denied, public_group, left_public_group, \
-first_time_public_refresh, first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups
+first_time_public_refresh, first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups, group_page
 
 admin.autodiscover()
 
@@ -47,7 +47,7 @@ urlpatterns = patterns('',
 	########################## Popular mehfil list #########################
 	url(r'^mehfil/popular-list/$', auth(get_ranked_groups), name='get_ranked_groups'),
 	#################### Rendering list of all mehfils #####################
-	url(r'^mehfil/your-list/$', auth(GroupPageView.as_view()), name='group_page'),
+	url(r'^mehfil/your-list/$', auth(group_page), name='group_page'),
 	url(r'^mehfil/your-mehfil-list/$', auth(group_list), name='group_list'),
 	############################## Changing public and private mehfil topic ##############################
 	url(r'^group/change_rules/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),

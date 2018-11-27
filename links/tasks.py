@@ -20,7 +20,7 @@ from order_home_posts import order_home_posts, order_home_posts2, order_home_pos
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up,set_world_age, retrieve_random_pin
+public_group_ranking_clean_up,set_world_age, retrieve_random_pin#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -75,6 +75,20 @@ MAX_FANS_TARGETED = 0.95 # 95%
 # 		# If page is out of range (e.g. 9999), deliver last page of results.
 # 		return paginator.page(paginator.num_pages)
 
+####################################
+####################################
+from redis6 import log_mehfil_data
+
+@celery_app1.task(name='tasks.mehfil_data_logger')
+def mehfil_data_logger(user_id,group_id):
+	"""
+	Task that increments whenever a message is sent in a mehfil 
+	"""
+	log_mehfil_data(user_id,group_id)
+
+
+####################################
+####################################
 def get_credentials(user_id, uname=None, avurl=None):
 	if not uname and not avurl:
 		# both dont exist
@@ -363,6 +377,15 @@ def log_gibberish_writer(user_id,text,length_of_text):
 						if third_repetition == second_repetition:
 							log_gibberish_text_writer(user_id)
 							# log_spam_text_writer(user_id, text)
+
+# @celery_app1.task(name='tasks.set_section_retention')
+# def set_section_retention(which_section, user_id):
+#     """
+#     Logs users for retention calculation of various sections of the app
+
+#     Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
+#     """
+#     set_section_wise_retention(which_section, user_id)
 
 @celery_app1.task(name='tasks.set_user_age')
 def set_user_age(user_id):

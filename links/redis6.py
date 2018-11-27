@@ -7,6 +7,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 ####################################### TIME CONSTANTS #######################################
 
 FIVE_MINS = 60*5
+TWO_WEEKS = 60*60*24*7*2
 
 ######################### Caching mehfil popularity data #########################
 
@@ -64,3 +65,55 @@ def invalidate_cached_mehfil_pages(user_id):
     Invalidating cached mehfil list
     """
     redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
+
+
+
+###################################################
+###################################################
+BENCHMARK_ID = 1686999
+
+def get_bucket_type(user_id):
+	"""
+	'NA': New user bucket, with new group view.
+	'NC': New user bucket, control group.
+	'OA': Old user bucket, with new group view.
+	'OC': Old user bucket, control group.
+	"""
+	if user_id > BENCHMARK_ID:
+		# user is either N1 or NC
+		if user_id % 2 == 0:
+			# even
+			bucket_type='NA'
+		else:
+			# odd
+			bucket_type='NC'
+	else:
+		# user is either O1 or OC
+		if user_id % 2 == 0:
+			# even
+			bucket_type='OA'
+		else:
+			# odd
+			bucket_type = 'OC'
+	return bucket_type
+
+def allot_bucket_to_user(user_id):
+	bucket = get_bucket_type(user_id)
+	redis.Redis(connection_pool = POOL).sadd(bucket,user_id)
+	return bucket
+		
+def log_mehfil_data(user_id,group_id):
+	bucket = get_bucket_type(user_id)	
+	my_server = redis.Redis(connection_pool = POOL)
+	if my_server.sismember(bucket,user_id):
+		my_server.zincrby(bucket+"_ms",user_id,amount=1)
+
+		id_pair = str(user_id)+":"+str(group_id)
+		key = bucket+"_ia:"+id_pair
+		if not my_server.exists(key):
+			my_server.zincrby(bucket+"_ia",user_id,amount=1)
+			my_server.setex(key,'1',TWO_WEEKS)
+
+###################################################
+###################################################
+

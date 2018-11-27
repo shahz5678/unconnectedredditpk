@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Create private group | Damadam.pk</title></head>
-<div class="margin">
-{% if user.userprofile.score > 499 %}
-Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai.<br>Ap ye qeemat dena chahtey hain?<br><br>
-&nbsp;<a href="{% url 'closed_group_create' %}#section0"><button class="btn bcg bm cm" style="height:22px">Haan</button></a><br>
-&nbsp;<a href="{% url 'group_page' %}#section0"><button class="btn bcgy bm cm mtl" style="height:22px">Nahi</button></a>
+<head><title>Private mehfil price | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if user.userprofile.score >= private_price %}
+	<h1 class="clb cxl" style="text-align:center">New private mehfil:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cl sp mbs">Ap ye price pay karna chahtey hain?</div>
+	<a href="{% url 'closed_group_create' %}#section0"><button class="btn bcg bm cm pg_ok_res sp mrs" style="height:26px">Haan</button></a>
+	<a href="{% url 'group_type' %}#section0"><button class="btn bcgy bm cm mtl mbl pg_ok_res sp mls" style="height:26px">Nahi</button></a>
+	</div>
 {% else %}
-Private mehfil bananey ki qeemat <b class="cg">500 points</b> hai. Apke sirf <b>{{ user.userprofile.score }}</b> points hain.<br>Wapis jao aur <a href="{% url 'score_help' %}#section0">score barhain</a>:<br>
-<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mts" style="height:22px">Wapis</button></a>
+	<h1 class="clb cxl" style="text-align:center">Not enough points!</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cl sp lsp mbs">Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain</div>
+	<a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a>
+	<hr size=1 COLOR="#E9EBEE">
+	<span class="cs sp cgy">Posts aur fotos pe jhappi miley se points increase hotay hain</span>
+	</div>
 {% endif %}
-</div>
+
 <br><br>
 {% endblock %}

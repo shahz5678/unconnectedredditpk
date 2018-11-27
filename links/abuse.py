@@ -10,16 +10,16 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'b1tch','brest','vu1va','p1mp','sh!t','p!mp','wh0re','porkistan','p0rkistan','pork!stan','p0rk!stan','porkistaan','p0rkistaan','pork!staan','p0rk!staan'\
 'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
-'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','whatapp','whatsapp','romentic','lesb',\
-'whatsap','sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','whtsap','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck',\
-'watsap','sperm','xnx','penes','s+e+x+y']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
+'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','romentic','lesb',\
+'sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck',\
+'sperm','xnx','penes','s+e+x+y']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
 
 
 CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga',\
 'nangi','phddi','phdi','lanat','taxi','taksi','kutta','kutti','kutty','gaand','gaaand','chut','lul','harami','bharw','bhrrw','bharv','bhrrv','bharw','phutti','chod',\
 'kuss','mujra','mjra','mojra','bund','tawaif','twaif',' dalla ','dlla','chdai','chudai','bhosra','bhosri','bhosre','mammay','mammey','lora','lowra','khuss','qus',\
 'bhosri','bhosry','bosri','bosry','phati','phtti','phti','phoodi','pyasi','pyasa','piyasa','piyasi','payasi','payasa','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri',\
-'ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phud!','gasht!','1anat','da11a','d11a','h!jra','hijjra','hjra','khassi','qhassi','khasi','qhasi','kutte',\
+'ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phud!','gasht!','1anat','da11a','d11a','h!jra','hijjra','hjra','khassi','qhassi','khasi','qhasi','kutte','luuun',\
 'rundi','rund!','sooar','suar','suer','sooer','soowar','soower','suuer','suuar','mamey','bhosad','bhosd','ch00t',' muth ','bhosda','choos','chodun','chodho','chuda!',\
 'lorray',' gand ','phdy','1orra','1ora','ghasti','gasti','gast!','chuse','charh','randee','randy','rande','rand!','tattay','tatay','tutta','tutty','tutti','tatti',\
 'tatey','tetti',' tati ','gasht1','gast1','gand','rand1','tutt1','tatt1','tatte','tutte','tutta','mumma','kanjar','kunjur','kunjer','kanjer','kanjr','kenjr','kanjjar'\
@@ -48,12 +48,12 @@ MISC_POLITICALLY_SENSITIVE_WORDS = ['india','pakistan','america','amreeka','amri
 'mus1im','musl!m','mus1!m','yahudi','yahud!','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b','m.h-b','mh.b','m.h@b']
 
 
-CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['allah','bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan','kafur',\
-'bhagwaan','bagwan','bagwaan','bagvaan','jesus','ahmedi','ahmadi','haraam','haaraam','haraaam','ka-fir','ka-f!r','ka_f!r','ka-ph!r','ka-ph1r',\
+CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['allah','bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan',\
+'kafur','bhagwaan','bagwan','bagwaan','bagvaan','jesus','ahmedi','haraam','haaraam','haraaam','ka-fir','ka-f!r','ka_f!r','ka-ph!r','ka-ph1r','yazeed',\
 'qa-fir','qa-f!r','qa-f1r','athiest','atheist','atheism','athiesm','sipah','taliban','ta1iban','talibaan','tal!baan','tal!ban','talyban','talybaan','god',\
 'taaliban','taa1iban','allaah','blasphemy','kufr','qufr','sippa','s!ppa','s!pah','fatwa','fatva','ftwa','ftva','bhagvaan','k.a.f.i.r','q.a.f.i.r','k.a.f.r',\
 'k.f.i.r','q.a.f.r','q.f.i.r','k.a.p.h.i.r','q.a.p.h.i.r','k.a.f.!.r','q.a.f.!.r','k.a.f.u.r','kafer','qafer','kaffer','qaffer','kaffur','qaffur',\
-'h.a.r.a.m','h.a.r.a.a.m']#haram
+'h.a.r.a.m','h.a.r.a.a.m']#haram, ahmadi
 
 
 MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t','qart00t','kartut','qartut','karto0t','kart0ot','qart0ot','qarto0t',\
@@ -61,13 +61,15 @@ MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t',
 'skendel','skendl','scandl','scendl','sharmnaak','sharamnaak','sharamnaaq','sharmnaaq','shrmnaak','shrmnaaq','jinsy','j!nsy','j!nsi','porn','p0rn',\
 'sharamnak','p-o-r-n','p_o_r_n','p.o.r.n','p-o_r-n','p_o-r_n','p-o_r_n','p_o_r-n']
 
+SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook','facebuk','facebok','telenor','mobilink','zong','ufone','warid',\
+'telen0r','m0bilink','z0ng']
 
 BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pussy','boob','xx','breast','penis','hitler','gasht','gandu','luun',\
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']
 
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
-CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS
+CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS
 
 
 BANNED_MEHFIL_TOPIC_WORDS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+CORE_RELIGIOUSLY_SENSITIVE_WORDS+\

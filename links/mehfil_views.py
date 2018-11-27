@@ -267,13 +267,23 @@ class OpenGroupHelpView(FormView):
 	form_class = OpenGroupHelpForm
 	template_name = "mehfil/open_group_help.html"
 
+	def get_context_data(self, **kwargs):
+		context = super(OpenGroupHelpView, self).get_context_data(**kwargs)
+		context["public_price"] = PUBLIC_GROUP_COST
+		return context
+
 
 class ClosedGroupHelpView(FormView):
 	"""
 	Renders form where user has to decide whether they are willing to pay the required price
 	"""
 	form_class = ClosedGroupHelpForm
-	template_name = "mehfil/closed_group_help.html"	
+	template_name = "mehfil/closed_group_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(ClosedGroupHelpView, self).get_context_data(**kwargs)
+		context["private_price"] = PRIVATE_GROUP_COST
+		return context
 
 
 def mehfil_help(request, pk=None, num=None, *args, **kwargs):
@@ -476,13 +486,22 @@ class OpenGroupCreateView(CreateView):
 			return redirect("group_page")
 
 def direct_message(request, pk=None, *args, **kwargs):
-	if pk.isdigit():
-		request.session["dm"] = pk
-		return redirect("direct_message_help")
-	else:
-		return redirect("score_help")
+    """
+    Assists in calling private mehfil creation directly from user's profile
+    """
+    if pk.isdigit():
+        request.session["dm"] = pk
+        return redirect("direct_message_help")
+    else:
+        return redirect("group")
+        
 
 class DirectMessageView(FormView):
+	"""
+	Renders form where user has to decide whether they are willing to pay the required price
+
+	Same as ClosedGroupHelpView(), except this is sourced directly from user's profile
+	"""
 	form_class = DirectMessageForm
 	template_name = "mehfil/direct_message_help.html"
 
@@ -490,23 +509,14 @@ class DirectMessageView(FormView):
 		context = super(DirectMessageView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			context["nopk"] = False
-			try:
-				pk = self.request.session["dm"]
-				self.request.session["dm"] = None
-				self.request.session.modified = True
-			except:
-				context["nopk"] = True
-				context["target"] = None
-				return context
+			context["private_price"] = PRIVATE_GROUP_COST
+			pk = self.request.session.pop("dm",None)
 			if pk:
 				target = User.objects.get(id=pk)
 				context["target"] = target
 			else:
 				context["nopk"] = True
-				context["target"] = None
-				return context
 		return context
-
 
 ############################## Deleting or exiting public and private mehfils ##############################
 

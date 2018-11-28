@@ -629,7 +629,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 	else:
 		if from_unseen:
 			# i.e. from unseen_group() in views.py
-			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,object_desc=topic,lt_res_avurl=poster_url,lt_res_text=reply_text,\
 				lt_res_sub_name=poster_username,reply_photourl=image_url,lt_res_wid=sender_id)
 		else:
 			created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\

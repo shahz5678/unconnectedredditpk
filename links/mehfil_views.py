@@ -17,7 +17,7 @@ from verified import FEMALES
 from image_processing import clean_image_file
 from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, PRIVATE_GROUP_MAX_MEMBERSHIP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, \
-MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE, PRIVATE_GROUP_MAX_TITLE_SIZE
 from views import condemned, convert_to_epoch, valid_uuid
 from models import Group, Reply, GroupCaptain, GroupTraffic, Link, GroupBanList, UserProfile
 from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion, set_input_rate_and_history, group_notification_tasks,\
@@ -28,15 +28,13 @@ bulk_check_group_invite, get_user_groups, get_latest_group_replies, get_active_i
 remove_all_group_members, remove_latest_group_reply, remove_group_for_all_members
 from redis2 import remove_group_notification, remove_group_object, get_attendance, create_notification, create_object, get_replies_with_seen, \
 save_user_presence, get_latest_presence, update_notification, del_attendance, remove_group_object
-from redis4 import get_most_recent_online_users, set_text_input_key, retrieve_uname
+from redis4 import get_most_recent_online_users, set_text_input_key, retrieve_uname, retrieve_credentials
 from redis3 import get_ranked_public_groups, del_from_rankings
 from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
 GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
 from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages,\
-cache_mehfil_pages, allot_bucket_to_user
-
-
+cache_mehfil_pages, allot_bucket_to_user, is_group_creation_rate_limited, rate_limit_group_creation
 ########################## Mehfil Help #########################
 
 class GroupHelpView(FormView):
@@ -380,47 +378,62 @@ class DirectMessageCreateView(FormView):
 			else:
 				return redirect("profile",slug=user.username)
 
+
 class ClosedGroupCreateView(CreateView):
 	model = Group
 	form_class = ClosedGroupCreateForm
-	template_name = "mehfil/new_closed_group.html"
+	template_name = "mehfil/create_new_closed_group.html"
 
+	def get_form_kwargs( self ):
+		kwargs = super(ClosedGroupCreateView,self).get_form_kwargs()
+		kwargs['score'] = self.request.user.userprofile.score
+		return kwargs
+	
+	def get_context_data(self, **kwargs):
+		context = super(ClosedGroupCreateView, self).get_context_data(**kwargs)
+		context["topic_char_limit"] = PRIVATE_GROUP_MAX_TITLE_SIZE
+		return context
+			
 	def form_valid(self, form):
-		if self.request.user.userprofile.score > (PRIVATE_GROUP_COST-1):
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			user_id = user.id
-			f.owner = user
-			f.private = 1
-			unique = uuid.uuid4()
-			f.unique = unique
-			f.rules = ''
-			f.category = '1'
-			# set_prev_retort(user_id,f.topic)
-			f.save()
-			creation_text = 'mein ne new mehfil shuru kar di'
-			reply = Reply.objects.create(text=creation_text,which_group=f,writer_id=user_id)
-			reply_time = convert_to_epoch(reply.submitted_on)
-			try:
-				url = user.userprofile.avatar.url
-			except ValueError:
-				url = None
-			create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
-				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
-				lt_res_wid=user_id)
-			create_notification(viewer_id=user_id,object_id=f.id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
-			f.owner.userprofile.score = f.owner.userprofile.score - PRIVATE_GROUP_COST
-			f.owner.userprofile.save()
-			add_group_member(f.id, self.request.user.username)
-			add_user_group(user_id, f.id)
-			try: 
-				return redirect("invite_private", slug=f.unique)
-			except:
-				self.request.session["unique_id"] = f.unique
-				return redirect("private_group_reply")#, slug=unique)
+		if self.request.user.userprofile.score >= PRIVATE_GROUP_COST:
+			user_id = self.request.user.id
+			ttl = is_group_creation_rate_limited(user_id, which_group='private')
+			if ttl:
+				return render(self.request,"mehfil/group_type.html",{'ttl':ttl})
+			else:
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				user = self.request.user
+				f.owner_id = user_id
+				f.private = 1
+				unique = uuid.uuid4()
+				f.unique = unique
+				f.rules = ''
+				f.category = '1'
+				f.save()#creating private mehfil
+
+				creation_text = 'meri new mehfil mein welcome'
+				reply = Reply.objects.create(text=creation_text,which_group=f,writer_id=user_id)
+				set_latest_group_reply(f.id,reply.id)
+				# subtract cost of private mehfil
+				reply_time = convert_to_epoch(reply.submitted_on)
+				username, url = retrieve_credentials(user_id,decode_uname=True)
+				create_object(object_id=f.id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
+					lt_res_avurl=url,lt_res_sub_name=username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
+					lt_res_wid=user_id)
+				create_notification(viewer_id=user_id,object_id=f.id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
+				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PRIVATE_GROUP_COST)
+				add_group_member(f.id, username)
+				add_user_group(user_id, f.id)
+				# rate limit further public mehfil creation by this user (for 1 day)
+				rate_limit_group_creation(user_id, which_group='private')
+				invalidate_cached_mehfil_pages(user_id)
+				try: 
+					return redirect("invite_private", slug=f.unique)
+				except:
+					self.request.session["unique_id"] = f.unique
+					return redirect("private_group_reply")#, slug=unique)
 		else:
 			return redirect("group_page")
-
 
 class OpenGroupCreateView(CreateView):
 	model = Group
@@ -486,15 +499,15 @@ class OpenGroupCreateView(CreateView):
 			return redirect("group_page")
 
 def direct_message(request, pk=None, *args, **kwargs):
-    """
-    Assists in calling private mehfil creation directly from user's profile
-    """
-    if pk.isdigit():
-        request.session["dm"] = pk
-        return redirect("direct_message_help")
-    else:
-        return redirect("group")
-        
+	"""
+	Assists in calling private mehfil creation directly from user's profile
+	"""
+	if pk.isdigit():
+		request.session["dm"] = pk
+		return redirect("direct_message_help")
+	else:
+		return redirect("group")
+
 
 class DirectMessageView(FormView):
 	"""

@@ -1,8 +1,90 @@
-import random
+import random, string, re
 from django import forms
+from django.core.exceptions import ValidationError
 from models import GroupTraffic, Group, Reply
 from redis4 import get_and_delete_text_input_key, is_limited, many_short_messages, log_short_message
-from forms import repetition_found, human_readable_time
+from forms import repetition_found, human_readable_time, uniform_string
+from redis6 import is_topic_change_frozen, human_readable_time, topic_change_rate_limited, log_topic_change, log_topic_changing_attempt
+from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PRIVATE_GROUP_COST
+from abuse import BANNED_MEHFIL_TOPIC_WORDS, BANNED_MEHFIL_RULES_WORDS
+
+
+
+##################### Utility Functions ########################################
+
+
+def validate_topic_chars(topic, user_id=None):
+	"""
+	Performs validation checks on mehfil topic
+	"""
+	reg = re.compile('^[\w\s.?\-%()\$,;:!\'"]+$')
+	if not reg.match(topic):
+		raise ValidationError('Topic mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " \' characters likhein')
+	for word in BANNED_MEHFIL_TOPIC_WORDS:
+		if word in topic.lower():
+			log_topic_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
+			raise ValidationError('Topic mein "%s" nahi likhein' % word.capitalize())
+
+def spot_gibberish_or_repeating_text_in_topic(text,length_of_text, user_id=None):
+	if length_of_text > 15 and ' ' not in text:
+		log_topic_changing_attempt(user_id)
+		raise ValidationError('Topic mein khali space dalein')
+	else:
+		tokens = text[:12].split()
+		if len(tokens) > 1:
+			first_word = tokens[0]
+			len_first_word = len(first_word)
+			offset = text[len_first_word:].find(first_word)
+			if offset > -1:
+				first_start = len_first_word+offset
+				first_end = first_start+len_first_word
+				first_repetition = text[first_start:first_end]
+				if first_word == first_repetition:
+					second_start = first_end + offset
+					second_end = second_start+len_first_word
+					second_repetition = text[second_start:second_end]
+					if first_repetition == second_repetition:
+						third_start = second_end + offset
+						third_end = third_start + len_first_word
+						third_repetition = text[third_start:third_end]
+						if third_repetition == second_repetition:
+							log_topic_changing_attempt(user_id)
+							raise ValidationError('Topic mein cheezain repeat nahi karein')
+
+def process_group_topic(topic, topic_len_threshold, user_id=None, unique=None, how_long='short', group_id=None):
+	"""
+	Processes topic setting for OpenGroupCreateForm(), ChangePrivateGroupTopicForm() and ChangeGroupTopicForm() (e.g.validation etc.)
+
+	unique is 'None' if the public mehfil is yet to be created
+	"""
+	topic_change_frozen = is_topic_change_frozen(group_id) if group_id else False
+	if topic_change_frozen:
+		raise forms.ValidationError('Sorry! Ye mehfil report ho chuki hai aur investigation puri honay tak topic change nahi kiya ja sakta')
+	else:
+		ttl = topic_change_rate_limited(user_id,unique)
+		if ttl:
+			raise forms.ValidationError('Ap topic {} baad change kar sakein ge'.format(human_readable_time(ttl)))
+		else:
+			len_topic = len(topic)
+			if not topic:
+				raise forms.ValidationError('Topic rakhna zaruri hai')
+			elif len_topic < 4:
+				raise forms.ValidationError('Topic itna chota nahi ho sakta')
+			elif len_topic > topic_len_threshold:
+				raise forms.ValidationError('Topic {0} chars se lamba nahi hota. Ap ne {1} chars likhey'.format(topic_len_threshold,len_topic))
+			elif topic.isdigit():
+				raise forms.ValidationError('Topic mein sirf numbers nahi ho saktey')
+			validate_topic_chars(topic, user_id)
+			spot_gibberish_or_repeating_text_in_topic(topic,len_topic, user_id)
+			uni_str = uniform_string(topic)
+			if uni_str:
+				if uni_str.isspace():
+					log_topic_changing_attempt(user_id)
+					raise forms.ValidationError('Ziyada khali spaces daal di hain')
+				else:
+					log_topic_changing_attempt(user_id)
+					raise forms.ValidationError('"%s" - is terhan bar bar letters repeat nahi karein' % uni_str)
+			log_topic_change(user_id,unique,how_long=how_long)
 
 
 class GroupHelpForm(forms.Form):
@@ -42,14 +124,32 @@ class DirectMessageCreateForm(forms.Form):
 		model = Group
 
 class ClosedGroupCreateForm(forms.ModelForm):
+	"""
+	Validates topic in private mehfils (at the point of their creation)
+	"""
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hai'})
 	class Meta:
 		model = Group
 		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
 		fields = ("topic",)
 
 	def __init__(self, *args, **kwargs):
+		self.score = kwargs.pop('score',None)
 		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_topic(self):
+		user_score = self.score
+		if user_score >= PRIVATE_GROUP_COST:
+			topic = self.cleaned_data.get("topic")
+			topic = topic.strip()
+			process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
+			return string.capwords(topic)
+		else:
+			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PRIVATE_GROUP_COST,user_score))
+
 
 class OpenGroupCreateForm(forms.ModelForm):
 	PicNoPic = (

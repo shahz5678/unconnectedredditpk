@@ -35,7 +35,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 'chadwa','pyase','l0n','ghand','gndo','dewani','dewana','uff','uuf','phuud','chdwa','ghsti','iun','knnjr','gnnd','gasht','gsht','barwy','l_u_n','ch0s','-l-','.l.','_l_'\
 ,'@l@','-l_','_l-','.l_','_l.','.l-','-l.','@l.','@l_','@l-','.l@','_l@','-l@','lool','lauda','gaaram','chosn','gaasht','chudo','puda','bhond','b-0-0-b','r-a-n-d-i',\
 'lolla','raaaand','phouuuudi','phar','c.h.u.d.a.i','p0ddi','c.u.d.a.i','gaaaand','ghhashti','c.h.u.t','phuti','ch_ut','ga-nddo','l-esbo','bnd','chdi','gannnd','choso',\
-'leooon','chooopa','chuddakr','gondo','chuuut','peenis','chudaye','ph.udi','thrki','kmeni','chusti','codu','gan.do','cho0t']#salle,lanti,lant,soor,ph0di,ph0de
+'leooon','chooopa','chuddakr','gondo','chuuut','peenis','chudaye','ph.udi','thrki','kmeni','chusti','codu','gan.do','cho0t','thuko']#salle,lanti,lant,soor,ph0di,ph0de
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\
@@ -43,12 +43,12 @@ CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','
 'i.s.i.s','h.i.t.l.e.r']
 
 
-MISC_POLITICALLY_SENSITIVE_WORDS = ['india','pakistan','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\
-'hindustan','israel','indya','inddia','amrica','izrael','yahoodi','yah00di','yh00di','yhoodi','yahood!','hindu','h!ndu','hindoo','moslem','muzlim','muslim',\
-'mus1im','musl!m','mus1!m','yahudi','yahud!','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b','m.h-b','mh.b','m.h@b']
+MISC_POLITICALLY_SENSITIVE_WORDS = ['india','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\
+'hindustan','israel','indya','inddia','amrica','izrael','yahoodi','yah00di','yh00di','yhoodi','yahood!','hindu','h!ndu','hindoo','moslem','muzlim',\
+'mus1im','musl!m','mus1!m','yahudi','yahud!']
 
 
-CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['allah','bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan',\
+CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan',\
 'kafur','bhagwaan','bagwan','bagwaan','bagvaan','jesus','ahmedi','haraam','haaraam','haraaam','ka-fir','ka-f!r','ka_f!r','ka-ph!r','ka-ph1r','yazeed',\
 'qa-fir','qa-f!r','qa-f1r','athiest','atheist','atheism','athiesm','sipah','taliban','ta1iban','talibaan','tal!baan','tal!ban','talyban','talybaan','god',\
 'taaliban','taa1iban','allaah','blasphemy','kufr','qufr','sippa','s!ppa','s!pah','fatwa','fatva','ftwa','ftva','bhagvaan','k.a.f.i.r','q.a.f.i.r','k.a.f.r',\
@@ -59,7 +59,8 @@ CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['allah','bhagwan','kafir','qafir','kafr','qa
 MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t','qart00t','kartut','qartut','karto0t','kart0ot','qart0ot','qarto0t',\
 'krtut','qrtut','kertut','kert00t','kertoot','qertoot','qert00t','idiot','idi0t','id!ot','id!0t','1diot','damn','kat!l','scandal','scandle','scendel',\
 'skendel','skendl','scandl','scendl','sharmnaak','sharamnaak','sharamnaaq','sharmnaaq','shrmnaak','shrmnaaq','jinsy','j!nsy','j!nsi','porn','p0rn',\
-'sharamnak','p-o-r-n','p_o_r_n','p.o.r.n','p-o_r-n','p_o-r_n','p-o_r_n','p_o_r-n']
+'sharamnak','p-o-r-n','p_o_r_n','p.o.r.n','p-o_r-n','p_o-r_n','p-o_r_n','p_o_r-n','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b',\
+'m.h-b','mh.b','m.h@b']
 
 SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook','facebuk','facebok','telenor','mobilink','zong','ufone','warid',\
 'telen0r','m0bilink','z0ng']
@@ -67,13 +68,14 @@ SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook',
 BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pussy','boob','xx','breast','penis','hitler','gasht','gandu','luun',\
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']
 
+CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin']
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
-CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS
+CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS+CONTEXTUALLY_SENSITIVE_WORDS
 
 
 BANNED_MEHFIL_TOPIC_WORDS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+CORE_RELIGIOUSLY_SENSITIVE_WORDS+\
-MISC_SENSITIVE_WORDS
+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS
 
 
 BANNED_MEHFIL_RULES_WORDS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+CORE_RELIGIOUSLY_SENSITIVE_WORDS

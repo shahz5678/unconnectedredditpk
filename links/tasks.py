@@ -421,8 +421,8 @@ def save_online_user(user_id,user_ip):
 
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-    user_ids = get_recent_online()
-    save_most_recent_online_users(user_ids)
+	user_ids = get_recent_online()
+	save_most_recent_online_users(user_ids)
 
 @celery_app1.task(name='tasks.detail_click_logger')
 def detail_click_logger(ad_id, clicker_id):
@@ -465,12 +465,12 @@ def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
 
 @celery_app1.task(name='tasks.send_user_pin')
 def send_user_pin(sender_id, mobile_number):
-    """
-    This function sends the pin code to user (for home-grown verification purposes)
-    """
-    pin = retrieve_random_pin(sender_id)
-    payload = "Salam! %s apka Damadam pin code hai. Isko pin code wali screen mein enter karein. Have a nice day & enjoy Damadam.pk :-)" % (pin)
-    process_user_pin_sms(mobile_number,payload)
+	"""
+	This function sends the pin code to user (for home-grown verification purposes)
+	"""
+	pin = retrieve_random_pin(sender_id)
+	payload = "Salam! %s apka Damadam pin code hai. Isko pin code wali screen mein enter karein. Have a nice day & enjoy Damadam.pk :-)" % (pin)
+	process_user_pin_sms(mobile_number,payload)
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
@@ -612,32 +612,55 @@ def public_group_attendance_tasks(group_id,user_id):
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	slug,image_url,priority,from_unseen, reply_id):
-	if from_unseen:
-		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
+	image_url,priority,from_unseen, reply_id, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
+	if txt_type == 'join':
+		# own self has seen this, and no need to show a notification to other users
+		###############################
+		updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+				unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
+		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview()
+		if priv == '1':
+			increment_convo_counter(group_id, sender_id, group_type='pm')
+			increment_session(str(group_id), sender_id, group_type='pm')
+			# set_latest_group_reply(group_id,reply_id)# adding to grouppageview() for private mehfils only
 	else:
-		created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
-			lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
-			group_privacy=priv,slug=slug, lt_res_wid=sender_id)
-		if not created:
+		if from_unseen:
+			# i.e. from unseen_group() in views.py
 			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
-	all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
-	all_group_member_ids.remove(sender_id)
-	if all_group_member_ids:
-		bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
-			updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
-	updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-		unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
-	if not updated:
-		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-			unseen_activity=True)
-	set_latest_group_reply(group_id,reply_id)
-	if priv == '1':
-		increment_convo_counter(group_id, sender_id, group_type='pm')
-		increment_session(str(group_id), sender_id, group_type='pm')
-
+				lt_res_sub_name=poster_username,reply_photourl=image_url,lt_res_wid=sender_id)
+		else:
+			created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
+				lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
+				group_privacy=priv,slug=slug, lt_res_wid=sender_id)
+			if not created:
+				update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+					lt_res_sub_name=poster_username,reply_photourl=image_url, lt_res_wid=sender_id)
+		###############################
+		if notify_single_user and single_target_id:
+			# notify just a single targeted user (i.e. used in a direct response in mehfils)
+			update_notification(viewer_id=single_target_id,object_id=group_id,object_type='3',seen=False,updated_at=reply_time,\
+				unseen_activity=True,single_notif=True,priority=priority,bump_ua=True)
+		else:
+			all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
+			all_group_member_ids.remove(sender_id)
+			if all_group_member_ids:
+				# this does NOT update notifications for users whose notification object was deleted (or wasn't created in the first place)
+				bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
+					updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
+		###############################
+		updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+				unseen_activity=True)
+		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview(), replace with 'submission_id' later
+		if priv == '1':
+			increment_convo_counter(group_id, sender_id, group_type='pm')
+			increment_session(str(group_id), sender_id, group_type='pm')
+			
 
 @celery_app1.task(name='tasks.log_private_mehfil_session')
 def log_private_mehfil_session(group_id,user_id):

@@ -2130,6 +2130,7 @@ class UserProfileDetailView(DetailView):
 		if self.request.user.is_authenticated():
 			user_id = str(self.request.user.id)
 			star_id = retrieve_user_id(self.kwargs["slug"])
+			context["mehfil_creation_ttl"] = self.request.session.pop("mehfil_creation_rate_limited",None)
 			if star_id != user_id:
 				log_profile_view.delay(user_id,star_id,time.time())
 		return context

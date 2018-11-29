@@ -119,3 +119,6 @@ PRIVATE_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 MAX_TIME_BETWEEN_TOPIC_CHANGE_ATTEMPTS = 300#if less than 5 mins between topic change attempts, increment the 'attempts' counter
 NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED = 3 # num of topic change 'failed' attempts in groups after which the user is rate limited
 EXCESSIVE_ATTEMPTS_TO_CHANGE_TOPIC_RATE_LIMIT = 1200#20 min rate limit if user tries excessive amount of times to change topic
+PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
+PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
+USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 2592000# age requirement is 30 days in seconds

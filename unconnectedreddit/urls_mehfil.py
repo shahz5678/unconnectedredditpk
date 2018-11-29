@@ -2,11 +2,11 @@ from django.contrib.auth.decorators import login_required as auth
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from links.mehfil_views import GroupHelpView, ReinviteView, OpenGroupHelpView, ClosedGroupHelpView, MehfilView, AppointCaptainView, OwnerGroupOnlineKonView,\
-GroupOnlineKonView, DirectMessageCreateView, ClosedGroupCreateView, OpenGroupCreateView, InviteUsersToPrivateGroupView, DirectMessageView, ReinvitePrivateView,\
-InviteUsersToGroupView, GroupTypeView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView,\
-PublicGroupView, PrivateGroupView, group_list, appoint_pk, direct_message, leave_public_group, leave_private_group, left_private_group, mehfil_help, \
-process_public_group_invite,process_private_group_invite, invite_private, public_group_request_denied, public_group, left_public_group, \
-first_time_public_refresh, first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups, group_page
+GroupOnlineKonView, DirectMessageCreateView, ClosedGroupCreateView, InviteUsersToPrivateGroupView, DirectMessageView, ReinvitePrivateView,\
+InviteUsersToGroupView, GroupTypeView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, PublicGroupView, PrivateGroupView, group_list,\
+appoint_pk, direct_message, leave_public_group, leave_private_group, left_private_group, mehfil_help, process_public_group_invite,\
+process_private_group_invite, invite_private, public_group_request_denied, public_group, left_public_group, first_time_public_refresh,\
+first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups, group_page, create_open_group, preview_open_group
 
 admin.autodiscover()
 
@@ -30,7 +30,9 @@ urlpatterns = patterns('',
 	url(r'^mehfil_help/(?P<pk>\d+)/(?P<num>\d+)/$', auth(mehfil_help), name='mehfilhelp'),
 	url(r'^closed_group/create/(?P<pk>\d+)/$', auth(DirectMessageCreateView.as_view()), name='direct_message_create'),
 	url(r'^mehfil/private/create/$', auth(ClosedGroupCreateView.as_view()), name='closed_group_create'),
-	url(r'^open_group/create/$', auth(OpenGroupCreateView.as_view()), name='open_group_create'),
+	url(r'^mehfil/public/create/$', auth(create_open_group), name='create_open_group'),
+	url(r'^mehfil/public/preview/$', auth(preview_open_group), name='open_group_preview'),
+
 	url(r'^mehfil/private/(?P<pk>\d+)/$', auth(direct_message), name='direct_message'),
 	url(r'^mehfil/private/direct/$', auth(DirectMessageView.as_view()), name='direct_message_help'),
 	################################# Mehfil deletion #############################################

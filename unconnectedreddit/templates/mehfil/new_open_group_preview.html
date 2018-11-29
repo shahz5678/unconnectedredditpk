@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Create public mehfil | Damadam.pk</title></head>
+<h1 class="clb cxl" style="text-align:center">Public mehfil preview:</h1>
+<style>body{background: #E9EBEE}</style>
+<div class="clb bizcard sp" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+
+<div class="cl lsp">Apki new public mehfil ka topic and rules is terah nazr aien ge:</div>
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="mts cxl lsp" style="font-weight:bold;text-align:center">Topic:</div>
+<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard cl mt lsp">{% emoticons %}{{ topic }}{% endemoticons %}</div>
+
+<div class="mtl cxl lsp" style="font-weight:bold;text-align:center">Rules:</div>
+<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard cl mt lsp">{% emoticons %}{{ rules }}{% endemoticons %}</div>
+
+
+<form method="POST" action="{% url 'create_open_group' %}" class="mtl mbl">
+	{% csrf_token %}
+	<div class="lsp mt mbs">Agar details theek hain tou 'Create' dabain:</div>
+	<div style="text-align:center"><button type="submit" name="dec" style="height:26px" class="btn bcp bl pg_ok_res" value="2">Create</button></div>
+	<div class="lsp mtl mbs">Agar details change karni hain tou 'Change' dabain:</div> 
+	<div style="text-align:center"><button type="submit" name="dec" style="height:26px;color:#805A8C;border-color:#9971A5" class="vt bl" value="1">Change</button></div>
+	<div class="lsp mtl mbs">Agar public mehfil cancel karni hai tou 'Cancel' dabain:</div>
+	<div style="text-align:center"><button type="submit" name="dec" class="cgy cl" style="background:0 0;border:none;padding:0;border-bottom:1px dotted gray" value="0">Cancel</button></div>
+</form>
+
+</div>
+<br><br>
+{% endblock %}
+
+
+

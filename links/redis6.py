@@ -10,6 +10,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 FIVE_MINS = 60*5
 FORTY_MINS = 60*40
+ONE_WEEK = 7*24*60*60
 TWO_WEEKS = 60*60*24*7*2
 
 ######################### Caching mehfil popularity data #########################
@@ -24,10 +25,15 @@ MEHFIL_CACHED_PAGES = 'mcp:'#contains json serialized data of a user's paginated
 
 GROUP_TOPIC_CHANGE_FROZEN = 'gtcf:' #key locking the topic change functionality of a public mehfil
 
+############# Freezing certain functionality of reported mehfils ################
+
+GROUP_RULES_CHANGE_FROZEN = 'grcf:' #key locking the rules functionality of a public mehfil
+
 ######################## Group creation helper functions ########################
 
 PRIVATE_GROUP_CREATION_RATE_LIMIT_KEY = 'prgcrlk:'#key that rate limits creation of further public groups
 PUBLIC_GROUP_CREATION_RATE_LIMIT_KEY = 'pgcrlk:'#key that rate limits creation of further public groups
+TEMPORARY_GROUP_CREDENTIALS_STORE = "tgcs:"#temporarily stores group credentials (used when showing user a 'preview')
 
 ######################## Rate limiting mehfil topic and rules changes ########################
 
@@ -110,6 +116,41 @@ def is_group_creation_rate_limited(user_id, which_group):
 	else:
 		return None
 
+def temporarily_save_group_credentials(user_id, topic, rules, formatted_rules, category, group_id=None):
+    """
+    Temporary storage for mehfil credentials
+
+    Useful for showing user preview of mehfil credentials (before finalization of creation)
+    """
+    key = TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id)
+    my_server = redis.Redis(connection_pool=POOL)
+    mapping = {'topic':topic,'rules':rules,'formatted_rules':formatted_rules,'category':category}
+    if group_id:
+        mapping['gid'] = group_id
+    my_server.hmset(key,mapping)
+    my_server.expire(key,FORTY_MINS)
+
+
+def get_temporarily_saved_group_credentials(user_id,only_raw=False):
+    """
+    Retrieve temporarily saved mehfil credentials
+    """
+    data = redis.Redis(connection_pool=POOL).hgetall(TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id))
+    if data:
+        if only_raw:
+            # do not return formatted_rules
+            data['topic'] = data['topic'].decode('utf-8')
+            data['rules'] = data['rules'].decode('utf-8')
+            data.pop('formatted_rules', None)
+            return data
+        else:
+            data['topic'] = data['topic'].decode('utf-8')
+            data['rules'] = data['rules'].decode('utf-8')
+            data['formatted_rules'] = data['formatted_rules'].decode('utf-8')
+            return data
+    else:
+        return None
+
 ###################################### Freeze group functionality #####################################
 
 def is_topic_change_frozen(group_id):
@@ -121,6 +162,14 @@ def is_topic_change_frozen(group_id):
 	else:
 		return False
 
+def is_rules_change_frozen(group_id):
+    """
+    Retrieve whether group ownership transfer is frozen
+    """
+    if redis.Redis(connection_pool=POOL).exists(GROUP_RULES_CHANGE_FROZEN+str(group_id)):
+        return True
+    else:
+        return False
 
 ###################################### Calculating group active users and ranking #######################################
 

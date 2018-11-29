@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Create public mehfil | Damadam.pk</title></head>
+<h1 class="clb cxl" style="text-align:center">Create public mehfil:</h1>
+<style>body{background: #E9EBEE}</style>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+
+{% if data_expired %}
+	<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl mbs cr lsp">
+	Ap ne details final karney mein deir kar di, dubara karein
+	</div>
+{% endif %}
+
+
+<form method="post" class="mts mbs" action="{% url 'open_group_preview' %}" method="POST">
+	{% csrf_token %}
+
+	
+	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard sp lsp">
+	{% if form.topic.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.topic.errors.0 }}</div>{% else %}<div class="cl mbs" style="font-weight:bold">Public mehfil ka topic likhein:</div>{% endif %}
+	<ul style="margin:0;padding-left: 15px;">
+		<li>Topic mein saaf alfaz mein mehfil ka maqsad explain karein</li>
+		<li>Topic dilchusp ho takey invited users khushi se join karein</li>
+		<li>Topic {{ topic_char_limit }} characters tak hona chahiye</li>
+	</ul>
+	<div class="mts">{{ form.topic }}</div>
+	</div>
+
+	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard mtl sp lsp">
+	{% if form.rules.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.rules.errors.0 }}</div>{% else %}<div class="mbs cl" style="font-weight:bold">Public mehfil ke rules likhein:</div>{% endif %}
+	<ul style="margin:0;padding-left: 15px;">
+		<li>Tamam rules likhein jinki wajah se mehfil se kick ho sakti hai</li>
+		<li>Rules {{ rules_char_limit }} characters tak honay chahiyen</li>
+	</ul>
+	<div class="mts">{{ form.rules }}</div>
+	</div>
+	
+	<div class="mtl" style="text-align:center">
+	<button class="btn bl bcp pg_ok_res sp" type="submit" style="height:26px;font-weight:bold">Next</button>
+	</div>
+</form>
+
+<div class="mtl mbl" style="text-align:center"><a href="{% url 'group_type' %}#section0" class="cgy cl sp" style="border-bottom:1px dotted gray">Cancel</a></div>
+
+</div>
+<br><br>
+{% endblock %}
+
+
+

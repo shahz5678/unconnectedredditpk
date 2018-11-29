@@ -3,13 +3,13 @@
 <head><title>Private mehfil price | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 {% if nopk %}
-	<h1 class="clb cxl" style="text-align:center">Unable to create private mehfil!</h1>
+	<h1 class="clb cxl lsp" style="text-align:center">Unable to create private mehfil!</h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cl sp lsp">Ye mehfil nahi ban sakti</div>
 	</div>
 {% else %}
 	{% if user.userprofile.score >= private_price %}
-	<h1 class="clb cxl" style="text-align:center">Create private mehfil:</h1>
+	<h1 class="clb cxl lsp" style="text-align:center">Create private mehfil:</h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Ye private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
 	<hr size=1 COLOR="#e5e7e9"> 

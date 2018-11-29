@@ -17,7 +17,7 @@ from verified import FEMALES
 from image_processing import clean_image_file
 from score import PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, PRIVATE_GROUP_MAX_MEMBERSHIP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, \
-MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE, PRIVATE_GROUP_MAX_TITLE_SIZE
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE, PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE
 from views import condemned, convert_to_epoch, valid_uuid
 from models import Group, Reply, GroupCaptain, GroupTraffic, Link, GroupBanList, UserProfile
 from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion, set_input_rate_and_history, group_notification_tasks,\
@@ -34,7 +34,10 @@ from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedG
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
 GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
 from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages,\
-cache_mehfil_pages, allot_bucket_to_user, is_group_creation_rate_limited, rate_limit_group_creation
+cache_mehfil_pages, allot_bucket_to_user, is_group_creation_rate_limited, rate_limit_group_creation, temporarily_save_group_credentials,\
+get_temporarily_saved_group_credentials
+
+from score import PUBLIC_GROUP_MAX_TITLE_SIZE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED
 ########################## Mehfil Help #########################
 
 class GroupHelpView(FormView):
@@ -435,68 +438,114 @@ class ClosedGroupCreateView(CreateView):
 		else:
 			return redirect("group_page")
 
-class OpenGroupCreateView(CreateView):
-	model = Group
-	form_class = OpenGroupCreateForm
-	template_name = "mehfil/new_open_group.html"
-
-	def get_form_kwargs( self ):
-		kwargs = super(OpenGroupCreateView,self).get_form_kwargs()
-		kwargs['verified'] = self.request.mobile_verified
-		return kwargs
-
-	def form_valid(self, form):
-		if self.request.user.userprofile.score > (PUBLIC_GROUP_COST-1):
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			user_id = user.id
-			f.owner = user
-			f.private = 0
-			unique = uuid.uuid4()
-			f.unique = unique
-			# set_prev_retort(user_id,f.topic)
-			f.save()
-			creation_text = 'mein ne new mehfil shuru kar di'
-			reply = Reply.objects.create(text=creation_text,which_group=f,writer=user)
-			reply_time = convert_to_epoch(reply.submitted_on)
-			try:
-				url = user.userprofile.avatar.url
-			except ValueError:
-				url = None
-			f_id = f.id
-			create_object(object_id=f_id, object_type='3',object_owner_id=user_id,object_desc=f.topic,lt_res_time=reply_time,\
-				lt_res_avurl=url,lt_res_sub_name=user.username,lt_res_text=creation_text,group_privacy=f.private, slug=f.unique,\
-				lt_res_wid=user_id)
-			create_notification(viewer_id=user_id,object_id=f_id,object_type='3',seen=True,updated_at=reply_time,unseen_activity=True)
-			rank_public_groups.delay(group_id=f_id,writer_id=user_id)
-			public_group_attendance_tasks.delay(group_id=f_id, user_id=user_id)
-			link = Link.objects.create(submitter=user, description=f.topic, cagtegory='2', url=unique)
-			try:
-				av_url = f.owner.userprofile.avatar.url
-			except ValueError:
-				av_url = None
-			add_home_link(link_pk=link.id, categ='2', nick=f.owner.username, av_url=av_url, desc=f.topic, \
-				scr=f.owner.userprofile.score, cc=1, writer_pk=user_id, device='1', meh_url=unique,\
-				by_pinkstar = (True if f.owner.username in FEMALES else False))
-			if self.request.user_banned:
-				extras = add_unfiltered_post(link.id)
-				if extras:
-					queue_for_deletion.delay(extras)
+@csrf_protect
+def create_open_group(request):
+	"""
+	Creating open group after successful validation/submission in preview_open_group()
+	"""
+	if request.method == "POST":
+		own_id = request.user.id
+		decision = request.POST.get("dec",None)
+		if decision == '0':
+			return redirect("group_type")
+		elif decision == '1':
+			# re-enter the credentials
+			data = get_temporarily_saved_group_credentials(own_id,only_raw=True)
+			if data:
+				form = OpenGroupCreateForm(initial=data)# prepopulating the form with user's data (but not calling validation on it)
+				return render(request,"mehfil/create_new_open_group_or_rejoin.html",{'form':form,'is_female':False,\
+					'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
 			else:
-				add_filtered_post(link.id)
-				extras = add_unfiltered_post(link.id)
-				if extras:
-					queue_for_deletion.delay(extras)
-			f.owner.userprofile.score = f.owner.userprofile.score - PUBLIC_GROUP_COST
-			f.owner.userprofile.save()
-			add_group_member(f_id, user.username)
-			add_user_group(user_id, f_id)
-			try: 
-				return redirect("invite", slug=unique)
-			except:
-				return redirect("public_group", slug=unique)
+				# the data does not exist any more (expired)
+				form = OpenGroupCreateForm()
+				return render(request,"mehfil/create_new_open_group_or_rejoin.html",{'form':form,'is_female':False,\
+					'data_expired':True,'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
+		elif decision == '2':
+			# create the group
+			ttl = is_group_creation_rate_limited(own_id, which_group='public')
+			if ttl:
+				return render(request,"mehfil/group_type.html",{'ttl':ttl})
+			else:
+				# is user old enough to create a public mehfil?
+				try:
+					join_date = User.objects.only('date_joined').get(id=own_id).date_joined
+				except User.DoesNotExist:
+					# this user does not exist thus data incomplete
+					return redirect("home")
+				ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
+				if ttl > 4:
+					# this user isn't allowed to create a group
+					return render(request,"mehfil/group_type.html",{'user_age_inadequate':True,'age_inadequate_ttl':ttl})
+				else:
+					data = get_temporarily_saved_group_credentials(own_id)
+					score = request.user.userprofile.score
+					if data and score >= PUBLIC_GROUP_COST:
+						unique = uuid.uuid4()
+						creation_text = 'meri public mehfil mein welcome'
+						topic, rules, group_category, raw_rules = data['topic'], data['formatted_rules'], data["category"], data['rules']
+						group = Group.objects.create(topic=topic, rules=rules, owner_id=own_id, private=0, category=group_category,unique=unique, \
+							pics_ki_ijazat=1)
+						group_id = group.id
+						unique_id = group.unique
+						created_at = convert_to_epoch(group.created_at)
+						reply = Reply.objects.create(text=creation_text,which_group_id=group_id,writer_id=own_id)# to ensure group shows up in grouppageview()
+						# subtract cost of public mehfil
+						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
+						reply_time = convert_to_epoch(reply.submitted_on)
+						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
+						########### legacy redis 1 functions ###########
+						add_group_member(group_id, own_uname)
+						add_user_group(own_id, group_id)
+						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
+							poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='0',slug=str(unique_id),image_url=None,\
+							priority='public_mehfil',from_unseen=False, reply_id=reply.id)
+						rank_public_groups.delay(group_id=group_id,writer_id=own_id)
+						# rate limit further public mehfil creation by this user (for 1 day)
+						rate_limit_group_creation(own_id, which_group='public')
+						invalidate_cached_mehfil_pages(own_id)
+						# go to newly created public mehfil's invite page
+						request.session["public_uuid"] = unique_id
+						request.session.modified = True
+						return redirect("invite")
+					elif score < PUBLIC_GROUP_COST:
+						return render(request,"mehfil/group_type.html",{'score_inadequate':True})
+					else:
+						# data has expired, tell the person to redo
+						form = OpenGroupCreateForm()
+						return render(request,"mehfil/create_new_open_group_or_rejoin.html",{'form':form,'is_female':False,\
+							'data_expired':True,'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
 		else:
-			return redirect("group_page")
+			# the 'dec' option is not recognized
+			return redirect("missing")    
+	else:
+		return redirect("missing")
+
+
+
+@csrf_protect
+def preview_open_group(request):
+	"""
+	Renders, validates and submits open group creation form
+	"""
+	if request.user_banned:
+		return redirect("error")
+	else:
+		own_id = request.user.id
+		if request.method == "POST":
+			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, score=request.user.userprofile.score)
+			if form.is_valid():
+				topic = form.cleaned_data.get("topic")
+				formatted_rules, rules = form.cleaned_data.get("rules")
+				category = form.cleaned_data.get("category")
+				temporarily_save_group_credentials(own_id, topic, rules, formatted_rules, category)
+				return render(request,"mehfil/new_open_group_preview.html",{'topic':topic,'rules':rules,'category':category})
+			else:
+				return render(request,"mehfil/create_new_open_group_or_rejoin.html",{'form':form,'is_female':False,\
+					'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
+		else:
+			form = OpenGroupCreateForm()
+			return render(request,"mehfil/create_new_open_group_or_rejoin.html",{'form':form,'is_female':False,\
+				'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
 
 def direct_message(request, pk=None, *args, **kwargs):
 	"""

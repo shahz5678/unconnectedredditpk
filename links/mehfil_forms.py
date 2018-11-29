@@ -4,14 +4,105 @@ from django.core.exceptions import ValidationError
 from models import GroupTraffic, Group, Reply
 from redis4 import get_and_delete_text_input_key, is_limited, many_short_messages, log_short_message
 from forms import repetition_found, human_readable_time, uniform_string
-from redis6 import is_topic_change_frozen, human_readable_time, topic_change_rate_limited, log_topic_change, log_topic_changing_attempt
-from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PRIVATE_GROUP_COST
+from redis6 import is_topic_change_frozen, human_readable_time, topic_change_rate_limited, log_topic_change, log_topic_changing_attempt,\
+is_rules_change_frozen, rules_change_rate_limited,log_rules_changing_attempt, log_rules_change
+from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MAX_TITLE_SIZE, \
+PUBLIC_GROUP_MAX_RULES_SIZE
 from abuse import BANNED_MEHFIL_TOPIC_WORDS, BANNED_MEHFIL_RULES_WORDS
 
 
-
 ##################### Utility Functions ########################################
+def number_new_lines(text):
+	"""
+	Adds 'numbering' to text (beginning of each new line)
 
+	Useful when presenting 'rules' of a mehfil to users
+	"""
+	# lines, counter = text.splitlines(), 1
+	# if len(lines) > 1:
+	#   formatted_text = ''
+	#   for line in lines:
+	#       if line:
+	#           line = str(counter)+". "+line.strip()+"\n"
+	#           formatted_text += line
+	#           counter += 1
+	#   return formatted_text
+	# else:
+	#   # do not add 'numbering' if only 1 line exists
+	return text
+
+def spot_gibberish_or_repeating_text_in_rules(text,length_of_text, user_id=None):
+	if length_of_text > 15 and ' ' not in text:
+		log_rules_changing_attempt(user_id)
+		raise ValidationError('Rules mein khali space dalein')
+	else:
+		tokens = text[:12].split()
+		if len(tokens) > 1:
+			first_word = tokens[0]
+			len_first_word = len(first_word)
+			offset = text[len_first_word:].find(first_word)
+			if offset > -1:
+				first_start = len_first_word+offset
+				first_end = first_start+len_first_word
+				first_repetition = text[first_start:first_end]
+				if first_word == first_repetition:
+					second_start = first_end + offset
+					second_end = second_start+len_first_word
+					second_repetition = text[second_start:second_end]
+					if first_repetition == second_repetition:
+						third_start = second_end + offset
+						third_end = third_start + len_first_word
+						third_repetition = text[third_start:third_end]
+						if third_repetition == second_repetition:
+							log_rules_changing_attempt(user_id)
+							raise ValidationError('Rules mein cheezain repeat nahi karein')
+
+def validate_rules_chars(rules, user_id=None):
+	"""
+	Performs validation checks on mehfil rules
+	"""
+	reg = re.compile('^[\w\s.?\-%()\$,;:!\'"]+$')
+	if not reg.match(rules):
+		raise ValidationError('Rules mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " \' characters likhein')
+	for word in BANNED_MEHFIL_RULES_WORDS:
+		if word in rules.lower():
+			log_rules_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
+			raise ValidationError('Rules mein "%s" nahi likhein' % word.capitalize())
+
+def process_group_rules(rules, rules_len_threshold, user_id=None, unique=None, group_id=None):
+	"""
+	Processes rules setting for OpenGroupCreateForm() and ChangeGroupRulesForm() (e.g.validation etc.)
+
+	unique is 'None' if the public mehfil is yet to be created
+	"""
+	rules_change_frozen = is_rules_change_frozen(group_id) if group_id else False
+	if rules_change_frozen:
+		raise forms.ValidationError('Sorry! Ye mehfil report ho chuki hai aur investigation puri honay tak rules change nahi kiye ja saktey')
+	else:
+		ttl = rules_change_rate_limited(user_id,unique)
+		if ttl:
+			raise forms.ValidationError('Ap rules {} baad change kar sakein ge'.format(human_readable_time(ttl)))
+		else:
+			len_rules = len(rules)
+			if not rules:
+				raise forms.ValidationError('Rules likhna zaruri hain')
+			elif len_rules < 4:
+				raise forms.ValidationError('Rules itnay chotay nahi ho saktay')
+			elif len_rules > rules_len_threshold:
+				raise forms.ValidationError('Rules {0} chars se lambay nahi hota. Ap ne {1} chars likhey'.format(rules_len_threshold,len_rules))
+			elif rules.isdigit():
+				raise forms.ValidationError('Rules mein sirf numbers nahi ho saktey')
+			validate_rules_chars(rules, user_id)
+			spot_gibberish_or_repeating_text_in_rules(rules,len_rules, user_id)
+			uni_str = uniform_string(rules)
+			if uni_str:
+				if uni_str.isspace():
+					log_rules_changing_attempt(user_id)
+					raise forms.ValidationError('Ziyada khali spaces daal di hain')
+				else:
+					log_rules_changing_attempt(user_id)
+					raise forms.ValidationError('"%s" - is terhan bar bar letters repeat nahi karein' % uni_str)
+			log_rules_change(user_id,unique)
 
 def validate_topic_chars(topic, user_id=None):
 	"""
@@ -152,31 +243,63 @@ class ClosedGroupCreateForm(forms.ModelForm):
 
 
 class OpenGroupCreateForm(forms.ModelForm):
-	PicNoPic = (
-		('1','Haan'),
-		('0','Nahi'),
+	"""
+	Validates all required fields of public mehfils at the point of their creation
+	"""
+	CATEGS = (
+		('2','Haan'),#open to pink stars only
+		('1','Nahi'),#open to everyone
 		)
-	pics_ki_ijazat = forms.TypedChoiceField(choices=PicNoPic, widget=forms.RadioSelect, coerce=int)
+	
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hai'})
+	rules = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autocorrect':'off',\
+		'autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_RULES_SIZE}),error_messages={'required': 'Rules likhna zaruri hain'})
+	category = forms.TypedChoiceField(required=False, choices=CATEGS, initial='1', widget=forms.RadioSelect, coerce=int,\
+		error_messages={'required': '"Haan" ya "Nahi" ka intekhab karein'})
+
 	class Meta:
 		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private")
-		fields = ("topic", "rules", "pics_ki_ijazat")
+		exclude = ("owner","private","created_at","pics_ki_ijazat")
+		fields = ("topic","rules","category")
 
 	def __init__(self, *args, **kwargs):
 		self.is_mob_verified = kwargs.pop('verified',None)
+		self.score = kwargs.pop('score',None)
+		self.rejoin = kwargs.pop('rejoin',None)
 		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
-		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:250px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_topic(self):
-		data, is_mob_verified = self.cleaned_data.get("topic"), self.is_mob_verified
-		if not is_mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair mehfil nahi ban sakti')
-		return data
+		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+			topic = self.cleaned_data.get("topic")
+			topic = topic.strip()
+			process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
+			return string.capwords(topic)
+		elif user_score < PUBLIC_GROUP_COST:
+			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		else:
+			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+
+	def clean_rules(self):
+		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+			rules = self.cleaned_data.get("rules")
+			rules = rules.strip()
+			process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE)
+			return number_new_lines(rules), rules
+		elif user_score < PUBLIC_GROUP_COST:
+			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		else:
+			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+
 
 class DirectMessageForm(forms.Form):
 	class Meta:
-		pass		
+		pass        
 
 class ReinvitePrivateForm(forms.Form):
 	class Meta:

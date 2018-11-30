@@ -1,35 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Change private group topic | Damadam.pk</title></head>
-
-<div class="margin clb">
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Change topic:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 {% if unauthorized %}
-
-<span class="cr"><b>Apko ye krne ka ikhtiyar nahi</b></span>
-
+	<div class="cxl lsp">Apke pas ye karney ka permission nahi</div>
 {% else %}
-	<span>Mehfil ka new topic kia rakhna hai?</span><br><br>
 	
-	<form method="post" action="">
+	<form method="post" style="display:inline" action="">
 		{% csrf_token %}
-		{% if form.topic.errors %}
-		<span class="cr">{{ form.topic.errors.0 }}</span><br>
-		{% else %}
-		<b class="cg">New Topic:</b><br>
-		{% endif %}
-		{{ form.topic }}<br>
-		<button class="btn bcg bm mtl mbl" type="submit">OK</button>
-		</form>
-		{% if group.private == '1' %}
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline;">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bcgy bm mbl mts">wapis</button></form>
+		<div style="padding:3px 8px 8px 8px;background-color:ivory" class="bizcard sp lsp">
+			{% if form.topic.errors %}
+			<div class="cr lsp cxl">{{ form.topic.errors.0 }}</div>
+			{% else %}
+			<div class="cxl lsp">Mehfil ka new topic likhein:</div>
+			{% endif %}
+			<ul style="margin:0;padding-left: 15px;">
+				<li style="text-align:left">Topic mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " ' characters likhein</li>
+				<li style="text-align:left">Topic dilchusp ho takey parhney waloon ko acha lagey</li>
+				<li style="text-align:left">Topic {{ topic_char_limit }} characters se ziyada na ho</li>
+			</ul>
+			<div class="mts">{{ form.topic }}</div>
+		</div>
+		<button class="btn bcg bm mtl mbl mrs pg_ok_res" style="height:26px" type="submit">OK</button>
+	</form>
 	
-	{% elif group.private == '0' %}
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline;">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="mls mbl mts sp cl cgy" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray">Cancel</button></form>
 	
-	<a href="{% url 'public_group' slug=unique %}"><button class="btn bcgy bm mbl mts">wapis</button></a>
-	
-	{% else %}
-	
-	{% endif %}
+	<div style="border-top:1px solid #E8E8E8;padding-top:10px;color:gray" class="cs sp lsp">
+	Achey topics woh hain jo parhney waloon ke liye dilchusp hain aur mehfil ko yadgaar banatey hain
+	</div>
 {% endif %}
 </div>
 <br><br>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Group rules examples | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="clb cxl" style="text-align:center">Rules examples:</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp">Mehfil rules ke examples ye hain:</div>
+<hr size=1 COLOR="#e5e7e9"> 
+<div class="mtl mbl">
+<ul style="display:inline-block;padding-left: 15px;margin:0;max-width:520px" class="lsp sp">
+	<li style="text-align:left" class="mt">Galiyan bardasht nahi ki jaien gi</li>
+	<li style="text-align:left" class="mt">Mehfil mein spamming nahi karien (maslan bar bar aik hi baat likhna ya foto lagana)</li>
+	<li style="text-align:left" class="mt">Ladies ki bezati karney waloon ko kick kar diya jaye ga</li>
+	<li style="text-align:left" class="mt">Ye mehfil firqa wariyat phelaney waloon ke liye nahi hai</li>
+	<li style="text-align:left" class="mt">Larai karney waley tamam users forun kick kar diye jaien ge</li>
+	<li style="text-align:left" class="mt">Vulgar nicknames waley users ko nikal diya jaye ga</li>
+	<li style="text-align:left" class="mt">Mulq ke khilaf baat karney waloon ko bardasht nahi kiya jaye ga</li>
+	<li style="text-align:left" class="mt">Topic se hatt ke baat karney waley ko kick kar diya jaye ga</li>
+</ul>
+</div>
+<div class="mbs" style="text-align:center">
+{% if uuid %}
+	<a href="{% url 'public_group' %}"><button class="btn bcp bl sp pg_ok_res" style="height:26px">wapis</button></a>
+{% else %}
+	<a href="{% url 'group_page' %}#section0"><button class="btn bcp bl sp pg_ok_res" style="height:26px">wapis</button></a>
+{% endif %}
+</div>
+</div><br><br>
+{% endblock %}

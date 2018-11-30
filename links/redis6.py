@@ -1,7 +1,9 @@
 import redis
 import ujson as json
 from location import REDLOC6
-from score import MAX_TIME_BETWEEN_TOPIC_CHANGE_ATTEMPTS, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, EXCESSIVE_ATTEMPTS_TO_CHANGE_TOPIC_RATE_LIMIT
+from score import MAX_TIME_BETWEEN_TOPIC_CHANGE_ATTEMPTS, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, EXCESSIVE_ATTEMPTS_TO_CHANGE_TOPIC_RATE_LIMIT,\
+TOPIC_SHORT_RATE_LIMIT, TOPIC_LONG_RATE_LIMIT, RULES_CHANGE_RATE_LIMIT, MAX_TIME_BETWEEN_RULE_CHANGE_ATTEMPTS, NUM_RULES_CHANGE_ATTEMPTS_ALLOWED,\
+EXCESSIVE_ATTEMPTS_TO_CHANGE_RULES_RATE_LIMIT
 
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC6, db=0)
@@ -42,6 +44,10 @@ USER_ATTEMPT_RATE_LIMITED = 'url:'#key that rate limits topic changes in mehfils
 TOPIC_CHANGE_RATE_LIMITED = 'trl:'#key that rate limits topic changes in mehfils
 RULES_CHANGE_ATTEMPT = "rca:"#key keeping track of how many mehfil topic changes were attempted by a certain user
 RULES_CHANGE_RATE_LIMITED = 'rcrl:'#key that rate limits topic changes in mehfils
+
+############################# Handling officer appointments ############################
+
+GROUP_OFFICER_HASH = 'oh:'#hash containing privilege details of group officer, history of last 10 actions, etc.
 
 ######################################### Utilities #########################################
 
@@ -117,39 +123,39 @@ def is_group_creation_rate_limited(user_id, which_group):
 		return None
 
 def temporarily_save_group_credentials(user_id, topic, rules, formatted_rules, category, group_id=None):
-    """
-    Temporary storage for mehfil credentials
+	"""
+	Temporary storage for mehfil credentials
 
-    Useful for showing user preview of mehfil credentials (before finalization of creation)
-    """
-    key = TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id)
-    my_server = redis.Redis(connection_pool=POOL)
-    mapping = {'topic':topic,'rules':rules,'formatted_rules':formatted_rules,'category':category}
-    if group_id:
-        mapping['gid'] = group_id
-    my_server.hmset(key,mapping)
-    my_server.expire(key,FORTY_MINS)
+	Useful for showing user preview of mehfil credentials (before finalization of creation)
+	"""
+	key = TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	mapping = {'topic':topic,'rules':rules,'formatted_rules':formatted_rules,'category':category}
+	if group_id:
+		mapping['gid'] = group_id
+	my_server.hmset(key,mapping)
+	my_server.expire(key,FORTY_MINS)
 
 
 def get_temporarily_saved_group_credentials(user_id,only_raw=False):
-    """
-    Retrieve temporarily saved mehfil credentials
-    """
-    data = redis.Redis(connection_pool=POOL).hgetall(TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id))
-    if data:
-        if only_raw:
-            # do not return formatted_rules
-            data['topic'] = data['topic'].decode('utf-8')
-            data['rules'] = data['rules'].decode('utf-8')
-            data.pop('formatted_rules', None)
-            return data
-        else:
-            data['topic'] = data['topic'].decode('utf-8')
-            data['rules'] = data['rules'].decode('utf-8')
-            data['formatted_rules'] = data['formatted_rules'].decode('utf-8')
-            return data
-    else:
-        return None
+	"""
+	Retrieve temporarily saved mehfil credentials
+	"""
+	data = redis.Redis(connection_pool=POOL).hgetall(TEMPORARY_GROUP_CREDENTIALS_STORE+str(user_id))
+	if data:
+		if only_raw:
+			# do not return formatted_rules
+			data['topic'] = data['topic'].decode('utf-8')
+			data['rules'] = data['rules'].decode('utf-8')
+			data.pop('formatted_rules', None)
+			return data
+		else:
+			data['topic'] = data['topic'].decode('utf-8')
+			data['rules'] = data['rules'].decode('utf-8')
+			data['formatted_rules'] = data['formatted_rules'].decode('utf-8')
+			return data
+	else:
+		return None
 
 ###################################### Freeze group functionality #####################################
 
@@ -163,13 +169,13 @@ def is_topic_change_frozen(group_id):
 		return False
 
 def is_rules_change_frozen(group_id):
-    """
-    Retrieve whether group ownership transfer is frozen
-    """
-    if redis.Redis(connection_pool=POOL).exists(GROUP_RULES_CHANGE_FROZEN+str(group_id)):
-        return True
-    else:
-        return False
+	"""
+	Retrieve whether group ownership transfer is frozen
+	"""
+	if redis.Redis(connection_pool=POOL).exists(GROUP_RULES_CHANGE_FROZEN+str(group_id)):
+		return True
+	else:
+		return False
 
 ###################################### Calculating group active users and ranking #######################################
 
@@ -185,6 +191,19 @@ def retrieve_cached_ranked_groups():
 	Fetches cached ranked groups to be displayed on popular groups page
 	"""
 	return redis.Redis(connection_pool=POOL).get(CACHED_RANKED_GROUPS)
+
+############################# Handling officer appointments ############################
+
+def can_officer_change_topic(group_id, officer_id):
+	"""
+	Retrieves whether an officer can change group topic
+
+	Useful when processing group topic changes
+	"""
+	if redis.Redis(connection_pool=POOL).hget(GROUP_OFFICER_HASH+str(group_id)+":"+str(officer_id),'can_topic') == '1':
+		return True
+	else:
+		return False 
 
 ######################## Caching mehfil messaging data ########################
 

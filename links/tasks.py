@@ -32,7 +32,7 @@ from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_not
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
 remove_notification_of_banned_user, remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, \
-update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif
+update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj
 from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
@@ -608,6 +608,13 @@ def public_group_ranking_clean_up_task():
 @celery_app1.task(name='tasks.public_group_attendance_tasks')
 def public_group_attendance_tasks(group_id,user_id):
 	public_group_attendance(group_id,user_id)
+
+@celery_app1.task(name='tasks.update_group_topic')
+def update_group_topic(group_id, topic):
+    """
+    Updates group topic in notification object
+    """
+    update_group_topic_in_obj(group_id, topic)
 
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')

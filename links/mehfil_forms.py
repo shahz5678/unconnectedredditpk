@@ -2,6 +2,7 @@ import random, string, re
 from django import forms
 from django.core.exceptions import ValidationError
 from models import GroupTraffic, Group, Reply
+from redis1 import check_group_member
 from redis4 import get_and_delete_text_input_key, is_limited, many_short_messages, log_short_message
 from forms import repetition_found, human_readable_time, uniform_string
 from redis6 import is_topic_change_frozen, human_readable_time, topic_change_rate_limited, log_topic_change, log_topic_changing_attempt,\
@@ -57,6 +58,7 @@ def spot_gibberish_or_repeating_text_in_rules(text,length_of_text, user_id=None)
 							log_rules_changing_attempt(user_id)
 							raise ValidationError('Rules mein cheezain repeat nahi karein')
 
+
 def validate_rules_chars(rules, user_id=None):
 	"""
 	Performs validation checks on mehfil rules
@@ -68,6 +70,7 @@ def validate_rules_chars(rules, user_id=None):
 		if word in rules.lower():
 			log_rules_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
 			raise ValidationError('Rules mein "%s" nahi likhein' % word.capitalize())
+
 
 def process_group_rules(rules, rules_len_threshold, user_id=None, unique=None, group_id=None):
 	"""
@@ -314,43 +317,85 @@ class GroupTypeForm(forms.Form):
 		pass
 
 class ChangeGroupRulesForm(forms.ModelForm):
-	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
+	"""
+	Validates new rules entered in public mehfil
+	"""
+	rules = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_RULES_SIZE}),\
+	error_messages={'required': 'Rules likhna zaruri hain'})
 	class Meta:
 		model = Group
 		fields = ("rules",)
 
+	def __init__(self, *args, **kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		self.unique_id = kwargs.pop('unique_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		super(ChangeGroupRulesForm, self).__init__(*args, **kwargs)
+		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:170px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_rules(self):
+		group_id, user_id, unique_id = self.group_id, self.user_id, self.unique_id
+		rules = self.cleaned_data.get("rules")
+		rules = rules.strip()
+		process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE, user_id=user_id, unique=unique_id, group_id=group_id)
+		return number_new_lines(rules), rules
+
+
 class ChangePrivateGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='New Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
+	"""
+	Validates new topic entered in private mehfil
+	"""
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hain'})
 	class Meta:
 		model = Group
 		fields = ("topic",)
 
+	def __init__(self,*args,**kwargs):
+		self.unique = kwargs.pop('unique',None)
+		self.user_id = kwargs.pop('user_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		self.username = kwargs.pop('username',None)
+		super(ChangePrivateGroupTopicForm, self).__init__(*args,**kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
 	def clean_topic(self):
-		topic = self.cleaned_data.get("topic")
+		username, group_id, topic = self.username, self.group_id, self.cleaned_data.get("topic")
+		if not check_group_member(group_id,username):
+			raise forms.ValidationError('Topic change karney ke liye mehfil mein kuch type kar ke iskey member banein')
 		topic = topic.strip()
-		# topic = clear_zalgo_text(topic)
-		if not topic:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		elif topic < 1:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		return topic
+		user_id, unique = self.user_id, self.unique
+		process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='short', group_id=group_id)
+		return string.capwords(topic)
 
 
 class ChangeGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
+	"""
+	Validates new topic entered in public mehfil
+	"""
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hain'})
 	class Meta:
 		model = Group
 		fields = ("topic",)
 
+	def __init__(self,*args,**kwargs):
+		self.unique = kwargs.pop('unique',None)
+		self.user_id = kwargs.pop('user_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		super(ChangeGroupTopicForm, self).__init__(*args,**kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
 	def clean_topic(self):
-		topic = self.cleaned_data.get("topic")
+		group_id, topic = self.group_id, self.cleaned_data.get("topic")
 		topic = topic.strip()
-		# topic = clear_zalgo_text(topic)
-		if not topic:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		elif topic < 1:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		return topic
+		user_id, unique = self.user_id, self.unique
+		process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='long', group_id=group_id)
+		return string.capwords(topic)
+		
 
 class PublicGroupReplyForm(forms.ModelForm):
 	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\

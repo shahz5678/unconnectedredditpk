@@ -14,7 +14,6 @@
 
 <form method="post" class="mts mbs" action="{% url 'open_group_preview' %}" method="POST">
 	{% csrf_token %}
-
 	
 	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard sp lsp">
 	{% if form.topic.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.topic.errors.0 }}</div>{% else %}<div class="cl mbs" style="font-weight:bold">Public mehfil ka topic likhein:</div>{% endif %}

@@ -6,7 +6,8 @@ GroupOnlineKonView, DirectMessageCreateView, ClosedGroupCreateView, InviteUsersT
 InviteUsersToGroupView, GroupTypeView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, PublicGroupView, PrivateGroupView, group_list,\
 appoint_pk, direct_message, leave_public_group, leave_private_group, left_private_group, mehfil_help, process_public_group_invite,\
 process_private_group_invite, invite_private, public_group_request_denied, public_group, left_public_group, first_time_public_refresh,\
-first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups, group_page, create_open_group, preview_open_group
+first_time_refresh, priv_group, del_public_group, kick_pk, groupreport_pk, get_ranked_groups, group_page, create_open_group, preview_open_group,\
+example_group_rules
 
 admin.autodiscover()
 
@@ -21,6 +22,7 @@ urlpatterns = patterns('',
 	url(r'^privatemehfil/invite/$', auth(InviteUsersToPrivateGroupView.as_view()), name='invite_private_group'),
 	url(r'^mehfil/public/invite/$', auth(InviteUsersToGroupView.as_view()), name='invite'),
 	url(r'^mehfil/private/invite/(?P<slug>[\w.@+-]+)/$', auth(invite_private), name='invite_private'),
+
 	######################################### Mehfil creation #####################################
 	url(r'^mehfil/select-type/$', auth(GroupTypeView.as_view()), name='group_type'),
 	url(r'^mehfil/help/$', auth(MehfilView.as_view()), name='mehfil_help'),
@@ -51,10 +53,12 @@ urlpatterns = patterns('',
 	#################### Rendering list of all mehfils #####################
 	url(r'^mehfil/your-list/$', auth(group_page), name='group_page'),
 	url(r'^mehfil/your-mehfil-list/$', auth(group_list), name='group_list'),
+	############################## Changing public mehfil rules ##############################
+	url(r'^mehfil/public/rules/change/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),
+	url(r'^mehfil/public/rules/example/$', auth(example_group_rules), name='example_group_rules'),
 	############################## Changing public and private mehfil topic ##############################
-	url(r'^group/change_rules/$', auth(ChangeGroupRulesView.as_view()), name='change_rules'),
-	url(r'^group/change_private_topic/$', auth(ChangePrivateGroupTopicView.as_view()), name='change_private_topic'),
-	url(r'^group/change_topic/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),
+	url(r'^mehfil/private/topic/change/$', auth(ChangePrivateGroupTopicView.as_view()), name='change_private_topic'),
+	url(r'^mehfil/public/topic/change/$', auth(ChangeGroupTopicView.as_view()), name='change_topic'),	
 	############################## Rendering and posting to private mehfil ##############################
 	url(r'^mehfil/private/redirect/$', auth(priv_group), name='priv_group'),
 	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),	
@@ -65,8 +69,8 @@ urlpatterns = patterns('',
 	url(r'^mehfil/public/redirect/(?P<slug>[\w.@+-]+)/$', auth(public_group), name='public_group'),	
 
 	#################### Refreshing mehfils #####################
-	url(r'^ftpr/$', auth(first_time_public_refresh), name='first_time_public_refresh'),	
-	url(r'^ftr/(?P<unique>[\w.@+-]+)/$', auth(first_time_refresh), name='first_time_refresh'),	
+	url(r'^mehfil/public/refresh/$', auth(first_time_public_refresh), name='first_time_public_refresh'),
+	url(r'^mehfil/private/refresh/(?P<unique>[\w.@+-]+)/$', auth(first_time_refresh), name='first_time_refresh'),
 	############################## Mehfil punishments ##############################
 	url(r'^kick/$', auth(kick_pk), name='kick_pk'),	
 	url(r'^groupreport/$', auth(groupreport_pk), name="group_report_pk"),

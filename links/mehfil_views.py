@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import F
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.views.decorators.debug import sensitive_post_parameters
 from brake.decorators import ratelimit
 from verified import FEMALES
@@ -21,7 +21,7 @@ MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE, PR
 from views import condemned, convert_to_epoch, valid_uuid
 from models import Group, Reply, GroupCaptain, GroupTraffic, Link, GroupBanList, UserProfile
 from tasks import rank_public_groups, public_group_attendance_tasks, queue_for_deletion, set_input_rate_and_history, group_notification_tasks,\
-log_private_mehfil_session, mehfil_data_logger
+log_private_mehfil_session, mehfil_data_logger, update_group_topic
 from redis1 import check_group_member, remove_group_member, remove_user_group, check_group_invite, remove_group_invite, add_group_member,\
 add_user_group, add_group_invite, add_home_link, add_unfiltered_post, add_filtered_post, set_latest_group_reply, bulk_check_group_membership,\
 bulk_check_group_invite, get_user_groups, get_latest_group_replies, get_active_invites, get_group_members, add_refresher, first_time_refresher,\
@@ -29,13 +29,13 @@ remove_all_group_members, remove_latest_group_reply, remove_group_for_all_member
 from redis2 import remove_group_notification, remove_group_object, get_attendance, create_notification, create_object, get_replies_with_seen, \
 save_user_presence, get_latest_presence, update_notification, del_attendance, remove_group_object
 from redis4 import get_most_recent_online_users, set_text_input_key, retrieve_uname, retrieve_credentials
-from redis3 import get_ranked_public_groups, del_from_rankings
+from redis3 import get_ranked_public_groups, del_from_rankings, tutorial_unseen
 from mehfil_forms import GroupHelpForm, ReinviteForm, OpenGroupHelpForm, ClosedGroupHelpForm, MehfilForm, AppointCaptainForm, OwnerGroupOnlineKonForm,\
 GroupOnlineKonForm, DirectMessageCreateForm, ClosedGroupCreateForm, OpenGroupCreateForm, DirectMessageForm, ReinvitePrivateForm, GroupListForm, \
 GroupTypeForm, ChangeGroupRulesForm, ChangePrivateGroupTopicForm, ChangeGroupTopicForm, PublicGroupReplyForm, PrivateGroupReplyForm
 from redis6 import retrieve_cached_ranked_groups, cache_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages,\
 cache_mehfil_pages, allot_bucket_to_user, is_group_creation_rate_limited, rate_limit_group_creation, temporarily_save_group_credentials,\
-get_temporarily_saved_group_credentials
+get_temporarily_saved_group_credentials, can_officer_change_topic
 
 from score import PUBLIC_GROUP_MAX_TITLE_SIZE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED
 ########################## Mehfil Help #########################
@@ -1176,6 +1176,12 @@ def group_page(request):
 ############################## Changing public and private mehfil topic ##############################
 
 
+def example_group_rules(request):
+	"""
+	Shows a quick help page with some example rules
+	"""
+	return render(request,"mehfil/example_group_rules.html",{'uuid':request.session.get("public_uuid",None)})
+
 class ChangeGroupRulesView(CreateView):
 	"""
 	Renders public mehfil change rules form and processes new POST requests
@@ -1184,91 +1190,148 @@ class ChangeGroupRulesView(CreateView):
 	form_class = ChangeGroupRulesForm
 	template_name = "mehfil/change_group_rules.html"
 
+	def get_initial(self):
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		uuid = self.request.session.get("public_uuid",None)
+		if uuid:
+			return {'rules':Group.objects.only('rules').get(unique=uuid).rules}
+		else:
+			return {}
+
+	def get_form_kwargs( self ):
+		kwargs = super(ChangeGroupRulesView,self).get_form_kwargs()
+		group_uuid = self.request.session.get("public_uuid",None)
+		kwargs['user_id'] = self.request.user.id
+		kwargs['unique_id'] = group_uuid
+		kwargs['group_id'] = Group.objects.only('id').get(unique=group_uuid).id#retrieve_group_id(group_uuid)
+		return kwargs
+
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupRulesView, self).get_context_data(**kwargs)
-		user = self.request.user
-		context["unauthorized"] = False
-		if user.is_authenticated():
-			unique = self.request.session["public_uuid"]
+		context["unauthorized"] = True
+		if self.request.user.is_authenticated():
+			user_id = self.request.user.id
+			unique = self.request.session.get("public_uuid",None)
 			context["unique"] = unique
-			group = Group.objects.get(unique=unique)
-			context["group"] = group
-			if group.private == '0':
-				if not group.owner == user:
-					context["unauthorized"] = True
-				else:
+			# group_owner_id, group_privacy = retrieve_group_owner_id(group_uuid=unique, with_group_privacy=True)
+			group_data = Group.objects.only('owner','private').get(unique=unique)
+			group_owner_id, group_privacy = group_data.owner_id, group_data.private
+			context["group_privacy"] = group_privacy
+			if group_privacy == '0':
+				if group_owner_id == user_id:
 					context["unauthorized"] = False
+					context["rules_char_limit"] = PUBLIC_GROUP_MAX_RULES_SIZE
+				else:
+					context["unauthorized"] = True
 		return context
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		user = self.request.user
+		user_id = self.request.user.id
 		if self.request.user_banned:
 			return redirect("profile", slug=user.username)
 		else:
-			rules = self.request.POST.get("rules")
-			unique = self.request.session["public_uuid"]
-			group = Group.objects.get(unique=unique)
-			if group.private == '0' and group.owner != user:
-				return redirect("score_help")
-			group.rules = rules
-			group.save()
-			Reply.objects.create(text=rules ,which_group=group ,writer=user ,category='5')
-			return redirect("public_group", slug=unique)	
-
+			rules, raw_rules = form.cleaned_data.get("rules")
+			unique = self.request.session.get("public_uuid",None)
+			group_data = Group.objects.only('owner','id','private').get(unique=unique)
+			group_owner_id, group_id, group_privacy = group_data.owner_id, group_data.id, group_data.private			
+			if group_privacy == '0' and group_owner_id == user_id:
+				Group.objects.filter(unique=unique).update(rules=rules)
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				Reply.objects.create(text=rules ,which_group_id=group_id ,writer_id=user_id ,category='5',device=device)
+				return redirect("public_group", slug=unique) 
+			else:
+				return redirect("group_page")
 
 class ChangePrivateGroupTopicView(CreateView):
+	"""
+	Changes the topic of a private mehfil
+	"""
 	model = Group
 	form_class = ChangePrivateGroupTopicForm
 	template_name = "mehfil/change_private_group_topic.html"
 
+	def get_initial(self):
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		uuid = self.request.session.get("unique_id",None)
+		if uuid:
+			return {'topic':Group.objects.only('topic').get(unique=uuid).topic}
+		else:
+			return {}
+
+
+	def get_form_kwargs(self):
+		kwargs = super(ChangePrivateGroupTopicView,self).get_form_kwargs()
+		group_uuid = self.request.session.get("unique_id",None)
+		user_id = self.request.user.id
+		kwargs['unique'] = group_uuid
+		kwargs['user_id'] = user_id
+		kwargs['username'] = retrieve_uname(user_id, decode=True)
+		kwargs['group_id'] = Group.objects.only('id').get(unique=group_uuid).id
+		return kwargs
+
+
 	def get_context_data(self, **kwargs):
 		context = super(ChangePrivateGroupTopicView, self).get_context_data(**kwargs)
 		user = self.request.user
-		context["unauthorized"] = False
 		if user.is_authenticated():
-			# banned, ban_type, time_remaining, warned = private_group_posting_allowed(self.request.user.id)
-			# banned = False
 			unique = self.request.session.get("unique_id",None)
-			if unique:# and not banned:	
-				context["unique"] = unique
-				group = Group.objects.get(unique=unique)
-				context["group"] = group
-				if group.private == '0' or group.private == '2':
-					context["unauthorized"] = True
-					context["group"] = None
-					return context
+			group_privacy = Group.objects.only('private').get(unique=unique).private
+			context["unique"] = unique
+			if group_privacy == '1':
+				context["unauthorized"] = False
+				context["topic_char_limit"] = PRIVATE_GROUP_MAX_TITLE_SIZE
+				return context
 			else:
 				context["unauthorized"] = True
-				context["group"] = None
 				return context
-		return context
+		else:
+			raise Http404("You are not authenticated")
+
 
 	def form_valid(self, form):
-		user = self.request.user
 		if self.request.user_banned:
-			return render(self.request,'500.html',{})
+			return redirect("error")
 		else:
-			# topic = self.request.POST.get("topic")
 			topic = form.cleaned_data.get("topic")
 			unique = self.request.session["unique_id"]
-			group = Group.objects.get(unique=unique)
-			if (group.private == '0' or group.private == '2') and group.owner != user:
-				return redirect("score_help")
-			group.topic = topic
-			group.save()
-			if self.request.is_feature_phone:
-				device = '1'
-			elif self.request.is_phone:
-				device = '2'
-			elif self.request.is_tablet:
-				device = '4'
-			elif self.request.is_mobile:
-				device = '5'
+			group_data = Group.objects.only('unique','id','private').get(unique=unique)
+			group_id, group_privacy = group_data.id, group_data.private
+			user_id = self.request.user.id
+			which_group_id = group_id
+			if group_privacy == '1':
+				Group.objects.filter(unique=unique).update(topic=topic)
+				update_group_topic.delay(group_id=group_id, topic=topic)#redis 2 object's "topic" field is updated
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				Reply.objects.create(text=topic ,which_group_id=which_group_id, writer_id=user_id, category='4', device=device)
+				invalidate_cached_mehfil_pages(user_id)
+				##########################
+				self.request.session["unique_id"] = unique
+				return redirect("private_group_reply")
 			else:
-				device = '3'
-			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4', device=device)
-			self.request.session["unique_id"] = unique
-			return redirect("private_group_reply")#, slug=unique)
+				return redirect("group_page")
+
 
 class ChangeGroupTopicView(CreateView):
 	"""
@@ -1278,41 +1341,83 @@ class ChangeGroupTopicView(CreateView):
 	form_class = ChangeGroupTopicForm
 	template_name = "mehfil/change_group_topic.html"
 
+
+	def get_initial(self):
+		"""
+		Returns the initial data to use for forms on this view.
+		"""
+		uuid = self.request.session.get("public_uuid",None)
+		if uuid:
+			return {'topic':Group.objects.only('topic').get(unique=uuid).topic}
+		else:
+			return {}
+
+
+	def get_form_kwargs(self):
+		kwargs = super(ChangeGroupTopicView,self).get_form_kwargs()
+		group_uuid = self.request.session.get("public_uuid",None)
+		kwargs['user_id'] = self.request.user.id
+		kwargs['unique'] = group_uuid
+		kwargs['group_id'] = Group.objects.only('id').get(unique=group_uuid).id
+		return kwargs
+
+
 	def get_context_data(self, **kwargs):
 		context = super(ChangeGroupTopicView, self).get_context_data(**kwargs)
 		user = self.request.user
-		context["unauthorized"] = False
 		if user.is_authenticated():
-			unique = self.request.session["public_uuid"]
-			if unique:	
+			unique = self.request.session.get("public_uuid",None)
+			if unique:    
 				context["unique"] = unique
-				group = Group.objects.get(unique=unique)
-				context["group"] = group
-				if group.private == '0':
-					if not group.owner == user:
-						context["unauthorized"] = True
-					else:
+				# group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=unique, with_group_id=True,with_group_privacy=True)
+				group_data = Group.objects.only('owner','id','private').get(unique=unique)
+				group_id, group_privacy, group_owner_id = group_data.id, group_data.private, group_data.owner_id
+				own_id = user.id
+				if group_privacy == '0':
+					if group_owner_id == own_id or can_officer_change_topic(group_id, own_id):
 						context["unauthorized"] = False
+						context["topic_char_limit"] = PUBLIC_GROUP_MAX_TITLE_SIZE
+					else:
+						context["unauthorized"] = True
+					return context
+				else:
+					context["unauthorized"] = True
+					return context
 			else:
 				context["unauthorized"] = True
 				return context
-		return context
+		else:
+			context["unauthorized"] = True
+			return context
+
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
-		user = self.request.user
+		user_id = self.request.user.id
 		if self.request.user_banned:
-			return render(self.request,'500.html',{})
+			return redirect("error")
 		else:
-			# topic = self.request.POST.get("topic")
 			topic = form.cleaned_data.get("topic")
-			unique = self.request.session['public_uuid']
-			group = Group.objects.get(unique=unique)
-			if group.private == '0' and group.owner != user:
-				return redirect("score_help")
-			group.topic = topic
-			group.save()
-			Reply.objects.create(text=topic ,which_group=group , writer=user, category='4')
-			return redirect("public_group", slug=unique)
+			unique = self.request.session.get("public_uuid",None)
+			group_data = Group.objects.only('owner','id','private').get(unique=unique)
+			group_id, group_privacy, group_owner_id = group_data.id, group_data.private, group_data.owner_id
+			if group_privacy == '0' and (group_owner_id == user_id or can_officer_change_topic(group_id, user_id)):
+				Group.objects.filter(unique=unique).update(topic=topic)
+				if self.request.is_feature_phone:
+					device = '1'
+				elif self.request.is_phone:
+					device = '2'
+				elif self.request.is_tablet:
+					device = '4'
+				elif self.request.is_mobile:
+					device = '5'
+				else:
+					device = '3'
+				Reply.objects.create(text=topic ,which_group_id=group_id , writer_id=user_id, category='4',device=device)
+				invalidate_cached_mehfil_pages(user_id)
+				update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
+				return redirect("public_group", slug=unique)
+			else:
+				return redirect("group_page")
 
 ############################## Rendering and posting to private mehfil ##############################
 
@@ -1738,48 +1843,35 @@ def public_group(request, slug=None, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def first_time_public_refresh(request):
-	"""
-	Using the refresh button for the first time in a public mehfil
-	"""
-	if request.method == "POST":
-		unique = request.POST.get('uid',None)
-		if first_time_refresher(request.user.id):
-			add_refresher(request.user.id)
-			context = {'unique': unique}
-			return render(request, 'mehfil/public_mehfil_refresh.html', context)
-		else:
-			return redirect("public_group", unique)
-	else:
-		return redirect("public_group")
-
+    """
+    Using the refresh button for the first time in a public mehfil
+    """
+    if request.method == "POST":
+        unique = request.POST.get('uid',None)
+        if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
+            return render(request, 'mehfil/public_mehfil_refresh.html', {'unique': unique})
+        else:
+            url = reverse_lazy("public_group", args=[unique])+"#sectionJ"
+            return redirect(url)
+    else:
+        return redirect("public_group")
 
 
 @ratelimit(rate='3/s')
 def first_time_refresh(request, unique=None, *args, **kwargs):
-	"""
-	Using the refresh button for the first time in a private mehfil
-	"""
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		# if request.user.is_authenticated():
-		# 	deduction = 1 * -1
-		# 	request.user.userprofile.score = request.user.userprofile.score + deduction
-		# 	request.user.userprofile.save()
-		# 	context = {'unique': unique}
-		# 	return render(request, 'mehfil_refresh_penalty.html', context)
-		# else:
-		# 	context = {'unique': 'none'}
-		# 	return render(request, 'mehfil_refresh_penalty.html', context)
-		return redirect("missing_page")
-	else:
-		if first_time_refresher(request.user.id):
-			add_refresher(request.user.id)
-			context = {'unique': unique}
-			return render(request, 'mehfil/mehfil_refresh.html', context)
-		else:
-			request.session["unique_id"] = unique
-			return redirect("private_group_reply")#, slug=unique)
-
+    """
+    Using the refresh button for the first time in a private mehfil
+    """
+    was_limited = getattr(request, 'limits', False)
+    if was_limited:
+        return redirect("missing_page")
+    else:
+        if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
+            return render(request, 'mehfil/mehfil_refresh.html', {'unique': unique})
+        else:
+            request.session["unique_id"] = unique
+            url = reverse_lazy("private_group_reply")+"#sectionJ"
+            return redirect(url)
 
 ############################## Mehfil punishments ##############################
 

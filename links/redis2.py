@@ -150,6 +150,13 @@ def viewer_salat_notifications(viewer_id=None, object_id=None, time=None):
 
 ###############################################################################################################################
 
+def update_group_topic_in_obj(group_id, topic):
+    """
+    Updates the topic field in a mehfil related object
+    """
+    redis.Redis(connection_pool=POOL).hset("o:3:"+str(group_id), 'od', topic)
+
+    
 def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
 	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None, lt_res_wid=None, slug=None):
 	"""

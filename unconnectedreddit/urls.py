@@ -47,6 +47,7 @@ AdDescriptionView, TopPhotoView,PhotoShareView, PhotoDetailView, SalatSuccessVie
 SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, MehfilCommentView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView
+from links.announcement_views import coming_soon
 
 admin.autodiscover()
 
@@ -286,6 +287,7 @@ urlpatterns = patterns('',
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 	url(r'^djga/', include('google_analytics.urls')),
 	#################################################################################################
+	url(r'^coming-soon/stay-tuned/$', auth(coming_soon), name='coming_soon'),
 )
 urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads

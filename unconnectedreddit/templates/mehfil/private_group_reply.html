@@ -14,7 +14,8 @@
     <br><br><br>
 {% else %}
     {% if mobile_verified %}
-        <div style="text-align:center">
+        {% include "announcement/coming_soon_notice.html" with static_url=STATIC_URL %}
+        <div class="mts" style="text-align:center">
         <ins class="adsbygoogle"
             style="display:inline-block;width:320px;height:100px"
             data-ad-client="ca-pub-2568547635306983"

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 6000 announcement_page %}
+<head><title>Coming soon!</title></head>
+
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="clb cxl lsp" style="text-align:center">Coming soon!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center;">
+
+
+	<img src="{{ STATIC_URL }}img/wassap_small.svg" width="52" height="52" class="mtl">
+	<div class="cxl lsp" style="border-bottom:1px dashed darkgray;padding:0 10px 10px 10px;text-align:center">
+  	<b>New private and public mehfils release honay wali hain!</b>
+  	</div>
+
+  <div class="sp lsp clb">
+    <div style="padding:0 12px">
+      <ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
+        <li style="text-align:left" class="mbl">Zabardast design and security</li>
+        <li style="text-align:left" class="mbl">Members ke liye buhut se new features</li>
+        <li style="text-align:left" class="mbl">Mehfil admins ke control mein izafa</li>
+        <li style="text-align:left">Tricks and hacking mein kammi</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+<br>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div class="cxl lsp" style="padding:10px;text-align:center;background-color:#9274a0;color:white">
+  <b>Public mehfil</b>
+  </div>
+
+  <div class="sp lsp clb">
+    <div style="padding:0 12px">
+      <ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
+        <li style="text-align:left" class="mbl">Officers ke liye mukhtalif powers</li>
+        <li style="text-align:left" class="mbl">Sirf woh members officer banein jo apply karein</li>
+        <li style="text-align:left" class="mbl">Bad members ki ban timing set karein</li>
+        <li style="text-align:left">Members mehfil owner ko direct feedback de sakein</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+<br>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div class="cxl lsp" style="padding:10px;text-align:center;background-color:#11ae59;color:white">
+  <b>Private mehfil</b>
+  </div>
+
+  <div class="sp lsp clb">
+    <div style="padding:0 12px">
+      <ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
+        <li style="text-align:left" class="mbl">Mehfil owner ke pas kick ka option</li>
+        <li style="text-align:left" class="mbl">Mehfil mein 8 members ki limit</li>
+        <li style="text-align:left">Kisi aur member ko mehfil owner bananey ki sahulat</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+
+<br><br>
+{% endcache %}
+{% endblock %}

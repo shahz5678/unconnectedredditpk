@@ -1096,7 +1096,8 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'u':unique_id}
 					cache_group_reqd_data(group_id,data,'001',my_server)
 				else:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8')}
+					# data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8')}
+					data = {'p':privacy,'gi':group_id,'tp':topic}
 					cache_group_reqd_data(group_id,data,'000',my_server)
 				return data
 		else:

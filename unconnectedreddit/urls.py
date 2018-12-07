@@ -25,7 +25,7 @@ comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo,
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
 salat_notification, cross_salat_notif, report_comment, see_special_photo_pk, special_photo, photo_location, \
 unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
-faces_pages, cricket_comment_page, \
+faces_pages, cricket_comment_page, error,\
 non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, best_photos_list, cast_photo_vote, \
 best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, manage_user, \
@@ -101,6 +101,7 @@ urlpatterns = patterns('',
 	url(r'^make_ad/$', make_ad, name='make_ad'),
 	url(r'^ad_finalize/$', ad_finalize, name='ad_finalize'),
 	url(r'^missing/$', missing_page, name='missing_page'),
+	url(r'^error/$', error, name='error'),
 	url(r'^ad_description/$', AdDescriptionView.as_view(), name='ad_description'),
 	url(r'^ad_mobile_num/$', AdMobileNumView.as_view(), name='ad_mobile_num'),
 	url(r'^ad_title/$', AdTitleView.as_view(), name='ad_title'),

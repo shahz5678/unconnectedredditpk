@@ -1077,7 +1077,8 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms,'u':unique_id}
 					cache_group_reqd_data(group_id,data,'111',my_server)
 				elif with_group_owner_id and with_pics_perm:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms}
+					# data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms}
+					data = {'p':privacy,'gi':group_id,'tp':topic,'oi':owner_id,'pics':pics_perms}
 					cache_group_reqd_data(group_id,data,'110',my_server)
 				elif with_group_owner_id and with_uuid:
 					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'u':unique_id}

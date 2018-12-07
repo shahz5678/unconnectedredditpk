@@ -1,36 +1,52 @@
-import random, string, re
+import random, re, string
 from django import forms
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from models import GroupTraffic, Group, Reply
-from redis1 import check_group_member
-from redis4 import get_and_delete_text_input_key, is_limited, many_short_messages, log_short_message
-from forms import repetition_found, human_readable_time, uniform_string
-from redis6 import is_topic_change_frozen, human_readable_time, topic_change_rate_limited, log_topic_change, log_topic_changing_attempt,\
-is_rules_change_frozen, rules_change_rate_limited,log_rules_changing_attempt, log_rules_change
-from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST, PUBLIC_GROUP_MAX_TITLE_SIZE, \
-PUBLIC_GROUP_MAX_RULES_SIZE
+from verified import FEMALES
+from models import Reply, Group
+from views import convert_to_epoch
+from forms import repetition_found, uniform_string, clear_zalgo_text
 from abuse import BANNED_MEHFIL_TOPIC_WORDS, BANNED_MEHFIL_RULES_WORDS
+from redis4 import many_short_messages, get_and_delete_text_input_key, is_limited, log_short_message
+from redis6 import human_readable_time, retrieve_group_creation_time, retrieve_group_privacy, retrieve_group_category, is_group_member_and_rules_signatory,\
+group_ownership_transfer_blocked_by_rate_limit, ownership_request_rate_limit, is_topic_change_frozen, is_rules_change_frozen, log_topic_change,\
+log_topic_changing_attempt, topic_change_rate_limited, log_rules_change, log_rules_changing_attempt, rules_change_rate_limited, group_member_exists
+from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, PUBLIC_GROUP_COST, PRIVATE_GROUP_COST, \
+GROUP_FEEDBACK_SIZE, PUBLIC_GROUP_REPLY_LENGTH, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_MAX_SELLING_PRICE, PUBLIC_GROUP_MIN_SELLING_PRICE, \
+USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED, GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN
 
-
-##################### Utility Functions ########################################
 def number_new_lines(text):
 	"""
 	Adds 'numbering' to text (beginning of each new line)
 
 	Useful when presenting 'rules' of a mehfil to users
 	"""
-	# lines, counter = text.splitlines(), 1
-	# if len(lines) > 1:
-	#   formatted_text = ''
-	#   for line in lines:
-	#       if line:
-	#           line = str(counter)+". "+line.strip()+"\n"
-	#           formatted_text += line
-	#           counter += 1
-	#   return formatted_text
-	# else:
-	#   # do not add 'numbering' if only 1 line exists
-	return text
+	lines, counter = text.splitlines(), 1
+	if len(lines) > 1:
+		formatted_text = ''
+		for line in lines:
+			if line:
+				line = str(counter)+". "+line.strip()+"\n"
+				formatted_text += line
+				counter += 1
+		return formatted_text
+	else:
+		# do not add 'numbering' if only 1 line exists
+		return text
+
+
+def validate_rules_chars(rules, user_id=None):
+	"""
+	Performs validation checks on mehfil rules
+	"""
+	reg = re.compile('^[\w\s.?\-%()\$,;:!\'"]+$')
+	if not reg.match(rules):
+		raise ValidationError('Rules mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " \' characters likhein')
+	for word in BANNED_MEHFIL_RULES_WORDS:
+		if word in rules.lower():
+			log_rules_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
+			raise ValidationError('Rules mein "%s" nahi likhein' % word.capitalize())
+
 
 def spot_gibberish_or_repeating_text_in_rules(text,length_of_text, user_id=None):
 	if length_of_text > 15 and ' ' not in text:
@@ -57,19 +73,6 @@ def spot_gibberish_or_repeating_text_in_rules(text,length_of_text, user_id=None)
 						if third_repetition == second_repetition:
 							log_rules_changing_attempt(user_id)
 							raise ValidationError('Rules mein cheezain repeat nahi karein')
-
-
-def validate_rules_chars(rules, user_id=None):
-	"""
-	Performs validation checks on mehfil rules
-	"""
-	reg = re.compile('^[\w\s.?\-%()\$,;:!\'"]+$')
-	if not reg.match(rules):
-		raise ValidationError('Rules mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " \' characters likhein')
-	for word in BANNED_MEHFIL_RULES_WORDS:
-		if word in rules.lower():
-			log_rules_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
-			raise ValidationError('Rules mein "%s" nahi likhein' % word.capitalize())
 
 
 def process_group_rules(rules, rules_len_threshold, user_id=None, unique=None, group_id=None):
@@ -107,6 +110,7 @@ def process_group_rules(rules, rules_len_threshold, user_id=None, unique=None, g
 					raise forms.ValidationError('"%s" - is terhan bar bar letters repeat nahi karein' % uni_str)
 			log_rules_change(user_id,unique)
 
+
 def validate_topic_chars(topic, user_id=None):
 	"""
 	Performs validation checks on mehfil topic
@@ -118,6 +122,7 @@ def validate_topic_chars(topic, user_id=None):
 		if word in topic.lower():
 			log_topic_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
 			raise ValidationError('Topic mein "%s" nahi likhein' % word.capitalize())
+
 
 def spot_gibberish_or_repeating_text_in_topic(text,length_of_text, user_id=None):
 	if length_of_text > 15 and ' ' not in text:
@@ -144,6 +149,8 @@ def spot_gibberish_or_repeating_text_in_topic(text,length_of_text, user_id=None)
 						if third_repetition == second_repetition:
 							log_topic_changing_attempt(user_id)
 							raise ValidationError('Topic mein cheezain repeat nahi karein')
+
+
 
 def process_group_topic(topic, topic_len_threshold, user_id=None, unique=None, how_long='short', group_id=None):
 	"""
@@ -181,41 +188,237 @@ def process_group_topic(topic, topic_len_threshold, user_id=None, unique=None, h
 			log_topic_change(user_id,unique,how_long=how_long)
 
 
-class GroupHelpForm(forms.Form):
-	class Meta:
-		pass
+####################################################################################################################
+####################################################################################################################
 
-class ReinviteForm(forms.Form):
-	class Meta:
-		pass
+class PrivateGroupReplyForm(forms.ModelForm):
+	"""
+	Handles form entry and validation in private mehfils
 
-class OpenGroupHelpForm(forms.Form):
+	Turn to regular form if getting rid of Reply model
+	"""
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_REPLY_LENGTH}),\
+	error_messages={'required': 'tip: likhna zaruri hai'})
+	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
+	sk = forms.CharField(required=False)
+	wid = forms.IntegerField(required=False)
+	gp = forms.IntegerField()
+	
 	class Meta:
-		pass
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
 
-class ClosedGroupHelpForm(forms.Form):
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
+		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
+		self.fields['image'].widget.attrs['id'] = 'grp_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'grp_text_field'
+		self.fields['text'].widget.attrs['style'] = 'width:98%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean(self):
+		data = self.cleaned_data
+		text, user_id, section_id, section, image, secret_key_from_form, writer_id = data.get("text"), self.user_id, data.get("gp"), 'prv_grp', \
+		data.get("image"), data.get("sk"), data.get('wid')
+		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'prv_grp')
+		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
+		if secret_key_from_form != secret_key_from_session:
+			raise forms.ValidationError('Page expire ho gaya hai, dubara post karein')
+		elif text:
+			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
+				raise forms.ValidationError('Milti julti baatien nahi post karein')
+			else:
+				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('Yahan post karney ke liye apna mobile number verify karwain')
+				else:
+					text_len = len(text)
+					if text_len < 1:
+						raise forms.ValidationError('tip: likhna zaruri hai')
+					if text_len < 6:
+						if many_short_messages(user_id,section,section_id):
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
+						else:
+							log_short_message(user_id,section,section_id)
+					elif text_len > PRIVATE_GROUP_REPLY_LENGTH:
+						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+					data["text"] = text
+					return data
+		else:
+			if image:
+				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('Yahan post karney ke liye apna mobile number verify karwain')
+				else:
+					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
+						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
+					return data
+			else:
+				if writer_id and writer_id != -1:
+					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "@" ka nishan dabain jisko yeh message bhejna hai')
+				else:
+					raise forms.ValidationError('tip: likhna zaruri hai')
+
+
+class PublicGroupReplyForm(forms.ModelForm):
+	"""
+	Handles form entry and validation in public mehfils
+
+	Turn to regular form if getting rid of Reply model
+	"""
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
+		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_REPLY_LENGTH}),\
+	error_messages={'required': 'tip: likhna zaruri hai'})
+	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
+	sk = forms.CharField(required=False)
+	wid = forms.IntegerField(required=False)
+	gp = forms.IntegerField()
+
 	class Meta:
-		pass
+		model = Reply
+		exclude = ("submitted_on","which_group","writer","abuse")
+		fields = ("image", "text")
 
-class MehfilForm(forms.Form):
-	class Meta:
-		pass
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
+		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
+		self.fields['image'].widget.attrs['id'] = 'grp_browse_image_btn'
+		self.fields['text'].widget.attrs['id'] = 'grp_text_field'
+		self.fields['text'].widget.attrs['style'] = 'width:98%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
-class AppointCaptainForm(forms.Form): #doesn't work as forms.ModelForm
-	class Meta:
-		pass
+	def clean(self):
+		data = self.cleaned_data
+		text, user_id, section_id, section, image, secret_key_from_form, writer_id = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', \
+		data.get('image'), data.get('sk'), data.get('wid')
+		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'pub_grp')
+		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
+		if secret_key_from_form != secret_key_from_session:
+			raise forms.ValidationError('Page expire ho gaya hai, dubara post karein')
+		elif text:
+			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
+				raise forms.ValidationError('Milti julti baatien nahi post karein')
+			else:
+				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap public mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('Yahan post karney ke liye apna mobile number verify karwain')
+				else:
+					text_len = len(text)
+					if text_len < 6:
+						if many_short_messages(user_id,section,section_id):
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
+						else:
+							log_short_message(user_id,section,section_id)
+					elif text_len > PUBLIC_GROUP_REPLY_LENGTH:
+						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+					data["text"] = text
+					return data
+		else:
+			if image:
+				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap public mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				elif not self.is_mob_verified:
+					raise forms.ValidationError('Yahan post karney ke liye apna mobile number verify karwain')
+				else:
+					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
+						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
+					return data
+			else:
+				if writer_id and writer_id != -1:
+					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "@" ka nishan dabain jisko yeh message bhejna hai')
+				else:
+					raise forms.ValidationError('tip: likhna zaruri hai')
 
-class OwnerGroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
 
-class GroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
-
-class DirectMessageCreateForm(forms.Form):
+class ChangePrivateGroupTopicForm(forms.ModelForm):
+	"""
+	Validates new topic entered in private mehfil
+	"""
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hain'})
 	class Meta:
 		model = Group
+		fields = ("topic",)
+
+	def __init__(self,*args,**kwargs):
+		self.unique = kwargs.pop('unique',None)
+		self.user_id = kwargs.pop('user_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		super(ChangePrivateGroupTopicForm, self).__init__(*args,**kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_topic(self):
+		group_id, user_id = self.group_id, self.user_id
+		if group_member_exists(group_id, user_id):
+			topic = self.cleaned_data.get("topic")
+			topic, unique = topic.strip(), self.unique
+			process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='short', group_id=group_id)
+			return string.capwords(topic)
+		else:
+			raise forms.ValidationError('Topic change karney ke liye ye mehfil join karein')
+
+
+class ChangeGroupTopicForm(forms.ModelForm):
+	"""
+	Validates new topic entered in public mehfil
+	"""
+	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
+		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_TITLE_SIZE}),\
+	error_messages={'required': 'Topic likhna zaruri hain'})
+	class Meta:
+		model = Group
+		fields = ("topic",)
+
+	def __init__(self,*args,**kwargs):
+		self.unique = kwargs.pop('unique',None)
+		self.user_id = kwargs.pop('user_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		super(ChangeGroupTopicForm, self).__init__(*args,**kwargs)
+		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_topic(self):
+		group_id, topic = self.group_id, self.cleaned_data.get("topic")
+		topic = topic.strip()
+		user_id, unique = self.user_id, self.unique
+		process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='long', group_id=group_id)
+		return string.capwords(topic)
+
+
+class ChangeGroupRulesForm(forms.ModelForm):
+	"""
+	Validates new rules entered in public mehfil
+	"""
+	rules = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_RULES_SIZE}),\
+	error_messages={'required': 'Rules likhna zaruri hain'})
+	class Meta:
+		model = Group
+		fields = ("rules",)
+
+	def __init__(self, *args, **kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		self.unique_id = kwargs.pop('unique_id',None)
+		self.group_id = kwargs.pop('group_id',None)
+		super(ChangeGroupRulesForm, self).__init__(*args, **kwargs)
+		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:170px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_rules(self):
+		group_id, user_id, unique_id = self.group_id, self.user_id, self.unique_id
+		rules = self.cleaned_data.get("rules")
+		rules = rules.strip()
+		process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE, user_id=user_id, unique=unique_id, group_id=group_id)
+		return number_new_lines(rules), rules
+	
 
 class ClosedGroupCreateForm(forms.ModelForm):
 	"""
@@ -300,241 +503,190 @@ class OpenGroupCreateForm(forms.ModelForm):
 			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
 
 
-class DirectMessageForm(forms.Form):
-	class Meta:
-		pass        
+class GroupFeedbackForm(forms.Form):
+	"""
+	Handles kick feedback validation
+	"""
+	feedback = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':GROUP_FEEDBACK_SIZE}),\
+	error_messages={'invalid':"Sahi se likhein",'required':"Isey khali nahi chorein"})
 
-class ReinvitePrivateForm(forms.Form):
-	class Meta:
-		pass
 
-class GroupListForm(forms.Form):
-	class Meta:
-		pass
+	def __init__(self,*args,**kwargs):
+		super(GroupFeedbackForm, self).__init__(*args,**kwargs)
+		self.fields['feedback'].widget.attrs['style'] = 'width:99%;height:110px;border-radius:10px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_feedback(self):
+		feedback = self.cleaned_data.get("feedback").strip()
+		feedback_len = len(feedback)
+		if feedback_len > GROUP_FEEDBACK_SIZE:
+			raise forms.ValidationError('Ye {0} characters se bara nahi likh saktey'.format(GROUP_FEEDBACK_SIZE))
+		elif feedback_len < 1:
+			raise forms.ValidationError('Isey khali nahi chorein')
+		elif feedback_len < 6:
+			raise forms.ValidationError('Ye itna chota nahi ho sakta')
+		return clear_zalgo_text(feedback)
+
+
+class GroupPriceOfferForm(forms.Form):
+	"""
+	Handles price offered to public mehfil owner
+	"""
+	price = forms.CharField(error_messages={'invalid':"Sirf number likhein",'required':"Isey khali nahi chorein"})
+
+	def __init__(self,*args,**kwargs):
+		self.user_id = kwargs.pop('user_id',None)
+		self.user_uname = kwargs.pop('user_uname',None)
+		self.time_now = kwargs.pop('time_now',None)
+		self.score = kwargs.pop('score',None)
+		self.group_id = kwargs.pop('group_id',None)
+		self.group_owner_id = kwargs.pop('group_owner_id',None)
+		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
+		super(GroupPriceOfferForm, self).__init__(*args,**kwargs)
+		self.fields['price'].widget.attrs['style'] = 'text-align:center;width:115px;height:25px;border-radius:6px;border: 1px #E4E6E8 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['price'].widget.attrs['class'] = 'cxl sp'
+		self.fields['price'].widget.attrs['maxlength'] = 4
+		self.fields['price'].widget.attrs['autocomplete'] = 'off'
+		self.fields['price'].widget.attrs['autocorrect'] = 'off'
+		self.fields['price'].widget.attrs['autocapitalize'] = 'off'
+		self.fields['price'].widget.attrs['spellcheck'] = 'false'
+
+	def clean_price(self):
+		"""
+		Go through all the disallowed scenarios one-by-one
+		"""
+		price, own_id, own_uname, time_now, score, group_id, group_owner_id, is_mob_verified = self.cleaned_data["price"], self.user_id, self.user_uname, \
+		self.time_now, self.score, self.group_id, self.group_owner_id, self.is_mob_verified
+		is_public = False if retrieve_group_privacy(group_id) == '1' else True
+		if is_public and not is_mob_verified:
+			# user's not verified their mobile number
+			raise forms.ValidationError("Sorry! Mehfil ki ownership sirf verified users ko mil sakti hai")
+		elif group_owner_id == str(own_id):
+			# already group owner
+			raise forms.ValidationError("Ap already is mehfil ke owner hain")
+		else:
+			try:
+				price = int(price)
+			except (ValueError, TypeError):
+				raise forms.ValidationError("Sirf number likhein")
+			if price > score:
+				raise forms.ValidationError('Sorry! Ap ne {} points offer kiye, lekin apka score sirf {} points hai'.format(price,score))
+			elif is_public and price < PUBLIC_GROUP_MIN_SELLING_PRICE:
+				raise forms.ValidationError('Sorry! Offer kam az kam {} points honi chahiye'.format(int(PUBLIC_GROUP_MIN_SELLING_PRICE)))
+			elif is_public and price > PUBLIC_GROUP_MAX_SELLING_PRICE:
+				raise forms.ValidationError('Sorry! Offer {} points se ziyada nahi honi chahiye'.format(int(PUBLIC_GROUP_MAX_SELLING_PRICE)))
+			else:
+				try:
+					join_date = User.objects.only('date_joined').get(id=own_id).date_joined
+				except User.DoesNotExist:
+					# this user does not exist thus data incomplete
+					raise forms.ValidationError("Sorry! Apki tashkhees nahi ho saki")
+				young_age_ttl = (USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time_now - convert_to_epoch(join_date)))
+				user_is_freshman = True if young_age_ttl > 0 else False
+				if user_is_freshman: 
+					# user too young to own a public mehfil - old users' "young_age_ttl" statistic would be highly negative
+					raise forms.ValidationError("Sorry! Ap ye {} tak nahi kar saktey kiyunke apko Damadam join kiye ziyada time nahi guzra".\
+						format(human_readable_time(young_age_ttl)))
+				elif time_now - retrieve_group_creation_time(group_id) < GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED:
+					# mehfil too young to be transferred (i.e. less than 10 days old)
+					raise forms.ValidationError("Sorry! Is mehfil ko create huay itna time nahi guzra ke ownership transfer ki ja sakey")
+				elif is_public and retrieve_group_category(group_id) == '2' and own_uname not in FEMALES:
+					raise forms.ValidationError("Sorry! Is mehfil ki ownership sirf pink stars ke liya hai")
+				else:
+					data = is_group_member_and_rules_signatory(group_id, own_id)
+					is_mem, is_sig = data[0], data[1]
+					if is_mem and not is_sig:
+						raise forms.ValidationError("Sorry! Ap ye nahi kar saktey kiyun ke ap ne mehfil ke rules nahi accept kiye huay")
+					elif not is_mem:
+						raise forms.ValidationError("Sorry! Ap ye nahi kar saktey kiyun ke ap mehfil ke member nahi")
+					else:
+						user_ttl, ttl_type = group_ownership_transfer_blocked_by_rate_limit(group_id, group_owner_id, own_id)
+						if user_ttl:
+							if ttl_type == 'owner':
+								# cannot proceed since mehfil owner is rate-limited (and can't accept your request)
+								raise forms.ValidationError("Sorry! Ye owner {} tak aisi koi offer receive nahi kar sakta kiyunke is ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))
+							else:
+								# cannot proceed since you are rate-limited (and can't send your request)
+								raise forms.ValidationError("Sorry! Ap {} tak aisi koi request send nahi kar saktey kiyunke ap ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))		
+						else:
+							ttl = ownership_request_rate_limit(group_id, own_id)
+							if ttl:
+								# the user already sent a transfer request, and must wait for a week before doing so again
+								raise forms.ValidationError("Sorry! Ap is mehfil owner ko dubara ownership transfer ki request {} tak send nahi kar saktey".format(human_readable_time(ttl)))
+							else:
+								return price
+
+
+class OfficerApplicationForm(forms.Form):
+	"""
+	Handles submission of 'officer' application by a user (to a public mehfil owner)
+	"""
+	answer1 = forms.CharField(required=True,widget=forms.Textarea(attrs={'autofocus': 'autofocus','autocomplete': 'off',\
+		'class': 'cxl sp', 'autocapitalize':'off','spellcheck':'false','autocorrect':'off',\
+		'maxlength':PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN}),error_messages={'required': 'Ye likhna zaruri hai'})
+	answer2 = forms.CharField(required=True,widget=forms.Textarea(attrs={'class': 'cxl sp','autocomplete': 'off',\
+		'autocapitalize':'off','spellcheck':'false','autocorrect':'off','maxlength':PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN}),\
+	error_messages={'required': 'Ye likhna zaruri hai'})
+
+	def __init__(self,*args,**kwargs):
+		super(OfficerApplicationForm, self).__init__(*args,**kwargs)
+		self.fields['answer1'].widget.attrs['style'] = 'text-align:left;width:95%;height:130px;border-radius:6px;border: 1px #E4E6E8 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['answer2'].widget.attrs['style'] = 'text-align:left;width:95%;height:130px;border-radius:6px;border: 1px #E4E6E8 solid; background-color:#FAFAFA;padding:5px;'
+
+	def clean_answer1(self):
+		answer1 = self.cleaned_data["answer1"]
+		len_answer1 = len(answer1)
+		if len_answer1 < 10:
+			raise ValidationError("Itna chota answer nahi likh saktey")
+		elif len_answer1 > PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN:
+			raise ValidationError("Itna lamba answer nahi likh saktey")
+		return answer1
+
+	def clean_answer2(self):
+		answer2 = self.cleaned_data["answer2"]
+		len_answer2 = len(answer2)
+		if len_answer2 < 10:
+			raise ValidationError("Itna chota answer nahi likh saktey")
+		elif len_answer2 > PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN:
+			raise ValidationError("Itna lamba answer nahi likh saktey")
+		return answer2
+
 
 class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
 
-class ChangeGroupRulesForm(forms.ModelForm):
-	"""
-	Validates new rules entered in public mehfil
-	"""
-	rules = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
-		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_RULES_SIZE}),\
-	error_messages={'required': 'Rules likhna zaruri hain'})
+class OpenGroupHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class ClosedGroupHelpForm(forms.Form):
+	class Meta:
+		pass		
+
+
+class ReinviteForm(forms.Form):
+	class Meta:
+		pass
+
+
+class ReinvitePrivateForm(forms.Form):
+	class Meta:
+		pass
+
+
+# class GroupPageForm(forms.Form):
+# 	class Meta:
+# 		model = Reply
+
+class GroupHelpForm(forms.Form):
+	class Meta:
+		pass
+
+class DirectMessageCreateForm(forms.Form):
 	class Meta:
 		model = Group
-		fields = ("rules",)
 
-	def __init__(self, *args, **kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.unique_id = kwargs.pop('unique_id',None)
-		self.group_id = kwargs.pop('group_id',None)
-		super(ChangeGroupRulesForm, self).__init__(*args, **kwargs)
-		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:170px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean_rules(self):
-		group_id, user_id, unique_id = self.group_id, self.user_id, self.unique_id
-		rules = self.cleaned_data.get("rules")
-		rules = rules.strip()
-		process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE, user_id=user_id, unique=unique_id, group_id=group_id)
-		return number_new_lines(rules), rules
-
-
-class ChangePrivateGroupTopicForm(forms.ModelForm):
-	"""
-	Validates new topic entered in private mehfil
-	"""
-	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
-		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
-	error_messages={'required': 'Topic likhna zaruri hain'})
+class DirectMessageForm(forms.Form):
 	class Meta:
-		model = Group
-		fields = ("topic",)
-
-	def __init__(self,*args,**kwargs):
-		self.unique = kwargs.pop('unique',None)
-		self.user_id = kwargs.pop('user_id',None)
-		self.group_id = kwargs.pop('group_id',None)
-		self.username = kwargs.pop('username',None)
-		super(ChangePrivateGroupTopicForm, self).__init__(*args,**kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean_topic(self):
-		username, group_id, topic = self.username, self.group_id, self.cleaned_data.get("topic")
-		if not check_group_member(group_id,username):
-			raise forms.ValidationError('Topic change karney ke liye mehfil mein kuch type kar ke iskey member banein')
-		topic = topic.strip()
-		user_id, unique = self.user_id, self.unique
-		process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='short', group_id=group_id)
-		return string.capwords(topic)
-
-
-class ChangeGroupTopicForm(forms.ModelForm):
-	"""
-	Validates new topic entered in public mehfil
-	"""
-	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
-		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_TITLE_SIZE}),\
-	error_messages={'required': 'Topic likhna zaruri hain'})
-	class Meta:
-		model = Group
-		fields = ("topic",)
-
-	def __init__(self,*args,**kwargs):
-		self.unique = kwargs.pop('unique',None)
-		self.user_id = kwargs.pop('user_id',None)
-		self.group_id = kwargs.pop('group_id',None)
-		super(ChangeGroupTopicForm, self).__init__(*args,**kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:70px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean_topic(self):
-		group_id, topic = self.group_id, self.cleaned_data.get("topic")
-		topic = topic.strip()
-		user_id, unique = self.user_id, self.unique
-		process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE, user_id=user_id, unique=unique, how_long='long', group_id=group_id)
-		return string.capwords(topic)
-		
-
-class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
-	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
-	sk = forms.CharField(required=False)
-	gp = forms.IntegerField()
-
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
-		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
-		# self.fields['image'].widget.attrs['accept'] = 'image/*'
-		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
-		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
-		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean(self):
-		data = self.cleaned_data
-		text, user_id, section_id, section, image, secret_key_from_form = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', \
-		data.get('image'), data.get('sk')
-		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'pub_grp')
-		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-	
-		elif not text:
-			if image:
-				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				elif not self.is_mob_verified:
-					raise forms.ValidationError('tip: yahan foto laganey ke liye apna mobile number verify karwain')
-				else:
-					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
-						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
-					return data
-			else:
-				raise forms.ValidationError('tip: likhna zaruri hai')
-		else:
-			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-			else:
-				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					text_len = len(text)
-					# if text_len < 1:
-					#   raise forms.ValidationError('tip: likhna zaruri hai')
-					# elif text_len < 2:
-					#   raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-					if text_len < 6:
-						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,section_id)
-					elif text_len > 500:
-						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-					if not self.is_mob_verified:
-						raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
-					# text = clear_zalgo_text(text)
-					# uni_str = uniform_string(text)
-					# if uni_str:
-					#   if uni_str.isspace():
-					#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					#   else:
-					#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likhein' % uni_str)
-					data["text"] = text
-					return data
-
-class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
-		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
-	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
-	sk = forms.CharField(required=False)
-	gp = forms.IntegerField()
-	
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
-		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean(self):
-		data = self.cleaned_data
-		text, user_id, section_id, section, image, secret_key_from_form = data.get("text"), self.user_id, data.get("gp"), 'prv_grp', \
-		data.get("image"), data.get("sk")
-		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'prv_grp')
-		text = text.strip() if text else text
-		if not text:
-			if image:
-				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
-						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
-					return data
-			else:
-				raise forms.ValidationError('tip: likhna zaruri hai')
-		elif secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		else:
-			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-			else:
-				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					text_len = len(text)
-					if text_len < 1:
-						raise forms.ValidationError('tip: likhna zaruri hai')
-					# elif text_len < 2:
-					#   raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-					if text_len < 6:
-						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,section_id)
-					elif text_len > 500:
-						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-					# text = clear_zalgo_text(text)
-					# uni_str = uniform_string(text)
-					# if uni_str:
-					#   if uni_str.isspace():
-					#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					#   else:
-					#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-					data["text"] = text
-					return data
-
+		pass

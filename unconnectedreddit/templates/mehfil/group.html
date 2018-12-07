@@ -29,7 +29,7 @@
 					<form method="POST" action="{% url 'priv_group' %}">
 				    {% csrf_token %}
 					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
-					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
 					<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:text-top">JOINED</div><span class="cgy">Ap ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cxs sp">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 					</form>
@@ -50,7 +50,7 @@
 					<form method="POST" action="{% url 'priv_group' %}">
 				    {% csrf_token %}
 					<input type="hidden" name="private_uuid" value="{{ reply.0.which_group__unique }}">
-					<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
+					<button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #F0F0F0;overflow:hidden" class="lsp vt">
 					<div class="sp cxs mrs" style="display:inline;vertical-align:text-top;border-radius:3px;border:1px solid #19a83b;background-color:white;padding:3px 6px;color:#19a83b">JOINED</div><img src="{{ reply.0.writer__userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if reply.0.writer__username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="cgy"><b>{{ reply.0.writer__username }}</b> ne <span class="cg cl bw" style="font-weight:bold">{% emoticons %}{{ reply.0.which_group__topic|truncatechars:80 }}{% endemoticons %}</span> ko join kia<span class="cxs sp">, {{ reply.0.submitted_on|human_time }}</span></span>
 					</button>
 					</form>
@@ -336,7 +336,7 @@
 {% endif %}
 </div><br>
 <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-    {% if page_obj.has_previous %}
+	{% if page_obj.has_previous %}
     <div style="padding:0 10px">
     <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
     </div>
@@ -348,5 +348,4 @@
     {% endif %}
 </div>
 <br>
-
 {% endblock %}

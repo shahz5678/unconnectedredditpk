@@ -2,18 +2,20 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Leave {{ topic }} | Damadam.pk</title></head>
-<div class="margin clb">
-<b class="cl"><span class="cg">{% emoticons %}{{ topic }}</span> ko chorna hai? .j1{% endemoticons %}</b>
-<br class="mbl">
-<form method="POST" action="{% url 'left_private_group' %}">{% csrf_token %}
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Exit mehfil?</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div style="overflow:hidden" class="mbl cxl lsp"><span class="cg">{% emoticons %}{{ topic|truncatechars:'80' }}{% endemoticons %}</span> ko chorna hai?</div>
+
+<form method="POST" action="{% url 'left_private_group' %}" style="display:inline">{% csrf_token %}
 <input type="hidden" name="guid" value="{{ unique }}">
-<input type="hidden" name="prv" value="{{ private }}">
-<button type="submit" name="gid" class="btn bcg bm mbl mls" value="{{ pk }}">Haan</button>
+<button type="submit" name="gid" class="btn bcr bm mbl mrs pg_ok_res sp" value="{{ pk }}" style="height:26px">Haan</button>
 </form>
+
 {% if inside_grp == '1' %}
-<form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcr mls mbs">Nahi</button></form>
+<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="btn bm bcg mls mbs pg_ok_res" style="height:26px">Nahi</button></form>
 {% else %}
-<a href="{% url 'group_page' %}#section0"><button class="btn bcr bm mls mbs">Nahi</button></a>
+<a href="{% url 'group_page' %}#section0"><button style="display:inline;height:26px" class="btn bcg bm mls mbs pg_ok_res sp">Nahi</button></a>
 {% endif %}
 </div>
 <br>

@@ -1,0 +1,25 @@
+{% if section == 'add' %}
+	<form action="{% url 'public_group_officer_management' %}" method="POST" class="mbl fx fxjscn fxaicn">
+	{% csrf_token %}
+	<input type="hidden" name="guid" value="{{ guid }}">
+		<button name="dec" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white" value="1" disabled><img src="{{ static_url }}img/shield_y.svg" width="26" height="26" style="vertical-align:middle"></button>
+		<button name="dec" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0" value="2"><img src="{{ static_url }}img/shield_x_disabled.svg" width="22" height="22" style="vertical-align:middle"></button>
+		<button name="dec" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="3"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button>
+	</form>
+{% elif section == 'remove' %}
+	<form action="{% url 'public_group_officer_management' %}" method="POST" class="mbl fx fxjscn fxaicn">
+	{% csrf_token %}
+	<input type="hidden" name="guid" value="{{ guid }}">
+		<button name="dec" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="1"><img src="{{ static_url }}img/shield_y_disabled.svg" width="22" height="22" style="vertical-align:middle"></button>
+		<button name="dec" type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white" value="2" disabled><img src="{{ static_url }}img/shield_x.svg" width="26" height="26" style="vertical-align:middle"></button>
+		<button name="dec" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="3"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button>
+	</form>
+{% elif section == 'history' %}
+	<form action="{% url 'public_group_officer_management' %}" method="POST" class="mbl fx fxjscn fxaicn">
+	{% csrf_token %}
+	<input type="hidden" name="guid" value="{{ guid }}">
+		<button name="dec" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="1"><img src="{{ static_url }}img/shield_y_disabled.svg" width="22" height="22" style="vertical-align:middle"></button>
+		<button name="dec" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0" value="2"><img src="{{ static_url }}img/shield_x_disabled.svg" width="22" height="22" style="vertical-align:middle"></button>
+		<button class="bizcard" name="dec" type="submit" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white" value="3" disabled><img src="{{ static_url }}img/history.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</form>
+{% endif %}

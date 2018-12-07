@@ -219,26 +219,7 @@
             <button class="btn bcgy cxs bs" >hide</button>
             </form>
         {% endif %}
-
-        {% if authenticated and user != comment.submitted_by %}
         &nbsp;
-        {% if origin == '3' %}
-        <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=photo.owner_id %}">
-        {% elif origin == '4' %}
-        <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=slug_id %}">   
-        {% elif origin == '6' %}
-            {% if link_ident %}
-            <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin slug=link_ident %}">
-            {% else %}
-            <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin %}">
-            {% endif %}
-        {% else %}
-        <a href="{% url 'mehfilcomment_pk' pk=comment.submitted_by_id num=photo.pk origin=origin %}">
-        {% endif %}
-
-        <button class="btn bco bs cxs">mehfil</button></a>
-      
-        {% endif %}
         {% group_button user.id comment.submitted_by_id photo.pk 'photos' 'photo_comments' comment.submitted_by.username %}
         </div>
     {% endif %}

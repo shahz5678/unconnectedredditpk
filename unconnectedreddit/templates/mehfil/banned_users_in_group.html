@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load human_time %}
+{% block content %}
+<head><title>Blocked users | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kicked' guid=guid privacy=privacy %}
+
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick list:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+{% if privacy == '0' %}<div class="mt mbs"><a href="{% url 'public_group' guid %}" class="cb sp cm" style="border-bottom:1px dotted blue">back to mehfil</a></div>{% else %}<form method="POST" class="mt mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ guid }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>{% endif %}
+<hr size=1 COLOR="#E9EBEE">
+
+<div class="cxl lsp">Blocked users select karein jinko kick list se remove karna hai:</div>
+
+{% if banned_users %}
+	<form action="{% url 'unkick_users' slug %}" method="POST">
+	{% csrf_token %}
+	<input type="hidden" name="guid" value="{{ guid }}">
+	<div class="mbs">
+		<ul style="display:inline-block;padding: 0;margin-bottom: 0;list-style:none">
+		{% for banned_user in banned_users %}
+			<li style="text-align:left" class="mts mbl sp">
+			<input type="checkbox" id="{{ forloop.counter }}" name="tids" class="mrl" style="vertical-align:sub" value="{{ banned_user.kid }}"><label for="{{ forloop.counter }}"><img src="{{ banned_user.kavurl|s3:'thumb' }}" style="vertical-align: sub;border-radius:50%">&nbsp;{{ banned_user.kuname }}<span class="mls cs cgy">banned {{ banned_user.kt|human_time }} by {{ banned_user.kbuname }}. Duration: {{ banned_user.kd }}</span></label>
+			</li>
+		{% endfor %}
+		</ul>
+	</div>
+	{% if privacy == '0' %}<button type="submit" name="ukdec" value="1" class="mt btn bcp bm mbl mls pg_ok_res sp mrs" style="height:26px">Remove</button>{% else %}<button type="submit" name="ukdec" value="1" class="mt btn bcg bm mbl mls pg_ok_res sp mrs" style="height:26px">Remove</button>{% endif %}<button type="submit" name="ukdec" value="0" class="mls cgy mbl pg_ok_res sp cl" style="height:26px;background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">Cancel</button>
+	</form>
+{% else %}
+	<div class="cl sp lsp cgy mts mbs" style="text-align:center">- ye list khali hai -</div>
+{% endif %}
+
+</div>
+<br>
+{% endblock %}

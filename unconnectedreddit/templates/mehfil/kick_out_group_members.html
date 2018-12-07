@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load human_time %}
+{% block content %}
+<head><title>Take action against members | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if show_unkick_feedback_options %}
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unblocking reason:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Ap ne ye ID(s) kiyun unblock ki?</div>
+	<form method="POST" action="{% url 'process_kicking_feedback' 'private' %}" class="mt">
+		{% csrf_token %}
+		{% if form.errors %}{% load show_error %}<div class="mtl sp cr lsp">{{ form.errors|show_error }}</div>{% else %}<div class="mtl cgy sp lsp">Saf alfaz mein unblock karney ka reason likhein takey kisi ko ghalat fehmi na ho. Ye reason dusrey members dekh sakein ge</div>{% endif %}
+		<div class="mt">{{ form.feedback }}</div>
+		<button type="submit" name="ukfb" class="mts btn bcg bm mbl pg_ok_res sp mrs" style="height:26px" value="1">Submit</button><button type="submit" name="ukfb" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" class="mls cgy sp" value="0">Cancel</button>
+	</form>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cgy cs sp lsp"><b>Note:</b>&nbsp;reason {{ reason_len }} characters se lamba nahi likhein</div>
+	</div>
+
+{% elif show_kick_feedback_options %}
+
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Provide feedback:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Feedback dein ke ap nay ye member kiyun bahir nikala:</div>
+	<form method="POST" action="{% url 'process_kicking_feedback' 'private' %}" class="mt">
+		{% csrf_token %}
+		{% if form.errors %}{% load show_error %}<div class="mtl sp cr lsp">{{ form.errors|show_error }}</div>{% else %}<div class="mtl cgy sp lsp">Saf saf nikalney ki wajah likhein takey koi ghalat fehmi na reh jaye</div>{% endif %}
+		<div class="mt">{{ form.feedback }}</div>
+		<button type="submit" name="kfdec" class="mts btn bcg bm mbl pg_ok_res sp mrs" style="height:26px" value="1">Submit</button><button type="submit" name="kfdec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" class="mls cgy sp" value="0">Cancel</button>
+	</form>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cs sp lsp"><span class="cgy"><b>Note:</b>&nbsp;feedback {{ reason_len }} characters se lamba nahi likhein</span></div>
+	</div>
+
+{% elif show_punishment_options %}
+
+	{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='1' %}
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick out member:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+	<form method="POST" action="{% url 'kick_out' 'private' %}">
+		{% csrf_token %}
+		<input type="hidden" name="guid" value="{{ guid }}">
+		<div class="cxl lsp">Is member ko kab tak ke liye mehfil se kick out karna hai?</div>
+		<ul style="display:inline-block;padding: 0;list-style:none">
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="kdur" value="1"><label for="1"><span class="cr">3 hours</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="kdur" value="2"><label for="2"><span class="cr">1 day</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="3" name="kdur" value="3"><label for="3"><span class="cr">3 days</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="4" name="kdur" value="4"><label for="4"><span class="cr">1 week</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="5" name="kdur" value="5"><label for="5"><span class="cr">1 month</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="6" name="kdur" value="6"><label for="6"><span class="cr">Forever</span></label></li>
+			<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="kdur" value="0" checked><label for="0"><b class="cb sp">Cancel</b></label></li>
+		</ul><br>
+		<button type="submit" name="kdec" class="mt btn bcg bm mbl pg_ok_res sp" style="height:26px" value="1">Submit</button>
+	</form>
+	</div>
+
+{% else %}
+
+	{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='1' %}
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick out member:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+	<form method="POST" class="mt mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ guid }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="cxl lsp">Member select karein jisko kick out karna hai:</div>
+
+	{% if members %}
+	<form method="POST" class="mt" action="{% url 'kick_out' 'private' %}">
+		{% csrf_token %}
+		<input type="hidden" name="guid" value="{{ guid }}">
+			<div class="mbs">
+			<ul style="display:inline-block;padding: 0;margin-bottom: 0;list-style:none">
+			{% for member_id,member,join_time in members %}
+				<li style="text-align:left">
+				<div class="mts mbl">
+				{% if member_id in immune_ids %}<input style="vertical-align:sub" type="radio" id="{{ forloop.counter }}" name="cid" value="{{ member_id }}" disabled>{% else %}<input style="vertical-align:sub" type="radio" id="{{ forloop.counter }}" name="cid" value="{{ member_id }}">{% endif %}
+				<label for="{{ forloop.counter }}"><img src="{{ member.avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if member.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="mrl">{{ member.uname }}</span><span class="cgy cxs sp">joined {{ join_time|human_time }}</span></label>
+				</div>
+				</li>
+			{% endfor %}
+			</ul>
+			</div>
+		<button type="submit" name="dec" value="1" class="mt btn bcg bm mbl mls pg_ok_res sp mrs" style="height:26px">Submit</button><button type="submit" name="dec" value="0" class="mls cgy mbl pg_ok_res sp cl" style="height:26px;background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">Cancel</button>
+	</form>
+	{% else %}
+		<div class="sp mts mbs lsp cgy">- is mehfil ka koi member nahi -</div>
+	{% endif %}
+	</div>
+
+{% endif %}
+
+<br>
+{% endblock %}

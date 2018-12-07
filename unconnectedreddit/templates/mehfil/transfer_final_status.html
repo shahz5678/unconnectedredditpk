@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Ownership transfer complete | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Ownership transferred!</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="mbs cxl lsp">Mehfil ka new owner <b>{{ ouname }}</b> ko bana diya gaya!</div>
+{% if is_public %}
+<a href="{% url 'public_group' guid %}#section0"><button class="btn bcp bm mbl mts pg_ok_res sp" style="height:26px">wapis</button></a>
+{% else %}
+<form method="POST" class="mbl mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ guid }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

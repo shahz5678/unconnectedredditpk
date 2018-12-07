@@ -1,9 +1,9 @@
+from django.contrib.auth.models import User
 from django import template
 from links.redis2 import is_fan
 from links.views import GetLatest
 from links.models import UserProfile
-from links.forms import UnseenActivityForm
-from django.contrib.auth.models import User
+from links.score import VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION
 
 register = template.Library()
 
@@ -12,7 +12,7 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 	context = {'notification':notification}
 	if notification:
 		context ={'ident':user_id,'lang':lang,'sort_by':sort_by,'checked':females,'static_url':static_url, 'random':random, 'newest_user':newest_user,\
-		'is_home':is_home, 'origin':origin,'form':notif_form}
+		'is_home':is_home, 'origin':origin,'form':notif_form,'VDC':VOTING_DRIVEN_CENSORSHIP,'VDP':VOTING_DRIVEN_PIXELATION}
 		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat, is_personal_grp = GetLatest(user)
 		if not is_link and not is_photo and not is_groupreply and not is_salat and not is_personal_grp:
 			context["notification"] = 0

@@ -19,6 +19,8 @@
 
 			<ul style="margin:0;padding-left: 15px;">
 				<li style="text-align:left">Tamam rules likhein jinki wajah se mehfil se kick ho sakti hai</li>
+				<li style="text-align:left">Har rule new line mein likhein</li> 
+				<li style="text-align:left">Rules ke sath number nahi dalein (e.g. 1, 2, 3). Agr ap har rule new line mein likhein ge tou hamara system khud bakhud rules ke sath numbers laga de ga</li>
 				<li style="text-align:left">Rules {{ rules_char_limit }} characters tak honay chahiyen</li>
 			</ul>
 			<div class="mts">{{ form.rules }}</div>
@@ -28,7 +30,7 @@
 		<a href="{% url 'public_group' slug=unique %}" class="mls cgy cl sp" style="border-bottom:1px dotted gray">Cancel</a>
 		<br>
 	<div style="border-top:1px solid #E8E8E8;padding-top:10px;color:gray" class="cs sp lsp">
-	Achey rules woh hain jo saf alfaz mein woh tamam baatein explain karein jin ko karney se mehfil se kick ho sakti hai&nbsp;<a href="{% url 'example_group_rules' %}#section0" class="sp cs cb" style="border-bottom:1px dotted blue" target="_blank">(examples)</a>
+	Achey rules woh hain jo saf alfaz mein woh tamam baatein explain karein jin ko karney se mehfil se kick ho sakti hai&nbsp;<a href="{% url 'example_group_rules' %}#section0" class="sp cs cb" style="border-bottom:1px dotted blue">(examples)</a>
 	</div>
 {% endif %}
 </div>

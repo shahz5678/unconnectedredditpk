@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import redis, time, ast
+from pytz import timezone
 from location import REDLOC3
 from datetime import datetime
 from operator import itemgetter
@@ -98,6 +99,27 @@ def first_letter_upper(string):
 	first_letter_in_upper_case = string.split()[0][0:1].upper()
 	return first_letter_in_upper_case+string[1:]
 
+
+def exact_date(time_now, in_bulk=False):
+	"""
+	Returns exact date when given epoch time
+
+	Run from pytz import common_timezones in python shell, then print common_timezones
+	"""
+	if in_bulk:
+		if time_now:
+			# time_now is a list of epoch times
+			list_of_times = []
+			for time_ in time_now:
+				list_of_times.append(datetime.fromtimestamp(time_*ONE_DAY, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p"))
+			return list_of_times
+		else:
+			return []
+	else:
+		if time_now:
+			return datetime.fromtimestamp(time_now, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p")# use %H:%M:%S for 24 hour style clock time
+		else:
+			return ''
 #####################Process Nick#######################
 
 def decode_nick(nickname):
@@ -786,11 +808,29 @@ def get_and_reset_weekly_ecomm_clicks():
 	return gross_string_clicks
 
 
+def retrieve_mobile_unverified_in_bulk(user_ids):
+	"""
+	Returns list of users (from given user_ids) which are NOT verified
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.exists("um:"+str(user_id))
+	result_list, counter = pipeline1.execute(), 0
+	unverified_ids = []
+	for user_id in user_ids:
+		if not result_list[counter]:
+			unverified_ids.append(user_id)
+		counter += 1
+	return unverified_ids
+
+
 # return True if user has any number on file
 def is_mobile_verified(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return True if my_server.exists("um:"+str(user_id)) else False
-
+	"""
+	return True if user has any number on file
+	"""
+	return True if redis.Redis(connection_pool=POOL).exists("um:"+str(user_id)) else False
 
 def someone_elses_number(national_number, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1739,10 +1779,10 @@ def del_from_rankings(group_id):
 	pipeline1.execute()
 
 def get_ranked_public_groups():
-    """
-    Returns top 20 public groups
-    """
-    return redis.Redis(connection_pool=POOL).zrevrange("public_group_rank",0,19,withscores=True) # returning highest 20 groups
+	"""
+	Returns top 20 public groups
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange("public_group_rank",0,19,withscores=True) # returning highest 20 groups
 
 ###################### First Time User Tutorials #########################
 
@@ -1753,6 +1793,41 @@ def get_ranked_public_groups():
 '4' 'visiting shared photos listing'
 
 def tutorial_unseen(user_id, which_tut, renew_lease=False):
+	"""
+	Gives a tutorial if the user is visiting a section for the first time
+	
+	'0' 'personal group anonymous invite'
+	'1' 'personal group sms settings'
+	'2' 'granting permission to save posts'
+	'3' 'sharing internal photo in personal groups'
+	'4' 'visiting shared photos listing'
+	'5' 'first time home publicreplier'
+	'6' 'first time Damadam defender'
+	'7' 'first time object reporter'
+	'8' 'first time object culler'
+	'9' 'first time banner'
+	'10' 'first time user-reported content judger'
+	'11' 'first time home sharer'
+	'12' 'first time voting judger'
+	'13' 'first time fanner'
+	'14' 'first time refresher of private mehfil, public mehfil, matka, jawabs'
+	'15' 'first time public mehfil online list viewer'
+	'16' 'first time private mehfil online list viewer'
+	'17' 'first time public mehfil creator'
+	'18' 'first time visitor of officer activity in public mehfils'
+	'19' 'first time instruction viewer in invited users list'
+	'20' 'first time unseen matka'
+	'21' 'first time public mehfil feedback viewer'
+	'22' 'first time public mehfil feedback giver'
+	'23' 'first time instruction viewer in private mehfil invited users list'
+	'24' 'first time visitor of member activity in private mehfils'
+	'25' 'first time viewer of sharing tutorial'
+	'26' 'first time foto sharer'
+	'27' 'first time password change'
+	'28' 'first time officership applier'
+	'29' 'first time officer applications list viewer'
+	'30' 'first time officer dashboard viewing'
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
 	if my_server.exists(key_name):
@@ -2029,6 +2104,4 @@ def log_post_banned_username(username):
 	myserver = redis.Redis(connection_pool=POOL)
 	myserver.lpush("post_abuse_nicks",username)
 	myserver.ltrim("post_abuse_nicks",0,999)
-
-
 

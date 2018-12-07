@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% block content %}
+<head><title>Management history| Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if is_public %}
+
+	{% if owner %}
+		{% include "mehfil/officer_navbar.html" with guid=unique static_url=STATIC_URL section='history' %}
+	{% endif %}
+
+	<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Mehfil management history:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:525px;width:93%;padding:10px;background-color:white">
+
+	{% if show_tut %}
+		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
+		<span class="cxl lsp">Yahan is mehfil ke officers and mehfil owner ko unkay actions ki history display hoti hai. For example:</span>
+		<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
+		<li style="text-align:left" class="mbs sp">1. Kick out or unban</li>
+		<li style="text-align:left" class="mbs sp">2. Invite or cancel invite</li>
+		<li style="text-align:left" class="mbs sp">3. Hide or unhide</li>
+		<li style="text-align:left" class="mbs sp">4. Topic change</li>
+		<li style="text-align:left" class="mbs sp">5. Appoint or dismiss officer</li>
+		<li style="text-align:left" class="mbs sp">6. Ownership transfer</li>
+		</ul>
+		</div>
+	{% endif %}
+
+	<div class="mbl mts" style="text-align:center"><a href="{% url 'public_group' unique %}" class="cb sp cm" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<hr size=1 COLOR="#E9EBEE">
+	{% if object_list %}
+		{% for historical_piece in object_list %}
+			<div class="mbs">
+			<div class="cl lsp sp"><b class="cxs sp">{{ forloop.counter }}.</b>&nbsp;{% emoticons %}{{ historical_piece.main }}{% endemoticons %}</div>
+			{% if historical_piece.type == 'kick' or historical_piece.type == 'unkick' %}
+				{% if historical_piece.reason %}
+					<div class="mt sp lsp"><b>Reason:</b>&nbsp;{% emoticons %}{{ historical_piece.reason }}{% endemoticons %}</div>{% else %}<div class="mt sp lsp"><span class="cgy">Reason nahi dia gya</span></div>
+				{% endif %}
+			{% endif %}
+			</div>
+			<hr size=1 COLOR="#E9EBEE">
+		{% endfor %}
+		<div class="mtl mbs" style="text-align:center"><a href="{% url 'public_group' unique %}" class="cb sp cm" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	{% else %}
+	<div class="sp lsp cl mbl mtl" style="text-align:center"><span class="cgy">- history abhi khali hai -</span></div>
+	{% endif %}
+
+	</div><br>
+{% else %}
+	
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil history:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:525px;width:93%;padding:10px;background-color:white">
+
+	{% if show_tut %}
+		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
+		<span class="cxl lsp">Yahan is mehfil mein liye gaye actions ki history display hoti hai. For example:</span>
+		<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
+		<li style="text-align:left" class="mbs sp">1. Topic change</li>
+		<li style="text-align:left" class="mbs sp">2. Invite or cancel invite</li>
+		<li style="text-align:left" class="mbs sp">3. Kick out or unban by owner</li>
+		<li style="text-align:left" class="mbs sp">4. Join or exit</li>
+		<li style="text-align:left" class="mbs sp">5. Hide or unhide</li>
+		<li style="text-align:left" class="mbs sp">6. Ownership transfer</li>
+		</ul>
+		</div>
+	{% endif %}
+
+	<form method="POST" class="mts mbl" action="{% url 'priv_group' %}" style="text-align:center">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+	<hr size=1 COLOR="#E9EBEE">
+	{% if object_list %}
+		{% for historical_piece in object_list %}
+			<div class="mbs">
+			<div class="cl lsp sp"><b class="cxs sp">{{ forloop.counter }}.</b>&nbsp;{% emoticons %}{{ historical_piece.main }}{% endemoticons %}</div>
+			{% if historical_piece.type == 'kick' or historical_piece.type == 'unkick' %}
+				{% if historical_piece.reason %}
+					<div class="mt sp lsp"><b>Reason:</b>&nbsp;{% emoticons %}{{ historical_piece.reason }}{% endemoticons %}</div>{% else %}<div class="mt sp lsp"><span class="cgy">Reason nahi dia gya</span></div>
+				{% endif %}
+			{% endif %}
+			</div>
+			<hr size=1 COLOR="#E9EBEE">
+		{% endfor %}
+		<form method="POST" class="mtl mbs" action="{% url 'priv_group' %}" style="text-align:center">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% else %}
+	<div class="sp lsp cl mbl mtl" style="text-align:center"><span class="cgy">- history abhi khali hai -</span></div>
+	{% endif %}
+
+	</div><br>
+
+{% endif %}
+{% endblock %}

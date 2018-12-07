@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% load time_string %}
+{% block content %}
+<head><title>Group information | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil information:</span></h1>
+
+
+{% if is_public %}
+<div class="mbl" style="text-align:center"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+
+<form method="POST" action="{% url 'display_detailed_info' %}" class="fx fxaicn" style="justify-content:space-around;flex-wrap:wrap;max-width:350px;padding:auto 0;margin-right:auto;margin-left:auto">
+	{% csrf_token %}
+
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="2">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/ribbon-cp.svg" width="25" height="25" alt="created" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center">
+			<div class="cxs sp">MEHFIL<br>CREATED</div>
+			<div class="mt cs sp">{{ data.ct|human_time:'abbreviated' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="1">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/owner-cp.svg" width="25" height="25" alt="owner" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">MEHFIL<br>OWNER</div>
+			<div class="mt cs">{{ data.oun|truncatechars:'10' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="3">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/jigsaw-cp.svg" height="25" width="25" alt="joined" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center">
+			<div class="cxs sp">YOU<br>JOINED</div>
+			<div class="mt cs sp">{{ data.uj|human_time:'abbreviated' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="4">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/user-cp.svg" width="25" height="25" alt="members" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">TOTAL<br>MEMBERS</div>
+			<div class="mt cs sp">{{ data.m }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="6">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/plusminus.svg" height="25" width="25" alt="change" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">CHANGE<br>IN&nbsp;MEMBERS</div>
+			{% if data.7nm > 0 %}
+				<div class="mt cs sp">+{{ data.7nm }}</div>
+			{% elif data.7nm < 0 %}
+				<div class="mt cs cr sp">-{{ data.7nm }}</div>
+			{% else %}
+				<div class="mt cs sp">0</div>
+			{% endif%}
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="5">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/1day-cp.svg" height="25" width="25" alt="visitors" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">LAST&nbsp;1-DAY<br>VISITORS</div>
+			<div class="mt cs sp">{{ data.24v }}</div>
+		</div>
+	</button>
+	<input type="hidden" name="nj" value="{{ data.7nm }}">
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="7">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/shield_y.svg" width="25" height="25" alt="officers" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">TOTAL<br>OFFICERS</div>
+			<div class="mt cs sp">{{ data.o }}</div>
+		</div>
+	</button>
+	<input type="hidden" name="ao" value="{{ data.o }}">
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="8">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/time.svg" width="25" height="25" alt="signup" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">AVERAGE<br>SIGNUP&nbsp;AGE</div>
+			<div class="mt cs sp">{{ data.ma|time_string:'abbreviated' }}</div>
+		</div>
+	</button>
+	<input type="hidden" name="aa" value="{{ data.ma|human_time }}">
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="9">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/size.svg" width="25" height="25" alt="size" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">MEHFIL<br>SIZE</div>
+			<div class="mt cs sp">{{ data.sz }}</div>
+		</div>
+	</button>
+	<input type="hidden" name="sz" value="{{ data.sz }}">
+	{% if data.bought %}
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="10">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/ownership-cp.svg" width="25" height="25" alt="bought" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">MEHFIL<br>BOUGHT</div>
+			<div class="mt cs sp">{{ data.tos|human_time:'abbreviated' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="11">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/payment.svg" width="25" height="25" alt="price" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+			<div class="cxs sp">POINTS<br>PAID</div>
+			<div class="mt cs sp">{{ data.pp }}</div>
+		</div>
+	</button>
+	{% endif %}
+	<input type="hidden" name="guid" value="{{ guid }}">
+</form>
+
+
+<div style="text-align:center"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+{% else %}
+	
+<form method="POST" action="{% url 'priv_group' %}" class="mbl" style="text-align:center">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ guid }}" class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+
+<form method="POST" action="{% url 'display_detailed_info' %}" class="fx fxaicn" style="justify-content:space-around;flex-wrap:wrap;max-width:350px;padding:auto 0;margin-right:auto;margin-left:auto">
+	{% csrf_token %}
+
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="2">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/ribbon-cg.svg" width="25" height="25" alt="created" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center">
+			<div class="cxs sp">MEHFIL<br>CREATED</div>
+			<div class="mt cs sp">{{ data.ct|human_time:'abbreviated' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="1">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/owner-cg.svg" width="25" height="25" alt="owner" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">MEHFIL<br>OWNER</div>
+			<div class="mt cs">{{ data.oun|truncatechars:'10' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="3">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/jigsaw-cg.svg" height="25" width="25" alt="joined" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center">
+			<div class="cxs sp">YOU<br>JOINED</div>
+			<div class="mt cs sp">{{ data.uj|human_time:'abbreviated' }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="4">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/user-cg.svg" width="25" height="25" alt="members" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">TOTAL<br>MEMBERS</div>
+			<div class="mt cs sp">{{ data.m }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="5">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/1day-cg.svg" height="25" width="25" alt="visitors" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">LAST&nbsp;1-DAY<br>VISITORS</div>
+			<div class="mt cs sp">{{ data.24v }}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="6">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/title-cg.svg" height="25" width="25" alt="visitors" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">LAST&nbsp;TOPIC<br>CHANGE</div>
+			<div class="mt cs sp">{% if data.tpt %}{{ data.tpt|human_time:"abbreviated" }}{% else %}-{% endif %}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="7">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/talkative.svg" width="25" height="25" alt="officers" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">SAB&nbsp;SE<br>BATOONI</div>
+			<div class="mt cs">{% if data.tun %}{{ data.tun|truncatechars:'10' }}{% else %}-{% endif %}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="8">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/silent.svg" width="25" height="25" alt="signup" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">KHAMOSH<br>TAMASHAEE</div>
+			<div class="mt cs">{% if data.sun %}{{ data.sun|truncatechars:'10' }}{% else %}-{% endif %}</div>
+		</div>
+	</button>
+	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="9">
+		<div style="text-align:center"><img src="{{ STATIC_URL }}img/camera.svg" width="25" height="25" alt="size" class="cxs" style="overflow:hidden;color:white"></div>
+		<div class="mt" style="color:#19a83b;text-align:center;overflow:hidden">
+			<div class="cxs sp">FOTOS&nbsp;KA<br>ASHIQ</div>
+			<div class="mt cs">{% if data.psun %}{{ data.psun|truncatechars:'10' }}{% else %}-{% endif %}</div>
+		</div>
+	</button>
+	<input type="hidden" name="guid" value="{{ guid }}">
+</form>
+
+<form method="POST" action="{% url 'priv_group' %}" style="text-align:center">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ guid }}" class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+{% endif %}
+
+<br><br>
+{% endblock %}

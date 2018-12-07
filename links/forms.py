@@ -1193,9 +1193,9 @@ class ReportcommentForm(forms.Form):
 	class Meta:
 		pass
 
-class MehfilCommentForm(forms.Form):
-	class Meta:
-		pass
+# class MehfilCommentForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class WelcomeForm(forms.Form):
 	class Meta:

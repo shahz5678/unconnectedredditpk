@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Read group rules | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<script type="text/javascript">
+
+window.onload = function () {
+    display = document.getElementById('secs');
+    var duration = Number(display.innerHTML);
+    (function foo(){
+      times = duration;
+      (function run(){
+         display.textContent = times;
+        if( --times > -1)
+          setTimeout(run, 1000);
+      })();
+    })();
+};
+</script>
+
+{% if only_pinkstars_allowed %}
+<h1 class="cxl clb" style="text-align:center">Unable to join mehfil!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl lsp mbs">Ye mehfil sirf pink stars <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink"> ke liye hai!</div>
+<div class="mbs"><a href="{% url 'public_group' %}" class="cl sp cgy" style="border-bottom:1px dotted darkgray">wapis</a></div>
+</div><br><br>
+{% elif verify_first %}
+<h1 class="cxl clb" style="text-align:center">Unable to join mehfil!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl cr lsp mbs">Pehlay apna mobile number verify karwain</div>
+<div class="mbs"><a href="{% url 'public_group' %}" class="cl sp cgy" style="border-bottom:1px dotted darkgray">wapis</a></div>
+</div><br><br>
+{% else %}
+
+<h1 class="cxl clb" style="text-align:center">Read mehfil rules:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden">
+
+    <div class="mbl" style="text-align:center">
+    {% if show_help_msg %}
+        <div style="padding:8px;background-color:ivory" class="bizcard mbs cl cr sp lsp">
+        {{ ttr }} seconds laga ke rules parh lein, jaldi na karein
+        </div>
+    {% endif %}
+    <div class="cxl lsp">Join karney se pehlay rules parh lein:</div>
+    <div class="cs cgy sp lsp">wait and read for <span id="secs">{{ ttr }}</span> seconds</div>
+    </div>
+
+    <div style="padding:8px;background-color:ivory;margin:0 auto;width:92%" class="bizcard mts mbs cl sp lsp">
+        {% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}
+    </div>
+
+    <form method="POST" class="mtl mbs" style="text-align:center" action="{% url 'accept_open_group_rules' %}">
+    {% csrf_token %}
+    <div class="cl lsp sp mbs" style="font-weight:bold">Kya apko ye rules qabool hain?</div>
+    <input name="st" type="hidden" value="{{ st }}">
+    <input name="gid" type="hidden" value="{{ gid }}">
+    <input name="uid" type="hidden" value="{{ uid }}">
+    <input name="ttr" type="hidden" value="{{ ttr }}">
+    <button name="acc" class="btn bcp mt bm sp pg_ok_res mrs" style="height:26px" value="1">Haan</button>
+    <button name="acc" class="btn bcgy mt bm sp pg_ok_res mls" style="height:26px" value="0">Nahi</button>
+    </form>
+</div>
+<br><br>
+{% endif %}
+{% endblock %}

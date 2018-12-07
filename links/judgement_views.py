@@ -683,3 +683,27 @@ def curate_photo(request,*args,**kwargs):
 					return render(request,"photo_report.html",context)
 	else:
 		return render(request,'404.html',{})
+
+#################################################################################################################
+#################################################################################################################
+
+def ordered_list_of_tup(dictionary):
+	"""
+	Gets report_options (either TEXT_REPORT_PROMPT, PHOTO_REPORT_PROMPT or MEHFIL_REPORT_PROMPT) and returns a list of tuples ordered by 'key'
+
+	PHOTO_REPORT_PROMPT values are:
+		'0':'Report rehne dein'
+		'1':'Foto mein nudity ya vulgarity hai'
+		'2':'Foto mein mazhabi fasad hai'
+		'3':'Foto mein khoon kharaba ya aziyat hai'
+		'4':'Foto takhreeb karoon ka sath de rahi hai'
+		'5':'Foto Damadam ki screenshot hai'
+		'6':'Foto hadd se ziyada dhundhli hain'
+		'7':'Title ka foto se taluq nahi hai'
+		'8':'Title mein vote or comments ki bheek hai'
+	"""
+	return sorted([(k,v) for (k,v) in dictionary.iteritems()], key=lambda tup: int(tup[0]))		
+
+#################################################################################################################
+#################################################################################################################
+

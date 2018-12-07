@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load s3 %}
+{% load emoticons_tags %}
+{% block content %}
+
+{% include "mehfil/decide_officer_application_navbar.html" with static_url=STATIC_URL section='single_app' applier_id=application.user_id guid=guid idx=application.idx %}
+
+<head><title>Officer application | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+	<h1 style="text-align:center" class="clb cxl lsp">{{ application.uname|truncatechars:'12' }}'s officer application:</h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white;text-align:center">
+		
+		<form class="mbs mt" method="POST" style="border-bottom:1px dashed lightgray;padding:10px 0" action="{% url 'public_mehfil_oversight_dashboard' %}">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><button class="cm sp cb pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to settings</button></form>
+
+		<div class="mt cxl lsp" style="padding:10px">
+			<img src="{{ application.own_avurl|s3:'thumb' }}" style="border-radius:50%">{% if application.uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="14" height="14" alt="*" style="color:deeppink">{% endif %}&nbsp;<a href="{% url 'profile' application.uname %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ application.uname }}</b></a> ne officer banney ke liye neechay di geyi application submit ki <b>{{ application.t|human_time }}</b>:
+		</div>
+
+		<div class="mt mbl bizcard mrs mls" style="background-color:ivory;padding:10px;text-align:left">
+			<div style="text-align:left">
+				<div class="mt cl sp lsp" style="font-weight:bold"><span class="cs">1.</span> {{ q1 }}</div>
+				<div class="mt mbs cxl lsp bw">{% emoticons %}{{ application.ans1 }}{% endemoticons %}</div>
+				<hr size=1 COLOR="#E9EBEE">
+				<div class="mts cl sp lsp" style="font-weight:bold"><span class="cs">2.</span> {{ q2 }}</div>
+				<div class="mt mbs cxl lsp bw">{% emoticons %}{{ application.ans2 }}{% endemoticons %}</div>
+			</div>
+		</div>
+	
+		<form class="mtl mbs" style="padding-bottom:10px;border-bottom:1px dashed lightgray" method="POST" action="{% url 'process_officer_application_result' %}">
+			{% csrf_token %}
+			<input type="hidden" name="guid" value="{{ guid }}">
+			<input type="hidden" name="idx" value="{{ application.idx }}">
+			<input type="hidden" name="cid" value="{{ application.user_id }}">
+			<button name="dec" type="submit" class="mrs btn bcr bl sp pg_ok_res mbs" style="height:28px" value="0">Reject user</button><button type="submit" name="dec" class="mts mls btn bcb bl sp pg_ok_res" value="1" style="height:28px">Make officer</button>
+		</form>
+
+		<div class="cs sp lsp" style="padding:0 7px 7px 10px"><span class="cgy"><b>{{ application.uname }}</b> ki officer applications ki history dekhney ke liye <form method="POST" action="{% url 'view_officer_app_history' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="uid" value="{{ application.user_id }}"><input type="hidden" name="idx" value="{{ application.idx }}"><button name="guid" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;font-size:100%" class="cb sp pg_ok_res" value="{{ guid }}">ye press karein</button></form></span></div>
+
+	</div>
+
+<br><br>
+{% endblock %}

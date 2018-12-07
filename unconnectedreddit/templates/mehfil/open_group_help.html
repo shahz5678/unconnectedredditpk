@@ -3,25 +3,51 @@
 <head><title>Public mehfil price | Damadam.pk</title></head>	
 <style>body{background: #E9EBEE}</style>
 
-{% if user.userprofile.score >= public_price %}
-	<h1 class="clb cxl" style="text-align:center">New public mehfil:</h1>
+{% if invalid_user %}
+	
+	<h1 class="clb cxl lsp" style="text-align:center">Cannot proceed!</h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
-	<div class="cxl lsp">Public mehfil banane ki price <b>{{ public_price }} points</b> hai</div>
-	<hr size=1 COLOR="#E9EBEE">
-	<div class="cl sp mbs">Ap ye price pay karna chahtey hain?</div>
-	<a href="{% url 'open_group_preview' %}#section0"><button class="btn bcp bm cm pg_ok_res sp mrs" style="height:26px">Haan</button></a>
-	<a href="{% url 'group_type' %}#section0"><button class="btn bcgy bm cm mtl mbl pg_ok_res sp mls" style="height:26px">Nahi</button></a>
+		<div class="cxl lsp">Sorry! System apko identify nahi kar saka</div>
+		<hr size=1 COLOR="#E9EBEE">
+		<div class="cl sp lsp mbs">Pehlay apna account register karwain</div>
+		<div class="mbs"><a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a></div>
 	</div>
+
+{% elif user_age_inadequate %}
+	
+	{% load future_time %}
+	<h1 class="clb cxl lsp" style="text-align:center">Cannot create mehfil:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+		
+		<div class="cxl lsp">Sorry! Apko join kiye huay ziyada time nahi guzra</div>
+		<hr size=1 COLOR="#E9EBEE">
+		<div class="cl sp lsp mbs">Ap public mehfil bana sakein ge <b>{{ age_inadequate_ttl|future_time }}</b></div>
+		<div class="mbs"><a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a></div>
+	</div>
+
+{% elif user.userprofile.score >= public_price %}
+	
+	<h1 class="clb cxl lsp" style="text-align:center">New public mehfil:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+		<div class="cxl lsp">Public mehfil banane ki price <b>{{ public_price }} points</b> hai</div>
+		<hr size=1 COLOR="#E9EBEE">
+		<div class="cl sp mbs">Ap ye price pay karna chahtey hain?</div>
+		<a href="{% url 'open_group_preview' %}#section0"><button class="btn bcp bm cm pg_ok_res sp mrs" style="height:26px">Haan</button></a>
+		<a href="{% url 'group_type' %}#section0"><button class="btn bcgy bm cm mtl mbl pg_ok_res sp mls" style="height:26px">Nahi</button></a>
+	</div>
+
 {% else %}
-	<h1 class="clb cxl" style="text-align:center">Not enough points!</h1>
+	
+	<h1 class="clb cxl lsp" style="text-align:center">Not enough points!</h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
-	<div class="cxl lsp">Public mehfil banane ki price <b>{{ public_price }} points</b> hai</div>
-	<hr size=1 COLOR="#E9EBEE">
-	<div class="cl sp lsp mbs">Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain</div>
-	<a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a>
-	<hr size=1 COLOR="#E9EBEE">
-	<span class="cs sp cgy">Posts aur fotos pe jhappi miley se points increase hotay hain</span>
+		<div class="cxl lsp">Public mehfil banane ki price <b>{{ public_price }} points</b> hai</div>
+		<hr size=1 COLOR="#E9EBEE">
+		<div class="cl sp lsp mbs">Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain</div>
+		<a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a>
+		<hr size=1 COLOR="#E9EBEE">
+		<span class="cs sp cgy">Posts aur fotos pe jhappi miley se points increase hotay hain</span>
 	</div>
+
 {% endif %}
 
 <br><br>

@@ -127,6 +127,18 @@ def clean_image_file(image,quality=None,already_reoriented=None, already_resized
     else:
         return None
 
+def process_group_image(image, quality=None, already_resized=None, already_reoriented=None):
+    """
+    Used by post_image_in_personal_group() in group_views.py and by PublicGroupView(), PrivateGroupView() in mehfil_views.py
+    """
+    image = Image.open(image)
+    if float(image.height)/image.width > 7.0:
+        return None, 'too_high', 'too_high'
+    else:
+        image = image if already_reoriented else reorient_image(image)
+        return prep_image(image,quality,max_width=PERSONAL_GROUP_IMG_WIDTH,already_resized=already_resized)
+
+
 # used by post_image_in_personal_group in group_views
 def process_personal_group_image(image, quality=None, already_resized=None, already_reoriented=None):
     image = Image.open(image)
@@ -153,7 +165,6 @@ def clean_image_file_with_hash(image,quality=None,categ=None, caption=None, alre
             return image, avghash, None
     else:
         return (0,-1)
-
 ################### DRAW TEXT ON IMAGE ###################
 
 # def text_with_stroke(draw,width,height,line,font,fillcolor,shadowcolor):

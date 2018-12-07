@@ -12,7 +12,7 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
 's.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','romentic','lesb',\
 'sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck',\
-'sperm','xnx','penes','s+e+x+y','sucker','girlfriend']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
+'sperm','xnx','penes','s+e+x+y','sucker','girlfriend','boyfriend']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
 
 
 CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga',\
@@ -63,7 +63,7 @@ MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t',
 'm.h-b','mh.b','m.h@b']
 
 SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook','facebuk','facebok','telenor','mobilink','zong','ufone','warid',\
-'telen0r','m0bilink','z0ng']
+'telen0r','m0bilink','z0ng','facbook']
 
 BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pussy','boob','xx','breast','penis','hitler','gasht','gandu','luun',\
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']

@@ -13,11 +13,11 @@ os.environ['S3_USE_SIGV4'] = 'True'
 
 
 
-def upload_image_to_s3(image):
+def upload_image_to_s3(image, prefix='personal_groups/'):
 	"""
 	Used by group_views for personal group photos
 	"""
-	image_name_with_path = os.path.join('personal_groups/', "%s.jpg" % uuid.uuid4())
+	image_name_with_path = os.path.join(prefix, "%s.jpg" % uuid.uuid4())
 	s3_object = S3Storage()
 	return s3_object._save(name=image_name_with_path, content=image)
 

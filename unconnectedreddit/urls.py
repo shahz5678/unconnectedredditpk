@@ -9,7 +9,7 @@ from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
-from urls_retention import urlpatterns as urlpatterns_ret
+#from urls_retention import urlpatterns as urlpatterns_retention
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
@@ -17,12 +17,13 @@ from urls_groups import urlpatterns as urlpatterns_groups
 from urls_sharing import urlpatterns as urlpatterns_sharing
 from urls_mehfil import urlpatterns as urlpatterns_mehfil
 from urls_verification import urlpatterns as urlpatterns_verification
+
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, reportreply_pk, link_create_pk, welcome_pk, fan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
-salat_notification, cross_salat_notif, report_comment, mehfilcomment_pk, see_special_photo_pk, special_photo, photo_location, \
+salat_notification, cross_salat_notif, report_comment, see_special_photo_pk, special_photo, photo_location, \
 unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
 faces_pages, cricket_comment_page, \
 non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
@@ -32,7 +33,7 @@ manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_use
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
 photo_comment, public_reply_view, post_public_reply, public_photo_upload_denied
-from links.judgement import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
+from links.judgement_views import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.number_verification import verify_user_number
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -44,7 +45,7 @@ SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSetti
 UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, \
 HelpView, WhoseOnlineView, RegisterHelpView, VerifyHelpView, ReportreplyView, UserActivityView,ReportView, HistoryHelpView, \
 AdDescriptionView, TopPhotoView,PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, \
-SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, MehfilCommentView, SpecialPhotoView, \
+SalatInviteView, InternalSalatInviteView, ExternalSalatInviteView,SalatRankingView, SpecialPhotoView, \
 SpecialPhotoTutorialView, UploadVideoView, AdGenderChoiceView, VideoView, VideoCommentView, VideoScoreView, FacesHelpView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressYesNoView, AdAddressView, AdCallPrefView, AdMobileNumView
 from links.announcement_views import coming_soon
@@ -111,9 +112,9 @@ urlpatterns = patterns('',
 	url(r'^ad_image/$', AdImageView.as_view(), name='ad_image'),
 	url(r'^ad_title_yesno/$', AdTitleYesNoView.as_view(), name='ad_title_yesno'),
 	# url(r'^closed_group/help/outside/$', auth(OutsideMessageView.as_view()), name='outside_message_help'),
-	url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
-	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	# url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
+	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
+	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
 	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
 	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
@@ -286,21 +287,23 @@ urlpatterns = patterns('',
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 	url(r'^djga/', include('google_analytics.urls')),
-	#################################################################################################
 	url(r'^coming-soon/stay-tuned/$', auth(coming_soon), name='coming_soon'),
+	#################################################################################################
 )
 urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
-urlpatterns += urlpatterns_ret
+#urlpatterns += urlpatterns_retention
 urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
 urlpatterns += urlpatterns_sharing
 urlpatterns += urlpatterns_mehfil
 urlpatterns += urlpatterns_verification
+
+
 
 
 handler404 = 'links.error_views.not_found'

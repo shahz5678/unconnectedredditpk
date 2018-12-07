@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% block content %}
+
+{% if deleted %}
+	<head><title>Completed deletion action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil deleted!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Mehfil delete kar di geyi</div>
+	{% if is_public %}
+	<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% endif %}
+	</div>
+	<br>
+{% elif cannot_target_self %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap apney ap ko kick nahi kar saktey</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif img_too_big %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye foto hadd se ziyada lambi hai</div>
+	{% if is_pub_grp %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% elif is_prv_grp %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% elif is_pub_photo %}
+	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bco bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% endif %}
+	</div>
+	<br>
+{% elif member_overflow %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Private mehfil mein {{ max_members }} se ziyada members nahi ho saktey</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Mehfil owner inactive members ko kick kar ke new members ki jagah bana sakta hai</div>
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	</div>
+	<br>
+{% elif action_frozen %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is mehfil ko report kar dia gaya hai</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Investigation complete honay tak ye action complete nahi ho sakta</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif invite_overflow %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Apkey invites khatam ho chukay</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif member_limit_reached %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if owner_spot_saved %}
+		<div class="cxl lsp">Sorry! Is mehfil mein new members ki jagah nahi</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mtl">Sirf 1 jagah bachi hai, lekin woh mehfil owner <a href="{% url 'profile' owner_uname %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ke apney liye hai</div>
+	{% else %}
+		<div class="cxl lsp">Sorry! Is mehfil mein new members ki jagah nahi</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mtl">Agar mehfil owner <a href="{% url 'profile' owner_uname %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> kisi inactive member ko mehfil se kick kar de to apke liye jagah ban jaye gi</div>
+	{% endif %}
+	<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif cannot_join %}
+	<head><title>Unable to join | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if time_remaining %}<div class="cxl lsp">Sorry! Ap ye mehfil abhi nahi join kar saktey</div> 
+	<div class="sp lsp mts">Wapis aien <b>{{ time_remaining|future_time }}</b></div>
+	{% else %}<div class="cxl lsp">Sorry! Ap ye mehfil join nahi kar saktey</div>{% endif %}
+	{% if ban_reason %}<div class="sp lsp mts mbs bizcard cr" style="padding:8px;background-color:ivory"><b>REASON:</b>&nbsp;"{{ ban_reason }}"</div>{% endif %}
+	{% if is_private %}<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>{% else %}<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>{% endif %}
+	</div>
+	<br>
+{% elif too_young_to_give_feedback %}
+	<head><title>Unable to exit | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Apko is mehfil ka member banney ziyada time nahi guzra</div> 
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Ap mehfil owner ko message send kar sakein ge <b>{{ time_remaining|future_time }}</b></div>
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif read_rules %}
+	{% load emoticons_tags %}
+	<head><title>Read mehfil rules | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl cp" style="text-align:center;overflow:hidden">{% emoticons %}{{ topic }}{% endemoticons %}</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Is mehfil ke rules ye hain:</div> 
+	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard cl mts lsp">{% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}</div>
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbs mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif recently_quit %}
+	<head><title>Unable to join | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi yeh mehfil exit ki</div> 
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Ap isko forun dubara join nahi kar saktey</div>
+	{% if is_public %}<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>{% else %}<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>{% endif %}
+	</div>
+	<br>
+{% elif cannot_exit %}
+	<head><title>Unable to exit | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot exit mehfil!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi yeh mehfil join ki hai</div> 
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Ap isko exit kar sakein ge <b>{{ time_remaining|future_time }}</b></div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif kick_rate_limited %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap ye kar sakein ge {{ ttl|future_time }}</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif feedback_thanks %}
+	<head><title>Feedback submitted | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Submit ho gaya, ab ap group mein wapis ja saktey hain</div>
+		<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif feedback_rate_limited %}
+	<head><title>Feedback not submitted | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl cr lsp">Sorry! Ap ye submit karwa sakein ge {{ ttl|future_time }}</div>
+		<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif cannot_target_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap mehfil ke owner ko punish nahi kar saktey</div>
+		<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif cannot_hide_or_unhide %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">{% if reason == 'hidden_by_op' %}Sorry! Ye poster ne khud hide kia hai, ap unhide nahi kar saktey{% elif reason == 'hidden_by_owner' %}Sorry! Ye post mehfil owner ne hide ki, ap unhide nahi kar saktey{% else %}Sorry! Ye post apki nahi, ap aisa nahi kar saktey{% endif %}</div>
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	</div>
+	<br>
+{% elif cannot_afford %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye request reject ho geyi kiyunke is user ke pas ab itney points mojood nahi jitney is ne offer kiye thay</div>
+		<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif offer_does_not_exist %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye offer expire ho geyi hai, bhejnay waley ne cancel kar di hai, ya phir exist nahi karti</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif ratify_ownership_transfer %}
+	<head><title>Ratify this action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Are you sure?</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Kya ap apni jagah <b>{{ ouname }}</b> ko is mehfil ka owner banana chahtey hain?</div>
+	<form method="POST" class="mtl mbs" action="{% url 'processing_group_ownership_transfer' slug %}">
+		{% csrf_token %}
+		<input type="hidden" name="guid" value="{{ unique }}">
+		<input type="hidden" name="oid" value="{{ offerer_id }}">
+		{% if is_public %}<button name="ratify" type="submit" class="sp btn bcp pg_ok_res bm mrs" style="height:26px" value="1">Yes</button>{% else %}<button name="ratify" type="submit" class="sp btn bcg pg_ok_res bm mrs" style="height:26px" value="1">Yes</button>{% endif %}
+		<button name="ratify" type="submit" class="sp btn bcgy pg_ok_res bm mls" value="0" style="height:26px">No</button>
+	</form>
+	</div>
+	<br>
+{% elif ownership_request_successful %}
+	<head><title>Ownership request submitted | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="lsp">
+		<span class="cxl">Apki request submit ho geyi</span>
+		<hr size=1 COLOR="#e5e7e9">
+		<span class="sp mts cgy">Ab ap group mein wapis ja saktey hain</span>
+	</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>	
+{% elif sent_ownership_request_recently %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if ttl_type == 'short' %}<div class="cxl lsp">Sorry! Ap ne kuch time pehlay bhi ownership transfer ki request bheji thi</div>{% else %}<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi mehfil ka lain dain kiya hai</div>{% endif %}
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Ap dubara aisa kar sakein ge <b>{{ ttl|future_time }}</b></div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif only_pinkstar_can_be_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is mehfil ki ownership sirf pink stars ke liye hai</div>
+		<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif group_too_young_to_be_transferred %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is mehfil ko create huay itna time nahi guzra ke ownership transfer ki ja sakey</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif member_too_young_to_become_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is user ko mehfil join kiye itna time nahi guzra ke ownership transfer ki ja sakey</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif offerer_is_hellbanned %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye ownership request karney wala user banned hai, aur isko mehfil transfer nahi ho sakti</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif topic_or_rules_rl_cannot_transfer %}
+	<head><title>Unable to join | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if ttl_type == 'topic' %}<div class="cxl lsp">Sorry! Topic change karney ke forun baad new owner nahi banaya ja sakta</div> 
+	<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts">Ap ownership transfer kar sakein ge <b>{{ ttl|future_time }}</b></div>
+	{% else %}<div class="cxl lsp">Sorry! Rules change karney ke forun baad new owner nahi banaya ja sakta</div> 
+	<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts">Ap ownership transfer kar sakein ge <b>{{ ttl|future_time }}</b></div>{% endif %}
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif too_young_to_become_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is user ko Damadam join kiye huay itna time nahi guzra ke public mehfil ki ownership transfer ki ja sakey</div>
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif too_much_price_offered %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye mehfil itni mehngi nahi biq sakti</div>
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif not_enough_price_offered %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Is mehfil ki ownership hasil karney ke liye kam az kam {{ min_price }} points ki offer honi chahiye</div>
+		<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif offerer_not_a_member %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is offer ko bhejnay waley ko mehfil ka member hona zaruri hai</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif only_verified_can_be_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is mehfil ki ownership sirf verified users ko mil sakti hai</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif owner_rl_due_to_prev_transaction %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if ttl_type == 'owner' %}
+		<div class="cxl lsp">Sorry! Ap aisi koi bhi offer accept kar sakein ge {{ ttl|future_time }}</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Ap ne recently hi mehfil ka lain dain kiya hai</div>
+	{% else %}
+		<div class="cxl lsp">Sorry! Ap is user ki offer accept kar sakein ge {{ ttl|future_time }}</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Is user ne recently mehfil ka lain dain kiya hai aur abhi isko dubara ye karney ki ijazat nahi</div>
+	{% endif %}
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% elif officer_app_rate_limited %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if ttl_type == 'generic' %}
+		<div class="cxl lsp">Sorry! Ap officer banney ki application submit kara sakein ge {{ ttl|future_time }}</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Ap ne kuch time pehlay bhi officer application submit karai thi</div>
+	{% else %}
+		<div class="cxl lsp">Sorry! Ap is group mein officer banney ki application submit kara sakein ge {{ ttl|future_time }}</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Apki pichli officer application reject ho geyi thi</div>
+	{% endif %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif too_young_for_officer %}
+	<head><title>Cannot submit officer request | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if youth_type == 'recent_app_joiner' %}
+		<div class="cxl lsp">Sorry! Apko join kiye huay ziyada time nahi guzra</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Officer application submit karney ke liye kuch time aur wait karein</div>
+	{% else %}
+		<div class="cxl lsp">Sorry! Apko ye mehfil join kiye huay ziyada time nahi guzra</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts">Officer application submit karney ke liye wait karein</div>
+	{% endif %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif officer_app_submitted %}
+	<head><title>Officer request submitted | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Answers submitted!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Apke answers mehfil owner ko submit ho gaye</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Owner ke pas decide karney ke liye 3 days hain</div>
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif cannot_target_officers %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap mehfil ke officers ko punish nahi kar saktey</div>
+		<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	</div>
+	<br>
+{% elif wrong_input_by_owner %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Kuch ghalat ho gya</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
+{% else %}
+	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Apke pas ye karney ka permission nahi</div>
+	{% if private == '1' %}
+	<form method="POST" class="mtl mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" style="height:26px" class="btn bm bcg pg_ok_res sp">wapis</button></form>
+	{% else %}
+	<a href="{% url 'public_group' unique %}"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% endif %}
+	</div>
+	<br>
+{% endif %}
+<br>
+{% endblock %}

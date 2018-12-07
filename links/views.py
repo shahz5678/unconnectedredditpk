@@ -41,7 +41,7 @@ OutsiderGroupForm, SearchNicknameForm,\
 TopForm, LoginWalkthroughForm,RegisterLoginForm, ScoreHelpForm, \
 HistoryHelpForm, UserSettingsForm, HelpForm, WhoseOnlineForm,RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, ReportForm, \
 UnseenActivityForm, CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, \
-ExternalSalatInviteForm,ReportcommentForm, MehfilCommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
+ExternalSalatInviteForm,ReportcommentForm, SpecialPhotoTutorialForm, PhotoShareForm, UploadVideoForm, VideoCommentForm, \
 VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, \
 AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, \
 HomeLinkListForm, ReauthForm, ResetPasswordForm, BestPhotosListForm, PhotosListForm, CricketCommentForm, PublicreplyMiniForm, \
@@ -221,23 +221,28 @@ def spammer_punishment_text(user_id):
 		return None
 
 def get_price(points):
-	if points < 120:
-		price = 30
-	elif 120 <= points < 10001:
-		x=((((20**(1/2.0))-2)*points)/9880)+1.96997405723 #scaling x between 2 and sqrt(20)
-		base = x**2 #squaring x
-		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-	elif 10001 <= points < 500001:
-		sqrt1 = 20**(1/2.0)
-		sqrt2 = 70**(1/2.0)
-		numerator = sqrt2 - sqrt1
-		x=((numerator*points)/490000)+4.39265709152 #scaling between sqrt(20) and sqrt(70)
-		base = x**2 #squaring x
-		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-	else:
-		base = 71
-		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-	return int(price)
+    """
+    Determines price of anything, in accordance to how many points a user has
+
+    Every user can be taxed a different amount via this mechanism
+    """
+    if points < 500:
+        price = 400#we over-tax sybils
+    elif 500 <= points < 10001:
+        x=((((20**(1/2.0))-2)*points)/9880)+1.96997405723 #scaling x between 2 and sqrt(20)
+        base = x**2 #squaring x
+        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+    elif 10001 <= points < 500001:
+        sqrt1 = 20**(1/2.0)
+        sqrt2 = 70**(1/2.0)
+        numerator = sqrt2 - sqrt1
+        x=((numerator*points)/490000)+4.39265709152 #scaling between sqrt(20) and sqrt(70)
+        base = x**2 #squaring x
+        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+    else:
+        base = 71
+        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+    return int(price)
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -4724,92 +4729,92 @@ class WelcomeMessageView(CreateView):
 				context["option"] = None
 		return context
 
-def mehfilcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
-	if pk.isdigit() and num.isdigit():
-		request.session['mehfilcomment_pk'] = pk
-		request.session['mehfilphoto_pk'] = num
-		if origin:
-			request.session['mehfilfrom_photos'] = origin
-		else:
-			request.session['mehfilfrom_photos'] = None
-		if slug:
-			request.session['mehfil_slug'] = slug
-		else:
-			request.session['mehfil_slug'] = None
-		return redirect("mehfilcomment_help")
-	else:
-		return redirect("score_help")
+# def mehfilcomment_pk(request, pk=None, num=None, origin=None, slug=None, *args, **kwargs):
+# 	if pk.isdigit() and num.isdigit():
+# 		request.session['mehfilcomment_pk'] = pk
+# 		request.session['mehfilphoto_pk'] = num
+# 		if origin:
+# 			request.session['mehfilfrom_photos'] = origin
+# 		else:
+# 			request.session['mehfilfrom_photos'] = None
+# 		if slug:
+# 			request.session['mehfil_slug'] = slug
+# 		else:
+# 			request.session['mehfil_slug'] = None
+# 		return redirect("mehfilcomment_help")
+# 	else:
+# 		return redirect("score_help")
 
-class MehfilCommentView(FormView):
-	form_class = MehfilCommentForm
-	template_name = "mehfilcomment_help.html"
+# class MehfilCommentView(FormView):
+# 	form_class = MehfilCommentForm
+# 	template_name = "mehfilcomment_help.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(MehfilCommentView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			try:
-				target_id = self.request.session['mehfilcomment_pk']
-				photo_id = self.request.session['mehfilphoto_pk']
-				origin = self.request.session['mehfilfrom_photos']
-				slug = self.request.session['mehfil_slug']
-				context["target"] = User.objects.get(id=target_id)
-				context["photo_id"] = photo_id
-				context["origin"] = origin
-			except:
-				context["target"] = None
-				context["photo_id"] = None
-				context["origin"] = None
-				return context
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(MehfilCommentView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			try:
+# 				target_id = self.request.session['mehfilcomment_pk']
+# 				photo_id = self.request.session['mehfilphoto_pk']
+# 				origin = self.request.session['mehfilfrom_photos']
+# 				slug = self.request.session['mehfil_slug']
+# 				context["target"] = User.objects.get(id=target_id)
+# 				context["photo_id"] = photo_id
+# 				context["origin"] = origin
+# 			except:
+# 				context["target"] = None
+# 				context["photo_id"] = None
+# 				context["origin"] = None
+# 				return context
+# 		return context
 
-	def form_valid(self, form):
-		if self.request.method == 'POST':
-			user = self.request.user
-			report = self.request.POST.get("decision")
-			target_id = self.request.session['mehfilcomment_pk']
-			photo_id = self.request.session['mehfilphoto_pk']
-			origin = self.request.session['mehfilfrom_photos']
-			slug = self.request.session['mehfil_slug']
-			self.request.session['mehfilcomment_pk'] = None
-			self.request.session['mehfilphoto_pk'] = None
-			self.request.session['mehfilfrom_photos'] = None
-			self.request.session.modified = True
-			if report == 'Haan':
-				if user.userprofile.score < 500:
-					if photo_id is not None and origin is not None:
-						context = {'pk': photo_id, 'origin':origin}
-						return render(self.request, 'penalty_mehfil.html', context)
-					else:
-						return redirect("closed_group_help")
-				else:
-					target = User.objects.get(id=target_id)
-					invitee = target.username
-					topic = invitee+" se gupshup"
-					unique = uuid.uuid4()
-					try:
-						group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
-						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-500)
-						reply_list = []
-						seen_list = []
-						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
-						add_group_member(group.id, user.username)
-						add_group_invite(target_id, group.id,reply.id)
-						add_user_group(user.id, group.id)
-						self.request.session["unique_id"] = unique
-						self.request.session.modified = True
-						return redirect("private_group_reply")#, slug=unique)
-					except:
-						if photo_id is not None:
-							redirect("comment_pk", pk=photo_id)
-						else:
-							return redirect("profile",slug=self.request.user.username)
-			else:
-				if slug and origin and photo_id:
-					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
-				elif photo_id and origin:
-					return redirect("comment_pk", pk=photo_id, origin=origin)
-				else:
-					return redirect("home")
+# 	def form_valid(self, form):
+# 		if self.request.method == 'POST':
+# 			user = self.request.user
+# 			report = self.request.POST.get("decision")
+# 			target_id = self.request.session['mehfilcomment_pk']
+# 			photo_id = self.request.session['mehfilphoto_pk']
+# 			origin = self.request.session['mehfilfrom_photos']
+# 			slug = self.request.session['mehfil_slug']
+# 			self.request.session['mehfilcomment_pk'] = None
+# 			self.request.session['mehfilphoto_pk'] = None
+# 			self.request.session['mehfilfrom_photos'] = None
+# 			self.request.session.modified = True
+# 			if report == 'Haan':
+# 				if user.userprofile.score < 500:
+# 					if photo_id is not None and origin is not None:
+# 						context = {'pk': photo_id, 'origin':origin}
+# 						return render(self.request, 'penalty_mehfil.html', context)
+# 					else:
+# 						return redirect("closed_group_help")
+# 				else:
+# 					target = User.objects.get(id=target_id)
+# 					invitee = target.username
+# 					topic = invitee+" se gupshup"
+# 					unique = uuid.uuid4()
+# 					try:
+# 						group = Group.objects.create(topic=topic, rules='', owner=user, private='1', unique=unique)
+# 						UserProfile.objects.filter(user=self.request.user).update(score=F('score')-500)
+# 						reply_list = []
+# 						seen_list = []
+# 						reply = Reply.objects.create(text=invitee, category='1', which_group_id=group.id, writer=user)
+# 						add_group_member(group.id, user.username)
+# 						add_group_invite(target_id, group.id,reply.id)
+# 						add_user_group(user.id, group.id)
+# 						self.request.session["unique_id"] = unique
+# 						self.request.session.modified = True
+# 						return redirect("private_group_reply")#, slug=unique)
+# 					except:
+# 						if photo_id is not None:
+# 							redirect("comment_pk", pk=photo_id)
+# 						else:
+# 							return redirect("profile",slug=self.request.user.username)
+# 			else:
+# 				if slug and origin and photo_id:
+# 					return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
+# 				elif photo_id and origin:
+# 					return redirect("comment_pk", pk=photo_id, origin=origin)
+# 				else:
+# 					return redirect("home")
 
 @csrf_protect
 @ratelimit(rate='3/s')

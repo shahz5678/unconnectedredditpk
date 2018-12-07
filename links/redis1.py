@@ -3,6 +3,7 @@ import redis, time
 from multiprocessing import Pool
 from random import randint, random
 from location import REDLOC1
+from redis2 import remove_group_notification, remove_group_object
 from score import VOTE_TEXT
 from home_post_rating_algos import recency_and_length_score
 from html_injector import pinkstar_formatting, category_formatting, device_formatting, scr_formatting, \
@@ -1274,6 +1275,51 @@ def set_latest_group_reply(group_id, reply_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.setex("lgr:"+str(group_id),reply_id,TWO_WEEKS)
 	
+
+def bulk_remove_latest_group_replies(group_ids,my_server=None):
+	"""
+	Removing latest group replies (LEGACY - DEPRECATE LATER)
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_ids:
+		pipeline1.delete("lgr:"+group_id)
+	pipeline1.execute()
+	
+
+def bulk_remove_old_group_invites(grp_ids_and_members, my_server=None):
+	"""
+	Removing group invites a user receieved historically (LEGACY - DEPRECATE LATER)
+	"""
+	if grp_ids_and_members:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		for group_id, member_ids in grp_ids_and_members.iteritems():
+			pipeline1 = my_server.pipeline()
+			for member_id in member_ids:
+				pipeline1.zscore('ipg:'+member_id,group_id)
+			result1 = pipeline1.execute()
+			counter = 0
+			pipeline2 = my_server.pipeline()
+			for member_id in member_ids:
+				if result1[counter]:
+					pipeline2.zrem('ipg:'+member_id,group_id)
+				counter += 1
+			pipeline2.execute()
+
+
+def cleanse_public_and_private_groups_data(grp_ids_and_members):
+	"""
+	Deleting group data (LEGACY - DEPRECATE LATER)
+	"""
+	if grp_ids_and_members:
+		my_server = redis.Redis(connection_pool=POOL)
+		for group_id, member_ids in grp_ids_and_members.iteritems():
+			my_server.delete("pgm:"+group_id)#removes pgm:
+			bulk_remove_user_group(member_ids, group_id, return_member_ids=False, my_server=my_server)#removes ug:
+		bulk_remove_old_group_invites(grp_ids_and_members, my_server)#removing from ipg: (store of group ids user has already been invited to)
+		bulk_remove_latest_group_replies(grp_ids_and_members.keys(),my_server)# removing lgr: (used to show the mehfil in group_list)
+
+
 def voted_for_link(link_id, username):
 	my_server = redis.Redis(connection_pool=POOL)
 	sorted_set = "v:"+str(link_id)
@@ -1447,15 +1493,14 @@ def bulk_check_group_membership(user_ids_list,group_id):
 	pipeline1 = my_server.pipeline()
 	non_member_ids = []
 	for user_id in user_ids_list:
-		set_name = "ug:"+str(user_id) #ug is user's groups
-		pipeline1.sismember(set_name,group_id)
+		pipeline1.sismember("ug:"+str(user_id),group_id)
 	result_list = pipeline1.execute()
 	count = 0
 	for result in result_list:
 		if not result:
 			non_member_ids.append(user_ids_list[count])
 		count += 1
-	return non_member_ids
+	return non_member_ids	
 
 def bulk_sanitize_group_invite_and_membership(user_ids_list):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1472,20 +1517,46 @@ def remove_user_group(user_id, group_id):
 	set_name = "ug:"+str(user_id) #ug is user's groups
 	my_server.srem("ug:"+str(user_id), group_id)
 
+def bulk_remove_user_group(user_ids, group_id, return_member_ids=False, my_server=None):
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if return_member_ids:
+		removed_ids = []
+		if len(user_ids) > 4:
+			pipeline1 = my_server.pipeline()
+			for user_id in user_ids:
+				pipeline1.srem("ug:"+str(user_id), group_id)
+			result1 = pipeline1.execute()
+			counter = 0
+			for user_id in user_ids:
+				if result1[counter] > 0:
+					removed_ids.append(user_id)
+				counter += 1
+		else:
+			removed_ids = []
+			for user_id in user_ids:
+				removed = my_server.srem("ug:"+str(user_id), group_id)
+				if removed > 0:
+					removed_ids.append(user_id)
+		return removed_ids
+	else:
+		if len(user_ids) > 4:
+			pipeline1 = my_server.pipeline()
+			for user_id in user_ids:
+				pipeline1.srem("ug:"+str(user_id), group_id)
+			pipeline1.execute()
+		else:
+			for user_id in user_ids:
+				my_server.srem("ug:"+str(user_id), group_id)
+
 def get_user_groups(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ug:"+str(user_id) #ug is user's groups
-	return my_server.smembers(set_name)
+	return redis.Redis(connection_pool=POOL).smembers("ug:"+str(user_id))
 
 def add_user_group(user_id, group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ug:"+str(user_id) #ug is user's groups
-	my_server.sadd(set_name, group_id)
+	redis.Redis(connection_pool=POOL).sadd("ug:"+str(user_id), group_id)
 
 def get_active_invites(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
-	return my_server.smembers(unsorted_set)
+	#pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or 'X' is pressed
+	return redis.Redis(connection_pool=POOL).smembers("pir:"+str(user_id))
 
 def remove_group_invite(user_id, group_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1529,8 +1600,11 @@ def check_group_invite(user_id, group_id):
 		return True
 
 def add_group_invite(user_id, group_id, invite_id):
+	"""
+	This stores the group_id a user has already been invited to - limited to 100 invites
+	"""
+	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group'
 	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ipg:"+str(user_id) #ipg is 'invited private/public group' - this stores the group_id a user has already been invited to - limited to 100 invites
 	already_exists = my_server.zscore(sorted_set, group_id)
 	if not already_exists:
 		unsorted_set = "pir:"+str(user_id) #pir is 'private/public invite reply' - stores every 'active' invite_id - deleted if reply seen or X is pressed
@@ -1565,9 +1639,7 @@ def remove_group_for_all_members(group_id, member_ids):
 	pipeline1.execute()
 
 def remove_latest_group_reply(group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.delete("lgr:"+str(group_id))
-
+	redis.Redis(connection_pool=POOL).delete("lgr:"+str(group_id))
 
 def remove_all_group_members(group_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1586,6 +1658,28 @@ def remove_group_member(group_id, username):
 	else:
 		pass
 	return my_server.scard(set_name)
+
+def remove_group_members(group_id, usernames):
+	"""
+	Bulk removes group members
+	"""
+	redis.Redis(connection_pool=POOL).srem("pgm:"+str(group_id),*usernames)#pgm is private/public_group_members
+
+def legacy_mehfil_exit(group_id, user_id, username, group_type='public'):
+	"""
+	Legacy function used when group member exits a group (LEGACY - DEPRECATE LATER)
+	"""
+	if group_type == 'public':
+		remove_group_member(group_id, username)#redis 1 legacy (remove later)
+		remove_user_group(user_id, group_id)#redis 1 legacy (remove later)
+		remove_group_notification(user_id,group_id)#redis 2
+	elif group_type == 'private':
+		memcount = remove_group_member(group_id, username) #group membership is truncated from pgm:group_id (redis 1)
+		remove_user_group(user_id, group_id) #user's groups are truncated from ug:user_id (redis 1)
+		remove_group_notification(user_id,group_id) #group removed from user's notifications (redis 2)
+		if memcount < 1:
+			remove_group_object(group_id) # group's object removed from notifications (redis 2)
+
 
 def add_group_member(group_id, username):
 	my_server = redis.Redis(connection_pool=POOL)

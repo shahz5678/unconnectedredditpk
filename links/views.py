@@ -221,28 +221,28 @@ def spammer_punishment_text(user_id):
 		return None
 
 def get_price(points):
-    """
-    Determines price of anything, in accordance to how many points a user has
+	"""
+	Determines price of anything, in accordance to how many points a user has
 
-    Every user can be taxed a different amount via this mechanism
-    """
-    if points < 500:
-        price = 400#we over-tax sybils
-    elif 500 <= points < 10001:
-        x=((((20**(1/2.0))-2)*points)/9880)+1.96997405723 #scaling x between 2 and sqrt(20)
-        base = x**2 #squaring x
-        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-    elif 10001 <= points < 500001:
-        sqrt1 = 20**(1/2.0)
-        sqrt2 = 70**(1/2.0)
-        numerator = sqrt2 - sqrt1
-        x=((numerator*points)/490000)+4.39265709152 #scaling between sqrt(20) and sqrt(70)
-        base = x**2 #squaring x
-        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-    else:
-        base = 71
-        price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
-    return int(price)
+	Every user can be taxed a different amount via this mechanism
+	"""
+	if points < 500:
+		price = 400#we over-tax sybils
+	elif 500 <= points < 10001:
+		x=((((20**(1/2.0))-2)*points)/9880)+1.96997405723 #scaling x between 2 and sqrt(20)
+		base = x**2 #squaring x
+		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+	elif 10001 <= points < 500001:
+		sqrt1 = 20**(1/2.0)
+		sqrt2 = 70**(1/2.0)
+		numerator = sqrt2 - sqrt1
+		x=((numerator*points)/490000)+4.39265709152 #scaling between sqrt(20) and sqrt(70)
+		base = x**2 #squaring x
+		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+	else:
+		base = 71
+		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
+	return int(price)
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -633,14 +633,14 @@ class RegisterHelpView(FormView):
 @sensitive_post_parameters()
 @csrf_protect
 def logout_rules(request):
-    user_id = request.user.id
-    if request.mobile_verified:
-        if request.method == "POST":
-            return render(request,"logout/logout_rules.html",{})
-        else:
-            return render(request,"logout/logout_tutorial.html",{})
-    else:
-        return render(request, 'cant_logout_without_verifying.html', {'logout':True})
+	user_id = request.user.id
+	if request.mobile_verified:
+		if request.method == "POST":
+			return render(request,"logout/logout_rules.html",{})
+		else:
+			return render(request,"logout/logout_tutorial.html",{})
+	else:
+		return render(request, 'cant_logout_without_verifying.html', {'logout':True})
 
 
 class LogoutPenaltyView(FormView):
@@ -1550,36 +1550,36 @@ class LinkUpdateView(UpdateView):
 	form_class = LinkForm
 
 class OnlineKonView(ListView):
-    # model = Session
-    template_name = "online_kon.html"
-    paginate_by = 100
+	# model = Session
+	template_name = "online_kon.html"
+	paginate_by = 100
 
-    def get_queryset(self):
-        user_ids = get_most_recent_online_users()#cache_mem.get('online')
-        if user_ids:
-            queryset = User.objects.filter(id__in=user_ids).values('username', 'userprofile__score', 'userprofile__avatar')
-            return queryset
-        else:
-            return []
+	def get_queryset(self):
+		user_ids = get_most_recent_online_users()#cache_mem.get('online')
+		if user_ids:
+			queryset = User.objects.filter(id__in=user_ids).values('username', 'userprofile__score', 'userprofile__avatar')
+			return queryset
+		else:
+			return []
 
-    def get_context_data(self, **kwargs):
-        context = super(OnlineKonView, self).get_context_data(**kwargs)
-        context["with_thumbs"] = False
-        if self.request.user.is_authenticated():
-            if not context["object_list"]:
-                context["whose_online"] = False
-            else:
-                context["whose_online"] = True
-            context["legit"] = FEMALES
-            context["show_locked_search"] = (not is_uname_search_unlocked(self.request.user.id)) and \
-            (self.request.user.userprofile.score > SEARCH_FEATURE_THRESHOLD)
-            if self.request.is_feature_phone:
-                on_feature_phone = True
-            on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-            if not on_fbs:
-                context["object_list"] = retrieve_thumbs(context["object_list"])
-                context["with_thumbs"] = True
-        return context
+	def get_context_data(self, **kwargs):
+		context = super(OnlineKonView, self).get_context_data(**kwargs)
+		context["with_thumbs"] = False
+		if self.request.user.is_authenticated():
+			if not context["object_list"]:
+				context["whose_online"] = False
+			else:
+				context["whose_online"] = True
+			context["legit"] = FEMALES
+			context["show_locked_search"] = (not is_uname_search_unlocked(self.request.user.id)) and \
+			(self.request.user.userprofile.score > SEARCH_FEATURE_THRESHOLD)
+			if self.request.is_feature_phone:
+				on_feature_phone = True
+			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+			if not on_fbs:
+				context["object_list"] = retrieve_thumbs(context["object_list"])
+				context["with_thumbs"] = True
+		return context
 
 class WhoseOnlineView(FormView):
 	form_class = WhoseOnlineForm
@@ -2258,57 +2258,57 @@ class InternalSalatInviteView(ListView):
 @sensitive_post_parameters()
 @csrf_protect
 def reset_password(request,*args,**kwargs):
-    if request.method == 'POST':
-        form = ResetPasswordForm(data=request.POST,request=request)
-        if form.is_valid():
-            form.save()
-            password = request.POST.get("password")
-            request.session.pop("authentic_password_owner", None)
-            request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
-            return render(request,'change_password/new_password.html',{'new_pass':password})
-        else:
-            allowed = request.session.get('authentic_password_owner',None)
-            if allowed == '1':
-                context={'form':form,'allowed':True}
-            else:
-                context={'form':form,'allowed':None}
-            return render(request,'change_password/reset_password.html',context)    
-    else:
-        form = ResetPasswordForm()
-        try:
-            allowed = request.session.get('authentic_password_owner',None)
-            if allowed == '1':
-                #can press forward, user is 'allowed'
-                return render(request,'change_password/reset_password.html',{'form':form,'allowed':True})
-            else:
-                #send back for reauth
-                return redirect("reauth")
-        except:
-            #send back for reauth
-            return redirect("reauth")
+	if request.method == 'POST':
+		form = ResetPasswordForm(data=request.POST,request=request)
+		if form.is_valid():
+			form.save()
+			password = request.POST.get("password")
+			request.session.pop("authentic_password_owner", None)
+			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+			return render(request,'change_password/new_password.html',{'new_pass':password})
+		else:
+			allowed = request.session.get('authentic_password_owner',None)
+			if allowed == '1':
+				context={'form':form,'allowed':True}
+			else:
+				context={'form':form,'allowed':None}
+			return render(request,'change_password/reset_password.html',context)    
+	else:
+		form = ResetPasswordForm()
+		try:
+			allowed = request.session.get('authentic_password_owner',None)
+			if allowed == '1':
+				#can press forward, user is 'allowed'
+				return render(request,'change_password/reset_password.html',{'form':form,'allowed':True})
+			else:
+				#send back for reauth
+				return redirect("reauth")
+		except:
+			#send back for reauth
+			return redirect("reauth")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 @ratelimit(method='POST', rate='25/h')
 def reauth(request, *args, **kwargs):
-    was_limited = getattr(request, 'limits', False)
-    if was_limited:
-        return render(request, 'change_password/penalty_reauth.html', {'pk':'pk'})
-    else:
-        user_id = request.user.id
-        if tutorial_unseen(user_id=user_id, which_tut='27', renew_lease=True):
-            return render(request, 'change_password/password_change_tutorial.html', {'username':retrieve_uname(user_id,decode=True)})
-        else:
-            if request.method == 'POST':
-                form = ReauthForm(data=request.POST,request=request)
-                if form.is_valid():
-                    request.session['authentic_password_owner'] = '1'
-                    request.session.modified = True
-                    return redirect("reset_password")
-                else:
-                    return render(request, 'change_password/reauth.html', {'form':form})
-            else:
-                return render(request, 'change_password/reauth.html', {'form':ReauthForm()})
+	was_limited = getattr(request, 'limits', False)
+	if was_limited:
+		return render(request, 'change_password/penalty_reauth.html', {'pk':'pk'})
+	else:
+		user_id = request.user.id
+		if tutorial_unseen(user_id=user_id, which_tut='27', renew_lease=True):
+			return render(request, 'change_password/password_change_tutorial.html', {'username':retrieve_uname(user_id,decode=True)})
+		else:
+			if request.method == 'POST':
+				form = ReauthForm(data=request.POST,request=request)
+				if form.is_valid():
+					request.session['authentic_password_owner'] = '1'
+					request.session.modified = True
+					return redirect("reset_password")
+				else:
+					return render(request, 'change_password/reauth.html', {'form':form})
+			else:
+				return render(request, 'change_password/reauth.html', {'form':ReauthForm()})
 
 class VerifiedView(ListView):
 	model = User
@@ -6452,10 +6452,19 @@ def manage_user_help(request,*args,**kwargs):
 # 	return render(request,'404.html',{})
 
 def missing_page(request,*args,**kwargs):
-    """
-    Responsible for giving a 404 HTTP Response
-    """
-    raise Http404("The page you requested has gone AWOL")
+	"""
+	Responsible for giving a 404 HTTP Response
+	"""
+	raise Http404("The page you requested has gone AWOL")
+
+
+def error(request):
+	"""
+	Displays error to hell-banned profiles
+
+	TODO: Provide a more descriptive message
+	"""
+	return render(request,"500.html",{})
 
 # def LinkAutoCreate(user, content):   
 # 	link = Link()
